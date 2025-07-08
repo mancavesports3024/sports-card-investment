@@ -69,17 +69,14 @@ function App() {
     }));
   };
 
-  const getAuthHeaders = useCallback(() => {
-    const token = localStorage.getItem('jwt');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  }, []);
-
   useEffect(() => {
     const loadSearchHistory = async () => {
       setHistoryLoading(true);
       try {
+        const token = localStorage.getItem('jwt');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
         const response = await axios.get(config.getSearchHistoryUrl(), {
-          headers: getAuthHeaders(),
+          headers,
         });
         setSearchHistory(response.data.searches || []);
       } catch (err) {
@@ -89,12 +86,14 @@ function App() {
       }
     };
     loadSearchHistory();
-  }, [getAuthHeaders]);
+  }, []);
 
   const deleteSearch = async (searchId) => {
     try {
+      const token = localStorage.getItem('jwt');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
       await axios.delete(config.getDeleteSearchUrl(searchId), {
-        headers: getAuthHeaders(),
+        headers,
       });
       setSearchHistory(prev => prev.filter(search => search.id !== searchId));
       window.location.reload();
@@ -106,8 +105,10 @@ function App() {
   const clearAllHistory = async () => {
     if (window.confirm('Are you sure you want to clear all search history?')) {
       try {
+        const token = localStorage.getItem('jwt');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
         await axios.delete(config.getClearHistoryUrl(), {
-          headers: getAuthHeaders(),
+          headers,
         });
         setSearchHistory([]);
         window.location.reload();
@@ -120,10 +121,12 @@ function App() {
   // Save search (after search completes)
   const saveSearch = async (searchQuery, results, priceAnalysis) => {
     try {
+      const token = localStorage.getItem('jwt');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
       await axios.post(
         config.getSearchHistoryUrl(),
         { searchQuery, results, priceAnalysis },
-        { headers: getAuthHeaders() }
+        { headers }
       );
     } catch (err) {
       console.error('Failed to save search:', err);
@@ -138,10 +141,12 @@ function App() {
     setResults(null);
 
     try {
+      const token = localStorage.getItem('jwt');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const response = await axios.post(config.getSearchCardsUrl(), {
         ...formData,
         numSales: 25
-      });
+      }, { headers });
       setResults(response.data);
       // Save search for user
       await saveSearch(formData.searchQuery, response.data.results, response.data.priceAnalysis);
@@ -161,8 +166,10 @@ function App() {
     const loadSearchHistory = async () => {
       setHistoryLoading(true);
       try {
+        const token = localStorage.getItem('jwt');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
         const response = await axios.get(config.getSearchHistoryUrl(), {
-          headers: getAuthHeaders(),
+          headers,
         });
         setSearchHistory(response.data.searches || []);
       } catch (err) {
@@ -223,6 +230,8 @@ function App() {
     setLiveListingsCategory(category);
     setShowLiveListingsOnly(true);
     try {
+      const token = localStorage.getItem('jwt');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const response = await axios.get(
         `${config.API_BASE_URL}/api/live-listings`,
         {
@@ -230,6 +239,7 @@ function App() {
             query: formData.searchQuery,
             grade: category === 'raw' ? 'Raw' : category === 'psa9' ? 'PSA 9' : 'PSA 10',
           },
+          headers,
         }
       );
       setLiveListings(response.data.items || []);
