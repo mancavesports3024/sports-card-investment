@@ -1,0 +1,542 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+import './App.css';
+import config from './config';
+
+function App() {
+  const [formData, setFormData] = useState({
+    searchQuery: ''
+  });
+  
+  const [results, setResults] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [searchHistory, setSearchHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setResults(null);
+
+    try {
+      const response = await axios.post(config.getSearchCardsUrl(), {
+        ...formData,
+        numSales: 25
+      });
+      setResults(response.data);
+      
+      // Refresh search history after successful search
+      loadSearchHistory();
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Failed to fetch card data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadSearchHistory = async () => {
+    setHistoryLoading(true);
+    try {
+      const response = await axios.get(config.getSearchHistoryUrl());
+      setSearchHistory(response.data.searches || []);
+    } catch (err) {
+      console.error('Failed to load search history:', err);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const deleteSearch = async (searchId) => {
+    try {
+      await axios.delete(config.getDeleteSearchUrl(searchId));
+      setSearchHistory(prev => prev.filter(search => search.id !== searchId));
+    } catch (err) {
+      console.error('Failed to delete search:', err);
+    }
+  };
+
+  const clearAllHistory = async () => {
+    if (window.confirm('Are you sure you want to clear all search history?')) {
+      try {
+        await axios.delete(config.getClearHistoryUrl());
+        setSearchHistory([]);
+      } catch (err) {
+        console.error('Failed to clear search history:', err);
+      }
+    }
+  };
+
+  // Load search history on component mount
+  React.useEffect(() => {
+    loadSearchHistory();
+  }, []);
+
+  const formatPrice = (price) => {
+    if (!price || !price.value) return 'N/A';
+    return `$${parseFloat(price.value).toFixed(2)} ${price.currency || 'USD'}`;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    
+    // Check if it's a recent date (within last 30 days)
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) {
+      return 'Yesterday';
+    } else if (diffDays <= 7) {
+      return `${diffDays} days ago`;
+    } else if (diffDays <= 30) {
+      return `${diffDays} days ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
+  const formatSaleType = (saleType) => {
+    if (!saleType) return 'Unknown';
+    // Handle different eBay listing types
+    const type = saleType.toLowerCase();
+    if (type === 'auction') return 'Auction';
+    if (type === 'fixed_price') return 'Buy It Now';
+    if (type === 'classified') return 'Classified';
+    return saleType.charAt(0).toUpperCase() + saleType.slice(1).toLowerCase();
+  };
+
+  const formatBidInfo = (card) => {
+    if (!card.saleType) return 'Unknown';
+    const type = card.saleType.toLowerCase();
+    
+    if (type === 'auction') {
+      // Check for bid count in auction object or legacy bidCount field
+      const bidCount = card.auction?.bidCount || card.bidCount || 0;
+      return bidCount > 0 ? `${bidCount} bids` : 'Auction (no bids)';
+    }
+    
+    if (type === 'fixed_price') return 'Buy It Now';
+    return 'Unknown';
+  };
+
+  const calculateAveragePrice = (cards) => {
+    if (!cards || cards.length === 0) return null;
+    
+    const validPrices = cards
+      .filter(card => card.price && card.price.value)
+      .map(card => parseFloat(card.price.value));
+    
+    if (validPrices.length === 0) return null;
+    
+    const average = validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length;
+    return average.toFixed(2);
+  };
+
+  const categorizeCards = (cards) => {
+    if (!cards || cards.length === 0) return { raw: [], psa9: [], psa10: [] };
+    
+    const raw = [];
+    const psa9 = [];
+    const psa10 = [];
+    
+    cards.forEach(card => {
+      const title = card.title?.toLowerCase() || '';
+      const condition = card.condition?.toLowerCase() || '';
+      
+      // Skip cards with "Pick" or "Complete" in the title
+      if (title.includes('pick') || title.includes('complete')) {
+        return;
+      }
+      
+      if (title.includes('psa 10') || title.includes('psa10')) {
+        psa10.push(card);
+      } else if (title.includes('psa 9') || title.includes('psa9')) {
+        psa9.push(card);
+      } else {
+        // Check for grading indicators to exclude from raw
+        const hasPSAGrade = /\bpsa\s*\d+\b/i.test(title);
+        const hasBGSGrade = /\bbgs\s*\d+\b/i.test(title);
+        const hasSGCGrade = /\bsgc\s*\d+\b/i.test(title);
+        const hasCGCGrade = /\bcgc\s*\d+\b/i.test(title);
+        const hasBeckettGrade = /\bbeckett\s*\d+\b/i.test(title);
+        const hasValutata = title.includes('valutata'); // Italian for "graded"
+        
+        // Check condition field for grading indicators
+        const isConditionGraded = condition.includes('graded') && !condition.includes('ungraded');
+        const isConditionValutata = condition.includes('valutata'); // Italian for "graded" in condition
+        
+        // Only add to raw if it's not graded
+        if (!hasPSAGrade && !hasBGSGrade && !hasSGCGrade && !hasCGCGrade && !hasBeckettGrade && !hasValutata && !isConditionGraded && !isConditionValutata) {
+          raw.push(card);
+        }
+      }
+    });
+    
+    return { raw, psa9, psa10 };
+  };
+
+  const CardResults = ({ title, cards, type }) => (
+    <div className="card-section">
+      <h3>{title}</h3>
+      {cards && cards.length > 0 ? (
+        <div className="cards-grid">
+          {cards.map((card, index) => (
+            <div key={`${type}-${index}`} className="card-item">
+              <div className="card-details">
+                <h4 className="card-title">{card.title}</h4>
+                <p className="card-price">{formatPrice(card.price)}</p>
+                <div className="card-info-grid">
+                  <p className="card-date">Sold: {formatDate(card.soldDate)}</p>
+                  <p className="card-bids">{formatBidInfo(card)}</p>
+                  <p className="card-seller">Seller: {card.seller || 'N/A'}</p>
+                  <p className="card-condition">Condition: {card.condition || 'Unknown'}</p>
+                  {card.auction && card.auction.startingPrice && (
+                    <p className="card-starting-price">Started: ${card.auction.startingPrice}</p>
+                  )}
+                  {card.price && card.price.priceType && (
+                    <p className="card-price-type">Type: {card.price.priceType === 'final_bid' ? 'Auction' : 'Buy It Now'}</p>
+                  )}
+                </div>
+                {card.itemWebUrl && (
+                  <div className="ebay-link-container">
+                    <a href={card.itemWebUrl} target="_blank" rel="noopener noreferrer" className="ebay-link">
+                      View on eBay
+                    </a>
+                    <small className="url-note">
+                      Note: eBay URLs may redirect to similar items
+                    </small>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="no-results">No {type} cards found</p>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="App">
+      <header className="App-header">
+        <h1>🏈 Sports Card Sales Tracker</h1>
+        <p>Search for recent eBay sales of sports cards</p>
+      </header>
+
+      <main className="App-main">
+        <form onSubmit={handleSubmit} className="search-form">
+          <div className="form-group">
+            <label htmlFor="searchQuery">Search Cards *</label>
+            <input
+              type="text"
+              id="searchQuery"
+              name="searchQuery"
+              value={formData.searchQuery}
+              onChange={handleInputChange}
+              placeholder="e.g., Mike Trout 2011 Topps Update Rookie"
+              required
+            />
+          </div>
+
+          <button type="submit" disabled={loading} className="search-button">
+            {loading ? 'Searching...' : 'Search Cards'}
+          </button>
+        </form>
+
+        {/* Search History Section */}
+        <div className="search-history-section">
+          <div className="history-header">
+            <h3>📚 Search History</h3>
+            <div className="history-controls">
+              <button 
+                onClick={() => setShowHistory(!showHistory)} 
+                className="toggle-history-btn"
+              >
+                {showHistory ? 'Hide' : 'Show'} History
+              </button>
+              {showHistory && searchHistory.length > 0 && (
+                <button 
+                  onClick={clearAllHistory} 
+                  className="clear-history-btn"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
+          </div>
+          
+          {showHistory && (
+            <div className="search-history">
+              {historyLoading ? (
+                <p>Loading search history...</p>
+              ) : searchHistory.length === 0 ? (
+                <p>No saved searches yet. Your searches will be automatically saved here.</p>
+              ) : (
+                <div className="history-list">
+                  {searchHistory.map((search) => (
+                    <div key={search.id} className="history-item">
+                      <div className="history-content">
+                        <h4>{search.query}</h4>
+                        <div className="history-details">
+                          <span className="history-date">
+                            {new Date(search.timestamp).toLocaleDateString()} at {new Date(search.timestamp).toLocaleTimeString()}
+                          </span>
+                          <span className="history-results">
+                            {search.results.totalCards} cards found
+                            {search.results.raw > 0 && ` (${search.results.raw} Raw, ${search.results.psa9} PSA 9, ${search.results.psa10} PSA 10)`}
+                          </span>
+                        </div>
+                        {search.priceAnalysis && (
+                          <div className="history-prices">
+                            <span>Raw: ${search.priceAnalysis.raw?.avgPrice?.toFixed(2) || 'N/A'}</span>
+                            <span>PSA 9: ${search.priceAnalysis.psa9?.avgPrice?.toFixed(2) || 'N/A'}</span>
+                            <span>PSA 10: ${search.priceAnalysis.psa10?.avgPrice?.toFixed(2) || 'N/A'}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="history-actions">
+                        <button 
+                          onClick={() => {
+                            setFormData({ searchQuery: search.query });
+                            setShowHistory(false);
+                          }}
+                          className="reuse-search-btn"
+                        >
+                          Reuse
+                        </button>
+                        <button 
+                          onClick={() => deleteSearch(search.id)}
+                          className="delete-search-btn"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {error && (
+          <div className="error-message">
+            <h3>Error</h3>
+            <p>{error}</p>
+          </div>
+        )}
+
+        {results && (
+          <div className="results-section">
+            <h2>Search Results</h2>
+            <div className="search-summary">
+              <p>
+                Found results for: <strong>{results.searchParams.searchQuery}</strong>
+              </p>
+              
+              {/* Price Analysis Section */}
+              {results.priceAnalysis && (
+                <div className="price-analysis-section">
+                  <h3>📊 Price Analysis</h3>
+                  
+                  {/* Summary Cards */}
+                  <div className="price-summary">
+                    <div className="price-card">
+                      <h4>Raw Cards</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.raw.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.raw.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.raw.minPrice.toFixed(2)} - ${results.priceAnalysis.raw.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.raw.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.raw.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.raw.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.raw.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.raw.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="price-card">
+                      <h4>PSA 9</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.psa9.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.psa9.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.psa9.minPrice.toFixed(2)} - ${results.priceAnalysis.psa9.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.psa9.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.psa9.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.psa9.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.psa9.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.psa9.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="price-card">
+                      <h4>PSA 10</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.psa10.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.psa10.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.psa10.minPrice.toFixed(2)} - ${results.priceAnalysis.psa10.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.psa10.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.psa10.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.psa10.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.psa10.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.psa10.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price Comparisons */}
+                  <div className="price-comparisons">
+                    <h4>💰 Price Comparisons</h4>
+                    <div className="comparison-grid">
+                      {results.priceAnalysis.comparisons.rawToPsa9 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">Raw → PSA 9</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.rawToPsa9.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.rawToPsa9.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.rawToPsa9.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 9 premium over raw
+                          </div>
+                        </div>
+                      )}
+
+                      {results.priceAnalysis.comparisons.rawToPsa10 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">Raw → PSA 10</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.rawToPsa10.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.rawToPsa10.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.rawToPsa10.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 10 premium over raw
+                          </div>
+                        </div>
+                      )}
+
+                      {results.priceAnalysis.comparisons.psa9ToPsa10 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">PSA 9 → PSA 10</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.psa9ToPsa10.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 10 premium over PSA 9
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Investment Insights */}
+                  <div className="investment-insights">
+                    <h4>💡 Investment Insights</h4>
+                    <div className="insights-grid">
+                      {results.priceAnalysis.raw.avgPrice > 0 && results.priceAnalysis.psa9.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">📈</div>
+                          <div className="insight-content">
+                            <strong>PSA 9 Value:</strong> {results.priceAnalysis.comparisons.rawToPsa9 ? 
+                              `${results.priceAnalysis.comparisons.rawToPsa9.percentDiff.toFixed(0)}x more than raw` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.priceAnalysis.raw.avgPrice > 0 && results.priceAnalysis.psa10.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">🚀</div>
+                          <div className="insight-content">
+                            <strong>PSA 10 Value:</strong> {results.priceAnalysis.comparisons.rawToPsa10 ? 
+                              `${results.priceAnalysis.comparisons.rawToPsa10.percentDiff.toFixed(0)}x more than raw` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.priceAnalysis.psa9.avgPrice > 0 && results.priceAnalysis.psa10.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">💎</div>
+                          <div className="insight-content">
+                            <strong>Grade Jump:</strong> {results.priceAnalysis.comparisons.psa9ToPsa10 ? 
+                              `PSA 9 to 10 adds ${results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff.toFixed(0)}% value` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <CardResults title="Raw Cards" cards={results.results.raw} type="raw" />
+            <CardResults title="PSA 9 Cards" cards={results.results.psa9} type="psa9" />
+            <CardResults title="PSA 10 Cards" cards={results.results.psa10} type="psa10" />
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default App;
