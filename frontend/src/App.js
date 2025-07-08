@@ -151,6 +151,7 @@ function App() {
   };
 
   // Load search history on component mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     loadSearchHistory();
   }, []);
