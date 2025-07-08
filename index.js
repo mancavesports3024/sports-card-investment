@@ -27,6 +27,7 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/api/search-cards', require('./routes/searchCards').router);
 app.use('/api/search-history', require('./routes/searchHistory'));
+app.use('/api/live-listings', require('./routes/liveListings'));
 
 // Function to refresh eBay token automatically
 async function refreshEbayToken() {
