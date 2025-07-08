@@ -107,15 +107,7 @@ function App() {
     }
   };
 
-  const formatSaleType = (saleType) => {
-    if (!saleType) return 'Unknown';
-    // Handle different eBay listing types
-    const type = saleType.toLowerCase();
-    if (type === 'auction') return 'Auction';
-    if (type === 'fixed_price') return 'Buy It Now';
-    if (type === 'classified') return 'Classified';
-    return saleType.charAt(0).toUpperCase() + saleType.slice(1).toLowerCase();
-  };
+
 
   const formatBidInfo = (card) => {
     if (!card.saleType) return 'Unknown';
@@ -131,61 +123,9 @@ function App() {
     return 'Unknown';
   };
 
-  const calculateAveragePrice = (cards) => {
-    if (!cards || cards.length === 0) return null;
-    
-    const validPrices = cards
-      .filter(card => card.price && card.price.value)
-      .map(card => parseFloat(card.price.value));
-    
-    if (validPrices.length === 0) return null;
-    
-    const average = validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length;
-    return average.toFixed(2);
-  };
 
-  const categorizeCards = (cards) => {
-    if (!cards || cards.length === 0) return { raw: [], psa9: [], psa10: [] };
-    
-    const raw = [];
-    const psa9 = [];
-    const psa10 = [];
-    
-    cards.forEach(card => {
-      const title = card.title?.toLowerCase() || '';
-      const condition = card.condition?.toLowerCase() || '';
-      
-      // Skip cards with "Pick" or "Complete" in the title
-      if (title.includes('pick') || title.includes('complete')) {
-        return;
-      }
-      
-      if (title.includes('psa 10') || title.includes('psa10')) {
-        psa10.push(card);
-      } else if (title.includes('psa 9') || title.includes('psa9')) {
-        psa9.push(card);
-      } else {
-        // Check for grading indicators to exclude from raw
-        const hasPSAGrade = /\bpsa\s*\d+\b/i.test(title);
-        const hasBGSGrade = /\bbgs\s*\d+\b/i.test(title);
-        const hasSGCGrade = /\bsgc\s*\d+\b/i.test(title);
-        const hasCGCGrade = /\bcgc\s*\d+\b/i.test(title);
-        const hasBeckettGrade = /\bbeckett\s*\d+\b/i.test(title);
-        const hasValutata = title.includes('valutata'); // Italian for "graded"
-        
-        // Check condition field for grading indicators
-        const isConditionGraded = condition.includes('graded') && !condition.includes('ungraded');
-        const isConditionValutata = condition.includes('valutata'); // Italian for "graded" in condition
-        
-        // Only add to raw if it's not graded
-        if (!hasPSAGrade && !hasBGSGrade && !hasSGCGrade && !hasCGCGrade && !hasBeckettGrade && !hasValutata && !isConditionGraded && !isConditionValutata) {
-          raw.push(card);
-        }
-      }
-    });
-    
-    return { raw, psa9, psa10 };
-  };
+
+
 
   const CardResults = ({ title, cards, type }) => (
     <div className="card-section">
