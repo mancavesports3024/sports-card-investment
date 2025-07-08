@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './App.css';
 import config from './config';
-import { useEffect } from 'react';
 
 function App() {
   const [formData, setFormData] = useState({
