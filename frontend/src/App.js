@@ -70,6 +70,63 @@ function App() {
     }));
   };
 
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('jwt');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
+  const loadSearchHistory = async () => {
+    setHistoryLoading(true);
+    try {
+      const response = await axios.get(config.getSearchHistoryUrl(), {
+        headers: getAuthHeaders(),
+      });
+      setSearchHistory(response.data.searches || []);
+    } catch (err) {
+      console.error('Failed to load search history:', err);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const deleteSearch = async (searchId) => {
+    try {
+      await axios.delete(config.getDeleteSearchUrl(searchId), {
+        headers: getAuthHeaders(),
+      });
+      setSearchHistory(prev => prev.filter(search => search.id !== searchId));
+    } catch (err) {
+      console.error('Failed to delete search:', err);
+    }
+  };
+
+  const clearAllHistory = async () => {
+    if (window.confirm('Are you sure you want to clear all search history?')) {
+      try {
+        await axios.delete(config.getClearHistoryUrl(), {
+          headers: getAuthHeaders(),
+        });
+        setSearchHistory([]);
+      } catch (err) {
+        console.error('Failed to clear search history:', err);
+      }
+    }
+  };
+
+  // Save search (after search completes)
+  const saveSearch = async (searchQuery, results, priceAnalysis) => {
+    try {
+      await axios.post(
+        config.getSearchHistoryUrl(),
+        { searchQuery, results, priceAnalysis },
+        { headers: getAuthHeaders() }
+      );
+    } catch (err) {
+      console.error('Failed to save search:', err);
+    }
+  };
+
+  // Update handleSubmit to call saveSearch
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -82,45 +139,14 @@ function App() {
         numSales: 25
       });
       setResults(response.data);
-      
+      // Save search for user
+      await saveSearch(formData.searchQuery, response.data.results, response.data.priceAnalysis);
       // Refresh search history after successful search
       loadSearchHistory();
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Failed to fetch card data');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadSearchHistory = async () => {
-    setHistoryLoading(true);
-    try {
-      const response = await axios.get(config.getSearchHistoryUrl());
-      setSearchHistory(response.data.searches || []);
-    } catch (err) {
-      console.error('Failed to load search history:', err);
-    } finally {
-      setHistoryLoading(false);
-    }
-  };
-
-  const deleteSearch = async (searchId) => {
-    try {
-      await axios.delete(config.getDeleteSearchUrl(searchId));
-      setSearchHistory(prev => prev.filter(search => search.id !== searchId));
-    } catch (err) {
-      console.error('Failed to delete search:', err);
-    }
-  };
-
-  const clearAllHistory = async () => {
-    if (window.confirm('Are you sure you want to clear all search history?')) {
-      try {
-        await axios.delete(config.getClearHistoryUrl());
-        setSearchHistory([]);
-      } catch (err) {
-        console.error('Failed to clear search history:', err);
-      }
     }
   };
 
