@@ -69,10 +69,10 @@ function App() {
     }));
   };
 
-  const getAuthHeaders = () => {
+  const getAuthHeaders = useCallback(() => {
     const token = localStorage.getItem('jwt');
     return token ? { Authorization: `Bearer ${token}` } : {};
-  };
+  }, []);
 
   const loadSearchHistory = useCallback(async () => {
     setHistoryLoading(true);
@@ -86,7 +86,7 @@ function App() {
     } finally {
       setHistoryLoading(false);
     }
-  }, []);
+  }, [getAuthHeaders]);
 
   useEffect(() => {
     loadSearchHistory();
