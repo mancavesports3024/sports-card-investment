@@ -14,6 +14,10 @@ function App() {
   const [searchHistory, setSearchHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [liveListings, setLiveListings] = useState([]);
+  const [liveListingsLoading, setLiveListingsLoading] = useState(false);
+  const [liveListingsError, setLiveListingsError] = useState(null);
+  const [liveListingsCategory, setLiveListingsCategory] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -123,13 +127,41 @@ function App() {
     return 'Unknown';
   };
 
-
-
+  // Handler to fetch live listings
+  const handleViewLiveListings = async (category) => {
+    setLiveListingsLoading(true);
+    setLiveListingsError(null);
+    setLiveListings([]);
+    setLiveListingsCategory(category);
+    try {
+      const response = await axios.get(
+        `${config.API_BASE_URL}/api/live-listings`,
+        {
+          params: {
+            query: formData.searchQuery,
+            grade: category === 'raw' ? 'Raw' : category === 'psa9' ? 'PSA 9' : 'PSA 10',
+          },
+        }
+      );
+      setLiveListings(response.data.items || []);
+    } catch (err) {
+      setLiveListingsError(err.response?.data?.error || err.message || 'Failed to fetch live listings');
+    } finally {
+      setLiveListingsLoading(false);
+    }
+  };
 
 
   const CardResults = ({ title, cards, type }) => (
     <div className="card-section">
       <h3>{title}</h3>
+      <button
+        className="live-listings-btn"
+        onClick={() => handleViewLiveListings(type)}
+        disabled={liveListingsLoading && liveListingsCategory === type}
+      >
+        {liveListingsLoading && liveListingsCategory === type ? 'Loading...' : 'View Live Listings'}
+      </button>
       {cards && cards.length > 0 ? (
         <div className="cards-grid">
           {cards.map((card, index) => (
@@ -472,6 +504,36 @@ function App() {
             <CardResults title="Raw Cards" cards={results.results.raw} type="raw" />
             <CardResults title="PSA 9 Cards" cards={results.results.psa9} type="psa9" />
             <CardResults title="PSA 10 Cards" cards={results.results.psa10} type="psa10" />
+            {/* Live Listings Section */}
+            {liveListingsCategory && (
+              <div className="live-listings-section">
+                <h3>Live eBay Listings for {liveListingsCategory === 'raw' ? 'Raw' : liveListingsCategory === 'psa9' ? 'PSA 9' : 'PSA 10'}</h3>
+                {liveListingsLoading ? (
+                  <p>Loading live listings...</p>
+                ) : liveListingsError ? (
+                  <p className="error-message">{liveListingsError}</p>
+                ) : liveListings.length === 0 ? (
+                  <p>No live listings found.</p>
+                ) : (
+                  <div className="live-listings-grid">
+                    {liveListings.map((item, idx) => (
+                      <div key={item.itemId || idx} className="live-listing-card">
+                        <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer">
+                          <img src={item.image?.imageUrl} alt={item.title} className="live-listing-img" />
+                          <div className="live-listing-title">{item.title}</div>
+                        </a>
+                        <div className="live-listing-price">
+                          {item.price ? `$${item.price.value} ${item.price.currency}` : 'N/A'}
+                        </div>
+                        <div className="live-listing-location">
+                          {item.itemLocation?.city}, {item.itemLocation?.stateOrProvince}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </main>
