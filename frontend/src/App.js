@@ -3,11 +3,6 @@ import axios from 'axios';
 import './App.css';
 import config from './config';
 
-const getAuthHeaders = (() => {
-  // This will be replaced by the useCallback version in the component
-  return () => ({});
-})();
-
 function App() {
   const [formData, setFormData] = useState({
     searchQuery: ''
