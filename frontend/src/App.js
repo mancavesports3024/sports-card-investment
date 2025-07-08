@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './App.css';
 import config from './config';
@@ -75,7 +75,7 @@ function App() {
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
-  const loadSearchHistory = async () => {
+  const loadSearchHistory = useCallback(async () => {
     setHistoryLoading(true);
     try {
       const response = await axios.get(config.getSearchHistoryUrl(), {
@@ -87,7 +87,11 @@ function App() {
     } finally {
       setHistoryLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadSearchHistory();
+  }, [loadSearchHistory]);
 
   const deleteSearch = async (searchId) => {
     try {
