@@ -3,6 +3,8 @@ const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
 const session = require('express-session');
+const RedisStore = require('connect-redis').default;
+const { createClient } = require('redis');
 const passport = require('passport');
 
 const app = express();
@@ -15,7 +17,11 @@ let tokenRefreshTimer = null;
 // Middleware
 app.use(cors());
 app.use(express.json());
+const redisClient = createClient({ url: process.env.REDIS_URL });
+redisClient.connect().catch(console.error);
+
 app.use(session({
+  store: new RedisStore({ client: redisClient }),
   secret: process.env.SESSION_SECRET || 'dev_secret',
   resave: false,
   saveUninitialized: false,
