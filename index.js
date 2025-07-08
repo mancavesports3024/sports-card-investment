@@ -14,6 +14,16 @@ let tokenRefreshTimer = null;
 app.use(cors());
 app.use(express.json());
 
+// Health check endpoint for Railway
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Sports Card Tracker API is running',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
+
 // Routes
 app.use('/api/search-cards', require('./routes/searchCards').router);
 app.use('/api/search-history', require('./routes/searchHistory'));
