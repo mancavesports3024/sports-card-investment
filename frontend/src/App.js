@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './App.css';
 import config from './config';
+import { useEffect } from 'react';
 
 function App() {
   const [formData, setFormData] = useState({
@@ -19,6 +20,47 @@ function App() {
   const [liveListingsError, setLiveListingsError] = useState(null);
   const [liveListingsCategory, setLiveListingsCategory] = useState(null);
   const [showLiveListingsOnly, setShowLiveListingsOnly] = useState(false);
+  const [user, setUser] = useState(null);
+
+  // Check for JWT in localStorage on mount
+  useEffect(() => {
+    const token = localStorage.getItem('jwt');
+    if (token) {
+      // Optionally decode token for user info
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUser(payload);
+      } catch (e) {
+        setUser(null);
+      }
+    }
+  }, []);
+
+  // Handle /auth-success route
+  useEffect(() => {
+    if (window.location.pathname === '/auth-success') {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+      if (token) {
+        localStorage.setItem('jwt', token);
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          setUser(payload);
+        } catch (e) {
+          setUser(null);
+        }
+        // Redirect to home after storing token
+        window.location.replace('/');
+      }
+    }
+  }, []);
+
+  // Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem('jwt');
+    setUser(null);
+    window.location.reload();
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -215,6 +257,22 @@ function App() {
       <header className="App-header">
         <h1>🏈 Sports Card Sales Tracker</h1>
         <p>Search for recent eBay sales of sports cards</p>
+        {/* Google Login/Logout UI */}
+        <div className="auth-section">
+          {user ? (
+            <>
+              <span>Signed in as {user.displayName || user.email}</span>
+              <button onClick={handleLogout} className="logout-btn">Log out</button>
+            </>
+          ) : (
+            <a
+              href={`${config.API_BASE_URL}/api/auth/google`}
+              className="google-login-btn"
+            >
+              Log in with Google
+            </a>
+          )}
+        </div>
       </header>
 
       <main className="App-main">
