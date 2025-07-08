@@ -3,7 +3,8 @@ const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
 const session = require('express-session');
-const RedisStore = require('connect-redis').default;
+const connectRedis = require('connect-redis');
+const RedisStore = connectRedis.default || connectRedis;
 const { createClient } = require('redis');
 const passport = require('passport');
 
