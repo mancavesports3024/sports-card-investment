@@ -74,23 +74,22 @@ function App() {
     return token ? { Authorization: `Bearer ${token}` } : {};
   }, []);
 
-  const loadSearchHistory = useCallback(async () => {
-    setHistoryLoading(true);
-    try {
-      const response = await axios.get(config.getSearchHistoryUrl(), {
-        headers: getAuthHeaders(),
-      });
-      setSearchHistory(response.data.searches || []);
-    } catch (err) {
-      console.error('Failed to load search history:', err);
-    } finally {
-      setHistoryLoading(false);
-    }
-  }, [getAuthHeaders]);
-
   useEffect(() => {
+    const loadSearchHistory = async () => {
+      setHistoryLoading(true);
+      try {
+        const response = await axios.get(config.getSearchHistoryUrl(), {
+          headers: getAuthHeaders(),
+        });
+        setSearchHistory(response.data.searches || []);
+      } catch (err) {
+        console.error('Failed to load search history:', err);
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
     loadSearchHistory();
-  }, [loadSearchHistory]);
+  }, [getAuthHeaders]);
 
   const deleteSearch = async (searchId) => {
     try {
@@ -145,7 +144,7 @@ function App() {
       // Save search for user
       await saveSearch(formData.searchQuery, response.data.results, response.data.priceAnalysis);
       // Refresh search history after successful search
-      loadSearchHistory();
+      window.location.reload();
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Failed to fetch card data');
     } finally {
@@ -157,6 +156,19 @@ function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    const loadSearchHistory = async () => {
+      setHistoryLoading(true);
+      try {
+        const response = await axios.get(config.getSearchHistoryUrl(), {
+          headers: getAuthHeaders(),
+        });
+        setSearchHistory(response.data.searches || []);
+      } catch (err) {
+        console.error('Failed to load search history:', err);
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
     loadSearchHistory();
   }, []);
 
