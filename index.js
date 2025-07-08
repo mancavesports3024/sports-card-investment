@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
+const session = require('express-session');
+const passport = require('passport');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -13,6 +15,14 @@ let tokenRefreshTimer = null;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'dev_secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false }, // Set to true if using HTTPS
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Health check endpoint for Railway
 app.get('/', (req, res) => {
@@ -28,6 +38,7 @@ app.get('/', (req, res) => {
 app.use('/api/search-cards', require('./routes/searchCards').router);
 app.use('/api/search-history', require('./routes/searchHistory'));
 app.use('/api/live-listings', require('./routes/liveListings'));
+app.use('/api/auth', require('./routes/auth'));
 
 // Function to refresh eBay token automatically
 async function refreshEbayToken() {
