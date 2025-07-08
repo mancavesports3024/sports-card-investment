@@ -18,6 +18,7 @@ function App() {
   const [liveListingsLoading, setLiveListingsLoading] = useState(false);
   const [liveListingsError, setLiveListingsError] = useState(null);
   const [liveListingsCategory, setLiveListingsCategory] = useState(null);
+  const [showLiveListingsOnly, setShowLiveListingsOnly] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -133,6 +134,7 @@ function App() {
     setLiveListingsError(null);
     setLiveListings([]);
     setLiveListingsCategory(category);
+    setShowLiveListingsOnly(true);
     try {
       const response = await axios.get(
         `${config.API_BASE_URL}/api/live-listings`,
@@ -149,6 +151,13 @@ function App() {
     } finally {
       setLiveListingsLoading(false);
     }
+  };
+
+  const handleBackToSoldResults = () => {
+    setShowLiveListingsOnly(false);
+    setLiveListingsCategory(null);
+    setLiveListings([]);
+    setLiveListingsError(null);
   };
 
 
@@ -345,6 +354,13 @@ function App() {
                            results.priceAnalysis.raw.trend === 'down' ? 'Trending Down' : 'Stable'}
                         </span>
                       </div>
+                      <button
+                        className="live-listings-btn"
+                        onClick={() => handleViewLiveListings('raw')}
+                        disabled={liveListingsLoading && liveListingsCategory === 'raw'}
+                      >
+                        {liveListingsLoading && liveListingsCategory === 'raw' ? 'Loading...' : 'View Live Listings'}
+                      </button>
                     </div>
                     
                     <div className="price-card">
@@ -366,6 +382,13 @@ function App() {
                            results.priceAnalysis.psa9.trend === 'down' ? 'Trending Down' : 'Stable'}
                         </span>
                       </div>
+                      <button
+                        className="live-listings-btn"
+                        onClick={() => handleViewLiveListings('psa9')}
+                        disabled={liveListingsLoading && liveListingsCategory === 'psa9'}
+                      >
+                        {liveListingsLoading && liveListingsCategory === 'psa9' ? 'Loading...' : 'View Live Listings'}
+                      </button>
                     </div>
                     
                     <div className="price-card">
@@ -387,6 +410,13 @@ function App() {
                            results.priceAnalysis.psa10.trend === 'down' ? 'Trending Down' : 'Stable'}
                         </span>
                       </div>
+                      <button
+                        className="live-listings-btn"
+                        onClick={() => handleViewLiveListings('psa10')}
+                        disabled={liveListingsLoading && liveListingsCategory === 'psa10'}
+                      >
+                        {liveListingsLoading && liveListingsCategory === 'psa10' ? 'Loading...' : 'View Live Listings'}
+                      </button>
                     </div>
                   </div>
 
@@ -501,12 +531,20 @@ function App() {
               )}
             </div>
 
-            <CardResults title="Raw Cards" cards={results.results.raw} type="raw" />
-            <CardResults title="PSA 9 Cards" cards={results.results.psa9} type="psa9" />
-            <CardResults title="PSA 10 Cards" cards={results.results.psa10} type="psa10" />
+            {/* Show sold results only if not viewing live listings */}
+            {!showLiveListingsOnly && (
+              <>
+                <CardResults title="Raw Cards" cards={results.results.raw} type="raw" />
+                <CardResults title="PSA 9 Cards" cards={results.results.psa9} type="psa9" />
+                <CardResults title="PSA 10 Cards" cards={results.results.psa10} type="psa10" />
+              </>
+            )}
             {/* Live Listings Section */}
-            {liveListingsCategory && (
+            {showLiveListingsOnly && liveListingsCategory && (
               <div className="live-listings-section">
+                <button className="back-to-sold-btn" onClick={handleBackToSoldResults}>
+                  ← Back to Sold Results
+                </button>
                 <h3>Live eBay Listings for {liveListingsCategory === 'raw' ? 'Raw' : liveListingsCategory === 'psa9' ? 'PSA 9' : 'PSA 10'}</h3>
                 {liveListingsLoading ? (
                   <p>Loading live listings...</p>
