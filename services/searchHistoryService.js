@@ -68,6 +68,38 @@ async function addSearch(searchData) {
   }
 }
 
+// Add a new search to history for a user
+async function addSearchForUser(user, searchData) {
+  try {
+    const history = await loadSearchHistory();
+    const userId = user.id || user.email;
+    const newSearch = {
+      id: Date.now().toString(),
+      userId,
+      query: searchData.searchQuery,
+      timestamp: new Date().toISOString(),
+      results: {
+        totalCards: searchData.results?.raw?.length + searchData.results?.psa9?.length + searchData.results?.psa10?.length || 0,
+        raw: searchData.results?.raw?.length || 0,
+        psa9: searchData.results?.psa9?.length || 0,
+        psa10: searchData.results?.psa10?.length || 0
+      },
+      priceAnalysis: searchData.priceAnalysis || null
+    };
+    // Add to beginning of array (most recent first)
+    history.unshift(newSearch);
+    // Keep only last 50 searches per user
+    const filtered = history.filter(s => s.userId === userId).slice(0, 50);
+    const rest = history.filter(s => s.userId !== userId);
+    await saveSearchHistory([...filtered, ...rest]);
+    console.log(`💾 Saved search for user ${userId}: "${searchData.searchQuery}" (${newSearch.results.totalCards} cards found)`);
+    return newSearch;
+  } catch (error) {
+    console.error('❌ Error saving search:', error);
+    throw error;
+  }
+}
+
 // Get all saved searches
 async function getSearchHistory() {
   try {
@@ -79,11 +111,35 @@ async function getSearchHistory() {
   }
 }
 
+// Get all saved searches for a user
+async function getSearchHistoryForUser(user) {
+  try {
+    const history = await loadSearchHistory();
+    const userId = user.id || user.email;
+    return history.filter(s => s.userId === userId);
+  } catch (error) {
+    console.error('❌ Error loading search history:', error);
+    return [];
+  }
+}
+
 // Get a specific saved search by ID
 async function getSearchById(searchId) {
   try {
     const history = await loadSearchHistory();
     return history.find(search => search.id === searchId);
+  } catch (error) {
+    console.error('❌ Error getting search by ID:', error);
+    return null;
+  }
+}
+
+// Get a specific saved search by ID for a user
+async function getSearchByIdForUser(user, searchId) {
+  try {
+    const history = await loadSearchHistory();
+    const userId = user.id || user.email;
+    return history.find(s => s.id === searchId && s.userId === userId);
   } catch (error) {
     console.error('❌ Error getting search by ID:', error);
     return null;
@@ -105,6 +161,21 @@ async function deleteSearch(searchId) {
   }
 }
 
+// Delete a saved search for a user
+async function deleteSearchForUser(user, searchId) {
+  try {
+    const history = await loadSearchHistory();
+    const userId = user.id || user.email;
+    const filteredHistory = history.filter(s => !(s.id === searchId && s.userId === userId));
+    await saveSearchHistory(filteredHistory);
+    console.log(`🗑️ Deleted search ${searchId} for user ${userId}`);
+    return true;
+  } catch (error) {
+    console.error('❌ Error deleting search:', error);
+    return false;
+  }
+}
+
 // Clear all search history
 async function clearSearchHistory() {
   try {
@@ -117,7 +188,28 @@ async function clearSearchHistory() {
   }
 }
 
+// Clear all search history for a user
+async function clearSearchHistoryForUser(user) {
+  try {
+    const history = await loadSearchHistory();
+    const userId = user.id || user.email;
+    const filteredHistory = history.filter(s => s.userId !== userId);
+    await saveSearchHistory(filteredHistory);
+    console.log(`🗑️ Cleared all search history for user ${userId}`);
+    return true;
+  } catch (error) {
+    console.error('❌ Error clearing search history:', error);
+    return false;
+  }
+}
+
 module.exports = {
+  addSearchForUser,
+  getSearchHistoryForUser,
+  getSearchByIdForUser,
+  deleteSearchForUser,
+  clearSearchHistoryForUser,
+  // legacy exports (if needed elsewhere)
   addSearch,
   getSearchHistory,
   getSearchById,

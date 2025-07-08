@@ -1,11 +1,28 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 const searchHistoryService = require('../services/searchHistoryService');
 
-// GET /api/search-history - Get all saved searches
-router.get('/', async (req, res) => {
+// Middleware to require JWT and extract user
+function requireUser(req, res, next) {
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Missing or invalid Authorization header' });
+  }
+  const token = auth.split(' ')[1];
   try {
-    const history = await searchHistoryService.getSearchHistory();
+    const user = jwt.verify(token, process.env.JWT_SECRET || 'dev_secret');
+    req.user = user;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+
+// GET /api/search-history - Get all saved searches for user
+router.get('/', requireUser, async (req, res) => {
+  try {
+    const history = await searchHistoryService.getSearchHistoryForUser(req.user);
     res.json({
       success: true,
       searches: history,
@@ -22,24 +39,21 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/search-history - Save a new search
-router.post('/', async (req, res) => {
+// POST /api/search-history - Save a new search for user
+router.post('/', requireUser, async (req, res) => {
   try {
     const { searchQuery, results, priceAnalysis } = req.body;
-    
     if (!searchQuery) {
       return res.status(400).json({
         success: false,
         error: 'Missing required field: searchQuery'
       });
     }
-    
-    const savedSearch = await searchHistoryService.addSearch({
+    const savedSearch = await searchHistoryService.addSearchForUser(req.user, {
       searchQuery,
       results,
       priceAnalysis
     });
-    
     res.json({
       success: true,
       savedSearch,
@@ -55,19 +69,17 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /api/search-history/:id - Get a specific saved search
-router.get('/:id', async (req, res) => {
+// GET /api/search-history/:id - Get a specific saved search for user
+router.get('/:id', requireUser, async (req, res) => {
   try {
     const { id } = req.params;
-    const search = await searchHistoryService.getSearchById(id);
-    
+    const search = await searchHistoryService.getSearchByIdForUser(req.user, id);
     if (!search) {
       return res.status(404).json({
         success: false,
         error: 'Search not found'
       });
     }
-    
     res.json({
       success: true,
       search
@@ -82,19 +94,17 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/search-history/:id - Delete a saved search
-router.delete('/:id', async (req, res) => {
+// DELETE /api/search-history/:id - Delete a saved search for user
+router.delete('/:id', requireUser, async (req, res) => {
   try {
     const { id } = req.params;
-    const success = await searchHistoryService.deleteSearch(id);
-    
+    const success = await searchHistoryService.deleteSearchForUser(req.user, id);
     if (!success) {
       return res.status(404).json({
         success: false,
         error: 'Search not found or could not be deleted'
       });
     }
-    
     res.json({
       success: true,
       message: 'Search deleted successfully'
@@ -109,18 +119,16 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/search-history - Clear all search history
-router.delete('/', async (req, res) => {
+// DELETE /api/search-history - Clear all search history for user
+router.delete('/', requireUser, async (req, res) => {
   try {
-    const success = await searchHistoryService.clearSearchHistory();
-    
+    const success = await searchHistoryService.clearSearchHistoryForUser(req.user);
     if (!success) {
       return res.status(500).json({
         success: false,
         error: 'Failed to clear search history'
       });
     }
-    
     res.json({
       success: true,
       message: 'All search history cleared successfully'
