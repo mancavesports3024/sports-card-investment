@@ -123,6 +123,17 @@ async function getSearchHistoryForUser(user) {
   }
 }
 
+// Get all saved searches (for admin purposes)
+async function getAllSearchHistory() {
+  try {
+    const history = await loadSearchHistory();
+    return history;
+  } catch (error) {
+    console.error('❌ Error loading all search history:', error);
+    return [];
+  }
+}
+
 // Get a specific saved search by ID
 async function getSearchById(searchId) {
   try {
@@ -214,5 +225,6 @@ module.exports = {
   getSearchHistory,
   getSearchById,
   deleteSearch,
-  clearSearchHistory
+  clearSearchHistory,
+  getAllSearchHistory
 }; 

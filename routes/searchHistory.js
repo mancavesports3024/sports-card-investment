@@ -39,6 +39,48 @@ router.get('/', requireUser, async (req, res) => {
   }
 });
 
+// GET /api/search-history/admin/all - Get all search history for all users (admin only)
+router.get('/admin/all', requireUser, async (req, res) => {
+  try {
+    // Check if user is admin (you can customize this logic)
+    const isAdmin = req.user.email === process.env.ADMIN_EMAIL || req.user.email?.includes('admin');
+    
+    if (!isAdmin) {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required'
+      });
+    }
+    
+    const allHistory = await searchHistoryService.getAllSearchHistory();
+    
+    // Group by user
+    const groupedByUser = {};
+    allHistory.forEach(search => {
+      const userId = search.userId || 'anonymous';
+      if (!groupedByUser[userId]) {
+        groupedByUser[userId] = [];
+      }
+      groupedByUser[userId].push(search);
+    });
+    
+    res.json({
+      success: true,
+      totalSearches: allHistory.length,
+      users: Object.keys(groupedByUser).length,
+      groupedByUser,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error getting all search history:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load all search history',
+      details: error.message
+    });
+  }
+});
+
 // POST /api/search-history - Save a new search for user
 router.post('/', requireUser, async (req, res) => {
   try {
