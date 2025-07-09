@@ -305,6 +305,11 @@ function App() {
             <a
               href={`${config.API_BASE_URL}/api/auth/google`}
               className="google-login-btn"
+              onClick={() => {
+                console.log('Google OAuth URL:', `${config.API_BASE_URL}/api/auth/google`);
+                console.log('API_BASE_URL from config:', config.API_BASE_URL);
+                console.log('REACT_APP_API_URL env var:', process.env.REACT_APP_API_URL);
+              }}
             >
               Log in with Google
             </a>
