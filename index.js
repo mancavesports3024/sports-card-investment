@@ -45,36 +45,42 @@ if (process.env.REDIS_URL) {
   console.log('🔍 REDIS_URL value:', process.env.REDIS_URL);
 }
 
-if (process.env.REDIS_URL) {
-  try {
-    console.log('🔗 Attempting to connect to Redis...');
-    console.log('🔗 Redis URL format check:', process.env.REDIS_URL.startsWith('redis://') ? 'Valid format' : 'Invalid format');
-    
-    redisClient = createClient({ url: process.env.REDIS_URL });
-    
-    // Add error handlers
-    redisClient.on('error', (err) => {
-      console.error('❌ Redis client error:', err);
-    });
-    
-    redisClient.on('connect', () => {
-      console.log('✅ Redis client connected successfully');
-    });
-    
-    redisClient.on('ready', () => {
-      console.log('✅ Redis client ready');
-    });
-    
-    await redisClient.connect();
-    sessionStore = new RedisStore({ client: redisClient });
-    console.log('✅ Redis session store configured');
-  } catch (error) {
-    console.error('❌ Redis connection failed, falling back to memory store:', error.message);
-    console.error('❌ Full error:', error);
+// Async function to setup Redis
+async function setupRedis() {
+  if (process.env.REDIS_URL) {
+    try {
+      console.log('🔗 Attempting to connect to Redis...');
+      console.log('🔗 Redis URL format check:', process.env.REDIS_URL.startsWith('redis://') ? 'Valid format' : 'Invalid format');
+      
+      redisClient = createClient({ url: process.env.REDIS_URL });
+      
+      // Add error handlers
+      redisClient.on('error', (err) => {
+        console.error('❌ Redis client error:', err);
+      });
+      
+      redisClient.on('connect', () => {
+        console.log('✅ Redis client connected successfully');
+      });
+      
+      redisClient.on('ready', () => {
+        console.log('✅ Redis client ready');
+      });
+      
+      await redisClient.connect();
+      sessionStore = new RedisStore({ client: redisClient });
+      console.log('✅ Redis session store configured');
+    } catch (error) {
+      console.error('❌ Redis connection failed, falling back to memory store:', error.message);
+      console.error('❌ Full error:', error);
+    }
+  } else {
+    console.log('⚠️  No REDIS_URL provided, using memory store for sessions');
   }
-} else {
-  console.log('⚠️  No REDIS_URL provided, using memory store for sessions');
 }
+
+// Call the async function
+setupRedis().catch(console.error);
 
 app.use(session({
   store: sessionStore, // Will be null if Redis fails, defaulting to memory store
