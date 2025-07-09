@@ -78,76 +78,110 @@ async function setupRedis() {
       await redisClient.connect();
       sessionStore = new RedisStore({ client: redisClient });
       console.log('✅ Redis session store configured');
+      return true;
     } catch (error) {
       console.error('❌ Redis connection failed, falling back to memory store:', error.message);
       console.error('❌ Full error:', error);
+      return false;
     }
   } else {
     console.log('⚠️  No REDIS_URL provided, using memory store for sessions');
+    return false;
   }
 }
 
-// Call the async function
-setupRedis().catch(console.error);
+// Initialize the server with proper session setup
+async function initializeServer() {
+  // Setup Redis first
+  const redisConnected = await setupRedis();
+  
+  // Setup session middleware after Redis is ready
+  app.use(session({
+    store: sessionStore, // Will be null if Redis fails, defaulting to memory store
+    secret: process.env.SESSION_SECRET || 'dev_secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    },
+  }));
+  
+  app.use(passport.initialize());
+  app.use(passport.session());
 
-app.use(session({
-  store: sessionStore, // Will be null if Redis fails, defaulting to memory store
-  secret: process.env.SESSION_SECRET || 'dev_secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: false }, // Set to true if using HTTPS
-}));
-app.use(passport.initialize());
-app.use(passport.session());
-
-// Health check endpoint for Railway
-app.get('/', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Sports Card Tracker API is running',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0',
-    redis: redisClient ? 'Connected' : 'Not configured'
+  // Health check endpoint for Railway
+  app.get('/', (req, res) => {
+    res.json({ 
+      status: 'OK', 
+      message: 'Sports Card Tracker API is running',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+      redis: redisClient ? 'Connected' : 'Not configured',
+      sessionStore: sessionStore ? 'Redis' : 'Memory'
+    });
   });
-});
 
-// Redis test endpoint
-app.get('/api/redis-test', async (req, res) => {
-  try {
-    if (!redisClient) {
-      return res.json({ 
-        status: 'error', 
-        message: 'Redis client not configured',
+  // Redis test endpoint
+  app.get('/api/redis-test', async (req, res) => {
+    try {
+      if (!redisClient) {
+        return res.json({ 
+          status: 'error', 
+          message: 'Redis client not configured',
+          redisUrl: process.env.REDIS_URL ? 'Set' : 'Not set'
+        });
+      }
+      
+      // Test Redis connection
+      await redisClient.set('test', 'Hello Redis!', 'EX', 60);
+      const testValue = await redisClient.get('test');
+      
+      res.json({
+        status: 'success',
+        message: 'Redis is working!',
+        testValue,
+        redisUrl: process.env.REDIS_URL ? 'Configured' : 'Not configured',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: 'error',
+        message: 'Redis test failed',
+        error: error.message,
         redisUrl: process.env.REDIS_URL ? 'Set' : 'Not set'
       });
     }
-    
-    // Test Redis connection
-    await redisClient.set('test', 'Hello Redis!', 'EX', 60);
-    const testValue = await redisClient.get('test');
-    
-    res.json({
-      status: 'success',
-      message: 'Redis is working!',
-      testValue,
-      redisUrl: process.env.REDIS_URL ? 'Configured' : 'Not configured',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: 'Redis test failed',
-      error: error.message,
-      redisUrl: process.env.REDIS_URL ? 'Set' : 'Not set'
-    });
-  }
-});
+  });
 
-// Routes
-app.use('/api/search-cards', require('./routes/searchCards').router);
-app.use('/api/search-history', require('./routes/searchHistory'));
-app.use('/api/live-listings', require('./routes/liveListings'));
-app.use('/api/auth', require('./routes/auth'));
+  // Routes
+  app.use('/api/search-cards', require('./routes/searchCards').router);
+  app.use('/api/search-history', require('./routes/searchHistory'));
+  app.use('/api/live-listings', require('./routes/liveListings'));
+  app.use('/api/auth', require('./routes/auth'));
+
+  // Start the server
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📊 API endpoints:`);
+    console.log(`   • POST /api/search-cards - Search for cards`);
+    console.log(`   • GET /api/search-history - Get saved searches`);
+    console.log(`   • POST /api/search-history - Save a search`);
+    console.log(`   • GET /api/rate-limits - Check API limits`);
+    console.log(`   • POST /api/refresh-token - Manually refresh token`);
+    console.log(`   • GET /api/token-status - Check token status`);
+    console.log(`🔐 Session store: ${sessionStore ? 'Redis' : 'Memory (⚠️  Not recommended for production)'}`);
+    
+    // Start automatic token refresh if credentials are available
+    if (process.env.EBAY_CLIENT_ID && process.env.EBAY_CLIENT_SECRET && process.env.EBAY_REFRESH_TOKEN) {
+      console.log('🔄 Automatic token refresh enabled');
+      refreshEbayToken(); // Initial refresh
+    } else {
+      console.log('⚠️  Automatic token refresh disabled. Set EBAY_CLIENT_ID, EBAY_CLIENT_SECRET, and EBAY_REFRESH_TOKEN in .env file');
+    }
+  });
+}
 
 // Function to refresh eBay token automatically
 async function refreshEbayToken() {
@@ -242,21 +276,4 @@ app.get('/api/token-status', (req, res) => {
 });
 
 // Initialize token refresh on startup
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 API endpoints:`);
-  console.log(`   • POST /api/search-cards - Search for cards`);
-  console.log(`   • GET /api/search-history - Get saved searches`);
-  console.log(`   • POST /api/search-history - Save a search`);
-  console.log(`   • GET /api/rate-limits - Check API limits`);
-  console.log(`   • POST /api/refresh-token - Manually refresh token`);
-  console.log(`   • GET /api/token-status - Check token status`);
-  
-  // Start automatic token refresh if credentials are available
-  if (process.env.EBAY_CLIENT_ID && process.env.EBAY_CLIENT_SECRET && process.env.EBAY_REFRESH_TOKEN) {
-    console.log('🔄 Automatic token refresh enabled');
-    refreshEbayToken(); // Initial refresh
-  } else {
-    console.log('⚠️  Automatic token refresh disabled. Set EBAY_CLIENT_ID, EBAY_CLIENT_SECRET, and EBAY_REFRESH_TOKEN in .env file');
-  }
-}); 
+initializeServer().catch(console.error); 
