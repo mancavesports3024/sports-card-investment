@@ -35,11 +35,26 @@ let tokenRefreshTimer = null;
 // Middleware
 app.use(cors());
 app.use(express.json());
-const redisClient = createClient({ url: process.env.REDIS_URL });
-redisClient.connect().catch(console.error);
+
+// Redis setup with fallback
+let redisClient = null;
+let sessionStore = null;
+
+if (process.env.REDIS_URL) {
+  try {
+    redisClient = createClient({ url: process.env.REDIS_URL });
+    redisClient.connect().catch(console.error);
+    sessionStore = new RedisStore({ client: redisClient });
+    console.log('✅ Redis session store configured');
+  } catch (error) {
+    console.error('❌ Redis connection failed, falling back to memory store:', error.message);
+  }
+} else {
+  console.log('⚠️  No REDIS_URL provided, using memory store for sessions');
+}
 
 app.use(session({
-  store: new RedisStore({ client: redisClient }),
+  store: sessionStore, // Will be null if Redis fails, defaulting to memory store
   secret: process.env.SESSION_SECRET || 'dev_secret',
   resave: false,
   saveUninitialized: false,
