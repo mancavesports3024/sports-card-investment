@@ -3,8 +3,25 @@ const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
 const session = require('express-session');
+
+// Debug connect-redis structure
 const connectRedis = require('connect-redis');
-const RedisStore = connectRedis.default ? connectRedis.default(session) : connectRedis(session);
+console.log('connect-redis structure:', Object.keys(connectRedis));
+console.log('connect-redis type:', typeof connectRedis);
+console.log('connect-redis.default type:', typeof connectRedis.default);
+
+// Try different patterns to get RedisStore
+let RedisStore;
+if (typeof connectRedis === 'function') {
+  RedisStore = connectRedis(session);
+} else if (connectRedis.default && typeof connectRedis.default === 'function') {
+  RedisStore = connectRedis.default(session);
+} else if (connectRedis.RedisStore) {
+  RedisStore = connectRedis.RedisStore;
+} else {
+  throw new Error('Unable to import RedisStore from connect-redis');
+}
+
 const { createClient } = require('redis');
 const passport = require('passport');
 
