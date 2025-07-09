@@ -40,6 +40,14 @@ app.use(express.json());
 let redisClient = null;
 let sessionStore = null;
 
+// Debug all Redis-related environment variables
+console.log('🔍 All environment variables containing REDIS:');
+Object.keys(process.env).forEach(key => {
+  if (key.includes('REDIS')) {
+    console.log(`  ${key}: ${process.env[key]}`);
+  }
+});
+
 console.log('🔍 Redis setup - REDIS_URL:', process.env.REDIS_URL ? 'Set' : 'Not set');
 if (process.env.REDIS_URL) {
   console.log('🔍 REDIS_URL value:', process.env.REDIS_URL);
