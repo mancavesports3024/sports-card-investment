@@ -1,7 +1,7 @@
 // Configuration for API endpoints
 const config = {
-  // Use environment variable for API URL, fallback to localhost for development
-  API_BASE_URL: process.env.REACT_APP_API_URL || 'https://placeholder-url.com',
+  // Use environment variable for API URL, fallback to Railway backend for development
+  API_BASE_URL: process.env.REACT_APP_API_URL || 'https://sports-card-investment-production.up.railway.app',
   
   // API endpoints
   SEARCH_CARDS: '/api/search-cards',
