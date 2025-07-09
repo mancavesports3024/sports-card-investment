@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Sports Card Tracker",
+  "name": "Sports Card Sales Tracker",
   "icons": [
     {
       "src": "favicon.ico",
