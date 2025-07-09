@@ -69,22 +69,26 @@ function App() {
     }));
   };
 
-  useEffect(() => {
-    const loadSearchHistory = async () => {
-      setHistoryLoading(true);
-      try {
-        const token = localStorage.getItem('jwt');
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        const response = await axios.get(config.getSearchHistoryUrl(), {
-          headers,
-        });
-        setSearchHistory(response.data.searches || []);
-      } catch (err) {
-        console.error('Failed to load search history:', err);
-      } finally {
-        setHistoryLoading(false);
-      }
-    };
+  // Load search history function
+  const loadSearchHistory = async () => {
+    setHistoryLoading(true);
+    try {
+      const token = localStorage.getItem('jwt');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const response = await axios.get(config.getSearchHistoryUrl(), {
+        headers,
+      });
+      setSearchHistory(response.data.searches || []);
+    } catch (err) {
+      console.error('Failed to load search history:', err);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  // Load search history on component mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  React.useEffect(() => {
     loadSearchHistory();
   }, []);
 
@@ -151,35 +155,13 @@ function App() {
       // Save search for user
       await saveSearch(formData.searchQuery, response.data.results, response.data.priceAnalysis);
       // Refresh search history after successful search
-      window.location.reload();
+      await loadSearchHistory();
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Failed to fetch card data');
     } finally {
       setLoading(false);
     }
   };
-
-  // Load search history on component mount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  React.useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const loadSearchHistory = async () => {
-      setHistoryLoading(true);
-      try {
-        const token = localStorage.getItem('jwt');
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        const response = await axios.get(config.getSearchHistoryUrl(), {
-          headers,
-        });
-        setSearchHistory(response.data.searches || []);
-      } catch (err) {
-        console.error('Failed to load search history:', err);
-      } finally {
-        setHistoryLoading(false);
-      }
-    };
-    loadSearchHistory();
-  }, []);
 
   const formatPrice = (price) => {
     if (!price || !price.value) return 'N/A';
