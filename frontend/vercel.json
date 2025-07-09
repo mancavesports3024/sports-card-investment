@@ -9,9 +9,6 @@
       }
     }
   ],
-  "env": {
-    "REACT_APP_API_URL": "https://placeholder-url.com"
-  },
   "routes": [
     {
       "src": "/static/(.*)",
