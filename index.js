@@ -40,8 +40,11 @@ app.use(express.json());
 let redisClient = null;
 let sessionStore = null;
 
+console.log('🔍 Redis setup - REDIS_URL:', process.env.REDIS_URL ? 'Set' : 'Not set');
+
 if (process.env.REDIS_URL) {
   try {
+    console.log('🔗 Attempting to connect to Redis...');
     redisClient = createClient({ url: process.env.REDIS_URL });
     redisClient.connect().catch(console.error);
     sessionStore = new RedisStore({ client: redisClient });
