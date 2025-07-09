@@ -69,8 +69,41 @@ app.get('/', (req, res) => {
     status: 'OK', 
     message: 'Sports Card Tracker API is running',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '1.0.0',
+    redis: redisClient ? 'Connected' : 'Not configured'
   });
+});
+
+// Redis test endpoint
+app.get('/api/redis-test', async (req, res) => {
+  try {
+    if (!redisClient) {
+      return res.json({ 
+        status: 'error', 
+        message: 'Redis client not configured',
+        redisUrl: process.env.REDIS_URL ? 'Set' : 'Not set'
+      });
+    }
+    
+    // Test Redis connection
+    await redisClient.set('test', 'Hello Redis!', 'EX', 60);
+    const testValue = await redisClient.get('test');
+    
+    res.json({
+      status: 'success',
+      message: 'Redis is working!',
+      testValue,
+      redisUrl: process.env.REDIS_URL ? 'Configured' : 'Not configured',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Redis test failed',
+      error: error.message,
+      redisUrl: process.env.REDIS_URL ? 'Set' : 'Not set'
+    });
+  }
 });
 
 // Routes
