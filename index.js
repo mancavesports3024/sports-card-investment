@@ -41,16 +41,36 @@ let redisClient = null;
 let sessionStore = null;
 
 console.log('🔍 Redis setup - REDIS_URL:', process.env.REDIS_URL ? 'Set' : 'Not set');
+if (process.env.REDIS_URL) {
+  console.log('🔍 REDIS_URL value:', process.env.REDIS_URL);
+}
 
 if (process.env.REDIS_URL) {
   try {
     console.log('🔗 Attempting to connect to Redis...');
+    console.log('🔗 Redis URL format check:', process.env.REDIS_URL.startsWith('redis://') ? 'Valid format' : 'Invalid format');
+    
     redisClient = createClient({ url: process.env.REDIS_URL });
-    redisClient.connect().catch(console.error);
+    
+    // Add error handlers
+    redisClient.on('error', (err) => {
+      console.error('❌ Redis client error:', err);
+    });
+    
+    redisClient.on('connect', () => {
+      console.log('✅ Redis client connected successfully');
+    });
+    
+    redisClient.on('ready', () => {
+      console.log('✅ Redis client ready');
+    });
+    
+    await redisClient.connect();
     sessionStore = new RedisStore({ client: redisClient });
     console.log('✅ Redis session store configured');
   } catch (error) {
     console.error('❌ Redis connection failed, falling back to memory store:', error.message);
+    console.error('❌ Full error:', error);
   }
 } else {
   console.log('⚠️  No REDIS_URL provided, using memory store for sessions');
