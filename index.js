@@ -4,7 +4,7 @@ const axios = require('axios');
 require('dotenv').config();
 const session = require('express-session');
 
-// Debug connect-redis structure
+// Debug connect-redis structure - Railway deployment fix
 const connectRedis = require('connect-redis');
 console.log('connect-redis structure:', Object.keys(connectRedis));
 console.log('connect-redis type:', typeof connectRedis);
