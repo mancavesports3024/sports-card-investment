@@ -666,9 +666,6 @@ function App() {
                         <div className="live-listing-date">
                           Listed: {item.itemCreationDate ? formatDate(item.itemCreationDate) : 'N/A'}
                         </div>
-                        <div className="live-listing-location">
-                          {item.itemLocation?.postalCode ? `${item.itemLocation.postalCode}, ${item.itemLocation.country}` : 'Location N/A'}
-                        </div>
                       </div>
                     ))}
                   </div>
