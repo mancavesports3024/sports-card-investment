@@ -379,7 +379,13 @@
 
 .card-bids {
   font-size: 0.9rem;
-  color: #ffd700;
+  color: #000000;
+  font-weight: 600;
+}
+
+.card-sale-type {
+  font-size: 0.9rem;
+  color: #000000;
   font-weight: 600;
 }
 
