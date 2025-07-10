@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 import config from './config';
@@ -20,113 +20,6 @@ function App() {
   const [liveListingsCategory, setLiveListingsCategory] = useState(null);
   const [showLiveListingsOnly, setShowLiveListingsOnly] = useState(false);
   const [user, setUser] = useState(null);
-  const [capturedImage, setCapturedImage] = useState(null);
-  // const [showCamera, setShowCamera] = useState(false);
-  // const [cameraStream, setCameraStream] = useState(null);
-  // const videoRef = useRef(null);
-  const [imageAnalysis, setImageAnalysis] = useState(null);
-  const [analyzingImage, setAnalyzingImage] = useState(false);
-
-  // Camera functionality
-  /*
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' }
-      });
-      setCameraStream(stream);
-      setShowCamera(true);
-    } catch (err) {
-      console.error('Error accessing camera:', err);
-      alert('Unable to access camera. Please check permissions.');
-    }
-  };
-
-  useEffect(() => {
-    if (showCamera && videoRef.current && cameraStream) {
-      videoRef.current.srcObject = cameraStream;
-    }
-    // Clean up stream when camera closes
-    return () => {
-      if (cameraStream && !showCamera) {
-        cameraStream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, [showCamera, cameraStream]);
-
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      // Stop all tracks
-      videoRef.current.srcObject.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-    }
-    setShowCamera(false);
-    setCameraStream(null);
-  };
-
-  const capturePhoto = () => {
-    const video = videoRef.current;
-    const canvas = document.getElementById('camera-canvas');
-    const context = canvas.getContext('2d');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0);
-    const imageData = canvas.toDataURL('image/jpeg');
-    setCapturedImage(imageData);
-    stopCamera(); // Always stop the stream and clear the video
-    analyzeImage(imageData);
-  };
-  */
-
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageData = e.target.result;
-        setCapturedImage(imageData);
-        // Analyze the uploaded image
-        analyzeImage(imageData);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const clearImage = () => {
-    setCapturedImage(null);
-    setImageAnalysis(null);
-  };
-
-  // AI Image Analysis
-  const analyzeImage = async (imageData) => {
-    setAnalyzingImage(true);
-    setImageAnalysis(null);
-    
-    try {
-      const token = localStorage.getItem('jwt');
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      
-      const response = await axios.post(config.getAnalyzeImageUrl(), {
-        imageData: imageData
-      }, { headers });
-      
-      if (response.data.success) {
-        setImageAnalysis(response.data);
-        // Auto-fill search query if we got a good suggestion
-        if (response.data.cardInfo.suggestedSearch) {
-          setFormData({ searchQuery: response.data.cardInfo.suggestedSearch });
-        }
-      } else {
-        console.log('Image analysis failed:', response.data.error);
-        // Don't show error to user, just log it
-      }
-    } catch (error) {
-      console.error('Error analyzing image:', error);
-      // Don't show error to user, just log it
-    } finally {
-      setAnalyzingImage(false);
-    }
-  };
 
   // Check for JWT in localStorage on mount
   useEffect(() => {
