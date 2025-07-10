@@ -1133,3 +1133,182 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+/* Mobile Responsive Design */
+@media (max-width: 768px) {
+  .search-form input[type="text"] {
+    width: 100%;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  .search-button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+  }
+  
+  .search-tips-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .price-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Camera Functionality Styles */
+.camera-section {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px solid #ffd700;
+}
+
+.camera-section h4 {
+  margin: 0 0 15px 0;
+  color: #000;
+  font-size: 18px;
+}
+
+.camera-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.camera-btn, .upload-btn {
+  background: #000;
+  color: #ffd700;
+  border: 2px solid #ffd700;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.camera-btn:hover, .upload-btn:hover {
+  background: #ffd700;
+  color: #000;
+  transform: translateY(-2px);
+}
+
+.captured-image-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.captured-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  border: 3px solid #ffd700;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.clear-image-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.clear-image-btn:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+}
+
+.camera-interface {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.camera-video {
+  width: 100%;
+  max-width: 400px;
+  height: 300px;
+  border-radius: 8px;
+  border: 3px solid #ffd700;
+  background: #000;
+}
+
+.camera-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.capture-btn, .cancel-btn {
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.capture-btn {
+  background: #28a745;
+  color: white;
+}
+
+.capture-btn:hover {
+  background: #218838;
+  transform: translateY(-2px);
+}
+
+.cancel-btn {
+  background: #6c757d;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+/* Mobile responsive camera styles */
+@media (max-width: 768px) {
+  .camera-controls {
+    flex-direction: column;
+  }
+  
+  .camera-btn, .upload-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .camera-video {
+    height: 250px;
+  }
+  
+  .camera-buttons {
+    width: 100%;
+  }
+  
+  .capture-btn, .cancel-btn {
+    flex: 1;
+  }
+}

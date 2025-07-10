@@ -20,6 +20,65 @@ function App() {
   const [liveListingsCategory, setLiveListingsCategory] = useState(null);
   const [showLiveListingsOnly, setShowLiveListingsOnly] = useState(false);
   const [user, setUser] = useState(null);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [showCamera, setShowCamera] = useState(false);
+
+  // Camera functionality
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } // Use back camera on mobile
+      });
+      const video = document.getElementById('camera-video');
+      if (video) {
+        video.srcObject = stream;
+        setShowCamera(true);
+      }
+    } catch (err) {
+      console.error('Error accessing camera:', err);
+      alert('Unable to access camera. Please check permissions.');
+    }
+  };
+
+  const stopCamera = () => {
+    const video = document.getElementById('camera-video');
+    if (video && video.srcObject) {
+      const stream = video.srcObject;
+      const tracks = stream.getTracks();
+      tracks.forEach(track => track.stop());
+      video.srcObject = null;
+    }
+    setShowCamera(false);
+  };
+
+  const capturePhoto = () => {
+    const video = document.getElementById('camera-video');
+    const canvas = document.getElementById('camera-canvas');
+    const context = canvas.getContext('2d');
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0);
+    
+    const imageData = canvas.toDataURL('image/jpeg');
+    setCapturedImage(imageData);
+    stopCamera();
+  };
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setCapturedImage(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearImage = () => {
+    setCapturedImage(null);
+  };
 
   // Check for JWT in localStorage on mount
   useEffect(() => {
@@ -324,7 +383,7 @@ function App() {
             <div className="search-tip-card">
               <h4>Exclude Terms</h4>
               <p>Use a minus "-" sign to exclude terms:</p>
-              <code>(2020-21, 20-21) Lamelo Ball -box -case -break</code>
+              <code>(2020-21, 20-21) Lamelo Ball -box -case -break or -(box, case, break)</code>
             </div>
             
             <div className="search-tip-card">
@@ -347,6 +406,79 @@ function App() {
               placeholder="e.g., Charizard 1999 Base Set, Magic: The Gathering Black Lotus"
               required
             />
+          </div>
+
+          {/* Camera/Photo Section */}
+          <div className="camera-section">
+            <h4>📸 Take Photo of Card (Optional)</h4>
+            <div className="camera-controls">
+              {!showCamera && !capturedImage && (
+                <>
+                  <button 
+                    type="button" 
+                    onClick={startCamera}
+                    className="camera-btn"
+                  >
+                    📷 Take Photo
+                  </button>
+                  <label className="upload-btn">
+                    📁 Upload Photo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                </>
+              )}
+              
+              {capturedImage && (
+                <div className="captured-image-container">
+                  <img 
+                    src={capturedImage} 
+                    alt="Captured card" 
+                    className="captured-image"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={clearImage}
+                    className="clear-image-btn"
+                  >
+                    ❌ Clear Photo
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Camera Interface */}
+            {showCamera && (
+              <div className="camera-interface">
+                <video 
+                  id="camera-video" 
+                  autoPlay 
+                  playsInline
+                  className="camera-video"
+                />
+                <div className="camera-buttons">
+                  <button 
+                    type="button" 
+                    onClick={capturePhoto}
+                    className="capture-btn"
+                  >
+                    📸 Capture
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={stopCamera}
+                    className="cancel-btn"
+                  >
+                    ❌ Cancel
+                  </button>
+                </div>
+                <canvas id="camera-canvas" style={{ display: 'none' }} />
+              </div>
+            )}
           </div>
 
           <button type="submit" disabled={loading} className="search-button">
