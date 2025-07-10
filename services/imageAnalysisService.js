@@ -98,6 +98,14 @@ class ImageAnalysisService {
         }
       }
 
+      // Fallback: ALL CAPS player name (two words, all uppercase)
+      if (!cardInfo.playerName) {
+        const allCapsName = line.match(/^([A-Z]{2,}(?: [A-Z]{2,})+)$/);
+        if (allCapsName && allCapsName[1].split(' ').length === 2) {
+          cardInfo.playerName = allCapsName[1];
+        }
+      }
+
       // Extract grades (PSA, BGS, etc.)
       if (!cardInfo.grade) {
         const gradeMatch = line.match(/\b(PSA|BGS|SGC|CGC)\s*(\d+(?:\.\d+)?)\b/i);
