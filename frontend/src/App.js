@@ -455,6 +455,7 @@ function App() {
           </div>
 
           {/* Camera/Photo Section */}
+          {/*
           <div className="camera-section">
             <h4>📸 Take Photo of Card (Optional)</h4>
             <div className="camera-controls">
@@ -579,6 +580,7 @@ function App() {
               </div>
             )}
           </div>
+          */}
 
           <button type="submit" disabled={loading} className="search-button">
             {loading ? 'Searching...' : 'Search Trading Cards'}
