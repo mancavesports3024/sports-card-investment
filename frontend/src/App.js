@@ -100,7 +100,6 @@ function App() {
         headers,
       });
       setSearchHistory(prev => prev.filter(search => search.id !== searchId));
-      window.location.reload();
     } catch (err) {
       console.error('Failed to delete search:', err);
     }
@@ -115,7 +114,6 @@ function App() {
           headers,
         });
         setSearchHistory([]);
-        window.location.reload();
       } catch (err) {
         console.error('Failed to clear search history:', err);
       }
