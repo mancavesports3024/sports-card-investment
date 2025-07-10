@@ -244,9 +244,9 @@
 }
 
 .price-trend.up {
-  background: rgba(255, 215, 0, 0.1);
-  color: #000000;
-  border: 1px solid #ffd700;
+  background: rgba(76, 175, 80, 0.1);
+  color: #2e7d32;
+  border: 1px solid #4caf50;
 }
 
 .price-trend.down {
