@@ -659,6 +659,14 @@ function App() {
                         <div className="live-listing-price">
                           {item.price ? `$${item.price.value} ${item.price.currency}` : 'N/A'}
                         </div>
+                        <div className="live-listing-sale-type">
+                          {item.listingType === 'AUCTION' ? 'Auction' : 
+                           item.listingType === 'FIXED_PRICE' ? 'Buy It Now' : 
+                           item.price?.priceType === 'FIXED_PRICE' ? 'Buy It Now' : 'Auction'}
+                        </div>
+                        <div className="live-listing-date">
+                          Listed: {item.listingDate ? formatDate(item.listingDate) : 'N/A'}
+                        </div>
                         <div className="live-listing-location">
                           {item.itemLocation?.city}, {item.itemLocation?.stateOrProvince}
                         </div>
