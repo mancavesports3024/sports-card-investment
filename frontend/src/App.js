@@ -89,53 +89,53 @@ function App() {
   // Load search history on component mount
   // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
-    loadSearchHistory();
-  }, []);
+    if (user) {
+      loadSearchHistory();
+    }
+  }, [user]);
 
   const deleteSearch = async (searchId) => {
     try {
       const token = localStorage.getItem('jwt');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      await axios.delete(config.getDeleteSearchUrl(searchId), {
-        headers,
-      });
-      setSearchHistory(prev => prev.filter(search => search.id !== searchId));
+      await axios.delete(config.getDeleteSearchUrl(searchId), { headers });
+      // Refresh search history after deletion
+      await loadSearchHistory();
     } catch (err) {
       console.error('Failed to delete search:', err);
     }
   };
 
   const clearAllHistory = async () => {
-    if (window.confirm('Are you sure you want to clear all search history?')) {
-      try {
-        const token = localStorage.getItem('jwt');
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        await axios.delete(config.getClearHistoryUrl(), {
-          headers,
-        });
-        setSearchHistory([]);
-      } catch (err) {
-        console.error('Failed to clear search history:', err);
-      }
+    try {
+      const token = localStorage.getItem('jwt');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      await axios.delete(config.getClearHistoryUrl(), { headers });
+      setSearchHistory([]);
+    } catch (err) {
+      console.error('Failed to clear history:', err);
     }
   };
 
-  // Save search (after search completes)
   const saveSearch = async (searchQuery, results, priceAnalysis) => {
     try {
       const token = localStorage.getItem('jwt');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      await axios.post(
-        config.getSearchHistoryUrl(),
-        { searchQuery, results, priceAnalysis },
-        { headers }
-      );
+      await axios.post(config.getSearchHistoryUrl(), {
+        query: searchQuery,
+        results: {
+          totalCards: results.results.raw.length + results.results.psa9.length + results.results.psa10.length,
+          raw: results.results.raw.length,
+          psa9: results.results.psa9.length,
+          psa10: results.results.psa10.length
+        },
+        priceAnalysis: priceAnalysis
+      }, { headers });
     } catch (err) {
       console.error('Failed to save search:', err);
     }
   };
 
-  // Update handleSubmit to call saveSearch
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -186,8 +186,6 @@ function App() {
     }
   };
 
-
-
   const formatBidInfo = (card) => {
     if (!card.saleType) return 'Unknown';
     const type = card.saleType.toLowerCase();
@@ -236,7 +234,6 @@ function App() {
     setLiveListings([]);
     setLiveListingsError(null);
   };
-
 
   const CardResults = ({ title, cards, type }) => (
     <div className="card-section">
@@ -287,6 +284,127 @@ function App() {
     </div>
   );
 
+  // Home Page Component
+  const HomePage = () => (
+    <div className="home-page">
+      <header className="home-header">
+        <div className="home-nav">
+          <h1 className="home-logo">🏈 Trading Card Tracker</h1>
+          <a
+            href={`${config.API_BASE_URL}/api/auth/google`}
+            className="home-login-btn"
+          >
+            Log in with Google
+          </a>
+        </div>
+      </header>
+
+      <main className="home-main">
+        {/* Hero Section */}
+        <section className="hero-section">
+          <div className="hero-content">
+            <h1 className="hero-title">
+              Track Trading Card Sales on <span className="highlight">eBay</span>
+            </h1>
+            <p className="hero-subtitle">
+              Get real-time price data, market analysis, and investment insights for sports cards, 
+              Magic: The Gathering, Pokemon, and more.
+            </p>
+            <div className="hero-cta">
+              <a
+                href={`${config.API_BASE_URL}/api/auth/google`}
+                className="cta-button"
+              >
+                Start Tracking Cards
+              </a>
+              <p className="cta-note">Free to use • No registration required</p>
+            </div>
+          </div>
+          <div className="hero-image">
+            <div className="mockup-card">
+              <div className="mockup-header">📊 Price Analysis</div>
+              <div className="mockup-content">
+                <div className="mockup-price">$1,250</div>
+                <div className="mockup-trend">↗️ Trending Up</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="features-section">
+          <h2 className="section-title">Why Choose Trading Card Tracker?</h2>
+          <div className="features-grid">
+            <div className="feature-card">
+              <div className="feature-icon">📈</div>
+              <h3>Real-Time Price Data</h3>
+              <p>Track recent eBay sales with detailed price analysis and market trends.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">🔍</div>
+              <h3>Advanced Search</h3>
+              <p>Find cards by player, year, brand, grade, and more with powerful search filters.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">💡</div>
+              <h3>Investment Insights</h3>
+              <p>Get smart analysis on grading premiums and investment opportunities.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">📱</div>
+              <h3>Mobile Friendly</h3>
+              <p>Use on any device - desktop, tablet, or mobile phone.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* How It Works */}
+        <section className="how-it-works">
+          <h2 className="section-title">How It Works</h2>
+          <div className="steps-grid">
+            <div className="step-card">
+              <div className="step-number">1</div>
+              <h3>Search Cards</h3>
+              <p>Enter the name of any trading card you want to track.</p>
+            </div>
+            <div className="step-card">
+              <div className="step-number">2</div>
+              <h3>Get Results</h3>
+              <p>View recent sales, price analysis, and market trends.</p>
+            </div>
+            <div className="step-card">
+              <div className="step-number">3</div>
+              <h3>Make Decisions</h3>
+              <p>Use the data to make informed buying and selling decisions.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="cta-section">
+          <h2>Ready to Start Tracking?</h2>
+          <p>Join thousands of collectors making smarter decisions with real market data.</p>
+          <a
+            href={`${config.API_BASE_URL}/api/auth/google`}
+            className="cta-button large"
+          >
+            Get Started Now
+          </a>
+        </section>
+      </main>
+
+      <footer className="home-footer">
+        <p>&copy; 2024 Trading Card Tracker. All rights reserved.</p>
+      </footer>
+    </div>
+  );
+
+  // If user is not logged in, show home page
+  if (!user) {
+    return <HomePage />;
+  }
+
+  // If user is logged in, show the main app
   return (
     <div className="App">
       <header className="App-header">
