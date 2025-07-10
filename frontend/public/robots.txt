@@ -1,3 +1,9 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+
+# Sitemap location
+Sitemap: https://trading-card-investment.vercel.app/sitemap.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1
