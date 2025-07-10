@@ -650,7 +650,9 @@ function App() {
                   <p>No live listings found.</p>
                 ) : (
                   <div className="live-listings-grid">
-                    {liveListings.map((item, idx) => (
+                    {liveListings
+                      .sort((a, b) => new Date(b.itemCreationDate) - new Date(a.itemCreationDate))
+                      .map((item, idx) => (
                       <div key={item.itemId || idx} className="live-listing-card">
                         <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer">
                           <img src={item.image?.imageUrl} alt={item.title} className="live-listing-img" />
