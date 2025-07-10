@@ -160,6 +160,7 @@ async function initializeServer() {
   app.use('/api/search-history', require('./routes/searchHistory'));
   app.use('/api/live-listings', require('./routes/liveListings'));
   app.use('/api/auth', require('./routes/auth'));
+  app.use('/api', require('./routes/imageAnalysis'));
 
   // Start the server
   app.listen(PORT, () => {

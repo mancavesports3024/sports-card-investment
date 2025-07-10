@@ -22,6 +22,8 @@ function App() {
   const [user, setUser] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [imageAnalysis, setImageAnalysis] = useState(null);
+  const [analyzingImage, setAnalyzingImage] = useState(false);
 
   // Camera functionality
   const startCamera = async () => {
@@ -63,6 +65,9 @@ function App() {
     const imageData = canvas.toDataURL('image/jpeg');
     setCapturedImage(imageData);
     stopCamera();
+    
+    // Analyze the captured image
+    analyzeImage(imageData);
   };
 
   const handleFileUpload = (event) => {
@@ -70,7 +75,10 @@ function App() {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setCapturedImage(e.target.result);
+        const imageData = e.target.result;
+        setCapturedImage(imageData);
+        // Analyze the uploaded image
+        analyzeImage(imageData);
       };
       reader.readAsDataURL(file);
     }
@@ -78,6 +86,38 @@ function App() {
 
   const clearImage = () => {
     setCapturedImage(null);
+    setImageAnalysis(null);
+  };
+
+  // AI Image Analysis
+  const analyzeImage = async (imageData) => {
+    setAnalyzingImage(true);
+    setImageAnalysis(null);
+    
+    try {
+      const token = localStorage.getItem('jwt');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      const response = await axios.post(config.getAnalyzeImageUrl(), {
+        imageData: imageData
+      }, { headers });
+      
+      if (response.data.success) {
+        setImageAnalysis(response.data);
+        // Auto-fill search query if we got a good suggestion
+        if (response.data.cardInfo.suggestedSearch) {
+          setFormData({ searchQuery: response.data.cardInfo.suggestedSearch });
+        }
+      } else {
+        console.log('Image analysis failed:', response.data.error);
+        // Don't show error to user, just log it
+      }
+    } catch (error) {
+      console.error('Error analyzing image:', error);
+      // Don't show error to user, just log it
+    } finally {
+      setAnalyzingImage(false);
+    }
   };
 
   // Check for JWT in localStorage on mount
@@ -440,6 +480,44 @@ function App() {
                     alt="Captured card" 
                     className="captured-image"
                   />
+                  
+                  {/* AI Analysis Results */}
+                  {analyzingImage && (
+                    <div className="analysis-loading">
+                      <div className="loading-spinner"></div>
+                      <p>🤖 Analyzing card...</p>
+                    </div>
+                  )}
+                  
+                  {imageAnalysis && imageAnalysis.success && (
+                    <div className="analysis-results">
+                      <h5>🤖 AI Analysis Results</h5>
+                      <div className="analysis-details">
+                        {imageAnalysis.cardInfo.playerName && (
+                          <p><strong>Player:</strong> {imageAnalysis.cardInfo.playerName}</p>
+                        )}
+                        {imageAnalysis.cardInfo.year && (
+                          <p><strong>Year:</strong> {imageAnalysis.cardInfo.year}</p>
+                        )}
+                        {imageAnalysis.cardInfo.brand && (
+                          <p><strong>Brand:</strong> {imageAnalysis.cardInfo.brand}</p>
+                        )}
+                        {imageAnalysis.cardInfo.grade && (
+                          <p><strong>Grade:</strong> {imageAnalysis.cardInfo.grade}</p>
+                        )}
+                        {imageAnalysis.cardInfo.cardNumber && (
+                          <p><strong>Card #:</strong> {imageAnalysis.cardInfo.cardNumber}</p>
+                        )}
+                        {imageAnalysis.cardInfo.suggestedSearch && (
+                          <div className="suggested-search">
+                            <p><strong>Suggested Search:</strong></p>
+                            <p className="search-suggestion">{imageAnalysis.cardInfo.suggestedSearch}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
                   <button 
                     type="button" 
                     onClick={clearImage}
