@@ -221,9 +221,10 @@
 }
 
 .card-count {
-  color: #666;
+  color: #000000;
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
+  font-weight: 600;
 }
 
 .price-range {
