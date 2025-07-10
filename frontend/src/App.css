@@ -92,8 +92,8 @@
   border-radius: 8px;
   font-size: 1.2rem;
   width: 100%;
-  min-width: 500px;
-  max-width: none;
+  min-width: 250px;
+  max-width: 100%;
   box-sizing: border-box;
   transition: border-color 0.3s ease;
 }
@@ -841,6 +841,18 @@
   
   .search-form {
     grid-template-columns: 1fr;
+    padding: 1.5rem;
+  }
+  
+  .form-group input,
+  .form-group select {
+    min-width: 200px;
+    font-size: 1rem;
+  }
+  
+  .search-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
   }
   
   .cards-grid {
@@ -862,6 +874,10 @@
   .insights-grid {
     grid-template-columns: 1fr;
   }
+  
+  .search-tips-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 480px) {
@@ -875,6 +891,19 @@
   
   .search-form {
     padding: 1rem;
+    margin: 0 0.5rem 2rem 0.5rem;
+  }
+  
+  .form-group input,
+  .form-group select {
+    min-width: 150px;
+    font-size: 0.9rem;
+    padding: 0.6rem;
+  }
+  
+  .search-button {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
   }
   
   .card-section {
@@ -913,6 +942,14 @@
   
   .history-prices {
     flex-direction: column;
+  }
+  
+  .search-tips-section {
+    margin: 0 0.5rem 2rem 0.5rem;
+  }
+  
+  .search-tips-grid {
+    padding: 1rem;
   }
 }
 
