@@ -516,6 +516,13 @@ function App() {
                           </div>
                         )}
                       </div>
+                      {/* Show raw detected text for debugging */}
+                      {imageAnalysis.fullText && (
+                        <div className="fulltext-debug">
+                          <h6>Raw Detected Text:</h6>
+                          <pre style={{whiteSpace: 'pre-wrap', fontSize: '12px', background: '#eee', padding: '8px', borderRadius: '4px'}}>{imageAnalysis.fullText}</pre>
+                        </div>
+                      )}
                     </div>
                   )}
                   
