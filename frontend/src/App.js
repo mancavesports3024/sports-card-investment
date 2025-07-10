@@ -428,6 +428,9 @@ function App() {
                 <div className="price-analysis-section">
                   <h3>📊 Price Analysis</h3>
                   
+                  {/* Debug: Log the price analysis structure */}
+                  {console.log('Price Analysis Data:', results.priceAnalysis)}
+                  
                   {/* Summary Cards */}
                   <div className="price-summary">
                     <div className="price-card">
