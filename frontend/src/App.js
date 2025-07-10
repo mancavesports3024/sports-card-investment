@@ -21,13 +21,14 @@ function App() {
   const [showLiveListingsOnly, setShowLiveListingsOnly] = useState(false);
   const [user, setUser] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
-  const [showCamera, setShowCamera] = useState(false);
-  const [cameraStream, setCameraStream] = useState(null);
-  const videoRef = useRef(null);
+  // const [showCamera, setShowCamera] = useState(false);
+  // const [cameraStream, setCameraStream] = useState(null);
+  // const videoRef = useRef(null);
   const [imageAnalysis, setImageAnalysis] = useState(null);
   const [analyzingImage, setAnalyzingImage] = useState(false);
 
   // Camera functionality
+  /*
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -75,6 +76,7 @@ function App() {
     stopCamera(); // Always stop the stream and clear the video
     analyzeImage(imageData);
   };
+  */
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -479,7 +481,6 @@ function App() {
                   </label>
                 </>
               )}
-              
               {capturedImage && (
                 <div className="captured-image-container">
                   <img 
@@ -487,15 +488,12 @@ function App() {
                     alt="Captured card" 
                     className="captured-image"
                   />
-                  
-                  {/* AI Analysis Results */}
                   {analyzingImage && (
                     <div className="analysis-loading">
                       <div className="loading-spinner"></div>
                       <p>🤖 Analyzing card...</p>
                     </div>
                   )}
-                  
                   {imageAnalysis && imageAnalysis.success && (
                     <div className="analysis-results">
                       <h5>🤖 AI Analysis Results</h5>
@@ -522,14 +520,12 @@ function App() {
                           </div>
                         )}
                       </div>
-                      {/* Show raw detected text for debugging */}
                       {imageAnalysis.fullText && (
                         <div className="fulltext-debug">
                           <h6>Raw Detected Text:</h6>
                           <pre style={{whiteSpace: 'pre-wrap', fontSize: '12px', background: '#eee', padding: '8px', borderRadius: '4px'}}>{imageAnalysis.fullText}</pre>
                         </div>
                       )}
-                      {/* Show cardInfo object for debugging */}
                       {imageAnalysis.cardInfo && (
                         <div className="cardinfo-debug">
                           <h6>Extracted Card Info (Debug):</h6>
@@ -538,7 +534,6 @@ function App() {
                       )}
                     </div>
                   )}
-                  
                   <button 
                     type="button" 
                     onClick={clearImage}
@@ -549,8 +544,6 @@ function App() {
                 </div>
               )}
             </div>
-
-            {/* Camera Interface */}
             {showCamera && (
               <div className="camera-interface">
                 <video 
