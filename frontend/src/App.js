@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './App.css';
 import config from './config';
@@ -22,6 +22,8 @@ function App() {
   const [user, setUser] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [cameraStream, setCameraStream] = useState(null);
+  const videoRef = useRef(null);
   const [imageAnalysis, setImageAnalysis] = useState(null);
   const [analyzingImage, setAnalyzingImage] = useState(false);
 
@@ -29,44 +31,43 @@ function App() {
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } // Use back camera on mobile
+        video: { facingMode: 'environment' }
       });
-      const video = document.getElementById('camera-video');
-      if (video) {
-        video.srcObject = stream;
-        setShowCamera(true);
-      }
+      setCameraStream(stream);
+      setShowCamera(true);
     } catch (err) {
       console.error('Error accessing camera:', err);
       alert('Unable to access camera. Please check permissions.');
     }
   };
 
-  const stopCamera = () => {
-    const video = document.getElementById('camera-video');
-    if (video && video.srcObject) {
-      const stream = video.srcObject;
-      const tracks = stream.getTracks();
-      tracks.forEach(track => track.stop());
-      video.srcObject = null;
+  useEffect(() => {
+    if (showCamera && videoRef.current && cameraStream) {
+      videoRef.current.srcObject = cameraStream;
     }
+    // Clean up stream when camera closes
+    return () => {
+      if (cameraStream && !showCamera) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [showCamera, cameraStream]);
+
+  const stopCamera = () => {
     setShowCamera(false);
+    setCameraStream(null);
   };
 
   const capturePhoto = () => {
-    const video = document.getElementById('camera-video');
+    const video = videoRef.current;
     const canvas = document.getElementById('camera-canvas');
     const context = canvas.getContext('2d');
-    
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0);
-    
     const imageData = canvas.toDataURL('image/jpeg');
     setCapturedImage(imageData);
     stopCamera();
-    
-    // Analyze the captured image
     analyzeImage(imageData);
   };
 
@@ -534,6 +535,7 @@ function App() {
               <div className="camera-interface">
                 <video 
                   id="camera-video" 
+                  ref={videoRef}
                   autoPlay 
                   playsInline
                   className="camera-video"
