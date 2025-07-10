@@ -54,6 +54,11 @@ function App() {
   }, [showCamera, cameraStream]);
 
   const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      // Stop all tracks
+      videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
     setShowCamera(false);
     setCameraStream(null);
   };
@@ -67,7 +72,7 @@ function App() {
     context.drawImage(video, 0, 0);
     const imageData = canvas.toDataURL('image/jpeg');
     setCapturedImage(imageData);
-    stopCamera();
+    stopCamera(); // Always stop the stream and clear the video
     analyzeImage(imageData);
   };
 
