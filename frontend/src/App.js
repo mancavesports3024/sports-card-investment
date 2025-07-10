@@ -311,25 +311,6 @@ function App() {
       </header>
 
       <main className="App-main">
-        <form onSubmit={handleSubmit} className="search-form">
-          <div className="form-group">
-            <label htmlFor="searchQuery">Search Cards *</label>
-            <input
-              type="text"
-              id="searchQuery"
-              name="searchQuery"
-              value={formData.searchQuery}
-              onChange={handleInputChange}
-              placeholder="e.g., Mike Trout 2011 Topps Update Rookie"
-              required
-            />
-          </div>
-
-          <button type="submit" disabled={loading} className="search-button">
-            {loading ? 'Searching...' : 'Search Cards'}
-          </button>
-        </form>
-
         {/* Search Tips Section */}
         <div className="search-tips-section">
           <h3>💡 Search Tips</h3>
@@ -353,6 +334,25 @@ function App() {
             </div>
           </div>
         </div>
+
+        <form onSubmit={handleSubmit} className="search-form">
+          <div className="form-group">
+            <label htmlFor="searchQuery">Search Cards *</label>
+            <input
+              type="text"
+              id="searchQuery"
+              name="searchQuery"
+              value={formData.searchQuery}
+              onChange={handleInputChange}
+              placeholder="e.g., Mike Trout 2011 Topps Update Rookie"
+              required
+            />
+          </div>
+
+          <button type="submit" disabled={loading} className="search-button">
+            {loading ? 'Searching...' : 'Search Cards'}
+          </button>
+        </form>
 
         {/* Search History Section */}
         <div className="search-history-section">
