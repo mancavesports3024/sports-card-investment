@@ -1023,3 +1023,76 @@
   color: #666;
   margin-bottom: 0.5rem;
 }
+
+/* Search Tips Section */
+.search-tips-section {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  margin-bottom: 2rem;
+  overflow: hidden;
+  border: 2px solid #ffd700;
+}
+
+.search-tips-section h3 {
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+  color: #ffd700;
+  margin: 0;
+  padding: 1.5rem;
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.search-tips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.search-tip-card {
+  background: #f8f9fa;
+  border: 2px solid #ffd700;
+  border-radius: 10px;
+  padding: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-tip-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2);
+}
+
+.search-tip-card h4 {
+  color: #000000;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #ffd700;
+  padding-bottom: 0.5rem;
+}
+
+.search-tip-card p {
+  color: #666;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.search-tip-card code {
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+  color: #ffd700;
+  padding: 0.5rem 0.75rem;
+  border-radius: 5px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: block;
+  margin-top: 0.5rem;
+  border: 1px solid #ffd700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
