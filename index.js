@@ -115,7 +115,7 @@ async function initializeServer() {
   app.get('/', (req, res) => {
     res.json({ 
       status: 'OK', 
-      message: 'Sports Card Tracker API is running',
+      message: 'Trading Card Tracker API is running',
       timestamp: new Date().toISOString(),
       version: '1.0.0',
       redis: redisClient ? 'Connected' : 'Not configured',
@@ -165,7 +165,7 @@ async function initializeServer() {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📊 API endpoints:`);
-    console.log(`   • POST /api/search-cards - Search for cards`);
+    console.log(`   • POST /api/search-cards - Search for trading cards`);
     console.log(`   • GET /api/search-history - Get saved searches`);
     console.log(`   • POST /api/search-history - Save a search`);
     console.log(`   • GET /api/rate-limits - Check API limits`);

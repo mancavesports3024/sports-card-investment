@@ -282,7 +282,7 @@ function App() {
           ))}
         </div>
       ) : (
-        <p className="no-results">No {type} cards found</p>
+        <p className="no-results">No {type} trading cards found</p>
       )}
     </div>
   );
@@ -290,8 +290,8 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>🏈 Sports Card Sales Tracker</h1>
-        <p>Search for recent eBay sales of sports cards</p>
+        <h1>🏈 Trading Card Sales Tracker</h1>
+        <p>Search for recent eBay sales of trading cards</p>
         {/* Google Login/Logout UI */}
         <div className="auth-section">
           {user ? (
@@ -337,20 +337,20 @@ function App() {
 
         <form onSubmit={handleSubmit} className="search-form">
           <div className="form-group">
-            <label htmlFor="searchQuery">Search Cards *</label>
+            <label htmlFor="searchQuery">Search Trading Cards *</label>
             <input
               type="text"
               id="searchQuery"
               name="searchQuery"
               value={formData.searchQuery}
               onChange={handleInputChange}
-              placeholder="e.g., Mike Trout 2011 Topps Update Rookie"
+              placeholder="e.g., Charizard 1999 Base Set, Magic: The Gathering Black Lotus"
               required
             />
           </div>
 
           <button type="submit" disabled={loading} className="search-button">
-            {loading ? 'Searching...' : 'Search Cards'}
+            {loading ? 'Searching...' : 'Search Trading Cards'}
           </button>
         </form>
 
@@ -654,9 +654,9 @@ function App() {
             {/* Show sold results only if not viewing live listings */}
             {!showLiveListingsOnly && (
               <>
-                <CardResults title="Raw Cards" cards={results.results.raw} type="raw" />
-                <CardResults title="PSA 9 Cards" cards={results.results.psa9} type="psa9" />
-                <CardResults title="PSA 10 Cards" cards={results.results.psa10} type="psa10" />
+                <CardResults title="Raw Trading Cards" cards={results.results.raw} type="raw" />
+                <CardResults title="PSA 9 Trading Cards" cards={results.results.psa9} type="psa9" />
+                <CardResults title="PSA 10 Trading Cards" cards={results.results.psa10} type="psa10" />
               </>
             )}
             {/* Live Listings Section */}
@@ -665,7 +665,7 @@ function App() {
                 <button className="back-to-sold-btn" onClick={handleBackToSoldResults}>
                   ← Back to Sold Results
                 </button>
-                <h3>Live eBay Listings for {liveListingsCategory === 'raw' ? 'Raw' : liveListingsCategory === 'psa9' ? 'PSA 9' : 'PSA 10'}</h3>
+                <h3>Live eBay Listings for {liveListingsCategory === 'raw' ? 'Raw' : liveListingsCategory === 'psa9' ? 'PSA 9' : 'PSA 10'} Trading Cards</h3>
                 {liveListingsLoading ? (
                   <p>Loading live listings...</p>
                 ) : liveListingsError ? (
