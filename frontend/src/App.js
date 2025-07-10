@@ -523,6 +523,13 @@ function App() {
                           <pre style={{whiteSpace: 'pre-wrap', fontSize: '12px', background: '#eee', padding: '8px', borderRadius: '4px'}}>{imageAnalysis.fullText}</pre>
                         </div>
                       )}
+                      {/* Show cardInfo object for debugging */}
+                      {imageAnalysis.cardInfo && (
+                        <div className="cardinfo-debug">
+                          <h6>Extracted Card Info (Debug):</h6>
+                          <pre style={{whiteSpace: 'pre-wrap', fontSize: '12px', background: '#e0f7fa', padding: '8px', borderRadius: '4px'}}>{JSON.stringify(imageAnalysis.cardInfo, null, 2)}</pre>
+                        </div>
+                      )}
                     </div>
                   )}
                   
