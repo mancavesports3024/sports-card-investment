@@ -650,34 +650,27 @@ function App() {
                   <p>No live listings found.</p>
                 ) : (
                   <div className="live-listings-grid">
-                    {liveListings.map((item, idx) => {
-                      // Debug: Log the item structure
-                      console.log('Live listing item:', item);
-                      return (
-                        <div key={item.itemId || idx} className="live-listing-card">
-                          <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer">
-                            <img src={item.image?.imageUrl} alt={item.title} className="live-listing-img" />
-                            <div className="live-listing-title">{item.title}</div>
-                          </a>
-                          <div className="live-listing-price">
-                            {item.price ? `$${item.price.value} ${item.price.currency}` : 'N/A'}
-                          </div>
-                          <div className="live-listing-sale-type">
-                            {item.listingType === 'AUCTION' ? 'Auction' : 
-                             item.listingType === 'FIXED_PRICE' ? 'Buy It Now' : 
-                             item.price?.priceType === 'FIXED_PRICE' ? 'Buy It Now' : 'Auction'}
-                          </div>
-                          <div className="live-listing-date">
-                            Listed: {item.listingDate ? formatDate(item.listingDate) : 
-                                    item.startTime ? formatDate(item.startTime) :
-                                    item.createdTime ? formatDate(item.createdTime) : 'N/A'}
-                          </div>
-                          <div className="live-listing-location">
-                            {item.itemLocation?.city}, {item.itemLocation?.stateOrProvince}
-                          </div>
+                    {liveListings.map((item, idx) => (
+                      <div key={item.itemId || idx} className="live-listing-card">
+                        <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer">
+                          <img src={item.image?.imageUrl} alt={item.title} className="live-listing-img" />
+                          <div className="live-listing-title">{item.title}</div>
+                        </a>
+                        <div className="live-listing-price">
+                          {item.price ? `$${item.price.value} ${item.price.currency}` : 'N/A'}
                         </div>
-                      );
-                    })}
+                        <div className="live-listing-sale-type">
+                          {item.buyingOptions?.includes('AUCTION') ? 'Auction' : 
+                           item.buyingOptions?.includes('FIXED_PRICE') ? 'Buy It Now' : 'N/A'}
+                        </div>
+                        <div className="live-listing-date">
+                          Listed: {item.itemCreationDate ? formatDate(item.itemCreationDate) : 'N/A'}
+                        </div>
+                        <div className="live-listing-location">
+                          {item.itemLocation?.postalCode ? `${item.itemLocation.postalCode}, ${item.itemLocation.country}` : 'Location N/A'}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
