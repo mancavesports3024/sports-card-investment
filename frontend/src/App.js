@@ -801,9 +801,9 @@ function App() {
                           }}
                         />
                         <Legend />
-                        <Line type="monotone" dataKey="Raw" stroke="#222" strokeWidth={2} dot={false} name="Raw" />
-                        <Line type="monotone" dataKey="PSA9" stroke="#FFD600" strokeWidth={2} dot={false} name="PSA 9" />
-                        <Line type="monotone" dataKey="PSA10" stroke="#00C49F" strokeWidth={2} dot={false} name="PSA 10" />
+                        <Line type="monotone" dataKey="Raw" stroke="#222" strokeWidth={2} dot={false} name="Raw" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA9" stroke="#FFD600" strokeWidth={2} dot={false} name="PSA 9" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA10" stroke="#00C49F" strokeWidth={2} dot={false} name="PSA 10" connectNulls={true} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
