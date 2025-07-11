@@ -237,41 +237,47 @@ function App() {
 
   // Handler to fetch live listings
   const handleViewLiveListings = async (category, saleType = null) => {
-    console.log('🔍 handleViewLiveListings called:', { category, saleType });
     setLiveListingsLoading(true);
     setLiveListingsError(null);
     setLiveListings([]);
     setLiveListingsCategory(category);
     setShowLiveListingsOnly(true);
-    
-    console.log('🔍 State after setting:', { 
-      showLiveListingsOnly: true, 
-      liveListingsCategory: category,
-      searchQuery: formData.searchQuery 
-    });
-    
+
+    // Build search string (same as handleSubmit)
+    let searchString = '';
+    if (formData.advancedSearch && formData.advancedSearch.trim()) {
+      searchString = formData.advancedSearch.trim();
+    } else {
+      const parts = [];
+      if (formData.player) parts.push(formData.player.trim());
+      if (formData.manufacturer) parts.push(formData.manufacturer.trim());
+      if (formData.year) parts.push(formData.year.trim());
+      if (formData.cardNumber) parts.push(formData.cardNumber.trim());
+      if (formData.type) parts.push(formData.type.trim());
+      searchString = parts.join(' ');
+      if (formData.exclude) {
+        const excludes = formData.exclude.split(',').map(s => s.trim()).filter(Boolean);
+        if (excludes.length) {
+          searchString += ' ' + excludes.map(term => `-${term}`).join(' ');
+        }
+      }
+    }
+
     try {
       const token = localStorage.getItem('jwt');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const params = {
-        query: formData.searchQuery,
+        query: searchString,
         grade: category === 'raw' ? 'Raw' : category === 'psa9' ? 'PSA 9' : 'PSA 10',
         saleType: saleType, // 'auction' or 'fixed' or null for all
       };
-      
-      console.log('🔍 Making API request with params:', params);
-      
       const response = await axios.get(
-        `${config.API_BASE_URL}/api/live-listings`,
+        `${config.getSearchCardsUrl().replace('/api/search-cards', '/api/live-listings')}`,
         {
           params,
           headers,
         }
       );
-      
-      console.log('🔍 API response:', response.data);
-      
-      // Validate and clean the items data
       const items = response.data.items || [];
       const cleanedItems = items.map(item => ({
         itemId: item.itemId || `item-${Date.now()}-${Math.random()}`,
@@ -284,15 +290,11 @@ function App() {
         seller: typeof item.seller === 'string' ? item.seller : null,
         condition: typeof item.condition === 'string' ? item.condition : null
       }));
-      
       setLiveListings(cleanedItems);
-      console.log('🔍 Live listings set:', cleanedItems.length, 'items');
     } catch (err) {
-      console.error('❌ Error fetching live listings:', err);
       setLiveListingsError(err.response?.data?.error || err.message || 'Failed to fetch live listings');
     } finally {
       setLiveListingsLoading(false);
-      console.log('🔍 Loading finished');
     }
   };
 
