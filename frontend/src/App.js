@@ -523,6 +523,15 @@ function App() {
       exclude: '',
       advancedSearch: ''
     });
+    setResults(null);
+    setLiveListings([]);
+    setLiveListingsError(null);
+    setLiveListingsLoading(false);
+    setShowLiveListingsOnly(false);
+    setLiveListingsCategory(null);
+    setActiveFilter('all');
+    setError(null);
+    setLoading(false);
   };
 
   // If user is not logged in, show home page
