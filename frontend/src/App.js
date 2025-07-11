@@ -203,30 +203,47 @@ function App() {
 
   // Handler to fetch live listings
   const handleViewLiveListings = async (category, saleType = null) => {
+    console.log('🔍 handleViewLiveListings called:', { category, saleType });
     setLiveListingsLoading(true);
     setLiveListingsError(null);
     setLiveListings([]);
     setLiveListingsCategory(category);
     setShowLiveListingsOnly(true);
+    
+    console.log('🔍 State after setting:', { 
+      showLiveListingsOnly: true, 
+      liveListingsCategory: category,
+      searchQuery: formData.searchQuery 
+    });
+    
     try {
       const token = localStorage.getItem('jwt');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const params = {
+        query: formData.searchQuery,
+        grade: category === 'raw' ? 'Raw' : category === 'psa9' ? 'PSA 9' : 'PSA 10',
+        saleType: saleType, // 'auction' or 'fixed' or null for all
+      };
+      
+      console.log('🔍 Making API request with params:', params);
+      
       const response = await axios.get(
         `${config.API_BASE_URL}/api/live-listings`,
         {
-          params: {
-            query: formData.searchQuery,
-            grade: category === 'raw' ? 'Raw' : category === 'psa9' ? 'PSA 9' : 'PSA 10',
-            saleType: saleType, // 'auction' or 'fixed' or null for all
-          },
+          params,
           headers,
         }
       );
+      
+      console.log('🔍 API response:', response.data);
       setLiveListings(response.data.items || []);
+      console.log('🔍 Live listings set:', response.data.items?.length || 0, 'items');
     } catch (err) {
+      console.error('❌ Error fetching live listings:', err);
       setLiveListingsError(err.response?.data?.error || err.message || 'Failed to fetch live listings');
     } finally {
       setLiveListingsLoading(false);
+      console.log('🔍 Loading finished');
     }
   };
 
@@ -781,6 +798,7 @@ function App() {
               </>
             )}
             {/* Live Listings Section */}
+            {console.log('🔍 Rendering check:', { showLiveListingsOnly, liveListingsCategory, liveListingsLoading, liveListingsError, liveListingsLength: liveListings.length })}
             {showLiveListingsOnly && liveListingsCategory && (
               <div className="live-listings-section">
                 <button className="back-to-sold-btn" onClick={handleBackToSoldResults}>
@@ -827,7 +845,11 @@ function App() {
                 ) : liveListingsError ? (
                   <p className="error-message">{liveListingsError}</p>
                 ) : liveListings.length === 0 ? (
-                  <p>No live listings found.</p>
+                  <div>
+                    <p>No live listings found.</p>
+                    <p>Debug info: Category: {liveListingsCategory}, Filter: {activeFilter}</p>
+                    <p>Search query: {formData.searchQuery}</p>
+                  </div>
                 ) : (
                   <div className="live-listings-grid">
                     {liveListings
