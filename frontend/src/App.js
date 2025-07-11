@@ -688,7 +688,15 @@ function App() {
                       <div className="history-actions">
                         <button 
                           onClick={() => {
-                            setFormData({ searchQuery: search.query });
+                            setFormData({
+                              player: '',
+                              manufacturer: '',
+                              year: '',
+                              cardNumber: '',
+                              type: '',
+                              exclude: '',
+                              advancedSearch: search.query || ''
+                            });
                             setShowHistory(false);
                           }}
                           className="reuse-search-btn"
