@@ -566,7 +566,6 @@ function App() {
               value={formData.player || ''}
               onChange={handleInputChange}
               placeholder="e.g. Charizard, LeBron James"
-              required
             />
           </div>
           <div className="form-group">
