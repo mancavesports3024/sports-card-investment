@@ -111,17 +111,8 @@ async function initializeServer() {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Health check endpoint for Railway
-  app.get('/', (req, res) => {
-    res.json({ 
-      status: 'OK', 
-      message: 'Trading Card Tracker API is running',
-      timestamp: new Date().toISOString(),
-      version: '1.0.0',
-      redis: redisClient ? 'Connected' : 'Not configured',
-      sessionStore: sessionStore ? 'Redis' : 'Memory'
-    });
-  });
+  // Healthcheck route for Railway
+  app.get('/', (req, res) => res.send('OK'));
 
   // Redis test endpoint
   app.get('/api/redis-test', async (req, res) => {
@@ -277,4 +268,4 @@ app.get('/api/token-status', (req, res) => {
 });
 
 // Initialize token refresh on startup
-initializeServer().catch(console.error); 
+initializeServer().catch(console.error);
