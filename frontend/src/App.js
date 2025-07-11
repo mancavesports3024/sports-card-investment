@@ -159,6 +159,7 @@ function App() {
     if (formData.player) parts.push(formData.player.trim());
     if (formData.manufacturer) parts.push(formData.manufacturer.trim());
     if (formData.year) parts.push(formData.year.trim());
+    if (formData.cardNumber) parts.push(formData.cardNumber.trim());
     if (formData.type) parts.push(formData.type.trim());
     let searchString = parts.join(' ');
     if (formData.exclude) {
@@ -579,6 +580,16 @@ function App() {
               value={formData.year || ''}
               onChange={handleInputChange}
               placeholder="e.g. 2023"
+            />
+          </div>
+          <div className="form-group">
+            <label>Card Number</label>
+            <input
+              type="text"
+              name="cardNumber"
+              value={formData.cardNumber || ''}
+              onChange={handleInputChange}
+              placeholder="e.g. 223/197"
             />
           </div>
           <div className="form-group">
