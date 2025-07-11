@@ -393,7 +393,10 @@ function App() {
     <div className="home-page">
       <header className="home-header">
         <div className="home-nav">
-          <h1 className="home-logo">🏈 Trading Card Tracker</h1>
+          <div className="home-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <img src="/ManCave.jpg" alt="ManCave Logo" style={{ height: 48, width: 48, borderRadius: 8, objectFit: 'cover', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }} />
+            <span style={{ fontWeight: 700, fontSize: 28, color: '#222' }}>Trading Card Tracker</span>
+          </div>
           <a
             href={`${config.API_BASE_URL}/api/auth/google`}
             className="home-login-btn"
@@ -543,7 +546,10 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>🏈 Trading Card Sales Tracker</h1>
+        <div className="app-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <img src="/ManCave.jpg" alt="ManCave Logo" style={{ height: 40, width: 40, borderRadius: 8, objectFit: 'cover', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }} />
+          <span style={{ fontWeight: 700, fontSize: 24, color: '#222' }}>Trading Card Sales Tracker</span>
+        </div>
         <p>Search for recent eBay sales of trading cards</p>
         {/* Google Login/Logout UI */}
         <div className="auth-section">
