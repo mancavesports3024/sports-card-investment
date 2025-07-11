@@ -503,6 +503,19 @@ function App() {
     </div>
   );
 
+  // Add a function to clear all search fields
+  const clearSearchFields = () => {
+    setFormData({
+      player: '',
+      manufacturer: '',
+      year: '',
+      cardNumber: '',
+      type: '',
+      exclude: '',
+      advancedSearch: ''
+    });
+  };
+
   // If user is not logged in, show home page
   if (!user) {
     return <HomePage />;
@@ -628,9 +641,14 @@ function App() {
               placeholder="Type your own search string here"
             />
           </div>
-          <button className="search-button" type="submit" disabled={loading}>
-            {loading ? 'Searching...' : 'Search'}
-          </button>
+          <div style={{ display: 'flex', gap: '1rem', gridColumn: '1 / -1' }}>
+            <button className="search-button" type="submit" disabled={loading}>
+              {loading ? 'Searching...' : 'Search'}
+            </button>
+            <button type="button" className="clear-button" onClick={clearSearchFields}>
+              Clear All
+            </button>
+          </div>
         </form>
 
         {/* Search History Section */}
