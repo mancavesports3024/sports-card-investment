@@ -635,6 +635,18 @@ function App() {
                       }));
                     })(), null, 2)}
                   </pre>
+                  {/* Debug: Show first 3 items of each sold results array */}
+                  <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+                    <pre style={{ background: '#111', color: '#FFD600', padding: 8, fontSize: 12, width: '33%', overflowX: 'auto' }}>
+                      Raw: {JSON.stringify((results.results.raw || []).slice(0, 3), null, 2)}
+                    </pre>
+                    <pre style={{ background: '#111', color: '#FFD600', padding: 8, fontSize: 12, width: '33%', overflowX: 'auto' }}>
+                      PSA9: {JSON.stringify((results.results.psa9 || []).slice(0, 3), null, 2)}
+                    </pre>
+                    <pre style={{ background: '#111', color: '#FFD600', padding: 8, fontSize: 12, width: '33%', overflowX: 'auto' }}>
+                      PSA10: {JSON.stringify((results.results.psa10 || []).slice(0, 3), null, 2)}
+                    </pre>
+                  </div>
                   
                   {/* Price Trend Chart */}
                   <div style={{ width: '100%', height: 300, marginBottom: 32 }}>
