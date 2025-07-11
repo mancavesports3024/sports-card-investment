@@ -263,6 +263,13 @@ function App() {
       }
     }
 
+    // Validation: Prevent empty search
+    if (!searchString.trim()) {
+      setLiveListingsLoading(false);
+      setLiveListingsError('Please enter a search term before viewing live listings.');
+      return;
+    }
+
     try {
       const token = localStorage.getItem('jwt');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
