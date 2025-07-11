@@ -611,26 +611,26 @@ function App() {
                       const psa9 = results.results.psa9 || [];
                       const psa10 = results.results.psa10 || [];
                       const allDates = Array.from(new Set([
-                        ...raw.map(card => card.dateSold),
-                        ...psa9.map(card => card.dateSold),
-                        ...psa10.map(card => card.dateSold),
+                        ...raw.map(card => card.soldDate),
+                        ...psa9.map(card => card.soldDate),
+                        ...psa10.map(card => card.soldDate),
                       ].filter(Boolean))).sort();
                       return allDates.map(date => ({
                         date: date,
                         Raw: (() => {
-                          const cards = raw.filter(card => card.dateSold === date);
+                          const cards = raw.filter(card => card.soldDate === date);
                           if (!cards.length) return null;
-                          return cards.reduce((sum, c) => sum + (c.price?.value || 0), 0) / cards.length;
+                          return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
                         })(),
                         PSA9: (() => {
-                          const cards = psa9.filter(card => card.dateSold === date);
+                          const cards = psa9.filter(card => card.soldDate === date);
                           if (!cards.length) return null;
-                          return cards.reduce((sum, c) => sum + (c.price?.value || 0), 0) / cards.length;
+                          return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
                         })(),
                         PSA10: (() => {
-                          const cards = psa10.filter(card => card.dateSold === date);
+                          const cards = psa10.filter(card => card.soldDate === date);
                           if (!cards.length) return null;
-                          return cards.reduce((sum, c) => sum + (c.price?.value || 0), 0) / cards.length;
+                          return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
                         })(),
                       }));
                     })(), null, 2)}
@@ -653,33 +653,30 @@ function App() {
                     <ResponsiveContainer>
                       <LineChart
                         data={(() => {
-                          // Gather all sold cards by grade
                           const raw = results.results.raw || [];
                           const psa9 = results.results.psa9 || [];
                           const psa10 = results.results.psa10 || [];
-                          // Collect all dates
                           const allDates = Array.from(new Set([
-                            ...raw.map(card => card.dateSold),
-                            ...psa9.map(card => card.dateSold),
-                            ...psa10.map(card => card.dateSold),
+                            ...raw.map(card => card.soldDate),
+                            ...psa9.map(card => card.soldDate),
+                            ...psa10.map(card => card.soldDate),
                           ].filter(Boolean))).sort();
-                          // Build chart data by date
                           return allDates.map(date => ({
                             date: date,
                             Raw: (() => {
-                              const cards = raw.filter(card => card.dateSold === date);
+                              const cards = raw.filter(card => card.soldDate === date);
                               if (!cards.length) return null;
-                              return cards.reduce((sum, c) => sum + (c.price?.value || 0), 0) / cards.length;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
                             })(),
                             PSA9: (() => {
-                              const cards = psa9.filter(card => card.dateSold === date);
+                              const cards = psa9.filter(card => card.soldDate === date);
                               if (!cards.length) return null;
-                              return cards.reduce((sum, c) => sum + (c.price?.value || 0), 0) / cards.length;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
                             })(),
                             PSA10: (() => {
-                              const cards = psa10.filter(card => card.dateSold === date);
+                              const cards = psa10.filter(card => card.soldDate === date);
                               if (!cards.length) return null;
-                              return cards.reduce((sum, c) => sum + (c.price?.value || 0), 0) / cards.length;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
                             })(),
                           }));
                         })()}
