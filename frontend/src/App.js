@@ -649,9 +649,29 @@ function App() {
                         margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 12 }} 
+                          tickFormatter={date => {
+                            if (!date) return '';
+                            const d = new Date(date);
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          }}
+                        />
                         <YAxis tick={{ fontSize: 12 }} domain={[0, 'auto']} />
-                        <Tooltip formatter={v => v ? `$${v.toFixed(2)}` : 'N/A'} />
+                        <Tooltip formatter={v => v ? `$${v.toFixed(2)}` : 'N/A'} 
+                          labelFormatter={date => {
+                            if (!date) return '';
+                            const d = new Date(date);
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          }}
+                        />
                         <Legend />
                         <Line type="monotone" dataKey="Raw" stroke="#222" strokeWidth={2} dot={false} name="Raw" />
                         <Line type="monotone" dataKey="PSA9" stroke="#FFD600" strokeWidth={2} dot={false} name="PSA 9" />
