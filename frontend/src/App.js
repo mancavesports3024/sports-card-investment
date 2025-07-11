@@ -396,7 +396,7 @@ function App() {
           <div className="home-logo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0.5rem 0', width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.25rem' }}>
               <img 
-                src="/ManCave.jpg" 
+                src="/ManCave.jpg?v=1" 
                 alt="ManCave Logo" 
                 style={{ 
                   height: 56, 
@@ -561,7 +561,7 @@ function App() {
         <div className="app-logo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0.5rem 0', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.25rem' }}>
             <img 
-              src="/ManCave.jpg" 
+              src="/ManCave.jpg?v=1" 
               alt="ManCave Logo" 
               style={{ 
                 height: 48, 
