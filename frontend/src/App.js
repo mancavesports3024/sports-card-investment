@@ -19,6 +19,7 @@ function App() {
   const [liveListingsError, setLiveListingsError] = useState(null);
   const [liveListingsCategory, setLiveListingsCategory] = useState(null);
   const [showLiveListingsOnly, setShowLiveListingsOnly] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('all');
   const [user, setUser] = useState(null);
 
   // Check for JWT in localStorage on mount
@@ -201,7 +202,7 @@ function App() {
   };
 
   // Handler to fetch live listings
-  const handleViewLiveListings = async (category) => {
+  const handleViewLiveListings = async (category, saleType = null) => {
     setLiveListingsLoading(true);
     setLiveListingsError(null);
     setLiveListings([]);
@@ -216,6 +217,7 @@ function App() {
           params: {
             query: formData.searchQuery,
             grade: category === 'raw' ? 'Raw' : category === 'psa9' ? 'PSA 9' : 'PSA 10',
+            saleType: saleType, // 'auction' or 'fixed' or null for all
           },
           headers,
         }
@@ -233,6 +235,7 @@ function App() {
     setLiveListingsCategory(null);
     setLiveListings([]);
     setLiveListingsError(null);
+    setActiveFilter('all');
   };
 
   const CardResults = ({ title, cards, type }) => (
@@ -784,6 +787,41 @@ function App() {
                   ← Back to Sold Results
                 </button>
                 <h3>Live eBay Listings for {liveListingsCategory === 'raw' ? 'Raw' : liveListingsCategory === 'psa9' ? 'PSA 9' : 'PSA 10'} Trading Cards</h3>
+                
+                {/* Filter Buttons */}
+                <div className="live-listings-filters">
+                  <button 
+                    className={`filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveFilter('all');
+                      handleViewLiveListings(liveListingsCategory, null);
+                    }}
+                    disabled={liveListingsLoading}
+                  >
+                    All Listings
+                  </button>
+                  <button 
+                    className={`filter-btn ${activeFilter === 'auction' ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveFilter('auction');
+                      handleViewLiveListings(liveListingsCategory, 'auction');
+                    }}
+                    disabled={liveListingsLoading}
+                  >
+                    Auctions Only
+                  </button>
+                  <button 
+                    className={`filter-btn ${activeFilter === 'fixed' ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveFilter('fixed');
+                      handleViewLiveListings(liveListingsCategory, 'fixed');
+                    }}
+                    disabled={liveListingsLoading}
+                  >
+                    Buy It Now Only
+                  </button>
+                </div>
+
                 {liveListingsLoading ? (
                   <p>Loading live listings...</p>
                 ) : liveListingsError ? (
