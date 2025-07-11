@@ -393,9 +393,22 @@ function App() {
     <div className="home-page">
       <header className="home-header">
         <div className="home-nav">
-          <div className="home-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <img src="/ManCave.jpg" alt="ManCave Logo" style={{ height: 48, width: 48, borderRadius: 8, objectFit: 'cover', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }} />
-            <span style={{ fontWeight: 700, fontSize: 28, color: '#222' }}>Trading Card Tracker</span>
+          <div className="home-logo" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '0.5rem 0' }}>
+            <img 
+              src="/ManCave.jpg" 
+              alt="ManCave Logo" 
+              style={{ 
+                height: 56, 
+                width: 56, 
+                borderRadius: '50%', 
+                objectFit: 'cover', 
+                background: '#fff',
+                border: '3px solid #FFD600',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.18)'
+              }}
+              onError={e => { e.target.onerror = null; e.target.src = '/logo192.png'; }}
+            />
+            <span style={{ fontWeight: 900, fontSize: 32, color: '#FFD600', letterSpacing: 1 }}>Trading Card Tracker</span>
           </div>
           <a
             href={`${config.API_BASE_URL}/api/auth/google`}
@@ -546,9 +559,22 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <div className="app-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <img src="/ManCave.jpg" alt="ManCave Logo" style={{ height: 40, width: 40, borderRadius: 8, objectFit: 'cover', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }} />
-          <span style={{ fontWeight: 700, fontSize: 24, color: '#222' }}>Trading Card Sales Tracker</span>
+        <div className="app-logo" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '0.5rem 0' }}>
+          <img 
+            src="/ManCave.jpg" 
+            alt="ManCave Logo" 
+            style={{ 
+              height: 48, 
+              width: 48, 
+              borderRadius: '50%', 
+              objectFit: 'cover', 
+              background: '#fff',
+              border: '3px solid #FFD600',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.18)'
+            }}
+            onError={e => { e.target.onerror = null; e.target.src = '/logo192.png'; }}
+          />
+          <span style={{ fontWeight: 900, fontSize: 28, color: '#FFD600', letterSpacing: 1 }}>Trading Card Sales Tracker</span>
         </div>
         <p>Search for recent eBay sales of trading cards</p>
         {/* Google Login/Logout UI */}
