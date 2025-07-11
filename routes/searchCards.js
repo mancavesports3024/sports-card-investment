@@ -5,6 +5,36 @@ const onepointService = require('../services/130pointService');
 const ebayScraperService = require('../services/ebayScraperService');
 const searchHistoryService = require('../services/searchHistoryService');
 
+// Helper to add EPN tracking parameters to eBay URLs
+function addEbayTracking(url) {
+  if (!url) return url;
+  
+  // Your EPN tracking parameters - replace with your actual values
+  const epnParams = {
+    campid: process.env.EBAY_CAMPID || '5338333097', // Replace with your campaign ID
+    toolid: process.env.EBAY_TOOLID || '10039', // Replace with your tool ID
+    mkevt: process.env.EBAY_MKEVT || '1', // Replace with your affiliate ID
+    mkrid: process.env.EBAY_MKRID || '711-53200-19255-0', // Replace with your marketplace ID
+    mkcid: process.env.EBAY_MKCID || '2' // Replace with your campaign ID
+  };
+  
+  try {
+    const urlObj = new URL(url);
+    
+    // Add EPN parameters
+    Object.entries(epnParams).forEach(([key, value]) => {
+      if (value) {
+        urlObj.searchParams.set(key, value);
+      }
+    });
+    
+    return urlObj.toString();
+  } catch (error) {
+    console.error('Error adding EPN tracking to URL:', error);
+    return url; // Return original URL if there's an error
+  }
+}
+
 // Mock data for testing when eBay API is not available
 const getMockData = (searchQuery, numSales) => {
   const mockItem = {
@@ -860,6 +890,30 @@ router.get('/', async (req, res) => {
     const categorized = categorizeCards(allCards);
     const sorted = sortBySoldDate(categorized);
 
+    // Add EPN tracking to all eBay URLs in the results
+    const addTrackingToCards = (cards) => {
+      return cards.map(card => ({
+        ...card,
+        itemWebUrl: addEbayTracking(card.itemWebUrl)
+      }));
+    };
+
+    // Apply tracking to all card categories
+    sorted.raw = addTrackingToCards(sorted.raw);
+    sorted.psa7 = addTrackingToCards(sorted.psa7);
+    sorted.psa8 = addTrackingToCards(sorted.psa8);
+    sorted.psa9 = addTrackingToCards(sorted.psa9);
+    sorted.psa10 = addTrackingToCards(sorted.psa10);
+    sorted.cgc9 = addTrackingToCards(sorted.cgc9);
+    sorted.cgc10 = addTrackingToCards(sorted.cgc10);
+    sorted.tag8 = addTrackingToCards(sorted.tag8);
+    sorted.tag9 = addTrackingToCards(sorted.tag9);
+    sorted.tag10 = addTrackingToCards(sorted.tag10);
+    sorted.sgc10 = addTrackingToCards(sorted.sgc10);
+    sorted.aigrade9 = addTrackingToCards(sorted.aigrade9);
+    sorted.aigrade10 = addTrackingToCards(sorted.aigrade10);
+    sorted.otherGraded = addTrackingToCards(sorted.otherGraded);
+
     res.json({ 
       searchParams: { searchQuery, numSales: 25 },
       results: sorted,
@@ -963,6 +1017,30 @@ router.post('/', async (req, res) => {
     // Categorize and sort the results
     const categorized = categorizeCards(allCards);
     const sorted = sortBySoldDate(categorized);
+
+    // Add EPN tracking to all eBay URLs in the results
+    const addTrackingToCards = (cards) => {
+      return cards.map(card => ({
+        ...card,
+        itemWebUrl: addEbayTracking(card.itemWebUrl)
+      }));
+    };
+
+    // Apply tracking to all card categories
+    sorted.raw = addTrackingToCards(sorted.raw);
+    sorted.psa7 = addTrackingToCards(sorted.psa7);
+    sorted.psa8 = addTrackingToCards(sorted.psa8);
+    sorted.psa9 = addTrackingToCards(sorted.psa9);
+    sorted.psa10 = addTrackingToCards(sorted.psa10);
+    sorted.cgc9 = addTrackingToCards(sorted.cgc9);
+    sorted.cgc10 = addTrackingToCards(sorted.cgc10);
+    sorted.tag8 = addTrackingToCards(sorted.tag8);
+    sorted.tag9 = addTrackingToCards(sorted.tag9);
+    sorted.tag10 = addTrackingToCards(sorted.tag10);
+    sorted.sgc10 = addTrackingToCards(sorted.sgc10);
+    sorted.aigrade9 = addTrackingToCards(sorted.aigrade9);
+    sorted.aigrade10 = addTrackingToCards(sorted.aigrade10);
+    sorted.otherGraded = addTrackingToCards(sorted.otherGraded);
 
     // Save the search to history
     try {

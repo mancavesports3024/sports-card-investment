@@ -12,6 +12,36 @@ function buildEbayQuery(searchQuery, grade) {
   return query;
 }
 
+// Helper to add EPN tracking parameters to eBay URLs
+function addEbayTracking(url) {
+  if (!url) return url;
+  
+  // Your EPN tracking parameters - replace with your actual values
+  const epnParams = {
+    campid: process.env.EBAY_CAMPID || '5338333097', // Replace with your campaign ID
+    toolid: process.env.EBAY_TOOLID || '10039', // Replace with your tool ID
+    mkevt: process.env.EBAY_MKEVT || '1', // Replace with your affiliate ID
+    mkrid: process.env.EBAY_MKRID || '711-53200-19255-0', // Replace with your marketplace ID
+    mkcid: process.env.EBAY_MKCID || '2' // Replace with your campaign ID
+  };
+  
+  try {
+    const urlObj = new URL(url);
+    
+    // Add EPN parameters
+    Object.entries(epnParams).forEach(([key, value]) => {
+      if (value) {
+        urlObj.searchParams.set(key, value);
+      }
+    });
+    
+    return urlObj.toString();
+  } catch (error) {
+    console.error('Error adding EPN tracking to URL:', error);
+    return url; // Return original URL if there's an error
+  }
+}
+
 router.get('/', async (req, res) => {
   const { query, grade, saleType } = req.query;
   if (!query || !grade) {
@@ -179,6 +209,12 @@ router.get('/', async (req, res) => {
     } else {
       console.log('   ❌ No items found in any approach');
     }
+
+    // Add EPN tracking to all eBay URLs
+    items = items.map(item => ({
+      ...item,
+      itemWebUrl: addEbayTracking(item.itemWebUrl)
+    }));
 
     res.json({ items });
   } catch (error) {
