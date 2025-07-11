@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 import config from './config';
+import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 function App() {
   const [formData, setFormData] = useState({
@@ -605,6 +606,55 @@ function App() {
                   
                   {/* Debug: Log the price analysis structure */}
                   {console.log('Price Analysis Data:', results.priceAnalysis)}
+                  
+                  {/* Price Trend Chart */}
+                  <div style={{ width: '100%', height: 300, marginBottom: 32 }}>
+                    <ResponsiveContainer>
+                      <LineChart
+                        data={(() => {
+                          // Gather all sold cards by grade
+                          const raw = results.results.raw || [];
+                          const psa9 = results.results.psa9 || [];
+                          const psa10 = results.results.psa10 || [];
+                          // Collect all dates
+                          const allDates = Array.from(new Set([
+                            ...raw.map(card => card.dateSold),
+                            ...psa9.map(card => card.dateSold),
+                            ...psa10.map(card => card.dateSold),
+                          ].filter(Boolean))).sort();
+                          // Build chart data by date
+                          return allDates.map(date => ({
+                            date: date,
+                            Raw: (() => {
+                              const cards = raw.filter(card => card.dateSold === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (c.price?.value || 0), 0) / cards.length;
+                            })(),
+                            PSA9: (() => {
+                              const cards = psa9.filter(card => card.dateSold === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (c.price?.value || 0), 0) / cards.length;
+                            })(),
+                            PSA10: (() => {
+                              const cards = psa10.filter(card => card.dateSold === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (c.price?.value || 0), 0) / cards.length;
+                            })(),
+                          }));
+                        })()}
+                        margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} domain={[0, 'auto']} />
+                        <Tooltip formatter={v => v ? `$${v.toFixed(2)}` : 'N/A'} />
+                        <Legend />
+                        <Line type="monotone" dataKey="Raw" stroke="#222" strokeWidth={2} dot={false} name="Raw" />
+                        <Line type="monotone" dataKey="PSA9" stroke="#FFD600" strokeWidth={2} dot={false} name="PSA 9" />
+                        <Line type="monotone" dataKey="PSA10" stroke="#00C49F" strokeWidth={2} dot={false} name="PSA 10" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                   
                   {/* Summary Cards */}
                   <div className="price-summary">
