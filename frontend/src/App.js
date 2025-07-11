@@ -236,8 +236,23 @@ function App() {
       );
       
       console.log('🔍 API response:', response.data);
-      setLiveListings(response.data.items || []);
-      console.log('🔍 Live listings set:', response.data.items?.length || 0, 'items');
+      
+      // Validate and clean the items data
+      const items = response.data.items || [];
+      const cleanedItems = items.map(item => ({
+        itemId: item.itemId || `item-${Date.now()}-${Math.random()}`,
+        title: item.title || 'Untitled Item',
+        price: item.price || null,
+        itemWebUrl: item.itemWebUrl || '#',
+        image: item.image || null,
+        buyingOptions: Array.isArray(item.buyingOptions) ? item.buyingOptions : [],
+        itemCreationDate: item.itemCreationDate || new Date().toISOString(),
+        seller: typeof item.seller === 'string' ? item.seller : null,
+        condition: typeof item.condition === 'string' ? item.condition : null
+      }));
+      
+      setLiveListings(cleanedItems);
+      console.log('🔍 Live listings set:', cleanedItems.length, 'items');
     } catch (err) {
       console.error('❌ Error fetching live listings:', err);
       setLiveListingsError(err.response?.data?.error || err.message || 'Failed to fetch live listings');
@@ -856,29 +871,40 @@ function App() {
                       .sort((a, b) => new Date(b.itemCreationDate) - new Date(a.itemCreationDate))
                       .map((item, idx) => (
                       <div key={item.itemId || idx} className="live-listing-card">
-                        <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer">
-                          <img src={item.image?.imageUrl} alt={item.title} className="live-listing-img" />
+                        <a href={item.itemWebUrl || '#'} target="_blank" rel="noopener noreferrer">
+                          <img 
+                            src={item.image?.imageUrl || item.image || '/placeholder-image.jpg'} 
+                            alt={item.title || 'Trading Card'} 
+                            className="live-listing-img"
+                            onError={(e) => {
+                              e.target.src = '/placeholder-image.jpg';
+                            }}
+                          />
                         </a>
                         <div className="live-listing-content">
-                          <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer" className="live-listing-title">
-                            {item.title}
+                          <a href={item.itemWebUrl || '#'} target="_blank" rel="noopener noreferrer" className="live-listing-title">
+                            {item.title || 'Untitled Item'}
                           </a>
                           <div className="live-listing-price">
-                            {item.price ? `$${item.price.value} ${item.price.currency}` : 'N/A'}
+                            {item.price && typeof item.price === 'object' && item.price.value 
+                              ? `$${item.price.value} ${item.price.currency || 'USD'}` 
+                              : item.price && typeof item.price === 'string'
+                              ? item.price
+                              : 'N/A'}
                           </div>
-                          <div className={`live-listing-sale-type ${item.buyingOptions?.includes('AUCTION') ? 'auction' : 'fixed'}`}>
-                            {item.buyingOptions?.includes('AUCTION') ? 'Auction' : 
-                             item.buyingOptions?.includes('FIXED_PRICE') ? 'Buy It Now' : 'N/A'}
+                          <div className={`live-listing-sale-type ${Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'auction' : 'fixed'}`}>
+                            {Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'Auction' : 
+                             Array.isArray(item.buyingOptions) && item.buyingOptions.includes('FIXED_PRICE') ? 'Buy It Now' : 'N/A'}
                           </div>
                           <div className="live-listing-date">
                             Listed: {item.itemCreationDate ? formatDate(item.itemCreationDate) : 'N/A'}
                           </div>
-                          {item.seller && (
+                          {item.seller && typeof item.seller === 'string' && (
                             <div className="live-listing-seller">
                               Seller: {item.seller}
                             </div>
                           )}
-                          {item.condition && (
+                          {item.condition && typeof item.condition === 'string' && (
                             <div className="live-listing-condition">
                               Condition: {item.condition}
                             </div>
