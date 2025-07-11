@@ -119,8 +119,18 @@ function App() {
     }
   };
 
+  // Update saveSearch to prevent duplicate search queries
   const saveSearch = async (searchQuery, results, priceAnalysis) => {
     try {
+      // Prevent duplicate search queries (case-insensitive, trimmed)
+      const normalizedQuery = searchQuery.trim().toLowerCase();
+      const alreadyExists = searchHistory.some(
+        s => (s.searchQuery || '').trim().toLowerCase() === normalizedQuery
+      );
+      if (alreadyExists) {
+        console.log('🔁 Duplicate search, not saving:', searchQuery);
+        return;
+      }
       const token = localStorage.getItem('jwt');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       await axios.post(config.getSearchHistoryUrl(), {
@@ -603,50 +613,6 @@ function App() {
               {results.priceAnalysis && (
                 <div className="price-analysis-section">
                   <h3>📊 Price Analysis</h3>
-                  
-                  {/* Debug: Show processed chart data */}
-                  <pre style={{ background: '#222', color: '#FFD600', padding: 8, fontSize: 12, overflowX: 'auto' }}>
-                    {JSON.stringify((() => {
-                      const raw = results.results.raw || [];
-                      const psa9 = results.results.psa9 || [];
-                      const psa10 = results.results.psa10 || [];
-                      const allDates = Array.from(new Set([
-                        ...raw.map(card => card.soldDate),
-                        ...psa9.map(card => card.soldDate),
-                        ...psa10.map(card => card.soldDate),
-                      ].filter(Boolean))).sort();
-                      return allDates.map(date => ({
-                        date: date,
-                        Raw: (() => {
-                          const cards = raw.filter(card => card.soldDate === date);
-                          if (!cards.length) return null;
-                          return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
-                        })(),
-                        PSA9: (() => {
-                          const cards = psa9.filter(card => card.soldDate === date);
-                          if (!cards.length) return null;
-                          return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
-                        })(),
-                        PSA10: (() => {
-                          const cards = psa10.filter(card => card.soldDate === date);
-                          if (!cards.length) return null;
-                          return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
-                        })(),
-                      }));
-                    })(), null, 2)}
-                  </pre>
-                  {/* Debug: Show first 3 items of each sold results array */}
-                  <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
-                    <pre style={{ background: '#111', color: '#FFD600', padding: 8, fontSize: 12, width: '33%', overflowX: 'auto' }}>
-                      Raw: {JSON.stringify((results.results.raw || []).slice(0, 3), null, 2)}
-                    </pre>
-                    <pre style={{ background: '#111', color: '#FFD600', padding: 8, fontSize: 12, width: '33%', overflowX: 'auto' }}>
-                      PSA9: {JSON.stringify((results.results.psa9 || []).slice(0, 3), null, 2)}
-                    </pre>
-                    <pre style={{ background: '#111', color: '#FFD600', padding: 8, fontSize: 12, width: '33%', overflowX: 'auto' }}>
-                      PSA10: {JSON.stringify((results.results.psa10 || []).slice(0, 3), null, 2)}
-                    </pre>
-                  </div>
                   
                   {/* Price Trend Chart */}
                   <div style={{ width: '100%', height: 300, marginBottom: 32 }}>
