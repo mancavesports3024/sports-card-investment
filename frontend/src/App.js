@@ -148,24 +148,31 @@ function App() {
     }
   };
 
+  // Update handleSubmit to use advancedSearch if provided
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setResults(null);
 
-    // Build search string
-    const parts = [];
-    if (formData.player) parts.push(formData.player.trim());
-    if (formData.manufacturer) parts.push(formData.manufacturer.trim());
-    if (formData.year) parts.push(formData.year.trim());
-    if (formData.cardNumber) parts.push(formData.cardNumber.trim());
-    if (formData.type) parts.push(formData.type.trim());
-    let searchString = parts.join(' ');
-    if (formData.exclude) {
-      const excludes = formData.exclude.split(',').map(s => s.trim()).filter(Boolean);
-      if (excludes.length) {
-        searchString += ' ' + excludes.map(term => `-${term}`).join(' ');
+    // Use advanced search string if provided
+    let searchString = '';
+    if (formData.advancedSearch && formData.advancedSearch.trim()) {
+      searchString = formData.advancedSearch.trim();
+    } else {
+      // Build search string from fields
+      const parts = [];
+      if (formData.player) parts.push(formData.player.trim());
+      if (formData.manufacturer) parts.push(formData.manufacturer.trim());
+      if (formData.year) parts.push(formData.year.trim());
+      if (formData.cardNumber) parts.push(formData.cardNumber.trim());
+      if (formData.type) parts.push(formData.type.trim());
+      searchString = parts.join(' ');
+      if (formData.exclude) {
+        const excludes = formData.exclude.split(',').map(s => s.trim()).filter(Boolean);
+        if (excludes.length) {
+          searchString += ' ' + excludes.map(term => `-${term}`).join(' ');
+        }
       }
     }
 
@@ -610,6 +617,16 @@ function App() {
               value={formData.exclude || ''}
               onChange={handleInputChange}
               placeholder="e.g. box, case, break"
+            />
+          </div>
+          <div className="form-group">
+            <label>Advanced Search (override all fields)</label>
+            <input
+              type="text"
+              name="advancedSearch"
+              value={formData.advancedSearch || ''}
+              onChange={handleInputChange}
+              placeholder="Type your own search string here"
             />
           </div>
           <button className="search-button" type="submit" disabled={loading}>
