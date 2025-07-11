@@ -61,15 +61,57 @@ router.get('/', async (req, res) => {
       console.log('❌ Approach 1 failed:', error.message);
     }
 
-    // Approach 2: If no items found and looking for auctions, try with auction-specific query
-    if (items.length === 0 && saleType === 'auction') {
+    // Approach 2: For auctions, use auction-specific search terms
+    if (saleType === 'auction') {
       try {
-        const auctionQuery = ebayQuery + ' auction';
-        console.log('🔍 Approach 2: Adding "auction" to search query:', auctionQuery);
+        // Try multiple auction-specific search terms
+        const auctionTerms = ['auction', 'bid', 'bidding', 'ending soon', 'auction ending'];
+        let auctionItems = [];
+        
+        for (const term of auctionTerms) {
+          if (auctionItems.length >= 20) break; // Stop if we have enough items
+          
+          const auctionQuery = ebayQuery + ' ' + term;
+          console.log(`🔍 Approach 2: Trying "${term}" - ${auctionQuery}`);
+          
+          const response = await axios.get('https://api.ebay.com/buy/browse/v1/item_summary/search', {
+            params: {
+              q: auctionQuery,
+              limit: 10,
+              sort: 'price asc',
+            },
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+            },
+          });
+
+          const newItems = response.data.itemSummaries || [];
+          console.log(`   Found ${newItems.length} items with "${term}"`);
+          
+          // Add items that aren't already in our list
+          newItems.forEach(item => {
+            if (!auctionItems.find(existing => existing.itemId === item.itemId)) {
+              auctionItems.push(item);
+            }
+          });
+        }
+        
+        items = auctionItems;
+        console.log(`✅ Approach 2 found ${items.length} total auction items`);
+      } catch (error) {
+        console.log('❌ Approach 2 failed:', error.message);
+      }
+    } else if (saleType === 'fixed') {
+      // For fixed price, try to exclude auction terms
+      try {
+        const fixedQuery = ebayQuery + ' "buy it now" -auction -bid';
+        console.log('🔍 Approach 2: Fixed price search:', fixedQuery);
         
         const response = await axios.get('https://api.ebay.com/buy/browse/v1/item_summary/search', {
           params: {
-            q: auctionQuery,
+            q: fixedQuery,
             limit: 20,
             sort: 'price asc',
           },
@@ -81,64 +123,13 @@ router.get('/', async (req, res) => {
         });
 
         items = response.data.itemSummaries || [];
-        console.log(`✅ Approach 2 found ${items.length} items`);
+        console.log(`✅ Approach 2 found ${items.length} fixed price items`);
       } catch (error) {
         console.log('❌ Approach 2 failed:', error.message);
       }
     }
 
-    // Approach 3: Try different query strategies for auctions
-    if (items.length === 0 && saleType === 'auction') {
-      try {
-        // Try with "bid" in the query to find auction items
-        const bidQuery = ebayQuery + ' bid';
-        console.log('🔍 Approach 3: Adding "bid" to search query:', bidQuery);
-        
-        const response = await axios.get('https://api.ebay.com/buy/browse/v1/item_summary/search', {
-          params: {
-            q: bidQuery,
-            limit: 20,
-            sort: 'price asc',
-          },
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
-          },
-        });
 
-        items = response.data.itemSummaries || [];
-        console.log(`✅ Approach 3 found ${items.length} items`);
-      } catch (error) {
-        console.log('❌ Approach 3 failed:', error.message);
-      }
-    }
-
-    // Approach 4: Try with "ending soon" to find active auctions
-    if (items.length === 0 && saleType === 'auction') {
-      try {
-        const endingQuery = ebayQuery + ' "ending soon"';
-        console.log('🔍 Approach 4: Adding "ending soon" to search query:', endingQuery);
-        
-        const response = await axios.get('https://api.ebay.com/buy/browse/v1/item_summary/search', {
-          params: {
-            q: endingQuery,
-            limit: 20,
-            sort: 'price asc',
-          },
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
-          },
-        });
-
-        items = response.data.itemSummaries || [];
-        console.log(`✅ Approach 4 found ${items.length} items`);
-      } catch (error) {
-        console.log('❌ Approach 4 failed:', error.message);
-      }
-    }
 
     // Log results
     console.log(`✅ Final result: ${items.length} live listings for "${ebayQuery}"`);
@@ -156,20 +147,30 @@ router.get('/', async (req, res) => {
 
       // Client-side filtering as fallback
       if (saleType === 'auction') {
-        const auctionItems = items.filter(item => 
-          item.buyingOptions?.includes('AUCTION') || 
-          item.title?.toLowerCase().includes('auction') ||
-          item.title?.toLowerCase().includes('bid')
-        );
+        const auctionItems = items.filter(item => {
+          const title = item.title?.toLowerCase() || '';
+          return item.buyingOptions?.includes('AUCTION') || 
+                 title.includes('auction') ||
+                 title.includes('bid') ||
+                 title.includes('bidding') ||
+                 title.includes('ending soon') ||
+                 title.includes('auction ending') ||
+                 title.includes('current bid') ||
+                 title.includes('time left');
+        });
         if (auctionItems.length > 0) {
           console.log(`   🎯 Client-side filtered to ${auctionItems.length} auction items`);
           items = auctionItems;
         }
       } else if (saleType === 'fixed') {
-        const fixedItems = items.filter(item => 
-          item.buyingOptions?.includes('FIXED_PRICE') || 
-          !item.title?.toLowerCase().includes('auction')
-        );
+        const fixedItems = items.filter(item => {
+          const title = item.title?.toLowerCase() || '';
+          return item.buyingOptions?.includes('FIXED_PRICE') || 
+                 !title.includes('auction') && 
+                 !title.includes('bid') && 
+                 !title.includes('bidding') &&
+                 !title.includes('ending soon');
+        });
         if (fixedItems.length > 0) {
           console.log(`   🎯 Client-side filtered to ${fixedItems.length} fixed price items`);
           items = fixedItems;
