@@ -836,17 +836,31 @@ function App() {
                       <div key={item.itemId || idx} className="live-listing-card">
                         <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer">
                           <img src={item.image?.imageUrl} alt={item.title} className="live-listing-img" />
-                          <div className="live-listing-title">{item.title}</div>
                         </a>
-                        <div className="live-listing-price">
-                          {item.price ? `$${item.price.value} ${item.price.currency}` : 'N/A'}
-                        </div>
-                        <div className="live-listing-sale-type">
-                          {item.buyingOptions?.includes('AUCTION') ? 'Auction' : 
-                           item.buyingOptions?.includes('FIXED_PRICE') ? 'Buy It Now' : 'N/A'}
-                        </div>
-                        <div className="live-listing-date">
-                          Listed: {item.itemCreationDate ? formatDate(item.itemCreationDate) : 'N/A'}
+                        <div className="live-listing-content">
+                          <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer" className="live-listing-title">
+                            {item.title}
+                          </a>
+                          <div className="live-listing-price">
+                            {item.price ? `$${item.price.value} ${item.price.currency}` : 'N/A'}
+                          </div>
+                          <div className={`live-listing-sale-type ${item.buyingOptions?.includes('AUCTION') ? 'auction' : 'fixed'}`}>
+                            {item.buyingOptions?.includes('AUCTION') ? 'Auction' : 
+                             item.buyingOptions?.includes('FIXED_PRICE') ? 'Buy It Now' : 'N/A'}
+                          </div>
+                          <div className="live-listing-date">
+                            Listed: {item.itemCreationDate ? formatDate(item.itemCreationDate) : 'N/A'}
+                          </div>
+                          {item.seller && (
+                            <div className="live-listing-seller">
+                              Seller: {item.seller}
+                            </div>
+                          )}
+                          {item.condition && (
+                            <div className="live-listing-condition">
+                              Condition: {item.condition}
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
