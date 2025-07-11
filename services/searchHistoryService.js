@@ -1,7 +1,13 @@
 const fs = require('fs').promises;
 const path = require('path');
 
-const SEARCH_HISTORY_FILE = path.join(__dirname, '../data/search_history.json');
+// Use Railway's persistent volume if available, otherwise fall back to local data directory
+const SEARCH_HISTORY_FILE = process.env.RAILWAY_VOLUME_MOUNT_PATH 
+  ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'search_history.json')
+  : path.join(__dirname, '../data/search_history.json');
+
+console.log('📁 Search history file location:', SEARCH_HISTORY_FILE);
+console.log('📁 Railway volume mount path:', process.env.RAILWAY_VOLUME_MOUNT_PATH || 'Not set');
 
 // Ensure data directory exists
 async function ensureDataDirectory() {
