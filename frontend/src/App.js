@@ -154,16 +154,31 @@ function App() {
     setError(null);
     setResults(null);
 
+    // Build search string
+    const parts = [];
+    if (formData.player) parts.push(formData.player.trim());
+    if (formData.manufacturer) parts.push(formData.manufacturer.trim());
+    if (formData.year) parts.push(formData.year.trim());
+    if (formData.type) parts.push(formData.type.trim());
+    let searchString = parts.join(' ');
+    if (formData.exclude) {
+      const excludes = formData.exclude.split(',').map(s => s.trim()).filter(Boolean);
+      if (excludes.length) {
+        searchString += ' ' + excludes.map(term => `-${term}`).join(' ');
+      }
+    }
+
     try {
       const token = localStorage.getItem('jwt');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const response = await axios.post(config.getSearchCardsUrl(), {
         ...formData,
+        searchQuery: searchString,
         numSales: 25
       }, { headers });
       setResults(response.data);
       // Save search for user
-      await saveSearch(formData.searchQuery, response.data.results, response.data.priceAnalysis);
+      await saveSearch(searchString, response.data.results, response.data.priceAnalysis);
       // Refresh search history after successful search
       await loadSearchHistory();
     } catch (err) {
@@ -393,11 +408,20 @@ function App() {
             </div>
           </div>
           <div className="hero-image">
-            <div className="mockup-card">
-              <div className="mockup-header">📊 Price Analysis</div>
-              <div className="mockup-content">
-                <div className="mockup-price">$1,250</div>
-                <div className="mockup-trend">↗️ Trending Up</div>
+            <div style={{ display: 'flex', gap: '1.5rem' }}>
+              <div className="mockup-card">
+                <div className="mockup-header">📊 Price Analysis</div>
+                <div className="mockup-content">
+                  <div className="mockup-price">$450</div>
+                  <div className="mockup-trend">↗️ Trending Up</div>
+                </div>
+              </div>
+              <div className="mockup-card">
+                <div className="mockup-header">Raw → PSA 10</div>
+                <div className="mockup-content">
+                  <div className="mockup-price">$300</div>
+                  <div className="mockup-trend">+66%</div>
+                </div>
               </div>
             </div>
           </div>
@@ -525,22 +549,60 @@ function App() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="search-form">
+        <form className="search-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="searchQuery">Search Trading Cards *</label>
+            <label>Player/Card Name</label>
             <input
               type="text"
-              id="searchQuery"
-              name="searchQuery"
-              value={formData.searchQuery}
+              name="player"
+              value={formData.player || ''}
               onChange={handleInputChange}
-              placeholder="e.g., Charizard 1999 Base Set, Magic: The Gathering Black Lotus"
+              placeholder="e.g. Charizard, LeBron James"
               required
             />
           </div>
-
-          <button type="submit" disabled={loading} className="search-button">
-            {loading ? 'Searching...' : 'Search Trading Cards'}
+          <div className="form-group">
+            <label>Manufacturer</label>
+            <input
+              type="text"
+              name="manufacturer"
+              value={formData.manufacturer || ''}
+              onChange={handleInputChange}
+              placeholder="e.g. Topps, Panini, Pokemon"
+            />
+          </div>
+          <div className="form-group">
+            <label>Year</label>
+            <input
+              type="text"
+              name="year"
+              value={formData.year || ''}
+              onChange={handleInputChange}
+              placeholder="e.g. 2023"
+            />
+          </div>
+          <div className="form-group">
+            <label>Card Type</label>
+            <input
+              type="text"
+              name="type"
+              value={formData.type || ''}
+              onChange={handleInputChange}
+              placeholder="e.g. Rookie, Holo, EX"
+            />
+          </div>
+          <div className="form-group">
+            <label>Exclude Terms (comma-separated)</label>
+            <input
+              type="text"
+              name="exclude"
+              value={formData.exclude || ''}
+              onChange={handleInputChange}
+              placeholder="e.g. box, case, break"
+            />
+          </div>
+          <button className="search-button" type="submit" disabled={loading}>
+            {loading ? 'Searching...' : 'Search'}
           </button>
         </form>
 
