@@ -1847,3 +1847,82 @@
     font-size: 2rem;
   }
 }
+
+/* Compact Sold Card Layout */
+.cards-grid.compact {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.5rem;
+  padding: 1rem;
+}
+.card-item.compact {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1.5px solid #ffd700;
+  background: #fff;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+.card-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.card-summary-row .card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 0.2rem 0;
+  border: none;
+  padding: 0;
+}
+.card-summary-row .card-price {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #000;
+  margin-left: 0.5rem;
+}
+.card-summary-row .card-date {
+  font-size: 0.9rem;
+  color: #666;
+  margin-left: 0.5rem;
+}
+.expand-btn {
+  background: #000;
+  color: #ffd700;
+  border: 1.5px solid #ffd700;
+  border-radius: 5px;
+  font-size: 1.1rem;
+  padding: 0.2rem 0.7rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  margin-left: 0.5rem;
+}
+.expand-btn:hover {
+  background: #ffd700;
+  color: #000;
+}
+.card-item.compact .card-details {
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+}
+
+/* Jump Buttons in Price Analysis */
+.jump-btn {
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+  color: #ffd700;
+  border: 2px solid #ffd700;
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.jump-btn:hover {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #000000;
+  border-color: #000000;
+}

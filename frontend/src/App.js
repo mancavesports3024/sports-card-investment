@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './App.css';
 import config from './config';
@@ -281,8 +281,22 @@ function App() {
     setActiveFilter('all');
   };
 
-  const CardResults = ({ title, cards, type }) => (
-    <div className="card-section">
+  // Add refs for jump navigation
+  const rawRef = useRef(null);
+  const psa9Ref = useRef(null);
+  const psa10Ref = useRef(null);
+
+  // Add expand/collapse state for sold cards
+  const [expandedCards, setExpandedCards] = useState({});
+  const toggleExpand = (type, idx) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [`${type}-${idx}`]: !prev[`${type}-${idx}`]
+    }));
+  };
+
+  const CardResults = ({ title, cards, type, sectionRef }) => (
+    <div className="card-section" ref={sectionRef}>
       <h3>{title}</h3>
       <button
         className="live-listings-btn"
@@ -292,37 +306,49 @@ function App() {
         {liveListingsLoading && liveListingsCategory === type ? 'Loading...' : 'View Live Listings'}
       </button>
       {cards && cards.length > 0 ? (
-        <div className="cards-grid">
-          {cards.map((card, index) => (
-            <div key={`${type}-${index}`} className="card-item">
-              <div className="card-details">
-                <h4 className="card-title">{card.title}</h4>
-                <p className="card-price">{formatPrice(card.price)}</p>
-                <div className="card-info-grid">
-                  <p className="card-date">Sold: {formatDate(card.soldDate)}</p>
-                  <p className="card-bids">{formatBidInfo(card)}</p>
-                  <p className="card-seller">Seller: {card.seller || 'N/A'}</p>
-                  <p className="card-condition">Condition: {card.condition || 'Unknown'}</p>
-                  {card.auction && card.auction.startingPrice && (
-                    <p className="card-starting-price">Started: ${card.auction.startingPrice}</p>
-                  )}
-                  {card.price && card.price.priceType && (
-                    <p className="card-price-type">Type: {card.price.priceType === 'final_bid' ? 'Auction' : 'Buy It Now'}</p>
-                  )}
+        <div className="cards-grid compact">
+          {cards.map((card, index) => {
+            const isExpanded = expandedCards[`${type}-${index}`];
+            return (
+              <div key={`${type}-${index}`} className="card-item compact">
+                <div className="card-summary-row">
+                  <div>
+                    <h4 className="card-title">{card.title}</h4>
+                    <span className="card-price">{formatPrice(card.price)}</span>
+                    <span className="card-date">{formatDate(card.soldDate)}</span>
+                  </div>
+                  <button className="expand-btn" onClick={() => toggleExpand(type, index)}>
+                    {isExpanded ? '▲' : '▼'}
+                  </button>
                 </div>
-                {card.itemWebUrl && (
-                  <div className="ebay-link-container">
-                    <a href={card.itemWebUrl} target="_blank" rel="noopener noreferrer" className="ebay-link">
-                      View on eBay
-                    </a>
-                    <small className="url-note">
-                      Note: eBay URLs may redirect to similar items
-                    </small>
+                {isExpanded && (
+                  <div className="card-details">
+                    <div className="card-info-grid">
+                      <p className="card-bids">{formatBidInfo(card)}</p>
+                      <p className="card-seller">Seller: {card.seller || 'N/A'}</p>
+                      <p className="card-condition">Condition: {card.condition || 'Unknown'}</p>
+                      {card.auction && card.auction.startingPrice && (
+                        <p className="card-starting-price">Started: ${card.auction.startingPrice}</p>
+                      )}
+                      {card.price && card.price.priceType && (
+                        <p className="card-price-type">Type: {card.price.priceType === 'final_bid' ? 'Auction' : 'Buy It Now'}</p>
+                      )}
+                    </div>
+                    {card.itemWebUrl && (
+                      <div className="ebay-link-container">
+                        <a href={card.itemWebUrl} target="_blank" rel="noopener noreferrer" className="ebay-link">
+                          View on eBay
+                        </a>
+                        <small className="url-note">
+                          Note: eBay URLs may redirect to similar items
+                        </small>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <p className="no-results">No {type} trading cards found</p>
@@ -613,6 +639,11 @@ function App() {
               {results.priceAnalysis && (
                 <div className="price-analysis-section">
                   <h3>📊 Price Analysis</h3>
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                    <button className="jump-btn" onClick={() => rawRef.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to Raw Sales</button>
+                    <button className="jump-btn" onClick={() => psa9Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 9 Sales</button>
+                    <button className="jump-btn" onClick={() => psa10Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 10 Sales</button>
+                  </div>
                   
                   {/* Price Trend Chart */}
                   <div style={{ width: '100%', height: 300, marginBottom: 32 }}>
@@ -881,9 +912,9 @@ function App() {
             {/* Show sold results only if not viewing live listings */}
             {!showLiveListingsOnly && (
               <>
-                <CardResults title="Raw Trading Cards" cards={results.results.raw} type="raw" />
-                <CardResults title="PSA 9 Trading Cards" cards={results.results.psa9} type="psa9" />
-                <CardResults title="PSA 10 Trading Cards" cards={results.results.psa10} type="psa10" />
+                <CardResults title="Raw Trading Cards" cards={results.results.raw} type="raw" sectionRef={rawRef} />
+                <CardResults title="PSA 9 Trading Cards" cards={results.results.psa9} type="psa9" sectionRef={psa9Ref} />
+                <CardResults title="PSA 10 Trading Cards" cards={results.results.psa10} type="psa10" sectionRef={psa10Ref} />
               </>
             )}
             {/* Live Listings Section */}
