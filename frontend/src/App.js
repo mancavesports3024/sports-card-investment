@@ -393,22 +393,7 @@ function App() {
     <div className="home-page">
       <header className="home-header">
         <div className="home-nav">
-          <div className="home-logo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0.5rem 0', width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.25rem' }}>
-              <img 
-                src="/ManCave.jpg?v=1" 
-                alt="ManCave Logo" 
-                style={{ 
-                  height: 56, 
-                  width: 56, 
-                  objectFit: 'cover',
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.18)'
-                }}
-                onError={e => { e.target.onerror = null; e.target.src = '/logo192.png'; }}
-              />
-              <span style={{ fontWeight: 900, fontSize: 32, color: '#FFD600', letterSpacing: 1 }}>Trading Card Tracker</span>
-            </div>
-          </div>
+          <h1 className="home-logo">🏈 Trading Card Tracker</h1>
           <a
             href={`${config.API_BASE_URL}/api/auth/google`}
             className="home-login-btn"
@@ -558,22 +543,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <div className="app-logo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0.5rem 0', width: '100%' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.25rem' }}>
-            <img 
-              src="/ManCave.jpg?v=1" 
-              alt="ManCave Logo" 
-              style={{ 
-                height: 48, 
-                width: 48, 
-                objectFit: 'cover',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.18)'
-              }}
-              onError={e => { e.target.onerror = null; e.target.src = '/logo192.png'; }}
-            />
-            <span style={{ fontWeight: 900, fontSize: 28, color: '#FFD600', letterSpacing: 1 }}>Trading Card Sales Tracker</span>
-          </div>
-        </div>
+        <h1>🏈 Trading Card Sales Tracker</h1>
         <p>Search for recent eBay sales of trading cards</p>
         {/* Google Login/Logout UI */}
         <div className="auth-section">
