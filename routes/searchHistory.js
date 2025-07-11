@@ -85,17 +85,23 @@ router.get('/admin/all', requireUser, async (req, res) => {
 router.post('/', requireUser, async (req, res) => {
   try {
     const { searchQuery, results, priceAnalysis } = req.body;
+    console.log('📥 Received search data:', { searchQuery, results: results ? 'present' : 'missing', priceAnalysis: priceAnalysis ? 'present' : 'missing' });
+    
     if (!searchQuery) {
       return res.status(400).json({
         success: false,
         error: 'Missing required field: searchQuery'
       });
     }
+    
     const savedSearch = await searchHistoryService.addSearchForUser(req.user, {
       searchQuery,
       results,
       priceAnalysis
     });
+    
+    console.log('✅ Search saved successfully for user:', req.user.email);
+    
     res.json({
       success: true,
       savedSearch,

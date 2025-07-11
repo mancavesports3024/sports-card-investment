@@ -122,15 +122,15 @@ function App() {
       const token = localStorage.getItem('jwt');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       await axios.post(config.getSearchHistoryUrl(), {
-        query: searchQuery,
+        searchQuery: searchQuery,
         results: {
-          totalCards: results.results.raw.length + results.results.psa9.length + results.results.psa10.length,
-          raw: results.results.raw.length,
-          psa9: results.results.psa9.length,
-          psa10: results.results.psa10.length
+          raw: results.raw || [],
+          psa9: results.psa9 || [],
+          psa10: results.psa10 || []
         },
         priceAnalysis: priceAnalysis
       }, { headers });
+      console.log('💾 Search saved successfully:', searchQuery);
     } catch (err) {
       console.error('Failed to save search:', err);
     }
