@@ -11,11 +11,13 @@ function addEbayTracking(url) {
   
   // Your EPN tracking parameters - replace with your actual values
   const epnParams = {
-    campid: process.env.EBAY_CAMPID || '5338333097', // Replace with your campaign ID
-    toolid: process.env.EBAY_TOOLID || '10039', // Replace with your tool ID
-    mkevt: process.env.EBAY_MKEVT || '1', // Replace with your affiliate ID
-    mkrid: process.env.EBAY_MKRID || '711-53200-19255-0', // Replace with your marketplace ID
-    mkcid: process.env.EBAY_MKCID || '2' // Replace with your campaign ID
+    mkevt: process.env.EBAY_MKEVT || '1', // Your affiliate ID
+    mkcid: process.env.EBAY_MKCID || '1', // Campaign ID
+    mkrid: process.env.EBAY_MKRID || '711-53200-19255-0', // Rotation ID (marketplace)
+    siteid: process.env.EBAY_SITEID || '0', // Site ID (0 for US)
+    campid: process.env.EBAY_CAMPID || '5338333097', // Your EPN campaign ID
+    toolid: process.env.EBAY_TOOLID || '10001', // Tool ID
+    customid: process.env.EBAY_CUSTOMID || 'trading-card-tracker' // Sub-ID for tracking
   };
   
   try {
