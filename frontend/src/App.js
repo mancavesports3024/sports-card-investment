@@ -189,6 +189,16 @@ function App() {
       await saveSearch(searchString, response.data.results, response.data.priceAnalysis);
       // Refresh search history after successful search
       await loadSearchHistory();
+      // Clear all search fields after successful search
+      setFormData({
+        player: '',
+        manufacturer: '',
+        year: '',
+        cardNumber: '',
+        type: '',
+        exclude: '',
+        advancedSearch: ''
+      });
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Failed to fetch card data');
     } finally {
