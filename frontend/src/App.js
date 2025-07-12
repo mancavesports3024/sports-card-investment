@@ -298,6 +298,10 @@ function App() {
         condition: typeof item.condition === 'string' ? item.condition : null
       }));
       setLiveListings(cleanedItems);
+      // Scroll to live listings section after data is loaded
+      setTimeout(() => {
+        liveListingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     } catch (err) {
       setLiveListingsError(err.response?.data?.error || err.message || 'Failed to fetch live listings');
     } finally {
@@ -317,6 +321,7 @@ function App() {
   const rawRef = useRef(null);
   const psa9Ref = useRef(null);
   const psa10Ref = useRef(null);
+  const liveListingsRef = useRef(null);
 
   // Add expand/collapse state for sold cards
   const [expandedCards, setExpandedCards] = useState({});
@@ -1053,7 +1058,7 @@ function App() {
             {/* Live Listings Section */}
             {console.log('🔍 Rendering check:', { showLiveListingsOnly, liveListingsCategory, liveListingsLoading, liveListingsError, liveListingsLength: liveListings.length })}
             {showLiveListingsOnly && liveListingsCategory && (
-              <div className="live-listings-section">
+              <div className="live-listings-section" ref={liveListingsRef}>
                 <button className="back-to-sold-btn" onClick={handleBackToSoldResults}>
                   ← Back to Sold Results
                 </button>
