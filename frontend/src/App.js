@@ -510,7 +510,7 @@ function App() {
           <div className="footer-section">
             <h4>Connect With Us</h4>
             <div className="social-links">
-              <a href="https://www.ebay.com/usr/mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="social-link ebay">
+              <a href="https://www.ebay.com/usr/mancavesportscardsllc24" target="_blank" rel="noopener noreferrer" className="social-link ebay">
                 <span>🛒</span> eBay Store
               </a>
               <a href="https://www.instagram.com/?next=%2Fmancavesportscardllc%2F%3Figsh%3DNWoxOHJycGdrYzZk%26utm_source%3Dqr" target="_blank" rel="noopener noreferrer" className="social-link instagram">
@@ -529,7 +529,7 @@ function App() {
             <h4>Shop Our eBay Listings</h4>
             <div className="ebay-promo">
               <p>🔥 Check out our latest card listings on eBay!</p>
-              <a href="https://www.ebay.com/usr/mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="ebay-store-btn">
+              <a href="https://www.ebay.com/usr/mancavesportscardsllc24" target="_blank" rel="noopener noreferrer" className="ebay-store-btn">
                 Visit Our eBay Store
               </a>
             </div>
@@ -634,7 +634,7 @@ function App() {
               </div>
             </div>
             <div className="ebay-promo-action">
-              <a href="https://www.ebay.com/usr/mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="ebay-store-cta">
+              <a href="https://www.ebay.com/usr/mancavesportscardsllc24" target="_blank" rel="noopener noreferrer" className="ebay-store-cta">
                 Visit Our Store
               </a>
               <small>New listings added daily!</small>
