@@ -572,44 +572,23 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <div className="header-content">
-          {/* Left eBay Link */}
-          <div className="header-ebay-link left">
-            <a href="https://www.ebay.com/e/_electronics/dji-brand-outlet?mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339115973&toolid=20014&customid=&mkevt=1" target="_blank" rel="noopener noreferrer" className="header-ebay-ad">
-              <span>🚁</span>
-              <span>DJI Deals</span>
+        <h1>🏈 Scorecard</h1>
+        <p>Search for recent eBay sales of trading cards</p>
+        {/* Google Login/Logout UI */}
+        <div className="auth-section">
+          {user ? (
+            <>
+              <span>Signed in as {user.displayName || user.email}</span>
+              <button onClick={handleLogout} className="logout-btn">Log out</button>
+            </>
+          ) : (
+            <a
+              href={`${config.API_BASE_URL}/api/auth/google`}
+              className="google-login-btn"
+            >
+              Log in with Google
             </a>
-          </div>
-          
-          {/* Center Content */}
-          <div className="header-center">
-            <h1>🏈 Scorecard</h1>
-            <p>Search for recent eBay sales of trading cards</p>
-            {/* Google Login/Logout UI */}
-            <div className="auth-section">
-              {user ? (
-                <>
-                  <span>Signed in as {user.displayName || user.email}</span>
-                  <button onClick={handleLogout} className="logout-btn">Log out</button>
-                </>
-              ) : (
-                <a
-                  href={`${config.API_BASE_URL}/api/auth/google`}
-                  className="google-login-btn"
-                >
-                  Log in with Google
-                </a>
-              )}
-            </div>
-          </div>
-          
-          {/* Right eBay Link */}
-          <div className="header-ebay-link right">
-            <a href="https://www.ebay.com/e/_electronics/ebay-refurbished-laptops?mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339115973&toolid=20014&customid=&mkevt=1" target="_blank" rel="noopener noreferrer" className="header-ebay-ad">
-              <span>💻</span>
-              <span>Laptop Deals</span>
-            </a>
-          </div>
+          )}
         </div>
       </header>
 
