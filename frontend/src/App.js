@@ -519,9 +519,6 @@ function App() {
               <a href="https://www.facebook.com/profile.php?id=100064018098312" target="_blank" rel="noopener noreferrer" className="social-link facebook">
                 <span>📘</span> Facebook
               </a>
-              <a href="https://www.tiktok.com/@mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="social-link tiktok">
-                <span>🎵</span> TikTok
-              </a>
             </div>
           </div>
           
@@ -638,6 +635,27 @@ function App() {
                 Visit Our Store
               </a>
               <small>New listings added daily!</small>
+            </div>
+          </div>
+        </div>
+
+        {/* Social Media Section */}
+        <div className="social-media-section">
+          <div className="social-media-content">
+            <div className="social-media-text">
+              <h3>📱 Connect With Us</h3>
+              <p>Follow us on social media for the latest card updates, deals, and collecting tips!</p>
+            </div>
+            <div className="social-media-links">
+              <a href="https://www.ebay.com/usr/mancavesportscardsllc24" target="_blank" rel="noopener noreferrer" className="social-media-link ebay">
+                <span>🛒</span> eBay Store
+              </a>
+              <a href="https://www.instagram.com/?next=%2Fmancavesportscardllc%2F%3Figsh%3DNWoxOHJycGdrYzZk%26utm_source%3Dqr" target="_blank" rel="noopener noreferrer" className="social-media-link instagram">
+                <span>📸</span> Instagram
+              </a>
+              <a href="https://www.facebook.com/profile.php?id=100064018098312" target="_blank" rel="noopener noreferrer" className="social-media-link facebook">
+                <span>📘</span> Facebook
+              </a>
             </div>
           </div>
         </div>
