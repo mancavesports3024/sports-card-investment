@@ -510,8 +510,8 @@ function App() {
           <div className="footer-section">
             <h4>Connect With Us</h4>
             <div className="social-links">
-              <a href="https://www.ebay.com/usr/mancavesportscardsllc24" target="_blank" rel="noopener noreferrer" className="social-link ebay">
-                <span>🛒</span> eBay Store
+              <a href="https://x.com/mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="social-link x">
+                <span>𝕏</span> X (Twitter)
               </a>
               <a href="https://www.instagram.com/?next=%2Fmancavesportscardllc%2F%3Figsh%3DNWoxOHJycGdrYzZk%26utm_source%3Dqr" target="_blank" rel="noopener noreferrer" className="social-link instagram">
                 <span>📸</span> Instagram
@@ -647,8 +647,8 @@ function App() {
               <p>Follow us on social media for the latest card updates, deals, and collecting tips!</p>
             </div>
             <div className="social-media-links">
-              <a href="https://www.ebay.com/usr/mancavesportscardsllc24" target="_blank" rel="noopener noreferrer" className="social-media-link ebay">
-                <span>🛒</span> eBay Store
+              <a href="https://x.com/mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="social-media-link x">
+                <span>𝕏</span> X (Twitter)
               </a>
               <a href="https://www.instagram.com/?next=%2Fmancavesportscardllc%2F%3Figsh%3DNWoxOHJycGdrYzZk%26utm_source%3Dqr" target="_blank" rel="noopener noreferrer" className="social-media-link instagram">
                 <span>📸</span> Instagram
