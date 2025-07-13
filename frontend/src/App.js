@@ -513,10 +513,10 @@ function App() {
               <a href="https://www.ebay.com/usr/mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="social-link ebay">
                 <span>🛒</span> eBay Store
               </a>
-              <a href="https://www.instagram.com/mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="social-link instagram">
+              <a href="https://www.instagram.com/?next=%2Fmancavesportscardllc%2F%3Figsh%3DNWoxOHJycGdrYzZk%26utm_source%3Dqr" target="_blank" rel="noopener noreferrer" className="social-link instagram">
                 <span>📸</span> Instagram
               </a>
-              <a href="https://www.facebook.com/mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="social-link facebook">
+              <a href="https://www.facebook.com/profile.php?id=100064018098312" target="_blank" rel="noopener noreferrer" className="social-link facebook">
                 <span>📘</span> Facebook
               </a>
               <a href="https://www.tiktok.com/@mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="social-link tiktok">
