@@ -2546,3 +2546,108 @@
     font-size: 0.8rem;
   }
 }
+
+/* AdSense Styles */
+.adsense-container {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 10px;
+  margin: 20px auto;
+  text-align: center;
+  overflow: hidden;
+}
+
+.adsense-container:hover {
+  border-color: #ffd700;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.2);
+}
+
+.header-ad {
+  max-width: 728px;
+  min-height: 90px;
+  margin: 10px auto;
+}
+
+.sidebar-ad {
+  max-width: 300px;
+  min-height: 250px;
+  margin: 20px auto;
+}
+
+.in-content-ad {
+  max-width: 728px;
+  min-height: 90px;
+  margin: 30px auto;
+}
+
+.footer-ad {
+  max-width: 728px;
+  min-height: 90px;
+  margin: 20px auto;
+}
+
+.mobile-ad {
+  max-width: 320px;
+  min-height: 50px;
+  margin: 15px auto;
+}
+
+/* Responsive AdSense */
+@media (max-width: 768px) {
+  .header-ad,
+  .in-content-ad,
+  .footer-ad {
+    max-width: 320px;
+    min-height: 50px;
+  }
+  
+  .sidebar-ad {
+    max-width: 300px;
+    min-height: 250px;
+  }
+  
+  .adsense-container {
+    margin: 15px auto;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .adsense-container {
+    margin: 10px auto;
+    padding: 5px;
+  }
+  
+  .header-ad,
+  .in-content-ad,
+  .footer-ad,
+  .mobile-ad {
+    max-width: 300px;
+    min-height: 50px;
+  }
+}
+
+/* AdSense loading states */
+.adsense-container:empty::before {
+  content: 'Loading advertisement...';
+  display: block;
+  color: #6c757d;
+  font-size: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+/* AdSense error states */
+.adsense-container.adsense-error {
+  background: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+.adsense-container.adsense-error::before {
+  content: 'Advertisement temporarily unavailable';
+  display: block;
+  padding: 20px;
+  text-align: center;
+}

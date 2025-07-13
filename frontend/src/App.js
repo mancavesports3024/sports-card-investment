@@ -5,6 +5,7 @@ import config from './config';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useAnalytics } from './hooks/useAnalytics';
 import PerformanceMonitor from './components/PerformanceMonitor';
+import { HeaderAd, InContentAd, FooterAd, MobileAd } from './components/AdSense';
 
 function App() {
   const { trackSearch, trackCardView, trackPageView, trackError, trackEvent } = useAnalytics();
@@ -550,6 +551,9 @@ function App() {
             Get Started Now
           </a>
         </section>
+        
+        {/* Home Page Ad */}
+        <InContentAd />
       </main>
 
       <footer className="home-footer">
@@ -635,6 +639,9 @@ function App() {
         </div>
         <h1>🏈 Scorecard</h1>
         <p>Search for recent eBay sales of trading cards</p>
+        
+        {/* Header Ad */}
+        <HeaderAd />
         {/* Google Login/Logout UI */}
         <div className="auth-section">
           {user ? (
@@ -1150,6 +1157,10 @@ function App() {
             {!showLiveListingsOnly && (
               <>
                 <CardResults title="Raw Trading Cards" cards={results.results.raw} type="raw" sectionRef={rawRef} />
+                
+                {/* In-Content Ad after first section */}
+                <InContentAd />
+                
                 <CardResults title="PSA 9 Trading Cards" cards={results.results.psa9} type="psa9" sectionRef={psa9Ref} />
                 <CardResults title="PSA 10 Trading Cards" cards={results.results.psa10} type="psa10" sectionRef={psa10Ref} />
               </>
@@ -1266,6 +1277,9 @@ function App() {
             )}
           </div>
         )}
+        
+        {/* Footer Ad */}
+        <FooterAd />
       </main>
     </div>
   );
