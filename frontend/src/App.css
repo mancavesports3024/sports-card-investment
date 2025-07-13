@@ -22,6 +22,50 @@
   box-shadow: 0 4px 20px rgba(255, 215, 0, 0.2);
   margin-bottom: 2rem;
   border-bottom: 3px solid #ffd700;
+  position: relative;
+}
+
+.header-top {
+  position: absolute;
+  top: 1rem;
+  left: 2rem;
+  z-index: 10;
+}
+
+.social-icons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 215, 0, 0.1);
+  color: #ffd700;
+  text-decoration: none;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.social-icon:hover {
+  background: rgba(255, 215, 0, 0.2);
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.social-icon.x {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.social-icon.x:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .header-content {
@@ -924,6 +968,21 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .header-top {
+    top: 0.5rem;
+    left: 1rem;
+  }
+  
+  .social-icons {
+    gap: 0.25rem;
+  }
+  
+  .social-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+  }
+  
   .header-content {
     flex-direction: column;
     gap: 1rem;

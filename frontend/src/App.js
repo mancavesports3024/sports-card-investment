@@ -572,6 +572,19 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <div className="header-top">
+          <div className="social-icons">
+            <a href="https://x.com/mancavesportsc1" target="_blank" rel="noopener noreferrer" className="social-icon x">
+              <span>𝕏</span>
+            </a>
+            <a href="https://www.instagram.com/?next=%2Fmancavesportscardllc%2F%3Figsh%3DNWoxOHJycGdrYzZk%26utm_source%3Dqr" target="_blank" rel="noopener noreferrer" className="social-icon instagram">
+              <span>📸</span>
+            </a>
+            <a href="https://www.facebook.com/profile.php?id=100064018098312" target="_blank" rel="noopener noreferrer" className="social-icon facebook">
+              <span>📘</span>
+            </a>
+          </div>
+        </div>
         <h1>🏈 Scorecard</h1>
         <p>Search for recent eBay sales of trading cards</p>
         {/* Google Login/Logout UI */}
@@ -615,26 +628,7 @@ function App() {
           </div>
         </div>
 
-        {/* Social Media Section */}
-        <div className="social-media-section">
-          <div className="social-media-content">
-            <div className="social-media-text">
-              <h3>📱 Connect With Us</h3>
-              <p>Follow us on social media for the latest card updates, deals, and collecting tips!</p>
-            </div>
-            <div className="social-media-links">
-              <a href="https://x.com/mancavesportsc1" target="_blank" rel="noopener noreferrer" className="social-media-link x">
-                <span>𝕏</span> X (Twitter)
-              </a>
-              <a href="https://www.instagram.com/?next=%2Fmancavesportscardllc%2F%3Figsh%3DNWoxOHJycGdrYzZk%26utm_source%3Dqr" target="_blank" rel="noopener noreferrer" className="social-media-link instagram">
-                <span>📸</span> Instagram
-              </a>
-              <a href="https://www.facebook.com/profile.php?id=100064018098312" target="_blank" rel="noopener noreferrer" className="social-media-link facebook">
-                <span>📘</span> Facebook
-              </a>
-            </div>
-          </div>
-        </div>
+
 
         <form className="search-form" onSubmit={handleSubmit}>
           <div ref={searchFormRef}>
