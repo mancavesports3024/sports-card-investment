@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuration
-const BASE_URL = 'https://web-production-9efa.up.railway.app';
+const BASE_URL = 'https://www.mancavesportscardsllc.com';
 const SITEMAP_PATH = './frontend/public/sitemap.xml';
 
 // Define your site pages with their metadata
