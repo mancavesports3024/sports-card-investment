@@ -2,6 +2,46 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
+// Helper function to refresh eBay token
+async function refreshEbayToken() {
+  try {
+    console.log('🔄 Attempting to refresh eBay token...');
+    
+    // Check if we have the required credentials
+    if (!process.env.EBAY_CLIENT_ID || !process.env.EBAY_CLIENT_SECRET || !process.env.EBAY_REFRESH_TOKEN) {
+      console.log('❌ Missing credentials for token refresh');
+      return false;
+    }
+
+    // eBay OAuth token refresh endpoint
+    const tokenUrl = 'https://api.ebay.com/identity/v1/oauth2/token';
+    
+    // Prepare the request
+    const auth = Buffer.from(`${process.env.EBAY_CLIENT_ID}:${process.env.EBAY_CLIENT_SECRET}`).toString('base64');
+    
+    const response = await axios.post(tokenUrl, 
+      'grant_type=refresh_token&refresh_token=' + process.env.EBAY_REFRESH_TOKEN,
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Basic ${auth}`
+        }
+      }
+    );
+
+    // Update the token
+    const newToken = response.data.access_token;
+    process.env.EBAY_AUTH_TOKEN = newToken;
+    
+    console.log('✅ eBay token refreshed successfully');
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Failed to refresh eBay token:', error.response?.data || error.message);
+    return false;
+  }
+}
+
 // Helper to build eBay Browse API query
 function buildEbayQuery(searchQuery, grade) {
   let query = searchQuery;
@@ -100,6 +140,33 @@ router.get('/', async (req, res) => {
         data: error.response?.data,
         headers: error.response?.headers
       });
+      
+      // Check if it's an invalid token error and try to refresh
+      if (error.message.includes('Invalid eBay authentication token') || 
+          error.response?.status === 401) {
+        console.log('🔄 Invalid token detected, attempting to refresh...');
+        const refreshSuccess = await refreshEbayToken();
+        if (refreshSuccess) {
+          console.log('🔄 Token refreshed, retrying search...');
+          // Update token for retry
+          const newToken = process.env.EBAY_AUTH_TOKEN;
+          // Retry the search with new token
+          try {
+            const retryResponse = await axios.get('https://api.ebay.com/buy/browse/v1/item_summary/search', {
+              params,
+              headers: {
+                'Authorization': `Bearer ${newToken}`,
+                'Content-Type': 'application/json',
+                'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+              },
+            });
+            items = retryResponse.data.itemSummaries || [];
+            console.log(`✅ Retry successful: found ${items.length} items`);
+          } catch (retryError) {
+            console.log('❌ Retry failed:', retryError.message);
+          }
+        }
+      }
     }
 
     // Approach 2: For auctions, use auction-specific search terms
@@ -143,6 +210,38 @@ router.get('/', async (req, res) => {
         console.log(`✅ Approach 2 found ${items.length} total auction items`);
       } catch (error) {
         console.log('❌ Approach 2 failed:', error.message);
+        
+        // Check if it's an invalid token error and try to refresh
+        if (error.message.includes('Invalid eBay authentication token') || 
+            error.response?.status === 401) {
+          console.log('🔄 Invalid token detected in Approach 2, attempting to refresh...');
+          const refreshSuccess = await refreshEbayToken();
+          if (refreshSuccess) {
+            console.log('🔄 Token refreshed, retrying Approach 2...');
+            // Update token for retry
+            const newToken = process.env.EBAY_AUTH_TOKEN;
+            // Retry the search with new token
+            try {
+              const retryResponse = await axios.get('https://api.ebay.com/buy/browse/v1/item_summary/search', {
+                params: {
+                  q: ebayQuery,
+                  limit: 20,
+                  sort: 'price asc',
+                  buyingOptions: 'AUCTION'
+                },
+                headers: {
+                  'Authorization': `Bearer ${newToken}`,
+                  'Content-Type': 'application/json',
+                  'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+                },
+              });
+              items = retryResponse.data.itemSummaries || [];
+              console.log(`✅ Approach 2 retry successful: found ${items.length} items`);
+            } catch (retryError) {
+              console.log('❌ Approach 2 retry failed:', retryError.message);
+            }
+          }
+        }
       }
     } else if (saleType === 'fixed') {
       // For fixed price, try to exclude auction terms
@@ -167,6 +266,37 @@ router.get('/', async (req, res) => {
         console.log(`✅ Approach 2 found ${items.length} fixed price items`);
       } catch (error) {
         console.log('❌ Approach 2 failed:', error.message);
+        
+        // Check if it's an invalid token error and try to refresh
+        if (error.message.includes('Invalid eBay authentication token') || 
+            error.response?.status === 401) {
+          console.log('🔄 Invalid token detected in fixed price search, attempting to refresh...');
+          const refreshSuccess = await refreshEbayToken();
+          if (refreshSuccess) {
+            console.log('🔄 Token refreshed, retrying fixed price search...');
+            // Update token for retry
+            const newToken = process.env.EBAY_AUTH_TOKEN;
+            // Retry the search with new token
+            try {
+              const retryResponse = await axios.get('https://api.ebay.com/buy/browse/v1/item_summary/search', {
+                params: {
+                  q: fixedQuery,
+                  limit: 20,
+                  sort: 'price asc',
+                },
+                headers: {
+                  'Authorization': `Bearer ${newToken}`,
+                  'Content-Type': 'application/json',
+                  'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+                },
+              });
+              items = retryResponse.data.itemSummaries || [];
+              console.log(`✅ Fixed price retry successful: found ${items.length} items`);
+            } catch (retryError) {
+              console.log('❌ Fixed price retry failed:', retryError.message);
+            }
+          }
+        }
       }
     }
 
@@ -211,6 +341,33 @@ router.get('/', async (req, res) => {
           data: error.response?.data,
           headers: error.response?.headers
         });
+        
+        // Check if it's an invalid token error and try to refresh
+        if (error.message.includes('Invalid eBay authentication token') || 
+            error.response?.status === 401) {
+          console.log('🔄 Invalid token detected in simple search, attempting to refresh...');
+          const refreshSuccess = await refreshEbayToken();
+          if (refreshSuccess) {
+            console.log('🔄 Token refreshed, retrying simple search...');
+            // Update token for retry
+            const newToken = process.env.EBAY_AUTH_TOKEN;
+            // Retry the search with new token
+            try {
+              const retryResponse = await axios.get('https://api.ebay.com/buy/browse/v1/item_summary/search', {
+                params: simpleParams,
+                headers: {
+                  'Authorization': `Bearer ${newToken}`,
+                  'Content-Type': 'application/json',
+                  'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+                },
+              });
+              items = retryResponse.data.itemSummaries || [];
+              console.log(`✅ Simple search retry successful: found ${items.length} items`);
+            } catch (retryError) {
+              console.log('❌ Simple search retry failed:', retryError.message);
+            }
+          }
+        }
       }
     }
 
