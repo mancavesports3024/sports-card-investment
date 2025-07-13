@@ -572,23 +572,44 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>🏈 Scorecard</h1>
-        <p>Search for recent eBay sales of trading cards</p>
-        {/* Google Login/Logout UI */}
-        <div className="auth-section">
-          {user ? (
-            <>
-              <span>Signed in as {user.displayName || user.email}</span>
-              <button onClick={handleLogout} className="logout-btn">Log out</button>
-            </>
-          ) : (
-            <a
-              href={`${config.API_BASE_URL}/api/auth/google`}
-              className="google-login-btn"
-            >
-              Log in with Google
+        <div className="header-content">
+          {/* Left eBay Link */}
+          <div className="header-ebay-link left">
+            <a href="https://www.ebay.com/usr/mancavesportscardsllc24" target="_blank" rel="noopener noreferrer" className="header-ebay-ad">
+              <span>🛒</span>
+              <span>Shop eBay</span>
             </a>
-          )}
+          </div>
+          
+          {/* Center Content */}
+          <div className="header-center">
+            <h1>🏈 Scorecard</h1>
+            <p>Search for recent eBay sales of trading cards</p>
+            {/* Google Login/Logout UI */}
+            <div className="auth-section">
+              {user ? (
+                <>
+                  <span>Signed in as {user.displayName || user.email}</span>
+                  <button onClick={handleLogout} className="logout-btn">Log out</button>
+                </>
+              ) : (
+                <a
+                  href={`${config.API_BASE_URL}/api/auth/google`}
+                  className="google-login-btn"
+                >
+                  Log in with Google
+                </a>
+              )}
+            </div>
+          </div>
+          
+          {/* Right eBay Link */}
+          <div className="header-ebay-link right">
+            <a href="https://www.ebay.com/usr/mancavesportscardsllc24" target="_blank" rel="noopener noreferrer" className="header-ebay-ad">
+              <span>🛒</span>
+              <span>Visit Store</span>
+            </a>
+          </div>
         </div>
       </header>
 
