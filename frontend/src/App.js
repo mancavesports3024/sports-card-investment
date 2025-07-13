@@ -601,7 +601,6 @@ function App() {
               <h3>🛒 Shop Our eBay Store</h3>
               <p>Looking for great deals on trading cards? Check out our eBay store for the latest listings!</p>
               <div className="ebay-features">
-                <span>✅ Authentic Cards</span>
                 <span>✅ Fast Shipping</span>
                 <span>✅ Great Prices</span>
                 <span>✅ Customer Satisfaction</span>
