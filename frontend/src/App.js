@@ -605,9 +605,9 @@ function App() {
           
           {/* Right eBay Link */}
           <div className="header-ebay-link right">
-            <a href="https://www.ebay.com/usr/mancavesportscardsllc24" target="_blank" rel="noopener noreferrer" className="header-ebay-ad">
-              <span>🛒</span>
-              <span>Visit Store</span>
+            <a href="https://www.ebay.com/e/_electronics/ebay-refurbished-laptops?mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339115973&toolid=20014&customid=&mkevt=1" target="_blank" rel="noopener noreferrer" className="header-ebay-ad">
+              <span>💻</span>
+              <span>Laptop Deals</span>
             </a>
           </div>
         </div>
