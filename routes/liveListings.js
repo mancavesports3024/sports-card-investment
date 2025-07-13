@@ -7,11 +7,9 @@ function buildEbayQuery(searchQuery, grade) {
   let query = searchQuery;
   if (grade === 'PSA 9') query += ' PSA 9';
   else if (grade === 'PSA 10') query += ' PSA 10';
-  // For raw, try without excluding graded first, then fallback to excluding
+  // For raw, exclude graded cards to get only raw/ungraded items
   else if (grade === 'Raw') {
-    // Don't exclude graded cards initially - let the API return more results
-    // We can filter client-side if needed
-    query = searchQuery; // Just use the original query for now
+    query = searchQuery + ' -PSA -BGS -SGC -CGC -graded';
   }
   return query;
 }
@@ -263,6 +261,19 @@ router.get('/', async (req, res) => {
       }
     } else {
       console.log('   ❌ No items found in any approach');
+    }
+
+    // For raw grade, filter out any items that contain PSA, BGS, SGC, or CGC in the title
+    if (grade === 'Raw') {
+      items = items.filter(item => {
+        const title = item.title?.toLowerCase() || '';
+        return !title.includes('psa') && 
+               !title.includes('bgs') && 
+               !title.includes('sgc') && 
+               !title.includes('cgc') &&
+               !title.includes('graded');
+      });
+      console.log(`🎯 After filtering graded items: ${items.length} raw items remaining`);
     }
 
     // Add EPN tracking to all eBay URLs
