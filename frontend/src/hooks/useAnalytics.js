@@ -26,7 +26,7 @@ export const useAnalytics = () => {
 
   const trackPageView = useCallback((pageTitle, pagePath) => {
     if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('config', 'G-XXXXXXXXXX', {
+      window.gtag('config', 'G-X6BGH9S5F8', {
         page_title: pageTitle,
         page_path: pagePath
       });
