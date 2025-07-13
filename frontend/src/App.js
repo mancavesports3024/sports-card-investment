@@ -575,9 +575,9 @@ function App() {
         <div className="header-content">
           {/* Left eBay Link */}
           <div className="header-ebay-link left">
-            <a href="https://www.ebay.com/usr/mancavesportscardsllc24" target="_blank" rel="noopener noreferrer" className="header-ebay-ad">
-              <span>🛒</span>
-              <span>Shop eBay</span>
+            <a href="https://www.ebay.com/e/_electronics/dji-brand-outlet?mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339115973&toolid=20014&customid=&mkevt=1" target="_blank" rel="noopener noreferrer" className="header-ebay-ad">
+              <span>🚁</span>
+              <span>DJI Deals</span>
             </a>
           </div>
           
