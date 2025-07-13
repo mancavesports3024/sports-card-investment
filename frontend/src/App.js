@@ -318,6 +318,7 @@ function App() {
   const psa9Ref = useRef(null);
   const psa10Ref = useRef(null);
   const liveListingsRef = useRef(null);
+  const searchFormRef = useRef(null);
 
   // Add expand/collapse state for sold cards
   const [expandedCards, setExpandedCards] = useState({});
@@ -590,6 +591,7 @@ function App() {
         </div>
 
         <form className="search-form" onSubmit={handleSubmit}>
+          <div ref={searchFormRef}>
           <div className="form-group">
             <label>Player/Card Name</label>
             <input
@@ -668,6 +670,7 @@ function App() {
               Clear All
             </button>
           </div>
+          </div>
         </form>
 
         {/* Search History Section */}
@@ -734,6 +737,10 @@ function App() {
                               advancedSearch: search.query || ''
                             });
                             setShowHistory(false);
+                            // Scroll to search form after setting the data
+                            setTimeout(() => {
+                              searchFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }, 100);
                           }}
                           className="reuse-search-btn"
                         >
