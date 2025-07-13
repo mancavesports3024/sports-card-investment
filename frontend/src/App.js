@@ -22,6 +22,7 @@ function App() {
   const [showLiveListingsOnly, setShowLiveListingsOnly] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
   const [user, setUser] = useState(null);
+  const [lastSearchQuery, setLastSearchQuery] = useState('');
 
   // Check for JWT in localStorage on mount
   useEffect(() => {
@@ -185,6 +186,8 @@ function App() {
         numSales: 25
       }, { headers });
       setResults(response.data);
+      // Store the search query for live listings
+      setLastSearchQuery(searchString);
       // Save search for user
       await saveSearch(searchString, response.data.results, response.data.priceAnalysis);
       // Refresh search history after successful search
@@ -253,30 +256,13 @@ function App() {
     setLiveListingsCategory(category);
     setShowLiveListingsOnly(true);
 
-    // Build search string (same as handleSubmit)
-    let searchString = '';
-    if (formData.advancedSearch && formData.advancedSearch.trim()) {
-      searchString = formData.advancedSearch.trim();
-    } else {
-      const parts = [];
-      if (formData.player) parts.push(formData.player.trim());
-      if (formData.manufacturer) parts.push(formData.manufacturer.trim());
-      if (formData.year) parts.push(formData.year.trim());
-      if (formData.cardNumber) parts.push(formData.cardNumber.trim());
-      if (formData.type) parts.push(formData.type.trim());
-      searchString = parts.join(' ');
-      if (formData.exclude) {
-        const excludes = formData.exclude.split(',').map(s => s.trim()).filter(Boolean);
-        if (excludes.length) {
-          searchString += ' ' + excludes.map(term => `-${term}`).join(' ');
-        }
-      }
-    }
+    // Use the stored search query from the last successful search
+    const searchString = lastSearchQuery;
 
     // Validation: Prevent empty search
     if (!searchString.trim()) {
       setLiveListingsLoading(false);
-      setLiveListingsError('Please enter a search term before viewing live listings.');
+      setLiveListingsError('Please perform a search first before viewing live listings.');
       return;
     }
 
