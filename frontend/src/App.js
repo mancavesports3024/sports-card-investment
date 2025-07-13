@@ -506,7 +506,40 @@ function App() {
       </main>
 
       <footer className="home-footer">
-                      <p>&copy; 2024 Scorecard. All rights reserved.</p>
+        <div className="footer-content">
+          <div className="footer-section">
+            <h4>Connect With Us</h4>
+            <div className="social-links">
+              <a href="https://www.ebay.com/usr/mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="social-link ebay">
+                <span>🛒</span> eBay Store
+              </a>
+              <a href="https://www.instagram.com/mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="social-link instagram">
+                <span>📸</span> Instagram
+              </a>
+              <a href="https://www.facebook.com/mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="social-link facebook">
+                <span>📘</span> Facebook
+              </a>
+              <a href="https://www.tiktok.com/@mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="social-link tiktok">
+                <span>🎵</span> TikTok
+              </a>
+            </div>
+          </div>
+          
+          <div className="footer-section">
+            <h4>Shop Our eBay Listings</h4>
+            <div className="ebay-promo">
+              <p>🔥 Check out our latest card listings on eBay!</p>
+              <a href="https://www.ebay.com/usr/mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="ebay-store-btn">
+                Visit Our eBay Store
+              </a>
+            </div>
+          </div>
+          
+          <div className="footer-section">
+            <p>&copy; 2024 Scorecard. All rights reserved.</p>
+            <p>Powered by <a href="https://www.mancavesportscardsllc.com" target="_blank" rel="noopener noreferrer">Mancave Sports Cards LLC</a></p>
+          </div>
+        </div>
       </footer>
     </div>
   );
@@ -583,6 +616,28 @@ function App() {
               <h4>Exact Pattern</h4>
               <p>Use & to match only that pattern:</p>
               <code>Charizard PSA&10</code>
+            </div>
+          </div>
+        </div>
+
+        {/* eBay Store Promotion Section */}
+        <div className="ebay-promo-section">
+          <div className="ebay-promo-content">
+            <div className="ebay-promo-text">
+              <h3>🛒 Shop Our eBay Store</h3>
+              <p>Looking for great deals on trading cards? Check out our eBay store for the latest listings!</p>
+              <div className="ebay-features">
+                <span>✅ Authentic Cards</span>
+                <span>✅ Fast Shipping</span>
+                <span>✅ Great Prices</span>
+                <span>✅ Customer Satisfaction</span>
+              </div>
+            </div>
+            <div className="ebay-promo-action">
+              <a href="https://www.ebay.com/usr/mancavesportscardsllc" target="_blank" rel="noopener noreferrer" className="ebay-store-cta">
+                Visit Our Store
+              </a>
+              <small>New listings added daily!</small>
             </div>
           </div>
         </div>

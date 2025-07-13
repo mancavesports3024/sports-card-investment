@@ -1945,3 +1945,223 @@
   color: #ffd700;
   border-color: #000000;
 }
+
+/* Social Media Links and eBay Promotion Styles */
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.footer-section {
+  text-align: center;
+}
+
+.footer-section h4 {
+  color: #ffd700;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.social-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+  color: #ffd700;
+  text-decoration: none;
+  border: 2px solid #ffd700;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  min-width: 150px;
+  justify-content: center;
+}
+
+.social-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #000000;
+  border-color: #000000;
+}
+
+.social-link span {
+  font-size: 1.2rem;
+}
+
+.ebay-promo {
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 2px solid #ffd700;
+}
+
+.ebay-promo p {
+  color: #ffffff;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.ebay-store-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #000000;
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  border: 2px solid #000000;
+}
+
+.ebay-store-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+  color: #ffd700;
+  border-color: #ffd700;
+}
+
+/* eBay Promo Section in Main App */
+.ebay-promo-section {
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+  border: 2px solid #ffd700;
+  border-radius: 15px;
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.ebay-promo-content {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+  padding: 2rem;
+  align-items: center;
+}
+
+.ebay-promo-text h3 {
+  color: #ffd700;
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.ebay-promo-text p {
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.ebay-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.ebay-features span {
+  background: rgba(255, 215, 0, 0.1);
+  color: #ffd700;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.ebay-promo-action {
+  text-align: center;
+}
+
+.ebay-store-cta {
+  display: inline-block;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #000000;
+  padding: 1rem 2rem;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  border: 2px solid #000000;
+  margin-bottom: 0.5rem;
+}
+
+.ebay-store-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+  color: #ffd700;
+  border-color: #ffd700;
+}
+
+.ebay-promo-action small {
+  color: #ffd700;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Responsive Design for Social Media and eBay Promo */
+@media (max-width: 768px) {
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .ebay-promo-content {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 1.5rem;
+  }
+  
+  .ebay-features {
+    justify-content: center;
+  }
+  
+  .social-links {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .social-link {
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ebay-promo-content {
+    padding: 1.5rem;
+  }
+  
+  .ebay-promo-text h3 {
+    font-size: 1.3rem;
+  }
+  
+  .ebay-features {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .social-links {
+    flex-direction: column;
+  }
+}
