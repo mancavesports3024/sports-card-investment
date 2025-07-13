@@ -7,8 +7,12 @@ function buildEbayQuery(searchQuery, grade) {
   let query = searchQuery;
   if (grade === 'PSA 9') query += ' PSA 9';
   else if (grade === 'PSA 10') query += ' PSA 10';
-  // For raw, we can add -PSA -BGS -SGC -CGC to exclude graded
-  else if (grade === 'Raw') query += ' -PSA -BGS -SGC -CGC';
+  // For raw, try without excluding graded first, then fallback to excluding
+  else if (grade === 'Raw') {
+    // Don't exclude graded cards initially - let the API return more results
+    // We can filter client-side if needed
+    query = searchQuery; // Just use the original query for now
+  }
   return query;
 }
 
@@ -162,6 +166,41 @@ router.get('/', async (req, res) => {
     }
 
 
+
+    // If no items found, try a simpler search approach
+    if (items.length === 0) {
+      console.log('🔍 No items found, trying simpler search approach...');
+      try {
+        // Try with just the original query without any grade modifications
+        const simpleParams = {
+          q: searchQuery, // Use original query without grade modifications
+          limit: 20,
+          sort: 'price asc',
+        };
+
+        if (saleType === 'auction') {
+          simpleParams.buyingOptions = 'AUCTION';
+        } else if (saleType === 'fixed') {
+          simpleParams.buyingOptions = 'FIXED_PRICE';
+        }
+
+        console.log('🔍 Simple search params:', simpleParams);
+
+        const simpleResponse = await axios.get('https://api.ebay.com/buy/browse/v1/item_summary/search', {
+          params: simpleParams,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+          },
+        });
+
+        items = simpleResponse.data.itemSummaries || [];
+        console.log(`✅ Simple search found ${items.length} items`);
+      } catch (error) {
+        console.log('❌ Simple search also failed:', error.message);
+      }
+    }
 
     // Log results
     console.log(`✅ Final result: ${items.length} live listings for "${ebayQuery}"`);
