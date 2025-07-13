@@ -9,7 +9,7 @@ function buildEbayQuery(searchQuery, grade) {
   else if (grade === 'PSA 10') query += ' PSA 10';
   // For raw, exclude graded cards to get only raw/ungraded items
   else if (grade === 'Raw') {
-    query = searchQuery + ' -PSA -BGS -SGC -CGC -graded';
+    query = searchQuery + ' -PSA -BGS -SGC -CGC -TAG -graded';
   }
   return query;
 }
@@ -263,7 +263,7 @@ router.get('/', async (req, res) => {
       console.log('   ❌ No items found in any approach');
     }
 
-    // For raw grade, filter out any items that contain PSA, BGS, SGC, or CGC in the title
+    // For raw grade, filter out any items that contain PSA, BGS, SGC, CGC, or TAG in the title
     if (grade === 'Raw') {
       items = items.filter(item => {
         const title = item.title?.toLowerCase() || '';
@@ -271,6 +271,7 @@ router.get('/', async (req, res) => {
                !title.includes('bgs') && 
                !title.includes('sgc') && 
                !title.includes('cgc') &&
+               !title.includes('tag') &&
                !title.includes('graded');
       });
       console.log(`🎯 After filtering graded items: ${items.length} raw items remaining`);
