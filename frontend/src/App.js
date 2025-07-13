@@ -126,7 +126,7 @@ function App() {
       // Prevent duplicate search queries (case-insensitive, trimmed)
       const normalizedQuery = searchQuery.trim().toLowerCase();
       const alreadyExists = searchHistory.some(
-        s => (s.searchQuery || '').trim().toLowerCase() === normalizedQuery
+        s => (s.query || '').trim().toLowerCase() === normalizedQuery
       );
       if (alreadyExists) {
         console.log('🔁 Duplicate search, not saving:', searchQuery);
