@@ -4,6 +4,7 @@ import './App.css';
 import config from './config';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useAnalytics } from './hooks/useAnalytics';
+import PerformanceMonitor from './components/PerformanceMonitor';
 
 function App() {
   const { trackSearch, trackCardView, trackPageView, trackError, trackEvent } = useAnalytics();
@@ -617,6 +618,7 @@ function App() {
   // If user is logged in, show the main app
   return (
     <div className="App">
+      <PerformanceMonitor />
       <header className="App-header">
         <div className="header-top">
           <div className="social-icons">

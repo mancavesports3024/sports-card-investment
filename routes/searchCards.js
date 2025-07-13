@@ -4,6 +4,7 @@ const ebayService = require('../services/ebayService');
 const onepointService = require('../services/130pointService');
 const ebayScraperService = require('../services/ebayScraperService');
 const searchHistoryService = require('../services/searchHistoryService');
+const cacheService = require('../services/cacheService');
 
 // Helper to add EPN tracking parameters to eBay URLs
 function addEbayTracking(url) {
@@ -969,6 +970,21 @@ router.post('/', async (req, res) => {
     });
   }
 
+  // Check cache first
+  const cacheKey = cacheService.generateSearchKey(searchQuery, { numSales });
+  const cachedResult = await cacheService.get(cacheKey);
+  
+  if (cachedResult) {
+    console.log(`⚡ Cache hit for search: ${searchQuery}`);
+    return res.json({
+      ...cachedResult,
+      cached: true,
+      cacheKey: cacheKey
+    });
+  }
+  
+  console.log(`🔍 Cache miss for search: ${searchQuery}, fetching fresh data...`);
+
   try {
     // Check if eBay token is available
     if (!process.env.EBAY_AUTH_TOKEN) {
@@ -1067,7 +1083,7 @@ router.post('/', async (req, res) => {
       // Don't fail the request if saving history fails
     }
 
-    res.json({ 
+    const responseData = { 
       searchParams: { searchQuery, numSales },
       results: sorted,
       priceAnalysis: sorted.priceAnalysis,
@@ -1090,7 +1106,13 @@ router.post('/', async (req, res) => {
         aigrade10: sorted.aigrade10.length,
         otherGraded: sorted.otherGraded.length
       }
-    });
+    };
+
+    // Cache the response
+    await cacheService.set(cacheKey, responseData, cacheService.searchTTL);
+    console.log(`💾 Cached search results for: ${searchQuery}`);
+
+    res.json(responseData);
   } catch (error) {
     console.error('Search error:', error);
     res.status(500).json({ error: 'Failed to fetch card data', details: error.message });

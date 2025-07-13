@@ -24,6 +24,12 @@ if (typeof connectRedis === 'function') {
 
 const { createClient } = require('redis');
 const passport = require('passport');
+const { 
+  responseTimeMiddleware, 
+  apiOptimizationMiddleware, 
+  cacheControlMiddleware,
+  rateLimitMiddleware 
+} = require('./middleware/cacheMiddleware');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -35,6 +41,12 @@ let tokenRefreshTimer = null;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Performance optimization middleware
+app.use(responseTimeMiddleware());
+app.use(apiOptimizationMiddleware());
+app.use(cacheControlMiddleware(1800)); // 30 minutes cache
+app.use(rateLimitMiddleware(15 * 60 * 1000, 200)); // 15 minutes, 200 requests per IP
 
 // Redis setup with fallback
 let redisClient = null;
@@ -142,6 +154,71 @@ async function initializeServer() {
         message: 'Redis test failed',
         error: error.message,
         redisUrl: process.env.REDIS_URL ? 'Set' : 'Not set'
+      });
+    }
+  });
+
+  // Cache management endpoints
+  const cacheService = require('./services/cacheService');
+  
+  app.get('/api/cache/stats', async (req, res) => {
+    try {
+      const stats = await cacheService.getStats();
+      res.json({
+        status: 'success',
+        stats,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: 'error',
+        message: 'Failed to get cache stats',
+        error: error.message
+      });
+    }
+  });
+
+  app.post('/api/cache/clear', async (req, res) => {
+    try {
+      const { pattern } = req.body;
+      if (pattern) {
+        await cacheService.deletePattern(pattern);
+        res.json({
+          status: 'success',
+          message: `Cleared cache pattern: ${pattern}`,
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        // Clear all cache
+        await cacheService.deletePattern('*');
+        res.json({
+          status: 'success',
+          message: 'Cleared all cache',
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      res.status(500).json({
+        status: 'error',
+        message: 'Failed to clear cache',
+        error: error.message
+      });
+    }
+  });
+
+  app.post('/api/cache/cleanup', async (req, res) => {
+    try {
+      await cacheService.cleanup();
+      res.json({
+        status: 'success',
+        message: 'Cache cleanup completed',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: 'error',
+        message: 'Failed to cleanup cache',
+        error: error.message
       });
     }
   });

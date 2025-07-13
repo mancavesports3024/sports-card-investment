@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
+const cacheService = require('../services/cacheService');
 
 // Helper function to refresh eBay token
 async function refreshEbayToken() {
@@ -91,6 +92,21 @@ router.get('/', async (req, res) => {
   if (!query || !grade) {
     return res.status(400).json({ error: 'Missing query or grade parameter' });
   }
+
+  // Check cache first
+  const cacheKey = cacheService.generateLiveListingsKey(query, grade, saleType);
+  const cachedResult = await cacheService.get(cacheKey);
+  
+  if (cachedResult) {
+    console.log(`⚡ Cache hit for live listings: ${query} (${grade})`);
+    return res.json({
+      ...cachedResult,
+      cached: true,
+      cacheKey: cacheKey
+    });
+  }
+  
+  console.log(`🔍 Cache miss for live listings: ${query} (${grade}), fetching fresh data...`);
 
   const ebayQuery = buildEbayQuery(query, grade);
 
@@ -440,7 +456,13 @@ router.get('/', async (req, res) => {
       itemWebUrl: addEbayTracking(item.itemWebUrl)
     }));
 
-    res.json({ items });
+    const responseData = { items };
+
+    // Cache the response
+    await cacheService.set(cacheKey, responseData, cacheService.liveListingsTTL);
+    console.log(`💾 Cached live listings for: ${query} (${grade})`);
+
+    res.json(responseData);
   } catch (error) {
     console.error('eBay Browse API error:', error.response?.data || error.message);
     console.error('Full error details:', {
