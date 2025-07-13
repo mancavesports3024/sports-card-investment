@@ -217,29 +217,18 @@ function App() {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    const now = new Date();
     
-    // Calculate the difference in days (positive for past dates, negative for future)
-    const diffTime = now - date;
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    // If it's a future date or invalid, show the actual date
-    if (diffDays < 0 || isNaN(diffDays)) {
-      return date.toLocaleDateString();
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return 'Invalid Date';
     }
     
-    // For recent dates, show relative time
-    if (diffDays === 0) {
-      return 'Today';
-    } else if (diffDays === 1) {
-      return 'Yesterday';
-    } else if (diffDays <= 7 && diffDays > 1) {
-      return `${diffDays} days ago`;
-    } else if (diffDays <= 30 && diffDays > 7) {
-      return `${diffDays} days ago`;
-    } else {
-      return date.toLocaleDateString();
-    }
+    // Always show the actual date in a readable format
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   const formatBidInfo = (card) => {
