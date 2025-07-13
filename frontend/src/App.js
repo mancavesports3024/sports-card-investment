@@ -3,8 +3,11 @@ import axios from 'axios';
 import './App.css';
 import config from './config';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { useAnalytics } from './hooks/useAnalytics';
 
 function App() {
+  const { trackSearch, trackCardView, trackPageView, trackError, trackEvent } = useAnalytics();
+  
   const [formData, setFormData] = useState({
     searchQuery: ''
   });
@@ -37,6 +40,13 @@ function App() {
       }
     }
   }, []);
+
+  // Track page view on mount
+  useEffect(() => {
+    const pageTitle = user ? 'Scorecard Dashboard' : 'Scorecard Home';
+    const pagePath = window.location.pathname;
+    trackPageView(pageTitle, pagePath);
+  }, [user, trackPageView]);
 
   // Handle /auth-success route
   useEffect(() => {
@@ -186,6 +196,14 @@ function App() {
         numSales: 25
       }, { headers });
       setResults(response.data);
+      
+      // Track search event
+      trackSearch(searchString, {
+        has_filters: !!(formData.player || formData.manufacturer || formData.year || formData.cardNumber || formData.type),
+        has_exclusions: !!formData.exclude,
+        is_advanced_search: !!formData.advancedSearch
+      });
+      
       // Store the search query for live listings
       setLastSearchQuery(searchString);
       // Save search for user
@@ -203,7 +221,11 @@ function App() {
         advancedSearch: ''
       });
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Failed to fetch card data');
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to fetch card data';
+      setError(errorMessage);
+      
+      // Track error event
+      trackError(errorMessage, err.response?.status || 'unknown');
     } finally {
       setLoading(false);
     }
@@ -291,12 +313,25 @@ function App() {
         condition: typeof item.condition === 'string' ? item.condition : null
       }));
       setLiveListings(cleanedItems);
+      
+      // Track live listings view
+      trackEvent('view_live_listings', {
+        category: category,
+        sale_type: saleType,
+        item_count: cleanedItems.length,
+        search_query: searchString
+      });
+      
       // Scroll to live listings section after data is loaded
       setTimeout(() => {
         liveListingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     } catch (err) {
-      setLiveListingsError(err.response?.data?.error || err.message || 'Failed to fetch live listings');
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to fetch live listings';
+      setLiveListingsError(errorMessage);
+      
+      // Track error event
+      trackError(errorMessage, err.response?.status || 'unknown');
     } finally {
       setLiveListingsLoading(false);
     }
@@ -308,6 +343,11 @@ function App() {
     setLiveListings([]);
     setLiveListingsError(null);
     setActiveFilter('all');
+  };
+
+  // Track when users click on eBay links
+  const handleEbayLinkClick = (cardTitle, cardPrice, cardType) => {
+    trackCardView(cardTitle, `card-${Date.now()}`, cardPrice?.value || 0);
   };
 
   // Add refs for jump navigation
@@ -367,7 +407,13 @@ function App() {
                     </div>
                     {card.itemWebUrl && (
                       <div className="ebay-link-container">
-                        <a href={card.itemWebUrl} target="_blank" rel="noopener noreferrer" className="ebay-link">
+                        <a 
+                          href={card.itemWebUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="ebay-link"
+                          onClick={() => handleEbayLinkClick(card.title, card.price, type)}
+                        >
                           View on eBay
                         </a>
                         <small className="url-note">
@@ -1176,7 +1222,13 @@ function App() {
                           />
                         </a>
                         <div className="live-listing-content">
-                          <a href={item.itemWebUrl || '#'} target="_blank" rel="noopener noreferrer" className="live-listing-title">
+                          <a 
+                            href={item.itemWebUrl || '#'} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="live-listing-title"
+                            onClick={() => handleEbayLinkClick(item.title || 'Untitled Item', item.price, 'live_listing')}
+                          >
                             {item.title || 'Untitled Item'}
                           </a>
                           <div className="live-listing-price">
