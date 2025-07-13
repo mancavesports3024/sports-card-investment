@@ -1,5 +1,5 @@
 {
-  "name": "sports-card-sales-api",
+  "name": "scorecard-api",
   "version": "1.0.0",
   "description": "API for fetching sports card sales data from eBay",
   "main": "index.js",

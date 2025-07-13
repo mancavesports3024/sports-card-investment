@@ -392,7 +392,7 @@ function App() {
     <div className="home-page">
       <header className="home-header">
         <div className="home-nav">
-          <h1 className="home-logo">🏈 Trading Card Tracker</h1>
+          <h1 className="home-logo">🏈 Scorecard</h1>
           <a
             href={`${config.API_BASE_URL}/api/auth/google`}
             className="home-login-btn"
@@ -407,7 +407,7 @@ function App() {
         <section className="hero-section">
           <div className="hero-content">
             <h1 className="hero-title">
-              Track Trading Card Sales on <span className="highlight">eBay</span>
+              Track Card Sales on <span className="highlight">eBay</span>
             </h1>
             <p className="hero-subtitle">
               Get real-time price data, market analysis, and investment insights for sports cards, 
@@ -445,7 +445,7 @@ function App() {
 
         {/* Features Section */}
         <section className="features-section">
-          <h2 className="section-title">Why Choose Trading Card Tracker?</h2>
+                      <h2 className="section-title">Why Choose Scorecard?</h2>
           <div className="features-grid">
             <div className="feature-card">
               <div className="feature-icon">📈</div>
@@ -506,7 +506,7 @@ function App() {
       </main>
 
       <footer className="home-footer">
-        <p>&copy; 2024 Trading Card Tracker. All rights reserved.</p>
+                      <p>&copy; 2024 Scorecard. All rights reserved.</p>
       </footer>
     </div>
   );
@@ -542,7 +542,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>🏈 Trading Card Sales Tracker</h1>
+        <h1>🏈 Scorecard</h1>
         <p>Search for recent eBay sales of trading cards</p>
         {/* Google Login/Logout UI */}
         <div className="auth-section">

@@ -12,7 +12,7 @@ const pages = [
     lastmod: new Date().toISOString().split('T')[0],
     changefreq: 'daily',
     priority: '1.0',
-    description: 'Homepage - Trading Card Tracker'
+    description: 'Homepage - Scorecard'
   },
   {
     url: '/search',
