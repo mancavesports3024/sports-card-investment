@@ -93,8 +93,15 @@ router.get('/', async (req, res) => {
 
       items = response.data.itemSummaries || [];
       console.log(`✅ Approach 1 found ${items.length} items`);
+      console.log('🔍 Full response data:', JSON.stringify(response.data, null, 2));
     } catch (error) {
       console.log('❌ Approach 1 failed:', error.message);
+      console.log('❌ Full error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        headers: error.response?.headers
+      });
     }
 
     // Approach 2: For auctions, use auction-specific search terms
@@ -197,8 +204,15 @@ router.get('/', async (req, res) => {
 
         items = simpleResponse.data.itemSummaries || [];
         console.log(`✅ Simple search found ${items.length} items`);
+        console.log('🔍 Simple search full response:', JSON.stringify(simpleResponse.data, null, 2));
       } catch (error) {
         console.log('❌ Simple search also failed:', error.message);
+        console.log('❌ Simple search full error details:', {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          headers: error.response?.headers
+        });
       }
     }
 
