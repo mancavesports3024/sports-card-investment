@@ -697,20 +697,29 @@ const sortBySoldDate = (categorized) => {
     return dateB - dateA; // Most recent first
   };
 
-  categorized.raw.sort(sortByDate);
-  categorized.psa7.sort(sortByDate);
-  categorized.psa8.sort(sortByDate);
-  categorized.psa9.sort(sortByDate);
-  categorized.psa10.sort(sortByDate);
-  categorized.cgc9.sort(sortByDate);
-  categorized.cgc10.sort(sortByDate);
-  categorized.tag8.sort(sortByDate);
-  categorized.tag9.sort(sortByDate);
-  categorized.tag10.sort(sortByDate);
-  categorized.sgc10.sort(sortByDate);
-  categorized.aigrade9.sort(sortByDate);
-  categorized.aigrade10.sort(sortByDate);
-  categorized.otherGraded.sort(sortByDate);
+  // Helper function to safely sort arrays
+  const safeSort = (array) => {
+    if (Array.isArray(array) && array.length > 0) {
+      return array.sort(sortByDate);
+    }
+    return array || [];
+  };
+
+  // Safely sort each category
+  categorized.raw = safeSort(categorized.raw);
+  categorized.psa7 = safeSort(categorized.psa7);
+  categorized.psa8 = safeSort(categorized.psa8);
+  categorized.psa9 = safeSort(categorized.psa9);
+  categorized.psa10 = safeSort(categorized.psa10);
+  categorized.cgc9 = safeSort(categorized.cgc9);
+  categorized.cgc10 = safeSort(categorized.cgc10);
+  categorized.tag8 = safeSort(categorized.tag8);
+  categorized.tag9 = safeSort(categorized.tag9);
+  categorized.tag10 = safeSort(categorized.tag10);
+  categorized.sgc10 = safeSort(categorized.sgc10);
+  categorized.aigrade9 = safeSort(categorized.aigrade9);
+  categorized.aigrade10 = safeSort(categorized.aigrade10);
+  categorized.otherGraded = safeSort(categorized.otherGraded);
 
   return categorized;
 };
@@ -894,6 +903,7 @@ router.get('/', async (req, res) => {
 
     // Add EPN tracking to all eBay URLs in the results
     const addTrackingToCards = (cards) => {
+      if (!Array.isArray(cards)) return [];
       return cards.map(card => ({
         ...card,
         itemWebUrl: addEbayTracking(card.itemWebUrl)
@@ -1022,6 +1032,7 @@ router.post('/', async (req, res) => {
 
     // Add EPN tracking to all eBay URLs in the results
     const addTrackingToCards = (cards) => {
+      if (!Array.isArray(cards)) return [];
       return cards.map(card => ({
         ...card,
         itemWebUrl: addEbayTracking(card.itemWebUrl)
