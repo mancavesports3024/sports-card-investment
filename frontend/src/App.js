@@ -593,29 +593,6 @@ function App() {
       </header>
 
       <main className="App-main">
-        {/* Search Tips Section */}
-        <div className="search-tips-section">
-          <h3>💡 Search Tips</h3>
-          <div className="search-tips-grid">
-            <div className="search-tip-card">
-              <h4>Multiple Variations</h4>
-              <p>Enclose variations in brackets and separate by commas:</p>
-              <code>(2019-20, 19-20) or (PSA, BGS)</code>
-            </div>
-            
-            <div className="search-tip-card">
-              <h4>Exclude Terms</h4>
-              <p>Use a minus "-" sign to exclude terms:</p>
-              <code>(2020-21, 20-21) Lamelo Ball -box -case -break or -(box, case, break)</code>
-            </div>
-            
-            <div className="search-tip-card">
-              <h4>Exact Pattern</h4>
-              <p>Use & to match only that pattern:</p>
-              <code>Charizard PSA&10</code>
-            </div>
-          </div>
-        </div>
 
         {/* eBay Store Promotion Section */}
         <div className="ebay-promo-section">
@@ -731,6 +708,14 @@ function App() {
               onChange={handleInputChange}
               placeholder="Type your own search string here"
             />
+            <div className="advanced-search-help">
+              <p><strong>💡 Search Tips:</strong></p>
+              <ul>
+                <li><strong>Multiple Variations:</strong> Use brackets: <code>(2019-20, 19-20) or (PSA, BGS)</code></li>
+                <li><strong>Exclude Terms:</strong> Use minus sign: <code>Lamelo Ball -box -case -break</code></li>
+                <li><strong>Exact Pattern:</strong> Use & symbol: <code>Charizard PSA&10</code></li>
+              </ul>
+            </div>
           </div>
           <div style={{ display: 'flex', gap: '1rem', gridColumn: '1 / -1' }}>
             <button className="search-button" type="submit" disabled={loading}>

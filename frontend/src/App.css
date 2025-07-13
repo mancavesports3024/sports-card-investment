@@ -105,6 +105,40 @@
   box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
 }
 
+.advanced-search-help {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  background: rgba(255, 215, 0, 0.1);
+  border-radius: 8px;
+  border-left: 4px solid #ffd700;
+}
+
+.advanced-search-help p {
+  margin: 0 0 0.5rem 0;
+  color: #000000;
+  font-size: 0.9rem;
+}
+
+.advanced-search-help ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #333;
+  font-size: 0.85rem;
+}
+
+.advanced-search-help li {
+  margin-bottom: 0.25rem;
+}
+
+.advanced-search-help code {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: #000000;
+}
+
 .search-button {
   background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
   color: #ffd700;
