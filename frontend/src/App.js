@@ -217,17 +217,25 @@ function App() {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    
-    // Check if it's a recent date (within last 30 days)
     const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 1) {
+    // Calculate the difference in days (positive for past dates, negative for future)
+    const diffTime = now - date;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    // If it's a future date or invalid, show the actual date
+    if (diffDays < 0 || isNaN(diffDays)) {
+      return date.toLocaleDateString();
+    }
+    
+    // For recent dates, show relative time
+    if (diffDays === 0) {
+      return 'Today';
+    } else if (diffDays === 1) {
       return 'Yesterday';
-    } else if (diffDays <= 7) {
+    } else if (diffDays <= 7 && diffDays > 1) {
       return `${diffDays} days ago`;
-    } else if (diffDays <= 30) {
+    } else if (diffDays <= 30 && diffDays > 7) {
       return `${diffDays} days ago`;
     } else {
       return date.toLocaleDateString();
