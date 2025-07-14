@@ -121,4 +121,17 @@ export const MobileAd = () => (
   />
 );
 
+export const KindCupAd = () => (
+  <AdSense 
+    adSlot="1498724356" 
+    adFormat="auto"
+    style={{ 
+      margin: '30px auto',
+      maxWidth: '728px',
+      minHeight: '90px'
+    }}
+    className="kind-cup-ad"
+  />
+);
+
 export default AdSense; 
