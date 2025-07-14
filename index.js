@@ -38,9 +38,24 @@ const PORT = process.env.PORT || 3001;
 const TOKEN_REFRESH_INTERVAL = 23 * 60 * 60 * 1000; // 23 hours (eBay tokens expire in 24 hours)
 let tokenRefreshTimer = null;
 
+// CORS Configuration
+const corsOptions = {
+  origin: [
+    'https://www.mancavesportscardsllc.com', // Production frontend
+    'http://localhost:3000', // Local development
+    'http://192.168.0.29:3000' // Local network
+  ],
+  credentials: true, // Allow cookies/sessions
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 
 // Performance optimization middleware
 app.use(responseTimeMiddleware());
@@ -116,7 +131,9 @@ async function initializeServer() {
     cookie: { 
       secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Required for cross-origin in production
+      domain: process.env.NODE_ENV === 'production' ? '.mancavesportscardsllc.com' : undefined // Allow subdomain cookies
     },
   }));
   
