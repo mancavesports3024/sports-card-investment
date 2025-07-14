@@ -1,5 +1,10 @@
 const cacheService = require('../services/cacheService');
 
+// Helper to check if user is admin
+function isAdmin(req) {
+  return req.user && req.user.email === 'mancavesportscardsllc@gmail.com';
+}
+
 // Cache middleware for API responses
 const cacheMiddleware = (ttl = 1800) => {
   return async (req, res, next) => {
@@ -22,11 +27,11 @@ const cacheMiddleware = (ttl = 1800) => {
       
       if (cachedResponse) {
         console.log(`⚡ Cache hit: ${cacheKey}`);
-        
-        // Set cache headers
-        res.set('X-Cache', 'HIT');
-        res.set('X-Cache-Key', cacheKey);
-        
+        // Set cache headers only for admin
+        if (isAdmin(req)) {
+          res.set('X-Cache', 'HIT');
+          res.set('X-Cache-Key', cacheKey);
+        }
         return res.json(cachedResponse);
       }
       
@@ -37,19 +42,15 @@ const cacheMiddleware = (ttl = 1800) => {
       res.json = function(data) {
         // Cache the response first
         cacheService.set(cacheKey, data, ttl);
-        
-        // Only set headers if response hasn't been sent yet
-        if (!res.headersSent) {
-          // Set cache headers
+        // Only set headers if response hasn't been sent yet and user is admin
+        if (!res.headersSent && isAdmin(req)) {
           res.set('X-Cache', 'MISS');
           res.set('X-Cache-Key', cacheKey);
           res.set('X-Cache-TTL', ttl);
         }
-        
         // Call original send method
         return originalSend.call(this, data);
       };
-      
       next();
     } catch (error) {
       console.error('❌ Cache middleware error:', error);
@@ -120,8 +121,8 @@ const responseTimeMiddleware = () => {
     res.end = function(chunk, encoding) {
       const duration = Date.now() - start;
       
-      // Only set header if response hasn't been sent yet
-      if (!res.headersSent) {
+      // Only set header if response hasn't been sent yet and user is admin
+      if (!res.headersSent && isAdmin(req)) {
         res.set('X-Response-Time', `${duration}ms`);
       }
       
