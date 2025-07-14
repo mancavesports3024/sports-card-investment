@@ -35,6 +35,9 @@ const cacheMiddleware = (ttl = 1800) => {
       
       const originalSend = res.json;
       res.json = function(data) {
+        // Cache the response first
+        cacheService.set(cacheKey, data, ttl);
+        
         // Only set headers if response hasn't been sent yet
         if (!res.headersSent) {
           // Set cache headers
@@ -42,9 +45,6 @@ const cacheMiddleware = (ttl = 1800) => {
           res.set('X-Cache-Key', cacheKey);
           res.set('X-Cache-TTL', ttl);
         }
-        
-        // Cache the response
-        cacheService.set(cacheKey, data, ttl);
         
         // Call original send method
         return originalSend.call(this, data);

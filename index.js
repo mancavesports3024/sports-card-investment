@@ -63,6 +63,9 @@ app.use(apiOptimizationMiddleware());
 app.use(cacheControlMiddleware(1800)); // 30 minutes cache
 app.use(rateLimitMiddleware(15 * 60 * 1000, 200)); // 15 minutes, 200 requests per IP
 
+// Temporarily disable cache middleware to fix 502 errors
+// app.use(cacheMiddleware(1800));
+
 // Redis setup with fallback
 let redisClient = null;
 let sessionStore = null;
