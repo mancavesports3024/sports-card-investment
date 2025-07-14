@@ -193,7 +193,6 @@ function App() {
       const token = localStorage.getItem('jwt');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const response = await axios.post(config.getSearchCardsUrl(), {
-        ...formData,
         searchQuery: searchString,
         numSales: 25
       }, { headers });
