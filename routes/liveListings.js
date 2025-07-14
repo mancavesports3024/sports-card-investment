@@ -116,23 +116,23 @@ router.get('/', async (req, res) => {
       return res.status(500).json({ error: 'No eBay token available' });
     }
 
+    // Always define params for retry logic
+    let params = {
+      q: ebayQuery,
+      limit: 20,
+      sort: 'price asc',
+    };
+    if (saleType === 'auction') {
+      params.buyingOptions = 'AUCTION';
+    } else if (saleType === 'fixed') {
+      params.buyingOptions = 'FIXED_PRICE';
+    }
+
     // Try multiple approaches to get auctions
     let items = [];
     
     // Approach 1: Use Browse API with buyingOptions filter
     try {
-      const params = {
-        q: ebayQuery,
-        limit: 20,
-        sort: 'price asc',
-      };
-
-      if (saleType === 'auction') {
-        params.buyingOptions = 'AUCTION';
-      } else if (saleType === 'fixed') {
-        params.buyingOptions = 'FIXED_PRICE';
-      }
-
       console.log('🔍 Approach 1: Browse API with buyingOptions filter');
       console.log('🔍 Full API request params:', params);
 
@@ -324,7 +324,7 @@ router.get('/', async (req, res) => {
       try {
         // Try with just the original query without any grade modifications
         const simpleParams = {
-          q: searchQuery, // Use original query without grade modifications
+          q: query, // Use original query without grade modifications
           limit: 20,
           sort: 'price asc',
         };
