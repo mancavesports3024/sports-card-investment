@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
 
+function isAdminUser() {
+  try {
+    const token = localStorage.getItem('jwt');
+    if (!token) return false;
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.email === 'mancavesportscardsllc@gmail.com';
+  } catch {
+    return false;
+  }
+}
+
 const PerformanceMonitor = () => {
+  // Only show for admin
+  if (!isAdminUser()) return null;
+
   const [performanceData, setPerformanceData] = useState({
     apiResponseTimes: [],
     cacheHitRate: 0,
