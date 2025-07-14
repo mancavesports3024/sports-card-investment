@@ -12,9 +12,7 @@ function isAdminUser() {
 }
 
 const PerformanceMonitor = () => {
-  // Only show for admin
-  if (!isAdminUser()) return null;
-
+  // Always call hooks first!
   const [performanceData, setPerformanceData] = useState({
     apiResponseTimes: [],
     cacheHitRate: 0,
@@ -84,6 +82,9 @@ const PerformanceMonitor = () => {
       window.fetch = originalFetch;
     };
   }, []);
+
+  // Now check admin after hooks
+  if (!isAdminUser()) return null;
 
   const getPerformanceColor = (time) => {
     if (time < 500) return '#10B981'; // Green
