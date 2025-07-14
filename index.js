@@ -34,10 +34,6 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Token refresh configuration
-const TOKEN_REFRESH_INTERVAL = 23 * 60 * 60 * 1000; // 23 hours (eBay tokens expire in 24 hours)
-let tokenRefreshTimer = null;
-
 // CORS Configuration
 const corsOptions = {
   origin: [
@@ -47,24 +43,52 @@ const corsOptions = {
   ],
   credentials: true, // Allow cookies/sessions
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Referer',
+    'User-Agent'
+  ],
+  exposedHeaders: ['X-Response-Time', 'X-Cache', 'X-RateLimit-Limit', 'X-RateLimit-Remaining']
 };
 
-// Middleware
+// CORS middleware FIRST
 app.use(cors(corsOptions));
-app.use(express.json());
-
-// Handle preflight requests
 app.options('*', cors(corsOptions));
 
-// Performance optimization middleware
-app.use(responseTimeMiddleware());
-app.use(apiOptimizationMiddleware());
-app.use(cacheControlMiddleware(1800)); // 30 minutes cache
-app.use(rateLimitMiddleware(15 * 60 * 1000, 200)); // 15 minutes, 200 requests per IP
+// JSON parsing
+app.use(express.json());
 
-// Temporarily disable cache middleware to fix 502 errors
-// app.use(cacheMiddleware(1800));
+// Increase timeout for long-running requests
+app.use((req, res, next) => {
+  // Set timeout to 5 minutes for API requests
+  req.setTimeout(300000);
+  res.setTimeout(300000);
+  next();
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Global error handler caught:', err);
+  
+  // Don't send error details in production
+  const errorMessage = process.env.NODE_ENV === 'production' 
+    ? 'Internal server error' 
+    : err.message;
+  
+  res.status(500).json({
+    error: 'Internal server error',
+    message: errorMessage,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Token refresh configuration
+const TOKEN_REFRESH_INTERVAL = 23 * 60 * 60 * 1000; // 23 hours (eBay tokens expire in 24 hours)
+let tokenRefreshTimer = null;
 
 // Redis setup with fallback
 let redisClient = null;
@@ -145,6 +169,24 @@ async function initializeServer() {
 
   // Healthcheck route for Railway
   app.get('/', (req, res) => res.send('OK'));
+
+  // CORS test endpoint
+  app.options('/api/cors-test', (req, res) => {
+    res.header('Access-Control-Allow-Origin', 'https://www.mancavesportscardsllc.com');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Referer, User-Agent');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.status(200).end();
+  });
+
+  app.get('/api/cors-test', (req, res) => {
+    res.json({
+      success: true,
+      message: 'CORS is working!',
+      timestamp: new Date().toISOString(),
+      headers: req.headers
+    });
+  });
 
   // Redis test endpoint
   app.get('/api/redis-test', async (req, res) => {

@@ -115,11 +115,17 @@ const responseTimeMiddleware = () => {
   return (req, res, next) => {
     const start = Date.now();
     
-    res.on('finish', () => {
+    // Override the end method to capture response time before sending
+    const originalEnd = res.end;
+    res.end = function(chunk, encoding) {
       const duration = Date.now() - start;
-      res.set('X-Response-Time', `${duration}ms`);
       
-      // Log slow responses
+      // Only set header if response hasn't been sent yet
+      if (!res.headersSent) {
+        res.set('X-Response-Time', `${duration}ms`);
+      }
+      
+      // Log response times
       if (duration > 1000) {
         console.log(`🐌 Slow response: ${req.method} ${req.originalUrl} - ${duration}ms`);
       } else if (duration > 500) {
@@ -127,7 +133,10 @@ const responseTimeMiddleware = () => {
       } else {
         console.log(`⚡ Fast response: ${req.method} ${req.originalUrl} - ${duration}ms`);
       }
-    });
+      
+      // Call original end method
+      return originalEnd.call(this, chunk, encoding);
+    };
     
     next();
   };

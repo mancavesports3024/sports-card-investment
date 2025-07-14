@@ -3,6 +3,15 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 const searchHistoryService = require('../services/searchHistoryService');
 
+// Handle OPTIONS requests for CORS preflight
+router.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', 'https://www.mancavesportscardsllc.com');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Referer, User-Agent');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.status(200).end();
+});
+
 // Middleware to require JWT and extract user
 function requireUser(req, res, next) {
   const auth = req.headers.authorization;
