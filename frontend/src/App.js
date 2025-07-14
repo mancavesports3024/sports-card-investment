@@ -5,7 +5,7 @@ import config from './config';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useAnalytics } from './hooks/useAnalytics';
 import PerformanceMonitor from './components/PerformanceMonitor';
-import { HeaderAd, InContentAd, FooterAd, MobileAd } from './components/AdSense';
+import { HeaderAd, InContentAd, FooterAd } from './components/AdSense';
 
 function App() {
   const { trackSearch, trackCardView, trackPageView, trackError, trackEvent } = useAnalytics();
