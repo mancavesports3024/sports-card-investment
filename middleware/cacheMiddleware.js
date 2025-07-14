@@ -167,10 +167,8 @@ const apiOptimizationMiddleware = () => {
     res.set('X-Frame-Options', 'DENY');
     res.set('X-XSS-Protection', '1; mode=block');
     
-    // Enable CORS for API
-    res.set('Access-Control-Allow-Origin', '*');
-    res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    // Note: CORS headers are handled by the main CORS middleware
+    // Do not set CORS headers here to avoid conflicts
     
     next();
   };
