@@ -439,6 +439,11 @@ async function scrapeEbaySales(keywords, numSales = 10) {
             totalPrice: price
           });
         }
+
+        const debugIds = ['177250844467', '336054188829', '388680631496'];
+        if (debugIds.includes(String(itemId))) {
+          console.log(`DEBUG (SCRAPER): ItemId ${itemId} - title: ${title}`);
+        }
       } catch (error) {
         console.log(`⚠️ Error parsing sale item ${index}:`, error.message);
       }
