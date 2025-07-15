@@ -98,8 +98,12 @@ async function testDirectScraping() {
       });
     });
     
+    // Debug: Log scraped items before enrichment
+    console.log('\n=== SCRAPED ITEMS BEFORE ENRICHMENT ===');
+    console.log(JSON.stringify(scrapedItems, null, 2));
     // Enrich scraped items with eBay Browse API details
     const enriched = await enrichItemsWithEbayDetails(scrapedItems);
+    // Debug: Log enriched items after enrichment
     console.log('\n=== ENRICHED ITEM DETAILS ===');
     console.log(JSON.stringify(enriched, null, 2));
     
