@@ -93,7 +93,8 @@ const categorizeCards = (cards) => {
     const itemId = card.itemId || card.id || '';
     
     console.log(`\nCard ${index + 1}: "${card.title}" (itemId: ${itemId})`);
-    console.log(`Condition: "${card.condition}"`);
+    console.log(`  Condition: "${card.condition}"`);
+    let categorized = false;
     
     // More precise grading detection - only look for actual grading companies and grades
     const gradingCompanies = ['psa', 'bgs', 'sgc', 'cgc', 'beckett', 'ace', 'cga', 'gma', 'hga', 'pgs', 'bvg', 'csg', 'rcg', 'ksa', 'fgs', 'tag', 'pgm', 'dga', 'isa'];
@@ -173,21 +174,25 @@ const categorizeCards = (cards) => {
     if ((title.includes('psa 10') || title.includes('psa10')) && !title.includes('cgc')) {
       psa10.push(card);
       console.log(`  -> PSA 10`);
+      categorized = true;
     } 
     // PSA 9
     else if ((title.includes('psa 9') || title.includes('psa9')) && !title.includes('cgc')) {
       psa9.push(card);
       console.log(`  -> PSA 9`);
+      categorized = true;
     }
     // PSA 8
     else if ((title.includes('psa 8') || title.includes('psa8')) && !title.includes('cgc')) {
       psa8.push(card);
       console.log(`  -> PSA 8`);
+      categorized = true;
     }
     // PSA 7
     else if ((title.includes('psa 7') || title.includes('psa7')) && !title.includes('cgc')) {
       psa7.push(card);
       console.log(`  -> PSA 7`);
+      categorized = true;
     }
     // CGC 10 - more flexible pattern matching
     else if ((title.includes('cgc 10') || title.includes('cgc10') || 
@@ -196,6 +201,7 @@ const categorizeCards = (cards) => {
              !title.includes('psa')) {
       cgc10.push(card);
       console.log(`  -> CGC 10`);
+      categorized = true;
     }
     // CGC 9 - more flexible pattern matching
     else if ((title.includes('cgc 9') || title.includes('cgc9') || 
@@ -204,6 +210,7 @@ const categorizeCards = (cards) => {
              !title.includes('psa')) {
       cgc9.push(card);
       console.log(`  -> CGC 9`);
+      categorized = true;
     }
     // TAG 10
     else if ((title.includes('tag 10') || title.includes('tag10') || 
@@ -211,6 +218,7 @@ const categorizeCards = (cards) => {
              !title.includes('psa') && !title.includes('cgc')) {
       tag10.push(card);
       console.log(`  -> TAG 10`);
+      categorized = true;
     }
     // TAG 9
     else if ((title.includes('tag 9') || title.includes('tag9') || 
@@ -218,6 +226,7 @@ const categorizeCards = (cards) => {
              !title.includes('psa') && !title.includes('cgc')) {
       tag9.push(card);
       console.log(`  -> TAG 9`);
+      categorized = true;
     }
     // TAG 8
     else if ((title.includes('tag 8') || title.includes('tag8') || 
@@ -225,47 +234,53 @@ const categorizeCards = (cards) => {
              !title.includes('psa') && !title.includes('cgc')) {
       tag8.push(card);
       console.log(`  -> TAG 8`);
+      categorized = true;
     }
     // SGC 10
     else if ((title.includes('sgc 10') || title.includes('sgc10')) && !title.includes('psa') && !title.includes('cgc')) {
       sgc10.push(card);
       console.log(`  -> SGC 10`);
+      categorized = true;
     }
     // AiGrade 10
     else if ((title.includes('aigrade 10') || title.includes('aigrade10') || title.includes('italian - grade 10') || 
               (title.includes('aigrade') && title.includes('10'))) && !title.includes('psa') && !title.includes('cgc')) {
       aigrade10.push(card);
       console.log(`  -> AiGrade 10`);
+      categorized = true;
     }
     // AiGrade 9
     else if ((title.includes('aigrade 9') || title.includes('aigrade9') || title.includes('italian - grade 9') || 
               (title.includes('aigrade') && title.includes('9'))) && !title.includes('psa') && !title.includes('cgc')) {
       aigrade9.push(card);
       console.log(`  -> AiGrade 9`);
+      categorized = true;
     }
     // Other graded cards (other companies/grades) - add to otherGraded if ambiguous or cross-listed
     else if (hasGradingCompany(title) || hasGradingCompany(condition) || hasGradeNumber(title) || hasGradeNumber(condition)) {
       // If the card is not already categorized as a specific company/grade, put it in otherGraded
       otherGraded.push(card);
       console.log(`  -> OTHER GRADED (Ambiguous or cross-listed grading company)`);
+      categorized = true;
     } 
     // If condition is "Graded" but no specific grading company found, create a generic graded category
     else if (condition === 'graded') {
       otherGraded.push(card);
       console.log(`  -> OTHER GRADED (Condition is "Graded" but no specific company detected)`);
-      return;
+      categorized = true;
     }
     // Final catch: absolutely never allow 'graded' to fall through to raw
     if (condition === 'graded') {
       otherGraded.push(card);
       console.log(`  -> OTHER GRADED (Final catch: Condition is 'Graded')`);
-      return; // Ensure no fallthrough to raw
+      categorized = true;
     }
     else {
       // Otherwise, treat as raw
       raw.push(card);
       console.log(`  -> RAW (Added)`);
     }
+    console.log('-------------------');
   });
   
   console.log(`\n=== FINAL RESULTS ===`);
