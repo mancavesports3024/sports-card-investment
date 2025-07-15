@@ -289,6 +289,11 @@ async function searchWithMarketplaceInsightsAPI(keywords, numSales, excludeGrade
           item.conditionId = details.conditionId;
         }
       }
+      // Log condition info for specific troubleshooting item IDs
+      const debugIds = ['177250844467', '336054188829', '388680631496'];
+      if (debugIds.includes(String(item.itemId))) {
+        console.log(`DEBUG: ItemId ${item.itemId} - condition: ${item.condition}, conditionId: ${item.conditionId}`);
+      }
     }
 
     return filteredItems.map(item => {
