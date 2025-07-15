@@ -5,6 +5,7 @@ const onepointService = require('../services/130pointService');
 const ebayScraperService = require('../services/ebayScraperService');
 const searchHistoryService = require('../services/searchHistoryService');
 const cacheService = require('../services/cacheService');
+const { getEbayApiUsage } = require('../services/ebayService');
 
 // Helper to add EPN tracking parameters to eBay URLs
 function addEbayTracking(url) {
@@ -251,6 +252,13 @@ const categorizeCards = (cards) => {
     else if (condition === 'graded') {
       otherGraded.push(card);
       console.log(`  -> OTHER GRADED (Condition is "Graded" but no specific company detected)`);
+      return;
+    }
+    // Final catch: absolutely never allow 'graded' to fall through to raw
+    if (condition === 'graded') {
+      otherGraded.push(card);
+      console.log(`  -> OTHER GRADED (Final catch: Condition is 'Graded')`);
+      return;
     }
     else {
       // Otherwise, treat as raw
@@ -837,6 +845,19 @@ router.get('/rate-limits', async (req, res) => {
       error: 'Failed to check rate limits', 
       details: error.message 
     });
+  }
+});
+
+// GET /api/ebay-usage - Returns eBay API usage and rate limit info
+router.get('/ebay-usage', async (req, res) => {
+  try {
+    const usage = await getEbayApiUsage();
+    if (!usage) {
+      return res.status(500).json({ error: 'Failed to fetch eBay API usage' });
+    }
+    res.json(usage);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
