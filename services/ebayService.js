@@ -4,6 +4,9 @@ const axios = require('axios');
 const EBAY_MARKETPLACE_INSIGHTS_ENDPOINT = 'https://api.ebay.com/buy/marketplace_insights/v1_beta/item_sales/search';
 const EBAY_ANALYTICS_ENDPOINT = 'https://api.ebay.com/sell/analytics/v1/rate_limit';
 
+// Add eBay Browse API getItem helper
+const EBAY_BROWSE_ITEM_ENDPOINT = 'https://api.ebay.com/buy/browse/v1/item/';
+
 // Rate limit cache to avoid checking too frequently
 let rateLimitCache = {
   marketplaceInsights: null,
@@ -195,6 +198,27 @@ async function searchSoldItems({ keywords, numSales = 10, excludeGraded = false 
   }
 }
 
+async function getItemDetailsFromEbay(itemId) {
+  if (!process.env.EBAY_AUTH_TOKEN) {
+    throw new Error('EBAY_AUTH_TOKEN environment variable is required for Browse API');
+  }
+  try {
+    const headers = {
+      'Authorization': `Bearer ${process.env.EBAY_AUTH_TOKEN}`,
+      'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+      'Content-Type': 'application/json'
+    };
+    const response = await axios.get(`${EBAY_BROWSE_ITEM_ENDPOINT}${itemId}`, { headers });
+    return {
+      condition: response.data.condition,
+      conditionId: response.data.conditionId
+    };
+  } catch (error) {
+    console.error(`eBay Browse API getItem error for itemId ${itemId}:`, error.response?.data || error.message);
+    return { condition: undefined, conditionId: undefined };
+  }
+}
+
 async function searchWithMarketplaceInsightsAPI(keywords, numSales, excludeGraded) {
   // Validate required environment variable
   if (!process.env.EBAY_AUTH_TOKEN) {
@@ -255,7 +279,18 @@ async function searchWithMarketplaceInsightsAPI(keywords, numSales, excludeGrade
     
     // Limit to requested number of sales
     filteredItems = filteredItems.slice(0, numSales);
-    
+
+    // Fetch missing/ambiguous condition data using getItem API
+    for (const item of filteredItems) {
+      if (!item.condition || item.condition === 'Unknown' || item.condition === 'Other') {
+        if (item.itemId) {
+          const details = await getItemDetailsFromEbay(item.itemId);
+          item.condition = details.condition || item.condition;
+          item.conditionId = details.conditionId;
+        }
+      }
+    }
+
     return filteredItems.map(item => {
       const isAuction = item.listingType === 'AUCTION';
       const soldPrice = item.soldPrice?.value;
@@ -265,18 +300,19 @@ async function searchWithMarketplaceInsightsAPI(keywords, numSales, excludeGrade
         id: item.itemId,
         title: item.title,
         price: {
-          value: soldPrice,
+          value: item.soldPrice?.value,
           currency: item.soldPrice?.currency || 'USD',
-          originalPrice: originalPrice, // Original listing price (for comparison)
-          priceType: isAuction ? 'final_bid' : 'buy_it_now'
+          originalPrice: item.price?.value, // Original listing price (for comparison)
+          priceType: item.listingType === 'AUCTION' ? 'final_bid' : 'buy_it_now'
         },
         soldDate: item.soldDate,
         condition: item.condition || extractConditionFromTitle(item.title),
+        conditionId: item.conditionId,
         imageUrl: item.image?.imageUrl,
         itemWebUrl: item.itemWebUrl,
         seller: item.seller?.username,
-        saleType: isAuction ? 'auction' : 'fixed_price',
-        auction: isAuction ? {
+        saleType: item.listingType === 'AUCTION' ? 'auction' : 'fixed_price',
+        auction: item.listingType === 'AUCTION' ? {
           bidCount: item.bidCount || 0,
           startingPrice: item.startingPrice?.value,
           reserveMet: item.reserveMet || false,
@@ -287,7 +323,7 @@ async function searchWithMarketplaceInsightsAPI(keywords, numSales, excludeGrade
         category: item.category?.categoryName,
         location: item.itemLocation?.country,
         shippingCost: item.shippingCost?.value,
-        totalPrice: soldPrice + (item.shippingCost?.value || 0)
+        totalPrice: (item.soldPrice?.value || 0) + (item.shippingCost?.value || 0)
       };
     });
 

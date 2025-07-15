@@ -367,72 +367,87 @@ function App() {
     }));
   };
 
-  const CardResults = ({ title, cards, type, sectionRef }) => (
-    <div className="card-section" ref={sectionRef}>
-      <h3>{title}</h3>
-      <button
-        className="live-listings-btn"
-        onClick={() => handleViewLiveListings(type)}
-        disabled={liveListingsLoading && liveListingsCategory === type}
-      >
-        {liveListingsLoading && liveListingsCategory === type ? 'Loading...' : 'View Live Listings'}
-      </button>
-      {cards && cards.length > 0 ? (
-        <div className="cards-grid compact">
-          {cards.map((card, index) => {
-            const isExpanded = expandedCards[`${type}-${index}`];
-            return (
-              <div key={`${type}-${index}`} className="card-item compact">
-                <div className="card-summary-row">
-                  <div>
-                    <h4 className="card-title">{card.title}</h4>
-                    <span className="card-price">{formatPrice(card.price)}</span>
-                    <span className="card-date">{formatDate(card.soldDate)}</span>
+  // Helper: returns true if a card is graded based on condition or conditionId
+  function isGradedCard(card) {
+    const gradedConditions = ['Graded'];
+    const gradedConditionIds = ['2750', '4000', '5000']; // Example: update with actual eBay conditionIds for graded
+    if (card.condition && gradedConditions.includes(card.condition)) return true;
+    if (card.conditionId && gradedConditionIds.includes(card.conditionId)) return true;
+    // Fallback: check title for grading keywords
+    const title = card.title?.toLowerCase() || '';
+    return ['psa', 'bgs', 'sgc', 'beckett', 'graded', 'cgc', 'ace', 'tag'].some(keyword => title.includes(keyword));
+  }
+
+  const CardResults = ({ title, cards, type, sectionRef }) => {
+    // Only filter for raw cards
+    const filteredCards = type === 'raw' ? (cards || []).filter(card => !isGradedCard(card)) : (cards || []);
+    return (
+      <div className="card-section" ref={sectionRef}>
+        <h3>{title}</h3>
+        <button
+          className="live-listings-btn"
+          onClick={() => handleViewLiveListings(type)}
+          disabled={liveListingsLoading && liveListingsCategory === type}
+        >
+          {liveListingsLoading && liveListingsCategory === type ? 'Loading...' : 'View Live Listings'}
+        </button>
+        {filteredCards && filteredCards.length > 0 ? (
+          <div className="cards-grid compact">
+            {filteredCards.map((card, index) => {
+              const isExpanded = expandedCards[`${type}-${index}`];
+              return (
+                <div key={`${type}-${index}`} className="card-item compact">
+                  <div className="card-summary-row">
+                    <div>
+                      <h4 className="card-title">{card.title}</h4>
+                      <span className="card-price">{formatPrice(card.price)}</span>
+                      <span className="card-date">{formatDate(card.soldDate)}</span>
+                    </div>
+                    <button className="expand-btn" onClick={() => toggleExpand(type, index)}>
+                      {isExpanded ? '▲' : '▼'}
+                    </button>
                   </div>
-                  <button className="expand-btn" onClick={() => toggleExpand(type, index)}>
-                    {isExpanded ? '▲' : '▼'}
-                  </button>
-                </div>
-                {isExpanded && (
-                  <div className="card-details">
-                    <div className="card-info-grid">
-                      <p className="card-bids">{formatBidInfo(card)}</p>
-                      <p className="card-seller">Seller: {card.seller || 'N/A'}</p>
-                      <p className="card-condition">Condition: {card.condition || 'Unknown'}</p>
-                      {card.auction && card.auction.startingPrice && (
-                        <p className="card-starting-price">Started: ${card.auction.startingPrice}</p>
-                      )}
-                      {card.price && card.price.priceType && (
-                        <p className="card-price-type">Type: {card.price.priceType === 'final_bid' ? 'Auction' : 'Buy It Now'}</p>
+                  {isExpanded && (
+                    <div className="card-details">
+                      <div className="card-info-grid">
+                        <p className="card-bids">{formatBidInfo(card)}</p>
+                        <p className="card-seller">Seller: {card.seller || 'N/A'}</p>
+                        <p className="card-condition">Condition: {card.condition || 'Unknown'} (ID: {card.conditionId || 'N/A'})</p>
+                        {card.auction && card.auction.startingPrice && (
+                          <p className="card-starting-price">Started: ${card.auction.startingPrice}</p>
+                        )}
+                        {card.price && card.price.priceType && (
+                          <p className="card-price-type">Type: {card.price.priceType === 'final_bid' ? 'Auction' : 'Buy It Now'}</p>
+                        )}
+                      </div>
+                      {card.itemWebUrl && (
+                        <div className="ebay-link-container">
+                          <a 
+                            href={card.itemWebUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="ebay-link"
+                            onClick={() => handleEbayLinkClick(card.title, card.price, type)}
+                          >
+                            View on eBay
+                          </a>
+                          <small className="url-note">
+                            Note: eBay URLs may redirect to similar items
+                          </small>
+                        </div>
                       )}
                     </div>
-                    {card.itemWebUrl && (
-                      <div className="ebay-link-container">
-                        <a 
-                          href={card.itemWebUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="ebay-link"
-                          onClick={() => handleEbayLinkClick(card.title, card.price, type)}
-                        >
-                          View on eBay
-                        </a>
-                        <small className="url-note">
-                          Note: eBay URLs may redirect to similar items
-                        </small>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <p className="no-results">No {type} trading cards found</p>
-      )}
-    </div>
-  );
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="no-results">No {type} trading cards found</p>
+        )}
+      </div>
+    );
+  };
 
   // Home Page Component
   const HomePage = () => (
