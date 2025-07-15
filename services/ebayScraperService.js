@@ -410,6 +410,7 @@ async function scrapeEbaySales(keywords, numSales = 10) {
           const isAuction = bidCount > 0;
           
           sales.push({
+            itemId: itemId, // Ensure itemId is present for enrichment and logging
             id: `ebay_scraped_${index}_${Date.now()}`,
             title: title,
             price: {
