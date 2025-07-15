@@ -984,151 +984,133 @@ router.post('/', async (req, res) => {
   }, 120000); // 2 minute timeout
 
   try {
-    // Check cache first
-  const cacheKey = cacheService.generateSearchKey(searchQuery, { numSales });
-  const cachedResult = await cacheService.get(cacheKey);
-  
-  if (cachedResult) {
-    console.log(`⚡ Cache hit for search: ${searchQuery}`);
-    clearTimeout(timeout);
-    return res.json({
-      ...cachedResult,
-      cached: true,
-      cacheKey: cacheKey
-    });
-  }
-  
-  console.log(`🔍 Cache miss for search: ${searchQuery}, fetching fresh data...`);
+    // Always fetch fresh data
 
-  // Check if eBay token is available
-  if (!process.env.EBAY_AUTH_TOKEN) {
-    console.log('No eBay token found, returning mock data for testing');
-    const mockData = getMockData(searchQuery, parseInt(numSales));
-    const categorized = categorizeCards(mockData);
+    // Check if eBay token is available
+    if (!process.env.EBAY_AUTH_TOKEN) {
+      console.log('No eBay token found, returning mock data for testing');
+      const mockData = getMockData(searchQuery, parseInt(numSales));
+      const categorized = categorizeCards(mockData);
+      const sorted = sortBySoldDate(categorized);
+      clearTimeout(timeout);
+      return res.json({ 
+        searchParams: { searchQuery, numSales },
+        results: sorted,
+        priceAnalysis: sorted.priceAnalysis,
+        note: "Mock data - set EBAY_AUTH_TOKEN in .env for real data"
+      });
+    }
+
+    // Fetch the last 100 sales from both sources
+    console.log(`🎯 Fetching last 100 sales from eBay...`);
+    const [ebayApiCards, ebayScrapedCards] = await Promise.allSettled([
+      ebayService.searchSoldItems({ 
+        keywords: searchQuery, 
+        numSales: 100 
+      }),
+      ebayScraperService.scrapeEbaySales(searchQuery, 100)
+    ]);
+
+    // Combine results from both eBay sources
+    let allCards = [];
+    
+    if (ebayApiCards.status === 'fulfilled') {
+      allCards = allCards.concat(ebayApiCards.value);
+      console.log(`✅ eBay API: ${ebayApiCards.value.length} sold items found`);
+    } else {
+      console.log('❌ eBay API search failed:', ebayApiCards.reason);
+    }
+    
+    if (ebayScrapedCards.status === 'fulfilled') {
+      allCards = allCards.concat(ebayScrapedCards.value);
+      console.log(`✅ eBay Scraped: ${ebayScrapedCards.value.length} sold items found`);
+    } else {
+      console.log('❌ eBay scraping failed:', ebayScrapedCards.reason);
+    }
+
+    // Remove duplicates based on title and price
+    const uniqueCards = [];
+    const seen = new Set();
+    
+    allCards.forEach(card => {
+      const key = `${card.title}-${card.price?.value}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueCards.push(card);
+      }
+    });
+    
+    allCards = uniqueCards;
+    console.log(`📊 Total unique sold items: ${allCards.length}`);
+
+    // Categorize and sort the results
+    const categorized = categorizeCards(allCards);
     const sorted = sortBySoldDate(categorized);
-    clearTimeout(timeout);
-    return res.json({ 
+
+    // Add EPN tracking to all eBay URLs in the results
+    const addTrackingToCards = (cards) => {
+      if (!Array.isArray(cards)) return [];
+      return cards.map(card => ({
+        ...card,
+        itemWebUrl: addEbayTracking(card.itemWebUrl)
+      }));
+    };
+
+    // Apply tracking to all card categories
+    sorted.raw = addTrackingToCards(sorted.raw);
+    sorted.psa7 = addTrackingToCards(sorted.psa7);
+    sorted.psa8 = addTrackingToCards(sorted.psa8);
+    sorted.psa9 = addTrackingToCards(sorted.psa9);
+    sorted.psa10 = addTrackingToCards(sorted.psa10);
+    sorted.cgc9 = addTrackingToCards(sorted.cgc9);
+    sorted.cgc10 = addTrackingToCards(sorted.cgc10);
+    sorted.tag8 = addTrackingToCards(sorted.tag8);
+    sorted.tag9 = addTrackingToCards(sorted.tag9);
+    sorted.tag10 = addTrackingToCards(sorted.tag10);
+    sorted.sgc10 = addTrackingToCards(sorted.sgc10);
+    sorted.aigrade9 = addTrackingToCards(sorted.aigrade9);
+    sorted.aigrade10 = addTrackingToCards(sorted.aigrade10);
+    sorted.otherGraded = addTrackingToCards(sorted.otherGraded);
+
+    // Save the search to history
+    try {
+      await searchHistoryService.addSearch({
+        searchQuery,
+        results: sorted,
+        priceAnalysis: sorted.priceAnalysis
+      });
+    } catch (error) {
+      console.log('⚠️ Failed to save search to history:', error.message);
+      // Don't fail the request if saving history fails
+    }
+
+    const responseData = { 
       searchParams: { searchQuery, numSales },
       results: sorted,
       priceAnalysis: sorted.priceAnalysis,
-      note: "Mock data - set EBAY_AUTH_TOKEN in .env for real data"
-    });
-  }
+      sources: {
+        ebayApi: ebayApiCards.status === 'fulfilled' ? ebayApiCards.value.length : 0,
+        ebayScraped: ebayScrapedCards.status === 'fulfilled' ? ebayScrapedCards.value.length : 0,
+        total: allCards.length,
+        raw: sorted.raw.length,
+        psa7: sorted.psa7.length,
+        psa8: sorted.psa8.length,
+        psa9: sorted.psa9.length,
+        psa10: sorted.psa10.length,
+        cgc9: sorted.cgc9.length,
+        cgc10: sorted.cgc10.length,
+        tag8: sorted.tag8.length,
+        tag9: sorted.tag9.length,
+        tag10: sorted.tag10.length,
+        sgc10: sorted.sgc10.length,
+        aigrade9: sorted.aigrade9.length,
+        aigrade10: sorted.aigrade10.length,
+        otherGraded: sorted.otherGraded.length
+      }
+    };
 
-  // Fetch the last 100 sales from both sources
-  console.log(`🎯 Fetching last 100 sales from eBay...`);
-  const [ebayApiCards, ebayScrapedCards] = await Promise.allSettled([
-    ebayService.searchSoldItems({ 
-      keywords: searchQuery, 
-      numSales: 100 
-    }),
-    ebayScraperService.scrapeEbaySales(searchQuery, 100)
-  ]);
-
-  // Combine results from both eBay sources
-  let allCards = [];
-  
-  if (ebayApiCards.status === 'fulfilled') {
-    allCards = allCards.concat(ebayApiCards.value);
-    console.log(`✅ eBay API: ${ebayApiCards.value.length} sold items found`);
-  } else {
-    console.log('❌ eBay API search failed:', ebayApiCards.reason);
-  }
-  
-  if (ebayScrapedCards.status === 'fulfilled') {
-    allCards = allCards.concat(ebayScrapedCards.value);
-    console.log(`✅ eBay Scraped: ${ebayScrapedCards.value.length} sold items found`);
-  } else {
-    console.log('❌ eBay scraping failed:', ebayScrapedCards.reason);
-  }
-
-  // Remove duplicates based on title and price
-  const uniqueCards = [];
-  const seen = new Set();
-  
-  allCards.forEach(card => {
-    const key = `${card.title}-${card.price?.value}`;
-    if (!seen.has(key)) {
-      seen.add(key);
-      uniqueCards.push(card);
-    }
-  });
-  
-  allCards = uniqueCards;
-  console.log(`📊 Total unique sold items: ${allCards.length}`);
-
-  // Categorize and sort the results
-  const categorized = categorizeCards(allCards);
-  const sorted = sortBySoldDate(categorized);
-
-  // Add EPN tracking to all eBay URLs in the results
-  const addTrackingToCards = (cards) => {
-    if (!Array.isArray(cards)) return [];
-    return cards.map(card => ({
-      ...card,
-      itemWebUrl: addEbayTracking(card.itemWebUrl)
-    }));
-  };
-
-  // Apply tracking to all card categories
-  sorted.raw = addTrackingToCards(sorted.raw);
-  sorted.psa7 = addTrackingToCards(sorted.psa7);
-  sorted.psa8 = addTrackingToCards(sorted.psa8);
-  sorted.psa9 = addTrackingToCards(sorted.psa9);
-  sorted.psa10 = addTrackingToCards(sorted.psa10);
-  sorted.cgc9 = addTrackingToCards(sorted.cgc9);
-  sorted.cgc10 = addTrackingToCards(sorted.cgc10);
-  sorted.tag8 = addTrackingToCards(sorted.tag8);
-  sorted.tag9 = addTrackingToCards(sorted.tag9);
-  sorted.tag10 = addTrackingToCards(sorted.tag10);
-  sorted.sgc10 = addTrackingToCards(sorted.sgc10);
-  sorted.aigrade9 = addTrackingToCards(sorted.aigrade9);
-  sorted.aigrade10 = addTrackingToCards(sorted.aigrade10);
-  sorted.otherGraded = addTrackingToCards(sorted.otherGraded);
-
-  // Save the search to history
-  try {
-    await searchHistoryService.addSearch({
-      searchQuery,
-      results: sorted,
-      priceAnalysis: sorted.priceAnalysis
-    });
-  } catch (error) {
-    console.log('⚠️ Failed to save search to history:', error.message);
-    // Don't fail the request if saving history fails
-  }
-
-  const responseData = { 
-    searchParams: { searchQuery, numSales },
-    results: sorted,
-    priceAnalysis: sorted.priceAnalysis,
-    sources: {
-      ebayApi: ebayApiCards.status === 'fulfilled' ? ebayApiCards.value.length : 0,
-      ebayScraped: ebayScrapedCards.status === 'fulfilled' ? ebayScrapedCards.value.length : 0,
-      total: allCards.length,
-      raw: sorted.raw.length,
-      psa7: sorted.psa7.length,
-      psa8: sorted.psa8.length,
-      psa9: sorted.psa9.length,
-      psa10: sorted.psa10.length,
-      cgc9: sorted.cgc9.length,
-      cgc10: sorted.cgc10.length,
-      tag8: sorted.tag8.length,
-      tag9: sorted.tag9.length,
-      tag10: sorted.tag10.length,
-      sgc10: sorted.sgc10.length,
-      aigrade9: sorted.aigrade9.length,
-      aigrade10: sorted.aigrade10.length,
-      otherGraded: sorted.otherGraded.length
-    }
-  };
-
-  // Cache the response
-  await cacheService.set(cacheKey, responseData, cacheService.searchTTL);
-  console.log(`💾 Cached search results for: ${searchQuery}`);
-
-  clearTimeout(timeout);
-  res.json(responseData);
+    clearTimeout(timeout);
+    res.json(responseData);
   } catch (error) {
     console.error('Search error:', error);
     clearTimeout(timeout);
