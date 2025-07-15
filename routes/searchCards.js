@@ -650,8 +650,18 @@ const fetchDataForEachCategory = async (searchQuery, targetPerCategory = 25) => 
     }
     
     if (ebayScrapedCards.status === 'fulfilled') {
-      allCards = allCards.concat(ebayScrapedCards.value);
-      console.log(`✅ eBay Scraped: ${ebayScrapedCards.value.length} sold items found`);
+      // Enrich scraped cards with eBay Browse API details
+      let enrichedScraped = ebayScrapedCards.value;
+      try {
+        enrichedScraped = await ebayService.enrichItemsWithEbayDetails(ebayScrapedCards.value);
+        console.log(`✅ Enriched ${enrichedScraped.length} scraped items with eBay Browse API details`);
+      } catch (enrichErr) {
+        console.log('⚠️ Enrichment of scraped items failed:', enrichErr.message);
+      }
+      allCards = allCards.concat(enrichedScraped);
+      console.log(`✅ eBay Scraped: ${enrichedScraped.length} sold items found`);
+    } else {
+      console.log('❌ eBay scraping failed:', ebayScrapedCards.reason);
     }
     
     // Remove duplicates based on title and price
@@ -885,8 +895,16 @@ router.get('/', async (req, res) => {
     }
     
     if (ebayScrapedCards.status === 'fulfilled') {
-      allCards = allCards.concat(ebayScrapedCards.value);
-      console.log(`✅ eBay Scraped: ${ebayScrapedCards.value.length} sold items found`);
+      // Enrich scraped cards with eBay Browse API details
+      let enrichedScraped = ebayScrapedCards.value;
+      try {
+        enrichedScraped = await ebayService.enrichItemsWithEbayDetails(ebayScrapedCards.value);
+        console.log(`✅ Enriched ${enrichedScraped.length} scraped items with eBay Browse API details`);
+      } catch (enrichErr) {
+        console.log('⚠️ Enrichment of scraped items failed:', enrichErr.message);
+      }
+      allCards = allCards.concat(enrichedScraped);
+      console.log(`✅ eBay Scraped: ${enrichedScraped.length} sold items found`);
     } else {
       console.log('❌ eBay scraping failed:', ebayScrapedCards.reason);
     }
@@ -1030,8 +1048,16 @@ router.post('/', async (req, res) => {
     }
     
     if (ebayScrapedCards.status === 'fulfilled') {
-      allCards = allCards.concat(ebayScrapedCards.value);
-      console.log(`✅ eBay Scraped: ${ebayScrapedCards.value.length} sold items found`);
+      // Enrich scraped cards with eBay Browse API details
+      let enrichedScraped = ebayScrapedCards.value;
+      try {
+        enrichedScraped = await ebayService.enrichItemsWithEbayDetails(ebayScrapedCards.value);
+        console.log(`✅ Enriched ${enrichedScraped.length} scraped items with eBay Browse API details`);
+      } catch (enrichErr) {
+        console.log('⚠️ Enrichment of scraped items failed:', enrichErr.message);
+      }
+      allCards = allCards.concat(enrichedScraped);
+      console.log(`✅ eBay Scraped: ${enrichedScraped.length} sold items found`);
     } else {
       console.log('❌ eBay scraping failed:', ebayScrapedCards.reason);
     }
