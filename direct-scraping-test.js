@@ -1,5 +1,6 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const { enrichItemsWithEbayDetails } = require('./services/ebayService');
 
 async function testDirectScraping() {
   try {
@@ -43,16 +44,24 @@ async function testDirectScraping() {
     console.log('\n🔍 Analyzing first 5 items for condition information...\n');
     
     // Extract condition data from the first 5 items
+    const scrapedItems = [];
     $('.s-item').slice(0, 5).each((index, element) => {
       const $el = $(element);
       
       // Extract item title
       const title = $el.find('.s-item__title').first().text().trim();
       
+      // Extract itemId from the link (if available)
+      const link = $el.find('.s-item__link').attr('href') || '';
+      const itemIdMatch = link.match(/\/itm\/(?:.*?)(\d{9,})/);
+      const itemId = itemIdMatch ? itemIdMatch[1] : undefined;
+      
       // Skip if title is empty or contains "Shop on eBay"
       if (!title || title.includes('Shop on eBay')) {
         return;
       }
+      
+      scrapedItems.push({ itemId, title });
       
       console.log(`\n--- Item ${index + 1} ---`);
       console.log(`Title: "${title}"`);
@@ -88,6 +97,11 @@ async function testDirectScraping() {
         console.log(`   ${i + 1}. "${line}"`);
       });
     });
+    
+    // Enrich scraped items with eBay Browse API details
+    const enriched = await enrichItemsWithEbayDetails(scrapedItems);
+    console.log('\n=== ENRICHED ITEM DETAILS ===');
+    console.log(JSON.stringify(enriched, null, 2));
     
   } catch (error) {
     console.error('❌ Test failed:', error.message);

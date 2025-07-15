@@ -352,5 +352,25 @@ async function searchWithMarketplaceInsightsAPI(keywords, numSales, excludeGrade
 module.exports = {
   searchSoldItems,
   checkRateLimits,
-  logRateLimitStatus
+  logRateLimitStatus,
+  getItemDetailsFromEbay, // Export the helper
+  enrichItemsWithEbayDetails // Export the new function
 }; 
+
+/**
+ * Enrich an array of items with eBay Browse API details (condition, conditionId)
+ * @param {Array<{itemId: string}>} items - Array of items with itemId
+ * @returns {Promise<Array>} - Enriched items
+ */
+async function enrichItemsWithEbayDetails(items) {
+  const enriched = [];
+  for (const item of items) {
+    if (item.itemId) {
+      const details = await getItemDetailsFromEbay(item.itemId);
+      enriched.push({ ...item, ...details });
+    } else {
+      enriched.push(item);
+    }
+  }
+  return enriched;
+} 
