@@ -363,13 +363,18 @@ module.exports = {
  * @returns {Promise<Array>} - Enriched items
  */
 async function enrichItemsWithEbayDetails(items) {
+  const debugIds = ['177250844467', '336054188829', '388680631496'];
   const enriched = [];
   for (const item of items) {
+    let details = {};
     if (item.itemId) {
-      const details = await getItemDetailsFromEbay(item.itemId);
-      enriched.push({ ...item, ...details });
-    } else {
-      enriched.push(item);
+      details = await getItemDetailsFromEbay(item.itemId);
+    }
+    const enrichedItem = { ...item, ...details };
+    enriched.push(enrichedItem);
+    // Always log for debug IDs
+    if (debugIds.includes(String(item.itemId))) {
+      console.log(`DEBUG (ENRICH ENRICHED): ItemId ${item.itemId} - condition: ${enrichedItem.condition}, conditionId: ${enrichedItem.conditionId}, title: ${enrichedItem.title}`);
     }
   }
   return enriched;

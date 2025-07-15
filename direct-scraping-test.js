@@ -101,11 +101,24 @@ async function testDirectScraping() {
     // Debug: Log scraped items before enrichment
     console.log('\n=== SCRAPED ITEMS BEFORE ENRICHMENT ===');
     console.log(JSON.stringify(scrapedItems, null, 2));
+    // Debug: Log specific item IDs in scraped data
+    const debugIds = ['177250844467', '336054188829', '388680631496'];
+    scrapedItems.forEach(item => {
+      if (debugIds.includes(String(item.itemId))) {
+        console.log(`DEBUG (SCRAPED): ItemId ${item.itemId} - title: ${item.title}`);
+      }
+    });
     // Enrich scraped items with eBay Browse API details
     const enriched = await enrichItemsWithEbayDetails(scrapedItems);
     // Debug: Log enriched items after enrichment
     console.log('\n=== ENRICHED ITEM DETAILS ===');
     console.log(JSON.stringify(enriched, null, 2));
+    // Debug: Log specific item IDs in enriched data
+    enriched.forEach(item => {
+      if (debugIds.includes(String(item.itemId))) {
+        console.log(`DEBUG (ENRICHED): ItemId ${item.itemId} - condition: ${item.condition}, conditionId: ${item.conditionId}, title: ${item.title}`);
+      }
+    });
     
   } catch (error) {
     console.error('❌ Test failed:', error.message);
