@@ -90,8 +90,9 @@ const categorizeCards = (cards) => {
   cards.forEach((card, index) => {
     const title = card.title?.toLowerCase() || '';
     const condition = card.condition?.toLowerCase() || '';
+    const itemId = card.itemId || card.id || '';
     
-    console.log(`\nCard ${index + 1}: "${card.title}"`);
+    console.log(`\nCard ${index + 1}: "${card.title}" (itemId: ${itemId})`);
     console.log(`Condition: "${card.condition}"`);
     
     // More precise grading detection - only look for actual grading companies and grades
