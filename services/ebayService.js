@@ -347,6 +347,27 @@ async function searchWithMarketplaceInsightsAPI(keywords, numSales, excludeGrade
   }
 }
 
+/**
+ * Fetch eBay API usage and rate limit information from the Analytics API
+ * @returns {Promise<Object|null>} Usage data or null on error
+ */
+async function getEbayApiUsage() {
+  const url = 'https://api.ebay.com/sell/analytics/v1/rate_limit';
+  const token = process.env.EBAY_AUTH_TOKEN;
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log('eBay API usage:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch eBay API usage:', error.response?.data || error.message);
+    return null;
+  }
+}
 
 
 module.exports = {
@@ -354,7 +375,8 @@ module.exports = {
   checkRateLimits,
   logRateLimitStatus,
   getItemDetailsFromEbay, // Export the helper
-  enrichItemsWithEbayDetails // Export the new function
+  enrichItemsWithEbayDetails, // Export the enrichment function
+  getEbayApiUsage // Export the new usage function
 }; 
 
 /**
