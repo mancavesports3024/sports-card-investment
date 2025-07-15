@@ -97,6 +97,7 @@ const categorizeCards = (cards) => {
     const gradingCompanies = ['psa', 'bgs', 'sgc', 'cgc', 'beckett', 'ace', 'cga', 'gma', 'hga', 'pgs', 'bvg', 'csg', 'rcg', 'ksa', 'fgs', 'tag', 'pgm', 'dga', 'isa'];
     const gradeNumbers = ['10', '9.5', '9', '8.5', '8', '7', '6', '5', '4', '3', '2', '1'];
     const rawKeywords = ['raw', 'ungraded', 'not graded', 'no grade'];
+    const gradedConditionIds = ['2750', '4000', '5000']; // eBay's known graded condition IDs
     
     // Helper to check for grading companies
     function hasGradingCompany(str) {
@@ -149,6 +150,13 @@ const categorizeCards = (cards) => {
     // Skip cards with "Pick", "Complete", or "Choose Your Card" in the title
     if (title.includes('pick') || title.includes('complete') || title.includes('choose your card')) {
       console.log(`  -> SKIPPED (Pick/Complete/Choose Your Card)`);
+      return;
+    }
+    
+    // Check for eBay graded conditionId
+    if (gradedConditionIds.includes(String(card.conditionId))) {
+      otherGraded.push(card);
+      console.log('  -> OTHER GRADED (conditionId indicates graded)');
       return;
     }
     
