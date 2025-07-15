@@ -258,7 +258,7 @@ const categorizeCards = (cards) => {
     if (condition === 'graded') {
       otherGraded.push(card);
       console.log(`  -> OTHER GRADED (Final catch: Condition is 'Graded')`);
-      return;
+      return; // Ensure no fallthrough to raw
     }
     else {
       // Otherwise, treat as raw
