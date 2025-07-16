@@ -93,6 +93,7 @@ function detectRoutes() {
     }
   } catch (error) {
     console.log('⚠️  Could not auto-detect routes:', error.message);
+    // Do not throw, just continue
   }
   return routes;
 }
@@ -133,6 +134,8 @@ function writeSitemap(includeApiEndpoints = false) {
     // Auto-detect routes
     detectRoutes();
     const sitemap = generateSitemap(includeApiEndpoints);
+    // Ensure output directory exists
+    fs.mkdirSync(path.dirname(SITEMAP_PATH), { recursive: true });
     fs.writeFileSync(SITEMAP_PATH, sitemap, 'utf8');
     console.log('✅ Sitemap generated successfully!');
     console.log(`📁 Location: ${SITEMAP_PATH}`);
