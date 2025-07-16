@@ -7,7 +7,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "build": "echo 'No build step required'",
-    "postinstall": "echo 'Post-install complete'",
+    "postinstall": "node generate-sitemap-advanced.js",
     "sitemap": "node generate-sitemap.js"
   },
   "engines": {
