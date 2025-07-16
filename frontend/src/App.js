@@ -628,12 +628,6 @@ function App() {
     setLoading(false);
   };
 
-  // If user is not logged in, show home page
-  if (!user) {
-    return <HomePage />;
-  }
-
-  // If user is logged in, show the main app
   return (
     <div className="App">
       <PerformanceMonitor />
