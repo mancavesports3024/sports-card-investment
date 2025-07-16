@@ -876,13 +876,14 @@ function App() {
                       </div>
                     ))}
                   </div>
-                )
-              ) : (
-                <div className="search-history-guest-message">
-                  <p>Sign in to save your searches and view search history.</p>
-                </div>
-              )}
+                )}
+              </div>
+            )
+          ) : (
+            <div className="search-history-guest-message">
+              <p>Sign in to save your searches and view search history.</p>
             </div>
+          )}
         </div>
 
         {error && (
