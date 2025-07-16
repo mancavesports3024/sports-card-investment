@@ -976,6 +976,14 @@ router.get('/', async (req, res) => {
     sorted.aigrade10 = addTrackingToCards(sorted.aigrade10);
     sorted.otherGraded = addTrackingToCards(sorted.otherGraded);
 
+    // Add eBay API usage info
+    let ebayApiUsage = null;
+    try {
+      ebayApiUsage = await getEbayApiUsage();
+    } catch (usageError) {
+      console.error('Failed to fetch eBay API usage:', usageError.message);
+    }
+
     res.json({ 
       searchParams: { searchQuery, numSales: 25 },
       results: sorted,
@@ -996,7 +1004,8 @@ router.get('/', async (req, res) => {
         aigrade9: sorted.aigrade9.length,
         aigrade10: sorted.aigrade10.length,
         otherGraded: sorted.otherGraded.length
-      }
+      },
+      ebayApiUsage // Include API usage in response
     });
   } catch (error) {
     console.error('Search error:', error);
@@ -1158,6 +1167,15 @@ router.post('/', async (req, res) => {
         otherGraded: sorted.otherGraded.length
       }
     };
+
+    // Add eBay API usage info
+    let ebayApiUsage = null;
+    try {
+      ebayApiUsage = await getEbayApiUsage();
+    } catch (usageError) {
+      console.error('Failed to fetch eBay API usage:', usageError.message);
+    }
+    responseData.ebayApiUsage = ebayApiUsage;
 
     clearTimeout(timeout);
     res.json(responseData);
