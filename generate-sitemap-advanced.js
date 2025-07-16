@@ -1,9 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 
+// Use absolute paths based on script location
+const ROOT_DIR = path.resolve(__dirname, '..');
+const INDEX_PATH = path.resolve(ROOT_DIR, 'index.js');
+const SITEMAP_PATH = path.resolve(ROOT_DIR, 'frontend', 'public', 'sitemap.xml');
+
 // Configuration
 const BASE_URL = 'https://www.mancavesportscardsllc.com';
-const SITEMAP_PATH = './frontend/public/sitemap.xml';
+// SITEMAP_PATH is now absolute
 
 // Define your site pages with their metadata
 const pages = [
@@ -68,7 +73,7 @@ function detectRoutes() {
   
   try {
     // Read the main index.js file to detect routes
-    const indexContent = fs.readFileSync('./index.js', 'utf8');
+    const indexContent = fs.readFileSync(INDEX_PATH, 'utf8');
     
     // Look for route patterns
     const routeMatches = indexContent.match(/app\.use\(['"`]\/api\/[^'"`]+['"`]/g);
@@ -89,7 +94,6 @@ function detectRoutes() {
   } catch (error) {
     console.log('⚠️  Could not auto-detect routes:', error.message);
   }
-  
   return routes;
 }
 
@@ -98,9 +102,7 @@ function generateSitemap(includeApiEndpoints = false) {
   const xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>\n';
   const urlsetOpen = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
   const urlsetClose = '</urlset>';
-  
   let urls = '';
-  
   // Add main pages
   pages.forEach(page => {
     urls += `  <url>\n`;
@@ -110,7 +112,6 @@ function generateSitemap(includeApiEndpoints = false) {
     urls += `    <priority>${page.priority}</priority>\n`;
     urls += `  </url>\n`;
   });
-  
   // Add API endpoints if requested
   if (includeApiEndpoints) {
     apiEndpoints.forEach(endpoint => {
@@ -122,9 +123,7 @@ function generateSitemap(includeApiEndpoints = false) {
       urls += `  </url>\n`;
     });
   }
-  
   const sitemap = xmlHeader + urlsetOpen + urls + urlsetClose;
-  
   return sitemap;
 }
 
@@ -133,10 +132,8 @@ function writeSitemap(includeApiEndpoints = false) {
   try {
     // Auto-detect routes
     detectRoutes();
-    
     const sitemap = generateSitemap(includeApiEndpoints);
     fs.writeFileSync(SITEMAP_PATH, sitemap, 'utf8');
-    
     console.log('✅ Sitemap generated successfully!');
     console.log(`📁 Location: ${SITEMAP_PATH}`);
     console.log(`🌐 Base URL: ${BASE_URL}`);
@@ -145,20 +142,17 @@ function writeSitemap(includeApiEndpoints = false) {
     if (includeApiEndpoints) {
       console.log(`🔌 API endpoints included: ${apiEndpoints.length}`);
     }
-    
     // Show summary
     console.log('\n📋 Pages:');
     pages.forEach(page => {
       console.log(`  • ${page.url} (${page.priority} priority, ${page.changefreq})`);
     });
-    
     if (includeApiEndpoints) {
       console.log('\n🔌 API Endpoints:');
       apiEndpoints.forEach(endpoint => {
         console.log(`  • ${endpoint.url} (${endpoint.priority} priority, ${endpoint.changefreq})`);
       });
     }
-    
   } catch (error) {
     console.error('❌ Error generating sitemap:', error.message);
   }
@@ -166,6 +160,5 @@ function writeSitemap(includeApiEndpoints = false) {
 
 // Check command line arguments
 const includeApi = process.argv.includes('--include-api') || process.argv.includes('-a');
-
 // Run the generator
-writeSitemap(includeApi); 
+writeSitemap(includeApi);
