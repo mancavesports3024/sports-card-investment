@@ -292,15 +292,15 @@ const categorizeCards = (cards) => {
   // Calculate price analysis
   const priceAnalysis = calculatePriceAnalysis(raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8, tag9, tag10, sgc10, aigrade9, aigrade10, otherGraded);
 
-  // Filter out raw cards sold for over 3x the average price
+  // Filter out raw cards sold for over 2x the average price
   let filteredRaw = raw;
   if (priceAnalysis && priceAnalysis.raw && priceAnalysis.raw.avgPrice > 0) {
     const avg = priceAnalysis.raw.avgPrice;
     filteredRaw = raw.filter(card => {
       const price = parseFloat(card.price?.value || 0);
-      const isFiltered = price > avg * 3;
+      const isFiltered = price > avg * 2;
       if (isFiltered) {
-        console.log(`[FILTERED OUT - RAW > 3x AVG] Title: "${card.title}", Price: $${price}, itemId: ${card.itemId || card.id || 'N/A'}`);
+        console.log(`[FILTERED OUT - RAW > 2x AVG] Title: "${card.title}", Price: $${price}, itemId: ${card.itemId || card.id || 'N/A'}`);
       }
       return !isFiltered;
     });
