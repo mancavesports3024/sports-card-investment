@@ -356,6 +356,7 @@ function App() {
   const psa9Ref = useRef(null);
   const psa10Ref = useRef(null);
   const liveListingsRef = useRef(null);
+  // 1. Add a ref for the search form
   const searchFormRef = useRef(null);
 
   // Add expand/collapse state for sold cards
@@ -449,8 +450,16 @@ function App() {
     );
   };
 
+  // 2. Add a function to scroll to the search form
+  const scrollToSearchForm = () => {
+    if (searchFormRef.current) {
+      searchFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   // Home Page Component
-  const HomePage = () => (
+  // 3. Update HomePage to accept a prop for the scroll function
+  const HomePage = ({ onGetStarted }) => (
     <div className="home-page">
       <header className="home-header">
         <div className="home-nav">
@@ -476,12 +485,12 @@ function App() {
               Magic: The Gathering, Pokemon, and more.
             </p>
             <div className="hero-cta">
-              <a
-                href={`${config.API_BASE_URL}/api/auth/google`}
+              <button
                 className="cta-button"
+                onClick={onGetStarted}
               >
-                Start Tracking Cards
-              </a>
+                Get Started
+              </button>
               <p className="cta-note">Free to use • No registration required</p>
             </div>
           </div>
@@ -628,265 +637,100 @@ function App() {
     setLoading(false);
   };
 
-  return (
-    <div className="App">
-      <PerformanceMonitor />
-      <header className="App-header">
-        <div className="header-top">
-          <div className="social-icons">
-            <a href="https://x.com/mancavesportsc1" target="_blank" rel="noopener noreferrer" className="social-icon x">
-              <span>𝕏</span>
-            </a>
-            <a href="https://www.instagram.com/?next=%2Fmancavesportscardllc%2F%3Figsh%3DNWoxOHJycGdrYzZk%26utm_source%3Dqr" target="_blank" rel="noopener noreferrer" className="social-icon instagram">
-              <span>📸</span>
-            </a>
-            <a href="https://www.facebook.com/profile.php?id=100064018098312" target="_blank" rel="noopener noreferrer" className="social-icon facebook">
-              <span>📘</span>
-            </a>
-          </div>
-        </div>
-        <h1>🏈 Scorecard</h1>
-        <p>Search for recent eBay sales of trading cards</p>
-        
-        {/* Header Ad */}
-        <HeaderAd />
-        {/* Google Login/Logout UI */}
-        <div className="auth-section">
-          {user ? (
-            <>
-              <span>Signed in as {user.displayName || user.email}</span>
-              <button onClick={handleLogout} className="logout-btn">Log out</button>
-            </>
-          ) : (
-            <a
-              href={`${config.API_BASE_URL}/api/auth/google`}
-              className="google-login-btn"
-            >
-              Log in with Google
-            </a>
-          )}
-        </div>
-      </header>
-
-      <main className="App-main">
-
-        {/* eBay Store Promotion Section */}
-        <div className="ebay-promo-section">
-          <div className="ebay-promo-content">
-            <div className="ebay-promo-text">
-              <h3>🛒 Shop Our eBay Store</h3>
-              <p>Looking for great deals on trading cards? Check out our eBay store for the latest listings!</p>
-              <div className="ebay-features">
-                <span>✅ Fast Shipping</span>
-                <span>✅ Great Prices</span>
-                <span>✅ Customer Satisfaction</span>
+  if (!user) {
+    return (
+      <>
+        <HomePage onGetStarted={scrollToSearchForm} />
+        <div ref={searchFormRef}>
+          <form className="search-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Player/Card Name</label>
+              <input
+                type="text"
+                name="player"
+                value={formData.player || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Charizard, LeBron James"
+              />
+            </div>
+            <div className="form-group">
+              <label>Manufacturer</label>
+              <input
+                type="text"
+                name="manufacturer"
+                value={formData.manufacturer || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Topps, Panini, Pokemon"
+              />
+            </div>
+            <div className="form-group">
+              <label>Year</label>
+              <input
+                type="text"
+                name="year"
+                value={formData.year || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 2023"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Number</label>
+              <input
+                type="text"
+                name="cardNumber"
+                value={formData.cardNumber || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 223/197"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Type</label>
+              <input
+                type="text"
+                name="type"
+                value={formData.type || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Rookie, Holo, EX"
+              />
+            </div>
+            <div className="form-group">
+              <label>Exclude Terms (comma-separated)</label>
+              <input
+                type="text"
+                name="exclude"
+                value={formData.exclude || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. box, case, break"
+              />
+            </div>
+            <div className="form-group">
+              <label>Advanced Search (override all fields)</label>
+              <input
+                type="text"
+                name="advancedSearch"
+                value={formData.advancedSearch || ''}
+                onChange={handleInputChange}
+                placeholder="Type your own search string here"
+              />
+              <div className="advanced-search-help">
+                <p><strong>💡 Search Tips:</strong></p>
+                <ul>
+                  <li><strong>Multiple Variations:</strong> Use brackets: <code>(2019-20, 19-20) or (PSA, BGS)</code></li>
+                  <li><strong>Exclude Terms:</strong> Use minus sign: <code>Lamelo Ball -box -case -break</code></li>
+                  <li><strong>Exact Pattern:</strong> Use & symbol: <code>Charizard PSA&10</code></li>
+                </ul>
               </div>
             </div>
-            <div className="ebay-promo-action">
-              <a href="https://www.ebay.com/usr/mancavesportscardsllc24" target="_blank" rel="noopener noreferrer" className="ebay-store-cta">
-                Visit Our Store
-              </a>
-              <small>New listings added daily!</small>
+            <div style={{ display: 'flex', gap: '1rem', gridColumn: '1 / -1' }}>
+              <button className="search-button" type="submit" disabled={loading}>
+                {loading ? 'Searching...' : 'Search'}
+              </button>
+              <button type="button" className="clear-button" onClick={clearSearchFields}>
+                Clear All
+              </button>
             </div>
-          </div>
+          </form>
         </div>
-
-
-
-        <form className="search-form" onSubmit={handleSubmit}>
-          <div ref={searchFormRef}>
-          <div className="form-group">
-            <label>Player/Card Name</label>
-            <input
-              type="text"
-              name="player"
-              value={formData.player || ''}
-              onChange={handleInputChange}
-              placeholder="e.g. Charizard, LeBron James"
-            />
-          </div>
-          <div className="form-group">
-            <label>Manufacturer</label>
-            <input
-              type="text"
-              name="manufacturer"
-              value={formData.manufacturer || ''}
-              onChange={handleInputChange}
-              placeholder="e.g. Topps, Panini, Pokemon"
-            />
-          </div>
-          <div className="form-group">
-            <label>Year</label>
-            <input
-              type="text"
-              name="year"
-              value={formData.year || ''}
-              onChange={handleInputChange}
-              placeholder="e.g. 2023"
-            />
-          </div>
-          <div className="form-group">
-            <label>Card Number</label>
-            <input
-              type="text"
-              name="cardNumber"
-              value={formData.cardNumber || ''}
-              onChange={handleInputChange}
-              placeholder="e.g. 223/197"
-            />
-          </div>
-          <div className="form-group">
-            <label>Card Type</label>
-            <input
-              type="text"
-              name="type"
-              value={formData.type || ''}
-              onChange={handleInputChange}
-              placeholder="e.g. Rookie, Holo, EX"
-            />
-          </div>
-          <div className="form-group">
-            <label>Exclude Terms (comma-separated)</label>
-            <input
-              type="text"
-              name="exclude"
-              value={formData.exclude || ''}
-              onChange={handleInputChange}
-              placeholder="e.g. box, case, break"
-            />
-          </div>
-          <div className="form-group">
-            <label>Advanced Search (override all fields)</label>
-            <input
-              type="text"
-              name="advancedSearch"
-              value={formData.advancedSearch || ''}
-              onChange={handleInputChange}
-              placeholder="Type your own search string here"
-            />
-            <div className="advanced-search-help">
-              <p><strong>💡 Search Tips:</strong></p>
-              <ul>
-                <li><strong>Multiple Variations:</strong> Use brackets: <code>(2019-20, 19-20) or (PSA, BGS)</code></li>
-                <li><strong>Exclude Terms:</strong> Use minus sign: <code>Lamelo Ball -box -case -break</code></li>
-                <li><strong>Exact Pattern:</strong> Use & symbol: <code>Charizard PSA&10</code></li>
-              </ul>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '1rem', gridColumn: '1 / -1' }}>
-            <button className="search-button" type="submit" disabled={loading}>
-              {loading ? 'Searching...' : 'Search'}
-            </button>
-            <button type="button" className="clear-button" onClick={clearSearchFields}>
-              Clear All
-            </button>
-          </div>
-          </div>
-        </form>
-
-        {/* Search History Section */}
-        <div className="search-history-section">
-          <div className="history-header">
-            <h3>📚 Search History</h3>
-            <div className="history-controls">
-              {user ? (
-                <>
-                  <button 
-                    onClick={() => setShowHistory(!showHistory)} 
-                    className="toggle-history-btn"
-                  >
-                    {showHistory ? 'Hide' : 'Show'} History
-                  </button>
-                  {showHistory && searchHistory.length > 0 && (
-                    <button 
-                      onClick={clearAllHistory} 
-                      className="clear-history-btn"
-                    >
-                      Clear All
-                    </button>
-                  )}
-                </>
-              ) : null}
-            </div>
-          </div>
-          {user ? (
-            showHistory && (
-              <div className="search-history">
-                {historyLoading ? (
-                  <p>Loading search history...</p>
-                ) : searchHistory.length === 0 ? (
-                  <p>No saved searches yet. Your searches will be automatically saved here.</p>
-                ) : (
-                  <div className="history-list">
-                    {searchHistory.map((search) => (
-                      <div key={search.id} className="history-item">
-                        <div className="history-content">
-                          <h4>{search.query}</h4>
-                          <div className="history-details">
-                            <span className="history-date">
-                              {new Date(search.timestamp).toLocaleDateString()} at {new Date(search.timestamp).toLocaleTimeString()}
-                            </span>
-                            <span className="history-results">
-                              {search.results.totalCards} cards found
-                              {search.results.raw > 0 && ` (${search.results.raw} Raw, ${search.results.psa9} PSA 9, ${search.results.psa10} PSA 10)`}
-                            </span>
-                          </div>
-                          {search.priceAnalysis && (
-                            <div className="history-prices">
-                              <span>Raw: ${search.priceAnalysis.raw?.avgPrice?.toFixed(2) || 'N/A'}</span>
-                              <span>PSA 9: ${search.priceAnalysis.psa9?.avgPrice?.toFixed(2) || 'N/A'}</span>
-                              <span>PSA 10: ${search.priceAnalysis.psa10?.avgPrice?.toFixed(2) || 'N/A'}</span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="history-actions">
-                          <button 
-                            onClick={() => {
-                              setFormData({
-                                player: '',
-                                manufacturer: '',
-                                year: '',
-                                cardNumber: '',
-                                type: '',
-                                exclude: '',
-                                advancedSearch: search.query || ''
-                              });
-                              setShowHistory(false);
-                              setTimeout(() => {
-                                searchFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                              }, 100);
-                            }}
-                            className="reuse-search-btn"
-                          >
-                            Reuse
-                          </button>
-                          <button 
-                            onClick={() => deleteSearch(search.id)}
-                            className="delete-search-btn"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )
-          ) : (
-            <div className="search-history-guest-message">
-              <p>Sign in to save your searches and view search history.</p>
-            </div>
-          )}
-        </div>
-
-        {error && (
-          <div className="error-message">
-            <h3>Error</h3>
-            <p>{error}</p>
-          </div>
-        )}
-
         {results && (
           <div className="results-section">
             <h2>Search Results</h2>
