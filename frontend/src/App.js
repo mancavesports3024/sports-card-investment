@@ -795,87 +795,94 @@ function App() {
           <div className="history-header">
             <h3>📚 Search History</h3>
             <div className="history-controls">
-              <button 
-                onClick={() => setShowHistory(!showHistory)} 
-                className="toggle-history-btn"
-              >
-                {showHistory ? 'Hide' : 'Show'} History
-              </button>
-              {showHistory && searchHistory.length > 0 && (
-                <button 
-                  onClick={clearAllHistory} 
-                  className="clear-history-btn"
-                >
-                  Clear All
-                </button>
-              )}
+              {user ? (
+                <>
+                  <button 
+                    onClick={() => setShowHistory(!showHistory)} 
+                    className="toggle-history-btn"
+                  >
+                    {showHistory ? 'Hide' : 'Show'} History
+                  </button>
+                  {showHistory && searchHistory.length > 0 && (
+                    <button 
+                      onClick={clearAllHistory} 
+                      className="clear-history-btn"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </>
+              ) : null}
             </div>
           </div>
-          
-          {showHistory && (
-            <div className="search-history">
-              {historyLoading ? (
-                <p>Loading search history...</p>
-              ) : searchHistory.length === 0 ? (
-                <p>No saved searches yet. Your searches will be automatically saved here.</p>
-              ) : (
-                <div className="history-list">
-                  {searchHistory.map((search) => (
-                    <div key={search.id} className="history-item">
-                      <div className="history-content">
-                        <h4>{search.query}</h4>
-                        <div className="history-details">
-                          <span className="history-date">
-                            {new Date(search.timestamp).toLocaleDateString()} at {new Date(search.timestamp).toLocaleTimeString()}
-                          </span>
-                          <span className="history-results">
-                            {search.results.totalCards} cards found
-                            {search.results.raw > 0 && ` (${search.results.raw} Raw, ${search.results.psa9} PSA 9, ${search.results.psa10} PSA 10)`}
-                          </span>
-                        </div>
-                        {search.priceAnalysis && (
-                          <div className="history-prices">
-                            <span>Raw: ${search.priceAnalysis.raw?.avgPrice?.toFixed(2) || 'N/A'}</span>
-                            <span>PSA 9: ${search.priceAnalysis.psa9?.avgPrice?.toFixed(2) || 'N/A'}</span>
-                            <span>PSA 10: ${search.priceAnalysis.psa10?.avgPrice?.toFixed(2) || 'N/A'}</span>
+          {user ? (
+            showHistory && (
+              <div className="search-history">
+                {historyLoading ? (
+                  <p>Loading search history...</p>
+                ) : searchHistory.length === 0 ? (
+                  <p>No saved searches yet. Your searches will be automatically saved here.</p>
+                ) : (
+                  <div className="history-list">
+                    {searchHistory.map((search) => (
+                      <div key={search.id} className="history-item">
+                        <div className="history-content">
+                          <h4>{search.query}</h4>
+                          <div className="history-details">
+                            <span className="history-date">
+                              {new Date(search.timestamp).toLocaleDateString()} at {new Date(search.timestamp).toLocaleTimeString()}
+                            </span>
+                            <span className="history-results">
+                              {search.results.totalCards} cards found
+                              {search.results.raw > 0 && ` (${search.results.raw} Raw, ${search.results.psa9} PSA 9, ${search.results.psa10} PSA 10)`}
+                            </span>
                           </div>
-                        )}
+                          {search.priceAnalysis && (
+                            <div className="history-prices">
+                              <span>Raw: ${search.priceAnalysis.raw?.avgPrice?.toFixed(2) || 'N/A'}</span>
+                              <span>PSA 9: ${search.priceAnalysis.psa9?.avgPrice?.toFixed(2) || 'N/A'}</span>
+                              <span>PSA 10: ${search.priceAnalysis.psa10?.avgPrice?.toFixed(2) || 'N/A'}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="history-actions">
+                          <button 
+                            onClick={() => {
+                              setFormData({
+                                player: '',
+                                manufacturer: '',
+                                year: '',
+                                cardNumber: '',
+                                type: '',
+                                exclude: '',
+                                advancedSearch: search.query || ''
+                              });
+                              setShowHistory(false);
+                              setTimeout(() => {
+                                searchFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }, 100);
+                            }}
+                            className="reuse-search-btn"
+                          >
+                            Reuse
+                          </button>
+                          <button 
+                            onClick={() => deleteSearch(search.id)}
+                            className="delete-search-btn"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
-                      <div className="history-actions">
-                        <button 
-                          onClick={() => {
-                            setFormData({
-                              player: '',
-                              manufacturer: '',
-                              year: '',
-                              cardNumber: '',
-                              type: '',
-                              exclude: '',
-                              advancedSearch: search.query || ''
-                            });
-                            setShowHistory(false);
-                            // Scroll to search form after setting the data
-                            setTimeout(() => {
-                              searchFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }, 100);
-                          }}
-                          className="reuse-search-btn"
-                        >
-                          Reuse
-                        </button>
-                        <button 
-                          onClick={() => deleteSearch(search.id)}
-                          className="delete-search-btn"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                )
+              ) : (
+                <div className="search-history-guest-message">
+                  <p>Sign in to save your searches and view search history.</p>
                 </div>
               )}
             </div>
-          )}
         </div>
 
         {error && (
