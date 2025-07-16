@@ -19,7 +19,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "postinstall": "node ../generate-sitemap-advanced.js"
+    "prebuild": "node ../generate-sitemap-advanced.js"
   },
   "eslintConfig": {
     "extends": [
