@@ -289,22 +289,23 @@ const categorizeCards = (cards) => {
   console.log(`AiGrade 9: ${aigrade9.length} | AiGrade 10: ${aigrade10.length} | Other Graded: ${otherGraded.length}`);
   console.log(`=== END DEBUG ===\n`);
   
-  // Calculate price analysis
-  const priceAnalysis = calculatePriceAnalysis(raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8, tag9, tag10, sgc10, aigrade9, aigrade10, otherGraded);
-
   // Filter out raw cards sold for over 2x the average price
   let filteredRaw = raw;
-  if (priceAnalysis && priceAnalysis.raw && priceAnalysis.raw.avgPrice > 0) {
-    const avg = priceAnalysis.raw.avgPrice;
+  if (raw.length > 0) {
+    // Use initial average to filter
+    const initialAvg = raw.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0).reduce((a, b) => a + b, 0) / raw.length;
     filteredRaw = raw.filter(card => {
       const price = parseFloat(card.price?.value || 0);
-      const isFiltered = price > avg * 2;
+      const isFiltered = price > initialAvg * 2;
       if (isFiltered) {
         console.log(`[FILTERED OUT - RAW > 2x AVG] Title: "${card.title}", Price: $${price}, itemId: ${card.itemId || card.id || 'N/A'}`);
       }
       return !isFiltered;
     });
   }
+
+  // Recalculate price analysis with filtered raw
+  const priceAnalysis = calculatePriceAnalysis(filteredRaw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8, tag9, tag10, sgc10, aigrade9, aigrade10, otherGraded);
 
   return { raw: filteredRaw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8, tag9, tag10, sgc10, aigrade9, aigrade10, otherGraded, priceAnalysis };
 };
