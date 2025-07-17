@@ -24,7 +24,7 @@ const HomePage = () => {
               Make informed buying and selling decisions with our comprehensive analytics platform.
             </p>
             <div className="hero-cta">
-              <div>TEST-123</div> 
+ 
               <a href="/search" className="cta-button large">Search Cards</a>
               <p className="cta-note">Free to use • No registration required</p>
             </div>
