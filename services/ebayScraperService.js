@@ -119,6 +119,7 @@ async function scrapeEbaySales(keywords, numSales = 10) {
 
     // Parse HTML response
     const $ = cheerio.load(response.data);
+    console.log('DEBUG HTML:', response.data.slice(0, 500));
     const sales = [];
 
     // Extract sales data from the page
