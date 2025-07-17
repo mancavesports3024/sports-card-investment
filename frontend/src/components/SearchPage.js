@@ -490,9 +490,9 @@ const SearchPage = () => {
                         <YAxis tick={{ fontSize: 12 }} />
                         <Tooltip />
                         <Legend />
-                        <Line type="monotone" dataKey="Raw" stroke="#8884d8" dot={false} name="Raw" />
-                        <Line type="monotone" dataKey="PSA9" stroke="#82ca9d" dot={false} name="PSA 9" />
-                        <Line type="monotone" dataKey="PSA10" stroke="#ffd700" dot={false} name="PSA 10" />
+                        <Line type="monotone" dataKey="Raw" stroke="#8884d8" dot={false} name="Raw" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA9" stroke="#82ca9d" dot={false} name="PSA 9" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA10" stroke="#ffd700" dot={false} name="PSA 10" connectNulls={true} />
                       </LineChart>
                     </ResponsiveContainer>
                   );
