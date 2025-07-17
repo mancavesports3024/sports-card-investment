@@ -482,19 +482,8 @@ const SearchPage = () => {
 
             {/* Card Sections */}
             {renderCardSection('Raw Cards', results.results.raw, '📄')}
-            {renderCardSection('PSA 7', results.results.psa7, '🏆')}
-            {renderCardSection('PSA 8', results.results.psa8, '🏆')}
             {renderCardSection('PSA 9', results.results.psa9, '🏆')}
             {renderCardSection('PSA 10', results.results.psa10, '🏆')}
-            {renderCardSection('CGC 9', results.results.cgc9, '🏆')}
-            {renderCardSection('CGC 10', results.results.cgc10, '🏆')}
-            {renderCardSection('TAG 8', results.results.tag8, '🏆')}
-            {renderCardSection('TAG 9', results.results.tag9, '🏆')}
-            {renderCardSection('TAG 10', results.results.tag10, '🏆')}
-            {renderCardSection('SGC 10', results.results.sgc10, '🏆')}
-            {renderCardSection('AiGrade 9', results.results.aigrade9, '🤖')}
-            {renderCardSection('AiGrade 10', results.results.aigrade10, '🤖')}
-            {renderCardSection('Other Graded', results.results.otherGraded, '🏆')}
           </div>
         )}
       </main>
