@@ -8,6 +8,13 @@ const SearchPage = () => {
   const [error, setError] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
+  const [playerName, setPlayerName] = useState('');
+  const [cardSet, setCardSet] = useState('');
+  const [year, setYear] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardType, setCardType] = useState('');
+  const [exclude, setExclude] = useState('');
+  const [lastSavedQuery, setLastSavedQuery] = useState('');
 
   // Check if user is logged in on component mount
   useEffect(() => {
@@ -27,7 +34,20 @@ const SearchPage = () => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
+    // If Advanced Search is filled, use only that
+    let combinedQuery = '';
+    if (searchQuery) {
+      combinedQuery = searchQuery.trim();
+    } else {
+      if (playerName) combinedQuery += playerName + ' ';
+      if (cardSet) combinedQuery += cardSet + ' ';
+      if (year) combinedQuery += year + ' ';
+      if (cardNumber) combinedQuery += cardNumber + ' ';
+      if (cardType) combinedQuery += cardType + ' ';
+      if (exclude) combinedQuery += `-(${exclude})`;
+      combinedQuery = combinedQuery.trim();
+    }
+    if (!combinedQuery) return;
 
     setIsLoading(true);
     setError(null);
@@ -40,7 +60,7 @@ const SearchPage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          searchQuery: searchQuery.trim(),
+          searchQuery: combinedQuery,
           numSales: 25
         })
       });
@@ -52,24 +72,45 @@ const SearchPage = () => {
       const data = await response.json();
       setResults(data);
 
-      // If user is logged in, save search to history
-      if (isLoggedIn) {
-        try {
-          await fetch(config.getSearchHistoryUrl(), {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('authToken')}`
-            },
-            body: JSON.stringify({
-              searchQuery: searchQuery.trim(),
-              results: data.results,
-              priceAnalysis: data.priceAnalysis
-            })
-          });
-        } catch (historyError) {
-          console.error('Failed to save search history:', historyError);
-          // Don't show error to user for history saving
+      // Only save if logged in, not a duplicate, and at least one card is found
+      if (isLoggedIn && combinedQuery !== lastSavedQuery) {
+        // Check if at least one card is found in any category
+        const resultsObj = data.results || {};
+        const hasCards = [
+          ...(resultsObj.raw || []),
+          ...(resultsObj.psa7 || []),
+          ...(resultsObj.psa8 || []),
+          ...(resultsObj.psa9 || []),
+          ...(resultsObj.psa10 || []),
+          ...(resultsObj.cgc9 || []),
+          ...(resultsObj.cgc10 || []),
+          ...(resultsObj.tag8 || []),
+          ...(resultsObj.tag9 || []),
+          ...(resultsObj.tag10 || []),
+          ...(resultsObj.sgc10 || []),
+          ...(resultsObj.aigrade9 || []),
+          ...(resultsObj.aigrade10 || []),
+          ...(resultsObj.otherGraded || [])
+        ].length > 0;
+        if (hasCards) {
+          try {
+            await fetch(config.getSearchHistoryUrl(), {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('authToken')}`
+              },
+              body: JSON.stringify({
+                searchQuery: combinedQuery,
+                results: data.results,
+                priceAnalysis: data.priceAnalysis
+              })
+            });
+            setLastSavedQuery(combinedQuery);
+          } catch (historyError) {
+            console.error('Failed to save search history:', historyError);
+            // Don't show error to user for history saving
+          }
         }
       }
     } catch (err) {
@@ -170,17 +211,104 @@ const SearchPage = () => {
     <div className="App">
       {/* Main Content */}
       <main className="App-main">
+        {/* Store Info Section */}
+        <div className="store-info" style={{ margin: '2rem 0', textAlign: 'center', background: '#fffbe6', borderRadius: '8px', padding: '1.5rem', border: '1px solid #ffd700' }}>
+          <h2 style={{ color: '#000' }}>Welcome to Mancave Sports Cards LLC!</h2>
+          <p style={{ color: '#333', fontSize: '1.1rem', margin: '0.5rem 0 0.5rem 0' }}>
+            Your destination for all things trading cards—specializing in sports cards and Pokémon! We offer a diverse range of high-quality cards for collectors of all levels.
+          </p>
+          <p style={{ color: '#333', fontSize: '1.1rem', margin: '0.5rem 0' }}>
+            <strong>Fast shipping</strong> on every order and <strong>new items added weekly</strong>—check back often for the latest deals!
+          </p>
+          <a
+            href="https://www.ebay.com/usr/mancavesportscardsllc24?mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339115973&customid=&toolid=10001&mkevt=1"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-block',
+              background: '#ffd700',
+              color: '#000',
+              fontWeight: 'bold',
+              padding: '0.75rem 2rem',
+              borderRadius: '6px',
+              textDecoration: 'none',
+              border: '2px solid #000',
+              marginTop: '0.5rem'
+            }}
+          >
+            Visit Our eBay Store
+          </a>
+        </div>
         {/* Search Form */}
         <form onSubmit={handleSearch} className="search-form">
           <div className="form-group">
-            <label htmlFor="searchQuery">Search for a card:</label>
+            <label htmlFor="playerName">Player Name:</label>
+            <input
+              type="text"
+              id="playerName"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              placeholder="e.g., Mike Trout"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="cardSet">Card Set:</label>
+            <input
+              type="text"
+              id="cardSet"
+              value={cardSet}
+              onChange={(e) => setCardSet(e.target.value)}
+              placeholder="e.g., Topps Chrome"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="year">Year:</label>
+            <input
+              type="text"
+              id="year"
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              placeholder="e.g., 2011"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="cardNumber">Card Number:</label>
+            <input
+              type="text"
+              id="cardNumber"
+              value={cardNumber}
+              onChange={(e) => setCardNumber(e.target.value)}
+              placeholder="e.g., 175"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="cardType">Card Type:</label>
+            <input
+              type="text"
+              id="cardType"
+              value={cardType}
+              onChange={(e) => setCardType(e.target.value)}
+              placeholder="e.g., Base, Insert, Auto, Relic"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="exclude">Exclude (keywords):</label>
+            <input
+              type="text"
+              id="exclude"
+              value={exclude}
+              onChange={(e) => setExclude(e.target.value)}
+              placeholder="e.g., graded, PSA"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="searchQuery"><strong>Advanced Search</strong> (overrides all fields):</label>
             <input
               type="text"
               id="searchQuery"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="e.g., Mike Trout 211opps Update Rookie"
-              required
+              placeholder="e.g., Mike Trout 2011 Topps Update Rookie"
             />
           </div>
           <div className="form-group">
