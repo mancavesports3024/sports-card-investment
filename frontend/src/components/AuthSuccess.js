@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const AuthSuccess = () => {
+const AuthSuccess = ({ onAuthSuccess }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -9,11 +9,15 @@ const AuthSuccess = () => {
     const token = params.get('token');
     if (token) {
       localStorage.setItem('authToken', token);
+      // Call the callback to update the auth state
+      if (onAuthSuccess) {
+        onAuthSuccess();
+      }
       navigate('/', { replace: true });
     } else {
       navigate('/', { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, onAuthSuccess]);
 
   return <div>Logging you in...</div>;
 };

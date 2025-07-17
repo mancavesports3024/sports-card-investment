@@ -9,22 +9,28 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
+  const checkAuthStatus = () => {
     const token = localStorage.getItem('authToken');
     if (token) {
       try {
+        // Decode JWT token to get user info
         const payload = JSON.parse(atob(token.split('.')[1]));
         setUser(payload);
         setIsLoggedIn(true);
       } catch (error) {
+        console.error('Invalid token:', error);
+        localStorage.removeItem('authToken');
         setUser(null);
         setIsLoggedIn(false);
-        localStorage.removeItem('authToken');
       }
     } else {
       setUser(null);
       setIsLoggedIn(false);
     }
+  };
+
+  useEffect(() => {
+    checkAuthStatus();
   }, []);
 
   const handleLogin = () => {
@@ -60,7 +66,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />
-          <Route path="/auth-success" element={<AuthSuccess />} />
+          <Route path="/auth-success" element={<AuthSuccess onAuthSuccess={checkAuthStatus} />} />
         </Routes>
       </div>
     </Router>
