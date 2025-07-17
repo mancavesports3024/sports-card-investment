@@ -273,7 +273,7 @@ const SearchPage = () => {
     }
     return (
       <div className="price-analysis">
-        <h3>📊 Price Analysis</h3>
+        <h3 style={{ color: '#fff', fontWeight: 800, textShadow: '1px 1px 6px #000' }}>📊 Price Analysis</h3>
         <div className="analysis-grid" style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '0.5rem', flexWrap: 'wrap' }}>
           {tiles.map(({ key, label }) => {
             const item = analysis[key];
@@ -438,8 +438,8 @@ const SearchPage = () => {
         {results && (
           <div className="search-results">
             <div className="results-header">
-              <h2 style={{ color: '#111', fontWeight: 700 }}>📊 Search Results for "{results.searchParams.searchQuery}"</h2>
-              <div className="results-summary" style={{ color: '#111', fontWeight: 600, fontSize: '1.1rem' }}>
+              <h2 style={{ color: '#fff', fontWeight: 800, textShadow: '1px 1px 6px #000' }}>📊 Search Results for "{results.searchParams.searchQuery}"</h2>
+              <div className="results-summary" style={{ color: '#fff', fontWeight: 700, fontSize: '1.15rem', textShadow: '1px 1px 6px #000' }}>
                 <p>Found {results.sources?.total || 0} total sold items</p>
                 {!isLoggedIn && (
                   <p className="save-note">💡 <a href="#" onClick={handleLogin}>Sign in</a> to save this search</p>
