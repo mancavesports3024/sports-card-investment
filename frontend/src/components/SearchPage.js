@@ -463,15 +463,15 @@ const SearchPage = () => {
                 {/* Prepare sales data for chart */}
                 {(() => {
                   const raw = (results.results.raw || []).map(card => ({
-                    date: card.soldDate,
+                    date: new Date(card.soldDate).toLocaleDateString('en-US'),
                     Raw: card.price?.value || 0
                   }));
                   const psa9 = (results.results.psa9 || []).map(card => ({
-                    date: card.soldDate,
+                    date: new Date(card.soldDate).toLocaleDateString('en-US'),
                     PSA9: card.price?.value || 0
                   }));
                   const psa10 = (results.results.psa10 || []).map(card => ({
-                    date: card.soldDate,
+                    date: new Date(card.soldDate).toLocaleDateString('en-US'),
                     PSA10: card.price?.value || 0
                   }));
                   // Merge by date
