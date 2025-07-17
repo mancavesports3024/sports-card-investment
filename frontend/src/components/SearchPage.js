@@ -152,15 +152,15 @@ const SearchPage = () => {
           <h3 style={{ margin: 0 }}>{icon} {title} ({cards.length})</h3>
           <a href={ebaySearchUrl} target="_blank" rel="noopener noreferrer" className="live-listings-btn" style={{ fontSize: '0.95em', padding: '0.3em 0.8em', background: '#ffd700', color: '#000', border: '1px solid #aaa', borderRadius: 5, textDecoration: 'none', marginLeft: 8 }}>View Live Listings</a>
         </div>
-        <div className="cards-grid">
+        <div className="cards-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem' }}>
           {cards.map((card, index) => (
-            <div key={`${card.id || index}-${card.title}`} className="card-item">
-              <div className="card-details">
-                <div className="card-title">{card.title}</div>
-                <div className="card-price">{formatPrice(card.price)}</div>
-                <div className="card-date">Sold: {formatDate(card.soldDate)}</div>
+            <div key={`${card.id || index}-${card.title}`} className="card-item" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.7rem', minWidth: 170, maxWidth: 210, fontSize: '0.97em', marginBottom: 0 }}>
+              <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                <div className="card-title" style={{ fontWeight: 600, fontSize: '1em', marginBottom: 2 }}>{card.title}</div>
+                <div className="card-price" style={{ fontSize: '0.98em', color: '#222' }}>{formatPrice(card.price)}</div>
+                <div className="card-date" style={{ fontSize: '0.93em', color: '#888' }}>Sold: {formatDate(card.soldDate)}</div>
                 {card.condition && (
-                  <div className="card-condition">Condition: {card.condition}</div>
+                  <div className="card-condition" style={{ fontSize: '0.93em', color: '#666' }}>Condition: {card.condition}</div>
                 )}
                 {card.itemWebUrl && (
                   <a 
@@ -168,7 +168,7 @@ const SearchPage = () => {
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="live-listings-btn"
-                    style={{ fontSize: '0.92em', padding: '0.25em 0.7em', background: '#ffd700', color: '#000', border: '1px solid #aaa', borderRadius: 5, textDecoration: 'none', marginTop: 4, display: 'inline-block' }}
+                    style={{ fontSize: '0.89em', padding: '0.18em 0.6em', background: '#ffd700', color: '#000', border: '1px solid #aaa', borderRadius: 5, textDecoration: 'none', marginTop: 2, alignSelf: 'flex-start' }}
                   >
                     View on eBay
                   </a>
