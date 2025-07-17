@@ -836,13 +836,6 @@ function App() {
                            results.priceAnalysis.raw.trend === 'down' ? 'Trending Down' : 'Stable'}
                         </span>
                       </div>
-                      <button
-                        className="live-listings-btn"
-                        onClick={() => handleViewLiveListings('raw')}
-                        disabled={liveListingsLoading && liveListingsCategory === 'raw'}
-                      >
-                        {liveListingsLoading && liveListingsCategory === 'raw' ? 'Loading...' : 'View Live Listings'}
-                      </button>
                     </div>
                     
                     <div className="price-card">
@@ -864,13 +857,6 @@ function App() {
                            results.priceAnalysis.psa9.trend === 'down' ? 'Trending Down' : 'Stable'}
                         </span>
                       </div>
-                      <button
-                        className="live-listings-btn"
-                        onClick={() => handleViewLiveListings('psa9')}
-                        disabled={liveListingsLoading && liveListingsCategory === 'psa9'}
-                      >
-                        {liveListingsLoading && liveListingsCategory === 'psa9' ? 'Loading...' : 'View Live Listings'}
-                      </button>
                     </div>
                     
                     <div className="price-card">
@@ -892,13 +878,6 @@ function App() {
                            results.priceAnalysis.psa10.trend === 'down' ? 'Trending Down' : 'Stable'}
                         </span>
                       </div>
-                      <button
-                        className="live-listings-btn"
-                        onClick={() => handleViewLiveListings('psa10')}
-                        disabled={liveListingsLoading && liveListingsCategory === 'psa10'}
-                      >
-                        {liveListingsLoading && liveListingsCategory === 'psa10' ? 'Loading...' : 'View Live Listings'}
-                      </button>
                     </div>
                   </div>
 
@@ -1012,127 +991,127 @@ function App() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+        
+        {/* Show sold results only if not viewing live listings */}
+        {!showLiveListingsOnly && (
+          <>
+            <CardResults title="Raw Trading Cards" cards={results.results.raw} type="raw" sectionRef={rawRef} />
+            
+            {/* In-Content Ad after first section */}
+            <InContentAd />
+            
+            <CardResults title="PSA 9 Trading Cards" cards={results.results.psa9} type="psa9" sectionRef={psa9Ref} />
+            <CardResults title="PSA 10 Trading Cards" cards={results.results.psa10} type="psa10" sectionRef={psa10Ref} />
+          </>
+        )}
+        {/* Live Listings Section */}
+        {console.log('🔍 Rendering check:', { showLiveListingsOnly, liveListingsCategory, liveListingsLoading, liveListingsError, liveListingsLength: liveListings.length })}
+        {showLiveListingsOnly && liveListingsCategory && (
+          <div className="live-listings-section" ref={liveListingsRef}>
+            <button className="back-to-sold-btn" onClick={handleBackToSoldResults}>
+              ← Back to Sold Results
+            </button>
+            <h3>Live eBay Listings for {liveListingsCategory === 'raw' ? 'Raw' : liveListingsCategory === 'psa9' ? 'PSA 9' : 'PSA 10'} Trading Cards</h3>
+            
+            {/* Filter Buttons */}
+            <div className="live-listings-filters">
+              <button 
+                className={`filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('all');
+                  handleViewLiveListings(liveListingsCategory, null);
+                }}
+                disabled={liveListingsLoading}
+              >
+                All Listings
+              </button>
+              <button 
+                className={`filter-btn ${activeFilter === 'auction' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('auction');
+                  handleViewLiveListings(liveListingsCategory, 'auction');
+                }}
+                disabled={liveListingsLoading}
+              >
+                Auctions Only
+              </button>
+              <button 
+                className={`filter-btn ${activeFilter === 'fixed' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('fixed');
+                  handleViewLiveListings(liveListingsCategory, 'fixed');
+                }}
+                disabled={liveListingsLoading}
+              >
+                Buy It Now Only
+              </button>
+            </div>
 
-            {/* Show sold results only if not viewing live listings */}
-            {!showLiveListingsOnly && (
-              <>
-                <CardResults title="Raw Trading Cards" cards={results.results.raw} type="raw" sectionRef={rawRef} />
-                
-                {/* In-Content Ad after first section */}
-                <InContentAd />
-                
-                <CardResults title="PSA 9 Trading Cards" cards={results.results.psa9} type="psa9" sectionRef={psa9Ref} />
-                <CardResults title="PSA 10 Trading Cards" cards={results.results.psa10} type="psa10" sectionRef={psa10Ref} />
-              </>
-            )}
-            {/* Live Listings Section */}
-            {console.log('🔍 Rendering check:', { showLiveListingsOnly, liveListingsCategory, liveListingsLoading, liveListingsError, liveListingsLength: liveListings.length })}
-            {showLiveListingsOnly && liveListingsCategory && (
-              <div className="live-listings-section" ref={liveListingsRef}>
-                <button className="back-to-sold-btn" onClick={handleBackToSoldResults}>
-                  ← Back to Sold Results
-                </button>
-                <h3>Live eBay Listings for {liveListingsCategory === 'raw' ? 'Raw' : liveListingsCategory === 'psa9' ? 'PSA 9' : 'PSA 10'} Trading Cards</h3>
-                
-                {/* Filter Buttons */}
-                <div className="live-listings-filters">
-                  <button 
-                    className={`filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
-                    onClick={() => {
-                      setActiveFilter('all');
-                      handleViewLiveListings(liveListingsCategory, null);
-                    }}
-                    disabled={liveListingsLoading}
-                  >
-                    All Listings
-                  </button>
-                  <button 
-                    className={`filter-btn ${activeFilter === 'auction' ? 'active' : ''}`}
-                    onClick={() => {
-                      setActiveFilter('auction');
-                      handleViewLiveListings(liveListingsCategory, 'auction');
-                    }}
-                    disabled={liveListingsLoading}
-                  >
-                    Auctions Only
-                  </button>
-                  <button 
-                    className={`filter-btn ${activeFilter === 'fixed' ? 'active' : ''}`}
-                    onClick={() => {
-                      setActiveFilter('fixed');
-                      handleViewLiveListings(liveListingsCategory, 'fixed');
-                    }}
-                    disabled={liveListingsLoading}
-                  >
-                    Buy It Now Only
-                  </button>
-                </div>
-
-                {liveListingsLoading ? (
-                  <p>Loading live listings...</p>
-                ) : liveListingsError ? (
-                  <p className="error-message">{liveListingsError}</p>
-                ) : liveListings.length === 0 ? (
-                  <div>
-                    <p>No live listings found.</p>
-                    <p>Debug info: Category: {liveListingsCategory}, Filter: {activeFilter}</p>
-                    <p>Search query: {formData.searchQuery}</p>
-                  </div>
-                ) : (
-                  <div className="live-listings-grid">
-                    {liveListings
-                      .sort((a, b) => new Date(b.itemCreationDate) - new Date(a.itemCreationDate))
-                      .map((item, idx) => (
-                      <div key={item.itemId || idx} className="live-listing-card">
-                        <a href={item.itemWebUrl || '#'} target="_blank" rel="noopener noreferrer">
-                          <img 
-                            src={item.image?.imageUrl || item.image || '/placeholder-image.jpg'} 
-                            alt={item.title || 'Trading Card'} 
-                            className="live-listing-img"
-                            onError={(e) => {
-                              e.target.src = '/placeholder-image.jpg';
-                            }}
-                          />
-                        </a>
-                        <div className="live-listing-content">
-                          <a 
-                            href={item.itemWebUrl || '#'} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="live-listing-title"
-                            onClick={() => handleEbayLinkClick(item.title || 'Untitled Item', item.price, 'live_listing')}
-                          >
-                            {item.title || 'Untitled Item'}
-                          </a>
-                          <div className="live-listing-price">
-                            {item.price && typeof item.price === 'object' && item.price.value 
-                              ? `$${item.price.value} ${item.price.currency || 'USD'}` 
-                              : item.price && typeof item.price === 'string'
-                              ? item.price
-                              : 'N/A'}
-                          </div>
-                          <div className={`live-listing-sale-type ${Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'auction' : 'fixed'}`}>
-                            {Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'Auction' : 
-                             Array.isArray(item.buyingOptions) && item.buyingOptions.includes('FIXED_PRICE') ? 'Buy It Now' : 'N/A'}
-                          </div>
-                          <div className="live-listing-date">
-                            Listed: {item.itemCreationDate ? formatDate(item.itemCreationDate) : 'N/A'}
-                          </div>
-                          {item.seller && typeof item.seller === 'string' && (
-                            <div className="live-listing-seller">
-                              Seller: {item.seller}
-                            </div>
-                          )}
-                          {item.condition && typeof item.condition === 'string' && (
-                            <div className="live-listing-condition">
-                              Condition: {item.condition}
-                            </div>
-                          )}
-                        </div>
+            {liveListingsLoading ? (
+              <p>Loading live listings...</p>
+            ) : liveListingsError ? (
+              <p className="error-message">{liveListingsError}</p>
+            ) : liveListings.length === 0 ? (
+              <div>
+                <p>No live listings found.</p>
+                <p>Debug info: Category: {liveListingsCategory}, Filter: {activeFilter}</p>
+                <p>Search query: {formData.searchQuery}</p>
+              </div>
+            ) : (
+              <div className="live-listings-grid">
+                {liveListings
+                  .sort((a, b) => new Date(b.itemCreationDate) - new Date(a.itemCreationDate))
+                  .map((item, idx) => (
+                  <div key={item.itemId || idx} className="live-listing-card">
+                    <a href={item.itemWebUrl || '#'} target="_blank" rel="noopener noreferrer">
+                      <img 
+                        src={item.image?.imageUrl || item.image || '/placeholder-image.jpg'} 
+                        alt={item.title || 'Trading Card'} 
+                        className="live-listing-img"
+                        onError={(e) => {
+                          e.target.src = '/placeholder-image.jpg';
+                        }}
+                      />
+                    </a>
+                    <div className="live-listing-content">
+                      <a 
+                        href={item.itemWebUrl || '#'} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="live-listing-title"
+                        onClick={() => handleEbayLinkClick(item.title || 'Untitled Item', item.price, 'live_listing')}
+                      >
+                        {item.title || 'Untitled Item'}
+                      </a>
+                      <div className="live-listing-price">
+                        {item.price && typeof item.price === 'object' && item.price.value 
+                          ? `$${item.price.value} ${item.price.currency || 'USD'}` 
+                          : item.price && typeof item.price === 'string'
+                          ? item.price
+                          : 'N/A'}
                       </div>
-                    ))}
+                      <div className={`live-listing-sale-type ${Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'auction' : 'fixed'}`}>
+                        {Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'Auction' : 
+                         Array.isArray(item.buyingOptions) && item.buyingOptions.includes('FIXED_PRICE') ? 'Buy It Now' : 'N/A'}
+                      </div>
+                      <div className="live-listing-date">
+                        Listed: {item.itemCreationDate ? formatDate(item.itemCreationDate) : 'N/A'}
+                      </div>
+                      {item.seller && typeof item.seller === 'string' && (
+                        <div className="live-listing-seller">
+                          Seller: {item.seller}
+                        </div>
+                      )}
+                      {item.condition && typeof item.condition === 'string' && (
+                        <div className="live-listing-condition">
+                          Condition: {item.condition}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
             )}
           </div>
