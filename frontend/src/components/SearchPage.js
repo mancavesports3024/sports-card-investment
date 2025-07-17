@@ -188,10 +188,28 @@ const SearchPage = () => {
       { key: 'psa9', label: 'PSA 9' },
       { key: 'psa10', label: 'PSA 10' }
     ];
+    // Comparison tiles
+    const comparisons = analysis.comparisons || {};
+    const comparisonTiles = [
+      { key: 'rawToPsa9', label: 'Raw → PSA 9', data: comparisons.rawToPsa9 },
+      { key: 'rawToPsa10', label: 'Raw → PSA 10', data: comparisons.rawToPsa10 },
+      { key: 'psa9ToPsa10', label: 'PSA 9 → PSA 10', data: comparisons.psa9ToPsa10 }
+    ];
+    // Investment insight (simple: show the best trend or value increase)
+    let insight = '';
+    if (analysis.psa10 && analysis.psa10.trend === 'up') {
+      insight = 'PSA 10 prices are trending up!';
+    } else if (analysis.psa9 && analysis.psa9.trend === 'up') {
+      insight = 'PSA 9 prices are trending up!';
+    } else if (analysis.raw && analysis.raw.trend === 'up') {
+      insight = 'Raw card prices are trending up!';
+    } else {
+      insight = 'No strong upward trends detected.';
+    }
     return (
       <div className="price-analysis">
         <h3>📊 Price Analysis</h3>
-        <div className="analysis-grid" style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '0.5rem' }}>
+        <div className="analysis-grid" style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '0.5rem', flexWrap: 'wrap' }}>
           {tiles.map(({ key, label }) => {
             const item = analysis[key];
             if (!item) return null;
@@ -204,6 +222,16 @@ const SearchPage = () => {
               </div>
             );
           })}
+          {comparisonTiles.map(({ key, label, data }) => data && (
+            <div key={key} className="analysis-item" style={{ background: '#e6f7ff', border: '1.5px solid #1890ff', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
+              <h4 style={{ color: '#0050b3', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
+              <p style={{ margin: 0 }}>{data.description}</p>
+            </div>
+          ))}
+          <div className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
+            <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>Investment Insight</h4>
+            <p style={{ margin: 0 }}>{insight}</p>
+          </div>
         </div>
       </div>
     );
@@ -353,17 +381,30 @@ const SearchPage = () => {
               </div>
             </div>
 
-            {/* Price Analysis */}
-            {renderPriceAnalysis(results.priceAnalysis)}
-
-            {/* Chart Placeholder for Last Sales */}
+            {/* Chart Placeholder for Last Sales - moved to top */}
             {results && results.results && (
-              <div className="sales-chart" style={{ margin: '2rem auto', maxWidth: 700, background: '#fff', borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '1.5rem', border: '1.5px solid #ffd700', textAlign: 'center' }}>
+              <div className="sales-chart" style={{ margin: '2rem auto 1.5rem auto', maxWidth: 700, background: '#fff', borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '1.5rem', border: '1.5px solid #ffd700', textAlign: 'center' }}>
                 <h3 style={{ color: '#000', marginBottom: 16 }}>Last Sales Chart</h3>
                 {/* TODO: Insert chart here using a charting library like Chart.js or Recharts */}
+                {/* Example data preparation for charting: */}
+                {/*
+                const salesData = [
+                  ...(results.results.raw || []),
+                  ...(results.results.psa9 || []),
+                  ...(results.results.psa10 || [])
+                ].map(card => ({
+                  date: card.soldDate,
+                  price: card.price?.value || 0,
+                  grade: card.grade || 'Raw',
+                  title: card.title
+                }));
+                */}
                 <div style={{ color: '#888', fontStyle: 'italic' }}>[Sales chart coming soon]</div>
               </div>
             )}
+
+            {/* Price Analysis */}
+            {renderPriceAnalysis(results.priceAnalysis)}
 
             {/* Card Sections */}
             {renderCardSection('Raw Cards', results.results.raw, '📄')}
