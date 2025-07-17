@@ -1,0 +1,62 @@
+import React, { useEffect, useState } from 'react';
+
+const SavedSearches = () => {
+  const [searches, setSearches] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchSearches = async () => {
+      setLoading(true);
+      setError(null);
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        setError('You must be logged in to view saved searches.');
+        setLoading(false);
+        return;
+      }
+      try {
+        const res = await fetch('/api/search-history', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await res.json();
+        if (!data.success) {
+          setError(data.error || 'Failed to load saved searches.');
+        } else {
+          setSearches(data.searches || []);
+        }
+      } catch (err) {
+        setError('Failed to load saved searches.');
+      }
+      setLoading(false);
+    };
+    fetchSearches();
+  }, []);
+
+  if (loading) return <div style={{ color: '#ffd700', textAlign: 'center', margin: '2rem' }}>Loading saved searches...</div>;
+  if (error) return <div style={{ color: 'red', textAlign: 'center', margin: '2rem' }}>{error}</div>;
+
+  return (
+    <div style={{ maxWidth: 700, margin: '2rem auto', background: '#222', borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.08)', padding: '2rem', border: '1.5px solid #ffd700', color: '#fff' }}>
+      <h2 style={{ color: '#ffd700', marginBottom: 24 }}>My Saved Searches</h2>
+      {searches.length === 0 ? (
+        <div style={{ color: '#fff', textAlign: 'center' }}>No saved searches found.</div>
+      ) : (
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {searches.map((search) => (
+            <li key={search.id || search._id} style={{ marginBottom: 18, background: '#333', borderRadius: 6, padding: '1rem 1.5rem', border: '1px solid #ffd700' }}>
+              <div style={{ fontWeight: 'bold', color: '#ffd700' }}>{search.searchQuery}</div>
+              <div style={{ fontSize: '0.95rem', color: '#bbb' }}>Saved: {search.createdAt ? new Date(search.createdAt).toLocaleString() : 'Unknown date'}</div>
+              {/* Optionally add a button to view details or re-run search */}
+              {/* <button style={{ marginTop: 8, background: '#ffd700', color: '#000', border: 'none', borderRadius: 4, padding: '0.3rem 1rem', fontWeight: 'bold', cursor: 'pointer' }}>View Details</button> */}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
+export default SavedSearches; 

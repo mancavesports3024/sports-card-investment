@@ -3,6 +3,7 @@ import './App.css';
 import HomePage from './components/HomePage';
 import SearchPage from './components/SearchPage';
 import AuthSuccess from './components/AuthSuccess';
+import SavedSearches from './components/SavedSearches';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
@@ -74,6 +75,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/auth-success" element={<AuthSuccess onAuthSuccess={checkAuthStatus} />} />
+          <Route path="/saved-searches" element={<SavedSearches />} />
         </Routes>
       </div>
     </Router>
