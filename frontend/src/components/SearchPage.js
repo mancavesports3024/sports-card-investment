@@ -260,7 +260,7 @@ const SearchPage = () => {
       { key: 'rawToPsa10', label: 'Raw → PSA 10', data: comparisons.rawToPsa10 },
       { key: 'psa9ToPsa10', label: 'PSA 9 → PSA 10', data: comparisons.psa9ToPsa10 }
     ];
-    // Investment insight (simple: show the best trend or value increase)
+    // Investment insight
     let insight = '';
     if (analysis.psa10 && analysis.psa10.trend === 'up') {
       insight = 'PSA 10 prices are trending up!';
@@ -271,32 +271,40 @@ const SearchPage = () => {
     } else {
       insight = 'No strong upward trends detected.';
     }
+    // Build the 3x3 grid: [raw, psa9, psa10, rawToPsa9, rawToPsa10, psa9ToPsa10, insight, empty, empty]
+    const gridTiles = [
+      ...tiles.map(({ key, label }) => {
+        const item = analysis[key];
+        if (!item) return null;
+        return (
+          <div key={key} className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
+            <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
+            <p style={{ margin: 0 }}>Avg: <strong>{formatPrice({ value: item.avgPrice })}</strong></p>
+            <p style={{ margin: 0, fontSize: '0.93em' }}>Range: {formatPrice({ value: item.minPrice })} - {formatPrice({ value: item.maxPrice })}</p>
+            <p style={{ margin: '0.3rem 0 0 0', color: '#888', fontSize: '0.93em' }}>Trend: <span style={{ color: item.trend === 'up' ? 'green' : item.trend === 'down' ? 'red' : '#888' }}>{item.trend.charAt(0).toUpperCase() + item.trend.slice(1)}</span></p>
+          </div>
+        );
+      }),
+      ...comparisonTiles.map(({ key, label, data }) => data && (
+        <div key={key} className="analysis-item" style={{ background: '#e6f7ff', border: '1.5px solid #1890ff', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
+          <h4 style={{ color: '#0050b3', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
+          <p style={{ margin: 0 }}>{data.description}</p>
+        </div>
+      )),
+      <div key="insight" className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
+        <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>Investment Insight</h4>
+        <p style={{ margin: 0 }}>{insight}</p>
+      </div>
+    ];
+    // Fill to 9 tiles
+    while (gridTiles.length < 9) {
+      gridTiles.push(<div key={`empty-${gridTiles.length}`} style={{ background: 'transparent', border: 'none' }} />);
+    }
     return (
       <div className="price-analysis">
         <h3 style={{ color: '#fff', fontWeight: 800, textShadow: '1px 1px 6px #000' }}>📊 Price Analysis</h3>
-        <div className="analysis-grid" style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-          {tiles.map(({ key, label }) => {
-            const item = analysis[key];
-            if (!item) return null;
-            return (
-              <div key={key} className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
-                <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
-                <p style={{ margin: 0 }}>Avg: <strong>{formatPrice({ value: item.avgPrice })}</strong></p>
-                <p style={{ margin: 0, fontSize: '0.93em' }}>Range: {formatPrice({ value: item.minPrice })} - {formatPrice({ value: item.maxPrice })}</p>
-                <p style={{ margin: '0.3rem 0 0 0', color: '#888', fontSize: '0.93em' }}>Trend: <span style={{ color: item.trend === 'up' ? 'green' : item.trend === 'down' ? 'red' : '#888' }}>{item.trend.charAt(0).toUpperCase() + item.trend.slice(1)}</span></p>
-              </div>
-            );
-          })}
-          {comparisonTiles.map(({ key, label, data }) => data && (
-            <div key={key} className="analysis-item" style={{ background: '#e6f7ff', border: '1.5px solid #1890ff', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
-              <h4 style={{ color: '#0050b3', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
-              <p style={{ margin: 0 }}>{data.description}</p>
-            </div>
-          ))}
-          <div className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
-            <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>Investment Insight</h4>
-            <p style={{ margin: 0 }}>{insight}</p>
-          </div>
+        <div className="analysis-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+          {gridTiles}
         </div>
       </div>
     );
