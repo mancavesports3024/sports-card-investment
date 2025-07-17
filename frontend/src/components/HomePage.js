@@ -7,7 +7,7 @@ const HomePage = () => {
       <header className="home-header">
         <nav className="home-nav">
           <h1 className="home-logo">Scorecard</h1>
-          <a href="/login" className="home-login-btn">Login</a>
+          <a href="https://web-production-9efa.up.railway.app/api/auth/google" className="home-login-btn">Login</a>
         </nav>
       </header>
 
