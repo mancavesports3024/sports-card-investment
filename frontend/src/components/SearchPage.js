@@ -168,28 +168,6 @@ const SearchPage = () => {
 
   return (
     <div className="App">
-      {/* Header */}
-      <header className="App-header">
-        <div className="header-content">
-          <div className="header-top">
-            <div className="social-icons">
-              <a href="https://twitter.com/scorecard" className="social-icon x" target="_blank" rel="noopener noreferrer">                𝕏
-              </a>
-              <a href="https://instagram.com/scorecard" className="social-icon" target="_blank" rel="noopener noreferrer">                📷
-              </a>
-            </div>
-          </div>
-          <div className="header-center">
-            <h1>Scorecard</h1>          <p>Track Sports Card Values Like a Pro</p>
-          </div>
-          <div className="header-ebay-link">
-            <a href="https://ebay.com" className="header-ebay-ad" target="_blank" rel="noopener noreferrer">             <span>🛒</span>
-              <span>eBay Store</span>
-            </a>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="App-main">
         {/* Search Form */}
