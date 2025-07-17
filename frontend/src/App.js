@@ -62,7 +62,7 @@ function App() {
               <button onClick={handleLogin} style={{ background: '#ffd700', color: '#000', border: 'none', borderRadius: '5px', padding: '0.5rem 1.2rem', fontWeight: 'bold', cursor: 'pointer' }}>Log in</button>
             ) : (
               <span style={{ marginRight: '1rem' }}>
-                {user?.displayName}
+                {user?.displayName || user?.name || ((user?.given_name || user?.givenName) && (user?.family_name || user?.familyName) ? `${user.given_name || user.givenName} ${user.family_name || user.familyName}` : '')}
               </span>
             )}
             {isLoggedIn && (
