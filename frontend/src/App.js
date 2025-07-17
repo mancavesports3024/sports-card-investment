@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import HomePage from './components/HomePage';
 import SearchPage from './components/SearchPage';
+import AuthSuccess from './components/AuthSuccess';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
@@ -59,6 +60,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/auth-success" element={<AuthSuccess />} />
         </Routes>
       </div>
     </Router>
