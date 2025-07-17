@@ -27,7 +27,7 @@ function App() {
   }, []);
 
   const handleLogin = () => {
-    window.location.href = '/api/auth/google';
+    window.location.href = 'https://web-production-9efa.up.railway.app/api/auth/google';
   };
 
   const handleLogout = () => {
