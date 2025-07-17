@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import config from '../config';
+import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -459,21 +460,43 @@ const SearchPage = () => {
             {results && results.results && (
               <div className="sales-chart" style={{ margin: '2rem auto 1.5rem auto', maxWidth: 700, background: '#fff', borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '1.5rem', border: '1.5px solid #ffd700', textAlign: 'center' }}>
                 <h3 style={{ color: '#000', marginBottom: 16 }}>Last Sales Chart</h3>
-                {/* TODO: Insert chart here using a charting library like Chart.js or Recharts */}
-                {/* Example data preparation for charting: */}
-                {/*
-                const salesData = [
-                  ...(results.results.raw || []),
-                  ...(results.results.psa9 || []),
-                  ...(results.results.psa10 || [])
-                ].map(card => ({
-                  date: card.soldDate,
-                  price: card.price?.value || 0,
-                  grade: card.grade || 'Raw',
-                  title: card.title
-                }));
-                */}
-                <div style={{ color: '#888', fontStyle: 'italic' }}>[Sales chart coming soon]</div>
+                {/* Prepare sales data for chart */}
+                {(() => {
+                  const raw = (results.results.raw || []).map(card => ({
+                    date: card.soldDate,
+                    Raw: card.price?.value || 0
+                  }));
+                  const psa9 = (results.results.psa9 || []).map(card => ({
+                    date: card.soldDate,
+                    PSA9: card.price?.value || 0
+                  }));
+                  const psa10 = (results.results.psa10 || []).map(card => ({
+                    date: card.soldDate,
+                    PSA10: card.price?.value || 0
+                  }));
+                  // Merge by date
+                  const allDates = Array.from(new Set([...raw, ...psa9, ...psa10].map(d => d.date))).sort();
+                  const salesData = allDates.map(date => ({
+                    date,
+                    Raw: raw.find(d => d.date === date)?.Raw || null,
+                    PSA9: psa9.find(d => d.date === date)?.PSA9 || null,
+                    PSA10: psa10.find(d => d.date === date)?.PSA10 || null
+                  }));
+                  return (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={salesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" tick={{ fontSize: 12 }} angle={-30} textAnchor="end" height={60} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="Raw" stroke="#8884d8" dot={false} name="Raw" />
+                        <Line type="monotone" dataKey="PSA9" stroke="#82ca9d" dot={false} name="PSA 9" />
+                        <Line type="monotone" dataKey="PSA10" stroke="#ffd700" dot={false} name="PSA 10" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  );
+                })()}
               </div>
             )}
 
