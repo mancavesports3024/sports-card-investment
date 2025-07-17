@@ -615,7 +615,7 @@ function App() {
     </div>
   );
 
-  // Add a function to clear all search fields
+  // 1. Only one clearSearchFields definition near the top:
   const clearSearchFields = () => {
     setFormData({
       player: '',
