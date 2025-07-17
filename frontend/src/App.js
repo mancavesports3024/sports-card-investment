@@ -48,14 +48,21 @@ function App() {
     <Router>
       <div className="App">
         {/* Global Header */}
-        <header className="global-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem', background: '#000', color: '#ffd700' }}>
-          <div style={{ fontWeight: 'bold', fontSize: '1.5rem' }}>Scorecard</div>
-          <div>
+        <header className="global-header" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem 2rem', background: '#000', color: '#ffd700', position: 'relative' }}>
+          {/* Social Media Left */}
+          <div style={{ position: 'absolute', left: 32, display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+            <a href="https://twitter.com/scorecard" target="_blank" rel="noopener noreferrer" style={{ color: '#ffd700', fontSize: '1.4rem', textDecoration: 'none' }} title="Follow on X">𝕏</a>
+            <a href="https://instagram.com/scorecard" target="_blank" rel="noopener noreferrer" style={{ color: '#ffd700', fontSize: '1.4rem', textDecoration: 'none' }} title="Instagram">📷</a>
+          </div>
+          {/* Centered Title */}
+          <div style={{ fontWeight: 'bold', fontSize: '1.5rem', textAlign: 'center', flex: 1 }}>Scorecard</div>
+          {/* Login/Logout/User Right */}
+          <div style={{ position: 'absolute', right: 32, display: 'flex', alignItems: 'center' }}>
             {!isLoggedIn ? (
               <button onClick={handleLogin} style={{ background: '#ffd700', color: '#000', border: 'none', borderRadius: '5px', padding: '0.5rem 1.2rem', fontWeight: 'bold', cursor: 'pointer' }}>Log in</button>
             ) : (
               <span style={{ marginRight: '1rem' }}>
-                {user?.displayName} ({user?.email})
+                {user?.displayName}
               </span>
             )}
             {isLoggedIn && (
