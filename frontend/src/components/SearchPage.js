@@ -126,10 +126,10 @@ const SearchPage = () => {
   };
 
   const formatPrice = (price) => {
-    if (!price || !price.value) return 'N/A';
+    if (price == null || price.value == null || isNaN(price.value)) return 'N/A';
     return new Intl.NumberFormat('en-US', {
-      style: 'currency',   currency: price.currency || 'USD'
-    }).format(price.value);
+      style: 'currency', currency: price.currency || 'USD'
+    }).format(Number(price.value));
   };
 
   const formatDate = (dateString) => {
@@ -176,32 +176,27 @@ const SearchPage = () => {
 
   const renderPriceAnalysis = (analysis) => {
     if (!analysis) return null;
-
+    const tiles = [
+      { key: 'raw', label: 'Raw Cards' },
+      { key: 'psa9', label: 'PSA 9' },
+      { key: 'psa10', label: 'PSA 10' }
+    ];
     return (
       <div className="price-analysis">
         <h3>📊 Price Analysis</h3>
-        <div className="analysis-grid">
-          {analysis.raw && (
-            <div className="analysis-item">
-              <h4>Raw Cards</h4>
-              <p>Average: {formatPrice({ value: analysis.raw.average })}</p>
-              <p>Range: {formatPrice({ value: analysis.raw.min })} - {formatPrice({ value: analysis.raw.max })}</p>
-            </div>
-          )}
-          {analysis.psa9 && (
-            <div className="analysis-item">
-              <h4>PSA 9</h4>
-              <p>Average: {formatPrice({ value: analysis.psa9 })}</p>
-              <p>Range: {formatPrice({ value: analysis.psa9.min })} - {formatPrice({ value: analysis.psa9.max })}</p>
-            </div>
-          )}
-          {analysis.psa10 && (
-            <div className="analysis-item">
-              <h4>PSA 10</h4>
-              <p>Average: {formatPrice({ value: analysis.psa10 })}</p>
-              <p>Range: {formatPrice({ value: analysis.psa10.min })} - {formatPrice({ value: analysis.psa10.max })}</p>
-            </div>
-          )}
+        <div className="analysis-grid" style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', marginTop: '1rem' }}>
+          {tiles.map(({ key, label }) => {
+            const item = analysis[key];
+            if (!item) return null;
+            return (
+              <div key={key} className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '10px', padding: '1.25rem 2rem', minWidth: 180, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <h4 style={{ color: '#000', marginBottom: 8 }}>{label}</h4>
+                <p style={{ margin: 0 }}>Average: <strong>{formatPrice({ value: item.avgPrice })}</strong></p>
+                <p style={{ margin: 0 }}>Range: {formatPrice({ value: item.minPrice })} - {formatPrice({ value: item.maxPrice })}</p>
+                <p style={{ margin: '0.5rem 0 0 0', color: '#888' }}>Trend: <span style={{ color: item.trend === 'up' ? 'green' : item.trend === 'down' ? 'red' : '#888' }}>{item.trend.charAt(0).toUpperCase() + item.trend.slice(1)}</span></p>
+              </div>
+            );
+          })}
         </div>
       </div>
     );
@@ -353,6 +348,15 @@ const SearchPage = () => {
 
             {/* Price Analysis */}
             {renderPriceAnalysis(results.priceAnalysis)}
+
+            {/* Chart Placeholder for Last Sales */}
+            {results && results.results && (
+              <div className="sales-chart" style={{ margin: '2rem auto', maxWidth: 700, background: '#fff', borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '1.5rem', border: '1.5px solid #ffd700', textAlign: 'center' }}>
+                <h3 style={{ color: '#000', marginBottom: 16 }}>Last Sales Chart</h3>
+                {/* TODO: Insert chart here using a charting library like Chart.js or Recharts */}
+                <div style={{ color: '#888', fontStyle: 'italic' }}>[Sales chart coming soon]</div>
+              </div>
+            )}
 
             {/* Card Sections */}
             {renderCardSection('Raw Cards', results.results.raw, '📄')}
