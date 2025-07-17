@@ -143,9 +143,15 @@ const SearchPage = () => {
   const renderCardSection = (title, cards, icon) => {
     if (!cards || cards.length === 0) return null;
 
+    // Build eBay live listings search URL
+    const ebaySearchUrl = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(title.replace(/\s+\(.+\)/, ''))}`;
+
     return (
       <div className="card-section">
-        <h3>{icon} {title} ({cards.length})</h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <h3 style={{ margin: 0 }}>{icon} {title} ({cards.length})</h3>
+          <a href={ebaySearchUrl} target="_blank" rel="noopener noreferrer" className="live-listings-btn" style={{ fontSize: '0.95em', padding: '0.3em 0.8em', background: '#ffd700', color: '#000', border: '1px solid #aaa', borderRadius: 5, textDecoration: 'none', marginLeft: 8 }}>View Live Listings</a>
+        </div>
         <div className="cards-grid">
           {cards.map((card, index) => (
             <div key={`${card.id || index}-${card.title}`} className="card-item">
@@ -162,6 +168,7 @@ const SearchPage = () => {
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="live-listings-btn"
+                    style={{ fontSize: '0.92em', padding: '0.25em 0.7em', background: '#ffd700', color: '#000', border: '1px solid #aaa', borderRadius: 5, textDecoration: 'none', marginTop: 4, display: 'inline-block' }}
                   >
                     View on eBay
                   </a>
@@ -184,16 +191,16 @@ const SearchPage = () => {
     return (
       <div className="price-analysis">
         <h3>📊 Price Analysis</h3>
-        <div className="analysis-grid" style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', marginTop: '1rem' }}>
+        <div className="analysis-grid" style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '0.5rem' }}>
           {tiles.map(({ key, label }) => {
             const item = analysis[key];
             if (!item) return null;
             return (
-              <div key={key} className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '10px', padding: '1.25rem 2rem', minWidth: 180, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                <h4 style={{ color: '#000', marginBottom: 8 }}>{label}</h4>
-                <p style={{ margin: 0 }}>Average: <strong>{formatPrice({ value: item.avgPrice })}</strong></p>
-                <p style={{ margin: 0 }}>Range: {formatPrice({ value: item.minPrice })} - {formatPrice({ value: item.maxPrice })}</p>
-                <p style={{ margin: '0.5rem 0 0 0', color: '#888' }}>Trend: <span style={{ color: item.trend === 'up' ? 'green' : item.trend === 'down' ? 'red' : '#888' }}>{item.trend.charAt(0).toUpperCase() + item.trend.slice(1)}</span></p>
+              <div key={key} className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
+                <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
+                <p style={{ margin: 0 }}>Avg: <strong>{formatPrice({ value: item.avgPrice })}</strong></p>
+                <p style={{ margin: 0, fontSize: '0.93em' }}>Range: {formatPrice({ value: item.minPrice })} - {formatPrice({ value: item.maxPrice })}</p>
+                <p style={{ margin: '0.3rem 0 0 0', color: '#888', fontSize: '0.93em' }}>Trend: <span style={{ color: item.trend === 'up' ? 'green' : item.trend === 'down' ? 'red' : '#888' }}>{item.trend.charAt(0).toUpperCase() + item.trend.slice(1)}</span></p>
               </div>
             );
           })}
