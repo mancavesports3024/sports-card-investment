@@ -1121,9 +1121,3229 @@ function App() {
         <FooterAd />
         {/* Kind Cup Ad */}
         <KindCupAd />
-      </main>
-    </div>
-  );
-}
+      </>
+    );
+  }
 
-export default App;
+  // Add a function to clear all search fields
+  const clearSearchFields = () => {
+    setFormData({
+      player: '',
+      manufacturer: '',
+      year: '',
+      cardNumber: '',
+      type: '',
+      exclude: '',
+      advancedSearch: ''
+    });
+    setResults(null);
+    setLiveListings([]);
+    setLiveListingsError(null);
+    setLiveListingsLoading(false);
+    setShowLiveListingsOnly(false);
+    setLiveListingsCategory(null);
+    setActiveFilter('all');
+    setError(null);
+    setLoading(false);
+  };
+
+  if (!user) {
+    return (
+      <>
+        <HomePage onGetStarted={scrollToSearchForm} />
+        <div ref={searchFormRef}>
+          <form className="search-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Player/Card Name</label>
+              <input
+                type="text"
+                name="player"
+                value={formData.player || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Charizard, LeBron James"
+              />
+            </div>
+            <div className="form-group">
+              <label>Manufacturer</label>
+              <input
+                type="text"
+                name="manufacturer"
+                value={formData.manufacturer || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Topps, Panini, Pokemon"
+              />
+            </div>
+            <div className="form-group">
+              <label>Year</label>
+              <input
+                type="text"
+                name="year"
+                value={formData.year || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 2023"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Number</label>
+              <input
+                type="text"
+                name="cardNumber"
+                value={formData.cardNumber || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 223/197"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Type</label>
+              <input
+                type="text"
+                name="type"
+                value={formData.type || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Rookie, Holo, EX"
+              />
+            </div>
+            <div className="form-group">
+              <label>Exclude Terms (comma-separated)</label>
+              <input
+                type="text"
+                name="exclude"
+                value={formData.exclude || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. box, case, break"
+              />
+            </div>
+            <div className="form-group">
+              <label>Advanced Search (override all fields)</label>
+              <input
+                type="text"
+                name="advancedSearch"
+                value={formData.advancedSearch || ''}
+                onChange={handleInputChange}
+                placeholder="Type your own search string here"
+              />
+              <div className="advanced-search-help">
+                <p><strong>💡 Search Tips:</strong></p>
+                <ul>
+                  <li><strong>Multiple Variations:</strong> Use brackets: <code>(2019-20, 19-20) or (PSA, BGS)</code></li>
+                  <li><strong>Exclude Terms:</strong> Use minus sign: <code>Lamelo Ball -box -case -break</code></li>
+                  <li><strong>Exact Pattern:</strong> Use & symbol: <code>Charizard PSA&10</code></li>
+                </ul>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', gridColumn: '1 / -1' }}>
+              <button className="search-button" type="submit" disabled={loading}>
+                {loading ? 'Searching...' : 'Search'}
+              </button>
+              <button type="button" className="clear-button" onClick={clearSearchFields}>
+                Clear All
+              </button>
+            </div>
+          </form>
+        </div>
+        {results && (
+          <div className="results-section">
+            <h2>Search Results</h2>
+            <div className="search-summary">
+              <p>
+                Found results for: <strong>{results.searchParams.searchQuery}</strong>
+              </p>
+              
+              {/* Price Analysis Section */}
+              {results.priceAnalysis && (
+                <div className="price-analysis-section">
+                  <h3>📊 Price Analysis</h3>
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                    <button className="jump-btn" onClick={() => rawRef.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to Raw Sales</button>
+                    <button className="jump-btn" onClick={() => psa9Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 9 Sales</button>
+                    <button className="jump-btn" onClick={() => psa10Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 10 Sales</button>
+                  </div>
+                  
+                  {/* Price Trend Chart */}
+                  <div style={{ width: '100%', height: 300, marginBottom: 32 }}>
+                    <ResponsiveContainer>
+                      <LineChart
+                        data={(() => {
+                          const raw = results.results.raw || [];
+                          const psa9 = results.results.psa9 || [];
+                          const psa10 = results.results.psa10 || [];
+                          const allDates = Array.from(new Set([
+                            ...raw.map(card => card.soldDate),
+                            ...psa9.map(card => card.soldDate),
+                            ...psa10.map(card => card.soldDate),
+                          ].filter(Boolean))).sort();
+                          return allDates.map(date => ({
+                            date: date,
+                            Raw: (() => {
+                              const cards = raw.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                            PSA9: (() => {
+                              const cards = psa9.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                            PSA10: (() => {
+                              const cards = psa10.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                          }));
+                        })()}
+                        margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 12 }} 
+                          tickFormatter={date => {
+                            if (!date) return '';
+                            const d = new Date(date);
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          }}
+                        />
+                        <YAxis tick={{ fontSize: 12 }} domain={[0, 'auto']} />
+                        <Tooltip formatter={v => v ? `$${v.toFixed(2)}` : 'N/A'} 
+                          labelFormatter={date => {
+                            if (!date) return '';
+                            const d = new Date(date);
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          }}
+                        />
+                        <Legend />
+                        <Line type="monotone" dataKey="Raw" stroke="#222" strokeWidth={2} dot={false} name="Raw" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA9" stroke="#FFD600" strokeWidth={2} dot={false} name="PSA 9" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA10" stroke="#00C49F" strokeWidth={2} dot={false} name="PSA 10" connectNulls={true} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  {/* Summary Cards */}
+                  <div className="price-summary">
+                    <div className="price-card">
+                      <h4>Raw Cards</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.raw.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.raw.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.raw.minPrice.toFixed(2)} - ${results.priceAnalysis.raw.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.raw.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.raw.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.raw.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.raw.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.raw.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="price-card">
+                      <h4>PSA 9</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.psa9.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.psa9.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.psa9.minPrice.toFixed(2)} - ${results.priceAnalysis.psa9.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.psa9.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.psa9.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.psa9.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.psa9.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.psa9.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="price-card">
+                      <h4>PSA 10</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.psa10.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.psa10.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.psa10.minPrice.toFixed(2)} - ${results.priceAnalysis.psa10.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.psa10.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.psa10.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.psa10.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.psa10.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.psa10.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price Comparisons */}
+                  <div className="price-comparisons">
+                    <h4>💰 Price Comparisons</h4>
+                    <div className="comparison-grid">
+                      {results.priceAnalysis.comparisons.rawToPsa9 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">Raw → PSA 9</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.rawToPsa9.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.rawToPsa9.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.rawToPsa9.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 9 premium over raw
+                          </div>
+                        </div>
+                      )}
+
+                      {results.priceAnalysis.comparisons.rawToPsa10 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">Raw → PSA 10</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.rawToPsa10.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.rawToPsa10.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.rawToPsa10.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 10 premium over raw
+                          </div>
+                        </div>
+                      )}
+
+                      {results.priceAnalysis.comparisons.psa9ToPsa10 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">PSA 9 → PSA 10</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.psa9ToPsa10.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 10 premium over PSA 9
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Investment Insights */}
+                  <div className="investment-insights">
+                    <h4>💡 Investment Insights</h4>
+                    <div className="insights-grid">
+                      {results.priceAnalysis.raw.avgPrice > 0 && results.priceAnalysis.psa9.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">📈</div>
+                          <div className="insight-content">
+                            <strong>PSA 9 Value:</strong> {results.priceAnalysis.comparisons.rawToPsa9 ? 
+                              `${results.priceAnalysis.comparisons.rawToPsa9.percentDiff.toFixed(0)}x more than raw` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.priceAnalysis.raw.avgPrice > 0 && results.priceAnalysis.psa10.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">🚀</div>
+                          <div className="insight-content">
+                            <strong>PSA 10 Value:</strong> {results.priceAnalysis.comparisons.rawToPsa10 ? 
+                              `${results.priceAnalysis.comparisons.rawToPsa10.percentDiff.toFixed(0)}x more than raw` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.priceAnalysis.psa9.avgPrice > 0 && results.priceAnalysis.psa10.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">💎</div>
+                          <div className="insight-content">
+                            <strong>Grade Jump:</strong> {results.priceAnalysis.comparisons.psa9ToPsa10 ? 
+                              `PSA 9 to 10 adds ${results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff.toFixed(0)}% value` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Show sold results only if not viewing live listings */}
+        {!showLiveListingsOnly && (
+          <>
+            <CardResults title="Raw Trading Cards" cards={results.results.raw} type="raw" sectionRef={rawRef} />
+            
+            {/* In-Content Ad after first section */}
+            <InContentAd />
+            
+            <CardResults title="PSA 9 Trading Cards" cards={results.results.psa9} type="psa9" sectionRef={psa9Ref} />
+            <CardResults title="PSA 10 Trading Cards" cards={results.results.psa10} type="psa10" sectionRef={psa10Ref} />
+          </>
+        )}
+        {/* Live Listings Section */}
+        {console.log('🔍 Rendering check:', { showLiveListingsOnly, liveListingsCategory, liveListingsLoading, liveListingsError, liveListingsLength: liveListings.length })}
+        {showLiveListingsOnly && liveListingsCategory && (
+          <div className="live-listings-section" ref={liveListingsRef}>
+            <button className="back-to-sold-btn" onClick={handleBackToSoldResults}>
+              ← Back to Sold Results
+            </button>
+            <h3>Live eBay Listings for {liveListingsCategory === 'raw' ? 'Raw' : liveListingsCategory === 'psa9' ? 'PSA 9' : 'PSA 10'} Trading Cards</h3>
+            
+            {/* Filter Buttons */}
+            <div className="live-listings-filters">
+              <button 
+                className={`filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('all');
+                  handleViewLiveListings(liveListingsCategory, null);
+                }}
+                disabled={liveListingsLoading}
+              >
+                All Listings
+              </button>
+              <button 
+                className={`filter-btn ${activeFilter === 'auction' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('auction');
+                  handleViewLiveListings(liveListingsCategory, 'auction');
+                }}
+                disabled={liveListingsLoading}
+              >
+                Auctions Only
+              </button>
+              <button 
+                className={`filter-btn ${activeFilter === 'fixed' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('fixed');
+                  handleViewLiveListings(liveListingsCategory, 'fixed');
+                }}
+                disabled={liveListingsLoading}
+              >
+                Buy It Now Only
+              </button>
+            </div>
+
+            {liveListingsLoading ? (
+              <p>Loading live listings...</p>
+            ) : liveListingsError ? (
+              <p className="error-message">{liveListingsError}</p>
+            ) : liveListings.length === 0 ? (
+              <div>
+                <p>No live listings found.</p>
+                <p>Debug info: Category: {liveListingsCategory}, Filter: {activeFilter}</p>
+                <p>Search query: {formData.searchQuery}</p>
+              </div>
+            ) : (
+              <div className="live-listings-grid">
+                {liveListings
+                  .sort((a, b) => new Date(b.itemCreationDate) - new Date(a.itemCreationDate))
+                  .map((item, idx) => (
+                  <div key={item.itemId || idx} className="live-listing-card">
+                    <a href={item.itemWebUrl || '#'} target="_blank" rel="noopener noreferrer">
+                      <img 
+                        src={item.image?.imageUrl || item.image || '/placeholder-image.jpg'} 
+                        alt={item.title || 'Trading Card'} 
+                        className="live-listing-img"
+                        onError={(e) => {
+                          e.target.src = '/placeholder-image.jpg';
+                        }}
+                      />
+                    </a>
+                    <div className="live-listing-content">
+                      <a 
+                        href={item.itemWebUrl || '#'} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="live-listing-title"
+                        onClick={() => handleEbayLinkClick(item.title || 'Untitled Item', item.price, 'live_listing')}
+                      >
+                        {item.title || 'Untitled Item'}
+                      </a>
+                      <div className="live-listing-price">
+                        {item.price && typeof item.price === 'object' && item.price.value 
+                          ? `$${item.price.value} ${item.price.currency || 'USD'}` 
+                          : item.price && typeof item.price === 'string'
+                          ? item.price
+                          : 'N/A'}
+                      </div>
+                      <div className={`live-listing-sale-type ${Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'auction' : 'fixed'}`}>
+                        {Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'Auction' : 
+                         Array.isArray(item.buyingOptions) && item.buyingOptions.includes('FIXED_PRICE') ? 'Buy It Now' : 'N/A'}
+                      </div>
+                      <div className="live-listing-date">
+                        Listed: {item.itemCreationDate ? formatDate(item.itemCreationDate) : 'N/A'}
+                      </div>
+                      {item.seller && typeof item.seller === 'string' && (
+                        <div className="live-listing-seller">
+                          Seller: {item.seller}
+                        </div>
+                      )}
+                      {item.condition && typeof item.condition === 'string' && (
+                        <div className="live-listing-condition">
+                          Condition: {item.condition}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Footer Ad */}
+        <FooterAd />
+        {/* Kind Cup Ad */}
+        <KindCupAd />
+      </>
+    );
+  }
+
+  // Add a function to clear all search fields
+  const clearSearchFields = () => {
+    setFormData({
+      player: '',
+      manufacturer: '',
+      year: '',
+      cardNumber: '',
+      type: '',
+      exclude: '',
+      advancedSearch: ''
+    });
+    setResults(null);
+    setLiveListings([]);
+    setLiveListingsError(null);
+    setLiveListingsLoading(false);
+    setShowLiveListingsOnly(false);
+    setLiveListingsCategory(null);
+    setActiveFilter('all');
+    setError(null);
+    setLoading(false);
+  };
+
+  if (!user) {
+    return (
+      <>
+        <HomePage onGetStarted={scrollToSearchForm} />
+        <div ref={searchFormRef}>
+          <form className="search-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Player/Card Name</label>
+              <input
+                type="text"
+                name="player"
+                value={formData.player || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Charizard, LeBron James"
+              />
+            </div>
+            <div className="form-group">
+              <label>Manufacturer</label>
+              <input
+                type="text"
+                name="manufacturer"
+                value={formData.manufacturer || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Topps, Panini, Pokemon"
+              />
+            </div>
+            <div className="form-group">
+              <label>Year</label>
+              <input
+                type="text"
+                name="year"
+                value={formData.year || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 2023"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Number</label>
+              <input
+                type="text"
+                name="cardNumber"
+                value={formData.cardNumber || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 223/197"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Type</label>
+              <input
+                type="text"
+                name="type"
+                value={formData.type || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Rookie, Holo, EX"
+              />
+            </div>
+            <div className="form-group">
+              <label>Exclude Terms (comma-separated)</label>
+              <input
+                type="text"
+                name="exclude"
+                value={formData.exclude || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. box, case, break"
+              />
+            </div>
+            <div className="form-group">
+              <label>Advanced Search (override all fields)</label>
+              <input
+                type="text"
+                name="advancedSearch"
+                value={formData.advancedSearch || ''}
+                onChange={handleInputChange}
+                placeholder="Type your own search string here"
+              />
+              <div className="advanced-search-help">
+                <p><strong>💡 Search Tips:</strong></p>
+                <ul>
+                  <li><strong>Multiple Variations:</strong> Use brackets: <code>(2019-20, 19-20) or (PSA, BGS)</code></li>
+                  <li><strong>Exclude Terms:</strong> Use minus sign: <code>Lamelo Ball -box -case -break</code></li>
+                  <li><strong>Exact Pattern:</strong> Use & symbol: <code>Charizard PSA&10</code></li>
+                </ul>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', gridColumn: '1 / -1' }}>
+              <button className="search-button" type="submit" disabled={loading}>
+                {loading ? 'Searching...' : 'Search'}
+              </button>
+              <button type="button" className="clear-button" onClick={clearSearchFields}>
+                Clear All
+              </button>
+            </div>
+          </form>
+        </div>
+        {results && (
+          <div className="results-section">
+            <h2>Search Results</h2>
+            <div className="search-summary">
+              <p>
+                Found results for: <strong>{results.searchParams.searchQuery}</strong>
+              </p>
+              
+              {/* Price Analysis Section */}
+              {results.priceAnalysis && (
+                <div className="price-analysis-section">
+                  <h3>📊 Price Analysis</h3>
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                    <button className="jump-btn" onClick={() => rawRef.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to Raw Sales</button>
+                    <button className="jump-btn" onClick={() => psa9Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 9 Sales</button>
+                    <button className="jump-btn" onClick={() => psa10Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 10 Sales</button>
+                  </div>
+                  
+                  {/* Price Trend Chart */}
+                  <div style={{ width: '100%', height: 300, marginBottom: 32 }}>
+                    <ResponsiveContainer>
+                      <LineChart
+                        data={(() => {
+                          const raw = results.results.raw || [];
+                          const psa9 = results.results.psa9 || [];
+                          const psa10 = results.results.psa10 || [];
+                          const allDates = Array.from(new Set([
+                            ...raw.map(card => card.soldDate),
+                            ...psa9.map(card => card.soldDate),
+                            ...psa10.map(card => card.soldDate),
+                          ].filter(Boolean))).sort();
+                          return allDates.map(date => ({
+                            date: date,
+                            Raw: (() => {
+                              const cards = raw.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                            PSA9: (() => {
+                              const cards = psa9.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                            PSA10: (() => {
+                              const cards = psa10.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                          }));
+                        })()}
+                        margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 12 }} 
+                          tickFormatter={date => {
+                            if (!date) return '';
+                            const d = new Date(date);
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          }}
+                        />
+                        <YAxis tick={{ fontSize: 12 }} domain={[0, 'auto']} />
+                        <Tooltip formatter={v => v ? `$${v.toFixed(2)}` : 'N/A'} 
+                          labelFormatter={date => {
+                            if (!date) return '';
+                            const d = new Date(date);
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          }}
+                        />
+                        <Legend />
+                        <Line type="monotone" dataKey="Raw" stroke="#222" strokeWidth={2} dot={false} name="Raw" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA9" stroke="#FFD600" strokeWidth={2} dot={false} name="PSA 9" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA10" stroke="#00C49F" strokeWidth={2} dot={false} name="PSA 10" connectNulls={true} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  {/* Summary Cards */}
+                  <div className="price-summary">
+                    <div className="price-card">
+                      <h4>Raw Cards</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.raw.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.raw.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.raw.minPrice.toFixed(2)} - ${results.priceAnalysis.raw.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.raw.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.raw.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.raw.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.raw.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.raw.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="price-card">
+                      <h4>PSA 9</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.psa9.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.psa9.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.psa9.minPrice.toFixed(2)} - ${results.priceAnalysis.psa9.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.psa9.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.psa9.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.psa9.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.psa9.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.psa9.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="price-card">
+                      <h4>PSA 10</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.psa10.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.psa10.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.psa10.minPrice.toFixed(2)} - ${results.priceAnalysis.psa10.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.psa10.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.psa10.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.psa10.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.psa10.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.psa10.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price Comparisons */}
+                  <div className="price-comparisons">
+                    <h4>💰 Price Comparisons</h4>
+                    <div className="comparison-grid">
+                      {results.priceAnalysis.comparisons.rawToPsa9 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">Raw → PSA 9</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.rawToPsa9.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.rawToPsa9.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.rawToPsa9.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 9 premium over raw
+                          </div>
+                        </div>
+                      )}
+
+                      {results.priceAnalysis.comparisons.rawToPsa10 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">Raw → PSA 10</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.rawToPsa10.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.rawToPsa10.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.rawToPsa10.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 10 premium over raw
+                          </div>
+                        </div>
+                      )}
+
+                      {results.priceAnalysis.comparisons.psa9ToPsa10 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">PSA 9 → PSA 10</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.psa9ToPsa10.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 10 premium over PSA 9
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Investment Insights */}
+                  <div className="investment-insights">
+                    <h4>💡 Investment Insights</h4>
+                    <div className="insights-grid">
+                      {results.priceAnalysis.raw.avgPrice > 0 && results.priceAnalysis.psa9.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">📈</div>
+                          <div className="insight-content">
+                            <strong>PSA 9 Value:</strong> {results.priceAnalysis.comparisons.rawToPsa9 ? 
+                              `${results.priceAnalysis.comparisons.rawToPsa9.percentDiff.toFixed(0)}x more than raw` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.priceAnalysis.raw.avgPrice > 0 && results.priceAnalysis.psa10.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">🚀</div>
+                          <div className="insight-content">
+                            <strong>PSA 10 Value:</strong> {results.priceAnalysis.comparisons.rawToPsa10 ? 
+                              `${results.priceAnalysis.comparisons.rawToPsa10.percentDiff.toFixed(0)}x more than raw` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.priceAnalysis.psa9.avgPrice > 0 && results.priceAnalysis.psa10.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">💎</div>
+                          <div className="insight-content">
+                            <strong>Grade Jump:</strong> {results.priceAnalysis.comparisons.psa9ToPsa10 ? 
+                              `PSA 9 to 10 adds ${results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff.toFixed(0)}% value` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Show sold results only if not viewing live listings */}
+        {!showLiveListingsOnly && (
+          <>
+            <CardResults title="Raw Trading Cards" cards={results.results.raw} type="raw" sectionRef={rawRef} />
+            
+            {/* In-Content Ad after first section */}
+            <InContentAd />
+            
+            <CardResults title="PSA 9 Trading Cards" cards={results.results.psa9} type="psa9" sectionRef={psa9Ref} />
+            <CardResults title="PSA 10 Trading Cards" cards={results.results.psa10} type="psa10" sectionRef={psa10Ref} />
+          </>
+        )}
+        {/* Live Listings Section */}
+        {console.log('🔍 Rendering check:', { showLiveListingsOnly, liveListingsCategory, liveListingsLoading, liveListingsError, liveListingsLength: liveListings.length })}
+        {showLiveListingsOnly && liveListingsCategory && (
+          <div className="live-listings-section" ref={liveListingsRef}>
+            <button className="back-to-sold-btn" onClick={handleBackToSoldResults}>
+              ← Back to Sold Results
+            </button>
+            <h3>Live eBay Listings for {liveListingsCategory === 'raw' ? 'Raw' : liveListingsCategory === 'psa9' ? 'PSA 9' : 'PSA 10'} Trading Cards</h3>
+            
+            {/* Filter Buttons */}
+            <div className="live-listings-filters">
+              <button 
+                className={`filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('all');
+                  handleViewLiveListings(liveListingsCategory, null);
+                }}
+                disabled={liveListingsLoading}
+              >
+                All Listings
+              </button>
+              <button 
+                className={`filter-btn ${activeFilter === 'auction' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('auction');
+                  handleViewLiveListings(liveListingsCategory, 'auction');
+                }}
+                disabled={liveListingsLoading}
+              >
+                Auctions Only
+              </button>
+              <button 
+                className={`filter-btn ${activeFilter === 'fixed' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('fixed');
+                  handleViewLiveListings(liveListingsCategory, 'fixed');
+                }}
+                disabled={liveListingsLoading}
+              >
+                Buy It Now Only
+              </button>
+            </div>
+
+            {liveListingsLoading ? (
+              <p>Loading live listings...</p>
+            ) : liveListingsError ? (
+              <p className="error-message">{liveListingsError}</p>
+            ) : liveListings.length === 0 ? (
+              <div>
+                <p>No live listings found.</p>
+                <p>Debug info: Category: {liveListingsCategory}, Filter: {activeFilter}</p>
+                <p>Search query: {formData.searchQuery}</p>
+              </div>
+            ) : (
+              <div className="live-listings-grid">
+                {liveListings
+                  .sort((a, b) => new Date(b.itemCreationDate) - new Date(a.itemCreationDate))
+                  .map((item, idx) => (
+                  <div key={item.itemId || idx} className="live-listing-card">
+                    <a href={item.itemWebUrl || '#'} target="_blank" rel="noopener noreferrer">
+                      <img 
+                        src={item.image?.imageUrl || item.image || '/placeholder-image.jpg'} 
+                        alt={item.title || 'Trading Card'} 
+                        className="live-listing-img"
+                        onError={(e) => {
+                          e.target.src = '/placeholder-image.jpg';
+                        }}
+                      />
+                    </a>
+                    <div className="live-listing-content">
+                      <a 
+                        href={item.itemWebUrl || '#'} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="live-listing-title"
+                        onClick={() => handleEbayLinkClick(item.title || 'Untitled Item', item.price, 'live_listing')}
+                      >
+                        {item.title || 'Untitled Item'}
+                      </a>
+                      <div className="live-listing-price">
+                        {item.price && typeof item.price === 'object' && item.price.value 
+                          ? `$${item.price.value} ${item.price.currency || 'USD'}` 
+                          : item.price && typeof item.price === 'string'
+                          ? item.price
+                          : 'N/A'}
+                      </div>
+                      <div className={`live-listing-sale-type ${Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'auction' : 'fixed'}`}>
+                        {Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'Auction' : 
+                         Array.isArray(item.buyingOptions) && item.buyingOptions.includes('FIXED_PRICE') ? 'Buy It Now' : 'N/A'}
+                      </div>
+                      <div className="live-listing-date">
+                        Listed: {item.itemCreationDate ? formatDate(item.itemCreationDate) : 'N/A'}
+                      </div>
+                      {item.seller && typeof item.seller === 'string' && (
+                        <div className="live-listing-seller">
+                          Seller: {item.seller}
+                        </div>
+                      )}
+                      {item.condition && typeof item.condition === 'string' && (
+                        <div className="live-listing-condition">
+                          Condition: {item.condition}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Footer Ad */}
+        <FooterAd />
+        {/* Kind Cup Ad */}
+        <KindCupAd />
+      </>
+    );
+  }
+
+  // Add a function to clear all search fields
+  const clearSearchFields = () => {
+    setFormData({
+      player: '',
+      manufacturer: '',
+      year: '',
+      cardNumber: '',
+      type: '',
+      exclude: '',
+      advancedSearch: ''
+    });
+    setResults(null);
+    setLiveListings([]);
+    setLiveListingsError(null);
+    setLiveListingsLoading(false);
+    setShowLiveListingsOnly(false);
+    setLiveListingsCategory(null);
+    setActiveFilter('all');
+    setError(null);
+    setLoading(false);
+  };
+
+  if (!user) {
+    return (
+      <>
+        <HomePage onGetStarted={scrollToSearchForm} />
+        <div ref={searchFormRef}>
+          <form className="search-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Player/Card Name</label>
+              <input
+                type="text"
+                name="player"
+                value={formData.player || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Charizard, LeBron James"
+              />
+            </div>
+            <div className="form-group">
+              <label>Manufacturer</label>
+              <input
+                type="text"
+                name="manufacturer"
+                value={formData.manufacturer || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Topps, Panini, Pokemon"
+              />
+            </div>
+            <div className="form-group">
+              <label>Year</label>
+              <input
+                type="text"
+                name="year"
+                value={formData.year || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 2023"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Number</label>
+              <input
+                type="text"
+                name="cardNumber"
+                value={formData.cardNumber || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 223/197"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Type</label>
+              <input
+                type="text"
+                name="type"
+                value={formData.type || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Rookie, Holo, EX"
+              />
+            </div>
+            <div className="form-group">
+              <label>Exclude Terms (comma-separated)</label>
+              <input
+                type="text"
+                name="exclude"
+                value={formData.exclude || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. box, case, break"
+              />
+            </div>
+            <div className="form-group">
+              <label>Advanced Search (override all fields)</label>
+              <input
+                type="text"
+                name="advancedSearch"
+                value={formData.advancedSearch || ''}
+                onChange={handleInputChange}
+                placeholder="Type your own search string here"
+              />
+              <div className="advanced-search-help">
+                <p><strong>💡 Search Tips:</strong></p>
+                <ul>
+                  <li><strong>Multiple Variations:</strong> Use brackets: <code>(2019-20, 19-20) or (PSA, BGS)</code></li>
+                  <li><strong>Exclude Terms:</strong> Use minus sign: <code>Lamelo Ball -box -case -break</code></li>
+                  <li><strong>Exact Pattern:</strong> Use & symbol: <code>Charizard PSA&10</code></li>
+                </ul>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', gridColumn: '1 / -1' }}>
+              <button className="search-button" type="submit" disabled={loading}>
+                {loading ? 'Searching...' : 'Search'}
+              </button>
+              <button type="button" className="clear-button" onClick={clearSearchFields}>
+                Clear All
+              </button>
+            </div>
+          </form>
+        </div>
+        {results && (
+          <div className="results-section">
+            <h2>Search Results</h2>
+            <div className="search-summary">
+              <p>
+                Found results for: <strong>{results.searchParams.searchQuery}</strong>
+              </p>
+              
+              {/* Price Analysis Section */}
+              {results.priceAnalysis && (
+                <div className="price-analysis-section">
+                  <h3>📊 Price Analysis</h3>
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                    <button className="jump-btn" onClick={() => rawRef.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to Raw Sales</button>
+                    <button className="jump-btn" onClick={() => psa9Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 9 Sales</button>
+                    <button className="jump-btn" onClick={() => psa10Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 10 Sales</button>
+                  </div>
+                  
+                  {/* Price Trend Chart */}
+                  <div style={{ width: '100%', height: 300, marginBottom: 32 }}>
+                    <ResponsiveContainer>
+                      <LineChart
+                        data={(() => {
+                          const raw = results.results.raw || [];
+                          const psa9 = results.results.psa9 || [];
+                          const psa10 = results.results.psa10 || [];
+                          const allDates = Array.from(new Set([
+                            ...raw.map(card => card.soldDate),
+                            ...psa9.map(card => card.soldDate),
+                            ...psa10.map(card => card.soldDate),
+                          ].filter(Boolean))).sort();
+                          return allDates.map(date => ({
+                            date: date,
+                            Raw: (() => {
+                              const cards = raw.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                            PSA9: (() => {
+                              const cards = psa9.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                            PSA10: (() => {
+                              const cards = psa10.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                          }));
+                        })()}
+                        margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 12 }} 
+                          tickFormatter={date => {
+                            if (!date) return '';
+                            const d = new Date(date);
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          }}
+                        />
+                        <YAxis tick={{ fontSize: 12 }} domain={[0, 'auto']} />
+                        <Tooltip formatter={v => v ? `$${v.toFixed(2)}` : 'N/A'} 
+                          labelFormatter={date => {
+                            if (!date) return '';
+                            const d = new Date(date);
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          }}
+                        />
+                        <Legend />
+                        <Line type="monotone" dataKey="Raw" stroke="#222" strokeWidth={2} dot={false} name="Raw" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA9" stroke="#FFD600" strokeWidth={2} dot={false} name="PSA 9" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA10" stroke="#00C49F" strokeWidth={2} dot={false} name="PSA 10" connectNulls={true} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  {/* Summary Cards */}
+                  <div className="price-summary">
+                    <div className="price-card">
+                      <h4>Raw Cards</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.raw.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.raw.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.raw.minPrice.toFixed(2)} - ${results.priceAnalysis.raw.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.raw.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.raw.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.raw.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.raw.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.raw.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="price-card">
+                      <h4>PSA 9</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.psa9.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.psa9.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.psa9.minPrice.toFixed(2)} - ${results.priceAnalysis.psa9.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.psa9.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.psa9.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.psa9.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.psa9.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.psa9.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="price-card">
+                      <h4>PSA 10</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.psa10.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.psa10.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.psa10.minPrice.toFixed(2)} - ${results.priceAnalysis.psa10.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.psa10.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.psa10.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.psa10.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.psa10.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.psa10.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price Comparisons */}
+                  <div className="price-comparisons">
+                    <h4>💰 Price Comparisons</h4>
+                    <div className="comparison-grid">
+                      {results.priceAnalysis.comparisons.rawToPsa9 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">Raw → PSA 9</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.rawToPsa9.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.rawToPsa9.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.rawToPsa9.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 9 premium over raw
+                          </div>
+                        </div>
+                      )}
+
+                      {results.priceAnalysis.comparisons.rawToPsa10 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">Raw → PSA 10</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.rawToPsa10.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.rawToPsa10.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.rawToPsa10.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 10 premium over raw
+                          </div>
+                        </div>
+                      )}
+
+                      {results.priceAnalysis.comparisons.psa9ToPsa10 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">PSA 9 → PSA 10</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.psa9ToPsa10.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 10 premium over PSA 9
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Investment Insights */}
+                  <div className="investment-insights">
+                    <h4>💡 Investment Insights</h4>
+                    <div className="insights-grid">
+                      {results.priceAnalysis.raw.avgPrice > 0 && results.priceAnalysis.psa9.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">📈</div>
+                          <div className="insight-content">
+                            <strong>PSA 9 Value:</strong> {results.priceAnalysis.comparisons.rawToPsa9 ? 
+                              `${results.priceAnalysis.comparisons.rawToPsa9.percentDiff.toFixed(0)}x more than raw` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.priceAnalysis.raw.avgPrice > 0 && results.priceAnalysis.psa10.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">🚀</div>
+                          <div className="insight-content">
+                            <strong>PSA 10 Value:</strong> {results.priceAnalysis.comparisons.rawToPsa10 ? 
+                              `${results.priceAnalysis.comparisons.rawToPsa10.percentDiff.toFixed(0)}x more than raw` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.priceAnalysis.psa9.avgPrice > 0 && results.priceAnalysis.psa10.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">💎</div>
+                          <div className="insight-content">
+                            <strong>Grade Jump:</strong> {results.priceAnalysis.comparisons.psa9ToPsa10 ? 
+                              `PSA 9 to 10 adds ${results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff.toFixed(0)}% value` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Show sold results only if not viewing live listings */}
+        {!showLiveListingsOnly && (
+          <>
+            <CardResults title="Raw Trading Cards" cards={results.results.raw} type="raw" sectionRef={rawRef} />
+            
+            {/* In-Content Ad after first section */}
+            <InContentAd />
+            
+            <CardResults title="PSA 9 Trading Cards" cards={results.results.psa9} type="psa9" sectionRef={psa9Ref} />
+            <CardResults title="PSA 10 Trading Cards" cards={results.results.psa10} type="psa10" sectionRef={psa10Ref} />
+          </>
+        )}
+        {/* Live Listings Section */}
+        {console.log('🔍 Rendering check:', { showLiveListingsOnly, liveListingsCategory, liveListingsLoading, liveListingsError, liveListingsLength: liveListings.length })}
+        {showLiveListingsOnly && liveListingsCategory && (
+          <div className="live-listings-section" ref={liveListingsRef}>
+            <button className="back-to-sold-btn" onClick={handleBackToSoldResults}>
+              ← Back to Sold Results
+            </button>
+            <h3>Live eBay Listings for {liveListingsCategory === 'raw' ? 'Raw' : liveListingsCategory === 'psa9' ? 'PSA 9' : 'PSA 10'} Trading Cards</h3>
+            
+            {/* Filter Buttons */}
+            <div className="live-listings-filters">
+              <button 
+                className={`filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('all');
+                  handleViewLiveListings(liveListingsCategory, null);
+                }}
+                disabled={liveListingsLoading}
+              >
+                All Listings
+              </button>
+              <button 
+                className={`filter-btn ${activeFilter === 'auction' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('auction');
+                  handleViewLiveListings(liveListingsCategory, 'auction');
+                }}
+                disabled={liveListingsLoading}
+              >
+                Auctions Only
+              </button>
+              <button 
+                className={`filter-btn ${activeFilter === 'fixed' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('fixed');
+                  handleViewLiveListings(liveListingsCategory, 'fixed');
+                }}
+                disabled={liveListingsLoading}
+              >
+                Buy It Now Only
+              </button>
+            </div>
+
+            {liveListingsLoading ? (
+              <p>Loading live listings...</p>
+            ) : liveListingsError ? (
+              <p className="error-message">{liveListingsError}</p>
+            ) : liveListings.length === 0 ? (
+              <div>
+                <p>No live listings found.</p>
+                <p>Debug info: Category: {liveListingsCategory}, Filter: {activeFilter}</p>
+                <p>Search query: {formData.searchQuery}</p>
+              </div>
+            ) : (
+              <div className="live-listings-grid">
+                {liveListings
+                  .sort((a, b) => new Date(b.itemCreationDate) - new Date(a.itemCreationDate))
+                  .map((item, idx) => (
+                  <div key={item.itemId || idx} className="live-listing-card">
+                    <a href={item.itemWebUrl || '#'} target="_blank" rel="noopener noreferrer">
+                      <img 
+                        src={item.image?.imageUrl || item.image || '/placeholder-image.jpg'} 
+                        alt={item.title || 'Trading Card'} 
+                        className="live-listing-img"
+                        onError={(e) => {
+                          e.target.src = '/placeholder-image.jpg';
+                        }}
+                      />
+                    </a>
+                    <div className="live-listing-content">
+                      <a 
+                        href={item.itemWebUrl || '#'} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="live-listing-title"
+                        onClick={() => handleEbayLinkClick(item.title || 'Untitled Item', item.price, 'live_listing')}
+                      >
+                        {item.title || 'Untitled Item'}
+                      </a>
+                      <div className="live-listing-price">
+                        {item.price && typeof item.price === 'object' && item.price.value 
+                          ? `$${item.price.value} ${item.price.currency || 'USD'}` 
+                          : item.price && typeof item.price === 'string'
+                          ? item.price
+                          : 'N/A'}
+                      </div>
+                      <div className={`live-listing-sale-type ${Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'auction' : 'fixed'}`}>
+                        {Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'Auction' : 
+                         Array.isArray(item.buyingOptions) && item.buyingOptions.includes('FIXED_PRICE') ? 'Buy It Now' : 'N/A'}
+                      </div>
+                      <div className="live-listing-date">
+                        Listed: {item.itemCreationDate ? formatDate(item.itemCreationDate) : 'N/A'}
+                      </div>
+                      {item.seller && typeof item.seller === 'string' && (
+                        <div className="live-listing-seller">
+                          Seller: {item.seller}
+                        </div>
+                      )}
+                      {item.condition && typeof item.condition === 'string' && (
+                        <div className="live-listing-condition">
+                          Condition: {item.condition}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Footer Ad */}
+        <FooterAd />
+        {/* Kind Cup Ad */}
+        <KindCupAd />
+      </>
+    );
+  }
+
+  // Add a function to clear all search fields
+  const clearSearchFields = () => {
+    setFormData({
+      player: '',
+      manufacturer: '',
+      year: '',
+      cardNumber: '',
+      type: '',
+      exclude: '',
+      advancedSearch: ''
+    });
+    setResults(null);
+    setLiveListings([]);
+    setLiveListingsError(null);
+    setLiveListingsLoading(false);
+    setShowLiveListingsOnly(false);
+    setLiveListingsCategory(null);
+    setActiveFilter('all');
+    setError(null);
+    setLoading(false);
+  };
+
+  if (!user) {
+    return (
+      <>
+        <HomePage onGetStarted={scrollToSearchForm} />
+        <div ref={searchFormRef}>
+          <form className="search-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Player/Card Name</label>
+              <input
+                type="text"
+                name="player"
+                value={formData.player || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Charizard, LeBron James"
+              />
+            </div>
+            <div className="form-group">
+              <label>Manufacturer</label>
+              <input
+                type="text"
+                name="manufacturer"
+                value={formData.manufacturer || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Topps, Panini, Pokemon"
+              />
+            </div>
+            <div className="form-group">
+              <label>Year</label>
+              <input
+                type="text"
+                name="year"
+                value={formData.year || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 2023"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Number</label>
+              <input
+                type="text"
+                name="cardNumber"
+                value={formData.cardNumber || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 223/197"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Type</label>
+              <input
+                type="text"
+                name="type"
+                value={formData.type || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Rookie, Holo, EX"
+              />
+            </div>
+            <div className="form-group">
+              <label>Exclude Terms (comma-separated)</label>
+              <input
+                type="text"
+                name="exclude"
+                value={formData.exclude || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. box, case, break"
+              />
+            </div>
+            <div className="form-group">
+              <label>Advanced Search (override all fields)</label>
+              <input
+                type="text"
+                name="advancedSearch"
+                value={formData.advancedSearch || ''}
+                onChange={handleInputChange}
+                placeholder="Type your own search string here"
+              />
+              <div className="advanced-search-help">
+                <p><strong>💡 Search Tips:</strong></p>
+                <ul>
+                  <li><strong>Multiple Variations:</strong> Use brackets: <code>(2019-20, 19-20) or (PSA, BGS)</code></li>
+                  <li><strong>Exclude Terms:</strong> Use minus sign: <code>Lamelo Ball -box -case -break</code></li>
+                  <li><strong>Exact Pattern:</strong> Use & symbol: <code>Charizard PSA&10</code></li>
+                </ul>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', gridColumn: '1 / -1' }}>
+              <button className="search-button" type="submit" disabled={loading}>
+                {loading ? 'Searching...' : 'Search'}
+              </button>
+              <button type="button" className="clear-button" onClick={clearSearchFields}>
+                Clear All
+              </button>
+            </div>
+          </form>
+        </div>
+        {results && (
+          <div className="results-section">
+            <h2>Search Results</h2>
+            <div className="search-summary">
+              <p>
+                Found results for: <strong>{results.searchParams.searchQuery}</strong>
+              </p>
+              
+              {/* Price Analysis Section */}
+              {results.priceAnalysis && (
+                <div className="price-analysis-section">
+                  <h3>📊 Price Analysis</h3>
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                    <button className="jump-btn" onClick={() => rawRef.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to Raw Sales</button>
+                    <button className="jump-btn" onClick={() => psa9Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 9 Sales</button>
+                    <button className="jump-btn" onClick={() => psa10Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 10 Sales</button>
+                  </div>
+                  
+                  {/* Price Trend Chart */}
+                  <div style={{ width: '100%', height: 300, marginBottom: 32 }}>
+                    <ResponsiveContainer>
+                      <LineChart
+                        data={(() => {
+                          const raw = results.results.raw || [];
+                          const psa9 = results.results.psa9 || [];
+                          const psa10 = results.results.psa10 || [];
+                          const allDates = Array.from(new Set([
+                            ...raw.map(card => card.soldDate),
+                            ...psa9.map(card => card.soldDate),
+                            ...psa10.map(card => card.soldDate),
+                          ].filter(Boolean))).sort();
+                          return allDates.map(date => ({
+                            date: date,
+                            Raw: (() => {
+                              const cards = raw.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                            PSA9: (() => {
+                              const cards = psa9.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                            PSA10: (() => {
+                              const cards = psa10.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                          }));
+                        })()}
+                        margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 12 }} 
+                          tickFormatter={date => {
+                            if (!date) return '';
+                            const d = new Date(date);
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          }}
+                        />
+                        <YAxis tick={{ fontSize: 12 }} domain={[0, 'auto']} />
+                        <Tooltip formatter={v => v ? `$${v.toFixed(2)}` : 'N/A'} 
+                          labelFormatter={date => {
+                            if (!date) return '';
+                            const d = new Date(date);
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          }}
+                        />
+                        <Legend />
+                        <Line type="monotone" dataKey="Raw" stroke="#222" strokeWidth={2} dot={false} name="Raw" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA9" stroke="#FFD600" strokeWidth={2} dot={false} name="PSA 9" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA10" stroke="#00C49F" strokeWidth={2} dot={false} name="PSA 10" connectNulls={true} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  {/* Summary Cards */}
+                  <div className="price-summary">
+                    <div className="price-card">
+                      <h4>Raw Cards</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.raw.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.raw.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.raw.minPrice.toFixed(2)} - ${results.priceAnalysis.raw.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.raw.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.raw.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.raw.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.raw.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.raw.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="price-card">
+                      <h4>PSA 9</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.psa9.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.psa9.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.psa9.minPrice.toFixed(2)} - ${results.priceAnalysis.psa9.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.psa9.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.psa9.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.psa9.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.psa9.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.psa9.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="price-card">
+                      <h4>PSA 10</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.psa10.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.psa10.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.psa10.minPrice.toFixed(2)} - ${results.priceAnalysis.psa10.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.psa10.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.psa10.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.psa10.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.psa10.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.psa10.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price Comparisons */}
+                  <div className="price-comparisons">
+                    <h4>💰 Price Comparisons</h4>
+                    <div className="comparison-grid">
+                      {results.priceAnalysis.comparisons.rawToPsa9 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">Raw → PSA 9</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.rawToPsa9.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.rawToPsa9.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.rawToPsa9.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 9 premium over raw
+                          </div>
+                        </div>
+                      )}
+
+                      {results.priceAnalysis.comparisons.rawToPsa10 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">Raw → PSA 10</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.rawToPsa10.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.rawToPsa10.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.rawToPsa10.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 10 premium over raw
+                          </div>
+                        </div>
+                      )}
+
+                      {results.priceAnalysis.comparisons.psa9ToPsa10 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">PSA 9 → PSA 10</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.psa9ToPsa10.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 10 premium over PSA 9
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Investment Insights */}
+                  <div className="investment-insights">
+                    <h4>💡 Investment Insights</h4>
+                    <div className="insights-grid">
+                      {results.priceAnalysis.raw.avgPrice > 0 && results.priceAnalysis.psa9.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">📈</div>
+                          <div className="insight-content">
+                            <strong>PSA 9 Value:</strong> {results.priceAnalysis.comparisons.rawToPsa9 ? 
+                              `${results.priceAnalysis.comparisons.rawToPsa9.percentDiff.toFixed(0)}x more than raw` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.priceAnalysis.raw.avgPrice > 0 && results.priceAnalysis.psa10.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">🚀</div>
+                          <div className="insight-content">
+                            <strong>PSA 10 Value:</strong> {results.priceAnalysis.comparisons.rawToPsa10 ? 
+                              `${results.priceAnalysis.comparisons.rawToPsa10.percentDiff.toFixed(0)}x more than raw` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.priceAnalysis.psa9.avgPrice > 0 && results.priceAnalysis.psa10.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">💎</div>
+                          <div className="insight-content">
+                            <strong>Grade Jump:</strong> {results.priceAnalysis.comparisons.psa9ToPsa10 ? 
+                              `PSA 9 to 10 adds ${results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff.toFixed(0)}% value` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Show sold results only if not viewing live listings */}
+        {!showLiveListingsOnly && (
+          <>
+            <CardResults title="Raw Trading Cards" cards={results.results.raw} type="raw" sectionRef={rawRef} />
+            
+            {/* In-Content Ad after first section */}
+            <InContentAd />
+            
+            <CardResults title="PSA 9 Trading Cards" cards={results.results.psa9} type="psa9" sectionRef={psa9Ref} />
+            <CardResults title="PSA 10 Trading Cards" cards={results.results.psa10} type="psa10" sectionRef={psa10Ref} />
+          </>
+        )}
+        {/* Live Listings Section */}
+        {console.log('🔍 Rendering check:', { showLiveListingsOnly, liveListingsCategory, liveListingsLoading, liveListingsError, liveListingsLength: liveListings.length })}
+        {showLiveListingsOnly && liveListingsCategory && (
+          <div className="live-listings-section" ref={liveListingsRef}>
+            <button className="back-to-sold-btn" onClick={handleBackToSoldResults}>
+              ← Back to Sold Results
+            </button>
+            <h3>Live eBay Listings for {liveListingsCategory === 'raw' ? 'Raw' : liveListingsCategory === 'psa9' ? 'PSA 9' : 'PSA 10'} Trading Cards</h3>
+            
+            {/* Filter Buttons */}
+            <div className="live-listings-filters">
+              <button 
+                className={`filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('all');
+                  handleViewLiveListings(liveListingsCategory, null);
+                }}
+                disabled={liveListingsLoading}
+              >
+                All Listings
+              </button>
+              <button 
+                className={`filter-btn ${activeFilter === 'auction' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('auction');
+                  handleViewLiveListings(liveListingsCategory, 'auction');
+                }}
+                disabled={liveListingsLoading}
+              >
+                Auctions Only
+              </button>
+              <button 
+                className={`filter-btn ${activeFilter === 'fixed' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('fixed');
+                  handleViewLiveListings(liveListingsCategory, 'fixed');
+                }}
+                disabled={liveListingsLoading}
+              >
+                Buy It Now Only
+              </button>
+            </div>
+
+            {liveListingsLoading ? (
+              <p>Loading live listings...</p>
+            ) : liveListingsError ? (
+              <p className="error-message">{liveListingsError}</p>
+            ) : liveListings.length === 0 ? (
+              <div>
+                <p>No live listings found.</p>
+                <p>Debug info: Category: {liveListingsCategory}, Filter: {activeFilter}</p>
+                <p>Search query: {formData.searchQuery}</p>
+              </div>
+            ) : (
+              <div className="live-listings-grid">
+                {liveListings
+                  .sort((a, b) => new Date(b.itemCreationDate) - new Date(a.itemCreationDate))
+                  .map((item, idx) => (
+                  <div key={item.itemId || idx} className="live-listing-card">
+                    <a href={item.itemWebUrl || '#'} target="_blank" rel="noopener noreferrer">
+                      <img 
+                        src={item.image?.imageUrl || item.image || '/placeholder-image.jpg'} 
+                        alt={item.title || 'Trading Card'} 
+                        className="live-listing-img"
+                        onError={(e) => {
+                          e.target.src = '/placeholder-image.jpg';
+                        }}
+                      />
+                    </a>
+                    <div className="live-listing-content">
+                      <a 
+                        href={item.itemWebUrl || '#'} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="live-listing-title"
+                        onClick={() => handleEbayLinkClick(item.title || 'Untitled Item', item.price, 'live_listing')}
+                      >
+                        {item.title || 'Untitled Item'}
+                      </a>
+                      <div className="live-listing-price">
+                        {item.price && typeof item.price === 'object' && item.price.value 
+                          ? `$${item.price.value} ${item.price.currency || 'USD'}` 
+                          : item.price && typeof item.price === 'string'
+                          ? item.price
+                          : 'N/A'}
+                      </div>
+                      <div className={`live-listing-sale-type ${Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'auction' : 'fixed'}`}>
+                        {Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'Auction' : 
+                         Array.isArray(item.buyingOptions) && item.buyingOptions.includes('FIXED_PRICE') ? 'Buy It Now' : 'N/A'}
+                      </div>
+                      <div className="live-listing-date">
+                        Listed: {item.itemCreationDate ? formatDate(item.itemCreationDate) : 'N/A'}
+                      </div>
+                      {item.seller && typeof item.seller === 'string' && (
+                        <div className="live-listing-seller">
+                          Seller: {item.seller}
+                        </div>
+                      )}
+                      {item.condition && typeof item.condition === 'string' && (
+                        <div className="live-listing-condition">
+                          Condition: {item.condition}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Footer Ad */}
+        <FooterAd />
+        {/* Kind Cup Ad */}
+        <KindCupAd />
+      </>
+    );
+  }
+
+  // Add a function to clear all search fields
+  const clearSearchFields = () => {
+    setFormData({
+      player: '',
+      manufacturer: '',
+      year: '',
+      cardNumber: '',
+      type: '',
+      exclude: '',
+      advancedSearch: ''
+    });
+    setResults(null);
+    setLiveListings([]);
+    setLiveListingsError(null);
+    setLiveListingsLoading(false);
+    setShowLiveListingsOnly(false);
+    setLiveListingsCategory(null);
+    setActiveFilter('all');
+    setError(null);
+    setLoading(false);
+  };
+
+  if (!user) {
+    return (
+      <>
+        <HomePage onGetStarted={scrollToSearchForm} />
+        <div ref={searchFormRef}>
+          <form className="search-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Player/Card Name</label>
+              <input
+                type="text"
+                name="player"
+                value={formData.player || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Charizard, LeBron James"
+              />
+            </div>
+            <div className="form-group">
+              <label>Manufacturer</label>
+              <input
+                type="text"
+                name="manufacturer"
+                value={formData.manufacturer || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Topps, Panini, Pokemon"
+              />
+            </div>
+            <div className="form-group">
+              <label>Year</label>
+              <input
+                type="text"
+                name="year"
+                value={formData.year || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 2023"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Number</label>
+              <input
+                type="text"
+                name="cardNumber"
+                value={formData.cardNumber || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 223/197"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Type</label>
+              <input
+                type="text"
+                name="type"
+                value={formData.type || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Rookie, Holo, EX"
+              />
+            </div>
+            <div className="form-group">
+              <label>Exclude Terms (comma-separated)</label>
+              <input
+                type="text"
+                name="exclude"
+                value={formData.exclude || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. box, case, break"
+              />
+            </div>
+            <div className="form-group">
+              <label>Advanced Search (override all fields)</label>
+              <input
+                type="text"
+                name="advancedSearch"
+                value={formData.advancedSearch || ''}
+                onChange={handleInputChange}
+                placeholder="Type your own search string here"
+              />
+              <div className="advanced-search-help">
+                <p><strong>💡 Search Tips:</strong></p>
+                <ul>
+                  <li><strong>Multiple Variations:</strong> Use brackets: <code>(2019-20, 19-20) or (PSA, BGS)</code></li>
+                  <li><strong>Exclude Terms:</strong> Use minus sign: <code>Lamelo Ball -box -case -break</code></li>
+                  <li><strong>Exact Pattern:</strong> Use & symbol: <code>Charizard PSA&10</code></li>
+                </ul>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', gridColumn: '1 / -1' }}>
+              <button className="search-button" type="submit" disabled={loading}>
+                {loading ? 'Searching...' : 'Search'}
+              </button>
+              <button type="button" className="clear-button" onClick={clearSearchFields}>
+                Clear All
+              </button>
+            </div>
+          </form>
+        </div>
+        {results && (
+          <div className="results-section">
+            <h2>Search Results</h2>
+            <div className="search-summary">
+              <p>
+                Found results for: <strong>{results.searchParams.searchQuery}</strong>
+              </p>
+              
+              {/* Price Analysis Section */}
+              {results.priceAnalysis && (
+                <div className="price-analysis-section">
+                  <h3>📊 Price Analysis</h3>
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                    <button className="jump-btn" onClick={() => rawRef.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to Raw Sales</button>
+                    <button className="jump-btn" onClick={() => psa9Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 9 Sales</button>
+                    <button className="jump-btn" onClick={() => psa10Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 10 Sales</button>
+                  </div>
+                  
+                  {/* Price Trend Chart */}
+                  <div style={{ width: '100%', height: 300, marginBottom: 32 }}>
+                    <ResponsiveContainer>
+                      <LineChart
+                        data={(() => {
+                          const raw = results.results.raw || [];
+                          const psa9 = results.results.psa9 || [];
+                          const psa10 = results.results.psa10 || [];
+                          const allDates = Array.from(new Set([
+                            ...raw.map(card => card.soldDate),
+                            ...psa9.map(card => card.soldDate),
+                            ...psa10.map(card => card.soldDate),
+                          ].filter(Boolean))).sort();
+                          return allDates.map(date => ({
+                            date: date,
+                            Raw: (() => {
+                              const cards = raw.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                            PSA9: (() => {
+                              const cards = psa9.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                            PSA10: (() => {
+                              const cards = psa10.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                          }));
+                        })()}
+                        margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 12 }} 
+                          tickFormatter={date => {
+                            if (!date) return '';
+                            const d = new Date(date);
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          }}
+                        />
+                        <YAxis tick={{ fontSize: 12 }} domain={[0, 'auto']} />
+                        <Tooltip formatter={v => v ? `$${v.toFixed(2)}` : 'N/A'} 
+                          labelFormatter={date => {
+                            if (!date) return '';
+                            const d = new Date(date);
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          }}
+                        />
+                        <Legend />
+                        <Line type="monotone" dataKey="Raw" stroke="#222" strokeWidth={2} dot={false} name="Raw" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA9" stroke="#FFD600" strokeWidth={2} dot={false} name="PSA 9" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA10" stroke="#00C49F" strokeWidth={2} dot={false} name="PSA 10" connectNulls={true} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  {/* Summary Cards */}
+                  <div className="price-summary">
+                    <div className="price-card">
+                      <h4>Raw Cards</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.raw.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.raw.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.raw.minPrice.toFixed(2)} - ${results.priceAnalysis.raw.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.raw.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.raw.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.raw.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.raw.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.raw.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="price-card">
+                      <h4>PSA 9</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.psa9.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.psa9.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.psa9.minPrice.toFixed(2)} - ${results.priceAnalysis.psa9.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.psa9.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.psa9.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.psa9.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.psa9.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.psa9.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="price-card">
+                      <h4>PSA 10</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.psa10.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.psa10.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.psa10.minPrice.toFixed(2)} - ${results.priceAnalysis.psa10.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.psa10.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.psa10.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.psa10.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.psa10.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.psa10.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price Comparisons */}
+                  <div className="price-comparisons">
+                    <h4>💰 Price Comparisons</h4>
+                    <div className="comparison-grid">
+                      {results.priceAnalysis.comparisons.rawToPsa9 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">Raw → PSA 9</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.rawToPsa9.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.rawToPsa9.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.rawToPsa9.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 9 premium over raw
+                          </div>
+                        </div>
+                      )}
+
+                      {results.priceAnalysis.comparisons.rawToPsa10 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">Raw → PSA 10</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.rawToPsa10.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.rawToPsa10.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.rawToPsa10.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 10 premium over raw
+                          </div>
+                        </div>
+                      )}
+
+                      {results.priceAnalysis.comparisons.psa9ToPsa10 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">PSA 9 → PSA 10</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.psa9ToPsa10.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 10 premium over PSA 9
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Investment Insights */}
+                  <div className="investment-insights">
+                    <h4>💡 Investment Insights</h4>
+                    <div className="insights-grid">
+                      {results.priceAnalysis.raw.avgPrice > 0 && results.priceAnalysis.psa9.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">📈</div>
+                          <div className="insight-content">
+                            <strong>PSA 9 Value:</strong> {results.priceAnalysis.comparisons.rawToPsa9 ? 
+                              `${results.priceAnalysis.comparisons.rawToPsa9.percentDiff.toFixed(0)}x more than raw` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.priceAnalysis.raw.avgPrice > 0 && results.priceAnalysis.psa10.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">🚀</div>
+                          <div className="insight-content">
+                            <strong>PSA 10 Value:</strong> {results.priceAnalysis.comparisons.rawToPsa10 ? 
+                              `${results.priceAnalysis.comparisons.rawToPsa10.percentDiff.toFixed(0)}x more than raw` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.priceAnalysis.psa9.avgPrice > 0 && results.priceAnalysis.psa10.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">💎</div>
+                          <div className="insight-content">
+                            <strong>Grade Jump:</strong> {results.priceAnalysis.comparisons.psa9ToPsa10 ? 
+                              `PSA 9 to 10 adds ${results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff.toFixed(0)}% value` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Show sold results only if not viewing live listings */}
+        {!showLiveListingsOnly && (
+          <>
+            <CardResults title="Raw Trading Cards" cards={results.results.raw} type="raw" sectionRef={rawRef} />
+            
+            {/* In-Content Ad after first section */}
+            <InContentAd />
+            
+            <CardResults title="PSA 9 Trading Cards" cards={results.results.psa9} type="psa9" sectionRef={psa9Ref} />
+            <CardResults title="PSA 10 Trading Cards" cards={results.results.psa10} type="psa10" sectionRef={psa10Ref} />
+          </>
+        )}
+        {/* Live Listings Section */}
+        {console.log('🔍 Rendering check:', { showLiveListingsOnly, liveListingsCategory, liveListingsLoading, liveListingsError, liveListingsLength: liveListings.length })}
+        {showLiveListingsOnly && liveListingsCategory && (
+          <div className="live-listings-section" ref={liveListingsRef}>
+            <button className="back-to-sold-btn" onClick={handleBackToSoldResults}>
+              ← Back to Sold Results
+            </button>
+            <h3>Live eBay Listings for {liveListingsCategory === 'raw' ? 'Raw' : liveListingsCategory === 'psa9' ? 'PSA 9' : 'PSA 10'} Trading Cards</h3>
+            
+            {/* Filter Buttons */}
+            <div className="live-listings-filters">
+              <button 
+                className={`filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('all');
+                  handleViewLiveListings(liveListingsCategory, null);
+                }}
+                disabled={liveListingsLoading}
+              >
+                All Listings
+              </button>
+              <button 
+                className={`filter-btn ${activeFilter === 'auction' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('auction');
+                  handleViewLiveListings(liveListingsCategory, 'auction');
+                }}
+                disabled={liveListingsLoading}
+              >
+                Auctions Only
+              </button>
+              <button 
+                className={`filter-btn ${activeFilter === 'fixed' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('fixed');
+                  handleViewLiveListings(liveListingsCategory, 'fixed');
+                }}
+                disabled={liveListingsLoading}
+              >
+                Buy It Now Only
+              </button>
+            </div>
+
+            {liveListingsLoading ? (
+              <p>Loading live listings...</p>
+            ) : liveListingsError ? (
+              <p className="error-message">{liveListingsError}</p>
+            ) : liveListings.length === 0 ? (
+              <div>
+                <p>No live listings found.</p>
+                <p>Debug info: Category: {liveListingsCategory}, Filter: {activeFilter}</p>
+                <p>Search query: {formData.searchQuery}</p>
+              </div>
+            ) : (
+              <div className="live-listings-grid">
+                {liveListings
+                  .sort((a, b) => new Date(b.itemCreationDate) - new Date(a.itemCreationDate))
+                  .map((item, idx) => (
+                  <div key={item.itemId || idx} className="live-listing-card">
+                    <a href={item.itemWebUrl || '#'} target="_blank" rel="noopener noreferrer">
+                      <img 
+                        src={item.image?.imageUrl || item.image || '/placeholder-image.jpg'} 
+                        alt={item.title || 'Trading Card'} 
+                        className="live-listing-img"
+                        onError={(e) => {
+                          e.target.src = '/placeholder-image.jpg';
+                        }}
+                      />
+                    </a>
+                    <div className="live-listing-content">
+                      <a 
+                        href={item.itemWebUrl || '#'} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="live-listing-title"
+                        onClick={() => handleEbayLinkClick(item.title || 'Untitled Item', item.price, 'live_listing')}
+                      >
+                        {item.title || 'Untitled Item'}
+                      </a>
+                      <div className="live-listing-price">
+                        {item.price && typeof item.price === 'object' && item.price.value 
+                          ? `$${item.price.value} ${item.price.currency || 'USD'}` 
+                          : item.price && typeof item.price === 'string'
+                          ? item.price
+                          : 'N/A'}
+                      </div>
+                      <div className={`live-listing-sale-type ${Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'auction' : 'fixed'}`}>
+                        {Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'Auction' : 
+                         Array.isArray(item.buyingOptions) && item.buyingOptions.includes('FIXED_PRICE') ? 'Buy It Now' : 'N/A'}
+                      </div>
+                      <div className="live-listing-date">
+                        Listed: {item.itemCreationDate ? formatDate(item.itemCreationDate) : 'N/A'}
+                      </div>
+                      {item.seller && typeof item.seller === 'string' && (
+                        <div className="live-listing-seller">
+                          Seller: {item.seller}
+                        </div>
+                      )}
+                      {item.condition && typeof item.condition === 'string' && (
+                        <div className="live-listing-condition">
+                          Condition: {item.condition}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Footer Ad */}
+        <FooterAd />
+        {/* Kind Cup Ad */}
+        <KindCupAd />
+      </>
+    );
+  }
+
+  // Add a function to clear all search fields
+  const clearSearchFields = () => {
+    setFormData({
+      player: '',
+      manufacturer: '',
+      year: '',
+      cardNumber: '',
+      type: '',
+      exclude: '',
+      advancedSearch: ''
+    });
+    setResults(null);
+    setLiveListings([]);
+    setLiveListingsError(null);
+    setLiveListingsLoading(false);
+    setShowLiveListingsOnly(false);
+    setLiveListingsCategory(null);
+    setActiveFilter('all');
+    setError(null);
+    setLoading(false);
+  };
+
+  if (!user) {
+    return (
+      <>
+        <HomePage onGetStarted={scrollToSearchForm} />
+        <div ref={searchFormRef}>
+          <form className="search-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Player/Card Name</label>
+              <input
+                type="text"
+                name="player"
+                value={formData.player || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Charizard, LeBron James"
+              />
+            </div>
+            <div className="form-group">
+              <label>Manufacturer</label>
+              <input
+                type="text"
+                name="manufacturer"
+                value={formData.manufacturer || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Topps, Panini, Pokemon"
+              />
+            </div>
+            <div className="form-group">
+              <label>Year</label>
+              <input
+                type="text"
+                name="year"
+                value={formData.year || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 2023"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Number</label>
+              <input
+                type="text"
+                name="cardNumber"
+                value={formData.cardNumber || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 223/197"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Type</label>
+              <input
+                type="text"
+                name="type"
+                value={formData.type || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Rookie, Holo, EX"
+              />
+            </div>
+            <div className="form-group">
+              <label>Exclude Terms (comma-separated)</label>
+              <input
+                type="text"
+                name="exclude"
+                value={formData.exclude || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. box, case, break"
+              />
+            </div>
+            <div className="form-group">
+              <label>Advanced Search (override all fields)</label>
+              <input
+                type="text"
+                name="advancedSearch"
+                value={formData.advancedSearch || ''}
+                onChange={handleInputChange}
+                placeholder="Type your own search string here"
+              />
+              <div className="advanced-search-help">
+                <p><strong>💡 Search Tips:</strong></p>
+                <ul>
+                  <li><strong>Multiple Variations:</strong> Use brackets: <code>(2019-20, 19-20) or (PSA, BGS)</code></li>
+                  <li><strong>Exclude Terms:</strong> Use minus sign: <code>Lamelo Ball -box -case -break</code></li>
+                  <li><strong>Exact Pattern:</strong> Use & symbol: <code>Charizard PSA&10</code></li>
+                </ul>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', gridColumn: '1 / -1' }}>
+              <button className="search-button" type="submit" disabled={loading}>
+                {loading ? 'Searching...' : 'Search'}
+              </button>
+              <button type="button" className="clear-button" onClick={clearSearchFields}>
+                Clear All
+              </button>
+            </div>
+          </form>
+        </div>
+        {results && (
+          <div className="results-section">
+            <h2>Search Results</h2>
+            <div className="search-summary">
+              <p>
+                Found results for: <strong>{results.searchParams.searchQuery}</strong>
+              </p>
+              
+              {/* Price Analysis Section */}
+              {results.priceAnalysis && (
+                <div className="price-analysis-section">
+                  <h3>📊 Price Analysis</h3>
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                    <button className="jump-btn" onClick={() => rawRef.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to Raw Sales</button>
+                    <button className="jump-btn" onClick={() => psa9Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 9 Sales</button>
+                    <button className="jump-btn" onClick={() => psa10Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 10 Sales</button>
+                  </div>
+                  
+                  {/* Price Trend Chart */}
+                  <div style={{ width: '100%', height: 300, marginBottom: 32 }}>
+                    <ResponsiveContainer>
+                      <LineChart
+                        data={(() => {
+                          const raw = results.results.raw || [];
+                          const psa9 = results.results.psa9 || [];
+                          const psa10 = results.results.psa10 || [];
+                          const allDates = Array.from(new Set([
+                            ...raw.map(card => card.soldDate),
+                            ...psa9.map(card => card.soldDate),
+                            ...psa10.map(card => card.soldDate),
+                          ].filter(Boolean))).sort();
+                          return allDates.map(date => ({
+                            date: date,
+                            Raw: (() => {
+                              const cards = raw.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                            PSA9: (() => {
+                              const cards = psa9.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                            PSA10: (() => {
+                              const cards = psa10.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                          }));
+                        })()}
+                        margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 12 }} 
+                          tickFormatter={date => {
+                            if (!date) return '';
+                            const d = new Date(date);
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          }}
+                        />
+                        <YAxis tick={{ fontSize: 12 }} domain={[0, 'auto']} />
+                        <Tooltip formatter={v => v ? `$${v.toFixed(2)}` : 'N/A'} 
+                          labelFormatter={date => {
+                            if (!date) return '';
+                            const d = new Date(date);
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          }}
+                        />
+                        <Legend />
+                        <Line type="monotone" dataKey="Raw" stroke="#222" strokeWidth={2} dot={false} name="Raw" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA9" stroke="#FFD600" strokeWidth={2} dot={false} name="PSA 9" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA10" stroke="#00C49F" strokeWidth={2} dot={false} name="PSA 10" connectNulls={true} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  {/* Summary Cards */}
+                  <div className="price-summary">
+                    <div className="price-card">
+                      <h4>Raw Cards</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.raw.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.raw.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.raw.minPrice.toFixed(2)} - ${results.priceAnalysis.raw.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.raw.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.raw.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.raw.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.raw.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.raw.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="price-card">
+                      <h4>PSA 9</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.psa9.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.psa9.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.psa9.minPrice.toFixed(2)} - ${results.priceAnalysis.psa9.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.psa9.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.psa9.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.psa9.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.psa9.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.psa9.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="price-card">
+                      <h4>PSA 10</h4>
+                      <p className="average-price">
+                        ${results.priceAnalysis.psa10.avgPrice.toFixed(2)}
+                      </p>
+                      <span className="card-count">{results.priceAnalysis.psa10.count} cards</span>
+                      <div className="price-range">
+                        <small>Range: ${results.priceAnalysis.psa10.minPrice.toFixed(2)} - ${results.priceAnalysis.psa10.maxPrice.toFixed(2)}</small>
+                      </div>
+                      <div className={`price-trend ${results.priceAnalysis.psa10.trend}`}>
+                        <span className="trend-icon">
+                          {results.priceAnalysis.psa10.trend === 'up' ? '↗️' : 
+                           results.priceAnalysis.psa10.trend === 'down' ? '↘️' : '→'}
+                        </span>
+                        <span className="trend-text">
+                          {results.priceAnalysis.psa10.trend === 'up' ? 'Trending Up' : 
+                           results.priceAnalysis.psa10.trend === 'down' ? 'Trending Down' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price Comparisons */}
+                  <div className="price-comparisons">
+                    <h4>💰 Price Comparisons</h4>
+                    <div className="comparison-grid">
+                      {results.priceAnalysis.comparisons.rawToPsa9 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">Raw → PSA 9</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.rawToPsa9.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.rawToPsa9.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.rawToPsa9.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 9 premium over raw
+                          </div>
+                        </div>
+                      )}
+
+                      {results.priceAnalysis.comparisons.rawToPsa10 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">Raw → PSA 10</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.rawToPsa10.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.rawToPsa10.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.rawToPsa10.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 10 premium over raw
+                          </div>
+                        </div>
+                      )}
+
+                      {results.priceAnalysis.comparisons.psa9ToPsa10 && (
+                        <div className="comparison-card">
+                          <div className="comparison-header">
+                            <span className="comparison-label">PSA 9 → PSA 10</span>
+                            <span className="comparison-arrow">→</span>
+                          </div>
+                          <div className="comparison-details">
+                            <div className="dollar-diff">
+                              ${results.priceAnalysis.comparisons.psa9ToPsa10.dollarDiff.toFixed(2)}
+                            </div>
+                            <div className="percent-diff">
+                              {results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff > 0 ? '+' : ''}{results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="comparison-description">
+                            PSA 10 premium over PSA 9
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Investment Insights */}
+                  <div className="investment-insights">
+                    <h4>💡 Investment Insights</h4>
+                    <div className="insights-grid">
+                      {results.priceAnalysis.raw.avgPrice > 0 && results.priceAnalysis.psa9.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">📈</div>
+                          <div className="insight-content">
+                            <strong>PSA 9 Value:</strong> {results.priceAnalysis.comparisons.rawToPsa9 ? 
+                              `${results.priceAnalysis.comparisons.rawToPsa9.percentDiff.toFixed(0)}x more than raw` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.priceAnalysis.raw.avgPrice > 0 && results.priceAnalysis.psa10.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">🚀</div>
+                          <div className="insight-content">
+                            <strong>PSA 10 Value:</strong> {results.priceAnalysis.comparisons.rawToPsa10 ? 
+                              `${results.priceAnalysis.comparisons.rawToPsa10.percentDiff.toFixed(0)}x more than raw` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.priceAnalysis.psa9.avgPrice > 0 && results.priceAnalysis.psa10.avgPrice > 0 && (
+                        <div className="insight-card">
+                          <div className="insight-icon">💎</div>
+                          <div className="insight-content">
+                            <strong>Grade Jump:</strong> {results.priceAnalysis.comparisons.psa9ToPsa10 ? 
+                              `PSA 9 to 10 adds ${results.priceAnalysis.comparisons.psa9ToPsa10.percentDiff.toFixed(0)}% value` : 
+                              'Data unavailable'
+                            }
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Show sold results only if not viewing live listings */}
+        {!showLiveListingsOnly && (
+          <>
+            <CardResults title="Raw Trading Cards" cards={results.results.raw} type="raw" sectionRef={rawRef} />
+            
+            {/* In-Content Ad after first section */}
+            <InContentAd />
+            
+            <CardResults title="PSA 9 Trading Cards" cards={results.results.psa9} type="psa9" sectionRef={psa9Ref} />
+            <CardResults title="PSA 10 Trading Cards" cards={results.results.psa10} type="psa10" sectionRef={psa10Ref} />
+          </>
+        )}
+        {/* Live Listings Section */}
+        {console.log('🔍 Rendering check:', { showLiveListingsOnly, liveListingsCategory, liveListingsLoading, liveListingsError, liveListingsLength: liveListings.length })}
+        {showLiveListingsOnly && liveListingsCategory && (
+          <div className="live-listings-section" ref={liveListingsRef}>
+            <button className="back-to-sold-btn" onClick={handleBackToSoldResults}>
+              ← Back to Sold Results
+            </button>
+            <h3>Live eBay Listings for {liveListingsCategory === 'raw' ? 'Raw' : liveListingsCategory === 'psa9' ? 'PSA 9' : 'PSA 10'} Trading Cards</h3>
+            
+            {/* Filter Buttons */}
+            <div className="live-listings-filters">
+              <button 
+                className={`filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('all');
+                  handleViewLiveListings(liveListingsCategory, null);
+                }}
+                disabled={liveListingsLoading}
+              >
+                All Listings
+              </button>
+              <button 
+                className={`filter-btn ${activeFilter === 'auction' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('auction');
+                  handleViewLiveListings(liveListingsCategory, 'auction');
+                }}
+                disabled={liveListingsLoading}
+              >
+                Auctions Only
+              </button>
+              <button 
+                className={`filter-btn ${activeFilter === 'fixed' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveFilter('fixed');
+                  handleViewLiveListings(liveListingsCategory, 'fixed');
+                }}
+                disabled={liveListingsLoading}
+              >
+                Buy It Now Only
+              </button>
+            </div>
+
+            {liveListingsLoading ? (
+              <p>Loading live listings...</p>
+            ) : liveListingsError ? (
+              <p className="error-message">{liveListingsError}</p>
+            ) : liveListings.length === 0 ? (
+              <div>
+                <p>No live listings found.</p>
+                <p>Debug info: Category: {liveListingsCategory}, Filter: {activeFilter}</p>
+                <p>Search query: {formData.searchQuery}</p>
+              </div>
+            ) : (
+              <div className="live-listings-grid">
+                {liveListings
+                  .sort((a, b) => new Date(b.itemCreationDate) - new Date(a.itemCreationDate))
+                  .map((item, idx) => (
+                  <div key={item.itemId || idx} className="live-listing-card">
+                    <a href={item.itemWebUrl || '#'} target="_blank" rel="noopener noreferrer">
+                      <img 
+                        src={item.image?.imageUrl || item.image || '/placeholder-image.jpg'} 
+                        alt={item.title || 'Trading Card'} 
+                        className="live-listing-img"
+                        onError={(e) => {
+                          e.target.src = '/placeholder-image.jpg';
+                        }}
+                      />
+                    </a>
+                    <div className="live-listing-content">
+                      <a 
+                        href={item.itemWebUrl || '#'} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="live-listing-title"
+                        onClick={() => handleEbayLinkClick(item.title || 'Untitled Item', item.price, 'live_listing')}
+                      >
+                        {item.title || 'Untitled Item'}
+                      </a>
+                      <div className="live-listing-price">
+                        {item.price && typeof item.price === 'object' && item.price.value 
+                          ? `$${item.price.value} ${item.price.currency || 'USD'}` 
+                          : item.price && typeof item.price === 'string'
+                          ? item.price
+                          : 'N/A'}
+                      </div>
+                      <div className={`live-listing-sale-type ${Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'auction' : 'fixed'}`}>
+                        {Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION') ? 'Auction' : 
+                         Array.isArray(item.buyingOptions) && item.buyingOptions.includes('FIXED_PRICE') ? 'Buy It Now' : 'N/A'}
+                      </div>
+                      <div className="live-listing-date">
+                        Listed: {item.itemCreationDate ? formatDate(item.itemCreationDate) : 'N/A'}
+                      </div>
+                      {item.seller && typeof item.seller === 'string' && (
+                        <div className="live-listing-seller">
+                          Seller: {item.seller}
+                        </div>
+                      )}
+                      {item.condition && typeof item.condition === 'string' && (
+                        <div className="live-listing-condition">
+                          Condition: {item.condition}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Footer Ad */}
+        <FooterAd />
+        {/* Kind Cup Ad */}
+        <KindCupAd />
+      </>
+    );
+  }
+
+  // Add a function to clear all search fields
+  const clearSearchFields = () => {
+    setFormData({
+      player: '',
+      manufacturer: '',
+      year: '',
+      cardNumber: '',
+      type: '',
+      exclude: '',
+      advancedSearch: ''
+    });
+    setResults(null);
+    setLiveListings([]);
+    setLiveListingsError(null);
+    setLiveListingsLoading(false);
+    setShowLiveListingsOnly(false);
+    setLiveListingsCategory(null);
+    setActiveFilter('all');
+    setError(null);
+    setLoading(false);
+  };
+
+  if (!user) {
+    return (
+      <>
+        <HomePage onGetStarted={scrollToSearchForm} />
+        <div ref={searchFormRef}>
+          <form className="search-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Player/Card Name</label>
+              <input
+                type="text"
+                name="player"
+                value={formData.player || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Charizard, LeBron James"
+              />
+            </div>
+            <div className="form-group">
+              <label>Manufacturer</label>
+              <input
+                type="text"
+                name="manufacturer"
+                value={formData.manufacturer || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Topps, Panini, Pokemon"
+              />
+            </div>
+            <div className="form-group">
+              <label>Year</label>
+              <input
+                type="text"
+                name="year"
+                value={formData.year || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 2023"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Number</label>
+              <input
+                type="text"
+                name="cardNumber"
+                value={formData.cardNumber || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. 223/197"
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Type</label>
+              <input
+                type="text"
+                name="type"
+                value={formData.type || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. Rookie, Holo, EX"
+              />
+            </div>
+            <div className="form-group">
+              <label>Exclude Terms (comma-separated)</label>
+              <input
+                type="text"
+                name="exclude"
+                value={formData.exclude || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. box, case, break"
+              />
+            </div>
+            <div className="form-group">
+              <label>Advanced Search (override all fields)</label>
+              <input
+                type="text"
+                name="advancedSearch"
+                value={formData.advancedSearch || ''}
+                onChange={handleInputChange}
+                placeholder="Type your own search string here"
+              />
+              <div className="advanced-search-help">
+                <p><strong>💡 Search Tips:</strong></p>
+                <ul>
+                  <li><strong>Multiple Variations:</strong> Use brackets: <code>(2019-20, 19-20) or (PSA, BGS)</code></li>
+                  <li><strong>Exclude Terms:</strong> Use minus sign: <code>Lamelo Ball -box -case -break</code></li>
+                  <li><strong>Exact Pattern:</strong> Use & symbol: <code>Charizard PSA&10</code></li>
+                </ul>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', gridColumn: '1 / -1' }}>
+              <button className="search-button" type="submit" disabled={loading}>
+                {loading ? 'Searching...' : 'Search'}
+              </button>
+              <button type="button" className="clear-button" onClick={clearSearchFields}>
+                Clear All
+              </button>
+            </div>
+          </form>
+        </div>
+        {results && (
+          <div className="results-section">
+            <h2>Search Results</h2>
+            <div className="search-summary">
+              <p>
+                Found results for: <strong>{results.searchParams.searchQuery}</strong>
+              </p>
+              
+              {/* Price Analysis Section */}
+              {results.priceAnalysis && (
+                <div className="price-analysis-section">
+                  <h3>📊 Price Analysis</h3>
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                    <button className="jump-btn" onClick={() => rawRef.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to Raw Sales</button>
+                    <button className="jump-btn" onClick={() => psa9Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 9 Sales</button>
+                    <button className="jump-btn" onClick={() => psa10Ref.current?.scrollIntoView({ behavior: 'smooth' })}>Jump to PSA 10 Sales</button>
+                  </div>
+                  
+                  {/* Price Trend Chart */}
+                  <div style={{ width: '100%', height: 300, marginBottom: 32 }}>
+                    <ResponsiveContainer>
+                      <LineChart
+                        data={(() => {
+                          const raw = results.results.raw || [];
+                          const psa9 = results.results.psa9 || [];
+                          const psa10 = results.results.psa10 || [];
+                          const allDates = Array.from(new Set([
+                            ...raw.map(card => card.soldDate),
+                            ...psa9.map(card => card.soldDate),
+                            ...psa10.map(card => card.soldDate),
+                          ].filter(Boolean))).sort();
+                          return allDates.map(date => ({
+                            date: date,
+                            Raw: (() => {
+                              const cards = raw.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                            PSA9: (() => {
+                              const cards = psa9.filter(card => card.soldDate === date);
+                              if (!cards.length) return null;
+                              return cards.reduce((sum, c) => sum + (parseFloat(c.price?.value) || 0), 0) / cards.length;
+                            })(),
+                            PSA10: (() => {
+                              const cards = psa10.filter(card => card.soldDate === date);
+                              if
