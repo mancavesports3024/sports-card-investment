@@ -15,6 +15,7 @@ const SearchPage = () => {
   const [cardType, setCardType] = useState('');
   const [exclude, setExclude] = useState('');
   const [lastSavedQuery, setLastSavedQuery] = useState('');
+  const [liveListings, setLiveListings] = useState({}); // { sectionKey: { loading, items, error, open } }
 
   // Check if user is logged in on component mount
   useEffect(() => {
@@ -140,18 +141,82 @@ const SearchPage = () => {
     });
   };
 
+  const fetchLiveListings = async (sectionKey, query, grade) => {
+    setLiveListings(prev => ({
+      ...prev,
+      [sectionKey]: { ...prev[sectionKey], loading: true, error: null, open: true }
+    }));
+    try {
+      const url = `${config.API_BASE_URL}/api/live-listings?query=${encodeURIComponent(query)}&grade=${encodeURIComponent(grade)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch live listings');
+      const data = await res.json();
+      setLiveListings(prev => ({
+        ...prev,
+        [sectionKey]: { loading: false, items: data.items || [], error: null, open: true }
+      }));
+    } catch (err) {
+      setLiveListings(prev => ({
+        ...prev,
+        [sectionKey]: { loading: false, items: [], error: err.message, open: true }
+      }));
+    }
+  };
+
+  const toggleLiveListings = (sectionKey, query, grade) => {
+    if (liveListings[sectionKey]?.open) {
+      setLiveListings(prev => ({ ...prev, [sectionKey]: { ...prev[sectionKey], open: false } }));
+    } else {
+      if (!liveListings[sectionKey] || !liveListings[sectionKey].items) {
+        fetchLiveListings(sectionKey, query, grade);
+      } else {
+        setLiveListings(prev => ({ ...prev, [sectionKey]: { ...prev[sectionKey], open: true } }));
+      }
+    }
+  };
+
   const renderCardSection = (title, cards, icon) => {
     if (!cards || cards.length === 0) return null;
-
-    // Build eBay live listings search URL
-    const ebaySearchUrl = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(title.replace(/\s+\(.+\)/, ''))}`;
-
+    // Section key for live listings state
+    const sectionKey = title.replace(/\s+\(.+\)/, '').replace(/\s/g, '').toLowerCase();
+    // Grade for live listings
+    let grade = 'Raw';
+    if (title.includes('PSA 9')) grade = 'PSA 9';
+    else if (title.includes('PSA 10')) grade = 'PSA 10';
+    // Query for live listings (use the section title minus count)
+    const query = title.replace(/\s+\(.+\)/, '');
     return (
       <div className="card-section">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
           <h3 style={{ margin: 0 }}>{icon} {title} ({cards.length})</h3>
-          <a href={ebaySearchUrl} target="_blank" rel="noopener noreferrer" className="live-listings-btn" style={{ fontSize: '0.95em', padding: '0.3em 0.8em', background: '#ffd700', color: '#000', border: '1px solid #aaa', borderRadius: 5, textDecoration: 'none', marginLeft: 8 }}>View Live Listings</a>
+          <button
+            className="live-listings-btn"
+            style={{ fontSize: '0.95em', padding: '0.3em 0.8em', background: '#ffd700', color: '#000', border: '1px solid #aaa', borderRadius: 5, textDecoration: 'none', marginLeft: 8, cursor: 'pointer' }}
+            onClick={() => toggleLiveListings(sectionKey, query, grade)}
+          >
+            {liveListings[sectionKey]?.open ? 'Hide Live Listings' : 'View Live Listings'}
+          </button>
         </div>
+        {liveListings[sectionKey]?.open && (
+          <div className="live-listings-section" style={{ margin: '1rem 0', background: '#fff', borderRadius: 10, border: '1.5px solid #ffd700', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '1rem' }}>
+            {liveListings[sectionKey]?.loading && <div>Loading live listings...</div>}
+            {liveListings[sectionKey]?.error && <div style={{ color: 'red' }}>{liveListings[sectionKey].error}</div>}
+            {liveListings[sectionKey]?.items && liveListings[sectionKey].items.length > 0 && (
+              <div className="live-listings-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+                {liveListings[sectionKey].items.map((item, idx) => (
+                  <div key={item.itemId || idx} className="live-listing-card" style={{ background: '#f8f9fa', border: '1px solid #ffd700', borderRadius: 8, padding: '0.7rem', minWidth: 220, maxWidth: 300, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    {item.image && <img src={item.image.imageUrl || item.image} alt={item.title} style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 4, marginBottom: 6 }} />}
+                    <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer" className="live-listing-title" style={{ fontWeight: 600, color: '#000', fontSize: '1em', marginBottom: 2, textDecoration: 'none' }}>{item.title}</a>
+                    <div className="live-listing-price" style={{ fontSize: '1.1em', fontWeight: 700, color: '#000', margin: '0.3rem 0' }}>{formatPrice({ value: item.price?.value })}</div>
+                    {item.condition && <div className="live-listing-condition" style={{ fontSize: '0.93em', color: '#666' }}>Condition: {item.condition}</div>}
+                    {item.seller && <div className="live-listing-seller" style={{ fontSize: '0.85em', color: '#666' }}>Seller: {item.seller.username}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+            {liveListings[sectionKey]?.items && liveListings[sectionKey].items.length === 0 && !liveListings[sectionKey]?.loading && <div>No live listings found.</div>}
+          </div>
+        )}
         <div className="cards-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem' }}>
           {cards.map((card, index) => (
             <div key={`${card.id || index}-${card.title}`} className="card-item" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.7rem', minWidth: 170, maxWidth: 210, fontSize: '0.97em', marginBottom: 0 }}>
