@@ -1,16 +1,19 @@
 import React from 'react';
+import './App.css';
+import HomePage from './components/HomePage';
+import SearchPage from './components/SearchPage';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
   return (
-    <div className="App" style={{ fontFamily: 'sans-serif', padding: '2rem' }}>
-      <header style={{ marginBottom: '2rem' }}>
-        <h1>Scorecard</h1>
-      </header>
-      <main>
-        <p>Welcome to Scorecard! This is a minimal working version of App.js.</p>
-        <p>If you see this page, your React app is running and the JSX is valid.</p>
-      </main>
-    </div>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/search" element={<SearchPage />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

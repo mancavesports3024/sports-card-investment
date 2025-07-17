@@ -409,5 +409,10 @@ app.get('/api/token-status', (req, res) => {
   });
 });
 
+// TEMPORARY: Debug endpoint to print current eBay access token
+app.get('/api/debug-ebay-token', (req, res) => {
+  res.json({ token: process.env.EBAY_AUTH_TOKEN });
+});
+
 // Initialize token refresh on startup
 initializeServer().catch(console.error);
