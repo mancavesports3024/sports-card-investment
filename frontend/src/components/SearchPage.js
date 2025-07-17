@@ -183,8 +183,8 @@ const SearchPage = () => {
     let grade = 'Raw';
     if (title.includes('PSA 9')) grade = 'PSA 9';
     else if (title.includes('PSA 10')) grade = 'PSA 10';
-    // Query for live listings (use the section title minus count)
-    const query = title.replace(/\s+\(.+\)/, '');
+    // Use the last search query for live listings
+    const query = results?.searchParams?.searchQuery || title.replace(/\s+\(.+\)/, '');
     return (
       <div className="card-section">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -438,7 +438,8 @@ const SearchPage = () => {
         {results && (
           <div className="search-results">
             <div className="results-header">
-              <h2>📊 Search Results for "{results.searchParams.searchQuery}"</h2>              <div className="results-summary">
+              <h2 style={{ color: '#111', fontWeight: 700 }}>📊 Search Results for "{results.searchParams.searchQuery}"</h2>
+              <div className="results-summary" style={{ color: '#111', fontWeight: 600, fontSize: '1.1rem' }}>
                 <p>Found {results.sources?.total || 0} total sold items</p>
                 {!isLoggedIn && (
                   <p className="save-note">💡 <a href="#" onClick={handleLogin}>Sign in</a> to save this search</p>
