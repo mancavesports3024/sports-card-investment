@@ -60,7 +60,7 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
 // JSON parsing
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Increase timeout for long-running requests
 app.use((req, res, next) => {
