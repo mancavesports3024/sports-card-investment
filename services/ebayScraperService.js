@@ -133,21 +133,25 @@ async function scrapeEbaySales(keywords, numSales = 10) {
             const price = priceMatch ? parseFloat(priceMatch[0].replace(/[$,]/g, '')) : 0;
             
             // Extract sold date
-            let soldDate = new Date();
+            let soldDate = null;
             const dateSelectors = [
               '.s-item__title--tagblock .POSITIVE',
               '.s-item__title--tagblock span',
               '.s-item__subtitle',
               '.s-item__info .s-item__title--tagblock',
               '.s-item__title--tagblock',
-              '.s-item__info span'
+              '.s-item__info span',
+              '.s-item__date',
+              '.s-item__time',
+              '[data-testid="s-item__date"]',
+              '.s-item__info .s-item__date'
             ];
             
             for (const selector of dateSelectors) {
               const dateElement = element.querySelector(selector);
               if (dateElement) {
                 const dateText = dateElement.textContent.trim();
-                if (dateText && (dateText.includes('Sold') || dateText.includes('Ended') || dateText.includes('ago'))) {
+                if (dateText && (dateText.includes('Sold') || dateText.includes('Ended') || dateText.includes('ago') || dateText.includes('/'))) {
                   // Try to parse relative dates
                   if (dateText.includes('ago')) {
                     const agoMatch = dateText.match(/(\d+)\s*(day|week|month|hour)s?\s*ago/i);
@@ -160,11 +164,67 @@ async function scrapeEbaySales(keywords, numSales = 10) {
                       else if (unit === 'week') date.setDate(date.getDate() - (amount * 7));
                       else if (unit === 'month') date.setMonth(date.getMonth() - amount);
                       soldDate = date;
+                      break;
                     }
                   }
-                  break;
+                  // Try to parse actual dates (MM/DD/YYYY or similar)
+                  else if (dateText.includes('/')) {
+                    const dateMatch = dateText.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+                    if (dateMatch) {
+                      const month = parseInt(dateMatch[1]) - 1; // JS months are 0-indexed
+                      const day = parseInt(dateMatch[2]);
+                      const year = parseInt(dateMatch[3]);
+                      // Handle 2-digit years
+                      const fullYear = year < 100 ? (year < 50 ? 2000 + year : 1900 + year) : year;
+                      soldDate = new Date(fullYear, month, day);
+                      break;
+                    }
+                  }
+                  // Try to parse "Sold on" format
+                  else if (dateText.includes('Sold on')) {
+                    const soldMatch = dateText.match(/Sold on\s+(.+)/i);
+                    if (soldMatch) {
+                      const dateStr = soldMatch[1].trim();
+                      const parsedDate = new Date(dateStr);
+                      if (!isNaN(parsedDate.getTime())) {
+                        soldDate = parsedDate;
+                        break;
+                      }
+                    }
+                  }
                 }
               }
+            }
+            
+            // If still no date found, try to find any date-like text in the entire element
+            if (!soldDate) {
+              const allText = element.textContent;
+              const datePatterns = [
+                /(\d{1,2})\/(\d{1,2})\/(\d{2,4})/g,  // MM/DD/YYYY
+                /(\d{1,2})-(\d{1,2})-(\d{2,4})/g,   // MM-DD-YYYY
+                /(\d{1,2})\/(\d{1,2})\/(\d{2})/g,   // MM/DD/YY
+                /(\d{1,2})-(\d{1,2})-(\d{2})/g      // MM-DD-YY
+              ];
+              
+              for (const pattern of datePatterns) {
+                const matches = allText.match(pattern);
+                if (matches && matches.length > 0) {
+                  const dateMatch = matches[0].match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+                  if (dateMatch) {
+                    const month = parseInt(dateMatch[1]) - 1;
+                    const day = parseInt(dateMatch[2]);
+                    const year = parseInt(dateMatch[3]);
+                    const fullYear = year < 100 ? (year < 50 ? 2000 + year : 1900 + year) : year;
+                    soldDate = new Date(fullYear, month, day);
+                    break;
+                  }
+                }
+              }
+            }
+            
+            // Only use today's date as absolute last resort
+            if (!soldDate) {
+              soldDate = new Date();
             }
             
             // Extract condition
