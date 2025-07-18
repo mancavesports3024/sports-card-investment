@@ -1146,16 +1146,21 @@ router.post('/', async (req, res) => {
     sorted.aigrade10 = addTrackingToCards(sorted.aigrade10);
     sorted.otherGraded = addTrackingToCards(sorted.otherGraded);
 
-    // Save the search to history
-    try {
-      await searchHistoryService.addSearch({
-        searchQuery,
-        results: sorted,
-        priceAnalysis: sorted.priceAnalysis
-      });
-    } catch (error) {
-      console.log('⚠️ Failed to save search to history:', error.message);
-      // Don't fail the request if saving history fails
+    // Save the search to history only if there are results
+    if (allCards.length > 0) {
+      try {
+        await searchHistoryService.addSearch({
+          searchQuery,
+          results: sorted,
+          priceAnalysis: sorted.priceAnalysis
+        });
+        console.log(`💾 Saved search: "${searchQuery}" (${allCards.length} cards found)`);
+      } catch (error) {
+        console.log('⚠️ Failed to save search to history:', error.message);
+        // Don't fail the request if saving history fails
+      }
+    } else {
+      console.log(`⚠️ Not saving search with 0 results: "${searchQuery}"`);
     }
 
     const responseData = { 
@@ -1194,6 +1199,19 @@ router.post('/', async (req, res) => {
 
     clearTimeout(timeout);
     res.json(responseData);
+    // Only cache if there are results in raw, PSA 9, or PSA 10
+    if (
+      responseData.results &&
+      (
+        (responseData.results.raw && responseData.results.raw.length > 0) ||
+        (responseData.results.psa9 && responseData.results.psa9.length > 0) ||
+        (responseData.results.psa10 && responseData.results.psa10.length > 0)
+      )
+    ) {
+      const cacheKey = cacheService.generateSearchKey(searchQuery, { numSales });
+      await cacheService.set(cacheKey, responseData, cacheService.searchTTL || 1800);
+      console.log(`💾 Cached search results for: ${searchQuery}`);
+    }
   } catch (error) {
     console.error('Search error:', error);
     clearTimeout(timeout);

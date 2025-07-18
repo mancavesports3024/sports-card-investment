@@ -108,10 +108,41 @@ async function scrapeEbaySales(keywords, numSales = 10) {
         console.log('⚠️ No .s-item elements found, continuing anyway...');
       });
       
+      // Debug: Check what's actually on the page
+      const pageContent = await page.content();
+      const hasSoldItems = pageContent.includes('s-item');
+      const hasNoResults = pageContent.includes('no results') || pageContent.includes('No results found');
+      
+      console.log(`🔍 Page debug: hasSoldItems=${hasSoldItems}, hasNoResults=${hasNoResults}`);
+      
+      // Take a screenshot for debugging (optional)
+      await page.screenshot({ path: 'ebay-debug.png', fullPage: true }).catch(() => {
+        console.log('⚠️ Could not save debug screenshot');
+      });
+      
       // Extract sales data using Puppeteer
       const sales = await page.evaluate((targetNumSales) => {
         const items = [];
-        const elements = document.querySelectorAll('.s-item');
+        
+        // Try multiple selectors for finding items
+        const selectors = [
+          '.s-item',
+          '[data-testid="s-item"]',
+          '.srp-results .s-item',
+          '.srp-results li',
+          '.srp-results .s-item__wrapper'
+        ];
+        
+        let elements = [];
+        for (const selector of selectors) {
+          elements = document.querySelectorAll(selector);
+          if (elements.length > 0) {
+            console.log(`Found ${elements.length} items using selector: ${selector}`);
+            break;
+          }
+        }
+        
+        console.log(`Total elements found: ${elements.length}`);
         
         for (let i = 0; i < Math.min(elements.length, targetNumSales); i++) {
           const element = elements[i];
