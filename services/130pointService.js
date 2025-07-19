@@ -109,6 +109,17 @@ async function search130point(keywords, numSales = 10) {
     const $ = cheerio.load(response.data);
     const sales = [];
 
+    // Parse currency conversion rates from the HTML
+    let currencyRates = {};
+    try {
+      const currencyDataText = $('#1-currData').text();
+      if (currencyDataText) {
+        currencyRates = JSON.parse(currencyDataText);
+      }
+    } catch (error) {
+      console.log('⚠️ Could not parse currency rates:', error.message);
+    }
+
     // Extract sales data from the actual 130point table rows
     $('#salesDataTable-1 tr#dRow').each((index, el) => {
       if (sales.length >= numSales) return false; // Stop if we have enough results
@@ -125,18 +136,41 @@ async function search130point(keywords, numSales = 10) {
         const salePrice = $el.find('td#dCol .priceSpan').text().trim();
         const date = $el.find('td#dCol #dateText').text().replace('Date:', '').trim();
         const shipping = $el.find('td#dCol #shipString').text().replace('Shipping Price:', '').trim();
+        
+        // Extract number of bids if available
+        const bidText = $el.find('td#dCol #bidText').text().trim();
+        let numBids = null;
+        if (bidText) {
+          const bidMatch = bidText.match(/Bids:\s*(\d+)/);
+          if (bidMatch) {
+            numBids = parseInt(bidMatch[1]);
+          }
+        }
+
+        // Convert price to USD if needed
+        let priceInUSD = parseFloat(price || salePrice.replace(/[^\d.,]/g, '').replace(',', ''));
+        if (currency && currency !== 'USD' && currencyRates[`USD${currency}`]) {
+          const rate = currencyRates[`USD${currency}`].start_rate;
+          priceInUSD = priceInUSD / rate;
+        }
+
+        // Format title with sold time
+        const formattedTitle = date ? `${title} - Sold: ${date}` : title;
+
+        // Format sale type with green box styling
+        const formattedSaleType = saleType ? `[${saleType}]` : '';
 
         // Only push if we have a title and price
         if (title && salePrice) {
           sales.push({
             id: `130point_${index}_${Date.now()}`,
-            title: title,
+            title: formattedTitle,
             price: {
-              value: price || salePrice,
-              currency: currency || 'USD',
+              value: priceInUSD.toFixed(2),
+              currency: 'USD',
             },
             soldDate: date || new Date().toISOString(),
-            condition: saleType || 'Unknown',
+            saleType: formattedSaleType,
             imageUrl: imgUrl || null,
             itemWebUrl: titleUrl ? (titleUrl.startsWith('http') ? titleUrl : `https://130point.com${titleUrl}`) : null,
             seller: soldVia || '130point',
@@ -144,6 +178,7 @@ async function search130point(keywords, numSales = 10) {
             platform: soldVia || '130point',
             listPrice: listPrice || null,
             shipping: shipping || null,
+            numBids: numBids,
           });
         }
       } catch (error) {
