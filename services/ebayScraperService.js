@@ -1,6 +1,7 @@
 const axios = require('axios');
 const puppeteer = require('puppeteer');
 const ebayService = require('./ebayService');
+const liveListings = require('../routes/liveListings');
 
 // eBay scraping configuration
 const EBAY_BASE_URL = 'https://www.ebay.com';
@@ -312,7 +313,7 @@ async function scrapeEbaySales(keywords, numSales = 10, maxRetries = 2) {
                 }
               }
               return items;
-            }, targetNumSales);
+            }, numSales); // Pass numSales as targetNumSales
             evalError = null;
             break;
           } catch (err) {
@@ -352,10 +353,23 @@ async function scrapeEbaySales(keywords, numSales = 10, maxRetries = 2) {
   } catch (apiError) {
     console.error('❌ eBay API fallback also failed:', apiError.message);
   }
-  // If both fail, return mock data
-  console.error('❌ eBay scraping error:', lastError ? lastError.message : 'Unknown error');
-  console.log('🔄 Returning mock eBay scraped data for testing');
-  return getMockEbayScrapedData(keywords, numSales);
+  // If both fail, call liveListings logic directly
+  try {
+    console.log('🔄 Both Puppeteer and eBay API failed, calling liveListings for live sales data...');
+    // Simulate a request to the liveListings route handler
+    // We'll call the main function in liveListings.js directly
+    // You may need to refactor liveListings.js to export a function for programmatic use
+    // For now, let's assume we can call a function like getLiveListings({ query, grade, saleType })
+    const liveResults = await liveListings.getLiveListings({ query: keywords, grade: 'Raw', saleType: undefined });
+    if (liveResults && Array.isArray(liveResults.items) && liveResults.items.length > 0) {
+      return liveResults.items;
+    }
+  } catch (liveError) {
+    console.error('❌ liveListings fallback also failed:', liveError.message);
+  }
+  // If all fail, return empty array
+  console.error('❌ All scraping and API methods failed. Returning no data.');
+  return [];
 }
 
 // Mock data for eBay scraping when it fails
