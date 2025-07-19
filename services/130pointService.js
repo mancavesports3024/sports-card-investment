@@ -105,89 +105,47 @@ async function search130point(keywords, numSales = 10) {
     const $ = cheerio.load(response.data);
     const sales = [];
 
-    // Extract sales data from the page
-    $('.sale-item, .card-sale, .sale-record').each((index, element) => {
+    // Extract sales data from the actual 130point table rows
+    $('#salesDataTable-1 tr#dRow').each((index, el) => {
       if (sales.length >= numSales) return false; // Stop if we have enough results
-      const $el = $(element);
+      const $el = $(el);
       try {
-        // Extract card title
-        const title = $el.find('.card-title, .title, h3, h4').first().text().trim();
-        // Extract price
-        const priceText = $el.find('.price, .sale-price, .amount').first().text().trim();
-        const price = extractPrice(priceText);
-        // Extract date
-        const dateText = $el.find('.date, .sale-date, .timestamp').first().text().trim();
-        const soldDate = extractDate(dateText);
-        // Extract condition/grade
-        const condition = $el.find('.condition, .grade, .status').first().text().trim();
-        // Extract platform (eBay, COMC, etc.)
-        const platform = $el.find('.platform, .source, .marketplace').first().text().trim();
-        // Extract image URL
-        const imageUrl = $el.find('img').first().attr('src') || $el.find('img').first().attr('data-src');
-        // Extract item URL
-        const itemUrl = $el.find('a').first().attr('href');
-        if (title && price) {
+        const price = $el.attr('data-price');
+        const currency = $el.attr('data-currency');
+        const imgUrl = $el.find('td#imgCol img').first().attr('src');
+        const title = $el.find('td#dCol #titleText a').text().trim();
+        const titleUrl = $el.find('td#dCol #titleText a').attr('href');
+        const soldVia = $el.find('td#dCol #soldVia').parent().text().replace('Sold Via:', '').trim();
+        const saleType = $el.find('td#dCol #auctionLabel').text().trim();
+        const listPrice = $el.find('td#dCol #listPrice').text().replace('List Price:', '').trim();
+        const salePrice = $el.find('td#dCol .priceSpan').text().trim();
+        const date = $el.find('td#dCol #dateText').text().replace('Date:', '').trim();
+        const shipping = $el.find('td#dCol #shipString').text().replace('Shipping Price:', '').trim();
+
+        // Only push if we have a title and price
+        if (title && salePrice) {
           sales.push({
             id: `130point_${index}_${Date.now()}`,
             title: title,
             price: {
-              value: price.toFixed(2),
-              currency: "USD"
+              value: price || salePrice,
+              currency: currency || 'USD',
             },
-            soldDate: soldDate || new Date().toISOString(),
-            condition: condition || "Unknown",
-            imageUrl: imageUrl || null,
-            itemWebUrl: itemUrl ? (itemUrl.startsWith('http') ? itemUrl : `https://130point.com${itemUrl}`) : null,
-            seller: platform || "130point",
-            source: "130point",
-            platform: platform || "130point"
+            soldDate: date || new Date().toISOString(),
+            condition: saleType || 'Unknown',
+            imageUrl: imgUrl || null,
+            itemWebUrl: titleUrl ? (titleUrl.startsWith('http') ? titleUrl : `https://130point.com${titleUrl}`) : null,
+            seller: soldVia || '130point',
+            source: '130point',
+            platform: soldVia || '130point',
+            listPrice: listPrice || null,
+            shipping: shipping || null,
           });
         }
       } catch (error) {
-        console.log(`⚠️ Error parsing sale item ${index}:`, error.message);
+        console.log(`⚠️ Error parsing sale row ${index}:`, error.message);
       }
     });
-
-    // If no structured data found, try alternative selectors
-    if (sales.length === 0) {
-      console.log('🔍 Trying alternative parsing method...');
-      const pageText = $.text();
-      const lines = pageText.split('\n').filter(line => line.trim().length > 0);
-      let currentSale = null;
-      for (let i = 0; i < lines.length && sales.length < numSales; i++) {
-        const line = lines[i].trim();
-        // Look for price patterns
-        const priceMatch = line.match(/\$[\d,]+\.?\d*/);
-        if (priceMatch && currentSale) {
-          const price = extractPrice(priceMatch[0]);
-          if (price) {
-            currentSale.price = {
-              value: price.toFixed(2),
-              currency: "USD"
-            };
-            sales.push(currentSale);
-            currentSale = null;
-          }
-        }
-        // Look for potential card titles (lines with card-related keywords)
-        if (line.length > 10 && line.length < 200 && 
-            (line.includes('Card') || line.includes('RC') || line.includes('Rookie') || 
-             line.includes('PSA') || line.includes('BGS') || line.includes('SGC'))) {
-          currentSale = {
-            id: `130point_alt_${sales.length}_${Date.now()}`,
-            title: line,
-            price: { value: "0.00", currency: "USD" },
-            soldDate: new Date().toISOString(),
-            condition: "Unknown",
-            imageUrl: null,
-            itemWebUrl: null,
-            seller: "130point",
-            source: "130point",
-            platform: "130point"
-          };
-        }
-      }
-    }
 
     console.log(`✅ Found ${sales.length} sales from 130point.com`);
     return sales;
