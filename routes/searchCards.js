@@ -1017,8 +1017,9 @@ router.get('/', async (req, res) => {
       ebayApiUsage // Include API usage in response
     });
   } catch (error) {
-    console.error('Search error:', error);
-    res.status(500).json({ error: 'Failed to fetch card data', details: error.message });
+    // Improved error logging and safe access
+    console.error('Search error:', error, error?.response?.status);
+    res.status(500).json({ error: 'Failed to fetch card data', details: error?.message || error });
   } finally {
     clearTimeout(timeout);
   }
@@ -1207,9 +1208,10 @@ router.post('/', async (req, res) => {
       console.log(`💾 Cached search results for: ${searchQuery}`);
     }
   } catch (error) {
-    console.error('Search error:', error);
+    // Improved error logging and safe access
+    console.error('Search error:', error, error?.response?.status);
     clearTimeout(timeout);
-    res.status(500).json({ error: 'Failed to fetch card data', details: error.message });
+    res.status(500).json({ error: 'Failed to fetch card data', details: error?.message || error });
   }
 });
 
