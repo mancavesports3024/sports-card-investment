@@ -218,97 +218,29 @@ const SearchPage = () => {
             {liveListings[sectionKey]?.items && liveListings[sectionKey].items.length === 0 && !liveListings[sectionKey]?.loading && <div>No live listings found.</div>}
           </div>
         )}
-        <div className="cards-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem' }}>
+        <div className="cards-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem' }}>
           {cards.map((card, index) => (
-            <div key={`${card.id || index}-${card.title}`} className="card-item" style={{ 
-              background: '#fff', 
-              border: '1px solid #eee', 
-              borderRadius: 8, 
-              boxShadow: '0 2px 6px rgba(0,0,0,0.08)', 
-              padding: '0.8rem 1rem', 
-              minWidth: 220, 
-              maxWidth: 280, 
-              fontSize: '0.95em', 
-              marginBottom: 0,
-              minHeight: '180px',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1 }}>
-                <div className="card-title" style={{ 
-                  fontWeight: 600, 
-                  fontSize: '0.95em', 
-                  marginBottom: 4,
-                  lineHeight: '1.3',
-                  color: '#333'
-                }}>{card.title}</div>
-                
-                <div className="card-price" style={{ 
-                  fontSize: '1.1em', 
-                  fontWeight: 700,
-                  color: '#2c5aa0',
-                  marginBottom: 2
-                }}>{formatPrice(card.price)}</div>
-                
+            <div key={`${card.id || index}-${card.title}`} className="card-item" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.7rem', minWidth: 170, maxWidth: 210, fontSize: '0.97em', marginBottom: 0 }}>
+              <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                <div className="card-title" style={{ fontWeight: 600, fontSize: '1em', marginBottom: 2 }}>{card.title}</div>
+                <div className="card-price" style={{ fontSize: '0.98em', color: '#222' }}>{formatPrice(card.price)}</div>
                 {card.saleType && (
-                  <div className="card-sale-type" style={{ 
-                    fontSize: '0.85em', 
-                    color: '#28a745',
-                    fontWeight: 600,
-                    backgroundColor: '#d4edda',
-                    padding: '2px 6px',
-                    borderRadius: 4,
-                    border: '1px solid #c3e6cb',
-                    alignSelf: 'flex-start',
-                    marginBottom: 2
-                  }}>{card.saleType}</div>
+                  <div className="card-sale-type" style={{ fontSize: '0.85em', color: '#28a745', fontWeight: 600, backgroundColor: '#d4edda', padding: '1px 4px', borderRadius: 3, border: '1px solid #c3e6cb', alignSelf: 'flex-start' }}>{card.saleType}</div>
                 )}
-                
-                <div className="card-date" style={{ 
-                  fontSize: '0.88em', 
-                  color: '#666',
-                  marginBottom: 2
-                }}>Sold: {formatDate(card.soldDate)}</div>
-                
+                <div className="card-date" style={{ fontSize: '0.93em', color: '#888' }}>Sold: {formatDate(card.soldDate)}</div>
                 {card.numBids && (
-                  <div className="card-bids" style={{ 
-                    fontSize: '0.85em', 
-                    color: '#856404',
-                    backgroundColor: '#fff3cd',
-                    padding: '2px 6px',
-                    borderRadius: 4,
-                    border: '1px solid #ffeaa7',
-                    alignSelf: 'flex-start',
-                    marginBottom: 2
-                  }}>Bids: {card.numBids}</div>
+                  <div className="card-bids" style={{ fontSize: '0.85em', color: '#856404', backgroundColor: '#fff3cd', padding: '1px 4px', borderRadius: 3, border: '1px solid #ffeaa7', alignSelf: 'flex-start' }}>Bids: {card.numBids}</div>
                 )}
-                
                 {card.seller && card.seller !== '130point' && (
-                  <div className="card-seller" style={{ 
-                    fontSize: '0.85em', 
-                    color: '#666',
-                    marginBottom: 2
-                  }}>Via: {card.seller}</div>
+                  <div className="card-seller" style={{ fontSize: '0.85em', color: '#666' }}>Via: {card.seller}</div>
                 )}
-                
                 {card.itemWebUrl && (
                   <a 
                     href={card.itemWebUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="live-listings-btn"
-                    style={{ 
-                      fontSize: '0.9em', 
-                      padding: '0.25em 0.7em', 
-                      background: '#ffd700', 
-                      color: '#000', 
-                      border: '1px solid #aaa', 
-                      borderRadius: 5, 
-                      textDecoration: 'none', 
-                      marginTop: 'auto',
-                      alignSelf: 'flex-start',
-                      fontWeight: 600
-                    }}
+                    style={{ fontSize: '0.89em', padding: '0.18em 0.6em', background: '#ffd700', color: '#000', border: '1px solid #aaa', borderRadius: 5, textDecoration: 'none', marginTop: 2, alignSelf: 'flex-start' }}
                   >
                     View on eBay
                   </a>
