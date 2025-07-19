@@ -680,7 +680,7 @@ const fetchDataForEachCategory = async (searchQuery, targetPerCategory = 25) => 
         keywords: searchQuery, 
         numSales: currentBatchSize 
       }),
-      ebayScraperService.scrapeEbaySales(searchQuery, currentBatchSize)
+      // ebayScraperService.scrapeEbaySales(searchQuery, currentBatchSize)
     ]);
     
     // Add new cards to our collection
@@ -1075,7 +1075,7 @@ router.post('/', async (req, res) => {
         keywords: searchQuery, 
         numSales: 100 
       }),
-      ebayScraperService.scrapeEbaySales(searchQuery, 100)
+      // ebayScraperService.scrapeEbaySales(searchQuery, 100)
     ]);
 
     // Combine results from both eBay sources
