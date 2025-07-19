@@ -1030,6 +1030,7 @@ router.get('/', async (req, res) => {
 // POST /api/search-cards (for production use)
 router.post('/', async (req, res) => {
   const { searchQuery, numSales = 10 } = req.body;
+  console.log(`>>> POST /api/search-cards endpoint hit at ${new Date().toISOString()} with searchQuery: "${searchQuery}"`);
   
   // Validate required parameters
   if (!searchQuery) {
