@@ -87,55 +87,26 @@ function addEbayTracking(url) {
   }
 }
 
-router.get('/', async (req, res) => {
-  const { query, grade, saleType } = req.query;
+// Extracted function for programmatic use
+async function getLiveListings({ query, grade, saleType }) {
   if (!query || !grade) {
-    return res.status(400).json({ error: 'Missing query or grade parameter' });
+    throw new Error('Missing query or grade parameter');
   }
-
-  // Check cache first
   const cacheKey = cacheService.generateLiveListingsKey(query, grade, saleType);
   const cachedResult = await cacheService.get(cacheKey);
-  
   if (cachedResult) {
-    console.log(`⚡ Cache hit for live listings: ${query} (${grade})`);
-    return res.json({
-      ...cachedResult,
-      cached: true,
-      cacheKey: cacheKey
-    });
+    return { ...cachedResult, cached: true, cacheKey };
   }
-  
-  console.log(`🔍 Cache miss for live listings: ${query} (${grade}), fetching fresh data...`);
-
   const ebayQuery = buildEbayQuery(query, grade);
-
   try {
     const token = process.env.EBAY_AUTH_TOKEN;
-    if (!token) {
-      return res.status(500).json({ error: 'No eBay token available' });
-    }
-
-    // Always define params for retry logic
-    let params = {
-      q: ebayQuery,
-      limit: 20,
-      sort: 'price asc',
-    };
-    if (saleType === 'auction') {
-      params.buyingOptions = 'AUCTION';
-    } else if (saleType === 'fixed') {
-      params.buyingOptions = 'FIXED_PRICE';
-    }
-
-    // Try multiple approaches to get auctions
+    if (!token) throw new Error('No eBay token available');
+    let params = { q: ebayQuery, limit: 20, sort: 'price asc' };
+    if (saleType === 'auction') params.buyingOptions = 'AUCTION';
+    else if (saleType === 'fixed') params.buyingOptions = 'FIXED_PRICE';
     let items = [];
-    
-    // Approach 1: Use Browse API with buyingOptions filter
+    // Approach 1: Browse API
     try {
-      console.log('🔍 Approach 1: Browse API with buyingOptions filter');
-      console.log('🔍 Full API request params:', params);
-
       const response = await axios.get('https://api.ebay.com/buy/browse/v1/item_summary/search', {
         params,
         headers: {
@@ -144,10 +115,7 @@ router.get('/', async (req, res) => {
           'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
         },
       });
-
       items = response.data.itemSummaries || [];
-      console.log(`✅ Approach 1 found ${items.length} items`);
-      console.log('🔍 Full response data:', JSON.stringify(response.data, null, 2));
     } catch (error) {
       console.log('❌ Approach 1 failed:', error.message);
       console.log('❌ Full error details:', {
@@ -462,17 +430,22 @@ router.get('/', async (req, res) => {
     await cacheService.set(cacheKey, responseData, cacheService.liveListingsTTL);
     console.log(`💾 Cached live listings for: ${query} (${grade})`);
 
-    res.json(responseData);
+    return responseData;
   } catch (error) {
-    console.error('eBay Browse API error:', error.response?.data || error.message);
-    console.error('Full error details:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      headers: error.response?.headers,
-      data: error.response?.data
-    });
-    res.status(500).json({ error: 'Failed to fetch live listings', details: error.response?.data || error.message });
+    throw error;
+  }
+}
+
+// Express route handler now calls the function
+router.get('/', async (req, res) => {
+  const { query, grade, saleType } = req.query;
+  try {
+    const data = await getLiveListings({ query, grade, saleType });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch live listings', details: error.message });
   }
 });
 
-module.exports = router; 
+module.exports = router;
+module.exports.getLiveListings = getLiveListings; 
