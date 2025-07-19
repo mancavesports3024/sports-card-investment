@@ -2,6 +2,7 @@ const axios = require('axios');
 const puppeteer = require('puppeteer');
 const ebayService = require('./ebayService');
 const liveListings = require('../routes/liveListings');
+const fs = require('fs');
 
 // eBay scraping configuration
 const EBAY_BASE_URL = 'https://www.ebay.com';
@@ -106,6 +107,8 @@ async function scrapeEbaySales(keywords, numSales = 10, maxRetries = 2) {
         const pageContent = await page.content();
         const hasSoldItems = pageContent.includes('s-item');
         const hasNoResults = pageContent.includes('no results') || pageContent.includes('No results found');
+        // Ensure screenshots directory exists
+        if (!fs.existsSync('screenshots')) fs.mkdirSync('screenshots');
         // Block/CAPTCHA detection
         const blockPhrases = [
           'Access to this page has been denied',
@@ -130,13 +133,13 @@ async function scrapeEbaySales(keywords, numSales = 10, maxRetries = 2) {
         const isBlocked = blockPhrases.some(phrase => pageContent.toLowerCase().includes(phrase));
         if (isBlocked) {
           console.error('❌ eBay block or CAPTCHA detected in Puppeteer page.');
-          await page.screenshot({ path: 'ebay-blocked.png', fullPage: true }).catch(() => {
+          await page.screenshot({ path: 'screenshots/ebay-blocked.png', fullPage: true }).catch(() => {
             console.log('⚠️ Could not save block screenshot');
           });
           throw new Error('eBay block or CAPTCHA detected');
         }
         console.log(`🔍 Page debug: hasSoldItems=${hasSoldItems}, hasNoResults=${hasNoResults}, isBlocked=${isBlocked}`);
-        await page.screenshot({ path: 'ebay-debug.png', fullPage: true }).catch(() => {
+        await page.screenshot({ path: 'screenshots/ebay-debug.png', fullPage: true }).catch(() => {
           console.log('⚠️ Could not save debug screenshot');
         });
         // Robust scraping with retry inside page.evaluate
