@@ -60,10 +60,8 @@ async function search130point(keywords, numSales = 10) {
     lastRequestTime = Date.now();
 
     console.log(`🔍 Searching 130point.com for: "${keywords}"`);
-    // Format search query
-    const searchQuery = formatSearchQuery(keywords);
-    // Prepare form data
-    const formData = qs.stringify({ search: searchQuery });
+    // Use the raw search string for the POST payload
+    const formData = qs.stringify({ search: keywords });
     console.log("130point POST URL:", ONEPOINT_URL);
     console.log("130point POST payload:", formData);
     // Make POST request to 130point
