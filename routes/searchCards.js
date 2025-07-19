@@ -985,13 +985,13 @@ router.get('/', async (req, res) => {
     sorted.aigrade10 = addTrackingToCards(sorted.aigrade10);
     sorted.otherGraded = addTrackingToCards(sorted.otherGraded);
 
-    // Add eBay API usage info
-    let ebayApiUsage = null;
-    try {
-      ebayApiUsage = await getEbayApiUsage();
-    } catch (usageError) {
-      console.error('Failed to fetch eBay API usage:', usageError.message);
-    }
+    // Add eBay API usage info (temporarily disabled)
+    // let ebayApiUsage = null;
+    // try {
+    //   ebayApiUsage = await getEbayApiUsage();
+    // } catch (usageError) {
+    //   console.error('Failed to fetch eBay API usage:', usageError.message);
+    // }
 
     res.json({ 
       searchParams: { searchQuery, numSales: 25 },
@@ -1014,7 +1014,7 @@ router.get('/', async (req, res) => {
         aigrade10: sorted.aigrade10.length,
         otherGraded: sorted.otherGraded.length
       },
-      ebayApiUsage // Include API usage in response
+      // ebayApiUsage // Include API usage in response
     });
   } catch (error) {
     // Improved error logging and safe access
@@ -1179,14 +1179,14 @@ router.post('/', async (req, res) => {
       }
     };
 
-    // Add eBay API usage info
-    let ebayApiUsage = null;
-    try {
-      ebayApiUsage = await getEbayApiUsage();
-    } catch (usageError) {
-      console.error('Failed to fetch eBay API usage:', usageError.message);
-    }
-    responseData.ebayApiUsage = ebayApiUsage;
+    // Add eBay API usage info (temporarily disabled)
+    // let ebayApiUsage = null;
+    // try {
+    //   ebayApiUsage = await getEbayApiUsage();
+    // } catch (usageError) {
+    //   console.error('Failed to fetch eBay API usage:', usageError.message);
+    // }
+    // responseData.ebayApiUsage = ebayApiUsage;
 
     clearTimeout(timeout);
     res.json(responseData);
