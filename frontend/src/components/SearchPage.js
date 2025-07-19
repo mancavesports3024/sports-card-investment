@@ -203,14 +203,95 @@ const SearchPage = () => {
             {liveListings[sectionKey]?.loading && <div>Loading live listings...</div>}
             {liveListings[sectionKey]?.error && <div style={{ color: 'red' }}>{liveListings[sectionKey].error}</div>}
             {liveListings[sectionKey]?.items && liveListings[sectionKey].items.length > 0 && (
-              <div className="live-listings-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+              <div className="live-listings-grid" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                 {liveListings[sectionKey].items.map((item, idx) => (
-                  <div key={item.itemId || idx} className="live-listing-card" style={{ background: '#f8f9fa', border: '1px solid #ffd700', borderRadius: 8, padding: '0.7rem', minWidth: 220, maxWidth: 300, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    {item.image && <img src={item.image.imageUrl || item.image} alt={item.title} style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 4, marginBottom: 6 }} />}
-                    <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer" className="live-listing-title" style={{ fontWeight: 600, color: '#000', fontSize: '1em', marginBottom: 2, textDecoration: 'none' }}>{item.title}</a>
-                    <div className="live-listing-price" style={{ fontSize: '1.1em', fontWeight: 700, color: '#000', margin: '0.3rem 0' }}>{formatPrice({ value: item.price?.value })}</div>
-                    {item.condition && <div className="live-listing-condition" style={{ fontSize: '0.93em', color: '#666' }}>Condition: {item.condition}</div>}
-                    {item.seller && <div className="live-listing-seller" style={{ fontSize: '0.85em', color: '#666' }}>Seller: {item.seller.username}</div>}
+                  <div key={item.itemId || idx} className="live-listing-card" style={{ 
+                    background: '#fff', 
+                    border: '1px solid #e1e3e6', 
+                    borderRadius: 8, 
+                    padding: '1rem', 
+                    display: 'flex', 
+                    flexDirection: 'row', 
+                    alignItems: 'flex-start',
+                    gap: '1rem',
+                    minHeight: '120px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                  }}>
+                    {/* Image on the left */}
+                    <div className="live-listing-image" style={{ flexShrink: 0 }}>
+                      {item.image && (
+                        <img 
+                          src={item.image.imageUrl || item.image} 
+                          alt={item.title} 
+                          style={{ 
+                            width: '120px', 
+                            height: '120px', 
+                            objectFit: 'cover', 
+                            borderRadius: 6,
+                            border: '1px solid #e1e3e6'
+                          }} 
+                        />
+                      )}
+                    </div>
+                    
+                    {/* Details on the right */}
+                    <div className="live-listing-details" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <a 
+                        href={item.itemWebUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="live-listing-title" 
+                        style={{ 
+                          fontWeight: 600, 
+                          color: '#0066cc', 
+                          fontSize: '1.1em', 
+                          textDecoration: 'none',
+                          lineHeight: '1.3',
+                          marginBottom: '0.3rem'
+                        }}
+                      >
+                        {item.title}
+                      </a>
+                      
+                      <div className="live-listing-price" style={{ 
+                        fontSize: '1.3em', 
+                        fontWeight: 700, 
+                        color: '#000',
+                        marginBottom: '0.3rem'
+                      }}>
+                        {formatPrice({ value: item.price?.value })}
+                      </div>
+                      
+                      <div className="live-listing-meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.9em', color: '#666' }}>
+                        {item.condition && (
+                          <span className="live-listing-condition">Condition: {item.condition}</span>
+                        )}
+                        {item.seller && (
+                          <span className="live-listing-seller">Seller: {item.seller.username}</span>
+                        )}
+                      </div>
+                      
+                      <div className="live-listing-actions" style={{ marginTop: 'auto' }}>
+                        <a 
+                          href={item.itemWebUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{ 
+                            fontSize: '0.9em', 
+                            padding: '0.4em 1em', 
+                            background: '#ffd700', 
+                            color: '#000', 
+                            border: '1px solid #d4af37', 
+                            borderRadius: 4, 
+                            textDecoration: 'none',
+                            fontWeight: 600,
+                            display: 'inline-block'
+                          }}
+                        >
+                          View on eBay
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
