@@ -154,9 +154,6 @@ async function search130point(keywords, numSales = 10) {
           priceInUSD = priceInUSD / rate;
         }
 
-        // Format title with sold time
-        const formattedTitle = date ? `${title} - Sold: ${date}` : title;
-
         // Format sale type with green box styling
         const formattedSaleType = saleType ? `[${saleType}]` : '';
 
@@ -164,7 +161,7 @@ async function search130point(keywords, numSales = 10) {
         if (title && salePrice) {
           sales.push({
             id: `130point_${index}_${Date.now()}`,
-            title: formattedTitle,
+            title: title,
             price: {
               value: priceInUSD.toFixed(2),
               currency: 'USD',
