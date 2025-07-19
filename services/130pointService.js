@@ -67,12 +67,10 @@ async function search130point(keywords, numSales = 10) {
     lastRequestTime = Date.now();
 
     console.log(`🔍 Searching 130point.com for: "${keywords}"`);
-    // Format the query with pluses instead of spaces
-    const plusQuery = keywords.replace(/ /g, '+');
-    console.log("130point plus-formatted query:", plusQuery);
-    // Use the raw search string for the POST payload and include all required fields
+    // Use the raw search string for the POST payload
+    console.log("130point raw query:", keywords);
     const formData = qs.stringify({
-      query: plusQuery,
+      query: keywords,
       sort: 'EndTimeSoonest',
       tab_id: 1,
       tz: 'America/Chicago',
