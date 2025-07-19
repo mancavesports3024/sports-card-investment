@@ -68,9 +68,10 @@ async function search130point(keywords, numSales = 10) {
 
     console.log(`🔍 Searching 130point.com for: "${keywords}"`);
     // Use the raw search string for the POST payload
-    console.log("130point raw query:", keywords);
+    // Format query: replace spaces with +
+    const formattedQuery = keywords.replace(/\s+/g, '+');
     const formData = qs.stringify({
-      query: keywords,
+      query: formattedQuery,
       sort: 'EndTimeSoonest',
       tab_id: 1,
       tz: 'America/Chicago',
@@ -100,6 +101,9 @@ async function search130point(keywords, numSales = 10) {
       console.error(`❌ HTTP ${response?.status}: Failed to fetch 130point data`);
       return [];
     }
+
+    // Log the first 500 characters of the HTML response for debugging
+    console.log('130point HTML response (first 500 chars):', response.data?.slice(0, 500));
 
     // Parse HTML response
     const $ = cheerio.load(response.data);
