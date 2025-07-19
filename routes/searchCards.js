@@ -1080,12 +1080,11 @@ router.post('/', async (req, res) => {
     // ]);
 
     console.log(`[130POINT] Using 130point service for sold items search: "${searchQuery}" at ${new Date().toISOString()}`);
-const point130Cards = await point130Service.search130point(searchQuery, 100);
-let allCards = point130Cards;
+    let allCards = await point130Service.search130point(searchQuery, 100);
 
 
     // Combine results from both eBay sources
-    let allCards = [];
+    // let allCards = [];
     
     // if (ebayApiCards.status === 'fulfilled') {
     //   allCards = allCards.concat(ebayApiCards.value);
