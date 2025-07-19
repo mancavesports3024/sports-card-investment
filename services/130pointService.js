@@ -24,6 +24,11 @@ function getRandomUserAgent() {
 // Helper function to delay requests
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Helper function to get a random delay between min and max ms
+function randomDelay(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 // Helper function to format search query for 130point
 const formatSearchQuery = (keywords) => {
   return keywords
@@ -50,26 +55,31 @@ const extractDate = (dateText) => {
 // Main function to search 130point for card sales
 async function search130point(keywords, numSales = 10) {
   try {
-    // Rate limiting
+    // Rate limiting with random delay
     const now = Date.now();
     const timeSinceLastRequest = now - lastRequestTime;
     if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-      console.log(`⏳ Rate limiting: waiting ${MIN_REQUEST_INTERVAL - timeSinceLastRequest}ms`);
-      await delay(MIN_REQUEST_INTERVAL - timeSinceLastRequest);
+      const extraDelay = randomDelay(2000, 5000); // 2-5 seconds random delay
+      const totalDelay = (MIN_REQUEST_INTERVAL - timeSinceLastRequest) + extraDelay;
+      console.log(`⏳ Rate limiting: waiting ${totalDelay}ms (base + random)`);
+      await delay(totalDelay);
     }
     lastRequestTime = Date.now();
 
     console.log(`🔍 Searching 130point.com for: "${keywords}"`);
+    // Format the query with pluses instead of spaces
+    const plusQuery = keywords.replace(/ /g, '+');
+    console.log("130point plus-formatted query:", plusQuery);
     // Use the raw search string for the POST payload and include all required fields
     const formData = qs.stringify({
-      query: keywords,
+      query: plusQuery,
       sort: 'EndTimeSoonest',
       tab_id: 1,
       tz: 'America/Chicago',
       width: 721,
       height: 695,
       mp: 'all',
-      tk: 'Dc849853a13185261a89'
+      tk: 'dc848953a13185261a89'
     });
     console.log("130point POST URL:", ONEPOINT_URL);
     console.log("130point POST payload:", formData);
