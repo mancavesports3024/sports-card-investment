@@ -110,6 +110,7 @@ async function scrapeEbaySales(keywords, numSales = 10, maxRetries = 2) {
         // Ensure screenshots directory exists
         if (!fs.existsSync('screenshots')) fs.mkdirSync('screenshots');
         // Block/CAPTCHA detection
+        const isCloud = process.env.RAILWAY_STATIC_URL || process.env.RAILWAY_ENVIRONMENT;
         const blockPhrases = [
           'Access to this page has been denied',
           'unusual traffic',
@@ -133,15 +134,21 @@ async function scrapeEbaySales(keywords, numSales = 10, maxRetries = 2) {
         const isBlocked = blockPhrases.some(phrase => pageContent.toLowerCase().includes(phrase));
         if (isBlocked) {
           console.error('❌ eBay block or CAPTCHA detected in Puppeteer page.');
-          await page.screenshot({ path: 'screenshots/ebay-blocked.png', fullPage: true }).catch(() => {
-            console.log('⚠️ Could not save block screenshot');
-          });
+          if (!isCloud) {
+            await page.screenshot({ path: 'screenshots/ebay-blocked.png', fullPage: true }).catch(() => {
+              console.log('⚠️ Could not save block screenshot');
+            });
+          } else {
+            console.log('⚠️ Screenshot not saved: running in Railway/cloud environment.');
+          }
           throw new Error('eBay block or CAPTCHA detected');
         }
         console.log(`🔍 Page debug: hasSoldItems=${hasSoldItems}, hasNoResults=${hasNoResults}, isBlocked=${isBlocked}`);
-        await page.screenshot({ path: 'screenshots/ebay-debug.png', fullPage: true }).catch(() => {
-          console.log('⚠️ Could not save debug screenshot');
-        });
+        if (!isCloud) {
+          await page.screenshot({ path: 'screenshots/ebay-debug.png', fullPage: true }).catch(() => {
+            console.log('⚠️ Could not save debug screenshot');
+          });
+        }
         // Robust scraping with retry inside page.evaluate
         let sales = [];
         let evalError = null;
