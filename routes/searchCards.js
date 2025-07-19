@@ -1058,19 +1058,19 @@ router.post('/', async (req, res) => {
     // Always fetch fresh data
 
     // Check if eBay token is available
-    if (!process.env.EBAY_AUTH_TOKEN) {
-      console.log('No eBay token found, returning mock data for testing');
-      const mockData = getMockData(searchQuery, parseInt(numSales));
-      const categorized = categorizeCards(mockData);
-      const sorted = sortBySoldDate(categorized);
-      clearTimeout(timeout);
-      return res.json({ 
-        searchParams: { searchQuery, numSales },
-        results: sorted,
-        priceAnalysis: sorted.priceAnalysis,
-        note: "Mock data - set EBAY_AUTH_TOKEN in .env for real data"
-      });
-    }
+    // (!process.env.EBAY_AUTH_TOKEN) {
+    //console.log('No eBay token found, returning mock data for testing');
+   // const mockData = getMockData(searchQuery, parseInt(numSales));
+  //  const categorized = categorizeCards(mockData);
+  //  const sorted = sortBySoldDate(categorized);
+  //  clearTimeout(timeout);
+  //  return res.json({ 
+  //    searchParams: { searchQuery, numSales },
+ //     results: sorted,
+  //    priceAnalysis: sorted.priceAnalysis,
+  //    note: "Mock data - set EBAY_AUTH_TOKEN in .env for real data"
+  //  });
+ // }
 
     // Fetch the last 100 sales from eBay... (temporarily disabled)
     // console.log(`🎯 Fetching last 100 sales from eBay...`);
@@ -1078,6 +1078,11 @@ router.post('/', async (req, res) => {
     //   ebayService.searchSoldItems({ keywords: searchQuery, numSales: 100 }),
     //   ebayScraperService.scrapeEbaySales(searchQuery, 100)
     // ]);
+
+    console.log(`[130POINT] Using 130point service for sold items search: "${searchQuery}" at ${new Date().toISOString()}`);
+const point130Cards = await point130Service.search130point(searchQuery, 100);
+let allCards = point130Cards;
+
 
     // Combine results from both eBay sources
     let allCards = [];
