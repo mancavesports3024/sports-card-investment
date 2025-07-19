@@ -34,8 +34,8 @@ async function testDirectScraping() {
       timeout: 15000
     });
 
-    if (response.status !== 200) {
-      throw new Error(`HTTP ${response.status}: Failed to fetch eBay data`);
+    if (!response || response.status !== 200) {
+      throw new Error(`HTTP ${response?.status}: Failed to fetch eBay data`);
     }
 
     // Parse HTML response

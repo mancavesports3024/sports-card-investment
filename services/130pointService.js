@@ -87,7 +87,7 @@ async function search130point(keywords, numSales = 10) {
       response = await axios.get(searchUrl, axiosConfig);
     } catch (err) {
       if (err.response) {
-        console.error(`❌ HTTP error: ${err.response.status} - ${err.response.statusText}`);
+        console.error(`❌ HTTP error: ${err.response?.status} - ${err.response?.statusText}`);
         console.error('❌ Response body:', err.response.data?.slice?.(0, 500) || err.response.data);
       } else {
         console.error('❌ Request error:', err.message);
@@ -95,8 +95,8 @@ async function search130point(keywords, numSales = 10) {
       return [];
     }
 
-    if (response.status !== 200) {
-      console.error(`❌ HTTP ${response.status}: Failed to fetch 130point data`);
+    if (!response || response.status !== 200) {
+      console.error(`❌ HTTP ${response?.status}: Failed to fetch 130point data`);
       return [];
     }
 
