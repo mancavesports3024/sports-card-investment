@@ -2,7 +2,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 
 // 130point.com search endpoint
-const ONEPOINT_URL = 'https://130point.com/sales/';
+const ONEPOINT_URL = 'https://130point.com/cards/';
 
 // Rate limiting for 130point scraping
 let lastRequestTime = 0;
@@ -62,6 +62,7 @@ async function search130point(keywords, numSales = 10) {
     // Format search query
     const searchQuery = formatSearchQuery(keywords);
     const searchUrl = `${ONEPOINT_URL}${searchQuery}`;
+    console.log("130point search URL:", searchUrl);
     console.log(`📡 Fetching: ${searchUrl}`);
 
     // Proxy support
