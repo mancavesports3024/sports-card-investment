@@ -920,7 +920,7 @@ router.get('/', async (req, res) => {
       });
     }
 
-    // Fetch the last 100 sales from 130point only (temporarily disable eBay sources)
+    // Fetch the last 100 sales from eBay... (temporarily disabled)
     // const [ebayApiCards, ebayScrapedCards] = await Promise.allSettled([
     //   ebayService.searchSoldItems({ keywords: searchQuery, numSales: 100 }),
     //   ebayScraperService.scrapeEbaySales(searchQuery, 100)
@@ -1069,33 +1069,29 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Fetch the last 100 sales from both sources
-    console.log(`🎯 Fetching last 100 sales from eBay...`);
-    const [ebayApiCards, ebayScrapedCards] = await Promise.allSettled([
-      ebayService.searchSoldItems({ 
-        keywords: searchQuery, 
-        numSales: 100 
-      }),
-      // ebayScraperService.scrapeEbaySales(searchQuery, 100)
-    ]);
+    // Fetch the last 100 sales from eBay... (temporarily disabled)
+    // console.log(`🎯 Fetching last 100 sales from eBay...`);
+    // const [ebayApiCards, ebayScrapedCards] = await Promise.allSettled([
+    //   ebayService.searchSoldItems({ keywords: searchQuery, numSales: 100 }),
+    //   ebayScraperService.scrapeEbaySales(searchQuery, 100)
+    // ]);
 
     // Combine results from both eBay sources
     let allCards = [];
     
-    if (ebayApiCards.status === 'fulfilled') {
-      allCards = allCards.concat(ebayApiCards.value);
-      console.log(`✅ eBay API: ${ebayApiCards.value.length} sold items found`);
-    } else {
-      console.log('❌ eBay API search failed:', ebayApiCards.reason);
-    }
+    // if (ebayApiCards.status === 'fulfilled') {
+    //   allCards = allCards.concat(ebayApiCards.value);
+    //   console.log(`✅ eBay API: ${ebayApiCards.value.length} sold items found`);
+    // } else {
+    //   console.log('❌ eBay API search failed:', ebayApiCards.reason);
+    // }
     
-    if (ebayScrapedCards.status === 'fulfilled') {
-      // Use scraped cards as-is (no enrichment)
-      allCards = allCards.concat(ebayScrapedCards.value);
-      console.log(`✅ eBay Scraped: ${ebayScrapedCards.value.length} sold items found`);
-    } else {
-      console.log('❌ eBay scraping failed:', ebayScrapedCards.reason);
-    }
+    // if (ebayScrapedCards.status === 'fulfilled') {
+    //   allCards = allCards.concat(ebayScrapedCards.value);
+    //   console.log(`✅ eBay Scraped: ${ebayScrapedCards.value.length} sold items found`);
+    // } else {
+    //   console.log('❌ eBay scraping failed:', ebayScrapedCards.reason);
+    // }
 
     // Remove duplicates based on title and price
     const uniqueCards = [];
@@ -1163,8 +1159,8 @@ router.post('/', async (req, res) => {
       results: sorted,
       priceAnalysis: sorted.priceAnalysis,
       sources: {
-        ebayApi: ebayApiCards.status === 'fulfilled' ? ebayApiCards.value.length : 0,
-        ebayScraped: ebayScrapedCards.status === 'fulfilled' ? ebayScrapedCards.value.length : 0,
+        // ebayApi: ebayApiCards.status === 'fulfilled' ? ebayApiCards.value.length : 0,
+        // ebayScraped: ebayScrapedCards.status === 'fulfilled' ? ebayScrapedCards.value.length : 0,
         total: allCards.length,
         raw: sorted.raw.length,
         psa7: sorted.psa7.length,
