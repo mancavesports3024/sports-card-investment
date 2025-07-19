@@ -1,8 +1,9 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const qs = require('qs'); // npm install qs
 
 // 130point.com search endpoint
-const ONEPOINT_URL = 'https://130point.com/cards/';
+const ONEPOINT_URL = 'https://back.130point.com/cards/';
 
 // Rate limiting for 130point scraping
 let lastRequestTime = 0;
@@ -61,40 +62,24 @@ async function search130point(keywords, numSales = 10) {
     console.log(`🔍 Searching 130point.com for: "${keywords}"`);
     // Format search query
     const searchQuery = formatSearchQuery(keywords);
-    const searchUrl = `${ONEPOINT_URL}${searchQuery}`;
-    console.log("130point search URL:", searchUrl);
-    console.log(`📡 Fetching: ${searchUrl}`);
-
-    // Proxy support
-    const axiosConfig = {
+    // Prepare form data
+    const formData = qs.stringify({ search: searchQuery });
+    console.log("130point POST URL:", ONEPOINT_URL);
+    console.log("130point POST payload:", formData);
+    // Make POST request to 130point
+    const response = await axios.post(ONEPOINT_URL, formData, {
       headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         'User-Agent': getRandomUserAgent(),
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
         'Accept-Encoding': 'gzip, deflate',
         'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
+        'Origin': 'https://130point.com',
+        'Referer': 'https://130point.com/',
       },
       timeout: 10000
-    };
-    if (process.env.HTTP_PROXY) {
-      axiosConfig.proxy = false;
-      axiosConfig.httpsAgent = new (require('https-proxy-agent'))(process.env.HTTP_PROXY);
-      console.log(`🌐 Using proxy: ${process.env.HTTP_PROXY}`);
-    }
-
-    let response;
-    try {
-      response = await axios.get(searchUrl, axiosConfig);
-    } catch (err) {
-      if (err.response) {
-        console.error(`❌ HTTP error: ${err.response?.status} - ${err.response?.statusText}`);
-        console.error('❌ Response body:', err.response.data?.slice?.(0, 500) || err.response.data);
-      } else {
-        console.error('❌ Request error:', err.message);
-      }
-      return [];
-    }
+    });
 
     if (!response || response.status !== 200) {
       console.error(`❌ HTTP ${response?.status}: Failed to fetch 130point data`);
