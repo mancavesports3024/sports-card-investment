@@ -59,6 +59,9 @@ function App() {
           <div style={{ fontWeight: 'bold', fontSize: '1.5rem', textAlign: 'center', flex: 1 }}>Scorecard</div>
           {/* Login/Logout/User Right */}
           <div style={{ position: 'absolute', right: 32, display: 'flex', alignItems: 'center' }}>
+            {isLoggedIn && (
+              <a href="/saved-searches" style={{ color: '#ffd700', fontWeight: 'bold', marginRight: '1.5rem', textDecoration: 'underline', fontSize: '1.05rem' }}>Saved Searches</a>
+            )}
             {!isLoggedIn ? (
               <button onClick={handleLogin} style={{ background: '#ffd700', color: '#000', border: 'none', borderRadius: '5px', padding: '0.5rem 1.2rem', fontWeight: 'bold', cursor: 'pointer' }}>Log in</button>
             ) : (

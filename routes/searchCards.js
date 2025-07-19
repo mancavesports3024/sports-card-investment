@@ -6,6 +6,7 @@ const ebayScraperService = require('../services/ebayScraperService');
 const searchHistoryService = require('../services/searchHistoryService');
 const cacheService = require('../services/cacheService');
 const { getEbayApiUsage } = require('../services/ebayService');
+const point130Service = require('../services/130pointService');
 
 // Helper to add EPN tracking parameters to eBay URLs
 function addEbayTracking(url) {
@@ -919,33 +920,26 @@ router.get('/', async (req, res) => {
       });
     }
 
-    // Fetch the last 100 sales from both sources
-    console.log(`🎯 Fetching last 100 sales from eBay...`);
-    const [ebayApiCards, ebayScrapedCards] = await Promise.allSettled([
-      ebayService.searchSoldItems({ 
-        keywords: searchQuery, 
-        numSales: 100 
-      }),
-      ebayScraperService.scrapeEbaySales(searchQuery, 100)
-    ]);
-
-    // Combine results from both eBay sources
-    let allCards = [];
-    
-    if (ebayApiCards.status === 'fulfilled') {
-      allCards = allCards.concat(ebayApiCards.value);
-      console.log(`✅ eBay API: ${ebayApiCards.value.length} sold items found`);
-    } else {
-      console.log('❌ eBay API search failed:', ebayApiCards.reason);
-    }
-    
-    if (ebayScrapedCards.status === 'fulfilled') {
-      // Use scraped cards as-is (no enrichment)
-      allCards = allCards.concat(ebayScrapedCards.value);
-      console.log(`✅ eBay Scraped: ${ebayScrapedCards.value.length} sold items found`);
-    } else {
-      console.log('❌ eBay scraping failed:', ebayScrapedCards.reason);
-    }
+    // Fetch the last 100 sales from 130point only (temporarily disable eBay sources)
+    // const [ebayApiCards, ebayScrapedCards] = await Promise.allSettled([
+    //   ebayService.searchSoldItems({ keywords: searchQuery, numSales: 100 }),
+    //   ebayScraperService.scrapeEbaySales(searchQuery, 100)
+    // ]);
+    const point130Cards = await point130Service.search130point(searchQuery, 100);
+    let allCards = point130Cards;
+    // let allCards = [];
+    // if (ebayApiCards.status === 'fulfilled') {
+    //   allCards = allCards.concat(ebayApiCards.value);
+    //   console.log(`✅ eBay API: ${ebayApiCards.value.length} sold items found`);
+    // } else {
+    //   console.log('❌ eBay API search failed:', ebayApiCards.reason);
+    // }
+    // if (ebayScrapedCards.status === 'fulfilled') {
+    //   allCards = allCards.concat(ebayScrapedCards.value);
+    //   console.log(`✅ eBay Scraped: ${ebayScrapedCards.value.length} sold items found`);
+    // } else {
+    //   console.log('❌ eBay scraping failed:', ebayScrapedCards.reason);
+    // }
 
     // Remove duplicates based on title and price
     const uniqueCards = [];

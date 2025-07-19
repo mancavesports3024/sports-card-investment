@@ -1,8 +1,10 @@
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
+const fs = require('fs');
 const axios = require('axios');
-const puppeteer = require('puppeteer');
 const ebayService = require('./ebayService');
 const liveListings = require('../routes/liveListings');
-const fs = require('fs');
 
 // eBay scraping configuration
 const EBAY_BASE_URL = 'https://www.ebay.com';
@@ -85,10 +87,19 @@ async function scrapeEbaySales(keywords, numSales = 10, maxRetries = 2) {
       const searchQuery = encodeURIComponent(keywords);
       const searchUrl = `https://www.ebay.com/sch/i.html?_nkw=${searchQuery}&_sacat=0&LH_Sold=1&LH_Complete=1&_ipg=200`;
       console.log(`🌐 Scraping URL: ${searchUrl} (attempt ${attempt + 1})`);
-      // Launch Puppeteer browser
+      // Puppeteer launch options with optional proxy
+      const puppeteerArgs = [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage'
+      ];
+      if (process.env.HTTP_PROXY) {
+        puppeteerArgs.push(`--proxy-server=${process.env.HTTP_PROXY}`);
+        console.log(`🌐 Using proxy: ${process.env.HTTP_PROXY}`);
+      }
       const browser = await puppeteer.launch({ 
         headless: true, 
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] 
+        args: puppeteerArgs
       });
       try {
         const page = await browser.newPage();
