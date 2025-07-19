@@ -925,6 +925,8 @@ router.get('/', async (req, res) => {
     //   ebayService.searchSoldItems({ keywords: searchQuery, numSales: 100 }),
     //   ebayScraperService.scrapeEbaySales(searchQuery, 100)
     // ]);
+    // TEMP: Log when using 130point as the primary data source
+    console.log(`[130POINT] Using 130point service for sold items search: "${searchQuery}" at ${new Date().toISOString()}`);
     const point130Cards = await point130Service.search130point(searchQuery, 100);
     let allCards = point130Cards;
     // let allCards = [];
