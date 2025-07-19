@@ -106,7 +106,36 @@ async function scrapeEbaySales(keywords, numSales = 10, maxRetries = 2) {
         const pageContent = await page.content();
         const hasSoldItems = pageContent.includes('s-item');
         const hasNoResults = pageContent.includes('no results') || pageContent.includes('No results found');
-        console.log(`🔍 Page debug: hasSoldItems=${hasSoldItems}, hasNoResults=${hasNoResults}`);
+        // Block/CAPTCHA detection
+        const blockPhrases = [
+          'Access to this page has been denied',
+          'unusual traffic',
+          'verify you are a human',
+          'verify you’re a human',
+          'verify you are not a robot',
+          'verify you’re not a robot',
+          'captcha',
+          'please enable cookies',
+          'restricted access',
+          'forbidden',
+          'blocked',
+          'robot check',
+          'are you a human',
+          'are you human',
+          'security check',
+          'your request has been blocked',
+          'temporarily unavailable',
+          'please try again later'
+        ];
+        const isBlocked = blockPhrases.some(phrase => pageContent.toLowerCase().includes(phrase));
+        if (isBlocked) {
+          console.error('❌ eBay block or CAPTCHA detected in Puppeteer page.');
+          await page.screenshot({ path: 'ebay-blocked.png', fullPage: true }).catch(() => {
+            console.log('⚠️ Could not save block screenshot');
+          });
+          throw new Error('eBay block or CAPTCHA detected');
+        }
+        console.log(`🔍 Page debug: hasSoldItems=${hasSoldItems}, hasNoResults=${hasNoResults}, isBlocked=${isBlocked}`);
         await page.screenshot({ path: 'ebay-debug.png', fullPage: true }).catch(() => {
           console.log('⚠️ Could not save debug screenshot');
         });
