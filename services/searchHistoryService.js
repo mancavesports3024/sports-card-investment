@@ -76,11 +76,13 @@ async function addSearchForUser(user, searchData) {
   try {
     const history = await loadSearchHistory();
     const userId = user.id || user.email;
+    const now = new Date().toISOString();
     const newSearch = {
       id: Date.now().toString(),
       userId,
       query: searchData.searchQuery,
-      timestamp: new Date().toISOString(),
+      timestamp: now,
+      createdAt: now,
       results: {
         totalCards: searchData.results?.raw?.length + searchData.results?.psa9?.length + searchData.results?.psa10?.length || 0,
         raw: searchData.results?.raw?.length || 0,
@@ -119,7 +121,10 @@ async function getSearchHistoryForUser(user) {
   try {
     const history = await loadSearchHistory();
     const userId = user.id || user.email;
-    return history.filter(s => s.userId === userId);
+    return history.filter(s => s.userId === userId).map(s => ({
+      ...s,
+      createdAt: s.createdAt || s.timestamp || null
+    }));
   } catch (error) {
     console.error('❌ Error loading search history:', error);
     return [];
