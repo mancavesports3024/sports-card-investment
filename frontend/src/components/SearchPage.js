@@ -255,6 +255,18 @@ const SearchPage = () => {
     });
   };
 
+  // Helper to calculate price analysis for a set of cards
+  const getPriceStats = (cards) => {
+    const prices = cards
+      .map(card => Number(card.price?.value))
+      .filter(v => !isNaN(v) && v > 0);
+    if (!prices.length) return { min: null, max: null, avg: null };
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+    return { min, max, avg };
+  };
+
   const renderCardSection = (title, cards, icon) => {
     if (!cards || cards.length === 0) return null;
     // Section key for live listings state
@@ -434,11 +446,13 @@ const SearchPage = () => {
 
   const renderPriceAnalysis = (analysis) => {
     if (!analysis) return null;
-    const tiles = [
-      { key: 'raw', label: 'Raw Cards' },
-      { key: 'psa9', label: 'PSA 9' },
-      { key: 'psa10', label: 'PSA 10' }
-    ];
+    // Use filtered/displayed cards for stats
+    const rawCards = filterRawCards(results?.results?.raw || []);
+    const psa9Cards = (results?.results?.psa9 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
+    const psa10Cards = (results?.results?.psa10 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
+    const rawStats = getPriceStats(rawCards);
+    const psa9Stats = getPriceStats(psa9Cards);
+    const psa10Stats = getPriceStats(psa10Cards);
     // Comparison tiles
     const comparisons = analysis.comparisons || {};
     const comparisonTiles = [
@@ -458,16 +472,38 @@ const SearchPage = () => {
       insight = 'No strong upward trends detected.';
     }
     // Build the 3x3 grid: [raw, psa9, psa10, rawToPsa9, rawToPsa10, psa9ToPsa10, insight, empty, empty]
+    const tiles = [
+      { key: 'raw', label: 'Raw Cards', stats: rawStats },
+      { key: 'psa9', label: 'PSA 9', stats: psa9Stats },
+      { key: 'psa10', label: 'PSA 10', stats: psa10Stats }
+    ];
+    // Comparison tiles
+    const comparisonTiles = [
+      { key: 'rawToPsa9', label: 'Raw → PSA 9', data: comparisons.rawToPsa9 },
+      { key: 'rawToPsa10', label: 'Raw → PSA 10', data: comparisons.rawToPsa10 },
+      { key: 'psa9ToPsa10', label: 'PSA 9 → PSA 10', data: comparisons.psa9ToPsa10 }
+    ];
+    // Investment insight
+    let insight = '';
+    if (analysis.psa10 && analysis.psa10.trend === 'up') {
+      insight = 'PSA 10 prices are trending up!';
+    } else if (analysis.psa9 && analysis.psa9.trend === 'up') {
+      insight = 'PSA 9 prices are trending up!';
+    } else if (analysis.raw && analysis.raw.trend === 'up') {
+      insight = 'Raw card prices are trending up!';
+    } else {
+      insight = 'No strong upward trends detected.';
+    }
+    // Build the 3x3 grid: [raw, psa9, psa10, rawToPsa9, rawToPsa10, psa9ToPsa10, insight, empty, empty]
     const gridTiles = [
-      ...tiles.map(({ key, label }) => {
-        const item = analysis[key];
-        if (!item) return null;
+      ...tiles.map(({ key, label, stats }) => {
+        if (!stats || stats.min == null) return null;
         return (
           <div key={key} className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
             <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
-            <p style={{ margin: 0 }}>Avg: <strong>{formatPrice({ value: item.avgPrice })}</strong></p>
-            <p style={{ margin: 0, fontSize: '0.93em' }}>Range: {formatPrice({ value: item.minPrice })} - {formatPrice({ value: item.maxPrice })}</p>
-            <p style={{ margin: '0.3rem 0 0 0', color: '#888', fontSize: '0.93em' }}>Trend: <span style={{ color: item.trend === 'up' ? 'green' : item.trend === 'down' ? 'red' : '#888' }}>{item.trend.charAt(0).toUpperCase() + item.trend.slice(1)}</span></p>
+            <p style={{ margin: 0 }}>Avg: <strong>{formatPrice({ value: stats.avg })}</strong></p>
+            <p style={{ margin: 0, fontSize: '0.93em' }}>Range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })}</p>
+            {/* No trend for now */}
           </div>
         );
       }),
