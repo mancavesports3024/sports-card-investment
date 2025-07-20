@@ -7,9 +7,9 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('authToken'));
   const [open, setOpen] = useState(true);
 
-  // Sync open state with forceOpen prop
+  // Sync open state with forceOpen prop (counter: fold when it changes)
   useEffect(() => {
-    if (typeof forceOpen === 'boolean') setOpen(forceOpen);
+    setOpen(false);
   }, [forceOpen]);
 
   // Expose a refetch function for parent

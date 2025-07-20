@@ -24,8 +24,8 @@ const SearchPage = () => {
   const [savedSearchesRefetch, setSavedSearchesRefetch] = useState(0);
   const chartRef = useRef(null);
   const [liveListingsReloadKey, setLiveListingsReloadKey] = useState(0);
-  // Control open/closed state of SavedSearches
-  const [savedSearchesOpen, setSavedSearchesOpen] = useState(true);
+  // Control open/closed state of SavedSearches (use a counter to always trigger folding)
+  const [savedSearchesOpen, setSavedSearchesOpen] = useState(0);
 
   // Fetch saved searches on mount (for duplicate prevention)
   useEffect(() => {
@@ -542,7 +542,8 @@ const SearchPage = () => {
         if (chartRef.current) {
           chartRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-        setSavedSearchesOpen(false); // fold up after reuse
+        setSavedSearchesOpen(x => x + 1); // always trigger fold up
+        setLiveListingsReloadKey(x => x + 1); // reload live listings
       }, 400);
     }, 200);
   };
