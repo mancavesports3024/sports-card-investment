@@ -1,68 +1,62 @@
 import React, { useEffect, useState } from 'react';
 
-const SavedSearches = ({ onSearchAgain }) => {
+const SavedSearches = ({ onSearchAgain, refetchTrigger }) => {
   const [searches, setSearches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('authToken'));
   const [open, setOpen] = useState(true);
 
-  const handleLogin = () => {
-    window.location.href = 'https://web-production-9efa.up.railway.app/api/auth/google';
-  };
-
-  useEffect(() => {
-    const fetchSearches = async () => {
-      setLoading(true);
-      setError(null);
-      const token = localStorage.getItem('authToken');
-      setIsLoggedIn(!!token);
-      if (!token) {
-        setError('You must be logged in to view saved searches.');
+  // Expose a refetch function for parent
+  const refetchSavedSearches = async () => {
+    setLoading(true);
+    setError(null);
+    const token = localStorage.getItem('authToken');
+    setIsLoggedIn(!!token);
+    if (!token) {
+      setError('You must be logged in to view saved searches.');
+      setLoading(false);
+      setOpen(false);
+      return;
+    }
+    try {
+      const res = await fetch('/api/search-history', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        cache: 'no-store'
+      });
+      let text, data;
+      try {
+        text = await res.text();
+        data = JSON.parse(text);
+        console.log('Loaded saved searches:', data);
+      } catch (jsonErr) {
+        console.error('Failed to parse JSON. Response text:', text);
+        setError('Failed to load saved searches: Invalid JSON. See console for details.');
         setLoading(false);
         setOpen(false);
         return;
       }
-      try {
-        const res = await fetch('/api/search-history', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          cache: 'no-store'
-        });
-        if (res.status === 304) {
-          setError('No new saved searches (304 Not Modified).');
-          setSearches([]);
-          setLoading(false);
-          setOpen(false);
-          return;
-        }
-        let text, data;
-        try {
-          text = await res.text();
-          data = JSON.parse(text);
-        } catch (jsonErr) {
-          console.error('Failed to parse JSON. Response text:', text);
-          setError('Failed to load saved searches: Invalid JSON. See console for details.');
-          setLoading(false);
-          setOpen(false);
-          return;
-        }
-        if (!data.success) {
-          setError(data.error || 'Failed to load saved searches.');
-          setOpen(false);
-        } else {
-          setSearches(data.searches || []);
-          setOpen((data.searches || []).length > 0);
-        }
-      } catch (err) {
-        setError('Failed to load saved searches: ' + (err.message || err.toString()));
+      if (!data.success) {
+        setError(data.error || 'Failed to load saved searches.');
         setOpen(false);
+      } else {
+        setSearches(data.searches || []);
+        setOpen((data.searches || []).length > 0);
       }
-      setLoading(false);
-    };
-    fetchSearches();
-  }, []);
+    } catch (err) {
+      setError('Failed to load saved searches: ' + (err.message || err.toString()));
+      setOpen(false);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    refetchSavedSearches();
+    // Optionally refetch when parent triggers
+    // eslint-disable-next-line
+  }, [refetchTrigger]);
 
   const handleDelete = async (searchId) => {
     const token = localStorage.getItem('authToken');
@@ -75,10 +69,10 @@ const SavedSearches = ({ onSearchAgain }) => {
         }
       });
       if (res.ok) {
-        setSearches(searches.filter(s => (s.id || s._id) !== searchId));
+        await refetchSavedSearches();
       }
     } catch (err) {
-      // Optionally show error
+      console.error('Delete error:', err);
     }
   };
 
@@ -93,11 +87,15 @@ const SavedSearches = ({ onSearchAgain }) => {
         }
       });
       if (res.ok) {
-        setSearches([]);
+        await refetchSavedSearches();
       }
     } catch (err) {
-      // Optionally show error
+      console.error('Clear all error:', err);
     }
+  };
+
+  const handleLogin = () => {
+    window.location.href = 'https://web-production-9efa.up.railway.app/api/auth/google';
   };
 
   if (loading) return <div style={{ color: '#ffd700', textAlign: 'center', margin: '2rem' }}>Loading saved searches...</div>;

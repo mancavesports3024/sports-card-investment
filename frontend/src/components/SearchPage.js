@@ -20,6 +20,8 @@ const SearchPage = () => {
   const [liveListings, setLiveListings] = useState({}); // { sectionKey: { loading, items, error, open } }
   // Store saved searches in state for duplicate check
   const [savedSearches, setSavedSearches] = useState([]);
+  // Add a refetch trigger for SavedSearches
+  const [savedSearchesRefetch, setSavedSearchesRefetch] = useState(0);
 
   // Fetch saved searches on mount (for duplicate prevention)
   useEffect(() => {
@@ -155,20 +157,8 @@ const SearchPage = () => {
               })
             });
             setLastSavedQuery(combinedQuery);
-            // Refetch saved searches after saving
-            const token = localStorage.getItem('authToken');
-            if (token) {
-              const res = await fetch('/api/search-history', {
-                headers: { 'Authorization': `Bearer ${token}` },
-                cache: 'no-store'
-              });
-              let text, d;
-              try {
-                text = await res.text();
-                d = JSON.parse(text);
-              } catch {}
-              if (d && d.success) setSavedSearches(d.searches || []);
-            }
+            setSavedSearchesRefetch(x => x + 1); // force reload
+            console.log('Triggered saved searches refetch after save');
           } catch (historyError) {
             console.error('Failed to save search history:', historyError);
             // Don't show error to user for history saving
@@ -453,31 +443,13 @@ const SearchPage = () => {
     const rawStats = getPriceStats(rawCards);
     const psa9Stats = getPriceStats(psa9Cards);
     const psa10Stats = getPriceStats(psa10Cards);
-    // Comparison tiles
-    const comparisons = analysis.comparisons || {};
-    const comparisonTiles = [
-      { key: 'rawToPsa9', label: 'Raw → PSA 9', data: comparisons.rawToPsa9 },
-      { key: 'rawToPsa10', label: 'Raw → PSA 10', data: comparisons.rawToPsa10 },
-      { key: 'psa9ToPsa10', label: 'PSA 9 → PSA 10', data: comparisons.psa9ToPsa10 }
-    ];
-    // Investment insight
-    let insight = '';
-    if (analysis.psa10 && analysis.psa10.trend === 'up') {
-      insight = 'PSA 10 prices are trending up!';
-    } else if (analysis.psa9 && analysis.psa9.trend === 'up') {
-      insight = 'PSA 9 prices are trending up!';
-    } else if (analysis.raw && analysis.raw.trend === 'up') {
-      insight = 'Raw card prices are trending up!';
-    } else {
-      insight = 'No strong upward trends detected.';
-    }
-    // Build the 3x3 grid: [raw, psa9, psa10, rawToPsa9, rawToPsa10, psa9ToPsa10, insight, empty, empty]
     const tiles = [
       { key: 'raw', label: 'Raw Cards', stats: rawStats },
       { key: 'psa9', label: 'PSA 9', stats: psa9Stats },
       { key: 'psa10', label: 'PSA 10', stats: psa10Stats }
     ];
     // Comparison tiles
+    const comparisons = analysis.comparisons || {};
     const comparisonTiles = [
       { key: 'rawToPsa9', label: 'Raw → PSA 9', data: comparisons.rawToPsa9 },
       { key: 'rawToPsa10', label: 'Raw → PSA 10', data: comparisons.rawToPsa10 },
@@ -656,7 +628,7 @@ const SearchPage = () => {
         </form>
         {/* Saved Searches below the form */}
         <div id="saved-searches-section">
-          <SavedSearches onSearchAgain={handleReuseSavedSearch} />
+          <SavedSearches onSearchAgain={handleReuseSavedSearch} refetchTrigger={savedSearchesRefetch} />
         </div>
 
         {/* Login Prompt for Non-Logged-In Users */}
