@@ -195,6 +195,20 @@ const SearchPage = () => {
     }
   };
 
+  // Helper to filter raw cards
+  const filterRawCards = (cards) => {
+    if (!Array.isArray(cards)) return [];
+    return cards.filter(card => {
+      // Exclude if title contains grading keywords or numbers like 9.5, 10, etc.
+      const title = (card.title || '').toLowerCase();
+      const isGraded = /bgs|psa|sgc|cgc|tag|\b9\.5\b|\b10\b|\b9\b|\b8\b|\b7\b/.test(title);
+      // Exclude if price is missing or not a number
+      const priceValue = Number(card.price?.value);
+      const validPrice = !isNaN(priceValue) && priceValue > 0;
+      return !isGraded && validPrice;
+    });
+  };
+
   const renderCardSection = (title, cards, icon) => {
     if (!cards || cards.length === 0) return null;
     // Section key for live listings state
@@ -205,6 +219,11 @@ const SearchPage = () => {
     else if (title.includes('PSA 10')) grade = 'PSA 10';
     // Use the last search query for live listings
     const query = results?.searchParams?.searchQuery || title.replace(/\s+\(.+\)/, '');
+    // Filter raw cards if this is the Raw section
+    let displayCards = cards;
+    if (title.toLowerCase().includes('raw')) {
+      displayCards = filterRawCards(cards);
+    }
     return (
       <div className="card-section">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -319,7 +338,7 @@ const SearchPage = () => {
           </div>
         )}
         <div className="cards-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem' }}>
-          {cards.map((card, index) => (
+          {displayCards.map((card, index) => (
             <div key={`${card.id || index}-${card.title}`} className="card-item" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.7rem', minWidth: 170, maxWidth: 210, fontSize: '0.97em', marginBottom: 0 }}>
               <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                 <div className="card-title" style={{ fontWeight: 600, fontSize: '1em', marginBottom: 2 }}>{card.title}</div>

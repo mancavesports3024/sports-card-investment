@@ -34,7 +34,16 @@ const SavedSearches = ({ onSearchAgain }) => {
           setLoading(false);
           return;
         }
-        const data = await res.json();
+        let data;
+        try {
+          data = await res.json();
+        } catch (jsonErr) {
+          const text = await res.text();
+          console.error('Failed to parse JSON. Response text:', text);
+          setError('Failed to load saved searches: Invalid JSON. See console for details.');
+          setLoading(false);
+          return;
+        }
         if (!data.success) {
           setError(data.error || 'Failed to load saved searches.');
         } else {
