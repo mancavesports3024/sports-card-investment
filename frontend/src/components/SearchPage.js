@@ -142,7 +142,7 @@ const SearchPage = () => {
         ].length > 0;
         if (hasCards) {
           try {
-            await fetch(config.getSearchHistoryUrl(), {
+            const saveRes = await fetch(config.getSearchHistoryUrl(), {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -691,9 +691,9 @@ const SearchPage = () => {
                         <YAxis tick={{ fontSize: 12 }} />
                         <Tooltip />
                         <Legend />
-                        <Line type="monotone" dataKey="Raw" stroke="#8884d8" dot={false} name="Raw" connectNulls={true} />
-                        <Line type="monotone" dataKey="PSA9" stroke="#82ca9d" dot={false} name="PSA 9" connectNulls={true} />
-                        <Line type="monotone" dataKey="PSA10" stroke="#ffd700" dot={false} name="PSA 10" connectNulls={true} />
+                        <Line type="monotone" dataKey="Raw" stroke="#1976d2" strokeWidth={3} dot={false} name="Raw" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA9" stroke="#43a047" strokeWidth={3} dot={false} name="PSA 9" connectNulls={true} />
+                        <Line type="monotone" dataKey="PSA10" stroke="#ffd700" strokeWidth={4} dot={false} name="PSA 10" connectNulls={true} />
                       </LineChart>
                     </ResponsiveContainer>
                   );
