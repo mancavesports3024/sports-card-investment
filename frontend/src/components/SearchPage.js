@@ -32,6 +32,19 @@ const SearchPage = () => {
         localStorage.removeItem('authToken');
       }
     }
+    // Check for reuseSearchQuery
+    const reuse = localStorage.getItem('reuseSearchQuery');
+    if (reuse) {
+      setSearchQuery(reuse);
+      setTimeout(() => {
+        document.getElementById('searchQuery')?.focus();
+        document.getElementById('searchQuery')?.blur();
+      }, 100);
+      setTimeout(() => {
+        document.getElementById('search-form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      }, 200);
+      localStorage.removeItem('reuseSearchQuery');
+    }
   }, []);
 
   const handleSearch = async (e) => {
@@ -443,7 +456,7 @@ const SearchPage = () => {
           </a>
         </div>
         {/* Search Form */}
-        <form onSubmit={handleSearch} className="search-form">
+        <form id="search-form" onSubmit={handleSearch} className="search-form">
           <div className="form-group">
             <label htmlFor="playerName">Player Name:</label>
             <input
@@ -518,6 +531,22 @@ const SearchPage = () => {
             <button type="submit" disabled={isLoading} className="search-button">
               {isLoading ? '🔍 Searching...' : '🔍 Search Cards'}
             </button>
+          </div>
+          <div className="form-group">
+            <a href="/saved-searches" style={{
+              display: 'inline-block',
+              background: '#ffd700',
+              color: '#000',
+              border: '1px solid #aaa',
+              borderRadius: 5,
+              padding: '0.5rem 1.2rem',
+              fontWeight: 'bold',
+              textDecoration: 'none',
+              fontSize: '1.05rem',
+              marginTop: '0.5rem',
+              textAlign: 'center',
+              width: '100%'
+            }}>Saved Searches</a>
           </div>
         </form>
 
