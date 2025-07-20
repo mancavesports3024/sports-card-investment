@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Card API Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .loading {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Sports Card API Tester</h1>
+        <p>Test your Sports Card Sales API without needing Node.js installed.</p>
+        
+        <div class="form-group">
+            <label for="cardName">Card Name:</label>
+            <input type="text" id="cardName" value="Mike Trout" placeholder="e.g., Mike Trout">
+        </div>
+        
+        <div class="form-group">
+            <label for="cardYear">Card Year:</label>
+            <input type="text" id="cardYear" value="2011" placeholder="e.g., 2011">
+        </div>
+        
+        <div class="form-group">
+            <label for="cardSet">Card Set:</label>
+            <input type="text" id="cardSet" value="Topps Update" placeholder="e.g., Topps Update">
+        </div>
+        
+        <div class="form-group">
+            <label for="numSales">Number of Sales:</label>
+            <select id="numSales">
+                <option value="3">3</option>
+                <option value="5" selected>5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="serverUrl">Server URL:</label>
+            <input type="text" id="serverUrl" value="http://localhost:3001" placeholder="http://localhost:3001">
+        </div>
+        
+        <button onclick="testGet()">Test GET Request</button>
+        <button onclick="testPost()">Test POST Request</button>
+        <button onclick="testBasic()">Test Basic Endpoint</button>
+        
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        function showResult(content, isError = false) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result ' + (isError ? 'error' : 'success');
+            resultDiv.textContent = content;
+        }
+
+        function showLoading() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'Loading...';
+        }
+
+        async function testGet() {
+            showLoading();
+            try {
+                const cardName = document.getElementById('cardName').value;
+                const cardYear = document.getElementById('cardYear').value;
+                const cardSet = document.getElementById('cardSet').value;
+                const numSales = document.getElementById('numSales').value;
+                const serverUrl = document.getElementById('serverUrl').value;
+                
+                const url = `${serverUrl}/api/search-cards?cardName=${encodeURIComponent(cardName)}&cardYear=${encodeURIComponent(cardYear)}&cardSet=${encodeURIComponent(cardSet)}&numSales=${numSales}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                showResult(`✅ GET Request Successful!\n\nURL: ${url}\n\nResponse:\n${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                showResult(`❌ GET Request Failed:\n\n${error.message}`, true);
+            }
+        }
+
+        async function testPost() {
+            showLoading();
+            try {
+                const cardName = document.getElementById('cardName').value;
+                const cardYear = document.getElementById('cardYear').value;
+                const cardSet = document.getElementById('cardSet').value;
+                const numSales = document.getElementById('numSales').value;
+                const serverUrl = document.getElementById('serverUrl').value;
+                
+                const response = await fetch(`${serverUrl}/api/search-cards`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        cardName,
+                        cardYear,
+                        cardSet,
+                        numSales: parseInt(numSales)
+                    })
+                });
+                
+                const data = await response.json();
+                
+                showResult(`✅ POST Request Successful!\n\nRequest Body:\n${JSON.stringify({cardName, cardYear, cardSet, numSales}, null, 2)}\n\nResponse:\n${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                showResult(`❌ POST Request Failed:\n\n${error.message}`, true);
+            }
+        }
+
+        async function testBasic() {
+            showLoading();
+            try {
+                const serverUrl = document.getElementById('serverUrl').value;
+                const response = await fetch(serverUrl);
+                const data = await response.text();
+                
+                showResult(`✅ Basic Endpoint Test Successful!\n\nURL: ${serverUrl}\n\nResponse:\n${data}`);
+            } catch (error) {
+                showResult(`❌ Basic Endpoint Test Failed:\n\n${error.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html> 

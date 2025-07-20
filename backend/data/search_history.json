@@ -1,0 +1,1705 @@
+[
+  {
+    "id": "1751924386888",
+    "query": "lugia v 186/195",
+    "timestamp": "2025-07-07T21:39:46.888Z",
+    "results": {
+      "totalCards": 46,
+      "raw": 27,
+      "psa9": 8,
+      "psa10": 11
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 27,
+        "avgPrice": 360.3,
+        "minPrice": 230.5,
+        "maxPrice": 699,
+        "trend": "down"
+      },
+      "psa7": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "psa8": {
+        "count": 1,
+        "avgPrice": 255,
+        "minPrice": 255,
+        "maxPrice": 255,
+        "trend": "neutral"
+      },
+      "psa9": {
+        "count": 8,
+        "avgPrice": 288.86375,
+        "minPrice": 270,
+        "maxPrice": 327.77,
+        "trend": "neutral"
+      },
+      "psa10": {
+        "count": 11,
+        "avgPrice": 700.7527272727273,
+        "minPrice": 499,
+        "maxPrice": 750,
+        "trend": "up"
+      },
+      "cgc9": {
+        "count": 1,
+        "avgPrice": 279,
+        "minPrice": 279,
+        "maxPrice": 279,
+        "trend": "neutral"
+      },
+      "cgc10": {
+        "count": 1,
+        "avgPrice": 503.99,
+        "minPrice": 503.99,
+        "maxPrice": 503.99,
+        "trend": "neutral"
+      },
+      "tag8": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag9": {
+        "count": 2,
+        "avgPrice": 317.5,
+        "minPrice": 285,
+        "maxPrice": 350,
+        "trend": "neutral"
+      },
+      "tag10": {
+        "count": 1,
+        "avgPrice": 700,
+        "minPrice": 700,
+        "maxPrice": 700,
+        "trend": "neutral"
+      },
+      "sgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "otherGraded": {
+        "count": 6,
+        "avgPrice": 878.2916666666666,
+        "minPrice": 325,
+        "maxPrice": 1450,
+        "trend": "down"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": -71.43625000000003,
+          "percentDiff": -19.826880377463233,
+          "description": "PSA 9 is $-71.44 (-19.8%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 340.45272727272726,
+          "percentDiff": 94.49145913758736,
+          "description": "PSA 10 is $340.45 (+94.5%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 411.8889772727273,
+          "percentDiff": 142.58936168789864,
+          "description": "PSA 10 is $411.89 (+142.6%) more than PSA 9"
+        },
+        "rawToCgc9": {
+          "dollarDiff": -81.30000000000001,
+          "percentDiff": -22.564529558701086,
+          "description": "CGC 9 is $-81.30 (-22.6%) more than Raw"
+        },
+        "rawToCgc10": {
+          "dollarDiff": 143.69,
+          "percentDiff": 39.880655009714125,
+          "description": "CGC 10 is $143.69 (+39.9%) more than Raw"
+        },
+        "cgc9ToCgc10": {
+          "dollarDiff": 224.99,
+          "percentDiff": 80.64157706093191,
+          "description": "CGC 10 is $224.99 (+80.6%) more than CGC 9"
+        },
+        "rawToPsa8": {
+          "dollarDiff": -105.30000000000001,
+          "percentDiff": -29.22564529558701,
+          "description": "PSA 8 is $-105.30 (-29.2%) more than Raw"
+        },
+        "rawToOtherGraded": {
+          "dollarDiff": 517.9916666666666,
+          "percentDiff": 143.7667684337126,
+          "description": "Other Graded is $517.99 (+143.8%) more than Raw"
+        }
+      }
+    }
+  },
+  {
+    "id": "1751924236265",
+    "query": "magikarp scarlet & violet 203/193",
+    "timestamp": "2025-07-07T21:37:16.265Z",
+    "results": {
+      "totalCards": 54,
+      "raw": 38,
+      "psa9": 9,
+      "psa10": 7
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 38,
+        "avgPrice": 210.63078947368422,
+        "minPrice": 150,
+        "maxPrice": 514.52,
+        "trend": "neutral"
+      },
+      "psa7": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "psa8": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "psa9": {
+        "count": 9,
+        "avgPrice": 239.3177777777778,
+        "minPrice": 193.5,
+        "maxPrice": 290,
+        "trend": "up"
+      },
+      "psa10": {
+        "count": 7,
+        "avgPrice": 1119.857142857143,
+        "minPrice": 968,
+        "maxPrice": 1500,
+        "trend": "up"
+      },
+      "cgc9": {
+        "count": 1,
+        "avgPrice": 176.06,
+        "minPrice": 176.06,
+        "maxPrice": 176.06,
+        "trend": "neutral"
+      },
+      "cgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag8": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "sgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "otherGraded": {
+        "count": 3,
+        "avgPrice": 833.3333333333334,
+        "minPrice": 400,
+        "maxPrice": 1150,
+        "trend": "up"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": 28.686988304093575,
+          "percentDiff": 13.619560737428499,
+          "description": "PSA 9 is $28.69 (+13.6%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 909.2263533834587,
+          "percentDiff": 431.6683024620461,
+          "description": "PSA 10 is $909.23 (+431.7%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 880.5393650793651,
+          "percentDiff": 367.937297954105,
+          "description": "PSA 10 is $880.54 (+367.9%) more than PSA 9"
+        },
+        "rawToCgc9": {
+          "dollarDiff": -34.570789473684215,
+          "percentDiff": -16.4129800586459,
+          "description": "CGC 9 is $-34.57 (-16.4%) more than Raw"
+        },
+        "rawToOtherGraded": {
+          "dollarDiff": 622.7025438596492,
+          "percentDiff": 295.6369984728412,
+          "description": "Other Graded is $622.70 (+295.6%) more than Raw"
+        }
+      }
+    }
+  },
+  {
+    "id": "1751924099618",
+    "query": "marill 204",
+    "timestamp": "2025-07-07T21:34:59.618Z",
+    "results": {
+      "totalCards": 49,
+      "raw": 41,
+      "psa9": 4,
+      "psa10": 4
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 41,
+        "avgPrice": 23.86439024390244,
+        "minPrice": 9.5,
+        "maxPrice": 42.61,
+        "trend": "up"
+      },
+      "psa7": {
+        "count": 1,
+        "avgPrice": 10.5,
+        "minPrice": 10.5,
+        "maxPrice": 10.5,
+        "trend": "neutral"
+      },
+      "psa8": {
+        "count": 3,
+        "avgPrice": 21.33666666666667,
+        "minPrice": 15.5,
+        "maxPrice": 29.5,
+        "trend": "up"
+      },
+      "psa9": {
+        "count": 4,
+        "avgPrice": 29.1175,
+        "minPrice": 15.5,
+        "maxPrice": 34.99,
+        "trend": "up"
+      },
+      "psa10": {
+        "count": 4,
+        "avgPrice": 218.25,
+        "minPrice": 202.5,
+        "maxPrice": 235,
+        "trend": "up"
+      },
+      "cgc9": {
+        "count": 1,
+        "avgPrice": 17.5,
+        "minPrice": 17.5,
+        "maxPrice": 17.5,
+        "trend": "neutral"
+      },
+      "cgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag8": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "sgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "otherGraded": {
+        "count": 2,
+        "avgPrice": 133.98000000000002,
+        "minPrice": 29.13,
+        "maxPrice": 238.83,
+        "trend": "neutral"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": 5.253109756097558,
+          "percentDiff": 22.01233596337025,
+          "description": "PSA 9 is $5.25 (+22.0%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 194.38560975609755,
+          "percentDiff": 814.5425370998731,
+          "description": "PSA 10 is $194.39 (+814.5%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 189.1325,
+          "percentDiff": 649.5492401476776,
+          "description": "PSA 10 is $189.13 (+649.5%) more than PSA 9"
+        },
+        "rawToCgc9": {
+          "dollarDiff": -6.364390243902442,
+          "percentDiff": -26.668983279506158,
+          "description": "CGC 9 is $-6.36 (-26.7%) more than Raw"
+        },
+        "rawToPsa7": {
+          "dollarDiff": -13.364390243902442,
+          "percentDiff": -56.001389967703695,
+          "description": "PSA 7 is $-13.36 (-56.0%) more than Raw"
+        },
+        "rawToPsa8": {
+          "dollarDiff": -2.527723577235772,
+          "percentDiff": -10.592030851832165,
+          "description": "PSA 8 is $-2.53 (-10.6%) more than Raw"
+        },
+        "rawToOtherGraded": {
+          "dollarDiff": 110.11560975609757,
+          "percentDiff": 461.42226401210087,
+          "description": "Other Graded is $110.12 (+461.4%) more than Raw"
+        }
+      }
+    }
+  },
+  {
+    "id": "1751923357457",
+    "query": "maushold 226 -(205, Sealed, 2x, Korean, NON-Official, , Japanese, Gardevoir, Choose, Charizard)",
+    "timestamp": "2025-07-07T21:22:37.457Z",
+    "results": {
+      "totalCards": 52,
+      "raw": 44,
+      "psa9": 4,
+      "psa10": 4
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 44,
+        "avgPrice": 25.63681818181818,
+        "minPrice": 6.75,
+        "maxPrice": 35,
+        "trend": "neutral"
+      },
+      "psa7": {
+        "count": 1,
+        "avgPrice": 19.99,
+        "minPrice": 19.99,
+        "maxPrice": 19.99,
+        "trend": "neutral"
+      },
+      "psa8": {
+        "count": 1,
+        "avgPrice": 29.95,
+        "minPrice": 29.95,
+        "maxPrice": 29.95,
+        "trend": "neutral"
+      },
+      "psa9": {
+        "count": 4,
+        "avgPrice": 25.875,
+        "minPrice": 20.5,
+        "maxPrice": 37.49,
+        "trend": "down"
+      },
+      "psa10": {
+        "count": 4,
+        "avgPrice": 222.21,
+        "minPrice": 191.16,
+        "maxPrice": 249.99,
+        "trend": "up"
+      },
+      "cgc9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "cgc10": {
+        "count": 1,
+        "avgPrice": 36,
+        "minPrice": 36,
+        "maxPrice": 36,
+        "trend": "neutral"
+      },
+      "tag8": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag9": {
+        "count": 2,
+        "avgPrice": 26.5,
+        "minPrice": 23,
+        "maxPrice": 30,
+        "trend": "neutral"
+      },
+      "tag10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "sgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "otherGraded": {
+        "count": 1,
+        "avgPrice": 139.23,
+        "minPrice": 139.23,
+        "maxPrice": 139.23,
+        "trend": "neutral"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": 0.23818181818181827,
+          "percentDiff": 0.9290615414620312,
+          "description": "PSA 9 is $0.24 (+0.9%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 196.57318181818184,
+          "percentDiff": 766.7612276378079,
+          "description": "PSA 10 is $196.57 (+766.8%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 196.335,
+          "percentDiff": 758.7826086956521,
+          "description": "PSA 10 is $196.34 (+758.8%) more than PSA 9"
+        },
+        "rawToCgc10": {
+          "dollarDiff": 10.363181818181818,
+          "percentDiff": 40.42304214464282,
+          "description": "CGC 10 is $10.36 (+40.4%) more than Raw"
+        },
+        "rawToPsa7": {
+          "dollarDiff": -5.646818181818183,
+          "percentDiff": -22.026205209127504,
+          "description": "PSA 7 is $-5.65 (-22.0%) more than Raw"
+        },
+        "rawToPsa8": {
+          "dollarDiff": 4.313181818181818,
+          "percentDiff": 16.82416978422368,
+          "description": "PSA 8 is $4.31 (+16.8%) more than Raw"
+        },
+        "rawToOtherGraded": {
+          "dollarDiff": 113.5931818181818,
+          "percentDiff": 443.08611549440604,
+          "description": "Other Graded is $113.59 (+443.1%) more than Raw"
+        }
+      }
+    }
+  },
+  {
+    "id": "1751916425750",
+    "query": "raichu 211  -(swsh182, Japanese, Gardevoir, Choose, Charizard)",
+    "timestamp": "2025-07-07T19:27:05.750Z",
+    "results": {
+      "totalCards": 54,
+      "raw": 33,
+      "psa9": 9,
+      "psa10": 12
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 33,
+        "avgPrice": 42.31757575757576,
+        "minPrice": 23.55,
+        "maxPrice": 60,
+        "trend": "neutral"
+      },
+      "psa7": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "psa8": {
+        "count": 2,
+        "avgPrice": 40.894999999999996,
+        "minPrice": 34,
+        "maxPrice": 47.79,
+        "trend": "neutral"
+      },
+      "psa9": {
+        "count": 9,
+        "avgPrice": 52.45,
+        "minPrice": 39,
+        "maxPrice": 75.08,
+        "trend": "down"
+      },
+      "psa10": {
+        "count": 12,
+        "avgPrice": 300.57166666666666,
+        "minPrice": 277,
+        "maxPrice": 325,
+        "trend": "down"
+      },
+      "cgc9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "cgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag8": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "sgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "otherGraded": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": 10.132424242424243,
+          "percentDiff": 23.9437729147571,
+          "description": "PSA 9 is $10.13 (+23.9%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 258.2540909090909,
+          "percentDiff": 610.276194431714,
+          "description": "PSA 10 is $258.25 (+610.3%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 248.12166666666667,
+          "percentDiff": 473.0632348268192,
+          "description": "PSA 10 is $248.12 (+473.1%) more than PSA 9"
+        },
+        "rawToPsa8": {
+          "dollarDiff": -1.422575757575764,
+          "percentDiff": -3.3616664757103725,
+          "description": "PSA 8 is $-1.42 (-3.4%) more than Raw"
+        }
+      }
+    }
+  },
+  {
+    "id": "1751911680171",
+    "query": "ralts 211 -(swsh182, Japanese, Gardevoir, Choose)",
+    "timestamp": "2025-07-07T18:08:00.171Z",
+    "results": {
+      "totalCards": 53,
+      "raw": 42,
+      "psa9": 7,
+      "psa10": 4
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 42,
+        "avgPrice": 25.15404761904762,
+        "minPrice": 10.5,
+        "maxPrice": 33.99,
+        "trend": "neutral"
+      },
+      "psa7": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "psa8": {
+        "count": 1,
+        "avgPrice": 29,
+        "minPrice": 29,
+        "maxPrice": 29,
+        "trend": "neutral"
+      },
+      "psa9": {
+        "count": 7,
+        "avgPrice": 36.60000000000001,
+        "minPrice": 21.5,
+        "maxPrice": 47.71,
+        "trend": "up"
+      },
+      "psa10": {
+        "count": 4,
+        "avgPrice": 284.735,
+        "minPrice": 260,
+        "maxPrice": 324.99,
+        "trend": "down"
+      },
+      "cgc9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "cgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag8": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag9": {
+        "count": 3,
+        "avgPrice": 24.496666666666666,
+        "minPrice": 22.5,
+        "maxPrice": 26,
+        "trend": "down"
+      },
+      "tag10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "sgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "otherGraded": {
+        "count": 2,
+        "avgPrice": 34.075,
+        "minPrice": 27.2,
+        "maxPrice": 40.95,
+        "trend": "neutral"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": 11.445952380952388,
+          "percentDiff": 45.50342177250658,
+          "description": "PSA 9 is $11.45 (+45.5%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 259.5809523809524,
+          "percentDiff": 1031.9649398468484,
+          "description": "PSA 10 is $259.58 (+1032.0%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 248.135,
+          "percentDiff": 677.9644808743168,
+          "description": "PSA 10 is $248.13 (+678.0%) more than PSA 9"
+        },
+        "rawToPsa8": {
+          "dollarDiff": 3.8459523809523795,
+          "percentDiff": 15.289596486412291,
+          "description": "PSA 8 is $3.85 (+15.3%) more than Raw"
+        },
+        "rawToOtherGraded": {
+          "dollarDiff": 8.920952380952382,
+          "percentDiff": 35.46527587153445,
+          "description": "Other Graded is $8.92 (+35.5%) more than Raw"
+        }
+      }
+    }
+  },
+  {
+    "id": "1751855390820",
+    "query": "vaporeon v swsh181 -(swsh182, SWSH179, SWSH100, error)",
+    "timestamp": "2025-07-07T02:29:50.820Z",
+    "results": {
+      "totalCards": 48,
+      "raw": 39,
+      "psa9": 8,
+      "psa10": 1
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 39,
+        "avgPrice": 49.26461538461538,
+        "minPrice": 33,
+        "maxPrice": 68.25,
+        "trend": "up"
+      },
+      "psa7": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "psa8": {
+        "count": 2,
+        "avgPrice": 45.5,
+        "minPrice": 31,
+        "maxPrice": 60,
+        "trend": "neutral"
+      },
+      "psa9": {
+        "count": 8,
+        "avgPrice": 66.3425,
+        "minPrice": 52,
+        "maxPrice": 80.12,
+        "trend": "up"
+      },
+      "psa10": {
+        "count": 1,
+        "avgPrice": 625,
+        "minPrice": 625,
+        "maxPrice": 625,
+        "trend": "neutral"
+      },
+      "cgc9": {
+        "count": 2,
+        "avgPrice": 62.495,
+        "minPrice": 60,
+        "maxPrice": 64.99,
+        "trend": "neutral"
+      },
+      "cgc10": {
+        "count": 1,
+        "avgPrice": 157.5,
+        "minPrice": 157.5,
+        "maxPrice": 157.5,
+        "trend": "neutral"
+      },
+      "tag8": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "sgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "otherGraded": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": 17.07788461538462,
+          "percentDiff": 34.66562051089876,
+          "description": "PSA 9 is $17.08 (+34.7%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 575.7353846153846,
+          "percentDiff": 1168.6590469052528,
+          "description": "PSA 10 is $575.74 (+1168.7%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 558.6575,
+          "percentDiff": 842.0808682217281,
+          "description": "PSA 10 is $558.66 (+842.1%) more than PSA 9"
+        },
+        "rawToCgc9": {
+          "dollarDiff": 13.230384615384615,
+          "percentDiff": 26.855755418150025,
+          "description": "CGC 9 is $13.23 (+26.9%) more than Raw"
+        },
+        "rawToCgc10": {
+          "dollarDiff": 108.23538461538462,
+          "percentDiff": 219.70207982012369,
+          "description": "CGC 10 is $108.24 (+219.7%) more than Raw"
+        },
+        "cgc9ToCgc10": {
+          "dollarDiff": 95.005,
+          "percentDiff": 152.02016161292903,
+          "description": "CGC 10 is $95.00 (+152.0%) more than CGC 9"
+        },
+        "rawToPsa8": {
+          "dollarDiff": -3.7646153846153823,
+          "percentDiff": -7.641621385297603,
+          "description": "PSA 8 is $-3.76 (-7.6%) more than Raw"
+        }
+      }
+    }
+  },
+  {
+    "id": "1751853330455",
+    "query": "tyranitar 222 -(swsh182, VIOLET,  ACE, Chi-Yu)",
+    "timestamp": "2025-07-07T01:55:30.455Z",
+    "results": {
+      "totalCards": 52,
+      "raw": 29,
+      "psa9": 12,
+      "psa10": 11
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 29,
+        "avgPrice": 40.45103448275861,
+        "minPrice": 23.99,
+        "maxPrice": 56,
+        "trend": "up"
+      },
+      "psa7": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "psa8": {
+        "count": 3,
+        "avgPrice": 31.996666666666666,
+        "minPrice": 19.99,
+        "maxPrice": 45,
+        "trend": "neutral"
+      },
+      "psa9": {
+        "count": 12,
+        "avgPrice": 47.74666666666667,
+        "minPrice": 42,
+        "maxPrice": 51,
+        "trend": "neutral"
+      },
+      "psa10": {
+        "count": 11,
+        "avgPrice": 332.12363636363636,
+        "minPrice": 41,
+        "maxPrice": 404.38,
+        "trend": "down"
+      },
+      "cgc9": {
+        "count": 1,
+        "avgPrice": 38,
+        "minPrice": 38,
+        "maxPrice": 38,
+        "trend": "neutral"
+      },
+      "cgc10": {
+        "count": 1,
+        "avgPrice": 149.99,
+        "minPrice": 149.99,
+        "maxPrice": 149.99,
+        "trend": "neutral"
+      },
+      "tag8": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "sgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "otherGraded": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": 7.295632183908062,
+          "percentDiff": 18.035712256055326,
+          "description": "PSA 9 is $7.30 (+18.0%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 291.6726018808778,
+          "percentDiff": 721.0510327126418,
+          "description": "PSA 10 is $291.67 (+721.1%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 284.3769696969697,
+          "percentDiff": 595.5954405828743,
+          "description": "PSA 10 is $284.38 (+595.6%) more than PSA 9"
+        },
+        "rawToCgc9": {
+          "dollarDiff": -2.451034482758608,
+          "percentDiff": -6.059262795376245,
+          "description": "CGC 9 is $-2.45 (-6.1%) more than Raw"
+        },
+        "rawToCgc10": {
+          "dollarDiff": 109.5389655172414,
+          "percentDiff": 270.7939782453031,
+          "description": "CGC 10 is $109.54 (+270.8%) more than Raw"
+        },
+        "cgc9ToCgc10": {
+          "dollarDiff": 111.99000000000001,
+          "percentDiff": 294.71052631578954,
+          "description": "CGC 10 is $111.99 (+294.7%) more than CGC 9"
+        },
+        "rawToPsa8": {
+          "dollarDiff": -8.454367816091942,
+          "percentDiff": -20.900251190597945,
+          "description": "PSA 8 is $-8.45 (-20.9%) more than Raw"
+        }
+      }
+    }
+  },
+  {
+    "id": "1751850832592",
+    "query": "groudon 199 -(Bandai, ccc)",
+    "timestamp": "2025-07-07T01:13:52.592Z",
+    "results": {
+      "totalCards": 56,
+      "raw": 35,
+      "psa9": 11,
+      "psa10": 10
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 35,
+        "avgPrice": 82.1222857142857,
+        "minPrice": 49.99,
+        "maxPrice": 375,
+        "trend": "up"
+      },
+      "psa9": {
+        "count": 11,
+        "avgPrice": 82.46272727272728,
+        "minPrice": 71,
+        "maxPrice": 110.71,
+        "trend": "up"
+      },
+      "psa10": {
+        "count": 10,
+        "avgPrice": 324.707,
+        "minPrice": 299.99,
+        "maxPrice": 349.99,
+        "trend": "up"
+      },
+      "cgc9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "cgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag8": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag9": {
+        "count": 1,
+        "avgPrice": 100,
+        "minPrice": 100,
+        "maxPrice": 100,
+        "trend": "neutral"
+      },
+      "tag10": {
+        "count": 1,
+        "avgPrice": 300,
+        "minPrice": 300,
+        "maxPrice": 300,
+        "trend": "neutral"
+      },
+      "sgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": 0.34044155844158297,
+          "percentDiff": 0.4145544117293864,
+          "description": "PSA 9 is $0.34 (+0.4%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 242.5847142857143,
+          "percentDiff": 295.3944987962204,
+          "description": "PSA 10 is $242.58 (+295.4%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 242.24427272727272,
+          "percentDiff": 293.762140471177,
+          "description": "PSA 10 is $242.24 (+293.8%) more than PSA 9"
+        }
+      }
+    }
+  },
+  {
+    "id": "1751850564476",
+    "query": "cam smith 2024 bowman draft cpa-cs auto -(SAPPHIRE, Sparkle, 74, 199, 499, 250, 99, blue, yellow)",
+    "timestamp": "2025-07-07T01:09:24.476Z",
+    "results": {
+      "totalCards": 56,
+      "raw": 48,
+      "psa9": 5,
+      "psa10": 3
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 48,
+        "avgPrice": 88.0427083333333,
+        "minPrice": 44,
+        "maxPrice": 164,
+        "trend": "up"
+      },
+      "psa9": {
+        "count": 5,
+        "avgPrice": 145.118,
+        "minPrice": 78.61,
+        "maxPrice": 249.99,
+        "trend": "up"
+      },
+      "psa10": {
+        "count": 3,
+        "avgPrice": 170.83,
+        "minPrice": 155,
+        "maxPrice": 179.99,
+        "trend": "down"
+      },
+      "cgc9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "cgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag8": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "sgc10": {
+        "count": 1,
+        "avgPrice": 199.99,
+        "minPrice": 199.99,
+        "maxPrice": 199.99,
+        "trend": "neutral"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": 57.0752916666667,
+          "percentDiff": 64.82682410288574,
+          "description": "PSA 9 is $57.08 (+64.8%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 82.78729166666672,
+          "percentDiff": 94.03083257415327,
+          "description": "PSA 10 is $82.79 (+94.0%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 25.712000000000018,
+          "percentDiff": 17.717995010956614,
+          "description": "PSA 10 is $25.71 (+17.7%) more than PSA 9"
+        }
+      }
+    }
+  },
+  {
+    "id": "1751850055984",
+    "query": "charizard swsh260 -(SWSH261, 261, Charmander))",
+    "timestamp": "2025-07-07T01:00:55.984Z",
+    "results": {
+      "totalCards": 48,
+      "raw": 40,
+      "psa9": 5,
+      "psa10": 3
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 40,
+        "avgPrice": 24.853250000000003,
+        "minPrice": 14.5,
+        "maxPrice": 54.59,
+        "trend": "neutral"
+      },
+      "psa9": {
+        "count": 5,
+        "avgPrice": 37.04600000000001,
+        "minPrice": 29.99,
+        "maxPrice": 40,
+        "trend": "up"
+      },
+      "psa10": {
+        "count": 3,
+        "avgPrice": 325.65000000000003,
+        "minPrice": 259.34,
+        "maxPrice": 367.62,
+        "trend": "up"
+      },
+      "cgc9": {
+        "count": 1,
+        "avgPrice": 66.16,
+        "minPrice": 66.16,
+        "maxPrice": 66.16,
+        "trend": "neutral"
+      },
+      "cgc10": {
+        "count": 2,
+        "avgPrice": 97.5,
+        "minPrice": 95,
+        "maxPrice": 100,
+        "trend": "neutral"
+      },
+      "tag8": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "sgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": 12.192750000000004,
+          "percentDiff": 49.0589761902367,
+          "description": "PSA 9 is $12.19 (+49.1%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 300.79675000000003,
+          "percentDiff": 1210.291410580105,
+          "description": "PSA 10 is $300.80 (+1210.3%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 288.60400000000004,
+          "percentDiff": 779.0422717702315,
+          "description": "PSA 10 is $288.60 (+779.0%) more than PSA 9"
+        },
+        "rawToCgc9": {
+          "dollarDiff": 41.306749999999994,
+          "percentDiff": 166.20260931668892,
+          "description": "CGC 9 is $41.31 (+166.2%) more than Raw"
+        },
+        "rawToCgc10": {
+          "dollarDiff": 72.64675,
+          "percentDiff": 292.3028175389536,
+          "description": "CGC 10 is $72.65 (+292.3%) more than Raw"
+        },
+        "cgc9ToCgc10": {
+          "dollarDiff": 31.340000000000003,
+          "percentDiff": 47.37001209189843,
+          "description": "CGC 10 is $31.34 (+47.4%) more than CGC 9"
+        }
+      }
+    }
+  },
+  {
+    "id": "1751839271310",
+    "query": "2024 upper deck macklin celebrini young guns -(silver, outburst, teammates, 496, oversized, 500, pick, will, matvei, /100, jumbo)",
+    "timestamp": "2025-07-06T22:01:11.310Z",
+    "results": {
+      "totalCards": 57,
+      "raw": 40,
+      "psa9": 7,
+      "psa10": 10
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 40,
+        "avgPrice": 123.88249999999998,
+        "minPrice": 2.5,
+        "maxPrice": 229.99,
+        "trend": "down"
+      },
+      "psa9": {
+        "count": 7,
+        "avgPrice": 128.16,
+        "minPrice": 113.61,
+        "maxPrice": 157.5,
+        "trend": "neutral"
+      },
+      "psa10": {
+        "count": 10,
+        "avgPrice": 470.42699999999996,
+        "minPrice": 392.87,
+        "maxPrice": 698.48,
+        "trend": "up"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": 4.277500000000018,
+          "percentDiff": 3.4528686456925057,
+          "description": "PSA 9 is $4.28 (+3.5%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 346.54449999999997,
+          "percentDiff": 279.7364438076403,
+          "description": "PSA 10 is $346.54 (+279.7%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 342.26699999999994,
+          "percentDiff": 267.062265917603,
+          "description": "PSA 10 is $342.27 (+267.1%) more than PSA 9"
+        }
+      }
+    }
+  },
+  {
+    "id": "1751835067012",
+    "query": "2022 topps chrome update bobby witt purple -(u-pick, 176, debut)",
+    "timestamp": "2025-07-06T20:51:07.012Z",
+    "results": {
+      "totalCards": 49,
+      "raw": 40,
+      "psa9": 6,
+      "psa10": 3
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 40,
+        "avgPrice": 21.4325,
+        "minPrice": 9.38,
+        "maxPrice": 69.99,
+        "trend": "up"
+      },
+      "psa9": {
+        "count": 6,
+        "avgPrice": 34.105,
+        "minPrice": 14.95,
+        "maxPrice": 48,
+        "trend": "up"
+      },
+      "psa10": {
+        "count": 3,
+        "avgPrice": 131.66,
+        "minPrice": 70,
+        "maxPrice": 249.99,
+        "trend": "down"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": 12.672499999999996,
+          "percentDiff": 59.12749329289628,
+          "description": "PSA 9 is $12.67 (+59.1%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 110.22749999999999,
+          "percentDiff": 514.3007115362183,
+          "description": "PSA 10 is $110.23 (+514.3%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 97.555,
+          "percentDiff": 286.0431021844305,
+          "description": "PSA 10 is $97.56 (+286.0%) more than PSA 9"
+        }
+      }
+    }
+  },
+  {
+    "id": "1751834727619",
+    "query": "lane hutson 2024 upper deck young guns -(teammates, oversized, pick, 497, logan, 111, canvas, outburst)",
+    "timestamp": "2025-07-06T20:45:27.619Z",
+    "results": {
+      "totalCards": 50,
+      "raw": 35,
+      "psa9": 11,
+      "psa10": 4
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 35,
+        "avgPrice": 117.23057142857142,
+        "minPrice": 68,
+        "maxPrice": 335,
+        "trend": "neutral"
+      },
+      "psa9": {
+        "count": 11,
+        "avgPrice": 120.61363636363636,
+        "minPrice": 96.01,
+        "maxPrice": 158.78,
+        "trend": "down"
+      },
+      "psa10": {
+        "count": 4,
+        "avgPrice": 395.125,
+        "minPrice": 360,
+        "maxPrice": 448.5,
+        "trend": "neutral"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": 3.3830649350649367,
+          "percentDiff": 2.885821414874053,
+          "description": "PSA 9 is $3.38 (+2.9%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 277.8944285714286,
+          "percentDiff": 237.04945321430054,
+          "description": "PSA 10 is $277.89 (+237.0%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 274.5113636363636,
+          "percentDiff": 227.59562841530055,
+          "description": "PSA 10 is $274.51 (+227.6%) more than PSA 9"
+        }
+      }
+    }
+  },
+  {
+    "id": "1751834611616",
+    "query": "Charizard 199/165",
+    "timestamp": "2025-07-06T20:43:31.616Z",
+    "results": {
+      "totalCards": 47,
+      "raw": 36,
+      "psa9": 7,
+      "psa10": 4
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 36,
+        "avgPrice": 195.61333333333332,
+        "minPrice": 4.99,
+        "maxPrice": 660,
+        "trend": "up"
+      },
+      "psa9": {
+        "count": 7,
+        "avgPrice": 205.34714285714287,
+        "minPrice": 187.5,
+        "maxPrice": 220,
+        "trend": "neutral"
+      },
+      "psa10": {
+        "count": 4,
+        "avgPrice": 708.7475,
+        "minPrice": 660,
+        "maxPrice": 750,
+        "trend": "up"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": 9.733809523809555,
+          "percentDiff": 4.97604603834583,
+          "description": "PSA 9 is $9.73 (+5.0%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 513.1341666666666,
+          "percentDiff": 262.32064958080565,
+          "description": "PSA 10 is $513.13 (+262.3%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 503.40035714285705,
+          "percentDiff": 245.14602450206263,
+          "description": "PSA 10 is $503.40 (+245.1%) more than PSA 9"
+        }
+      }
+    }
+  },
+  {
+    "id": "1751819122366",
+    "query": "2024 Prizm Bo Nix Orange Lazer",
+    "timestamp": "2025-07-06T16:25:22.366Z",
+    "results": {
+      "totalCards": 58,
+      "raw": 39,
+      "psa9": 12,
+      "psa10": 7
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 39,
+        "avgPrice": 39.4848717948718,
+        "minPrice": 29.99,
+        "maxPrice": 56,
+        "trend": "neutral"
+      },
+      "psa9": {
+        "count": 12,
+        "avgPrice": 44.85,
+        "minPrice": 31,
+        "maxPrice": 67,
+        "trend": "up"
+      },
+      "psa10": {
+        "count": 7,
+        "avgPrice": 204.8542857142857,
+        "minPrice": 169.5,
+        "maxPrice": 282,
+        "trend": "neutral"
+      },
+      "comparisons": {
+        "rawToPsa9": {
+          "dollarDiff": 5.365128205128201,
+          "percentDiff": 13.587807079634512,
+          "description": "PSA 9 is $5.37 (+13.6%) more than Raw"
+        },
+        "rawToPsa10": {
+          "dollarDiff": 165.36941391941392,
+          "percentDiff": 418.81714794092784,
+          "description": "PSA 10 is $165.37 (+418.8%) more than Raw"
+        },
+        "psa9ToPsa10": {
+          "dollarDiff": 160.00428571428571,
+          "percentDiff": 356.7542602325211,
+          "description": "PSA 10 is $160.00 (+356.8%) more than PSA 9"
+        }
+      }
+    }
+  }
+]

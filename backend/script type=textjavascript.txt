@@ -1,0 +1,2557 @@
+<script type="text/javascript">
+    jQuery(document).ready(function() {
+        var tabIdBase = '1'
+
+        jQuery('.salesTable').on('draw.dt', function() {
+            changeCurr(tabIdBase);
+        });
+    });
+</script>
+<style type="text/css">
+    #h4-results {
+        line-height: 1.8;
+        margin: 0px;
+        font-size: 16px;
+        color: black;
+        font-weight: bold
+    }
+
+    #queryDiv {
+        width: 100%;
+        text-align: center;
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    #queryDivBlock {
+        width: 75%;
+        text-align: center;
+        word-wrap: break-word;
+        background-color: #d35400;
+        border-radius: 10px;
+        border: medium black solid;
+    }
+
+    #queryText {
+        line-height: 1.8;
+        margin: 0px;
+        font-size: 20px;
+        color: white;
+        font-weight: bold
+    }
+
+    .currOption {
+        border-radius: 15px;
+        height: 30px;
+        padding-left: 10px;
+        width: 25%;
+        max-width: 150px;
+    }
+
+    @media screen and (max-width: 600px) {
+        #h4-results {
+            line-height: 1.5;
+            margin: 0px;
+            font-size: 14px;
+            color: black;
+            font-weight: bold
+        }
+
+        #queryDiv {
+            padding: 10px;
+        }
+
+        #queryDivBlock {
+            width: 90%;
+            border: thin black solid;
+        }
+
+        #queryText {
+            font-size: 14px;
+        }
+
+        .currOption {
+            font-size: 0.8em;
+            border-radius: 10px;
+            height: 20px;
+            padding-left: 10px;
+        }
+    }
+</style>
+<div id="queryDiv">
+    <div id="queryDivBlock">
+        <h2 id="queryText">Search Query: 2024 Prizm bo nix orange disco -(jersey, jerseys, patch, draft, optic, Mosaic, Fireworks, Emergent, Prizmatic, student, Portals) PSA 10</h2>
+    </div>
+</div>
+<div style="width: 100%; text-align: center; align-items: center; display: flex; justify-content: center; padding: 0px;">
+    <div style="width: 100%; text-align: center; color: black;">
+        <h4 id="h4-results">44 Items Found</h4>
+    </div>
+</div>
+<div style="width: 100%; text-align: center; align-items: center; display: flex; justify-content: center; padding: 0px;">
+    <div style="width: 100%; text-align: center; color: black; display: flex; justify-content: center; align-items: center; padding-bottom: 10px;">
+        <h4 id="h4-results">Currency:&nbsp</h4>
+        <select class="currOption" onchange="changeCurr(1)" id="1-curr">
+            <option selected="selected" value="Original" data-curr="1">Original</option>
+            <option value="USD" data-curr="1">USD</option>
+            <option value="CAD" data-curr="1.36728">CAD</option>
+            <option value="AUD" data-curr="1.48884">AUD</option>
+            <option value="GBP" data-curr="0.814725">GBP</option>
+            <option value="EUR" data-curr="0.93294">EUR</option>
+            <option value="PHP" data-curr="54.249837">PHP</option>
+            <option value="NZD" data-curr="1.602115">NZD</option>
+            <option value="CNY" data-curr="6.878701">CNY</option>
+            <option value="SGD" data-curr="1.33773">SGD</option>
+            <option value="JPY" data-curr="131.400499">JPY</option>
+        </select>
+        <span style="display: none" id="1-currData">{&quot;USDAED &quot;:{&quot;start_rate &quot;:3.672801,&quot;end_rate &quot;:3.672801,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDAFN &quot;:{&quot;start_rate &quot;:87.416179,&quot;end_rate &quot;:87.416179,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDALL &quot;:{&quot;start_rate &quot;:106.823318,&quot;end_rate &quot;:106.823318,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDAMD &quot;:{&quot;start_rate &quot;:388.479725,&quot;end_rate &quot;:388.479725,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDANG &quot;:{&quot;start_rate &quot;:1.802245,&quot;end_rate &quot;:1.802245,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDAOA &quot;:{&quot;start_rate &quot;:504.801038,&quot;end_rate &quot;:504.801038,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDARS &quot;:{&quot;start_rate &quot;:204.528598,&quot;end_rate &quot;:204.528598,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDAUD &quot;:{&quot;start_rate &quot;:1.48884,&quot;end_rate &quot;:1.48884,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDAWG &quot;:{&quot;start_rate &quot;:1.8,&quot;end_rate &quot;:1.8,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDAZN &quot;:{&quot;start_rate &quot;:1.700514,&quot;end_rate &quot;:1.700514,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBAM &quot;:{&quot;start_rate &quot;:1.826621,&quot;end_rate &quot;:1.826621,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBBD &quot;:{&quot;start_rate &quot;:2.003568,&quot;end_rate &quot;:2.003568,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBDT &quot;:{&quot;start_rate &quot;:105.284786,&quot;end_rate &quot;:105.284786,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBGN &quot;:{&quot;start_rate &quot;:1.825493,&quot;end_rate &quot;:1.825493,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBHD &quot;:{&quot;start_rate &quot;:0.377057,&quot;end_rate &quot;:0.377057,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBIF &quot;:{&quot;start_rate &quot;:2079.628661,&quot;end_rate &quot;:2079.628661,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBMD &quot;:{&quot;start_rate &quot;:1,&quot;end_rate &quot;:1,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBND &quot;:{&quot;start_rate &quot;:1.339473,&quot;end_rate &quot;:1.339473,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBOB &quot;:{&quot;start_rate &quot;:6.904571,&quot;end_rate &quot;:6.904571,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBRL &quot;:{&quot;start_rate &quot;:5.237103,&quot;end_rate &quot;:5.237103,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBSD &quot;:{&quot;start_rate &quot;:0.999963,&quot;end_rate &quot;:0.999963,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBTC &quot;:{&quot;start_rate &quot;:3.5992005e-5,&quot;end_rate &quot;:3.5992005e-5,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBTN &quot;:{&quot;start_rate &quot;:82.607823,&quot;end_rate &quot;:82.607823,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBWP &quot;:{&quot;start_rate &quot;:13.279849,&quot;end_rate &quot;:13.279849,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBYN &quot;:{&quot;start_rate &quot;:2.524096,&quot;end_rate &quot;:2.524096,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBYR &quot;:{&quot;start_rate &quot;:19600,&quot;end_rate &quot;:19600,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDBZD &quot;:{&quot;start_rate &quot;:2.005006,&quot;end_rate &quot;:2.005006,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDCAD &quot;:{&quot;start_rate &quot;:1.36728,&quot;end_rate &quot;:1.36728,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDCDF &quot;:{&quot;start_rate &quot;:2052.000037,&quot;end_rate &quot;:2052.000037,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDCHF &quot;:{&quot;start_rate &quot;:0.92929,&quot;end_rate &quot;:0.92929,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDCLF &quot;:{&quot;start_rate &quot;:0.029938,&quot;end_rate &quot;:0.029938,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDCLP &quot;:{&quot;start_rate &quot;:826.079559,&quot;end_rate &quot;:826.079559,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDCNY &quot;:{&quot;start_rate &quot;:6.878701,&quot;end_rate &quot;:6.878701,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDCOP &quot;:{&quot;start_rate &quot;:4816.98,&quot;end_rate &quot;:4816.98,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDCRC &quot;:{&quot;start_rate &quot;:541.691572,&quot;end_rate &quot;:541.691572,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDCUC &quot;:{&quot;start_rate &quot;:1,&quot;end_rate &quot;:1,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDCUP &quot;:{&quot;start_rate &quot;:26.5,&quot;end_rate &quot;:26.5,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDCVE &quot;:{&quot;start_rate &quot;:102.976955,&quot;end_rate &quot;:102.976955,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDCZK &quot;:{&quot;start_rate &quot;:22.386799,&quot;end_rate &quot;:22.386799,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDDJF &quot;:{&quot;start_rate &quot;:177.71969,&quot;end_rate &quot;:177.71969,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDDKK &quot;:{&quot;start_rate &quot;:6.94464,&quot;end_rate &quot;:6.94464,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDDOP &quot;:{&quot;start_rate &quot;:54.888299,&quot;end_rate &quot;:54.888299,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDDZD &quot;:{&quot;start_rate &quot;:135.848981,&quot;end_rate &quot;:135.848981,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDEGP &quot;:{&quot;start_rate &quot;:30.897201,&quot;end_rate &quot;:30.897201,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDERN &quot;:{&quot;start_rate &quot;:15,&quot;end_rate &quot;:15,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDETB &quot;:{&quot;start_rate &quot;:53.84351,&quot;end_rate &quot;:53.84351,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDEUR &quot;:{&quot;start_rate &quot;:0.93294,&quot;end_rate &quot;:0.93294,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDFJD &quot;:{&quot;start_rate &quot;:2.209502,&quot;end_rate &quot;:2.209502,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDFKP &quot;:{&quot;start_rate &quot;:0.821178,&quot;end_rate &quot;:0.821178,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDGBP &quot;:{&quot;start_rate &quot;:0.814725,&quot;end_rate &quot;:0.814725,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDGEL &quot;:{&quot;start_rate &quot;:2.575009,&quot;end_rate &quot;:2.575009,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDGGP &quot;:{&quot;start_rate &quot;:0.821178,&quot;end_rate &quot;:0.821178,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDGHS &quot;:{&quot;start_rate &quot;:12.399836,&quot;end_rate &quot;:12.399836,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDGIP &quot;:{&quot;start_rate &quot;:0.821178,&quot;end_rate &quot;:0.821178,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDGMD &quot;:{&quot;start_rate &quot;:61.5008,&quot;end_rate &quot;:61.5008,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDGNF &quot;:{&quot;start_rate &quot;:8605.384202,&quot;end_rate &quot;:8605.384202,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDGTQ &quot;:{&quot;start_rate &quot;:7.798491,&quot;end_rate &quot;:7.798491,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDGYD &quot;:{&quot;start_rate &quot;:210.994266,&quot;end_rate &quot;:210.994266,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDHKD &quot;:{&quot;start_rate &quot;:7.84265,&quot;end_rate &quot;:7.84265,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDHNL &quot;:{&quot;start_rate &quot;:24.663778,&quot;end_rate &quot;:24.663778,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDHRK &quot;:{&quot;start_rate &quot;:7.018274,&quot;end_rate &quot;:7.018274,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDHTG &quot;:{&quot;start_rate &quot;:154.808824,&quot;end_rate &quot;:154.808824,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDHUF &quot;:{&quot;start_rate &quot;:368.395747,&quot;end_rate &quot;:368.395747,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDIDR &quot;:{&quot;start_rate &quot;:15359.5,&quot;end_rate &quot;:15359.5,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDILS &quot;:{&quot;start_rate &quot;:3.66713,&quot;end_rate &quot;:3.66713,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDIMP &quot;:{&quot;start_rate &quot;:0.821178,&quot;end_rate &quot;:0.821178,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDINR &quot;:{&quot;start_rate &quot;:82.52935,&quot;end_rate &quot;:82.52935,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDIQD &quot;:{&quot;start_rate &quot;:1459.457945,&quot;end_rate &quot;:1459.457945,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDIRR &quot;:{&quot;start_rate &quot;:42250.000102,&quot;end_rate &quot;:42250.000102,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDISK &quot;:{&quot;start_rate &quot;:140.030388,&quot;end_rate &quot;:140.030388,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDJEP &quot;:{&quot;start_rate &quot;:0.821178,&quot;end_rate &quot;:0.821178,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDJMD &quot;:{&quot;start_rate &quot;:151.234683,&quot;end_rate &quot;:151.234683,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDJOD &quot;:{&quot;start_rate &quot;:0.709396,&quot;end_rate &quot;:0.709396,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDJPY &quot;:{&quot;start_rate &quot;:131.400499,&quot;end_rate &quot;:131.400499,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDKES &quot;:{&quot;start_rate &quot;:130.000121,&quot;end_rate &quot;:130.000121,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDKGS &quot;:{&quot;start_rate &quot;:87.419784,&quot;end_rate &quot;:87.419784,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDKHR &quot;:{&quot;start_rate &quot;:4053.34728,&quot;end_rate &quot;:4053.34728,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDKMF &quot;:{&quot;start_rate &quot;:461.740124,&quot;end_rate &quot;:461.740124,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDKPW &quot;:{&quot;start_rate &quot;:900,&quot;end_rate &quot;:900,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDKRW &quot;:{&quot;start_rate &quot;:1305.290326,&quot;end_rate &quot;:1305.290326,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDKWD &quot;:{&quot;start_rate &quot;:0.306519,&quot;end_rate &quot;:0.306519,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDKYD &quot;:{&quot;start_rate &quot;:0.833364,&quot;end_rate &quot;:0.833364,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDKZT &quot;:{&quot;start_rate &quot;:464.672974,&quot;end_rate &quot;:464.672974,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDLAK &quot;:{&quot;start_rate &quot;:16883.650559,&quot;end_rate &quot;:16883.650559,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDLBP &quot;:{&quot;start_rate &quot;:15009.432729,&quot;end_rate &quot;:15009.432729,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDLKR &quot;:{&quot;start_rate &quot;:345.009223,&quot;end_rate &quot;:345.009223,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDLRD &quot;:{&quot;start_rate &quot;:161.050089,&quot;end_rate &quot;:161.050089,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDLSL &quot;:{&quot;start_rate &quot;:18.420059,&quot;end_rate &quot;:18.420059,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDLTL &quot;:{&quot;start_rate &quot;:2.95274,&quot;end_rate &quot;:2.95274,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDLVL &quot;:{&quot;start_rate &quot;:0.60489,&quot;end_rate &quot;:0.60489,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDLYD &quot;:{&quot;start_rate &quot;:4.8229,&quot;end_rate &quot;:4.8229,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDMAD &quot;:{&quot;start_rate &quot;:10.357423,&quot;end_rate &quot;:10.357423,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDMDL &quot;:{&quot;start_rate &quot;:18.63571,&quot;end_rate &quot;:18.63571,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDMGA &quot;:{&quot;start_rate &quot;:4301.697891,&quot;end_rate &quot;:4301.697891,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDMKD &quot;:{&quot;start_rate &quot;:57.46167,&quot;end_rate &quot;:57.46167,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDMMK &quot;:{&quot;start_rate &quot;:2099.988793,&quot;end_rate &quot;:2099.988793,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDMNT &quot;:{&quot;start_rate &quot;:3532.359561,&quot;end_rate &quot;:3532.359561,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDMOP &quot;:{&quot;start_rate &quot;:8.077778,&quot;end_rate &quot;:8.077778,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDMRO &quot;:{&quot;start_rate &quot;:356.999828,&quot;end_rate &quot;:356.999828,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDMUR &quot;:{&quot;start_rate &quot;:46.649996,&quot;end_rate &quot;:46.649996,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDMVR &quot;:{&quot;start_rate &quot;:15.410487,&quot;end_rate &quot;:15.410487,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDMWK &quot;:{&quot;start_rate &quot;:1026.392962,&quot;end_rate &quot;:1026.392962,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDMXN &quot;:{&quot;start_rate &quot;:18.81935,&quot;end_rate &quot;:18.81935,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDMYR &quot;:{&quot;start_rate &quot;:4.485981,&quot;end_rate &quot;:4.485981,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDMZN &quot;:{&quot;start_rate &quot;:63.09996,&quot;end_rate &quot;:63.09996,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDNAD &quot;:{&quot;start_rate &quot;:18.41995,&quot;end_rate &quot;:18.41995,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDNGN &quot;:{&quot;start_rate &quot;:460.390131,&quot;end_rate &quot;:460.390131,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDNIO &quot;:{&quot;start_rate &quot;:36.573691,&quot;end_rate &quot;:36.573691,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDNOK &quot;:{&quot;start_rate &quot;:10.644085,&quot;end_rate &quot;:10.644085,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDNPR &quot;:{&quot;start_rate &quot;:132.172143,&quot;end_rate &quot;:132.172143,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDNZD &quot;:{&quot;start_rate &quot;:1.602115,&quot;end_rate &quot;:1.602115,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDOMR &quot;:{&quot;start_rate &quot;:0.384989,&quot;end_rate &quot;:0.384989,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDPAB &quot;:{&quot;start_rate &quot;:0.999981,&quot;end_rate &quot;:0.999981,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDPEN &quot;:{&quot;start_rate &quot;:3.79016,&quot;end_rate &quot;:3.79016,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDPGK &quot;:{&quot;start_rate &quot;:3.523797,&quot;end_rate &quot;:3.523797,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDPHP &quot;:{&quot;start_rate &quot;:54.249837,&quot;end_rate &quot;:54.249837,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDPKR &quot;:{&quot;start_rate &quot;:281.884806,&quot;end_rate &quot;:281.884806,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDPLN &quot;:{&quot;start_rate &quot;:4.387251,&quot;end_rate &quot;:4.387251,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDPYG &quot;:{&quot;start_rate &quot;:7207.299761,&quot;end_rate &quot;:7207.299761,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDQAR &quot;:{&quot;start_rate &quot;:3.641039,&quot;end_rate &quot;:3.641039,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDRON &quot;:{&quot;start_rate &quot;:4.592705,&quot;end_rate &quot;:4.592705,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDRSD &quot;:{&quot;start_rate &quot;:109.453029,&quot;end_rate &quot;:109.453029,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDRUB &quot;:{&quot;start_rate &quot;:77.497463,&quot;end_rate &quot;:77.497463,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDRWF &quot;:{&quot;start_rate &quot;:1092.816049,&quot;end_rate &quot;:1092.816049,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDSAR &quot;:{&quot;start_rate &quot;:3.756056,&quot;end_rate &quot;:3.756056,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDSBD &quot;:{&quot;start_rate &quot;:8.200165,&quot;end_rate &quot;:8.200165,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDSCR &quot;:{&quot;start_rate &quot;:13.902755,&quot;end_rate &quot;:13.902755,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDSDG &quot;:{&quot;start_rate &quot;:593.49594,&quot;end_rate &quot;:593.49594,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDSEK &quot;:{&quot;start_rate &quot;:10.371425,&quot;end_rate &quot;:10.371425,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDSGD &quot;:{&quot;start_rate &quot;:1.33773,&quot;end_rate &quot;:1.33773,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDSHP &quot;:{&quot;start_rate &quot;:1.21675,&quot;end_rate &quot;:1.21675,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDSLE &quot;:{&quot;start_rate &quot;:20.595084,&quot;end_rate &quot;:20.595084,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDSLL &quot;:{&quot;start_rate &quot;:19749.999895,&quot;end_rate &quot;:19749.999895,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDSOS &quot;:{&quot;start_rate &quot;:569.499549,&quot;end_rate &quot;:569.499549,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDSRD &quot;:{&quot;start_rate &quot;:34.878504,&quot;end_rate &quot;:34.878504,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDSTD &quot;:{&quot;start_rate &quot;:20697.981008,&quot;end_rate &quot;:20697.981008,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDSVC &quot;:{&quot;start_rate &quot;:8.750146,&quot;end_rate &quot;:8.750146,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDSYP &quot;:{&quot;start_rate &quot;:2511.947529,&quot;end_rate &quot;:2511.947529,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDSZL &quot;:{&quot;start_rate &quot;:18.462516,&quot;end_rate &quot;:18.462516,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDTHB &quot;:{&quot;start_rate &quot;:34.044025,&quot;end_rate &quot;:34.044025,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDTJS &quot;:{&quot;start_rate &quot;:10.939835,&quot;end_rate &quot;:10.939835,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDTMT &quot;:{&quot;start_rate &quot;:3.5,&quot;end_rate &quot;:3.5,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDTND &quot;:{&quot;start_rate &quot;:3.129004,&quot;end_rate &quot;:3.129004,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDTOP &quot;:{&quot;start_rate &quot;:2.345601,&quot;end_rate &quot;:2.345601,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDTRY &quot;:{&quot;start_rate &quot;:19.0171,&quot;end_rate &quot;:19.0171,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDTTD &quot;:{&quot;start_rate &quot;:6.785961,&quot;end_rate &quot;:6.785961,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDTWD &quot;:{&quot;start_rate &quot;:30.510805,&quot;end_rate &quot;:30.510805,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDTZS &quot;:{&quot;start_rate &quot;:2332.000282,&quot;end_rate &quot;:2332.000282,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDUAH &quot;:{&quot;start_rate &quot;:36.933465,&quot;end_rate &quot;:36.933465,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDUGX &quot;:{&quot;start_rate &quot;:3761.954573,&quot;end_rate &quot;:3761.954573,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDUSD &quot;:{&quot;start_rate &quot;:1,&quot;end_rate &quot;:1,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDUYU &quot;:{&quot;start_rate &quot;:39.692732,&quot;end_rate &quot;:39.692732,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDUZS &quot;:{&quot;start_rate &quot;:11377.337785,&quot;end_rate &quot;:11377.337785,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDVEF &quot;:{&quot;start_rate &quot;:2407075.129695,&quot;end_rate &quot;:2407075.129695,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDVES &quot;:{&quot;start_rate &quot;:24.095671,&quot;end_rate &quot;:24.095671,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDVND &quot;:{&quot;start_rate &quot;:23585,&quot;end_rate &quot;:23585,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDVUV &quot;:{&quot;start_rate &quot;:118.621947,&quot;end_rate &quot;:118.621947,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDWST &quot;:{&quot;start_rate &quot;:2.724076,&quot;end_rate &quot;:2.724076,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDXAF &quot;:{&quot;start_rate &quot;:612.671847,&quot;end_rate &quot;:612.671847,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDXAG &quot;:{&quot;start_rate &quot;:0.04441,&quot;end_rate &quot;:0.04441,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDXAU &quot;:{&quot;start_rate &quot;:0.000506,&quot;end_rate &quot;:0.000506,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDXCD &quot;:{&quot;start_rate &quot;:2.70255,&quot;end_rate &quot;:2.70255,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDXDR &quot;:{&quot;start_rate &quot;:0.749309,&quot;end_rate &quot;:0.749309,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDXOF &quot;:{&quot;start_rate &quot;:612.668986,&quot;end_rate &quot;:612.668986,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDXPF &quot;:{&quot;start_rate &quot;:112.250111,&quot;end_rate &quot;:112.250111,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDYER &quot;:{&quot;start_rate &quot;:250.29913,&quot;end_rate &quot;:250.29913,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDZAR &quot;:{&quot;start_rate &quot;:18.517445,&quot;end_rate &quot;:18.517445,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDZMK &quot;:{&quot;start_rate &quot;:9001.20435,&quot;end_rate &quot;:9001.20435,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDZMW &quot;:{&quot;start_rate &quot;:20.624054,&quot;end_rate &quot;:20.624054,&quot;change &quot;:0,&quot;change_pct &quot;:0},&quot;USDZWL &quot;:{&quot;start_rate &quot;:321.999592,&quot;end_rate &quot;:321.999592,&quot;change &quot;:0,&quot;change_pct &quot;:0}}</span>
+    </div>
+</div>
+<div style="display: none" id="tabIdData" data-tabid="1"></div>
+<div id="chart_div_1"></div>
+<style type="text/css">
+    #typeDiv {
+        width: 100%;
+        text-align: center;
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    #typeDivBlock {
+        width: 100%;
+        text-align: center;
+        word-wrap: break-word;
+        background-color: lightyellow;
+        border-radius: 10px;
+        border: medium black solid;
+    }
+
+    #typeText {
+        line-height: 1.4;
+        margin: 0px;
+        font-size: 15px;
+        color: black;
+        font-weight: bold
+    }
+
+    @media screen and (max-width: 600px) {
+        #typeDiv {
+            padding: 10px;
+        }
+
+        #typeDivBlock {
+            width: 90%;
+            border: thin black solid;
+        }
+
+        #typeText {
+            font-size: 12px;
+        }
+    }
+</style>
+<style type="text/css">
+    #ebayOuter {
+        background: snow;
+        padding: 5px;
+        border-radius: 10px;
+    }
+
+    #soldDiv {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    #pwccOuter {
+        background: black;
+        padding: 5px;
+        border-radius: 10px;
+    }
+
+    #pwccOuterAlt {
+        background: white;
+        padding: 5px;
+        border-radius: 10px;
+    }
+
+    #pwccInner {
+        font-weight: bold;
+        color: white
+    }
+
+    #pwccInnerAlt {
+        font-weight: bold;
+        color: black
+    }
+
+    #goldinOuter {
+        background: white;
+        padding: 5px;
+        border-radius: 10px;
+    }
+
+    #goldinInner {
+        font-weight: bold;
+        color: black
+    }
+
+    #heritageOuter {
+        background: black;
+        padding: 5px;
+        border-radius: 10px;
+    }
+
+    #heritageInner {
+        font-weight: bold;
+        color: white
+    }
+
+    #soldVia {
+        font-weight: bold;
+        color: black;
+    }
+
+    #auctionLabel {
+        line-height: 1.5;
+        font-size: 12px;
+        border-radius: 10px;
+        padding: 5px;
+        border-width: 1px;
+        border: solid;
+        border-color: green;
+        color: green;
+        white-space: pre;
+    }
+
+    .priceSpan {
+        font-weight: bold;
+        color: green
+    }
+
+    #priceSpanOuter {
+    }
+
+    #buyersPrem {
+        font-size: 0.75em;
+        font-weight: bold;
+        color: green;
+    }
+
+    #bestOfferOuter {
+        text-decoration: line-through;
+        color: red
+    }
+
+    #dRow {
+        /*border-bottom: 10px solid transparent;*/
+        border-bottom: 7.5px outset;
+    }
+
+    #imgCol {
+        width: 150px;
+        border: none;
+        /*border-bottom: 5px outset; */
+        text-align: center;
+        padding: 0;
+        margin: 0;
+        background-color: transparent;
+        /*border-color: grey;*/
+        /*background-clip: padding-box;*/
+    }
+
+    #dCol {
+        width: auto;
+        border: none;
+        /*border-bottom: 5px outset; */
+        text-align: left;
+        background-color: transparent;
+        /*border-color: grey;*/
+        /*background-clip: padding-box;*/
+    }
+
+    @media screen and (max-width: 600px) {
+        #shipString {
+            font-size: 12px;
+            line-height: 0.8;
+        }
+
+        #ebayOuter {
+            padding: 4px;
+        }
+
+        #soldDiv {
+            padding-bottom: 5px;
+        }
+
+        #pwccOuter, #pwccOuter2 {
+            padding-bottom: 1px;
+            padding-right: 5px;
+            padding-left: 5px;
+            padding-top: 1.5px;
+        }
+
+        #pwccInner, #pwccInnerAlt {
+            font-size: 12px;
+        }
+
+        #goldinInner, #heritageInner {
+            font-size: 12px;
+        }
+
+        #goldinOuter, #heritageOuter {
+            padding-bottom: 1px;
+            padding-right: 5px;
+            padding-left: 5px;
+            padding-top: 1.5px;
+        }
+
+        #soldVia {
+            font-size: 12px;
+            line-height: 0.8;
+        }
+
+        #auctionLabel {
+            line-height: 2;
+            font-size: 10px;
+            border-radius: 7.5px;
+            padding: 2px;
+            margin: 0px;
+        }
+
+        #priceSpanOuter {
+            font-size: 12px;
+            line-height: 0.8;
+        }
+
+        #listPrice {
+            font-size: 12px;
+            line-height: 0.8;
+        }
+
+        #bidText {
+            font-size: 12px;
+            line-height: 0.8;
+        }
+
+        #bestOfferOuter {
+            font-size: 12px;
+            line-height: 0.8;
+        }
+
+        #bestOfferText {
+            font-size: 12px;
+            line-height: 0.8;
+        }
+
+        #dateText {
+            font-size: 12px;
+            line-height: 0.8;
+        }
+
+        #titleText {
+            font-size: 12px;
+            line-height: 0.8;
+        }
+
+        #imgCol {
+            width: 100px;
+            padding-right: 5px;
+            margin: 0;
+        }
+
+        #dCol {
+            padding: 0;
+            margin: 0;
+            line-height: 1.2;
+        }
+    }
+</style>
+<div id='resultsDiv'>
+    <table id="salesDataTable-1" class="display compact resultsData salesTable" style="border-collapse: collapse;">
+        <!-- <table id="salesDataTable" class="display compact resultsData" style="border-collapse: collapse;"> -->
+        <thead style="margin-top: 5px;">
+            <tr>
+                <th style="text-align: center; align-items: center; border: none; width: auto;"></th>
+                <!-- <th style="text-align: center; align-items: center; border: none">Sale Price</th> -->
+                <th style="text-align: center; align-items: left; border: none; width: auto"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr id="dRow" data-price="195" data-rowId="1-1" data-currency="USD">
+                <td id="imgCol">
+                    <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/uSsAAeSwJhdocZvz/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/uSsAAeSwJhdocZvz/s-l225.jpg","277265076217")'>
+                    <div class='ebayNowImg2'>
+                        <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+                    </div>
+                </td>
+                <td id="dCol">
+                    <div>
+                        <div style='display: flex; flex-wrap: wrap'>
+                            <div>
+                                <span id='soldVia'>Sold Via:&nbsp
+                            </div>
+                            <div>
+                                <span id='ebayOuter'>
+                                    <span style='font-weight: bold; color: red'>e</span>
+                                    <span style='font-weight: bold; color: blue'>B</span>
+                                    <span style='font-weight: bold; color: orange'>a</span>
+                                    <span style='font-weight: bold; color: green'>y</span>
+                                </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/277265076217' target='_blank'>BO NIX 2024 PRIZM ORANGE DISCO PRIZM COLOR-MATCH RC PSA 10 GEM MT BRONCOS🔥🔥</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Best Offer Accepted</span>
+<br>
+<span id='listPrice'>
+    List Price: <span style='text-decoration: line-through; color: red'>205.00 USD </span>
+</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan bo4' id='1-1-priceFull'>195.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Thu 17 Jul 2025 06:24:43 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="195" data-id="1-1" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-1-price">195</span>
+    <span style="display: none;" class="currencyData" id="1-1-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="175" data-rowId="1-2" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/HX8AAeSw~Btodj52/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/HX8AAeSw~Btodj52/s-l225.jpg","205616946310")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/205616946310' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 - PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Best Offer Accepted</span>
+<br>
+<span id='listPrice'>
+    List Price: <span style='text-decoration: line-through; color: red'>199.00 USD </span>
+</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan bo4' id='1-2-priceFull'>175.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Wed 16 Jul 2025 07:40:12 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="175" data-id="1-2" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-2-price">175</span>
+    <span style="display: none;" class="currencyData" id="1-2-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="190.02" data-rowId="1-3" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/1PYAAeSwnIRocSzG/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/1PYAAeSwnIRocSzG/s-l225.jpg","365724173877")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/365724173877' target='_blank'>Bo Nix - 2024 Panini Orange Disco Prizm (RC) PSA 10 Gem Mint #309</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-3-priceFull'>190.02 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/365724173877' style='color: blue;' target='_blank'>29 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Mon 14 Jul 2025 10:29:53 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="190.02" data-id="1-3" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-3-price">190.02</span>
+    <span style="display: none;" class="currencyData" id="1-3-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="189" data-rowId="1-4" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/2MoAAeSwFfloUYJn/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/2MoAAeSwFfloUYJn/s-l225.jpg","326644855671")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/326644855671' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 - PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Fixed Price</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-4-priceFull'>189.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Thu 10 Jul 2025 13:31:59 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="189" data-id="1-4" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-4-price">189</span>
+    <span style="display: none;" class="currencyData" id="1-4-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="185" data-rowId="1-5" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/8HUAAeSwpnZoADRO/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/8HUAAeSwpnZoADRO/s-l225.jpg","146523463336")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/146523463336' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 - PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Best Offer Accepted</span>
+<br>
+<span id='listPrice'>
+    List Price: <span style='text-decoration: line-through; color: red'>215.00 USD </span>
+</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan bo4' id='1-5-priceFull'>185.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Sat 05 Jul 2025 20:33:01 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="185" data-id="1-5" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-5-price">185</span>
+    <span style="display: none;" class="currencyData" id="1-5-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="186.5" data-rowId="1-6" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/5CIAAOSwHudoU6ij/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/5CIAAOSwHudoU6ij/s-l225.jpg","157112683584")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/157112683584' target='_blank'>2024 Panini Prizm Bo Nix Broncos Orange Disco #309 Color Match RC Rookie PSA 10!</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-6-priceFull'>186.50 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/157112683584' style='color: blue;' target='_blank'>18 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Sat 05 Jul 2025 19:16:01 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="186.5" data-id="1-6" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-6-price">186.5</span>
+    <span style="display: none;" class="currencyData" id="1-6-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="189.5" data-rowId="1-7" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/WBYAAOSwJ2NoW~B3/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/WBYAAOSwJ2NoW~B3/s-l225.jpg","205582177136")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/205582177136' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco RC #309 PSA 10 Gem Mint</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-7-priceFull'>189.50 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/205582177136' style='color: blue;' target='_blank'>14 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Wed 02 Jul 2025 21:01:01 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="189.5" data-id="1-7" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-7-price">189.5</span>
+    <span style="display: none;" class="currencyData" id="1-7-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="179.99" data-rowId="1-8" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/4BgAAeSw4jxoWzGP/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/4BgAAeSw4jxoWzGP/s-l225.jpg","396784078943")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/396784078943' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco PSA 10 GEM MT</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Fixed Price</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-8-priceFull'>179.99 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Tue 01 Jul 2025 18:17:22 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="179.99" data-id="1-8" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-8-price">179.99</span>
+    <span style="display: none;" class="currencyData" id="1-8-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="167.5" data-rowId="1-9" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/UPAAAOSwDd1oWS1c/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/UPAAAOSwDd1oWS1c/s-l225.jpg","357163645623")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/357163645623' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 - PSA 10 color match</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-9-priceFull'>167.50 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/357163645623' style='color: blue;' target='_blank'>21 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Sat 28 Jun 2025 05:34:04 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="167.5" data-id="1-9" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-9-price">167.5</span>
+    <span style="display: none;" class="currencyData" id="1-9-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="197.5" data-rowId="1-10" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/0b8AAOSwOEZn4E~z/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/0b8AAOSwOEZn4E~z/s-l225.jpg","136029303145")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/136029303145' target='_blank'>2024 PANINI PRIZM BO NIX ORANGE DISCO PSA 10 Broncos</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-10-priceFull'>197.50 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/136029303145' style='color: blue;' target='_blank'>14 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Thu 26 Jun 2025 19:43:07 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="197.5" data-id="1-10" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-10-price">197.5</span>
+    <span style="display: none;" class="currencyData" id="1-10-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="185" data-rowId="1-11" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/JCUAAeSwhkxoQ5rF/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/JCUAAeSwhkxoQ5rF/s-l225.jpg","376314826060")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/376314826060' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 PSA 10🔥💎🔥</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Best Offer Accepted</span>
+<br>
+<span id='listPrice'>
+    List Price: <span style='text-decoration: line-through; color: red'>195.00 USD </span>
+</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan bo4' id='1-11-priceFull'>185.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Thu 26 Jun 2025 16:04:03 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="185" data-id="1-11" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-11-price">185</span>
+    <span style="display: none;" class="currencyData" id="1-11-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="175" data-rowId="1-12" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/HqYAAeSw-R1oUMIY/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/HqYAAeSw-R1oUMIY/s-l225.jpg","187340325211")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/187340325211' target='_blank'>🔥 2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 - PSA 10 🔥 </a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Best Offer Accepted</span>
+<br>
+<span id='listPrice'>
+    List Price: <span style='text-decoration: line-through; color: red'>180.00 USD </span>
+</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan bo4' id='1-12-priceFull'>175.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Mon 23 Jun 2025 22:45:05 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="175" data-id="1-12" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-12-price">175</span>
+    <span style="display: none;" class="currencyData" id="1-12-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="202.5" data-rowId="1-13" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/sJIAAeSwDSloR17F/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/sJIAAeSwDSloR17F/s-l225.jpg","177194150673")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/177194150673' target='_blank'>2024 Panini Orange Disco Prizm #309 Bo Nix Denver Broncos RC Rookie PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-13-priceFull'>202.50 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/177194150673' style='color: blue;' target='_blank'>8 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Thu 19 Jun 2025 22:00:19 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="202.5" data-id="1-13" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-13-price">202.5</span>
+    <span style="display: none;" class="currencyData" id="1-13-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="175" data-rowId="1-14" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/dcQAAeSw33poSDBe/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/dcQAAeSw33poSDBe/s-l225.jpg","396726939421")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/396726939421' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 - PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Fixed Price</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-14-priceFull'>175.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Fri 13 Jun 2025 15:07:48 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="175" data-id="1-14" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-14-price">175</span>
+    <span style="display: none;" class="currencyData" id="1-14-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="175" data-rowId="1-15" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/YD0AAeSwD9FoSr7q/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/YD0AAeSwD9FoSr7q/s-l225.jpg","146644201876")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/146644201876' target='_blank'>2024 Panini Prizm - Bo Nix #309 Orange Disco RC Rookie Color Match PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Fixed Price</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-15-priceFull'>175.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Fri 13 Jun 2025 11:21:49 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="175" data-id="1-15" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-15-price">175</span>
+    <span style="display: none;" class="currencyData" id="1-15-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="169.51" data-rowId="1-16" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/Rg0AAOSwm0xoQI1b/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/Rg0AAOSwm0xoQI1b/s-l225.jpg","388516931745")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/388516931745' target='_blank'>2024 Panini Orange Disco Prizm #309 Bo Nix Denver Broncos RC Rookie PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-16-priceFull'>169.51 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/388516931745' style='color: blue;' target='_blank'>19 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Wed 11 Jun 2025 21:04:01 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="169.51" data-id="1-16" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-16-price">169.51</span>
+    <span style="display: none;" class="currencyData" id="1-16-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="160" data-rowId="1-17" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/kPEAAeSw84xoO2OP/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/kPEAAeSw84xoO2OP/s-l225.jpg","205543042884")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/205543042884' target='_blank'>2024 Panini Prizm - Bo Nix #309 Orange Disco RC Rookie Color Match PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Best Offer Accepted</span>
+<br>
+<span id='listPrice'>
+    List Price: <span style='text-decoration: line-through; color: red'>225.00 USD </span>
+</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan bo4' id='1-17-priceFull'>160.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Tue 10 Jun 2025 06:52:15 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="160" data-id="1-17" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-17-price">160</span>
+    <span style="display: none;" class="currencyData" id="1-17-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="0" data-rowId="1-18" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/ifoAAOSwAb1oKctb/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/ifoAAOSwAb1oKctb/s-l225.jpg","267272969797")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/267272969797' target='_blank'>2024 Panini Prizm Football Bo Nix Orange Disco Prizm RC #309 PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Fixed Price Sale</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan bo1' id='1-18-priceFull'>201.50 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Sun 08 Jun 2025 20:07:00 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="0" data-id="1-18" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-18-price">0</span>
+    <span style="display: none;" class="currencyData" id="1-18-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="0" data-rowId="1-19" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/ImoAAeSwUp9oRGW5/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/ImoAAeSwUp9oRGW5/s-l225.jpg","256966160268")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/256966160268' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 PSA 10🔥💎🔥</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Fixed Price Sale</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan bo1' id='1-19-priceFull'>135.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Sun 08 Jun 2025 17:49:21 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="0" data-id="1-19" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-19-price">0</span>
+    <span style="display: none;" class="currencyData" id="1-19-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="140.5" data-rowId="1-20" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/qZkAAeSwvjloPaWn/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/qZkAAeSwvjloPaWn/s-l225.jpg","405919248390")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/405919248390' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 PSA 10🔥💎🔥</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-20-priceFull'>140.50 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/405919248390' style='color: blue;' target='_blank'>21 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Sat 07 Jun 2025 08:23:17 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="140.5" data-id="1-20" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-20-price">140.5</span>
+    <span style="display: none;" class="currencyData" id="1-20-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="130" data-rowId="1-21" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/xVEAAeSwqa9oQ1CJ/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/xVEAAeSwqa9oQ1CJ/s-l225.jpg","286628663459")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/286628663459' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 PSA 10🔥💎🔥</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Fixed Price</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-21-priceFull'>130.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Fri 06 Jun 2025 15:44:19 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="130" data-id="1-21" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-21-price">130</span>
+    <span style="display: none;" class="currencyData" id="1-21-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="120" data-rowId="1-22" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/~~4AAeSw-SNoQlSE/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/~~4AAeSw-SNoQlSE/s-l225.jpg","286626188677")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/286626188677' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 PSA 10🔥💎🔥</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Fixed Price</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-22-priceFull'>120.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Thu 05 Jun 2025 21:49:23 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="120" data-id="1-22" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-22-price">120</span>
+    <span style="display: none;" class="currencyData" id="1-22-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="229" data-rowId="1-23" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/5mUAAeSwoNtoK6lQ/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/5mUAAeSwoNtoK6lQ/s-l225.jpg","396629329001")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/396629329001' target='_blank'>2024 Panini Prizm - Bo Nix #309 Orange Disco RC Rookie Color Match PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Fixed Price</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-23-priceFull'>229.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Fri 30 May 2025 10:33:45 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="229" data-id="1-23" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-23-price">229</span>
+    <span style="display: none;" class="currencyData" id="1-23-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="200" data-rowId="1-24" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/nOwAAeSwsuRoNR9t/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/nOwAAeSwsuRoNR9t/s-l225.jpg","167541851142")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/167541851142' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 - PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Fixed Price</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-24-priceFull'>200.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Thu 29 May 2025 17:35:10 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="200" data-id="1-24" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-24-price">200</span>
+    <span style="display: none;" class="currencyData" id="1-24-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="180.5" data-rowId="1-25" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/hBYAAOSwezBoLIZs/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/hBYAAOSwezBoLIZs/s-l225.jpg","376264342635")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/376264342635' target='_blank'>2024 Panini Orange Disco Prizm #309 Bo Nix Broncos RC Rookie PSA 10 GEM MINT</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-25-priceFull'>180.50 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/376264342635' style='color: blue;' target='_blank'>30 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Tue 27 May 2025 21:05:01 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="180.5" data-id="1-25" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-25-price">180.5</span>
+    <span style="display: none;" class="currencyData" id="1-25-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="175" data-rowId="1-26" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/BAwAAOSwVTxoHO-1/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/BAwAAOSwVTxoHO-1/s-l225.jpg","286553657372")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/286553657372' target='_blank'>2024 Prizm - Rookie Bo Nix #309 Disco Prizm  COLOR MATCH ORANGE BRONCOS PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Best Offer Accepted</span>
+<br>
+<span id='listPrice'>
+    List Price: <span style='text-decoration: line-through; color: red'>220.00 USD </span>
+</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan bo4' id='1-26-priceFull'>175.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Tue 27 May 2025 10:09:21 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="175" data-id="1-26" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-26-price">175</span>
+    <span style="display: none;" class="currencyData" id="1-26-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="173.5" data-rowId="1-27" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/tKYAAOSwqiZoK0Aj/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/tKYAAOSwqiZoK0Aj/s-l225.jpg","376261660821")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/376261660821' target='_blank'>2024 Panini Orange Disco Prizm #309 Bo Nix Broncos RC Rookie PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-27-priceFull'>173.50 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/376261660821' style='color: blue;' target='_blank'>13 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Mon 26 May 2025 21:15:01 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="173.5" data-id="1-27" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-27-price">173.5</span>
+    <span style="display: none;" class="currencyData" id="1-27-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="177" data-rowId="1-28" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/ifoAAOSwAb1oKctb/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/ifoAAOSwAb1oKctb/s-l225.jpg","256937031864")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/256937031864' target='_blank'>2024 Panini Prizm Football Bo Nix Orange Disco Prizm RC #309 PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-28-priceFull'>177.00 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/256937031864' style='color: blue;' target='_blank'>14 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Mon 26 May 2025 20:31:00 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="177" data-id="1-28" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-28-price">177</span>
+    <span style="display: none;" class="currencyData" id="1-28-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="200" data-rowId="1-29" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/fv8AAOSw6Q9oIgav/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/fv8AAOSw6Q9oIgav/s-l225.jpg","396600989745")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/396600989745' target='_blank'>Bo Nix *PSA 10* 2024 Panini Prizm Orange Disco Prizm Rookie RC #309 Broncos</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Best Offer Accepted</span>
+<br>
+<span id='listPrice'>
+    List Price: <span style='text-decoration: line-through; color: red'>209.99 USD </span>
+</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan bo4' id='1-29-priceFull'>200.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Mon 26 May 2025 16:15:47 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="200" data-id="1-29" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-29-price">200</span>
+    <span style="display: none;" class="currencyData" id="1-29-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="142.5" data-rowId="1-30" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/rTEAAeSwpuZoLgvh/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/rTEAAeSwpuZoLgvh/s-l225.jpg","405885404862")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/405885404862' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 PSA 10🔥💎🔥</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-30-priceFull'>142.50 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/405885404862' style='color: blue;' target='_blank'>27 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Mon 26 May 2025 12:24:15 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="142.5" data-id="1-30" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-30-price">142.5</span>
+    <span style="display: none;" class="currencyData" id="1-30-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="141.5" data-rowId="1-31" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/73cAAOSwu8poKol1/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/73cAAOSwu8poKol1/s-l225.jpg","187234310408")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/187234310408' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 - PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-31-priceFull'>141.50 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/187234310408' style='color: blue;' target='_blank'>11 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Sun 25 May 2025 20:31:26 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="141.5" data-id="1-31" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-31-price">141.5</span>
+    <span style="display: none;" class="currencyData" id="1-31-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="175" data-rowId="1-32" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/zLsAAeSwTPdoKLxH/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/zLsAAeSwTPdoKLxH/s-l225.jpg","187230675627")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/187230675627' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 - PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-32-priceFull'>175.00 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/187230675627' style='color: blue;' target='_blank'>34 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Sat 24 May 2025 20:45:01 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="175" data-id="1-32" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-32-price">175</span>
+    <span style="display: none;" class="currencyData" id="1-32-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="170" data-rowId="1-33" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/ubwAAeSw9PFn~~uJ/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/ubwAAeSw9PFn~~uJ/s-l225.jpg","197218803385")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/197218803385' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 - PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Best Offer Accepted</span>
+<br>
+<span id='listPrice'>
+    List Price: <span style='text-decoration: line-through; color: red'>210.00 USD </span>
+</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan bo4' id='1-33-priceFull'>170.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Thu 22 May 2025 13:44:46 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="170" data-id="1-33" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-33-price">170</span>
+    <span style="display: none;" class="currencyData" id="1-33-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="140" data-rowId="1-34" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/4L8AAeSw9adoLKEA/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/4L8AAeSw9adoLKEA/s-l225.jpg","365615203085")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/365615203085' target='_blank'>2024 Panini Prizm - Bo Nix #309 Orange Disco RC Rookie Color Match PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Best Offer Accepted</span>
+<br>
+<span id='listPrice'>
+    List Price: <span style='text-decoration: line-through; color: red'>200.00 USD </span>
+</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan bo4' id='1-34-priceFull'>140.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Wed 21 May 2025 22:27:09 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="140" data-id="1-34" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-34-price">140</span>
+    <span style="display: none;" class="currencyData" id="1-34-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="189.99" data-rowId="1-35" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/Lo8AAeSwWSBn8Moy/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/Lo8AAeSwWSBn8Moy/s-l225.jpg","306221912165")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/306221912165' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 - PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Fixed Price</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-35-priceFull'>189.99 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Wed 21 May 2025 11:24:58 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="189.99" data-id="1-35" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-35-price">189.99</span>
+    <span style="display: none;" class="currencyData" id="1-35-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="215" data-rowId="1-36" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/xjAAAOSwxUNoG3XJ/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/xjAAAOSwxUNoG3XJ/s-l225.jpg","226739539846")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/226739539846' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 - PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Fixed Price</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-36-priceFull'>215.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Wed 21 May 2025 11:24:54 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="215" data-id="1-36" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-36-price">215</span>
+    <span style="display: none;" class="currencyData" id="1-36-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="183.69" data-rowId="1-37" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/-HIAAOSwYdpoIoMh/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/-HIAAOSwYdpoIoMh/s-l225.jpg","256930990988")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/256930990988' target='_blank'>2024 Panini Prizm Football Bo Nix Orange Disco Prizm RC #309 PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-37-priceFull'>183.69 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/256930990988' style='color: blue;' target='_blank'>27 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Tue 20 May 2025 20:27:00 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="183.69" data-id="1-37" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-37-price">183.69</span>
+    <span style="display: none;" class="currencyData" id="1-37-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="165" data-rowId="1-38" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/T1AAAeSwwG1oHz3A/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/T1AAAeSwwG1oHz3A/s-l225.jpg","197304271651")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/197304271651' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 - PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-38-priceFull'>165.00 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/197304271651' style='color: blue;' target='_blank'>12 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Thu 15 May 2025 13:45:48 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="165" data-id="1-38" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-38-price">165</span>
+    <span style="display: none;" class="currencyData" id="1-38-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="160" data-rowId="1-39" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/kTEAAOSwpCVoGVJx/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/kTEAAOSwpCVoGVJx/s-l225.jpg","267241923342")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/267241923342' target='_blank'>2024 Panini Prizm Football Bo Nix Orange Disco Prizm RC #309 PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-39-priceFull'>160.00 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/267241923342' style='color: blue;' target='_blank'>24 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Tue 13 May 2025 20:45:00 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="160" data-id="1-39" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-39-price">160</span>
+    <span style="display: none;" class="currencyData" id="1-39-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="170" data-rowId="1-40" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/QcYAAeSwX8JoEF6y/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/QcYAAeSwX8JoEF6y/s-l225.jpg","256910853257")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/256910853257' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 - PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Best Offer Accepted</span>
+<br>
+<span id='listPrice'>
+    List Price: <span style='text-decoration: line-through; color: red'>219.95 USD </span>
+</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan bo4' id='1-40-priceFull'>170.00 USD </span>
+</span>
+<br>
+<span id='dateText'>
+    <b>Date:</b>
+    Tue 29 Apr 2025 16:34:25 CDT
+</span>
+<br>
+<span id='shipString'>
+    <b>Shipping Price:</b>
+    N/A
+</span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="170" data-id="1-40" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-40-price">170</span>
+    <span style="display: none;" class="currencyData" id="1-40-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="162.5" data-rowId="1-41" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/baoAAeSwZ8FoAqsI/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/baoAAeSwZ8FoAqsI/s-l225.jpg","277046854701")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/277046854701' target='_blank'>BO NIX 2024 PANINI PRIZM ROOKIE ORANGE DISCO BRONCOS RC PSA 10 Q2416</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-41-priceFull'>162.50 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/277046854701' style='color: blue;' target='_blank'>13 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Mon 28 Apr 2025 21:13:00 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="162.5" data-id="1-41" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-41-price">162.5</span>
+    <span style="display: none;" class="currencyData" id="1-41-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="167.5" data-rowId="1-42" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/hEgAAeSwA6Bn~zMM/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/hEgAAeSwA6Bn~zMM/s-l225.jpg","226715216734")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/226715216734' target='_blank'>Bo Nix 2024 Panini Prizm Orange Disco Rc PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-42-priceFull'>167.50 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/226715216734' style='color: blue;' target='_blank'>11 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Thu 24 Apr 2025 22:21:50 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="167.5" data-id="1-42" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-42-price">167.5</span>
+    <span style="display: none;" class="currencyData" id="1-42-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="197" data-rowId="1-43" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/-y8AAeSwT2xn~vaK/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/-y8AAeSwT2xn~vaK/s-l225.jpg","146520756401")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/146520756401' target='_blank'>2024 Panini Prizm Bo Nix Orange Disco Prizm Rookie RC #309 - PSA 10</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-43-priceFull'>197.00 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/146520756401' style='color: blue;' target='_blank'>19 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Tue 22 Apr 2025 19:15:21 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="197" data-id="1-43" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-43-price">197</span>
+    <span style="display: none;" class="currencyData" id="1-43-currency">USD</span>
+</div>
+</td></tr>
+<tr id="dRow" data-price="260" data-rowId="1-44" data-currency="USD">
+    <td id="imgCol">
+        <img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/Q3UAAOSwF0xn~Srt/s-l225.jpg' onclick='getImage("https://i.ebayimg.com/images/g/Q3UAAOSwF0xn~Srt/s-l225.jpg","376166232853")'>
+        <div class='ebayNowImg2'>
+            <img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'>
+        </div>
+    </td>
+    <td id="dCol">
+        <div>
+            <div style='display: flex; flex-wrap: wrap'>
+                <div>
+                    <span id='soldVia'>Sold Via:&nbsp
+                </div>
+                <div>
+                    <span id='ebayOuter'>
+                        <span style='font-weight: bold; color: red'>e</span>
+                        <span style='font-weight: bold; color: blue'>B</span>
+                        <span style='font-weight: bold; color: orange'>a</span>
+                        <span style='font-weight: bold; color: green'>y</span>
+                    </span>
+</span></div></div>
+<span id='titleText'>
+    <a href='https://www.ebay.com/itm/376166232853' target='_blank'>2024 Panini Orange Disco Prizm #309 Bo Nix Broncos RC Rookie PSA 10 GEM MINT</a>
+    &nbsp &nbsp &nbsp &nbsp
+</span>
+<span id='auctionLabel'>Auction</span>
+<br>
+<span id='priceSpanOuter'>
+    <b>Sale Price:</b>
+    <span class='priceSpan' id='1-44-priceFull'>260.00 USD</span>
+    <br>
+    <span id='bidText'>
+        Bids: <a href='https://www.ebay.com/bfl/viewbids/376166232853' style='color: blue;' target='_blank'>33 (Click to View)</a>
+    </span>
+    <br>
+    <span id='dateText'>
+        <b>Date:</b>
+        Mon 21 Apr 2025 21:06:01 CDT
+    </span>
+    <br>
+    <span id='shipString'>
+        <b>Shipping Price:</b>
+        N/A
+    </span>
+</div>
+<div style="display: none;" class="1-row" id="dataCol" data-price="260" data-id="1-44" data-currency="USD">
+    <span style="display: none;" class="currencyData" id="1-44-price">260</span>
+    <span style="display: none;" class="currencyData" id="1-44-currency">USD</span>
+</div>
+</td></tr></tbody></table></div>
