@@ -75,7 +75,6 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/auth-success" element={<AuthSuccess onAuthSuccess={checkAuthStatus} />} />
-          <Route path="/saved-searches" element={<SavedSearches />} />
         </Routes>
       </div>
     </Router>

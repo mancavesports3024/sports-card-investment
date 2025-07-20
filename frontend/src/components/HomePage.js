@@ -5,8 +5,13 @@ const HomePage = () => {
     <div className="home-page">
       {/* Header */}
       <header className="home-header">
-        <nav className="home-nav">
-          <h1 className="home-logo">Scorecard</h1>
+        <nav className="home-nav" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+            <h1 className="home-logo">Scorecard</h1>
+            <a href="https://twitter.com/scorecard" target="_blank" rel="noopener noreferrer" style={{ color: '#222', fontSize: '1.4rem', textDecoration: 'none' }} title="Follow on X">𝕏</a>
+            <a href="https://instagram.com/scorecard" target="_blank" rel="noopener noreferrer" style={{ color: '#222', fontSize: '1.4rem', textDecoration: 'none' }} title="Instagram">📷</a>
+            <a href="https://facebook.com/scorecard" target="_blank" rel="noopener noreferrer" style={{ color: '#222', fontSize: '1.4rem', textDecoration: 'none' }} title="Facebook">📘</a>
+          </div>
           <a href="https://web-production-9efa.up.railway.app/api/auth/google" className="home-login-btn">Login</a>
         </nav>
       </header>
@@ -27,11 +32,6 @@ const HomePage = () => {
  
               <a href="/search" className="cta-button large">Search Cards</a>
               <p className="cta-note">Free to use • No registration required</p>
-              <div className="hero-social" style={{ marginTop: '1rem', display: 'flex', gap: '1.2rem', justifyContent: 'center' }}>
-                <a href="https://twitter.com/scorecard" target="_blank" rel="noopener noreferrer" style={{ color: '#222', fontSize: '1.4rem', textDecoration: 'none' }} title="Follow on X">𝕏</a>
-                <a href="https://instagram.com/scorecard" target="_blank" rel="noopener noreferrer" style={{ color: '#222', fontSize: '1.4rem', textDecoration: 'none' }} title="Instagram">📷</a>
-                <a href="https://facebook.com/scorecard" target="_blank" rel="noopener noreferrer" style={{ color: '#222', fontSize: '1.4rem', textDecoration: 'none' }} title="Facebook">📘</a>
-              </div>
             </div>
           </div>
           <div className="hero-image">

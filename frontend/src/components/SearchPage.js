@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import config from '../config';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
+import SavedSearches from './SavedSearches';
 
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -423,6 +424,18 @@ const SearchPage = () => {
     );
   };
 
+  // Handler for reusing a saved search
+  const handleReuseSavedSearch = (search) => {
+    setSearchQuery(search.searchQuery);
+    setTimeout(() => {
+      document.getElementById('searchQuery')?.focus();
+      document.getElementById('searchQuery')?.blur();
+    }, 100);
+    setTimeout(() => {
+      document.getElementById('search-form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    }, 200);
+  };
+
   return (
     <div className="App">
       {/* Main Content */}
@@ -549,6 +562,8 @@ const SearchPage = () => {
             }}>Saved Searches</a>
           </div>
         </form>
+        {/* Saved Searches below the form */}
+        <SavedSearches onSearchAgain={handleReuseSavedSearch} />
 
         {/* Login Prompt for Non-Logged-In Users */}
         {!isLoggedIn && (
