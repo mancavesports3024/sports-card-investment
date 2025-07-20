@@ -132,7 +132,17 @@ async function search130point(keywords, numSales = 10) {
         const titleUrl = $el.find('td#dCol #titleText a').attr('href');
         const soldVia = $el.find('td#dCol #soldVia').parent().text().replace('Sold Via:', '').trim();
         const saleType = $el.find('td#dCol #auctionLabel').text().trim();
-        const listPrice = $el.find('td#dCol #listPrice').text().replace('List Price:', '').trim();
+        const listPriceRaw = $el.find('td#dCol #listPrice').text().replace('List Price:', '').trim();
+        // Parse numeric value from listPrice
+        let listPrice = null;
+        if (listPriceRaw) {
+          const match = listPriceRaw.match(/([\d,.]+)/);
+          if (match) {
+            listPrice = parseFloat(match[1].replace(/,/g, ''));
+            if (!isNaN(listPrice)) listPrice = listPrice.toFixed(2);
+            else listPrice = null;
+          }
+        }
         const salePrice = $el.find('td#dCol .priceSpan').text().trim();
         const dateText = $el.find('td#dCol #dateText').text().replace('Date:', '').trim();
         // Parse the date properly - format is like "Thu 17 Jul 2025 06:24:43 CDT"
