@@ -236,8 +236,8 @@ const SearchPage = () => {
     if (!Array.isArray(cards)) return [];
     return cards.filter(card => {
       const title = (card.title || '').toLowerCase();
-      // Exclude if title contains grading keywords followed by grade number (stricter)
-      const isGraded = /\b(psa|bgs|sgc|cgc|tag)[\s:\-]*((9\.5)|10|9|8|7)\b/i.test(card.title || '');
+      // Exclude if title contains grading company and grade in any order
+      const isGraded = /(psa|bgs|sgc|cgc|tag|gm|gem|mint)[\s:\-\(]*((9\.5)|10|9|8|7)|((9\.5|10|9|8|7)[\s:\-\)]*(psa|bgs|sgc|cgc|tag|gm|gem|mint))/i.test(card.title || '');
       // Exclude if price is missing or not a number
       const priceValue = Number(card.price?.value);
       const validPrice = !isNaN(priceValue) && priceValue > 0;
