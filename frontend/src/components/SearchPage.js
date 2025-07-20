@@ -671,15 +671,15 @@ const SearchPage = () => {
                 <h3 style={{ color: '#000', marginBottom: 16 }}>Last Sales Chart</h3>
                 {/* Prepare sales data for chart */}
                 {(() => {
-                  const raw = (results.results.raw || []).map(card => ({
+                  const raw = filterRawCards(results.results.raw || []).map(card => ({
                     date: new Date(card.soldDate).toLocaleDateString('en-US'),
                     Raw: card.price?.value || 0
                   }));
-                  const psa9 = (results.results.psa9 || []).map(card => ({
+                  const psa9 = (results.results.psa9 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0).map(card => ({
                     date: new Date(card.soldDate).toLocaleDateString('en-US'),
                     PSA9: card.price?.value || 0
                   }));
-                  const psa10 = (results.results.psa10 || []).map(card => ({
+                  const psa10 = (results.results.psa10 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0).map(card => ({
                     date: new Date(card.soldDate).toLocaleDateString('en-US'),
                     PSA10: card.price?.value || 0
                   }));
