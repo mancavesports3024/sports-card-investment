@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
 
-const SavedSearches = ({ onSearchAgain, refetchTrigger }) => {
+const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
   const [searches, setSearches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('authToken'));
   const [open, setOpen] = useState(true);
+
+  // Sync open state with forceOpen prop
+  useEffect(() => {
+    if (typeof forceOpen === 'boolean') setOpen(forceOpen);
+  }, [forceOpen]);
 
   // Expose a refetch function for parent
   const refetchSavedSearches = async () => {

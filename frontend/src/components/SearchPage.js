@@ -24,6 +24,8 @@ const SearchPage = () => {
   const [savedSearchesRefetch, setSavedSearchesRefetch] = useState(0);
   const chartRef = useRef(null);
   const [liveListingsReloadKey, setLiveListingsReloadKey] = useState(0);
+  // Control open/closed state of SavedSearches
+  const [savedSearchesOpen, setSavedSearchesOpen] = useState(true);
 
   // Fetch saved searches on mount (for duplicate prevention)
   useEffect(() => {
@@ -540,6 +542,7 @@ const SearchPage = () => {
         if (chartRef.current) {
           chartRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+        setSavedSearchesOpen(false); // fold up after reuse
       }, 400);
     }, 200);
   };
@@ -656,7 +659,7 @@ const SearchPage = () => {
         </form>
         {/* Saved Searches below the form */}
         <div id="saved-searches-section">
-          <SavedSearches onSearchAgain={handleReuseSavedSearch} refetchTrigger={savedSearchesRefetch} />
+          <SavedSearches onSearchAgain={handleReuseSavedSearch} refetchTrigger={savedSearchesRefetch} forceOpen={savedSearchesOpen} />
         </div>
 
         {/* Login Prompt for Non-Logged-In Users */}
