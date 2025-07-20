@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import config from '../config';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 import SavedSearches from './SavedSearches';
@@ -22,6 +22,8 @@ const SearchPage = () => {
   const [savedSearches, setSavedSearches] = useState([]);
   // Add a refetch trigger for SavedSearches
   const [savedSearchesRefetch, setSavedSearchesRefetch] = useState(0);
+  const chartRef = useRef(null);
+  const [liveListingsReloadKey, setLiveListingsReloadKey] = useState(0);
 
   // Fetch saved searches on mount (for duplicate prevention)
   useEffect(() => {
@@ -165,6 +167,14 @@ const SearchPage = () => {
           }
         }
       }
+      // Scroll to chart after search
+      setTimeout(() => {
+        if (chartRef.current) {
+          chartRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 300);
+      // Reload live listings after search
+      setLiveListingsReloadKey(x => x + 1);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -257,8 +267,8 @@ const SearchPage = () => {
     return { min, max, avg };
   };
 
+  // Pass liveListingsReloadKey to renderCardSection to reload live listings
   const renderCardSection = (title, cards, icon) => {
-    if (!cards || cards.length === 0) return null;
     // Section key for live listings state
     const sectionKey = title.replace(/\s+\(.+\)/, '').replace(/\s/g, '').toLowerCase();
     // Grade for live listings
@@ -272,6 +282,16 @@ const SearchPage = () => {
     if (title.toLowerCase().includes('raw')) {
       displayCards = filterRawCards(cards);
     }
+
+    // Add liveListingsReloadKey to force reload
+    useEffect(() => {
+      // If liveListingsReloadKey changes, reload live listings for open sections
+      if (liveListings[sectionKey]?.open) {
+        fetchLiveListings(sectionKey, query, grade);
+      }
+      // eslint-disable-next-line
+    }, [liveListingsReloadKey]);
+
     return (
       <div className="card-section">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -667,7 +687,7 @@ const SearchPage = () => {
 
             {/* Chart Placeholder for Last Sales - moved to top */}
             {results && results.results && (
-              <div className="sales-chart" style={{ margin: '2rem auto 1.5rem auto', maxWidth: 700, background: '#fff', borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '1.5rem', border: '1.5px solid #ffd700', textAlign: 'center' }}>
+              <div ref={chartRef} className="sales-chart" style={{ margin: '2rem auto 1.5rem auto', maxWidth: 700, background: '#fff', borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '1.5rem', border: '1.5px solid #ffd700', textAlign: 'center' }}>
                 <h3 style={{ color: '#000', marginBottom: 16 }}>Last Sales Chart</h3>
                 {/* Prepare sales data for chart */}
                 {(() => {

@@ -2651,3 +2651,84 @@
   padding: 20px;
   text-align: center;
 }
+
+/* ... existing code ... */
+.responsive-header {
+  background: #000;
+  color: #ffd700;
+  padding: 1rem 2rem;
+}
+.header-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+}
+.header-row-top {
+  border-bottom: 1px solid #222;
+  padding-bottom: 0.2rem;
+}
+.header-row-bottom {
+  margin-top: 0.2rem;
+}
+.header-social-title {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+.header-social {
+  color: #ffd700;
+  font-size: 1.4rem;
+  text-decoration: none;
+  margin-right: 0.2rem;
+}
+.header-title {
+  font-weight: bold;
+  font-size: 1.5rem;
+  margin-left: 1.2rem;
+  text-align: center;
+}
+.header-user-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.header-login-btn {
+  background: #ffd700;
+  color: #000;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5rem 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+.header-username {
+  margin-right: 1rem;
+  font-size: 1rem;
+  color: #ffd700;
+  font-weight: 600;
+}
+@media (max-width: 700px) {
+  .responsive-header {
+    padding: 0.5rem 0.5rem;
+  }
+  .header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+  .header-title {
+    font-size: 1.1rem;
+    margin-left: 0.5rem;
+  }
+  .header-user-actions {
+    width: 100%;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+  .header-username {
+    margin-right: 0.5rem;
+    font-size: 0.95rem;
+  }
+}
+/* ... existing code ... */
