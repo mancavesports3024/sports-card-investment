@@ -235,9 +235,9 @@ const SearchPage = () => {
   const filterRawCards = (cards) => {
     if (!Array.isArray(cards)) return [];
     return cards.filter(card => {
-      // Exclude if title contains grading keywords or numbers like 9.5, 10, etc.
       const title = (card.title || '').toLowerCase();
-      const isGraded = /bgs|psa|sgc|cgc|tag|\b9\.5\b|\b10\b|\b9\b|\b8\b|\b7\b/.test(title) || /\b(psa|bgs|sgc|cgc|tag)\s*\d+(\.\d+)?\b/.test(title);
+      // Exclude if title contains grading keywords followed by grade number
+      const isGraded = /\b(psa|bgs|sgc|cgc|tag)\s*(7|8|9|9\.5|10)\b/.test(title) || /\b(psa|bgs|sgc|cgc|tag)\b/.test(title);
       // Exclude if price is missing or not a number
       const priceValue = Number(card.price?.value);
       const validPrice = !isNaN(priceValue) && priceValue > 0;
