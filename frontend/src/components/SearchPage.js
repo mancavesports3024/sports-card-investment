@@ -536,6 +536,11 @@ const SearchPage = () => {
     }, 100);
     setTimeout(() => {
       document.getElementById('search-form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      setTimeout(() => {
+        if (chartRef.current) {
+          chartRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 400);
     }, 200);
   };
 

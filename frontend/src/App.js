@@ -50,15 +50,17 @@ function App() {
       <div className="App">
         {/* Global Header */}
         <header className="global-header responsive-header">
-          <div className="header-row header-row-top">
-            <div className="header-social-title">
+          {/* First row: Scorecard title only, centered and larger */}
+          <div className="header-row header-row-top" style={{ justifyContent: 'center' }}>
+            <span className="header-title main-title">Scorecard</span>
+          </div>
+          {/* Second row: social left, login/logout right */}
+          <div className="header-row header-row-bottom" style={{ justifyContent: 'space-between' }}>
+            <div className="header-social-group">
               <a href="https://x.com/Mancavesportsc1" target="_blank" rel="noopener noreferrer" className="header-social">𝕏</a>
               <a href="https://www.instagram.com/mancavesportscardllc?igsh=NWoxOHJycGdrYzZk&utm_source=qr" target="_blank" rel="noopener noreferrer" className="header-social">📷</a>
               <a href="https://www.facebook.com/profile.php?id=100062665574017" target="_blank" rel="noopener noreferrer" className="header-social">📘</a>
-              <span className="header-title">Scorecard</span>
             </div>
-          </div>
-          <div className="header-row header-row-bottom">
             <div className="header-user-actions">
               {!isLoggedIn ? (
                 <button onClick={handleLogin} className="header-login-btn">Log in</button>

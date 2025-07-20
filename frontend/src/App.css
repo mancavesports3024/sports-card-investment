@@ -2732,3 +2732,42 @@
   }
 }
 /* ... existing code ... */
+
+/* ... existing code ... */
+.main-title {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #ffd700;
+  text-align: center;
+  letter-spacing: 1px;
+  margin: 0.2rem 0 0.2rem 0;
+}
+.header-row-top {
+  border-bottom: 1px solid #222;
+  padding-bottom: 0.2rem;
+  justify-content: center;
+}
+.header-row-bottom {
+  margin-top: 0.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.header-social-group {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+@media (max-width: 700px) {
+  .main-title {
+    font-size: 1.3rem;
+  }
+  .header-row-bottom {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+  .header-social-group {
+    gap: 0.7rem;
+  }
+}
+/* ... existing code ... */
