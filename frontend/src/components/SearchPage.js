@@ -292,7 +292,16 @@ const SearchPage = () => {
     if (title.includes('PSA 9')) grade = 'PSA 9';
     else if (title.includes('PSA 10')) grade = 'PSA 10';
     // Use the last valid search query for live listings
-    const query = lastSearchQuery || results?.searchParams?.searchQuery || title.replace(/\s+\(.+\)/, '');
+    const query = lastSearchQuery || (results?.searchParams?.searchQuery ?? '');
+    // Logging for debugging
+    console.log(`[LiveListings] Section: ${sectionKey}, Title: ${title}`);
+    console.log(`[LiveListings] lastSearchQuery:`, lastSearchQuery);
+    console.log(`[LiveListings] results?.searchParams?.searchQuery:`, results?.searchParams?.searchQuery);
+    console.log(`[LiveListings] Final query used:`, query);
+    console.log(`[LiveListings] Grade:`, grade);
+    if (!query || query.trim() === '' || query === 'undefined') {
+      console.warn(`[LiveListings] Query is invalid or empty for section: ${sectionKey}`);
+    }
     // Filter raw cards if this is the Raw section
     let displayCards = cards;
     if (title.toLowerCase().includes('raw')) {
@@ -306,7 +315,15 @@ const SearchPage = () => {
           <button
             className="live-listings-btn"
             style={{ fontSize: '0.95em', padding: '0.3em 0.8em', background: '#ffd700', color: '#000', border: '1px solid #aaa', borderRadius: 5, textDecoration: 'none', marginLeft: 8, cursor: 'pointer' }}
-            onClick={() => toggleLiveListings(sectionKey, query, grade)}
+            onClick={() => {
+              console.log(`[LiveListings] Button clicked for section: ${sectionKey}, query: '${query}', grade: '${grade}'`);
+              if (!query || query.trim() === '' || query === 'undefined') {
+                console.warn(`[LiveListings] Prevented fetch: Query is invalid or empty for section: ${sectionKey}`);
+                return;
+              }
+              toggleLiveListings(sectionKey, query, grade);
+            }}
+            disabled={!query || query.trim() === '' || query === 'undefined'}
           >
             {liveListings[sectionKey]?.open ? 'Hide Live Listings' : 'View Live Listings'}
           </button>
