@@ -5,6 +5,7 @@ const SavedSearches = ({ onSearchAgain }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('authToken'));
+  const [open, setOpen] = useState(true);
 
   const handleLogin = () => {
     window.location.href = 'https://web-production-9efa.up.railway.app/api/auth/google';
@@ -19,6 +20,7 @@ const SavedSearches = ({ onSearchAgain }) => {
       if (!token) {
         setError('You must be logged in to view saved searches.');
         setLoading(false);
+        setOpen(false);
         return;
       }
       try {
@@ -32,6 +34,7 @@ const SavedSearches = ({ onSearchAgain }) => {
           setError('No new saved searches (304 Not Modified).');
           setSearches([]);
           setLoading(false);
+          setOpen(false);
           return;
         }
         let text, data;
@@ -42,15 +45,19 @@ const SavedSearches = ({ onSearchAgain }) => {
           console.error('Failed to parse JSON. Response text:', text);
           setError('Failed to load saved searches: Invalid JSON. See console for details.');
           setLoading(false);
+          setOpen(false);
           return;
         }
         if (!data.success) {
           setError(data.error || 'Failed to load saved searches.');
+          setOpen(false);
         } else {
           setSearches(data.searches || []);
+          setOpen((data.searches || []).length > 0);
         }
       } catch (err) {
         setError('Failed to load saved searches: ' + (err.message || err.toString()));
+        setOpen(false);
       }
       setLoading(false);
     };
@@ -81,8 +88,11 @@ const SavedSearches = ({ onSearchAgain }) => {
 
   return (
     <div style={{ maxWidth: 700, margin: '2rem auto 0 auto', background: '#222', borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.08)', padding: '2rem', border: '1.5px solid #ffd700', color: '#fff' }}>
-      <h2 style={{ color: '#ffd700', marginBottom: 24 }}>My Saved Searches</h2>
-      {searches.length === 0 ? (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <h2 style={{ color: '#ffd700', marginBottom: 0 }}>My Saved Searches</h2>
+        <button onClick={() => setOpen(o => !o)} style={{ background: '#ffd700', color: '#000', border: 'none', borderRadius: 4, padding: '0.3rem 1rem', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}>{open ? 'Hide Saved Searches' : 'Show Saved Searches'}</button>
+      </div>
+      {open && (searches.length === 0 ? (
         <div style={{ color: '#fff', textAlign: 'center' }}>No saved searches found.</div>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0 }}>
@@ -97,7 +107,7 @@ const SavedSearches = ({ onSearchAgain }) => {
             </li>
           ))}
         </ul>
-      )}
+      ))}
     </div>
   );
 };
