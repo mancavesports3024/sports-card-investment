@@ -31,8 +31,12 @@ function requireUser(req, res, next) {
 // GET /api/search-history - Get all saved searches for user
 router.get('/', requireUser, async (req, res) => {
   try {
+    // Disable caching for this endpoint
+    res.set('Cache-Control', 'no-store');
+    res.removeHeader && res.removeHeader('ETag');
+    res.removeHeader && res.removeHeader('Last-Modified');
     const history = await searchHistoryService.getSearchHistoryForUser(req.user);
-    res.json({
+    res.status(200).json({
       success: true,
       searches: history,
       count: history.length,
@@ -40,7 +44,7 @@ router.get('/', requireUser, async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting search history:', error);
-    res.status(500).json({
+    res.status(200).json({
       success: false,
       error: 'Failed to load search history',
       details: error.message

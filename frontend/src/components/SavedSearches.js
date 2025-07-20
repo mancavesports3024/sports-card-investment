@@ -25,8 +25,15 @@ const SavedSearches = ({ onSearchAgain }) => {
         const res = await fetch('/api/search-history', {
           headers: {
             'Authorization': `Bearer ${token}`
-          }
+          },
+          cache: 'no-store'
         });
+        if (res.status === 304) {
+          setError('No new saved searches (304 Not Modified).');
+          setSearches([]);
+          setLoading(false);
+          return;
+        }
         const data = await res.json();
         if (!data.success) {
           setError(data.error || 'Failed to load saved searches.');
