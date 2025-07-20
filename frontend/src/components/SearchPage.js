@@ -18,6 +18,31 @@ const SearchPage = () => {
   const [exclude, setExclude] = useState('');
   const [lastSavedQuery, setLastSavedQuery] = useState('');
   const [liveListings, setLiveListings] = useState({}); // { sectionKey: { loading, items, error, open } }
+  // Store saved searches in state for duplicate check
+  const [savedSearches, setSavedSearches] = useState([]);
+
+  // Fetch saved searches on mount (for duplicate prevention)
+  useEffect(() => {
+    const fetchSaved = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) return;
+      try {
+        const res = await fetch('/api/search-history', {
+          headers: { 'Authorization': `Bearer ${token}` },
+          cache: 'no-store'
+        });
+        let text, data;
+        try {
+          text = await res.text();
+          data = JSON.parse(text);
+        } catch {
+          return;
+        }
+        if (data.success) setSavedSearches(data.searches || []);
+      } catch {}
+    };
+    fetchSaved();
+  }, [isLoggedIn]);
 
   // Check if user is logged in on component mount
   useEffect(() => {
@@ -90,6 +115,13 @@ const SearchPage = () => {
 
       // Only save if logged in, not a duplicate, and at least one card is found
       if (isLoggedIn && combinedQuery !== lastSavedQuery) {
+        // Check for duplicate
+        const alreadySaved = savedSearches.some(s => (s.query || s.searchQuery) === combinedQuery);
+        if (alreadySaved) {
+          setLastSavedQuery(combinedQuery);
+          setIsLoading(false);
+          return;
+        }
         // Check if at least one card is found in any category
         const resultsObj = data.results || {};
         const hasCards = [
@@ -123,6 +155,20 @@ const SearchPage = () => {
               })
             });
             setLastSavedQuery(combinedQuery);
+            // Refetch saved searches after saving
+            const token = localStorage.getItem('authToken');
+            if (token) {
+              const res = await fetch('/api/search-history', {
+                headers: { 'Authorization': `Bearer ${token}` },
+                cache: 'no-store'
+              });
+              let text, d;
+              try {
+                text = await res.text();
+                d = JSON.parse(text);
+              } catch {}
+              if (d && d.success) setSavedSearches(d.searches || []);
+            }
           } catch (historyError) {
             console.error('Failed to save search history:', historyError);
             // Don't show error to user for history saving
@@ -452,7 +498,7 @@ const SearchPage = () => {
 
   // Handler for reusing a saved search
   const handleReuseSavedSearch = (search) => {
-    setSearchQuery(search.searchQuery);
+    setSearchQuery(search.query || search.searchQuery);
     setTimeout(() => {
       document.getElementById('searchQuery')?.focus();
       document.getElementById('searchQuery')?.blur();
