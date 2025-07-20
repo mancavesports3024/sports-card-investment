@@ -134,7 +134,27 @@ async function search130point(keywords, numSales = 10) {
         const saleType = $el.find('td#dCol #auctionLabel').text().trim();
         const listPrice = $el.find('td#dCol #listPrice').text().replace('List Price:', '').trim();
         const salePrice = $el.find('td#dCol .priceSpan').text().trim();
-        const date = $el.find('td#dCol #dateText').text().replace('Date:', '').trim();
+        const dateText = $el.find('td#dCol #dateText').text().replace('Date:', '').trim();
+        // Parse the date properly - format is like "Thu 17 Jul 2025 06:24:43 CDT"
+        let date = null;
+        if (dateText) {
+          try {
+            // Convert to a proper date format that JavaScript can parse
+            const dateMatch = dateText.match(/(\w{3})\s+(\d{1,2})\s+(\w{3})\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+(\w{3})/);
+            if (dateMatch) {
+              const [, dayName, day, month, year, hour, minute, second, timezone] = dateMatch;
+              // Create a date string that JavaScript can parse
+              const dateString = `${month} ${day}, ${year} ${hour}:${minute}:${second}`;
+              date = new Date(dateString).toISOString();
+            } else {
+              // Fallback to direct parsing
+              date = new Date(dateText).toISOString();
+            }
+          } catch (error) {
+            console.log(`⚠️ Error parsing date "${dateText}":`, error.message);
+            date = new Date().toISOString();
+          }
+        }
         const shipping = $el.find('td#dCol #shipString').text().replace('Shipping Price:', '').trim();
         
         // Extract number of bids if available
