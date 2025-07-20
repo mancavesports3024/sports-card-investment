@@ -26,6 +26,7 @@ const SearchPage = () => {
   const [liveListingsReloadKey, setLiveListingsReloadKey] = useState(0);
   // Control open/closed state of SavedSearches (use a counter to always trigger folding)
   const [savedSearchesOpen, setSavedSearchesOpen] = useState(0);
+  const [lastSearchQuery, setLastSearchQuery] = useState('');
 
   // Fetch saved searches on mount (for duplicate prevention)
   useEffect(() => {
@@ -99,6 +100,7 @@ const SearchPage = () => {
     setIsLoading(true);
     setError(null);
     setResults(null);
+    setLastSearchQuery(combinedQuery); // Store the latest search query
 
     try {
       const response = await fetch(config.getSearchCardsUrl(), {
@@ -289,8 +291,8 @@ const SearchPage = () => {
     let grade = 'Raw';
     if (title.includes('PSA 9')) grade = 'PSA 9';
     else if (title.includes('PSA 10')) grade = 'PSA 10';
-    // Use the last search query for live listings
-    const query = results?.searchParams?.searchQuery || title.replace(/\s+\(.+\)/, '');
+    // Use the last valid search query for live listings
+    const query = lastSearchQuery || results?.searchParams?.searchQuery || title.replace(/\s+\(.+\)/, '');
     // Filter raw cards if this is the Raw section
     let displayCards = cards;
     if (title.toLowerCase().includes('raw')) {
@@ -776,7 +778,7 @@ const SearchPage = () => {
             {/* Card Sections */}
             {renderCardSection('Raw Cards', results.results.raw, '📄')}
             {renderCardSection('PSA 9', results.results.psa9, '🏆')}
-            {renderCardSection('PSA 10', results.results.psa10, '🏆')}
+            {renderCardSection('PSA 10', results.results.psa10, '��')}
           </div>
         )}
       </main>
