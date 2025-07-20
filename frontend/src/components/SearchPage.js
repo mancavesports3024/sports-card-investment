@@ -267,8 +267,20 @@ const SearchPage = () => {
     return { min, max, avg };
   };
 
-  // Pass liveListingsReloadKey to renderCardSection to reload live listings
+  // Reload all open live listings sections when liveListingsReloadKey changes
+  useEffect(() => {
+    Object.keys(liveListings).forEach(sectionKey => {
+      if (liveListings[sectionKey]?.open) {
+        const { query, grade } = liveListings[sectionKey];
+        fetchLiveListings(sectionKey, query, grade);
+      }
+    });
+    // eslint-disable-next-line
+  }, [liveListingsReloadKey]);
+
+  // Pass liveListingsReloadKey to renderCardSection to force re-render if needed (no hook inside)
   const renderCardSection = (title, cards, icon) => {
+    if (!cards || cards.length === 0) return null;
     // Section key for live listings state
     const sectionKey = title.replace(/\s+\(.+\)/, '').replace(/\s/g, '').toLowerCase();
     // Grade for live listings
@@ -282,15 +294,6 @@ const SearchPage = () => {
     if (title.toLowerCase().includes('raw')) {
       displayCards = filterRawCards(cards);
     }
-
-    // Add liveListingsReloadKey to force reload
-    useEffect(() => {
-      // If liveListingsReloadKey changes, reload live listings for open sections
-      if (liveListings[sectionKey]?.open) {
-        fetchLiveListings(sectionKey, query, grade);
-      }
-      // eslint-disable-next-line
-    }, [liveListingsReloadKey]);
 
     return (
       <div className="card-section">
