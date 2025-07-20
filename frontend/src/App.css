@@ -2741,11 +2741,15 @@
   text-align: center;
   letter-spacing: 1px;
   margin: 0.2rem 0 0.2rem 0;
+  width: 100%;
+  display: block;
 }
 .header-row-top {
   border-bottom: 1px solid #222;
   padding-bottom: 0.2rem;
   justify-content: center;
+  display: flex;
+  align-items: center;
 }
 .header-row-bottom {
   margin-top: 0.2rem;
@@ -2761,10 +2765,22 @@
 @media (max-width: 700px) {
   .main-title {
     font-size: 1.3rem;
+    width: 100%;
+    display: block;
+    text-align: center;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .header-row-top {
+    justify-content: center;
+    display: flex;
+    align-items: center;
   }
   .header-row-bottom {
     flex-direction: row;
     gap: 0.5rem;
+    justify-content: space-between;
+    align-items: center;
   }
   .header-social-group {
     gap: 0.7rem;
