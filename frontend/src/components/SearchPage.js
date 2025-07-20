@@ -201,7 +201,7 @@ const SearchPage = () => {
     return cards.filter(card => {
       // Exclude if title contains grading keywords or numbers like 9.5, 10, etc.
       const title = (card.title || '').toLowerCase();
-      const isGraded = /bgs|psa|sgc|cgc|tag|\b9\.5\b|\b10\b|\b9\b|\b8\b|\b7\b/.test(title);
+      const isGraded = /bgs|psa|sgc|cgc|tag|\b9\.5\b|\b10\b|\b9\b|\b8\b|\b7\b/.test(title) || /\b(psa|bgs|sgc|cgc|tag)\s*\d+(\.\d+)?\b/.test(title);
       // Exclude if price is missing or not a number
       const priceValue = Number(card.price?.value);
       const validPrice = !isNaN(priceValue) && priceValue > 0;
@@ -338,42 +338,48 @@ const SearchPage = () => {
           </div>
         )}
         <div className="cards-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem' }}>
-          {displayCards.map((card, index) => (
-            <div key={`${card.id || index}-${card.title}`} className="card-item" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.7rem', minWidth: 170, maxWidth: 210, fontSize: '0.97em', marginBottom: 0 }}>
-              <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                <div className="card-title" style={{ fontWeight: 600, fontSize: '1em', marginBottom: 2 }}>{card.title}</div>
-                {/* Listed price with strikethrough if different from sold price */}
-                {card.listPrice && card.listPrice !== card.price?.value && (
-                  <div className="card-list-price" style={{ fontSize: '0.93em', color: '#b00', textDecoration: 'line-through', fontWeight: 500 }}>
-                    ${Number(card.listPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </div>
-                )}
-                {/* Bid count above sold date/time */}
-                {card.numBids && (
-                  <div className="card-bids" style={{ fontSize: '0.85em', color: '#856404', backgroundColor: '#fff3cd', padding: '1px 4px', borderRadius: 3, border: '1px solid #ffeaa7', alignSelf: 'flex-start' }}>Bids: {card.numBids}</div>
-                )}
-                <div className="card-price" style={{ fontSize: '0.98em', color: '#222' }}>{formatPrice(card.price)}</div>
-                {card.saleType && (
-                  <div className="card-sale-type" style={{ fontSize: '0.85em', color: '#28a745', fontWeight: 600, backgroundColor: '#d4edda', padding: '1px 4px', borderRadius: 3, border: '1px solid #c3e6cb', alignSelf: 'flex-start' }}>{card.saleType}</div>
-                )}
-                <div className="card-date" style={{ fontSize: '0.93em', color: '#888' }}>Sold: {formatDate(card.soldDate)}</div>
-                {card.seller && card.seller !== '130point' && (
-                  <div className="card-seller" style={{ fontSize: '0.85em', color: '#666' }}>Via: {card.seller}</div>
-                )}
-                {card.itemWebUrl && (
-                  <a 
-                    href={card.itemWebUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="live-listings-btn"
-                    style={{ fontSize: '0.89em', padding: '0.18em 0.6em', background: '#ffd700', color: '#000', border: '1px solid #aaa', borderRadius: 5, textDecoration: 'none', marginTop: 2, alignSelf: 'flex-start' }}
-                  >
-                    View on eBay
-                  </a>
-                )}
+          {displayCards.map((card, index) => {
+            // Skip cards with invalid price
+            const priceValue = Number(card.price?.value);
+            if (isNaN(priceValue) || priceValue <= 0) return null;
+            return (
+              <div key={`${card.id || index}-${card.title}`} className="card-item" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.7rem', minWidth: 170, maxWidth: 210, fontSize: '0.97em', marginBottom: 0 }}>
+                <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                  <div className="card-title" style={{ fontWeight: 600, fontSize: '1em', marginBottom: 2 }}>{card.title}</div>
+                  {/* Listed price with strikethrough if different from sold price */}
+                  {card.listPrice && card.listPrice !== card.price?.value && (
+                    <div className="card-list-price" style={{ fontSize: '0.93em', color: '#b00', textDecoration: 'line-through', fontWeight: 500 }}>
+                      ${Number(card.listPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                  )}
+                  {/* Sale type (auction/fixed/etc.) */}
+                  {card.saleType && (
+                    <div className="card-sale-type" style={{ fontSize: '0.85em', color: '#28a745', fontWeight: 600, backgroundColor: '#d4edda', padding: '1px 4px', borderRadius: 3, border: '1px solid #c3e6cb', alignSelf: 'flex-start' }}>{card.saleType}</div>
+                  )}
+                  {/* Bid count below sale type, above sold date/time */}
+                  {card.numBids && (
+                    <div className="card-bids" style={{ fontSize: '0.85em', color: '#856404', backgroundColor: '#fff3cd', padding: '1px 4px', borderRadius: 3, border: '1px solid #ffeaa7', alignSelf: 'flex-start' }}>Bids: {card.numBids}</div>
+                  )}
+                  <div className="card-price" style={{ fontSize: '0.98em', color: '#222' }}>{formatPrice(card.price)}</div>
+                  <div className="card-date" style={{ fontSize: '0.93em', color: '#888' }}>Sold: {formatDate(card.soldDate)}</div>
+                  {card.seller && card.seller !== '130point' && (
+                    <div className="card-seller" style={{ fontSize: '0.85em', color: '#666' }}>Via: {card.seller}</div>
+                  )}
+                  {card.itemWebUrl && (
+                    <a 
+                      href={card.itemWebUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="live-listings-btn"
+                      style={{ fontSize: '0.89em', padding: '0.18em 0.6em', background: '#ffd700', color: '#000', border: '1px solid #aaa', borderRadius: 5, textDecoration: 'none', marginTop: 2, alignSelf: 'flex-start' }}
+                    >
+                      View on eBay
+                    </a>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
