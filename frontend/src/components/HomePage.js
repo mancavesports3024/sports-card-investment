@@ -27,6 +27,11 @@ const HomePage = () => {
  
               <a href="/search" className="cta-button large">Search Cards</a>
               <p className="cta-note">Free to use • No registration required</p>
+              <div className="hero-social" style={{ marginTop: '1rem', display: 'flex', gap: '1.2rem', justifyContent: 'center' }}>
+                <a href="https://twitter.com/scorecard" target="_blank" rel="noopener noreferrer" style={{ color: '#222', fontSize: '1.4rem', textDecoration: 'none' }} title="Follow on X">𝕏</a>
+                <a href="https://instagram.com/scorecard" target="_blank" rel="noopener noreferrer" style={{ color: '#222', fontSize: '1.4rem', textDecoration: 'none' }} title="Instagram">📷</a>
+                <a href="https://facebook.com/scorecard" target="_blank" rel="noopener noreferrer" style={{ color: '#222', fontSize: '1.4rem', textDecoration: 'none' }} title="Facebook">📘</a>
+              </div>
             </div>
           </div>
           <div className="hero-image">
@@ -63,11 +68,6 @@ const HomePage = () => {
               <div className="feature-icon">⚡</div>
               <h3>Lightning Fast</h3>
               <p>Get results instantly with our optimized search algorithms and caching system.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">🖼️</div>
-              <h3>Image Analysis</h3>
-              <p>Upload card images for automatic identification and pricing suggestions.</p>
             </div>
             <div className="feature-card">
               <div className="feature-icon">📈</div>
@@ -119,12 +119,15 @@ const HomePage = () => {
               <a href="https://instagram.com/scorecard" className="social-link" target="_blank" rel="noopener noreferrer">
                 <span>📷</span> Instagram
               </a>
+              <a href="https://facebook.com/scorecard" className="social-link" target="_blank" rel="noopener noreferrer">
+                <span>📘</span> Facebook
+              </a>
             </div>
           </div>
           <div className="footer-section">
             <h4>Shop on eBay</h4>
             <div className="ebay-promo">
-              <p>Find great deals on sports cards and memorabilia!</p>
+              <p>Find great deals on sports cards!</p>
               <a href="https://ebay.com" className="ebay-store-btn" target="_blank" rel="noopener noreferrer">             Visit eBay Store
               </a>
             </div>

@@ -49,17 +49,16 @@ function App() {
     <Router>
       <div className="App">
         {/* Global Header */}
-        <header className="global-header" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem 2rem', background: '#000', color: '#ffd700', position: 'relative' }}>
-          {/* Social Media Left */}
-          <div style={{ position: 'absolute', left: 32, display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+        <header className="global-header" style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', padding: '1rem 2rem', background: '#000', color: '#ffd700', position: 'relative' }}>
+          {/* Social Media and Title Left */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
             <a href="https://twitter.com/scorecard" target="_blank" rel="noopener noreferrer" style={{ color: '#ffd700', fontSize: '1.4rem', textDecoration: 'none' }} title="Follow on X">𝕏</a>
             <a href="https://instagram.com/scorecard" target="_blank" rel="noopener noreferrer" style={{ color: '#ffd700', fontSize: '1.4rem', textDecoration: 'none' }} title="Instagram">📷</a>
+            <a href="https://facebook.com/scorecard" target="_blank" rel="noopener noreferrer" style={{ color: '#ffd700', fontSize: '1.4rem', textDecoration: 'none' }} title="Facebook">📘</a>
+            <div style={{ fontWeight: 'bold', fontSize: '1.5rem', textAlign: 'center', marginLeft: '1.2rem' }}>Scorecard</div>
           </div>
-          {/* Centered Title */}
-          <div style={{ fontWeight: 'bold', fontSize: '1.5rem', textAlign: 'center', flex: 1 }}>Scorecard</div>
           {/* Login/Logout/User Right */}
           <div style={{ position: 'absolute', right: 32, display: 'flex', alignItems: 'center' }}>
-            <a href="/saved-searches" style={{ color: '#ffd700', fontWeight: 'bold', marginRight: '1.5rem', textDecoration: 'underline', fontSize: '1.05rem' }}>Saved Searches</a>
             {!isLoggedIn ? (
               <button onClick={handleLogin} style={{ background: '#ffd700', color: '#000', border: 'none', borderRadius: '5px', padding: '0.5rem 1.2rem', fontWeight: 'bold', cursor: 'pointer' }}>Log in</button>
             ) : (
