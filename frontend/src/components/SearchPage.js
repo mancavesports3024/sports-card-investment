@@ -211,10 +211,14 @@ const SearchPage = () => {
     });
   };
 
+  // Helper to generate a unique key for live listings per section and query
+  const getLiveKey = (sectionKey, query) => `${sectionKey}_${query}`;
+
   const fetchLiveListings = async (sectionKey, query, grade) => {
+    const liveKey = getLiveKey(sectionKey, query);
     setLiveListings(prev => ({
       ...prev,
-      [sectionKey]: { ...prev[sectionKey], loading: true, error: null, open: true }
+      [liveKey]: { ...prev[liveKey], loading: true, error: null, open: true }
     }));
     try {
       const url = `${config.API_BASE_URL}/api/live-listings?query=${encodeURIComponent(query)}&grade=${encodeURIComponent(grade)}`;
@@ -223,24 +227,25 @@ const SearchPage = () => {
       const data = await res.json();
       setLiveListings(prev => ({
         ...prev,
-        [sectionKey]: { loading: false, items: data.items || [], error: null, open: true }
+        [liveKey]: { loading: false, items: data.items || [], error: null, open: true }
       }));
     } catch (err) {
       setLiveListings(prev => ({
         ...prev,
-        [sectionKey]: { loading: false, items: [], error: err.message, open: true }
+        [liveKey]: { loading: false, items: [], error: err.message, open: true }
       }));
     }
   };
 
   const toggleLiveListings = (sectionKey, query, grade) => {
-    if (liveListings[sectionKey]?.open) {
-      setLiveListings(prev => ({ ...prev, [sectionKey]: { ...prev[sectionKey], open: false } }));
+    const liveKey = getLiveKey(sectionKey, query);
+    if (liveListings[liveKey]?.open) {
+      setLiveListings(prev => ({ ...prev, [liveKey]: { ...prev[liveKey], open: false } }));
     } else {
-      if (!liveListings[sectionKey] || !liveListings[sectionKey].items) {
+      if (!liveListings[liveKey] || !liveListings[liveKey].items) {
         fetchLiveListings(sectionKey, query, grade);
       } else {
-        setLiveListings(prev => ({ ...prev, [sectionKey]: { ...prev[sectionKey], open: true } }));
+        setLiveListings(prev => ({ ...prev, [liveKey]: { ...prev[liveKey], open: true } }));
       }
     }
   };
@@ -273,10 +278,13 @@ const SearchPage = () => {
 
   // Reload all open live listings sections when liveListingsReloadKey changes
   useEffect(() => {
-    Object.keys(liveListings).forEach(sectionKey => {
-      if (liveListings[sectionKey]?.open) {
-        const { query, grade } = liveListings[sectionKey];
-        fetchLiveListings(sectionKey, query, grade);
+    Object.keys(liveListings).forEach(liveKey => {
+      const entry = liveListings[liveKey];
+      if (entry?.open) {
+        // Parse sectionKey and query from liveKey
+        const [sectionKey, ...queryParts] = liveKey.split('_');
+        const query = queryParts.join('_');
+        fetchLiveListings(sectionKey, query, entry.grade || 'Raw');
       }
     });
     // eslint-disable-next-line
@@ -293,6 +301,7 @@ const SearchPage = () => {
     else if (title.includes('PSA 10')) grade = 'PSA 10';
     // Use the last valid search query for live listings
     const query = lastSearchQuery || (results?.searchParams?.searchQuery ?? '');
+    const liveKey = getLiveKey(sectionKey, query);
     // Logging for debugging
     console.log(`[LiveListings] Section: ${sectionKey}, Title: ${title}`);
     console.log(`[LiveListings] lastSearchQuery:`, lastSearchQuery);
@@ -325,16 +334,16 @@ const SearchPage = () => {
             }}
             disabled={!query || query.trim() === '' || query === 'undefined'}
           >
-            {liveListings[sectionKey]?.open ? 'Hide Live Listings' : 'View Live Listings'}
+            {liveListings[liveKey]?.open ? 'Hide Live Listings' : 'View Live Listings'}
           </button>
         </div>
-        {liveListings[sectionKey]?.open && (
+        {liveListings[liveKey]?.open && (
           <div className="live-listings-section" style={{ margin: '1rem 0', background: '#fff', borderRadius: 10, border: '1.5px solid #ffd700', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '1rem' }}>
-            {liveListings[sectionKey]?.loading && <div>Loading live listings...</div>}
-            {liveListings[sectionKey]?.error && <div style={{ color: 'red' }}>{liveListings[sectionKey].error}</div>}
-            {liveListings[sectionKey]?.items && liveListings[sectionKey].items.length > 0 && (
+            {liveListings[liveKey]?.loading && <div>Loading live listings...</div>}
+            {liveListings[liveKey]?.error && <div style={{ color: 'red' }}>{liveListings[liveKey].error}</div>}
+            {liveListings[liveKey]?.items && liveListings[liveKey].items.length > 0 && (
               <div className="live-listings-grid" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                {liveListings[sectionKey].items.map((item, idx) => (
+                {liveListings[liveKey].items.map((item, idx) => (
                   <div key={item.itemId || idx} className="live-listing-card" style={{ 
                     background: '#fff', 
                     border: '1px solid #e1e3e6', 
@@ -426,7 +435,7 @@ const SearchPage = () => {
                 ))}
               </div>
             )}
-            {liveListings[sectionKey]?.items && liveListings[sectionKey].items.length === 0 && !liveListings[sectionKey]?.loading && <div>No live listings found.</div>}
+            {liveListings[liveKey]?.items && liveListings[liveKey].items.length === 0 && !liveListings[liveKey]?.loading && <div>No live listings found.</div>}
           </div>
         )}
         <div className="cards-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem' }}>
