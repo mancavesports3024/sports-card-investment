@@ -548,6 +548,17 @@ const SearchPage = () => {
     }, 200);
   };
 
+  // Add this function to clear all search fields
+  const handleClear = () => {
+    setPlayerName('');
+    setCardSet('');
+    setYear('');
+    setCardNumber('');
+    setCardType('');
+    setExclude('');
+    setSearchQuery('');
+  };
+
   return (
     <div className="App">
       {/* Main Content */}
@@ -652,9 +663,27 @@ const SearchPage = () => {
               placeholder="e.g., Mike Trout 2011 Topps Update Rookie"
             />
           </div>
-          <div className="form-group">
+          <div className="form-group" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <button type="submit" disabled={isLoading} className="search-button">
               {isLoading ? '🔍 Searching...' : '🔍 Search Cards'}
+            </button>
+            <button
+              type="button"
+              onClick={handleClear}
+              style={{
+                background: '#000',
+                color: '#ffd700',
+                border: '2px solid #ffd700',
+                borderRadius: 5,
+                padding: '0.5rem 1.2rem',
+                fontWeight: 'bold',
+                fontSize: '1rem',
+                marginLeft: '0.5rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              Clear
             </button>
           </div>
         </form>
