@@ -4,12 +4,18 @@ const SavedSearches = ({ onSearchAgain }) => {
   const [searches, setSearches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('authToken'));
+
+  const handleLogin = () => {
+    window.location.href = 'https://web-production-9efa.up.railway.app/api/auth/google';
+  };
 
   useEffect(() => {
     const fetchSearches = async () => {
       setLoading(true);
       setError(null);
       const token = localStorage.getItem('authToken');
+      setIsLoggedIn(!!token);
       if (!token) {
         setError('You must be logged in to view saved searches.');
         setLoading(false);
@@ -28,7 +34,7 @@ const SavedSearches = ({ onSearchAgain }) => {
           setSearches(data.searches || []);
         }
       } catch (err) {
-        setError('Failed to load saved searches.');
+        setError('Failed to load saved searches: ' + (err.message || err.toString()));
       }
       setLoading(false);
     };
@@ -54,6 +60,7 @@ const SavedSearches = ({ onSearchAgain }) => {
   };
 
   if (loading) return <div style={{ color: '#ffd700', textAlign: 'center', margin: '2rem' }}>Loading saved searches...</div>;
+  if (!isLoggedIn) return <div style={{ color: '#fff', textAlign: 'center', margin: '2rem' }}><div style={{ color: 'red', marginBottom: 12 }}>{error}</div><button onClick={handleLogin} style={{ background: '#ffd700', color: '#000', border: 'none', borderRadius: 4, padding: '0.5rem 1.2rem', fontWeight: 'bold', cursor: 'pointer' }}>Log in to view saved searches</button></div>;
   if (error) return <div style={{ color: 'red', textAlign: 'center', margin: '2rem' }}>{error}</div>;
 
   return (

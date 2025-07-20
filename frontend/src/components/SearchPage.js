@@ -546,24 +546,31 @@ const SearchPage = () => {
             </button>
           </div>
           <div className="form-group">
-            <a href="/saved-searches" style={{
-              display: 'inline-block',
-              background: '#ffd700',
-              color: '#000',
-              border: '1px solid #aaa',
-              borderRadius: 5,
-              padding: '0.5rem 1.2rem',
-              fontWeight: 'bold',
-              textDecoration: 'none',
-              fontSize: '1.05rem',
-              marginTop: '0.5rem',
-              textAlign: 'center',
-              width: '100%'
-            }}>Saved Searches</a>
+            <button type="button" onClick={() => {
+              const el = document.getElementById('saved-searches-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+              style={{
+                display: 'inline-block',
+                background: '#ffd700',
+                color: '#000',
+                border: '1px solid #aaa',
+                borderRadius: 5,
+                padding: '0.5rem 1.2rem',
+                fontWeight: 'bold',
+                textDecoration: 'none',
+                fontSize: '1.05rem',
+                marginTop: '0.5rem',
+                textAlign: 'center',
+                width: '100%'
+              }}
+            >Saved Searches</button>
           </div>
         </form>
         {/* Saved Searches below the form */}
-        <SavedSearches onSearchAgain={handleReuseSavedSearch} />
+        <div id="saved-searches-section">
+          <SavedSearches onSearchAgain={handleReuseSavedSearch} />
+        </div>
 
         {/* Login Prompt for Non-Logged-In Users */}
         {!isLoggedIn && (
