@@ -99,7 +99,6 @@ const SavedSearches = ({ onSearchAgain }) => {
           {searches.map((search) => (
             <li key={search.id || search._id} style={{ marginBottom: 18, background: '#333', borderRadius: 6, padding: '1rem 1.5rem', border: '1px solid #ffd700' }}>
               <div style={{ fontWeight: 'bold', color: '#ffd700' }}>{search.searchQuery}</div>
-              <div style={{ fontSize: '0.95rem', color: '#bbb' }}>Saved: {search.createdAt ? new Date(search.createdAt).toLocaleString() : 'Unknown date'}</div>
               <div style={{ marginTop: 10, display: 'flex', gap: '1rem' }}>
                 <button onClick={() => onSearchAgain(search)} style={{ background: '#ffd700', color: '#000', border: 'none', borderRadius: 4, padding: '0.3rem 1rem', fontWeight: 'bold', cursor: 'pointer' }}>Search Again</button>
                 <button onClick={() => handleDelete(search.id || search._id)} style={{ background: '#b00', color: '#fff', border: 'none', borderRadius: 4, padding: '0.3rem 1rem', fontWeight: 'bold', cursor: 'pointer' }}>Delete</button>
