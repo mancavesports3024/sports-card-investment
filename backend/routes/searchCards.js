@@ -157,11 +157,11 @@ const categorizeCards = (cards) => {
     const categorizedResult = { ...legacyBuckets, priceAnalysis, gradingStats };
     // Replace raw with filteredRaw (from price analysis)
     if (priceAnalysis && priceAnalysis.raw && Array.isArray(dynamicBuckets.raw)) {
+      const rawAvg = priceAnalysis.raw.avgPrice; // Get the average from the price analysis
       categorizedResult.raw = dynamicBuckets.raw.filter(card => {
         const price = parseFloat(card.price?.value || 0);
         // Use the same filtering as in price analysis
-        const avg = priceAnalysis.raw.avgPrice;
-        return price > 0 && price <= 1.5 * avg;
+        return price > 0 && price <= 1.5 * rawAvg;
       });
     }
     Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
@@ -205,14 +205,15 @@ const calculatePriceTrend = (cards) => {
 
 // Helper function to calculate price differences
 const calculatePriceAnalysis = (raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8, tag9, tag10, sgc10, aigrade9, aigrade10, otherGraded) => {
-  // Outlier filtering for raw: remove cards >1.5x average price
+  // Outlier filtering for raw: remove cards >1.5x average price (average is from original set)
   let filteredRaw = raw;
+  let rawAvg = 0;
   if (raw.length > 0) {
     const rawPrices = raw.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
-    const avg = rawPrices.length > 0 ? rawPrices.reduce((a, b) => a + b, 0) / rawPrices.length : 0;
+    rawAvg = rawPrices.length > 0 ? rawPrices.reduce((a, b) => a + b, 0) / rawPrices.length : 0;
     filteredRaw = raw.filter(card => {
       const price = parseFloat(card.price?.value || 0);
-      return price > 0 && price <= 1.5 * avg;
+      return price > 0 && price <= 1.5 * rawAvg;
     });
   }
   const analysis = {
