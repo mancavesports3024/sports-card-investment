@@ -684,57 +684,6 @@ const SearchPage = () => {
               ))}
             </div>
           )}
-          {/* Existing breakdown */}
-          {gradingCompanyList.map(companyKey => {
-            const grades = gradingStats[companyKey] || {};
-            if (Object.keys(grades).length === 0) return null;
-            // Special handling for BGS
-            if (companyKey === 'bgs') {
-              const bgsGrades = ['10', '9_5', '9'];
-              return (
-                <div style={{ marginBottom: '0.5rem' }} key={companyKey}>
-                  <strong>{companyKey.toUpperCase()}</strong>
-                  {bgsGrades.map(grade => {
-                    const stats = grades[grade];
-                    if (!stats) return null;
-                    return (
-                      <div key={`${companyKey}-${grade}`} style={{ marginLeft: 10, fontSize: '0.93em' }}>
-                        {grade.replace('_', '.')}:
-                        {` ${stats.count} sold, avg ${formatPrice({ value: stats.avgPrice })} (range: ${formatPrice({ value: stats.minPrice })} - ${formatPrice({ value: stats.maxPrice })})`}
-                      </div>
-                    );
-                  })}
-                  {/* Show any other BGS grades not 10, 9.5, 9 */}
-                  {Object.keys(grades).filter(g => !bgsGrades.includes(g)).map(grade => {
-                    const stats = grades[grade];
-                    if (!stats) return null;
-                    return (
-                      <div key={`${companyKey}-${grade}`} style={{ marginLeft: 10, fontSize: '0.93em' }}>
-                        {grade.replace('_', '.')}:
-                        {` ${stats.count} sold, avg ${formatPrice({ value: stats.avgPrice })} (range: ${formatPrice({ value: stats.minPrice })} - ${formatPrice({ value: stats.maxPrice })})`}
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            }
-            // Default for other companies
-            return (
-              <div style={{ marginBottom: '0.5rem' }} key={companyKey}>
-                <strong>{companyKey.toUpperCase()}</strong>
-                {Object.keys(grades).sort((a, b) => parseFloat(a.replace('_', '.')) - parseFloat(b.replace('_', '.'))).map(grade => {
-                  const stats = grades[grade];
-                  if (!stats) return null;
-                  return (
-                    <div key={`${companyKey}-${grade}`} style={{ marginLeft: 10, fontSize: '0.93em' }}>
-                      {grade.replace('_', '.')}:
-                      {` ${stats.count} sold, avg ${formatPrice({ value: stats.avgPrice })} (range: ${formatPrice({ value: stats.minPrice })} - ${formatPrice({ value: stats.maxPrice })})`}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
         </div>
       </div>
     );
