@@ -68,6 +68,11 @@ const getMockData = (searchQuery, numSales) => {
 
 // Helper function to categorize cards and calculate price differences
 const categorizeCards = (cards) => {
+  const gradingCompanies = ['psa', 'bgs', 'sgc', 'cgc', 'beckett', 'ace', 'cga', 'gma', 'hga', 'pgs', 'bvg', 'csg', 'rcg', 'ksa', 'fgs', 'tag', 'pgm', 'dga', 'isa'];
+  const gradeNumbers = ['10', '9.5', '9', '8.5', '8', '7', '6', '5', '4', '3', '2', '1'];
+  const rawKeywords = ['raw', 'ungraded', 'not graded', 'no grade'];
+  const gradedConditionIds = ['2750', '4000', '5000']; // eBay's known graded condition IDs
+  
   try {
     console.log('--- categorizeCards: START ---');
     if (!cards || cards.length === 0) return { raw: [], psa9: [], psa10: [], priceAnalysis: null };
@@ -102,11 +107,6 @@ const categorizeCards = (cards) => {
       let categorized = false;
       
       // More precise grading detection - only look for actual grading companies and grades
-      const gradingCompanies = ['psa', 'bgs', 'sgc', 'cgc', 'beckett', 'ace', 'cga', 'gma', 'hga', 'pgs', 'bvg', 'csg', 'rcg', 'ksa', 'fgs', 'tag', 'pgm', 'dga', 'isa'];
-      const gradeNumbers = ['10', '9.5', '9', '8.5', '8', '7', '6', '5', '4', '3', '2', '1'];
-      const rawKeywords = ['raw', 'ungraded', 'not graded', 'no grade'];
-      const gradedConditionIds = ['2750', '4000', '5000']; // eBay's known graded condition IDs
-      
       // Helper to check for grading companies
       function hasGradingCompany(str) {
         if (!str) return false;
