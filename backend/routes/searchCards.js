@@ -286,6 +286,18 @@ const categorizeCards = (cards) => {
         console.log(`  -> RAW (Added)`);
       }
       console.log('-------------------');
+
+      // Add to allCompanyGradeBuckets for every company/grade match
+      gradingCompanies.forEach(company => {
+        gradeNumbers.forEach(grade => {
+          const regex = new RegExp(`${company} ?${grade.replace('.', '\.')}`);
+          if (regex.test(title)) {
+            const bucketName = `${company}${grade.replace('.', '_')}`;
+            if (!dynamicBuckets[bucketName]) dynamicBuckets[bucketName] = [];
+            dynamicBuckets[bucketName].push(card);
+          }
+        });
+      });
     });
     
     console.log(`\n=== FINAL RESULTS ===`);
