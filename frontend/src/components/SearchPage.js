@@ -561,8 +561,70 @@ const SearchPage = () => {
     );
   };
 
-  // Refactor renderPriceAnalysis for new Investment Insight layout
+  // Restore original renderPriceAnalysis
   const renderPriceAnalysis = (analysis) => {
+    if (!analysis) return null;
+    // Use filtered/displayed cards for stats
+    const rawCards = filterRawCards(results?.results?.raw || []);
+    const psa9Cards = (results?.results?.psa9 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
+    const psa10Cards = (results?.results?.psa10 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
+    const rawStats = getPriceStats(rawCards);
+    const psa9Stats = getPriceStats(psa9Cards);
+    const psa10Stats = getPriceStats(psa10Cards);
+    const tiles = [
+      { key: 'raw', label: 'Raw Cards', stats: rawStats },
+      { key: 'psa9', label: 'PSA 9', stats: psa9Stats },
+      { key: 'psa10', label: 'PSA 10', stats: psa10Stats }
+    ];
+    // Comparison tiles
+    const comparisons = analysis.comparisons || {};
+    const comparisonTiles = [
+      { key: 'rawToPsa9', label: 'Raw → PSA 9', data: comparisons.rawToPsa9 },
+      { key: 'rawToPsa10', label: 'Raw → PSA 10', data: comparisons.rawToPsa10 },
+      { key: 'psa9ToPsa10', label: 'PSA 9 → PSA 10', data: comparisons.psa9ToPsa10 }
+    ];
+    // Investment insight
+    let insight = '';
+    if (analysis.psa10 && analysis.psa10.trend === 'up') {
+      insight = 'PSA 10 prices are trending up!';
+    } else if (analysis.psa9 && analysis.psa9.trend === 'up') {
+      insight = 'PSA 9 prices are trending up!';
+    } else if (analysis.raw && analysis.raw.trend === 'up') {
+      insight = 'Raw card prices are trending up!';
+    } else {
+      insight = 'No strong upward trends detected.';
+    }
+    // Build the 3x2 grid: [raw, psa9, psa10, rawToPsa9, rawToPsa10, psa9ToPsa10]
+    const gridTiles = [
+      ...tiles.map(({ key, label, stats }) => {
+        if (!stats || stats.min == null) return null;
+        return (
+          <div key={key} className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
+            <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
+            <p style={{ margin: 0 }}>Avg: <strong>{formatPrice({ value: stats.avg })}</strong></p>
+            <p style={{ margin: 0, fontSize: '0.93em' }}>Range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })}</p>
+          </div>
+        );
+      }),
+      ...comparisonTiles.map(({ key, label, data }) => data && (
+        <div key={key} className="analysis-item" style={{ background: '#e6f7ff', border: '1.5px solid #1890ff', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
+          <h4 style={{ color: '#0050b3', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
+          <p style={{ margin: 0 }}>{data.description}</p>
+        </div>
+      ))
+    ];
+    return (
+      <div className="price-analysis">
+        <h3 style={{ color: '#fff', fontWeight: 800, textShadow: '1px 1px 6px #000' }}>📊 Price Analysis</h3>
+        <div className="analysis-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+          {gridTiles}
+        </div>
+      </div>
+    );
+  };
+
+  // New Investment Insight section (tile + breakdown)
+  const renderInvestmentInsight = (analysis) => {
     if (!analysis) return null;
     // Stats for Raw, PSA 9, PSA 10
     const rawCards = filterRawCards(results?.results?.raw || []);
@@ -612,7 +674,6 @@ const SearchPage = () => {
       if (!companyGradeMap[foundCompany][grade]) companyGradeMap[foundCompany][grade] = [];
       companyGradeMap[foundCompany][grade].push(card);
     });
-    // Render
     return (
       <div className="investment-insight-section" style={{ marginBottom: '2rem' }}>
         <h3 style={{ color: '#000', fontWeight: 800, marginBottom: '1rem', fontSize: '1.4rem' }}>Investment Insight</h3>
@@ -938,6 +999,9 @@ const SearchPage = () => {
 
             {/* Price Analysis */}
             {renderPriceAnalysis(results.priceAnalysis)}
+
+            {/* Investment Insight */}
+            {renderInvestmentInsight(results.priceAnalysis)}
 
             {/* Card Sections */}
             {renderCardSection('Raw Cards', results.results.raw, '📄')}
