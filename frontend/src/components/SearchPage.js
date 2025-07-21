@@ -89,6 +89,10 @@ const SearchPage = () => {
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   // Add state for expanded card sections
   const [expandedSections, setExpandedSections] = useState({});
+  // Add refs for live listings sections
+  const rawLiveRef = useRef(null);
+  const psa9LiveRef = useRef(null);
+  const psa10LiveRef = useRef(null);
 
   // Fetch saved searches on mount (for duplicate prevention)
   useEffect(() => {
@@ -360,8 +364,10 @@ const SearchPage = () => {
     const sectionKey = title.replace(/\s+\(.+\)/, '').replace(/\s/g, '').toLowerCase();
     // Grade for live listings
     let grade = 'Raw';
-    if (title.includes('PSA 9')) grade = 'PSA 9';
-    else if (title.includes('PSA 10')) grade = 'PSA 10';
+    let sectionRef = null;
+    if (title.includes('PSA 9')) { grade = 'PSA 9'; sectionRef = psa9LiveRef; }
+    else if (title.includes('PSA 10')) { grade = 'PSA 10'; sectionRef = psa10LiveRef; }
+    else if (title.toLowerCase().includes('raw')) { sectionRef = rawLiveRef; }
     // Use the last valid search query for live listings
     const query = lastSearchQuery || (results?.searchParams?.searchQuery ?? '');
     const liveKey = getLiveKey(sectionKey, query);
@@ -385,7 +391,7 @@ const SearchPage = () => {
     const visibleCards = isExpanded ? displayCards : displayCards.slice(0, 25);
 
     return (
-      <div className="card-section">
+      <div className="card-section" ref={sectionRef}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
           <h3 style={{ margin: 0 }}>{icon} {title} ({cards.length})</h3>
           <button
@@ -573,9 +579,9 @@ const SearchPage = () => {
     const psa9Stats = getPriceStats(psa9Cards);
     const psa10Stats = getPriceStats(psa10Cards);
     const tiles = [
-      { key: 'raw', label: 'Raw Cards', stats: rawStats, trend: analysis.raw?.trend },
-      { key: 'psa9', label: 'PSA 9', stats: psa9Stats, trend: analysis.psa9?.trend },
-      { key: 'psa10', label: 'PSA 10', stats: psa10Stats, trend: analysis.psa10?.trend }
+      { key: 'raw', label: 'Raw Cards', stats: rawStats, trend: analysis.raw?.trend, ref: rawLiveRef },
+      { key: 'psa9', label: 'PSA 9', stats: psa9Stats, trend: analysis.psa9?.trend, ref: psa9LiveRef },
+      { key: 'psa10', label: 'PSA 10', stats: psa10Stats, trend: analysis.psa10?.trend, ref: psa10LiveRef }
     ];
     // Build the 3x2 grid: [raw, psa9, psa10, rawToPsa9, rawToPsa10, psa9ToPsa10]
     const comparisons = analysis.comparisons || {};
@@ -585,17 +591,28 @@ const SearchPage = () => {
       { key: 'psa9ToPsa10', label: 'PSA 9 → PSA 10', data: comparisons.psa9ToPsa10 }
     ];
     const gridTiles = [
-      ...tiles.map(({ key, label, stats, trend }) => {
+      ...tiles.map(({ key, label, stats, trend, ref }, idx) => {
         if (!stats || stats.min == null) return null;
         let trendText = '';
         if (trend === 'up') trendText = `${label} prices are trending up!`;
         else if (trend === 'down') trendText = `${label} prices are trending down.`;
+        // Add button to first three tiles
         return (
-          <div key={key} className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
+          <div key={key} className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)', position: 'relative' }}>
             <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
             <p style={{ margin: 0 }}>Avg: <strong>{formatPrice({ value: stats.avg })}</strong></p>
             <p style={{ margin: 0, fontSize: '0.93em' }}>Range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })}</p>
             {trendText && <div style={{ marginTop: 6, color: trend === 'up' ? '#388e3c' : '#b00', fontWeight: 600 }}>{trendText}</div>}
+            <button
+              style={{ marginTop: 10, background: '#ffd700', color: '#000', border: '1.5px solid #000', borderRadius: 5, padding: '0.4rem 1.1rem', fontWeight: 'bold', fontSize: '0.97rem', cursor: 'pointer' }}
+              onClick={() => {
+                if (ref && ref.current) {
+                  ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+            >
+              View Live Listings
+            </button>
           </div>
         );
       }),
