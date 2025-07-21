@@ -601,26 +601,71 @@ const SearchPage = () => {
       });
     });
 
+    // List of grading companies (BGS and Beckett are the same)
+    const gradingCompanyList = [
+      'psa', 'bgs', 'sgc', 'cgc', 'beckett', 'ace', 'cga', 'gma', 'hga', 'pgs', 'bvg', 'csg', 'rcg', 'ksa', 'fgs', 'tag', 'pgm', 'dga', 'isa'
+    ];
+    // Helper to normalize company name
+    const normalizeCompany = (name) => {
+      if (!name) return '';
+      name = name.toLowerCase();
+      if (name === 'beckett') return 'bgs';
+      return name;
+    };
+    // Gather all graded cards (exclude raw)
+    const allCards = Object.entries(results?.results || {})
+      .filter(([key]) => key !== 'raw')
+      .flatMap(([, arr]) => arr);
+    // Group cards by company and grade
+    const companyGradeMap = {};
+    allCards.forEach(card => {
+      const title = (card.title || '').toLowerCase();
+      let foundCompany = null;
+      for (let company of gradingCompanyList) {
+        if (title.includes(company)) {
+          foundCompany = normalizeCompany(company);
+          break;
+        }
+      }
+      if (!foundCompany) return;
+      // Extract grade (look for number 1-10, 7.5, 8.5, 9.5, etc.)
+      const gradeMatch = title.match(/(\d{1,2}(?:\.5)?)/);
+      const grade = gradeMatch ? gradeMatch[1] : 'Unknown';
+      if (!companyGradeMap[foundCompany]) companyGradeMap[foundCompany] = {};
+      if (!companyGradeMap[foundCompany][grade]) companyGradeMap[foundCompany][grade] = [];
+      companyGradeMap[foundCompany][grade].push(card);
+    });
     // Create the grading companies summary tile
-    const renderGradingCompanySummary = (company) => {
-      // Only show grades that are NOT 9 or 10 for PSA, and NOT Raw for any company
-      const filteredGrades = Object.entries(company.grades).filter(([grade, { cards }]) => {
-        if (company.name === 'PSA' && (grade === '9' || grade === '10')) return false;
-        return cards.length > 0;
-      });
-      if (filteredGrades.length === 0) return null;
-      return (
-        <div style={{ marginBottom: '1rem' }}>
-          <h4 style={{ margin: '0 0 0.5rem 0', color: '#000' }}>{company.name}</h4>
-          {filteredGrades.map(([grade, { cards, stats }]) => (
-            <div key={`${company.name}-${grade}`} style={{ marginBottom: '0.3rem', fontSize: '0.9em' }}>
-              <strong>{company.name} {grade}</strong>: {cards.length} sold, avg {formatPrice({ value: stats.avg })}
-              <br />
-              <span style={{ fontSize: '0.9em', color: '#666' }}>
-                Range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })}
-              </span>
+    const renderGradingCompanySummary = (companyKey) => {
+      const grades = companyGradeMap[companyKey] || {};
+      const gradeKeys = Object.keys(grades);
+      // If no cards, show 0 sold and N/A
+      if (gradeKeys.length === 0) {
+        return (
+          <div style={{ marginBottom: '1rem' }} key={companyKey}>
+            <h4 style={{ margin: '0 0 0.5rem 0', color: '#000' }}>{companyKey.toUpperCase()}</h4>
+            <div style={{ marginBottom: '0.3rem', fontSize: '0.9em' }}>
+              <strong>No graded cards found</strong>: 0 sold, avg N/A
             </div>
-          ))}
+          </div>
+        );
+      }
+      return (
+        <div style={{ marginBottom: '1rem' }} key={companyKey}>
+          <h4 style={{ margin: '0 0 0.5rem 0', color: '#000' }}>{companyKey.toUpperCase()}</h4>
+          {gradeKeys.sort((a, b) => parseFloat(a) - parseFloat(b)).map(grade => {
+            const cards = grades[grade];
+            const stats = getPriceStats(cards);
+            return (
+              <div key={`${companyKey}-${grade}`} style={{ marginBottom: '0.3rem', fontSize: '0.9em' }}>
+                <strong>{companyKey.toUpperCase()} {grade}</strong>: {cards.length} sold, avg {formatPrice({ value: stats.avg })}
+                <br />
+                <span style={{ fontSize: '0.9em', color: '#666' }}>
+                  Range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })}
+                </span>
+              </div>
+            );
+          })}
         </div>
       );
     };
@@ -662,7 +707,7 @@ const SearchPage = () => {
         gap: '0.5rem'
       }}>
         <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>Graded Cards Summary</h4>
-        {Object.values(gradingCompanies).map(company => renderGradingCompanySummary(company))}
+        {gradingCompanyList.filter((c, i, arr) => normalizeCompany(c) === c && arr.indexOf(c) === i).map(companyKey => renderGradingCompanySummary(normalizeCompany(companyKey)))}
       </div>,
 
       // Investment insight tile
