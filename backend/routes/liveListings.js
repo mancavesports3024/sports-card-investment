@@ -2,6 +2,8 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 const cacheService = require('../services/cacheService');
+const xml2js = require('xml2js');
+const RSS_URL = 'https://www.ebay.com/sch/i.html?_rss=1&_saslop=1&_sasl=mancavesportscardsllc24';
 
 // Helper function to refresh eBay token
 async function refreshEbayToken() {
@@ -447,32 +449,32 @@ router.get('/', async (req, res) => {
   }
 });
 
-// New endpoint: Get all active listings for a specific seller
+// New endpoint: Get all active listings for a specific seller via RSS
 router.get('/ebay-active-listings', async (req, res) => {
-  const seller = 'mancavesportscardsllc24';
   try {
-    const token = process.env.EBAY_AUTH_TOKEN;
-    if (!token) return res.status(500).json({ error: 'No eBay token available' });
-    // eBay Browse API endpoint for seller inventory
-    const url = 'https://api.ebay.com/buy/browse/v1/item_summary/search';
-    const params = {
-      seller,
-      limit: 50, // Adjust as needed (max 200 per eBay docs)
-      sort: 'newlyListed',
-    };
-    const response = await axios.get(url, {
-      params,
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
-      },
+    const response = await axios.get(RSS_URL);
+    const xml = response.data;
+    xml2js.parseString(xml, { explicitArray: false }, (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: 'Failed to parse eBay RSS feed', details: err.message });
+      }
+      const items = result.rss.channel.item || [];
+      // Ensure items is always an array
+      const listings = Array.isArray(items) ? items : [items];
+      // Map to simplified structure
+      const parsed = listings.map(item => ({
+        title: item.title,
+        link: item.link,
+        image: item.enclosure?.['$']?.url || null,
+        price: item['g:price'] || null,
+        description: item.description || '',
+        pubDate: item.pubDate || '',
+      }));
+      res.json({ items: parsed });
     });
-    const items = response.data.itemSummaries || [];
-    res.json({ items });
   } catch (error) {
-    console.error('Error fetching active eBay listings:', error?.response?.data || error.message);
-    res.status(500).json({ error: 'Failed to fetch active eBay listings', details: error?.message });
+    console.error('Error fetching eBay RSS feed:', error?.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to fetch eBay RSS feed', details: error?.message });
   }
 });
 
