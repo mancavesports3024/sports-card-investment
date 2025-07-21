@@ -3,7 +3,7 @@ const path = require('path');
 
 // Configuration
 const BASE_URL = 'https://www.mancavesportscardsllc.com';
-const SITEMAP_PATH = './frontend/public/sitemap.xml';
+const SITEMAP_PATH = path.resolve(__dirname, '../frontend/public/sitemap.xml');
 
 // Define your site pages with their metadata
 const pages = [

@@ -47,6 +47,7 @@ After updating your `.env` file:
 
 ```bash
 # Stop the current server (Ctrl+C)
+cd ScoreCard/backend
 npm start
 ```
 
@@ -57,7 +58,10 @@ You should see:
 
 ### Step 5: Test Authentication
 
-1. Start your frontend: `cd frontend && npm start`
+1. Start your frontend:
+```bash
+cd ScoreCard/frontend && npm start
+```
 2. Go to your app in the browser
 3. Click "Login with Google"
 4. Complete the OAuth flow

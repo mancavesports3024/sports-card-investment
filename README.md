@@ -15,17 +15,22 @@ A React application that fetches and analyzes recent eBay sales of sports cards,
 
 ### 1. Backend Setup
 
-1. Install dependencies:
+1. Navigate to the backend directory:
+```bash
+cd ScoreCard/backend
+```
+
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-2. Create a `.env` file based on `env.example`:
+3. Create a `.env` file based on `env.example`:
 ```bash
 cp env.example .env
 ```
 
-3. Configure your eBay API credentials in `.env`:
+4. Configure your eBay API credentials in `.env`:
 
 #### Option A: Manual Token (Simple)
 ```env
@@ -76,7 +81,7 @@ EBAY_AUTH_TOKEN=your_access_token
 
 1. Navigate to the frontend directory:
 ```bash
-cd frontend
+cd ScoreCard/frontend
 ```
 
 2. Install dependencies:
@@ -88,6 +93,7 @@ npm install
 
 ### Start the Backend
 ```bash
+cd ScoreCard/backend
 npm start
 ```
 
@@ -98,7 +104,7 @@ The backend will:
 
 ### Start the Frontend
 ```bash
-cd frontend
+cd ScoreCard/frontend
 npm start
 ```
 
@@ -162,24 +168,22 @@ If you only set `EBAY_AUTH_TOKEN`:
 
 ## Development
 
-### Backend Structure
+### Project Structure
 ```
-backend/
-├── index.js              # Main server file
-├── routes/
-│   └── searchCards.js    # Card search endpoint
-├── services/
-│   └── ebayService.js    # eBay API integration
-└── get-refresh-token.js  # Token setup helper
-```
-
-### Frontend Structure
-```
-frontend/
-├── src/
-│   ├── App.js           # Main React component
-│   └── App.css          # Styles
-└── package.json
+ScoreCard/
+├── backend/
+│   ├── index.js              # Main server file
+│   ├── routes/
+│   │   └── searchCards.js    # Card search endpoint
+│   ├── services/
+│   │   └── ebayService.js    # eBay API integration
+│   └── get-refresh-token.js  # Token setup helper
+├── frontend/
+│   ├── src/
+│   │   ├── App.js           # Main React component
+│   │   └── App.css          # Styles
+│   └── package.json
+└── README.md
 ```
 
 ## License

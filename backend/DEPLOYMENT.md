@@ -23,7 +23,7 @@ This guide will help you deploy your Sports Card Tracker to the web using Vercel
 
 ### 2.2 Deploy Backend
 1. **Connect your GitHub repository**
-2. **Select the repository** containing your backend code
+2. **Select the repository** containing your backend code (now in `ScoreCard/backend`)
 3. **Railway will auto-detect** it's a Node.js app
 4. **Add environment variables** in Railway dashboard:
    ```
@@ -47,7 +47,7 @@ This guide will help you deploy your Sports Card Tracker to the web using Vercel
 ### 3.2 Configure Frontend
 1. **Set build settings**:
    - Framework Preset: `Create React App`
-   - Root Directory: `frontend`
+   - Root Directory: `ScoreCard/frontend`
    - Build Command: `npm run build`
    - Output Directory: `build`
 

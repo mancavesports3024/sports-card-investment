@@ -81,7 +81,7 @@ After updating your `.env` file:
 
 ```bash
 # Stop the current server (Ctrl+C)
-# Then restart it
+cd ScoreCard/backend
 npm start
 ```
 
@@ -92,7 +92,10 @@ You should see:
 
 ## Step 5: Test Authentication
 
-1. Start your frontend: `cd frontend && npm start`
+1. Start your frontend:
+```bash
+cd ScoreCard/frontend && npm start
+```
 2. Go to your app in the browser
 3. Click "Login with Google"
 4. Complete the OAuth flow
@@ -130,7 +133,4 @@ For production, update these in your `.env` file:
 ## Need Help?
 
 If you're still having issues:
-1. Check the backend console for error messages
-2. Verify all environment variables are set correctly
-3. Make sure the Google OAuth app is properly configured
-4. Test with a simple search to see if authentication works 
+1. Check the backend console for error messages 

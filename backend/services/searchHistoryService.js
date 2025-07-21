@@ -2,7 +2,7 @@ const fs = require('fs').promises;
 const path = require('path');
 
 // Use local data directory for now
-const SEARCH_HISTORY_FILE = path.join(__dirname, '../data/search_history.json');
+const SEARCH_HISTORY_FILE = path.join(__dirname, '../../data/search_history.json');
 
 console.log('📁 Search history file location:', SEARCH_HISTORY_FILE);
 
