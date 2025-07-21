@@ -576,7 +576,13 @@ const SearchPage = () => {
       { key: 'psa9', label: 'PSA 9', stats: psa9Stats, trend: analysis.psa9?.trend },
       { key: 'psa10', label: 'PSA 10', stats: psa10Stats, trend: analysis.psa10?.trend }
     ];
-    // Build the grid: only Raw, PSA 9, PSA 10
+    // Build the 3x2 grid: [raw, psa9, psa10, rawToPsa9, rawToPsa10, psa9ToPsa10]
+    const comparisons = analysis.comparisons || {};
+    const comparisonTiles = [
+      { key: 'rawToPsa9', label: 'Raw → PSA 9', data: comparisons.rawToPsa9 },
+      { key: 'rawToPsa10', label: 'Raw → PSA 10', data: comparisons.rawToPsa10 },
+      { key: 'psa9ToPsa10', label: 'PSA 9 → PSA 10', data: comparisons.psa9ToPsa10 }
+    ];
     const gridTiles = [
       ...tiles.map(({ key, label, stats, trend }) => {
         if (!stats || stats.min == null) return null;
@@ -591,7 +597,13 @@ const SearchPage = () => {
             {trendText && <div style={{ marginTop: 6, color: trend === 'up' ? '#388e3c' : '#b00', fontWeight: 600 }}>{trendText}</div>}
           </div>
         );
-      })
+      }),
+      ...comparisonTiles.map(({ key, label, data }) => data && (
+        <div key={key} className="analysis-item" style={{ background: '#e6f7ff', border: '1.5px solid #1890ff', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
+          <h4 style={{ color: '#0050b3', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
+          <p style={{ margin: 0 }}>{data.description}</p>
+        </div>
+      ))
     ];
     return (
       <div className="price-analysis">
@@ -624,15 +636,15 @@ const SearchPage = () => {
       const title = (card.title || '').toLowerCase();
       let foundCompany = null;
       for (let company of gradingCompanyList) {
-        // Only match company if it appears as a word
+        // Normalize beckett to bgs
         const companyRegex = new RegExp(`\\b${company}\\b|beckett`, 'i');
         if (companyRegex.test(title)) {
-          foundCompany = normalizeCompany(company);
+          foundCompany = company === 'beckett' ? 'bgs' : company;
           break;
         }
       }
       if (!foundCompany) return;
-      // Only match grades that immediately follow the company name
+      // Robust regex: company followed by any spaces/dashes/colons and a grade
       const gradeRegex = new RegExp(`${foundCompany}[\s:-]*([0-9]{1,2}(?:\\.5)?)`, 'i');
       const match = title.match(gradeRegex);
       const grade = match ? match[1] : 'Unknown';
