@@ -651,6 +651,7 @@ const SearchPage = () => {
         if (companyKey === 'psa') return;
         const diff = psa10Avg - stats.avgPrice;
         const percent = stats.avgPrice > 0 ? (diff / stats.avgPrice) * 100 : 0;
+        const isMore = diff > 0;
         comparisonTiles.push({
           key: `${companyKey}-${grade}`,
           label: `${companyKey.toUpperCase()} ${grade.replace('_', '.')} → PSA 10`,
@@ -658,8 +659,9 @@ const SearchPage = () => {
           avg: stats.avgPrice,
           min: stats.minPrice,
           max: stats.maxPrice,
-          diff,
-          percent
+          diff: Math.abs(diff),
+          percent: Math.abs(percent),
+          isMore
         });
       });
     });
@@ -674,8 +676,8 @@ const SearchPage = () => {
                 <div key={tile.key} style={{ background: '#e6f7ff', border: '1.5px solid #1890ff', borderRadius: 8, padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.97rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
                   <h4 style={{ color: '#0050b3', marginBottom: 4, fontSize: '1.05rem' }}>{tile.label}</h4>
                   <div style={{ marginBottom: 4, fontSize: '0.98em', color: '#333' }}>{tile.count} sold, avg {formatPrice({ value: tile.avg })} (range: {formatPrice({ value: tile.min })} - {formatPrice({ value: tile.max })})</div>
-                  <div style={{ fontSize: '0.97em', color: tile.diff >= 0 ? '#388e3c' : '#b00', fontWeight: 600 }}>
-                    {tile.diff >= 0 ? '+' : ''}{formatPrice({ value: tile.diff })} ({tile.percent > 0 ? '+' : ''}{tile.percent.toFixed(1)}%) {tile.diff >= 0 ? 'more' : 'less'} than PSA 10
+                  <div style={{ fontSize: '0.97em', color: tile.isMore ? '#388e3c' : '#b00', fontWeight: 600 }}>
+                    {tile.isMore ? '+' : '-'}{formatPrice({ value: tile.diff })} ({tile.isMore ? '+' : '-'}{tile.percent.toFixed(1)}%) {tile.isMore ? 'more' : 'less'} than PSA 10
                   </div>
                 </div>
               ))}
