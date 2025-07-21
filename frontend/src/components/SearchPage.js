@@ -693,7 +693,8 @@ const SearchPage = () => {
               <div style={{ marginBottom: '0.5rem' }} key={companyKey}>
                 <strong>{companyKey.toUpperCase()}</strong>
                 {Object.keys(grades).sort((a, b) => parseFloat(a) - parseFloat(b)).map(grade => {
-                  const cards = grades[grade];
+                  const gradeKey = grade.replace('.', '_');
+                  const cards = results?.results?.[`bgs${gradeKey}`] || grades[grade];
                   const stats = getPriceStats(cards);
                   return (
                     <div key={`${companyKey}-${grade}`} style={{ marginLeft: 10, fontSize: '0.93em' }}>
