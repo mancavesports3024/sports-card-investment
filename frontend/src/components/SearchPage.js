@@ -651,7 +651,7 @@ const SearchPage = () => {
     });
     return (
       <div className="investment-insight-section" style={{ margin: '2.5rem 0 2rem 0' }}>
-        <h3 style={{ color: '#fff', fontWeight: 800, textShadow: '1px 1px 6px #000', marginBottom: '1rem', fontSize: '1.4rem' }}>Investment Insight</h3>
+        {/* No Investment Insight title here, only in main render */}
         <div className="other-graded-breakdown" style={{ background: '#f7f7f7', border: '1.5px solid #ccc', borderRadius: 8, padding: '1.2rem 1.5rem' }}>
           <h4 style={{ color: '#000', marginBottom: 8, fontSize: '1.1rem' }}>Other Graded Cards</h4>
           {gradingCompanyList.map(companyKey => {
