@@ -84,6 +84,8 @@ const categorizeCards = (cards) => {
   const aigrade9 = [];
   const aigrade10 = [];
   const otherGraded = [];
+  // Dynamic buckets for company/grade
+  const dynamicBuckets = {};
   
   console.log(`\n=== CARD CATEGORIZATION DEBUG ===`);
   console.log(`Total cards found: ${cards.length}`);
@@ -308,7 +310,12 @@ const categorizeCards = (cards) => {
   // Recalculate price analysis with filtered raw
   const priceAnalysis = calculatePriceAnalysis(filteredRaw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8, tag9, tag10, sgc10, aigrade9, aigrade10, otherGraded);
 
-  return { raw: filteredRaw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8, tag9, tag10, sgc10, aigrade9, aigrade10, otherGraded, priceAnalysis };
+  // At the end, merge dynamicBuckets into the return object
+  const categorizedResult = { raw: filteredRaw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8, tag9, tag10, sgc10, aigrade9, aigrade10, otherGraded, priceAnalysis };
+  Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
+    categorizedResult[bucket] = arr;
+  });
+  return categorizedResult;
 };
 
 // Helper function to calculate price trend
