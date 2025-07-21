@@ -81,6 +81,7 @@ const categorizeCards = (cards) => {
     cards.forEach((card, index) => {
       const title = card.title?.toLowerCase() || '';
       const condition = card.condition?.toLowerCase() || '';
+      // Robust regex: company (word boundary), optional space/dash/colon, grade (1-2 digits, optional .5)
       const gradingRegex = /\b(psa|bgs|beckett|sgc|cgc|ace|cga|gma|hga|pgs|bvg|csg|rcg|ksa|fgs|tag|pgm|dga|isa)[\s:-]*([0-9]{1,2}(?:\.5)?)\b/i;
       const match = title.match(gradingRegex);
       let isGraded = false;
@@ -89,9 +90,10 @@ const categorizeCards = (cards) => {
         if (company === 'beckett') company = 'bgs';
         const grade = match[2].replace('.', '_');
         const key = `${company}${grade}`;
+        console.log(`Card ${index}: "${card.title}"`);
+        console.log(`  Matched company: ${company}, grade: ${grade} → bucket: gradingStats[${company}][${grade}]`);
         if (!dynamicBuckets[key]) dynamicBuckets[key] = [];
         dynamicBuckets[key].push(card);
-        // New: gradingStats[company][grade]
         if (!gradingStats[company]) gradingStats[company] = {};
         if (!gradingStats[company][grade]) gradingStats[company][grade] = { cards: [] };
         gradingStats[company][grade].cards.push(card);
@@ -117,8 +119,14 @@ const categorizeCards = (cards) => {
         }
       }
       if (!isGraded) {
+        // Log if the card looks graded but didn't match the regex
+        if (title.includes('bgs') || title.includes('beckett') || title.includes('psa') || title.includes('sgc') || title.includes('cgc')) {
+          console.log(`Card ${index}: "${card.title}"`);
+          console.log('  ⚠️ Grading company mentioned but regex did not match. Classified as otherGraded.');
+        }
         if (rawKeywords.some(keyword => title.includes(keyword)) || condition === 'ungraded' || condition === 'not graded' || condition === 'no grade') {
           legacyBuckets.raw.push(card);
+          // Optionally log raw
         } else if (gradedConditionIds.includes(String(card.conditionId)) || condition === 'graded') {
           legacyBuckets.otherGraded.push(card);
         } else {
