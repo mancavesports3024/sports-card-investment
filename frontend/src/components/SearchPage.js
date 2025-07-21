@@ -621,7 +621,7 @@ const SearchPage = () => {
     if (!analysis) return null;
     // Other graded breakdown (not PSA)
     const gradingCompanyList = [
-      'bgs', 'sgc', 'cgc', 'beckett', 'ace', 'cga', 'gma', 'hga', 'pgs', 'bvg', 'csg', 'rcg', 'ksa', 'fgs', 'tag', 'pgm', 'dga', 'isa'
+      'bgs', 'sgc', 'cgc', 'ace', 'cga', 'gma', 'hga', 'pgs', 'bvg', 'csg', 'rcg', 'ksa', 'fgs', 'tag', 'pgm', 'dga', 'isa'
     ];
     const normalizeCompany = (name) => {
       if (!name) return '';
@@ -637,14 +637,18 @@ const SearchPage = () => {
       const title = (card.title || '').toLowerCase();
       let foundCompany = null;
       for (let company of gradingCompanyList) {
-        if (title.includes(company)) {
+        // Only match company if it appears as a word
+        const companyRegex = new RegExp(`\\b${company}\\b|beckett`, 'i');
+        if (companyRegex.test(title)) {
           foundCompany = normalizeCompany(company);
           break;
         }
       }
       if (!foundCompany) return;
-      const gradeMatch = title.match(/(\d{1,2}(?:\.5)?)/);
-      const grade = gradeMatch ? gradeMatch[1] : 'Unknown';
+      // Only match grades that immediately follow the company name
+      const gradeRegex = new RegExp(`${foundCompany}[\s:-]*([0-9]{1,2}(?:\\.5)?)`, 'i');
+      const match = title.match(gradeRegex);
+      const grade = match ? match[1] : 'Unknown';
       if (!companyGradeMap[foundCompany]) companyGradeMap[foundCompany] = {};
       if (!companyGradeMap[foundCompany][grade]) companyGradeMap[foundCompany][grade] = [];
       companyGradeMap[foundCompany][grade].push(card);
