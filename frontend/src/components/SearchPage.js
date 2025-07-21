@@ -661,7 +661,8 @@ const SearchPage = () => {
           max: stats.maxPrice,
           diff: Math.abs(diff),
           percent: Math.abs(percent),
-          isMore
+          isMore,
+          baseLabel: `${companyKey.toUpperCase()} ${grade.replace('_', '.')}`
         });
       });
     });
@@ -677,7 +678,7 @@ const SearchPage = () => {
                   <h4 style={{ color: '#0050b3', marginBottom: 4, fontSize: '1.05rem' }}>{tile.label}</h4>
                   <div style={{ marginBottom: 4, fontSize: '0.98em', color: '#333' }}>{tile.count} sold, avg {formatPrice({ value: tile.avg })} (range: {formatPrice({ value: tile.min })} - {formatPrice({ value: tile.max })})</div>
                   <div style={{ fontSize: '0.97em', color: tile.isMore ? '#388e3c' : '#b00', fontWeight: 600 }}>
-                    {tile.isMore ? '+' : '-'}{formatPrice({ value: tile.diff })} ({tile.isMore ? '+' : '-'}{tile.percent.toFixed(1)}%) {tile.isMore ? 'more' : 'less'} than PSA 10
+                    PSA 10 is {tile.diff > 0 ? '' : ''}{formatPrice({ value: tile.diff })} ({tile.percent > 0 ? '' : ''}{tile.percent.toFixed(1)}%) {tile.isMore ? 'more' : 'less'} than {tile.baseLabel}
                   </div>
                 </div>
               ))}
