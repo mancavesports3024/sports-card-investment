@@ -68,289 +68,297 @@ const getMockData = (searchQuery, numSales) => {
 
 // Helper function to categorize cards and calculate price differences
 const categorizeCards = (cards) => {
-  if (!cards || cards.length === 0) return { raw: [], psa9: [], psa10: [], priceAnalysis: null };
+  try {
+    console.log('--- categorizeCards: START ---');
+    if (!cards || cards.length === 0) return { raw: [], psa9: [], psa10: [], priceAnalysis: null };
   
-  const raw = [];
-  const psa7 = [];
-  const psa8 = [];
-  const psa9 = [];
-  const psa10 = [];
-  const cgc9 = [];
-  const cgc10 = [];
-  const tag8 = [];
-  const tag9 = [];
-  const tag10 = [];
-  const sgc10 = [];
-  const aigrade9 = [];
-  const aigrade10 = [];
-  const otherGraded = [];
-  // Dynamic buckets for company/grade
-  const dynamicBuckets = {};
+    const raw = [];
+    const psa7 = [];
+    const psa8 = [];
+    const psa9 = [];
+    const psa10 = [];
+    const cgc9 = [];
+    const cgc10 = [];
+    const tag8 = [];
+    const tag9 = [];
+    const tag10 = [];
+    const sgc10 = [];
+    const aigrade9 = [];
+    const aigrade10 = [];
+    const otherGraded = [];
+    // Dynamic buckets for company/grade
+    const dynamicBuckets = {};
   
-  console.log(`\n=== CARD CATEGORIZATION DEBUG ===`);
-  console.log(`Total cards found: ${cards.length}`);
+    console.log(`\n=== CARD CATEGORIZATION DEBUG ===`);
+    console.log(`Total cards found: ${cards.length}`);
   
-  cards.forEach((card, index) => {
-    const title = card.title?.toLowerCase() || '';
-    const condition = card.condition?.toLowerCase() || '';
-    const itemId = card.itemId || card.id || '';
-    
-    console.log(`\nCard ${index + 1}: "${card.title}" (itemId: ${itemId})`);
-    console.log(`  Condition: "${card.condition}"`);
-    let categorized = false;
-    
-    // More precise grading detection - only look for actual grading companies and grades
-    const gradingCompanies = ['psa', 'bgs', 'sgc', 'cgc', 'beckett', 'ace', 'cga', 'gma', 'hga', 'pgs', 'bvg', 'csg', 'rcg', 'ksa', 'fgs', 'tag', 'pgm', 'dga', 'isa'];
-    const gradeNumbers = ['10', '9.5', '9', '8.5', '8', '7', '6', '5', '4', '3', '2', '1'];
-    const rawKeywords = ['raw', 'ungraded', 'not graded', 'no grade'];
-    const gradedConditionIds = ['2750', '4000', '5000']; // eBay's known graded condition IDs
-    
-    // Helper to check for grading companies
-    function hasGradingCompany(str) {
-      if (!str) return false;
-      const lower = str.toLowerCase();
-      // Use word boundaries to avoid false positives like "tag" in "advantage"
-      const foundCompanies = gradingCompanies.filter(company => {
-        // Look for the company as a whole word (with word boundaries)
-        const regex = new RegExp(`\\b${company}\\b`, 'i');
-        return regex.test(lower);
-      });
-      if (foundCompanies.length > 0) {
-        console.log(`    Grading companies found: ${foundCompanies.join(', ')}`);
+    cards.forEach((card, index) => {
+      const title = card.title?.toLowerCase() || '';
+      const condition = card.condition?.toLowerCase() || '';
+      const itemId = card.itemId || card.id || '';
+      
+      console.log(`\nCard ${index + 1}: "${card.title}" (itemId: ${itemId})`);
+      console.log(`  Condition: "${card.condition}"`);
+      let categorized = false;
+      
+      // More precise grading detection - only look for actual grading companies and grades
+      const gradingCompanies = ['psa', 'bgs', 'sgc', 'cgc', 'beckett', 'ace', 'cga', 'gma', 'hga', 'pgs', 'bvg', 'csg', 'rcg', 'ksa', 'fgs', 'tag', 'pgm', 'dga', 'isa'];
+      const gradeNumbers = ['10', '9.5', '9', '8.5', '8', '7', '6', '5', '4', '3', '2', '1'];
+      const rawKeywords = ['raw', 'ungraded', 'not graded', 'no grade'];
+      const gradedConditionIds = ['2750', '4000', '5000']; // eBay's known graded condition IDs
+      
+      // Helper to check for grading companies
+      function hasGradingCompany(str) {
+        if (!str) return false;
+        const lower = str.toLowerCase();
+        // Use word boundaries to avoid false positives like "tag" in "advantage"
+        const foundCompanies = gradingCompanies.filter(company => {
+          // Look for the company as a whole word (with word boundaries)
+          const regex = new RegExp(`\\b${company}\\b`, 'i');
+          return regex.test(lower);
+        });
+        if (foundCompanies.length > 0) {
+          console.log(`    Grading companies found: ${foundCompanies.join(', ')}`);
+        }
+        return foundCompanies.length > 0;
       }
-      return foundCompanies.length > 0;
-    }
-    
-    // Helper to check for grade numbers (but only if they appear near grading companies)
-    function hasGradeNumber(str) {
-      if (!str) return false;
-      const lower = str.toLowerCase();
-      // Check if any grade number appears near a grading company
-      const foundGrades = gradeNumbers.filter(grade => {
-        if (lower.includes(grade)) {
-          // Look for grading company within 20 characters of the grade
-          const gradeIndex = lower.indexOf(grade);
-          const surroundingText = lower.substring(Math.max(0, gradeIndex - 20), gradeIndex + 20);
-          // Use word boundaries for grading companies to avoid false positives
-          const nearbyCompanies = gradingCompanies.filter(company => {
-            const regex = new RegExp(`\\b${company}\\b`, 'i');
-            return regex.test(surroundingText);
-          });
-          if (nearbyCompanies.length > 0) {
-            console.log(`    Grade ${grade} found near companies: ${nearbyCompanies.join(', ')}`);
+      
+      // Helper to check for grade numbers (but only if they appear near grading companies)
+      function hasGradeNumber(str) {
+        if (!str) return false;
+        const lower = str.toLowerCase();
+        // Check if any grade number appears near a grading company
+        const foundGrades = gradeNumbers.filter(grade => {
+          if (lower.includes(grade)) {
+            // Look for grading company within 20 characters of the grade
+            const gradeIndex = lower.indexOf(grade);
+            const surroundingText = lower.substring(Math.max(0, gradeIndex - 20), gradeIndex + 20);
+            // Use word boundaries for grading companies to avoid false positives
+            const nearbyCompanies = gradingCompanies.filter(company => {
+              const regex = new RegExp(`\\b${company}\\b`, 'i');
+              return regex.test(surroundingText);
+            });
+            if (nearbyCompanies.length > 0) {
+              console.log(`    Grade ${grade} found near companies: ${nearbyCompanies.join(', ')}`);
+            }
+            return nearbyCompanies.length > 0;
           }
-          return nearbyCompanies.length > 0;
+          return false;
+        });
+        return foundGrades.length > 0;
+      }
+      
+      // Helper to check for raw keywords
+      function hasRawKeyword(str) {
+        if (!str) return false;
+        const lower = str.toLowerCase();
+        return rawKeywords.some(keyword => lower.includes(keyword));
+      }
+      
+      // Skip cards with "Pick", "Complete", or "Choose Your Card" in the title
+      if (title.includes('pick') || title.includes('complete') || title.includes('choose your card')) {
+        console.log(`  -> SKIPPED (Pick/Complete/Choose Your Card)`);
+        return;
+      }
+      
+      // Check for eBay graded conditionId
+      if (gradedConditionIds.includes(String(card.conditionId))) {
+        otherGraded.push(card);
+        console.log('  -> OTHER GRADED (conditionId indicates graded)');
+        return;
+      }
+      
+      // Check if condition is "Graded" - these should never go to raw
+      if (condition === 'graded') {
+        console.log(`  -> Condition is "Graded" - checking for specific grading company`);
+        // Try to categorize based on title patterns even if condition is "Graded"
+        // This will fall through to the specific grading company checks below
+      }
+      
+      // PSA 10
+      if ((title.includes('psa 10') || title.includes('psa10')) && !title.includes('cgc')) {
+        psa10.push(card);
+        console.log(`  -> PSA 10`);
+        categorized = true;
+      } 
+      // PSA 9
+      else if ((title.includes('psa 9') || title.includes('psa9')) && !title.includes('cgc')) {
+        psa9.push(card);
+        console.log(`  -> PSA 9`);
+        categorized = true;
+      }
+      // PSA 8
+      else if ((title.includes('psa 8') || title.includes('psa8')) && !title.includes('cgc')) {
+        psa8.push(card);
+        console.log(`  -> PSA 8`);
+        categorized = true;
+      }
+      // PSA 7
+      else if ((title.includes('psa 7') || title.includes('psa7')) && !title.includes('cgc')) {
+        psa7.push(card);
+        console.log(`  -> PSA 7`);
+        categorized = true;
+      }
+      // CGC 10 - more flexible pattern matching
+      else if ((title.includes('cgc 10') || title.includes('cgc10') || 
+                title.includes('cgc gem mint 10') || title.includes('cgc gem mint10') ||
+                (title.includes('cgc') && title.includes('10') && !title.includes('psa'))) && 
+               !title.includes('psa')) {
+        cgc10.push(card);
+        console.log(`  -> CGC 10`);
+        categorized = true;
+      }
+      // CGC 9 - more flexible pattern matching
+      else if ((title.includes('cgc 9') || title.includes('cgc9') || 
+                title.includes('cgc gem mint 9') || title.includes('cgc gem mint9') ||
+                (title.includes('cgc') && title.includes('9') && !title.includes('psa'))) && 
+               !title.includes('psa')) {
+        cgc9.push(card);
+        console.log(`  -> CGC 9`);
+        categorized = true;
+      }
+      // TAG 10
+      else if ((title.includes('tag 10') || title.includes('tag10') || 
+                (title.includes('tag') && title.includes('10') && !title.includes('psa') && !title.includes('cgc'))) && 
+               !title.includes('psa') && !title.includes('cgc')) {
+        tag10.push(card);
+        console.log(`  -> TAG 10`);
+        categorized = true;
+      }
+      // TAG 9
+      else if ((title.includes('tag 9') || title.includes('tag9') || 
+                (title.includes('tag') && title.includes('9') && !title.includes('psa') && !title.includes('cgc'))) && 
+               !title.includes('psa') && !title.includes('cgc')) {
+        tag9.push(card);
+        console.log(`  -> TAG 9`);
+        categorized = true;
+      }
+      // TAG 8
+      else if ((title.includes('tag 8') || title.includes('tag8') || 
+                (title.includes('tag') && title.includes('8') && !title.includes('psa') && !title.includes('cgc'))) && 
+               !title.includes('psa') && !title.includes('cgc')) {
+        tag8.push(card);
+        console.log(`  -> TAG 8`);
+        categorized = true;
+      }
+      // SGC 10
+      else if ((title.includes('sgc 10') || title.includes('sgc10')) && !title.includes('psa') && !title.includes('cgc')) {
+        sgc10.push(card);
+        console.log(`  -> SGC 10`);
+        categorized = true;
+      }
+      // AiGrade 10
+      else if ((title.includes('aigrade 10') || title.includes('aigrade10') || title.includes('italian - grade 10') || 
+                (title.includes('aigrade') && title.includes('10'))) && !title.includes('psa') && !title.includes('cgc')) {
+        aigrade10.push(card);
+        console.log(`  -> AiGrade 10`);
+        categorized = true;
+      }
+      // AiGrade 9
+      else if ((title.includes('aigrade 9') || title.includes('aigrade9') || title.includes('italian - grade 9') || 
+                (title.includes('aigrade') && title.includes('9'))) && !title.includes('psa') && !title.includes('cgc')) {
+        aigrade9.push(card);
+        console.log(`  -> AiGrade 9`);
+        categorized = true;
+      }
+      // Other graded cards (other companies/grades) - add to otherGraded if ambiguous or cross-listed
+      else if (hasGradingCompany(title) || hasGradingCompany(condition) || hasGradeNumber(title) || hasGradeNumber(condition)) {
+        // If the card is not already categorized as a specific company/grade, put it in otherGraded
+        otherGraded.push(card);
+        console.log(`  -> OTHER GRADED (Ambiguous or cross-listed grading company)`);
+        categorized = true;
+      } 
+      // If condition is "Graded" but no specific grading company found, create a generic graded category
+      else if (condition === 'graded') {
+        otherGraded.push(card);
+        console.log(`  -> OTHER GRADED (Condition is "Graded" but no specific company detected)`);
+        categorized = true;
+      }
+      // Final catch: absolutely never allow 'graded' to fall through to raw
+      if (condition === 'graded') {
+        otherGraded.push(card);
+        console.log(`  -> OTHER GRADED (Final catch: Condition is 'Graded')`);
+        categorized = true;
+      }
+      else {
+        // Otherwise, treat as raw
+        raw.push(card);
+        console.log(`  -> RAW (Added)`);
+      }
+      console.log('-------------------');
+    });
+    
+    console.log(`\n=== FINAL RESULTS ===`);
+    console.log(`Raw: ${raw.length} | PSA 7: ${psa7.length} | PSA 8: ${psa8.length} | PSA 9: ${psa9.length} | PSA 10: ${psa10.length}`);
+    console.log(`CGC 9: ${cgc9.length} | CGC 10: ${cgc10.length} | TAG 8: ${tag8.length} | TAG 9: ${tag9.length} | TAG 10: ${tag10.length} | SGC 10: ${sgc10.length}`);
+    console.log(`AiGrade 9: ${aigrade9.length} | AiGrade 10: ${aigrade10.length} | Other Graded: ${otherGraded.length}`);
+    console.log(`=== END DEBUG ===\n`);
+    
+    // Filter out raw cards sold for over 2x the average price
+    let filteredRaw = raw;
+    if (raw.length > 0) {
+      // Use initial average to filter
+      const initialAvg = raw.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0).reduce((a, b) => a + b, 0) / raw.length;
+      filteredRaw = raw.filter(card => {
+        const price = parseFloat(card.price?.value || 0);
+        const isFiltered = price > initialAvg * 2;
+        if (isFiltered) {
+          console.log(`[FILTERED OUT - RAW > 2x AVG] Title: "${card.title}", Price: $${price}, itemId: ${card.itemId || card.id || 'N/A'}`);
         }
-        return false;
+        return !isFiltered;
       });
-      return foundGrades.length > 0;
     }
-    
-    // Helper to check for raw keywords
-    function hasRawKeyword(str) {
-      if (!str) return false;
-      const lower = str.toLowerCase();
-      return rawKeywords.some(keyword => lower.includes(keyword));
-    }
-    
-    // Skip cards with "Pick", "Complete", or "Choose Your Card" in the title
-    if (title.includes('pick') || title.includes('complete') || title.includes('choose your card')) {
-      console.log(`  -> SKIPPED (Pick/Complete/Choose Your Card)`);
-      return;
-    }
-    
-    // Check for eBay graded conditionId
-    if (gradedConditionIds.includes(String(card.conditionId))) {
-      otherGraded.push(card);
-      console.log('  -> OTHER GRADED (conditionId indicates graded)');
-      return;
-    }
-    
-    // Check if condition is "Graded" - these should never go to raw
-    if (condition === 'graded') {
-      console.log(`  -> Condition is "Graded" - checking for specific grading company`);
-      // Try to categorize based on title patterns even if condition is "Graded"
-      // This will fall through to the specific grading company checks below
-    }
-    
-    // PSA 10
-    if ((title.includes('psa 10') || title.includes('psa10')) && !title.includes('cgc')) {
-      psa10.push(card);
-      console.log(`  -> PSA 10`);
-      categorized = true;
-    } 
-    // PSA 9
-    else if ((title.includes('psa 9') || title.includes('psa9')) && !title.includes('cgc')) {
-      psa9.push(card);
-      console.log(`  -> PSA 9`);
-      categorized = true;
-    }
-    // PSA 8
-    else if ((title.includes('psa 8') || title.includes('psa8')) && !title.includes('cgc')) {
-      psa8.push(card);
-      console.log(`  -> PSA 8`);
-      categorized = true;
-    }
-    // PSA 7
-    else if ((title.includes('psa 7') || title.includes('psa7')) && !title.includes('cgc')) {
-      psa7.push(card);
-      console.log(`  -> PSA 7`);
-      categorized = true;
-    }
-    // CGC 10 - more flexible pattern matching
-    else if ((title.includes('cgc 10') || title.includes('cgc10') || 
-              title.includes('cgc gem mint 10') || title.includes('cgc gem mint10') ||
-              (title.includes('cgc') && title.includes('10') && !title.includes('psa'))) && 
-             !title.includes('psa')) {
-      cgc10.push(card);
-      console.log(`  -> CGC 10`);
-      categorized = true;
-    }
-    // CGC 9 - more flexible pattern matching
-    else if ((title.includes('cgc 9') || title.includes('cgc9') || 
-              title.includes('cgc gem mint 9') || title.includes('cgc gem mint9') ||
-              (title.includes('cgc') && title.includes('9') && !title.includes('psa'))) && 
-             !title.includes('psa')) {
-      cgc9.push(card);
-      console.log(`  -> CGC 9`);
-      categorized = true;
-    }
-    // TAG 10
-    else if ((title.includes('tag 10') || title.includes('tag10') || 
-              (title.includes('tag') && title.includes('10') && !title.includes('psa') && !title.includes('cgc'))) && 
-             !title.includes('psa') && !title.includes('cgc')) {
-      tag10.push(card);
-      console.log(`  -> TAG 10`);
-      categorized = true;
-    }
-    // TAG 9
-    else if ((title.includes('tag 9') || title.includes('tag9') || 
-              (title.includes('tag') && title.includes('9') && !title.includes('psa') && !title.includes('cgc'))) && 
-             !title.includes('psa') && !title.includes('cgc')) {
-      tag9.push(card);
-      console.log(`  -> TAG 9`);
-      categorized = true;
-    }
-    // TAG 8
-    else if ((title.includes('tag 8') || title.includes('tag8') || 
-              (title.includes('tag') && title.includes('8') && !title.includes('psa') && !title.includes('cgc'))) && 
-             !title.includes('psa') && !title.includes('cgc')) {
-      tag8.push(card);
-      console.log(`  -> TAG 8`);
-      categorized = true;
-    }
-    // SGC 10
-    else if ((title.includes('sgc 10') || title.includes('sgc10')) && !title.includes('psa') && !title.includes('cgc')) {
-      sgc10.push(card);
-      console.log(`  -> SGC 10`);
-      categorized = true;
-    }
-    // AiGrade 10
-    else if ((title.includes('aigrade 10') || title.includes('aigrade10') || title.includes('italian - grade 10') || 
-              (title.includes('aigrade') && title.includes('10'))) && !title.includes('psa') && !title.includes('cgc')) {
-      aigrade10.push(card);
-      console.log(`  -> AiGrade 10`);
-      categorized = true;
-    }
-    // AiGrade 9
-    else if ((title.includes('aigrade 9') || title.includes('aigrade9') || title.includes('italian - grade 9') || 
-              (title.includes('aigrade') && title.includes('9'))) && !title.includes('psa') && !title.includes('cgc')) {
-      aigrade9.push(card);
-      console.log(`  -> AiGrade 9`);
-      categorized = true;
-    }
-    // Other graded cards (other companies/grades) - add to otherGraded if ambiguous or cross-listed
-    else if (hasGradingCompany(title) || hasGradingCompany(condition) || hasGradeNumber(title) || hasGradeNumber(condition)) {
-      // If the card is not already categorized as a specific company/grade, put it in otherGraded
-      otherGraded.push(card);
-      console.log(`  -> OTHER GRADED (Ambiguous or cross-listed grading company)`);
-      categorized = true;
-    } 
-    // If condition is "Graded" but no specific grading company found, create a generic graded category
-    else if (condition === 'graded') {
-      otherGraded.push(card);
-      console.log(`  -> OTHER GRADED (Condition is "Graded" but no specific company detected)`);
-      categorized = true;
-    }
-    // Final catch: absolutely never allow 'graded' to fall through to raw
-    if (condition === 'graded') {
-      otherGraded.push(card);
-      console.log(`  -> OTHER GRADED (Final catch: Condition is 'Graded')`);
-      categorized = true;
-    }
-    else {
-      // Otherwise, treat as raw
-      raw.push(card);
-      console.log(`  -> RAW (Added)`);
-    }
-    console.log('-------------------');
-  });
-  
-  console.log(`\n=== FINAL RESULTS ===`);
-  console.log(`Raw: ${raw.length} | PSA 7: ${psa7.length} | PSA 8: ${psa8.length} | PSA 9: ${psa9.length} | PSA 10: ${psa10.length}`);
-  console.log(`CGC 9: ${cgc9.length} | CGC 10: ${cgc10.length} | TAG 8: ${tag8.length} | TAG 9: ${tag9.length} | TAG 10: ${tag10.length} | SGC 10: ${sgc10.length}`);
-  console.log(`AiGrade 9: ${aigrade9.length} | AiGrade 10: ${aigrade10.length} | Other Graded: ${otherGraded.length}`);
-  console.log(`=== END DEBUG ===\n`);
-  
-  // Filter out raw cards sold for over 2x the average price
-  let filteredRaw = raw;
-  if (raw.length > 0) {
-    // Use initial average to filter
-    const initialAvg = raw.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0).reduce((a, b) => a + b, 0) / raw.length;
-    filteredRaw = raw.filter(card => {
-      const price = parseFloat(card.price?.value || 0);
-      const isFiltered = price > initialAvg * 2;
-      if (isFiltered) {
-        console.log(`[FILTERED OUT - RAW > 2x AVG] Title: "${card.title}", Price: $${price}, itemId: ${card.itemId || card.id || 'N/A'}`);
-      }
-      return !isFiltered;
+
+    // Recalculate price analysis with filtered raw
+    const priceAnalysis = calculatePriceAnalysis(filteredRaw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8, tag9, tag10, sgc10, aigrade9, aigrade10, otherGraded);
+
+    // Add explicit arrays for all grading companies and grades
+    const allCompanyGradeBuckets = {};
+    gradingCompanies.forEach(company => {
+      gradeNumbers.forEach(grade => {
+        const bucketName = `${company}${grade.replace('.', '_')}`;
+        allCompanyGradeBuckets[bucketName] = [];
+      });
     });
-  }
 
-  // Recalculate price analysis with filtered raw
-  const priceAnalysis = calculatePriceAnalysis(filteredRaw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8, tag9, tag10, sgc10, aigrade9, aigrade10, otherGraded);
-
-  // Add explicit arrays for all grading companies and grades
-  const allCompanyGradeBuckets = {};
-  gradingCompanies.forEach(company => {
-    gradeNumbers.forEach(grade => {
-      const bucketName = `${company}${grade.replace('.', '_')}`;
-      allCompanyGradeBuckets[bucketName] = [];
-    });
-  });
-
-  // Dynamic company/grade bucketing
-  let foundDynamic = false;
-  for (let company of gradingCompanies) {
-    if (title.includes(company)) {
-      for (let grade of gradeNumbers) {
-        // Look for patterns like 'bgs 9.5', 'sgc 10', etc.
-        const regex = new RegExp(`${company} ?${grade.replace('.', '\.')}`);
-        if (regex.test(title)) {
-          const bucketName = `${company}${grade.replace('.', '_')}`;
-          if (!allCompanyGradeBuckets[bucketName]) allCompanyGradeBuckets[bucketName] = [];
-          allCompanyGradeBuckets[bucketName].push(card);
-          foundDynamic = true;
-          console.log(`  -> ALL COMPANY BUCKET: ${bucketName}`);
-          break;
+    // Dynamic company/grade bucketing
+    let foundDynamic = false;
+    for (let company of gradingCompanies) {
+      if (title.includes(company)) {
+        for (let grade of gradeNumbers) {
+          // Look for patterns like 'bgs 9.5', 'sgc 10', etc.
+          const regex = new RegExp(`${company} ?${grade.replace('.', '\.')}`);
+          if (regex.test(title)) {
+            const bucketName = `${company}${grade.replace('.', '_')}`;
+            if (!allCompanyGradeBuckets[bucketName]) allCompanyGradeBuckets[bucketName] = [];
+            allCompanyGradeBuckets[bucketName].push(card);
+            foundDynamic = true;
+            console.log(`  -> ALL COMPANY BUCKET: ${bucketName}`);
+            break;
+          }
         }
       }
+      if (foundDynamic) break;
     }
-    if (foundDynamic) break;
-  }
-  if (foundDynamic) {
-    categorized = true;
-  }
+    if (foundDynamic) {
+      categorized = true;
+    }
 
-  // At the end, merge dynamicBuckets into the return object
-  const categorizedResult = { raw: filteredRaw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8, tag9, tag10, sgc10, aigrade9, aigrade10, otherGraded, priceAnalysis };
-  Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
-    categorizedResult[bucket] = arr;
-  });
-  Object.entries(allCompanyGradeBuckets).forEach(([bucket, arr]) => {
-    categorizedResult[bucket] = arr;
-  });
-  return categorizedResult;
+    // At the end, merge dynamicBuckets into the return object
+    const categorizedResult = { raw: filteredRaw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8, tag9, tag10, sgc10, aigrade9, aigrade10, otherGraded, priceAnalysis };
+    Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
+      categorizedResult[bucket] = arr;
+    });
+    Object.entries(allCompanyGradeBuckets).forEach(([bucket, arr]) => {
+      categorizedResult[bucket] = arr;
+    });
+    console.log('allCompanyGradeBuckets:', Object.keys(allCompanyGradeBuckets));
+    console.log('--- categorizeCards: END ---');
+    return categorizedResult;
+  } catch (err) {
+    console.error('Error in categorizeCards:', err);
+    throw err;
+  }
 };
 
 // Helper function to calculate price trend
