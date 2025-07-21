@@ -622,10 +622,42 @@ const SearchPage = () => {
     const gradingCompanyList = [
       'bgs', 'sgc', 'cgc', 'ace', 'cga', 'gma', 'hga', 'pgs', 'bvg', 'csg', 'rcg', 'ksa', 'fgs', 'tag', 'pgm', 'dga', 'isa'
     ];
+    // Get PSA 10 avg price
+    const psa10Avg = results?.priceAnalysis?.psa10?.avgPrice || 0;
+    // Build comparison tiles
+    const comparisonTiles = [];
+    gradingCompanyList.forEach(companyKey => {
+      const grades = gradingStats[companyKey] || {};
+      Object.keys(grades).forEach(grade => {
+        const stats = grades[grade];
+        if (!stats || !psa10Avg || !stats.avgPrice) return;
+        // Skip if this is a PSA grade
+        if (companyKey === 'psa') return;
+        const diff = psa10Avg - stats.avgPrice;
+        const percent = stats.avgPrice > 0 ? (diff / stats.avgPrice) * 100 : 0;
+        comparisonTiles.push({
+          key: `${companyKey}-${grade}`,
+          label: `${companyKey.toUpperCase()} ${grade.replace('_', '.')} → PSA 10`,
+          description: `PSA 10 is ${formatPrice({ value: diff })} (${percent > 0 ? '+' : ''}${percent.toFixed(1)}%) ${diff >= 0 ? 'more' : 'less'} than ${companyKey.toUpperCase()} ${grade.replace('_', '.')}`
+        });
+      });
+    });
     return (
       <div className="investment-insight-section" style={{ margin: '2.5rem 0 2rem 0' }}>
         <div className="other-graded-breakdown" style={{ background: '#f7f7f7', border: '1.5px solid #ccc', borderRadius: 8, padding: '1.2rem 1.5rem' }}>
           <h4 style={{ color: '#000', marginBottom: 8, fontSize: '1.1rem' }}>Other Graded Cards</h4>
+          {/* Comparison Grid */}
+          {comparisonTiles.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.8rem', marginBottom: '1.5rem' }}>
+              {comparisonTiles.map(tile => (
+                <div key={tile.key} style={{ background: '#e6f7ff', border: '1.5px solid #1890ff', borderRadius: 8, padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.97rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
+                  <h4 style={{ color: '#0050b3', marginBottom: 4, fontSize: '1.05rem' }}>{tile.label}</h4>
+                  <p style={{ margin: 0 }}>{tile.description}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Existing breakdown */}
           {gradingCompanyList.map(companyKey => {
             const grades = gradingStats[companyKey] || {};
             if (Object.keys(grades).length === 0) return null;
