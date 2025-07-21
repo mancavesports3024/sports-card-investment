@@ -603,24 +603,24 @@ const SearchPage = () => {
 
     // Create the grading companies summary tile
     const renderGradingCompanySummary = (company) => {
-      const hasCards = Object.values(company.grades).some(({ cards }) => cards.length > 0);
-      if (!hasCards) return null;
-
+      // Only show grades that are NOT 9 or 10 for PSA, and NOT Raw for any company
+      const filteredGrades = Object.entries(company.grades).filter(([grade, { cards }]) => {
+        if (company.name === 'PSA' && (grade === '9' || grade === '10')) return false;
+        return cards.length > 0;
+      });
+      if (filteredGrades.length === 0) return null;
       return (
         <div style={{ marginBottom: '1rem' }}>
           <h4 style={{ margin: '0 0 0.5rem 0', color: '#000' }}>{company.name}</h4>
-          {Object.entries(company.grades).map(([grade, { cards, stats }]) => {
-            if (cards.length === 0) return null;
-            return (
-              <div key={`${company.name}-${grade}`} style={{ marginBottom: '0.3rem', fontSize: '0.9em' }}>
-                <strong>{company.name} {grade}</strong>: {cards.length} sold, avg {formatPrice({ value: stats.avg })}
-                <br />
-                <span style={{ fontSize: '0.9em', color: '#666' }}>
-                  Range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })}
-                </span>
-              </div>
-            );
-          })}
+          {filteredGrades.map(([grade, { cards, stats }]) => (
+            <div key={`${company.name}-${grade}`} style={{ marginBottom: '0.3rem', fontSize: '0.9em' }}>
+              <strong>{company.name} {grade}</strong>: {cards.length} sold, avg {formatPrice({ value: stats.avg })}
+              <br />
+              <span style={{ fontSize: '0.9em', color: '#666' }}>
+                Range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })}
+              </span>
+            </div>
+          ))}
         </div>
       );
     };
