@@ -616,72 +616,42 @@ const SearchPage = () => {
   };
 
   // New Investment Insight section (tile + breakdown)
-  const renderInvestmentInsight = (analysis) => {
-    if (!analysis) return null;
-    // Other graded breakdown (not PSA)
+  const renderInvestmentInsight = (gradingStats) => {
+    if (!gradingStats) return null;
     const gradingCompanyList = [
       'bgs', 'sgc', 'cgc', 'ace', 'cga', 'gma', 'hga', 'pgs', 'bvg', 'csg', 'rcg', 'ksa', 'fgs', 'tag', 'pgm', 'dga', 'isa'
     ];
-    const normalizeCompany = (name) => {
-      if (!name) return '';
-      name = name.toLowerCase();
-      if (name === 'beckett') return 'bgs';
-      return name;
-    };
-    const allCards = Object.entries(results?.results || {})
-      .filter(([key]) => key !== 'raw')
-      .flatMap(([, arr]) => arr);
-    const companyGradeMap = {};
-    allCards.forEach(card => {
-      const title = (card.title || '').toLowerCase();
-      let foundCompany = null;
-      for (let company of gradingCompanyList) {
-        // Normalize beckett to bgs
-        const companyRegex = new RegExp(`\\b${company}\\b|beckett`, 'i');
-        if (companyRegex.test(title)) {
-          foundCompany = company === 'beckett' ? 'bgs' : company;
-          break;
-        }
-      }
-      if (!foundCompany) return;
-      // Robust regex: company followed by any spaces/dashes/colons and a grade
-      const gradeRegex = new RegExp(`${foundCompany}[\s:-]*([0-9]{1,2}(?:\\.5)?)`, 'i');
-      const match = title.match(gradeRegex);
-      const grade = match ? match[1] : 'Unknown';
-      if (!companyGradeMap[foundCompany]) companyGradeMap[foundCompany] = {};
-      if (!companyGradeMap[foundCompany][grade]) companyGradeMap[foundCompany][grade] = [];
-      companyGradeMap[foundCompany][grade].push(card);
-    });
     return (
       <div className="investment-insight-section" style={{ margin: '2.5rem 0 2rem 0' }}>
-        {/* No Investment Insight title here, only in main render */}
         <div className="other-graded-breakdown" style={{ background: '#f7f7f7', border: '1.5px solid #ccc', borderRadius: 8, padding: '1.2rem 1.5rem' }}>
           <h4 style={{ color: '#000', marginBottom: 8, fontSize: '1.1rem' }}>Other Graded Cards</h4>
           {gradingCompanyList.map(companyKey => {
-            const grades = companyGradeMap[normalizeCompany(companyKey)] || {};
+            const grades = gradingStats[companyKey] || {};
             if (Object.keys(grades).length === 0) return null;
             // Special handling for BGS
-            if (normalizeCompany(companyKey) === 'bgs') {
-              const bgsGrades = ['10', '9.5', '9'];
+            if (companyKey === 'bgs') {
+              const bgsGrades = ['10', '9_5', '9'];
               return (
                 <div style={{ marginBottom: '0.5rem' }} key={companyKey}>
                   <strong>{companyKey.toUpperCase()}</strong>
                   {bgsGrades.map(grade => {
-                    const cards = grades[grade] || [];
-                    const stats = getPriceStats(cards);
+                    const stats = grades[grade];
+                    if (!stats) return null;
                     return (
                       <div key={`${companyKey}-${grade}`} style={{ marginLeft: 10, fontSize: '0.93em' }}>
-                        {grade}: {cards.length} sold, avg {formatPrice({ value: stats.avg })} (range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })})
+                        {grade.replace('_', '.')}:
+                        {` ${stats.count} sold, avg ${formatPrice({ value: stats.avgPrice })} (range: ${formatPrice({ value: stats.minPrice })} - ${formatPrice({ value: stats.maxPrice })})`}
                       </div>
                     );
                   })}
                   {/* Show any other BGS grades not 10, 9.5, 9 */}
                   {Object.keys(grades).filter(g => !bgsGrades.includes(g)).map(grade => {
-                    const cards = grades[grade];
-                    const stats = getPriceStats(cards);
+                    const stats = grades[grade];
+                    if (!stats) return null;
                     return (
                       <div key={`${companyKey}-${grade}`} style={{ marginLeft: 10, fontSize: '0.93em' }}>
-                        {grade}: {cards.length} sold, avg {formatPrice({ value: stats.avg })} (range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })})
+                        {grade.replace('_', '.')}:
+                        {` ${stats.count} sold, avg ${formatPrice({ value: stats.avgPrice })} (range: ${formatPrice({ value: stats.minPrice })} - ${formatPrice({ value: stats.maxPrice })})`}
                       </div>
                     );
                   })}
@@ -692,13 +662,13 @@ const SearchPage = () => {
             return (
               <div style={{ marginBottom: '0.5rem' }} key={companyKey}>
                 <strong>{companyKey.toUpperCase()}</strong>
-                {Object.keys(grades).sort((a, b) => parseFloat(a) - parseFloat(b)).map(grade => {
-                  const gradeKey = grade.replace('.', '_');
-                  const cards = results?.results?.[`bgs${gradeKey}`] || grades[grade];
-                  const stats = getPriceStats(cards);
+                {Object.keys(grades).sort((a, b) => parseFloat(a.replace('_', '.')) - parseFloat(b.replace('_', '.'))).map(grade => {
+                  const stats = grades[grade];
+                  if (!stats) return null;
                   return (
                     <div key={`${companyKey}-${grade}`} style={{ marginLeft: 10, fontSize: '0.93em' }}>
-                      {grade}: {cards.length} sold, avg {formatPrice({ value: stats.avg })} (range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })})
+                      {grade.replace('_', '.')}:
+                      {` ${stats.count} sold, avg ${formatPrice({ value: stats.avgPrice })} (range: ${formatPrice({ value: stats.minPrice })} - ${formatPrice({ value: stats.maxPrice })})`}
                     </div>
                   );
                 })}
@@ -961,7 +931,7 @@ const SearchPage = () => {
             {/* Investment Insight */}
             <div style={{ marginTop: '2.5rem' }}>
               <h3 style={{ color: '#fff', fontWeight: 800, marginBottom: '1rem', fontSize: '1.4rem' }}>Investment Insight</h3>
-              {renderInvestmentInsight(results.priceAnalysis)}
+              {renderInvestmentInsight(results.results?.gradingStats)}
             </div>
 
             {/* Card Sections */}
