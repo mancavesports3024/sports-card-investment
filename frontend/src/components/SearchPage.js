@@ -4,6 +4,65 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Ca
 import SavedSearches from './SavedSearches';
 import { Helmet } from 'react-helmet';
 
+// FeaturedEbayListing component
+const FeaturedEbayListing = () => {
+  const [listings, setListings] = useState([]);
+  const [current, setCurrent] = useState(0);
+  const intervalRef = useRef();
+
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        const res = await fetch('/api/ebay-active-listings');
+        const data = await res.json();
+        setListings(data.items || []);
+      } catch (err) {
+        setListings([]);
+      }
+    };
+    fetchListings();
+  }, []);
+
+  useEffect(() => {
+    if (listings.length === 0) return;
+    intervalRef.current = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % listings.length);
+    }, 5000);
+    return () => clearInterval(intervalRef.current);
+  }, [listings]);
+
+  if (listings.length === 0) return null;
+  const item = listings[current];
+  return (
+    <div style={{
+      background: '#000',
+      color: '#ffd700',
+      border: '2px solid #ffd700',
+      borderRadius: 12,
+      padding: '1.5rem',
+      margin: '2rem auto 1.5rem auto',
+      maxWidth: 500,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '1.5rem',
+      boxShadow: '0 4px 24px rgba(0,0,0,0.12)'
+    }}>
+      {item.image && (
+        <img src={item.image.imageUrl || item.image} alt={item.title} style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 8, border: '2px solid #ffd700', background: '#fff' }} />
+      )}
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 6 }}>{item.title}</div>
+        <div style={{ fontSize: '1.05rem', color: '#fff', marginBottom: 8 }}>
+          {item.price && item.price.value ? `$${Number(item.price.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : ''}
+        </div>
+        <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer" style={{ background: '#ffd700', color: '#000', fontWeight: 700, padding: '0.5rem 1.2rem', borderRadius: 6, textDecoration: 'none', border: '2px solid #000', fontSize: '1rem' }}>
+          View on eBay
+        </a>
+      </div>
+    </div>
+  );
+};
+
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -593,6 +652,7 @@ const SearchPage = () => {
       <Helmet>
         <link rel="canonical" href="https://www.mancavesportscardsllc.com/search" />
       </Helmet>
+      <FeaturedEbayListing />
       {/* Main Content */}
       <main className="App-main">
         {/* Store Info Section */}
