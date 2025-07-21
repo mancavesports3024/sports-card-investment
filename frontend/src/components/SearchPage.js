@@ -87,6 +87,8 @@ const SearchPage = () => {
   // Control open/closed state of SavedSearches (use a counter to always trigger folding)
   const [savedSearchesOpen, setSavedSearchesOpen] = useState(0);
   const [lastSearchQuery, setLastSearchQuery] = useState('');
+  // Add state for expanded card sections
+  const [expandedSections, setExpandedSections] = useState({});
 
   // Fetch saved searches on mount (for duplicate prevention)
   useEffect(() => {
@@ -377,6 +379,10 @@ const SearchPage = () => {
       displayCards = filterRawCards(cards);
     }
 
+    // Pagination logic
+    const isExpanded = expandedSections[sectionKey];
+    const visibleCards = isExpanded ? displayCards : displayCards.slice(0, 25);
+
     return (
       <div className="card-section">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -499,7 +505,7 @@ const SearchPage = () => {
           </div>
         )}
         <div className="cards-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem' }}>
-          {displayCards.map((card, index) => {
+          {visibleCards.map((card, index) => {
             // Skip cards with invalid price
             const priceValue = Number(card.price?.value);
             if (isNaN(priceValue) || priceValue <= 0) return null;
@@ -543,32 +549,29 @@ const SearchPage = () => {
             );
           })}
         </div>
+        {displayCards.length > 25 && (
+          <button
+            style={{ marginTop: 10, background: '#ffd700', color: '#000', border: '1.5px solid #000', borderRadius: 5, padding: '0.5rem 1.2rem', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer' }}
+            onClick={() => setExpandedSections(prev => ({ ...prev, [sectionKey]: !isExpanded }))}
+          >
+            {isExpanded ? 'Show Less' : `See More (${displayCards.length - 25} more)`}
+          </button>
+        )}
       </div>
     );
   };
 
+  // Refactor renderPriceAnalysis for new Investment Insight layout
   const renderPriceAnalysis = (analysis) => {
     if (!analysis) return null;
-    // Use filtered/displayed cards for stats
+    // Stats for Raw, PSA 9, PSA 10
     const rawCards = filterRawCards(results?.results?.raw || []);
     const psa9Cards = (results?.results?.psa9 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
     const psa10Cards = (results?.results?.psa10 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
     const rawStats = getPriceStats(rawCards);
     const psa9Stats = getPriceStats(psa9Cards);
     const psa10Stats = getPriceStats(psa10Cards);
-    const tiles = [
-      { key: 'raw', label: 'Raw Cards', stats: rawStats },
-      { key: 'psa9', label: 'PSA 9', stats: psa9Stats },
-      { key: 'psa10', label: 'PSA 10', stats: psa10Stats }
-    ];
-    // Comparison tiles
-    const comparisons = analysis.comparisons || {};
-    const comparisonTiles = [
-      { key: 'rawToPsa9', label: 'Raw → PSA 9', data: comparisons.rawToPsa9 },
-      { key: 'rawToPsa10', label: 'Raw → PSA 10', data: comparisons.rawToPsa10 },
-      { key: 'psa9ToPsa10', label: 'PSA 9 → PSA 10', data: comparisons.psa9ToPsa10 }
-    ];
-    // Investment insight
+    // Insight tile content
     let insight = '';
     if (analysis.psa10 && analysis.psa10.trend === 'up') {
       insight = 'PSA 10 prices are trending up!';
@@ -579,100 +582,110 @@ const SearchPage = () => {
     } else {
       insight = 'No strong upward trends detected.';
     }
-    // Build the 3x3 grid: [raw, psa9, psa10, rawToPsa9, rawToPsa10, psa9ToPsa10, insight, empty, empty]
-    const gridTiles = [
-      ...tiles.map(({ key, label, stats }) => {
-        if (!stats || stats.min == null) return null;
-        return (
-          <div key={key} className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
-            <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
-            <p style={{ margin: 0 }}>Avg: <strong>{formatPrice({ value: stats.avg })}</strong></p>
-            <p style={{ margin: 0, fontSize: '0.93em' }}>Range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })}</p>
-          </div>
-        );
-      }),
-      ...comparisonTiles.map(({ key, label, data }) => data && (
-        <div key={key} className="analysis-item" style={{ background: '#e6f7ff', border: '1.5px solid #1890ff', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
-          <h4 style={{ color: '#0050b3', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
-          <p style={{ margin: 0 }}>{data.description}</p>
-        </div>
-      )),
-      <div key="insight" className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
-        <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>Investment Insight</h4>
-        <p style={{ margin: 0 }}>{insight}</p>
-        {/* Grading company summary (new) */}
-        <div style={{ marginTop: '0.5rem' }}>
-          <h5 style={{ color: '#000', margin: '0 0 0.3rem 0', fontSize: '1em' }}>Other Grading Companies</h5>
-          {(() => {
-            // List of grading companies (BGS and Beckett are the same)
-            const gradingCompanyList = [
-              'psa', 'bgs', 'sgc', 'cgc', 'beckett', 'ace', 'cga', 'gma', 'hga', 'pgs', 'bvg', 'csg', 'rcg', 'ksa', 'fgs', 'tag', 'pgm', 'dga', 'isa'
-            ];
-            // Helper to normalize company name
-            const normalizeCompany = (name) => {
-              if (!name) return '';
-              name = name.toLowerCase();
-              if (name === 'beckett') return 'bgs';
-              return name;
-            };
-            // Gather all graded cards (exclude raw)
-            const allCards = Object.entries(results?.results || {})
-              .filter(([key]) => key !== 'raw')
-              .flatMap(([, arr]) => arr);
-            // Group cards by company and grade
-            const companyGradeMap = {};
-            allCards.forEach(card => {
-              const title = (card.title || '').toLowerCase();
-              let foundCompany = null;
-              for (let company of gradingCompanyList) {
-                if (title.includes(company)) {
-                  foundCompany = normalizeCompany(company);
-                  break;
-                }
-              }
-              if (!foundCompany) return;
-              // Extract grade (look for number 1-10, 7.5, 8.5, 9.5, etc.)
-              const gradeMatch = title.match(/(\d{1,2}(?:\.5)?)/);
-              const grade = gradeMatch ? gradeMatch[1] : 'Unknown';
-              if (!companyGradeMap[foundCompany]) companyGradeMap[foundCompany] = {};
-              if (!companyGradeMap[foundCompany][grade]) companyGradeMap[foundCompany][grade] = [];
-              companyGradeMap[foundCompany][grade].push(card);
-            });
-            // Only show companies with at least one card, and not PSA, CGC, TAG, SGC, AiGrade
-            const skip = ['psa', 'cgc', 'tag', 'sgc', 'aigrade'];
-            return gradingCompanyList
-              .filter((c, i, arr) => normalizeCompany(c) === c && arr.indexOf(c) === i && !skip.includes(normalizeCompany(c)))
-              .map(companyKey => {
-                const grades = companyGradeMap[normalizeCompany(companyKey)] || {};
-                if (Object.keys(grades).length === 0) return null;
-                return (
-                  <div style={{ marginBottom: '0.5rem' }} key={companyKey}>
-                    <strong>{companyKey.toUpperCase()}</strong>
-                    {Object.keys(grades).sort((a, b) => parseFloat(a) - parseFloat(b)).map(grade => {
-                      const cards = grades[grade];
-                      const stats = getPriceStats(cards);
-                      return (
-                        <div key={`${companyKey}-${grade}`} style={{ marginLeft: 10, fontSize: '0.93em' }}>
-                          {grade}: {cards.length} sold, avg {formatPrice({ value: stats.avg })} (range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })})
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              });
-          })()}
-        </div>
-      </div>
+    // Other graded breakdown (not PSA)
+    const gradingCompanyList = [
+      'bgs', 'sgc', 'cgc', 'beckett', 'ace', 'cga', 'gma', 'hga', 'pgs', 'bvg', 'csg', 'rcg', 'ksa', 'fgs', 'tag', 'pgm', 'dga', 'isa'
     ];
-    // Fill to 9 tiles
-    while (gridTiles.length < 9) {
-      gridTiles.push(<div key={`empty-${gridTiles.length}`} style={{ background: 'transparent', border: 'none' }} />);
-    }
+    const normalizeCompany = (name) => {
+      if (!name) return '';
+      name = name.toLowerCase();
+      if (name === 'beckett') return 'bgs';
+      return name;
+    };
+    const allCards = Object.entries(results?.results || {})
+      .filter(([key]) => key !== 'raw')
+      .flatMap(([, arr]) => arr);
+    const companyGradeMap = {};
+    allCards.forEach(card => {
+      const title = (card.title || '').toLowerCase();
+      let foundCompany = null;
+      for (let company of gradingCompanyList) {
+        if (title.includes(company)) {
+          foundCompany = normalizeCompany(company);
+          break;
+        }
+      }
+      if (!foundCompany) return;
+      const gradeMatch = title.match(/(\d{1,2}(?:\.5)?)/);
+      const grade = gradeMatch ? gradeMatch[1] : 'Unknown';
+      if (!companyGradeMap[foundCompany]) companyGradeMap[foundCompany] = {};
+      if (!companyGradeMap[foundCompany][grade]) companyGradeMap[foundCompany][grade] = [];
+      companyGradeMap[foundCompany][grade].push(card);
+    });
+    // Render
     return (
-      <div className="price-analysis">
-        <h3 style={{ color: '#fff', fontWeight: 800, textShadow: '1px 1px 6px #000' }}>📊 Price Analysis</h3>
-        <div className="analysis-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-          {gridTiles}
+      <div className="investment-insight-section" style={{ marginBottom: '2rem' }}>
+        <h3 style={{ color: '#000', fontWeight: 800, marginBottom: '1rem', fontSize: '1.4rem' }}>Investment Insight</h3>
+        <div className="insight-tile" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: 8, padding: '1.2rem 1.5rem', marginBottom: '1.5rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
+          <h4 style={{ color: '#000', marginBottom: 8, fontSize: '1.1rem' }}>Raw, PSA 9, PSA 10</h4>
+          <div style={{ display: 'flex', gap: '2.5rem', flexWrap: 'wrap' }}>
+            <div>
+              <strong>Raw</strong><br />
+              Avg: {formatPrice({ value: rawStats.avg })}<br />
+              Range: {formatPrice({ value: rawStats.min })} - {formatPrice({ value: rawStats.max })}
+            </div>
+            <div>
+              <strong>PSA 9</strong><br />
+              Avg: {formatPrice({ value: psa9Stats.avg })}<br />
+              Range: {formatPrice({ value: psa9Stats.min })} - {formatPrice({ value: psa9Stats.max })}
+            </div>
+            <div>
+              <strong>PSA 10</strong><br />
+              Avg: {formatPrice({ value: psa10Stats.avg })}<br />
+              Range: {formatPrice({ value: psa10Stats.min })} - {formatPrice({ value: psa10Stats.max })}
+            </div>
+          </div>
+          <div style={{ marginTop: 12, color: '#333', fontWeight: 600 }}>{insight}</div>
+        </div>
+        <div className="other-graded-breakdown" style={{ background: '#f7f7f7', border: '1.5px solid #ccc', borderRadius: 8, padding: '1.2rem 1.5rem' }}>
+          <h4 style={{ color: '#000', marginBottom: 8, fontSize: '1.1rem' }}>Other Graded Cards</h4>
+          {gradingCompanyList.map(companyKey => {
+            const grades = companyGradeMap[normalizeCompany(companyKey)] || {};
+            if (Object.keys(grades).length === 0) return null;
+            // Special handling for BGS
+            if (normalizeCompany(companyKey) === 'bgs') {
+              const bgsGrades = ['10', '9.5', '9'];
+              return (
+                <div style={{ marginBottom: '0.5rem' }} key={companyKey}>
+                  <strong>{companyKey.toUpperCase()}</strong>
+                  {bgsGrades.map(grade => {
+                    const cards = grades[grade] || [];
+                    const stats = getPriceStats(cards);
+                    return (
+                      <div key={`${companyKey}-${grade}`} style={{ marginLeft: 10, fontSize: '0.93em' }}>
+                        {grade}: {cards.length} sold, avg {formatPrice({ value: stats.avg })} (range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })})
+                      </div>
+                    );
+                  })}
+                  {/* Show any other BGS grades not 10, 9.5, 9 */}
+                  {Object.keys(grades).filter(g => !bgsGrades.includes(g)).map(grade => {
+                    const cards = grades[grade];
+                    const stats = getPriceStats(cards);
+                    return (
+                      <div key={`${companyKey}-${grade}`} style={{ marginLeft: 10, fontSize: '0.93em' }}>
+                        {grade}: {cards.length} sold, avg {formatPrice({ value: stats.avg })} (range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })})
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            }
+            // Default for other companies
+            return (
+              <div style={{ marginBottom: '0.5rem' }} key={companyKey}>
+                <strong>{companyKey.toUpperCase()}</strong>
+                {Object.keys(grades).sort((a, b) => parseFloat(a) - parseFloat(b)).map(grade => {
+                  const cards = grades[grade];
+                  const stats = getPriceStats(cards);
+                  return (
+                    <div key={`${companyKey}-${grade}`} style={{ marginLeft: 10, fontSize: '0.93em' }}>
+                      {grade}: {cards.length} sold, avg {formatPrice({ value: stats.avg })} (range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })})
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       </div>
     );
@@ -929,7 +942,7 @@ const SearchPage = () => {
             {/* Card Sections */}
             {renderCardSection('Raw Cards', results.results.raw, '📄')}
             {renderCardSection('PSA 9', results.results.psa9, '🏆')}
-            {renderCardSection('PSA 10', results.results.psa10, '��')}
+            {renderCardSection('PSA 10', results.results.psa10, '🏆')}
           </div>
         )}
       </main>
