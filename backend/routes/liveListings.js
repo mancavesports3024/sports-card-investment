@@ -449,34 +449,5 @@ router.get('/', async (req, res) => {
   }
 });
 
-// New endpoint: Get all active listings for a specific seller via RSS
-router.get('/ebay-active-listings', async (req, res) => {
-  try {
-    const response = await axios.get(RSS_URL);
-    const xml = response.data;
-    xml2js.parseString(xml, { explicitArray: false }, (err, result) => {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to parse eBay RSS feed', details: err.message });
-      }
-      const items = result.rss.channel.item || [];
-      // Ensure items is always an array
-      const listings = Array.isArray(items) ? items : [items];
-      // Map to simplified structure
-      const parsed = listings.map(item => ({
-        title: item.title,
-        link: item.link,
-        image: item.enclosure?.['$']?.url || null,
-        price: item['g:price'] || null,
-        description: item.description || '',
-        pubDate: item.pubDate || '',
-      }));
-      res.json({ items: parsed });
-    });
-  } catch (error) {
-    console.error('Error fetching eBay RSS feed:', error?.response?.data || error.message);
-    res.status(500).json({ error: 'Failed to fetch eBay RSS feed', details: error?.message });
-  }
-});
-
 module.exports = router;
 module.exports.getLiveListings = getLiveListings; 
