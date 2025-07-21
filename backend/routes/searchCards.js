@@ -83,11 +83,13 @@ const categorizeCards = (cards) => {
       const gradingRegex = /\b(psa|bgs|beckett|sgc|cgc|ace|cga|gma|hga|pgs|bvg|csg|rcg|ksa|fgs|tag|pgm|dga|isa)[\s:-]*([0-9]{1,2}(?:\.5)?)\b/i;
       const match = title.match(gradingRegex);
       let isGraded = false;
+      console.log(`Card ${index}: "${card.title}"`);
       if (match) {
         let company = match[1].toLowerCase();
         if (company === 'beckett') company = 'bgs';
         const grade = match[2].replace('.', '_');
         const key = `${company}${grade}`;
+        console.log(`  Matched company: ${company}, grade: ${grade} → bucket: ${key}`);
         if (!dynamicBuckets[key]) dynamicBuckets[key] = [];
         dynamicBuckets[key].push(card);
         isGraded = true;
@@ -115,11 +117,14 @@ const categorizeCards = (cards) => {
       if (!isGraded) {
         if (rawKeywords.some(keyword => title.includes(keyword)) || condition === 'ungraded' || condition === 'not graded' || condition === 'no grade') {
           legacyBuckets.raw.push(card);
+          console.log('  Classified as RAW');
         } else if (gradedConditionIds.includes(String(card.conditionId)) || condition === 'graded') {
           legacyBuckets.otherGraded.push(card);
+          console.log('  Classified as GRADED (otherGraded)');
         } else {
           // Fallback: treat as raw if nothing else matches
           legacyBuckets.raw.push(card);
+          console.log('  Classified as RAW (fallback)');
         }
       }
     });
