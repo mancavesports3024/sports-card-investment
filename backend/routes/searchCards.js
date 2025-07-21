@@ -155,14 +155,17 @@ const categorizeCards = (cards) => {
     );
     // Merge dynamic buckets into result
     const categorizedResult = { ...legacyBuckets, priceAnalysis, gradingStats };
-    // Replace raw with filteredRaw (from price analysis)
-    if (priceAnalysis && priceAnalysis.raw && Array.isArray(dynamicBuckets.raw)) {
-      const rawAvg = priceAnalysis.raw.avgPrice; // Get the average from the price analysis
-      categorizedResult.raw = dynamicBuckets.raw.filter(card => {
+    // Always use filteredRaw for the returned raw bucket
+    if (priceAnalysis && priceAnalysis.raw && Array.isArray(legacyBuckets.raw)) {
+      // Find the filteredRaw set by matching the price and title to the filtered set used in priceAnalysis
+      const filteredRawSet = legacyBuckets.raw.filter(card => {
         const price = parseFloat(card.price?.value || 0);
         // Use the same filtering as in price analysis
+        // Use the rawAvg from calculatePriceAnalysis
+        const rawAvg = priceAnalysis.raw.avgPrice * priceAnalysis.raw.count / (priceAnalysis.raw.count || 1); // reconstruct avg
         return price > 0 && price <= 1.5 * rawAvg;
       });
+      categorizedResult.raw = filteredRawSet;
     }
     Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
       if (bucket !== 'raw') categorizedResult[bucket] = arr;
@@ -215,6 +218,22 @@ const calculatePriceAnalysis = (raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8,
       const price = parseFloat(card.price?.value || 0);
       return price > 0 && price <= 1.5 * rawAvg;
     });
+    // Debug logging
+    console.log('--- RAW OUTLIER FILTERING ---');
+    console.log('Raw prices (all):', rawPrices);
+    console.log('Raw average (pre-filter):', rawAvg);
+    const filteredPrices = filteredRaw.map(card => parseFloat(card.price?.value || 0));
+    console.log('Raw prices (filtered):', filteredPrices);
+    const excluded = raw.filter(card => {
+      const price = parseFloat(card.price?.value || 0);
+      return price > 1.5 * rawAvg;
+    });
+    if (excluded.length > 0) {
+      console.log('Raw outliers excluded:', excluded.map(card => ({ title: card.title, price: card.price?.value })));
+    } else {
+      console.log('No raw outliers excluded.');
+    }
+    console.log('--- END RAW OUTLIER FILTERING ---');
   }
   const analysis = {
     raw: { count: filteredRaw.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
