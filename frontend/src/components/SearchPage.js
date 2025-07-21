@@ -609,6 +609,8 @@ const SearchPage = () => {
                 if (ref && ref.current) {
                   ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
+                // Open the corresponding live listings section
+                setExpandedSections(prev => ({ ...prev, [key]: true }));
               }}
             >
               View Live Listings
