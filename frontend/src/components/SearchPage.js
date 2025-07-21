@@ -707,7 +707,13 @@ const SearchPage = () => {
         gap: '0.5rem'
       }}>
         <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>Graded Cards Summary</h4>
-        {gradingCompanyList.filter((c, i, arr) => normalizeCompany(c) === c && arr.indexOf(c) === i).map(companyKey => renderGradingCompanySummary(normalizeCompany(companyKey)))}
+        {gradingCompanyList
+          .filter((c, i, arr) => normalizeCompany(c) === c && arr.indexOf(c) === i)
+          .map(companyKey => {
+            const grades = companyGradeMap[normalizeCompany(companyKey)] || {};
+            if (Object.keys(grades).length === 0) return null;
+            return renderGradingCompanySummary(normalizeCompany(companyKey));
+          })}
       </div>,
 
       // Investment insight tile
