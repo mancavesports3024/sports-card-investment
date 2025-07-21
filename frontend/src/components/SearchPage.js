@@ -576,14 +576,7 @@ const SearchPage = () => {
       { key: 'psa9', label: 'PSA 9', stats: psa9Stats, trend: analysis.psa9?.trend },
       { key: 'psa10', label: 'PSA 10', stats: psa10Stats, trend: analysis.psa10?.trend }
     ];
-    // Comparison tiles
-    const comparisons = analysis.comparisons || {};
-    const comparisonTiles = [
-      { key: 'rawToPsa9', label: 'Raw → PSA 9', data: comparisons.rawToPsa9 },
-      { key: 'rawToPsa10', label: 'Raw → PSA 10', data: comparisons.rawToPsa10 },
-      { key: 'psa9ToPsa10', label: 'PSA 9 → PSA 10', data: comparisons.psa9ToPsa10 }
-    ];
-    // Build the 3x2 grid: [raw, psa9, psa10, rawToPsa9, rawToPsa10, psa9ToPsa10]
+    // Build the grid: only Raw, PSA 9, PSA 10
     const gridTiles = [
       ...tiles.map(({ key, label, stats, trend }) => {
         if (!stats || stats.min == null) return null;
@@ -598,13 +591,7 @@ const SearchPage = () => {
             {trendText && <div style={{ marginTop: 6, color: trend === 'up' ? '#388e3c' : '#b00', fontWeight: 600 }}>{trendText}</div>}
           </div>
         );
-      }),
-      ...comparisonTiles.map(({ key, label, data }) => data && (
-        <div key={key} className="analysis-item" style={{ background: '#e6f7ff', border: '1.5px solid #1890ff', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
-          <h4 style={{ color: '#0050b3', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
-          <p style={{ margin: 0 }}>{data.description}</p>
-        </div>
-      ))
+      })
     ];
     return (
       <div className="price-analysis">
