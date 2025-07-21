@@ -549,68 +549,146 @@ const SearchPage = () => {
 
   const renderPriceAnalysis = (analysis) => {
     if (!analysis) return null;
+    
+    // Get all graded cards and calculate stats
+    const gradingCompanies = {
+      psa: {
+        name: 'PSA',
+        grades: {
+          7: (results?.results?.psa7 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0),
+          8: (results?.results?.psa8 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0),
+          9: (results?.results?.psa9 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0),
+          10: (results?.results?.psa10 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0)
+        }
+      },
+      cgc: {
+        name: 'CGC',
+        grades: {
+          9: (results?.results?.cgc9 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0),
+          10: (results?.results?.cgc10 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0)
+        }
+      },
+      tag: {
+        name: 'TAG',
+        grades: {
+          8: (results?.results?.tag8 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0),
+          9: (results?.results?.tag9 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0),
+          10: (results?.results?.tag10 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0)
+        }
+      },
+      sgc: {
+        name: 'SGC',
+        grades: {
+          10: (results?.results?.sgc10 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0)
+        }
+      },
+      aigrade: {
+        name: 'AiGrade',
+        grades: {
+          9: (results?.results?.aigrade9 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0),
+          10: (results?.results?.aigrade10 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0)
+        }
+      }
+    };
+
+    // Calculate stats for each grading company and grade
+    Object.values(gradingCompanies).forEach(company => {
+      Object.entries(company.grades).forEach(([grade, cards]) => {
+        company.grades[grade] = {
+          cards,
+          stats: getPriceStats(cards)
+        };
+      });
+    });
+
+    // Create the grading companies summary tile
+    const renderGradingCompanySummary = (company) => {
+      const hasCards = Object.values(company.grades).some(({ cards }) => cards.length > 0);
+      if (!hasCards) return null;
+
+      return (
+        <div style={{ marginBottom: '1rem' }}>
+          <h4 style={{ margin: '0 0 0.5rem 0', color: '#000' }}>{company.name}</h4>
+          {Object.entries(company.grades).map(([grade, { cards, stats }]) => {
+            if (cards.length === 0) return null;
+            return (
+              <div key={`${company.name}-${grade}`} style={{ marginBottom: '0.3rem', fontSize: '0.9em' }}>
+                <strong>{company.name} {grade}</strong>: {cards.length} sold, avg {formatPrice({ value: stats.avg })}
+                <br />
+                <span style={{ fontSize: '0.9em', color: '#666' }}>
+                  Range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      );
+    };
+
     // Use filtered/displayed cards for stats
     const rawCards = filterRawCards(results?.results?.raw || []);
-    const psa9Cards = (results?.results?.psa9 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
-    const psa10Cards = (results?.results?.psa10 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
     const rawStats = getPriceStats(rawCards);
-    const psa9Stats = getPriceStats(psa9Cards);
-    const psa10Stats = getPriceStats(psa10Cards);
-    const tiles = [
-      { key: 'raw', label: 'Raw Cards', stats: rawStats },
-      { key: 'psa9', label: 'PSA 9', stats: psa9Stats },
-      { key: 'psa10', label: 'PSA 10', stats: psa10Stats }
-    ];
-    // Comparison tiles
-    const comparisons = analysis.comparisons || {};
-    const comparisonTiles = [
-      { key: 'rawToPsa9', label: 'Raw → PSA 9', data: comparisons.rawToPsa9 },
-      { key: 'rawToPsa10', label: 'Raw → PSA 10', data: comparisons.rawToPsa10 },
-      { key: 'psa9ToPsa10', label: 'PSA 9 → PSA 10', data: comparisons.psa9ToPsa10 }
-    ];
-    // Investment insight
-    let insight = '';
-    if (analysis.psa10 && analysis.psa10.trend === 'up') {
-      insight = 'PSA 10 prices are trending up!';
-    } else if (analysis.psa9 && analysis.psa9.trend === 'up') {
-      insight = 'PSA 9 prices are trending up!';
-    } else if (analysis.raw && analysis.raw.trend === 'up') {
-      insight = 'Raw card prices are trending up!';
-    } else {
-      insight = 'No strong upward trends detected.';
-    }
-    // Build the 3x3 grid: [raw, psa9, psa10, rawToPsa9, rawToPsa10, psa9ToPsa10, insight, empty, empty]
+
+    // Build the grid tiles
     const gridTiles = [
-      ...tiles.map(({ key, label, stats }) => {
-        if (!stats || stats.min == null) return null;
-        return (
-          <div key={key} className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
-            <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
-            <p style={{ margin: 0 }}>Avg: <strong>{formatPrice({ value: stats.avg })}</strong></p>
-            <p style={{ margin: 0, fontSize: '0.93em' }}>Range: {formatPrice({ value: stats.min })} - {formatPrice({ value: stats.max })}</p>
-            {/* No trend for now */}
-          </div>
-        );
-      }),
-      ...comparisonTiles.map(({ key, label, data }) => data && (
-        <div key={key} className="analysis-item" style={{ background: '#e6f7ff', border: '1.5px solid #1890ff', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
-          <h4 style={{ color: '#0050b3', marginBottom: 4, fontSize: '1.05rem' }}>{label}</h4>
-          <p style={{ margin: 0 }}>{data.description}</p>
-        </div>
-      )),
-      <div key="insight" className="analysis-item" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: '8px', padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.95rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
+      // Raw cards tile
+      <div key="raw" className="analysis-item" style={{ 
+        background: '#fffbe6', 
+        border: '1.5px solid #ffd700', 
+        borderRadius: '8px', 
+        padding: '0.75rem 1.1rem', 
+        minWidth: 120, 
+        fontSize: '0.95rem', 
+        boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+        gridColumn: '1 / -1'  // Span all columns
+      }}>
+        <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>Raw Cards</h4>
+        <p style={{ margin: 0 }}>Count: {rawCards.length}</p>
+        <p style={{ margin: 0 }}>Avg: <strong>{formatPrice({ value: rawStats.avg })}</strong></p>
+        <p style={{ margin: 0, fontSize: '0.93em' }}>Range: {formatPrice({ value: rawStats.min })} - {formatPrice({ value: rawStats.max })}</p>
+      </div>,
+
+      // Graded cards summary (spans 2 columns)
+      <div key="graded" className="analysis-item" style={{ 
+        background: '#fffbe6', 
+        border: '1.5px solid #ffd700', 
+        borderRadius: '8px', 
+        padding: '0.75rem 1.1rem', 
+        fontSize: '0.95rem', 
+        boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+        gridColumn: '1 / -1',  // Span all columns
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.5rem'
+      }}>
+        <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>Graded Cards Summary</h4>
+        {Object.values(gradingCompanies).map(company => renderGradingCompanySummary(company))}
+      </div>,
+
+      // Investment insight tile
+      <div key="insight" className="analysis-item" style={{ 
+        background: '#fffbe6', 
+        border: '1.5px solid #ffd700', 
+        borderRadius: '8px', 
+        padding: '0.75rem 1.1rem', 
+        fontSize: '0.95rem', 
+        boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+        gridColumn: '1 / -1'  // Span all columns
+      }}>
         <h4 style={{ color: '#000', marginBottom: 4, fontSize: '1.05rem' }}>Investment Insight</h4>
-        <p style={{ margin: 0 }}>{insight}</p>
+        <p style={{ margin: 0 }}>{analysis.insight || 'No strong trends detected.'}</p>
       </div>
     ];
-    // Fill to 9 tiles
-    while (gridTiles.length < 9) {
-      gridTiles.push(<div key={`empty-${gridTiles.length}`} style={{ background: 'transparent', border: 'none' }} />);
-    }
+
     return (
       <div className="price-analysis">
         <h3 style={{ color: '#fff', fontWeight: 800, textShadow: '1px 1px 6px #000' }}>📊 Price Analysis</h3>
-        <div className="analysis-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+        <div className="analysis-grid" style={{ 
+          display: 'grid', 
+          gridTemplateColumns: '1fr', 
+          gap: '0.75rem', 
+          marginTop: '0.5rem'
+        }}>
           {gridTiles}
         </div>
       </div>
