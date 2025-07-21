@@ -310,9 +310,44 @@ const categorizeCards = (cards) => {
   // Recalculate price analysis with filtered raw
   const priceAnalysis = calculatePriceAnalysis(filteredRaw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8, tag9, tag10, sgc10, aigrade9, aigrade10, otherGraded);
 
+  // Add explicit arrays for all grading companies and grades
+  const allCompanyGradeBuckets = {};
+  gradingCompanies.forEach(company => {
+    gradeNumbers.forEach(grade => {
+      const bucketName = `${company}${grade.replace('.', '_')}`;
+      allCompanyGradeBuckets[bucketName] = [];
+    });
+  });
+
+  // Dynamic company/grade bucketing
+  let foundDynamic = false;
+  for (let company of gradingCompanies) {
+    if (title.includes(company)) {
+      for (let grade of gradeNumbers) {
+        // Look for patterns like 'bgs 9.5', 'sgc 10', etc.
+        const regex = new RegExp(`${company} ?${grade.replace('.', '\.')}`);
+        if (regex.test(title)) {
+          const bucketName = `${company}${grade.replace('.', '_')}`;
+          if (!allCompanyGradeBuckets[bucketName]) allCompanyGradeBuckets[bucketName] = [];
+          allCompanyGradeBuckets[bucketName].push(card);
+          foundDynamic = true;
+          console.log(`  -> ALL COMPANY BUCKET: ${bucketName}`);
+          break;
+        }
+      }
+    }
+    if (foundDynamic) break;
+  }
+  if (foundDynamic) {
+    categorized = true;
+  }
+
   // At the end, merge dynamicBuckets into the return object
   const categorizedResult = { raw: filteredRaw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8, tag9, tag10, sgc10, aigrade9, aigrade10, otherGraded, priceAnalysis };
   Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
+    categorizedResult[bucket] = arr;
+  });
+  Object.entries(allCompanyGradeBuckets).forEach(([bucket, arr]) => {
     categorizedResult[bucket] = arr;
   });
   return categorizedResult;
