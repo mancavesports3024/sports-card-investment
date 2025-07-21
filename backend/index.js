@@ -288,7 +288,7 @@ async function initializeServer() {
   // Routes
   app.use('/api/search-cards', require('./routes/searchCards').router);
   app.use('/api/search-history', require('./routes/searchHistory'));
-  app.use('/api', require('./routes/liveListings'));
+  app.use('/api/live-listings', require('./routes/liveListings'));
   
   // Routes
   app.use('/api/auth', require('./routes/auth'));
