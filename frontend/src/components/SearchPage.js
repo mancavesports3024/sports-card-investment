@@ -619,24 +619,6 @@ const SearchPage = () => {
   // New Investment Insight section (tile + breakdown)
   const renderInvestmentInsight = (analysis) => {
     if (!analysis) return null;
-    // Stats for Raw, PSA 9, PSA 10
-    const rawCards = filterRawCards(results?.results?.raw || []);
-    const psa9Cards = (results?.results?.psa9 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
-    const psa10Cards = (results?.results?.psa10 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
-    const rawStats = getPriceStats(rawCards);
-    const psa9Stats = getPriceStats(psa9Cards);
-    const psa10Stats = getPriceStats(psa10Cards);
-    // Insight tile content
-    let insight = '';
-    if (analysis.psa10 && analysis.psa10.trend === 'up') {
-      insight = 'PSA 10 prices are trending up!';
-    } else if (analysis.psa9 && analysis.psa9.trend === 'up') {
-      insight = 'PSA 9 prices are trending up!';
-    } else if (analysis.raw && analysis.raw.trend === 'up') {
-      insight = 'Raw card prices are trending up!';
-    } else {
-      insight = 'No strong upward trends detected.';
-    }
     // Other graded breakdown (not PSA)
     const gradingCompanyList = [
       'bgs', 'sgc', 'cgc', 'beckett', 'ace', 'cga', 'gma', 'hga', 'pgs', 'bvg', 'csg', 'rcg', 'ksa', 'fgs', 'tag', 'pgm', 'dga', 'isa'
@@ -668,29 +650,8 @@ const SearchPage = () => {
       companyGradeMap[foundCompany][grade].push(card);
     });
     return (
-      <div className="investment-insight-section" style={{ marginBottom: '2rem' }}>
-        <h3 style={{ color: '#000', fontWeight: 800, marginBottom: '1rem', fontSize: '1.4rem' }}>Investment Insight</h3>
-        <div className="insight-tile" style={{ background: '#fffbe6', border: '1.5px solid #ffd700', borderRadius: 8, padding: '1.2rem 1.5rem', marginBottom: '1.5rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
-          <h4 style={{ color: '#000', marginBottom: 8, fontSize: '1.1rem' }}>Raw, PSA 9, PSA 10</h4>
-          <div style={{ display: 'flex', gap: '2.5rem', flexWrap: 'wrap' }}>
-            <div>
-              <strong>Raw</strong><br />
-              Avg: {formatPrice({ value: rawStats.avg })}<br />
-              Range: {formatPrice({ value: rawStats.min })} - {formatPrice({ value: rawStats.max })}
-            </div>
-            <div>
-              <strong>PSA 9</strong><br />
-              Avg: {formatPrice({ value: psa9Stats.avg })}<br />
-              Range: {formatPrice({ value: psa9Stats.min })} - {formatPrice({ value: psa9Stats.max })}
-            </div>
-            <div>
-              <strong>PSA 10</strong><br />
-              Avg: {formatPrice({ value: psa10Stats.avg })}<br />
-              Range: {formatPrice({ value: psa10Stats.min })} - {formatPrice({ value: psa10Stats.max })}
-            </div>
-          </div>
-          <div style={{ marginTop: 12, color: '#333', fontWeight: 600 }}>{insight}</div>
-        </div>
+      <div className="investment-insight-section" style={{ margin: '2.5rem 0 2rem 0' }}>
+        <h3 style={{ color: '#fff', fontWeight: 800, textShadow: '1px 1px 6px #000', marginBottom: '1rem', fontSize: '1.4rem' }}>Investment Insight</h3>
         <div className="other-graded-breakdown" style={{ background: '#f7f7f7', border: '1.5px solid #ccc', borderRadius: 8, padding: '1.2rem 1.5rem' }}>
           <h4 style={{ color: '#000', marginBottom: 8, fontSize: '1.1rem' }}>Other Graded Cards</h4>
           {gradingCompanyList.map(companyKey => {
@@ -995,7 +956,7 @@ const SearchPage = () => {
 
             {/* Investment Insight */}
             <div style={{ marginTop: '2.5rem' }}>
-              <h3 style={{ color: '#000', fontWeight: 800, marginBottom: '1rem', fontSize: '1.4rem' }}>Investment Insight</h3>
+              <h3 style={{ color: '#fff', fontWeight: 800, marginBottom: '1rem', fontSize: '1.4rem' }}>Investment Insight</h3>
               {renderInvestmentInsight(results.priceAnalysis)}
             </div>
 
