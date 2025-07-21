@@ -447,5 +447,34 @@ router.get('/', async (req, res) => {
   }
 });
 
+// New endpoint: Get all active listings for a specific seller
+router.get('/ebay-active-listings', async (req, res) => {
+  const seller = 'mancavesportscardsllc24';
+  try {
+    const token = process.env.EBAY_AUTH_TOKEN;
+    if (!token) return res.status(500).json({ error: 'No eBay token available' });
+    // eBay Browse API endpoint for seller inventory
+    const url = 'https://api.ebay.com/buy/browse/v1/item_summary/search';
+    const params = {
+      seller,
+      limit: 50, // Adjust as needed (max 200 per eBay docs)
+      sort: 'newlyListed',
+    };
+    const response = await axios.get(url, {
+      params,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+      },
+    });
+    const items = response.data.itemSummaries || [];
+    res.json({ items });
+  } catch (error) {
+    console.error('Error fetching active eBay listings:', error?.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to fetch active eBay listings', details: error?.message });
+  }
+});
+
 module.exports = router;
 module.exports.getLiveListings = getLiveListings; 
