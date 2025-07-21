@@ -315,8 +315,8 @@ const SearchPage = () => {
   // Helper to filter raw cards
   const filterRawCards = (cards) => {
     if (!Array.isArray(cards)) return [];
-    // First, filter to valid, non-graded cards
-    const filtered = cards.filter(card => {
+    // Only filter to valid, non-graded cards (no outlier filtering, now handled in backend)
+    return cards.filter(card => {
       const title = (card.title || '').toLowerCase();
       // Exclude if title contains grading company and grade in any order
       const isGraded = /(psa|bgs|sgc|cgc|tag|gm|gem|mint)[\s:\-\(]*((9\.5)|10|9|8|7)|((9\.5|10|9|8|7)[\s:\-\)]*(psa|bgs|sgc|cgc|tag|gm|gem|mint))/i.test(card.title || '');
@@ -325,11 +325,6 @@ const SearchPage = () => {
       const validPrice = !isNaN(priceValue) && priceValue > 0;
       return !isGraded && validPrice;
     });
-    // Calculate average price
-    const prices = filtered.map(card => Number(card.price?.value));
-    const avg = prices.length ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
-    // Remove outliers: price > 1.5x average
-    return filtered.filter(card => Number(card.price?.value) <= 1.5 * avg);
   };
 
   // Helper to calculate price analysis for a set of cards

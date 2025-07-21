@@ -155,8 +155,17 @@ const categorizeCards = (cards) => {
     );
     // Merge dynamic buckets into result
     const categorizedResult = { ...legacyBuckets, priceAnalysis, gradingStats };
+    // Replace raw with filteredRaw (from price analysis)
+    if (priceAnalysis && priceAnalysis.raw && Array.isArray(dynamicBuckets.raw)) {
+      categorizedResult.raw = dynamicBuckets.raw.filter(card => {
+        const price = parseFloat(card.price?.value || 0);
+        // Use the same filtering as in price analysis
+        const avg = priceAnalysis.raw.avgPrice;
+        return price > 0 && price <= 1.5 * avg;
+      });
+    }
     Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
-      categorizedResult[bucket] = arr;
+      if (bucket !== 'raw') categorizedResult[bucket] = arr;
     });
     return categorizedResult;
   } catch (err) {
@@ -196,8 +205,18 @@ const calculatePriceTrend = (cards) => {
 
 // Helper function to calculate price differences
 const calculatePriceAnalysis = (raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8, tag9, tag10, sgc10, aigrade9, aigrade10, otherGraded) => {
+  // Outlier filtering for raw: remove cards >1.5x average price
+  let filteredRaw = raw;
+  if (raw.length > 0) {
+    const rawPrices = raw.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
+    const avg = rawPrices.length > 0 ? rawPrices.reduce((a, b) => a + b, 0) / rawPrices.length : 0;
+    filteredRaw = raw.filter(card => {
+      const price = parseFloat(card.price?.value || 0);
+      return price > 0 && price <= 1.5 * avg;
+    });
+  }
   const analysis = {
-    raw: { count: raw.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
+    raw: { count: filteredRaw.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
     psa7: { count: psa7.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
     psa8: { count: psa8.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
     psa9: { count: psa9.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
@@ -215,8 +234,8 @@ const calculatePriceAnalysis = (raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8,
   };
 
   // Calculate averages for each category
-  if (raw.length > 0) {
-    const rawPrices = raw.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
+  if (filteredRaw.length > 0) {
+    const rawPrices = filteredRaw.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
     analysis.raw.avgPrice = rawPrices.length > 0 ? rawPrices.reduce((a, b) => a + b, 0) / rawPrices.length : 0;
     analysis.raw.minPrice = rawPrices.length > 0 ? Math.min(...rawPrices) : 0;
     analysis.raw.maxPrice = rawPrices.length > 0 ? Math.max(...rawPrices) : 0;
