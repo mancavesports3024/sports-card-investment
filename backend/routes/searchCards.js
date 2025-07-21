@@ -75,23 +75,26 @@ const categorizeCards = (cards) => {
     raw: [], psa7: [], psa8: [], psa9: [], psa10: [], cgc9: [], cgc10: [], tag8: [], tag9: [], tag10: [], sgc10: [], aigrade9: [], aigrade10: [], otherGraded: []
   };
   const dynamicBuckets = {};
+  // New: gradingStats object for all company/grade combos
+  const gradingStats = {};
   try {
     cards.forEach((card, index) => {
       const title = card.title?.toLowerCase() || '';
       const condition = card.condition?.toLowerCase() || '';
-      // Robust regex: company (word boundary), optional space/dash/colon, grade (1-2 digits, optional .5)
       const gradingRegex = /\b(psa|bgs|beckett|sgc|cgc|ace|cga|gma|hga|pgs|bvg|csg|rcg|ksa|fgs|tag|pgm|dga|isa)[\s:-]*([0-9]{1,2}(?:\.5)?)\b/i;
       const match = title.match(gradingRegex);
       let isGraded = false;
-      console.log(`Card ${index}: "${card.title}"`);
       if (match) {
         let company = match[1].toLowerCase();
         if (company === 'beckett') company = 'bgs';
         const grade = match[2].replace('.', '_');
         const key = `${company}${grade}`;
-        console.log(`  Matched company: ${company}, grade: ${grade} → bucket: ${key}`);
         if (!dynamicBuckets[key]) dynamicBuckets[key] = [];
         dynamicBuckets[key].push(card);
+        // New: gradingStats[company][grade]
+        if (!gradingStats[company]) gradingStats[company] = {};
+        if (!gradingStats[company][grade]) gradingStats[company][grade] = { cards: [] };
+        gradingStats[company][grade].cards.push(card);
         isGraded = true;
         // Legacy buckets for PSA, CGC, TAG, SGC, AiGrade
         if (company === 'psa') {
@@ -113,20 +116,28 @@ const categorizeCards = (cards) => {
           else if (grade === '9') legacyBuckets.aigrade9.push(card);
         }
       }
-      // If not graded, check for raw
       if (!isGraded) {
         if (rawKeywords.some(keyword => title.includes(keyword)) || condition === 'ungraded' || condition === 'not graded' || condition === 'no grade') {
           legacyBuckets.raw.push(card);
-          console.log('  Classified as RAW');
         } else if (gradedConditionIds.includes(String(card.conditionId)) || condition === 'graded') {
           legacyBuckets.otherGraded.push(card);
-          console.log('  Classified as GRADED (otherGraded)');
         } else {
-          // Fallback: treat as raw if nothing else matches
           legacyBuckets.raw.push(card);
-          console.log('  Classified as RAW (fallback)');
         }
       }
+    });
+    // Calculate stats for each grading company/grade
+    Object.entries(gradingStats).forEach(([company, grades]) => {
+      Object.entries(grades).forEach(([grade, obj]) => {
+        const prices = obj.cards.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
+        gradingStats[company][grade] = {
+          count: obj.cards.length,
+          avgPrice: prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0,
+          minPrice: prices.length > 0 ? Math.min(...prices) : 0,
+          maxPrice: prices.length > 0 ? Math.max(...prices) : 0,
+          cards: obj.cards
+        };
+      });
     });
     // Calculate price analysis using legacy buckets
     const priceAnalysis = calculatePriceAnalysis(
@@ -135,7 +146,7 @@ const categorizeCards = (cards) => {
       legacyBuckets.sgc10, legacyBuckets.aigrade9, legacyBuckets.aigrade10, legacyBuckets.otherGraded
     );
     // Merge dynamic buckets into result
-    const categorizedResult = { ...legacyBuckets, priceAnalysis };
+    const categorizedResult = { ...legacyBuckets, priceAnalysis, gradingStats };
     Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
       categorizedResult[bucket] = arr;
     });
