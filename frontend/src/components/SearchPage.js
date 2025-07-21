@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import config from '../config';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 import SavedSearches from './SavedSearches';
+import { Helmet } from 'react-helmet';
 
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -589,6 +590,9 @@ const SearchPage = () => {
 
   return (
     <div className="App">
+      <Helmet>
+        <link rel="canonical" href="https://www.mancavesportscardsllc.com/search" />
+      </Helmet>
       {/* Main Content */}
       <main className="App-main">
         {/* Store Info Section */}

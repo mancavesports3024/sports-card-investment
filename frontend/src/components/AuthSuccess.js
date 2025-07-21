@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
 
 const AuthSuccess = ({ onAuthSuccess }) => {
   const navigate = useNavigate();
@@ -19,7 +20,15 @@ const AuthSuccess = ({ onAuthSuccess }) => {
     }
   }, [navigate, onAuthSuccess]);
 
-  return <div>Logging you in...</div>;
+  return (
+    <div className="auth-success-page">
+      <Helmet>
+        <meta name="robots" content="noindex" />
+        <link rel="canonical" href="https://www.mancavesportscardsllc.com/" />
+      </Helmet>
+      <div>Logging you in...</div>
+    </div>
+  );
 };
 
 export default AuthSuccess; 
