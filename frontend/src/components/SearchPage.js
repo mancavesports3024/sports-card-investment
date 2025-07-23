@@ -435,49 +435,52 @@ const SearchPage = () => {
             ) : (
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 {liveListings[liveKey].items
-                  .slice() // copy array
+                  .slice()
                   .sort((a, b) => {
-                    // Sort by listingDate descending (newest first)
                     const dateA = a.listingDate ? new Date(a.listingDate).getTime() : 0;
                     const dateB = b.listingDate ? new Date(b.listingDate).getTime() : 0;
                     return dateB - dateA;
                   })
                   .map(item => (
-                  <li key={item.itemId} style={{ borderBottom: '1px solid #eee', padding: '1rem 0' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                      {item.image?.imageUrl && (
-                        <img src={item.image.imageUrl} alt={item.title} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6, border: '1px solid #ccc', background: '#fafafa' }} />
-                      )}
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 2 }}>
-                          {isNewListing(item.listingDate) && <span style={{ color: 'green', fontWeight: 800, marginRight: 8 }}>New Listing</span>}
-                          {item.title}
-                        </div>
-                        <div style={{ color: '#555', fontSize: '0.98rem', marginBottom: 2 }}>{item.condition}</div>
-                        {item.starRating && (
-                          <span style={{ color: '#f5a623', fontWeight: 600, marginRight: 6 }}>★ {item.starRating}</span>
+                    <li key={item.itemId} style={{ borderBottom: '1px solid #eee', padding: '1.5rem 0', display: 'flex', alignItems: 'flex-start', gap: 24 }}>
+                      {/* Image on the left */}
+                      <div style={{ flexShrink: 0 }}>
+                        {item.image?.imageUrl && (
+                          <img src={item.image.imageUrl} alt={item.title} style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 8, border: '1px solid #ccc', background: '#fafafa' }} />
                         )}
-                        {item.numRatings && (
-                          <span style={{ color: '#888', fontSize: '0.95em' }}>({item.numRatings} product ratings)</span>
-                        )}
-                        <div style={{ fontSize: '1.1rem', color: '#000', margin: '4px 0' }}>
-                          {item.price && item.price.value && `$${Number(item.price.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-                          {item.bestOffer && <span style={{ color: '#0070ba', marginLeft: 8 }}>or Best Offer</span>}
-                        </div>
-                        <div style={{ color: '#444', fontSize: '0.98rem' }}>{item.shipping}</div>
-                        <div style={{ color: '#444', fontSize: '0.98rem' }}>{item.location && `Located in ${item.location}`}</div>
-                        <div style={{ color: '#888', fontSize: '0.97rem', marginTop: 2 }}>
-                          {item.listingDate && formatListingDate(item.listingDate)}
-                        </div>
-                        <div style={{ color: '#555', fontSize: '0.97rem', marginTop: 2 }}>
-                          {item.seller?.username} {item.seller?.feedbackScore && `(${item.seller.feedbackScore})`} {item.seller?.feedbackPercentage && `${item.seller.feedbackPercentage}% positive`}
-                        </div>
-                        <div style={{ color: '#aaa', fontSize: '0.95rem', marginTop: 2 }}>Item: {item.itemId}</div>
-                        <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 8, background: '#ffd700', color: '#000', fontWeight: 700, padding: '0.4rem 1.1rem', borderRadius: 6, textDecoration: 'none', border: '2px solid #000', fontSize: '1rem' }}>View on eBay</a>
                       </div>
-                    </div>
-                  </li>
-                ))}
+                      {/* Details on the right */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
+                          {isNewListing(item.listingDate) && <span style={{ color: '#555', background: '#f2f2f2', fontWeight: 700, fontSize: '0.95rem', padding: '2px 8px', borderRadius: 4, letterSpacing: 1, marginRight: 8 }}>NEW LISTING</span>}
+                          <span style={{ fontWeight: 700, fontSize: '1.18rem', color: '#222', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>{item.title}</span>
+                        </div>
+                        <div style={{ color: '#666', fontSize: '1rem', marginBottom: 2 }}>{item.condition}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                          {item.starRating && (
+                            <span style={{ color: '#f5a623', fontWeight: 700, fontSize: '1.1rem' }}>★</span>
+                          )}
+                          {item.starRating && item.numRatings && (
+                            <a href="#" style={{ color: '#0066c0', fontWeight: 600, fontSize: '1rem', textDecoration: 'underline', marginRight: 4 }} target="_blank" rel="noopener noreferrer">
+                              {item.numRatings} product ratings
+                            </a>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '2rem', color: '#111', fontWeight: 800, margin: '8px 0 2px 0', letterSpacing: '-1px' }}>
+                          {item.price && item.price.value && `$${Number(item.price.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                        </div>
+                        {item.bestOffer && <div style={{ color: '#222', fontWeight: 500, fontSize: '1.1rem', marginBottom: 2 }}>or Best Offer</div>}
+                        <div style={{ color: '#444', fontSize: '1.05rem', marginBottom: 2 }}>{item.shipping}</div>
+                        <div style={{ color: '#444', fontSize: '1.05rem', marginBottom: 2 }}>{item.location && `Located in ${item.location}`}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 18, margin: '8px 0 0 0', fontSize: '1.05rem', color: '#555' }}>
+                          <span>{item.listingDate && formatListingDate(item.listingDate)}</span>
+                          <span>{item.seller?.username} {item.seller?.feedbackPercentage && `${item.seller.feedbackPercentage}% positive`} {item.seller?.feedbackScore && `(${item.seller.feedbackScore})`}</span>
+                        </div>
+                        <div style={{ color: '#aaa', fontSize: '0.98rem', marginTop: 2 }}>Item: {item.itemId}</div>
+                        <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 10, background: '#ffd700', color: '#000', fontWeight: 700, padding: '0.5rem 1.2rem', borderRadius: 6, textDecoration: 'none', border: '2px solid #000', fontSize: '1.08rem' }}>View on eBay</a>
+                      </div>
+                    </li>
+                  ))}
               </ul>
             )}
           </div>
