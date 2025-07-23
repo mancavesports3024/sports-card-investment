@@ -1134,6 +1134,15 @@ router.post('/', async (req, res) => {
     // }
     // responseData.ebayApiUsage = ebayApiUsage;
 
+    // Debug: Log all PSA 10 cards in the final response
+    if (sorted.psa10 && Array.isArray(sorted.psa10)) {
+      console.log('=== FINAL PSA10 CARDS SENT TO FRONTEND ===');
+      sorted.psa10.forEach(card => {
+        console.log(`[FINAL PSA10] Title: ${card.title}, Price: ${card.price?.value}, Source: ${card.source}, ItemId: ${card.id || card.itemId}`);
+      });
+      console.log('=== END FINAL PSA10 CARDS ===');
+    }
+
     clearTimeout(timeout);
     res.json(responseData);
     // Only cache if there are results in raw, PSA 9, or PSA 10
