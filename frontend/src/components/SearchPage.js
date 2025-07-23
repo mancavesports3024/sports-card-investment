@@ -444,20 +444,22 @@ const SearchPage = () => {
                   .map(item => (
                     <li key={item.itemId} style={{ borderBottom: '1px solid #eee', padding: '1.2rem 0', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 24 }}>
                       {/* Column 1: Image */}
-                      <div style={{ flexShrink: 0, width: 130, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 140 }}>
-                        {(() => {
-                          const imageUrl = typeof item.image === 'string'
-                            ? item.image
-                            : item.image?.imageUrl || null;
-                          return imageUrl ? (
-                            <img src={imageUrl} alt={item.title} style={{ width: 130, height: 130, objectFit: 'cover', borderRadius: 8, border: '1px solid #ccc', background: '#fafafa' }} />
-                          ) : (
-                            <div style={{ width: 130, height: 130, borderRadius: 8, border: '1px solid #ccc', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 12 }}>
-                              No Image
-                            </div>
-                          );
-                        })()}
-                      </div>
+                      {(() => {
+                        const imageUrl = typeof item.image === 'string'
+                          ? item.image
+                          : item.image?.imageUrl || null;
+                        return (
+                          <div style={{ flexShrink: 0, width: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 180 }}>
+                            {imageUrl ? (
+                              <img src={imageUrl} alt={item.title} style={{ width: 170, height: 170, objectFit: 'cover', borderRadius: 10, border: '1.5px solid #ccc', background: '#fafafa' }} />
+                            ) : (
+                              <div style={{ width: 170, height: 170, borderRadius: 10, border: '1.5px solid #ccc', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 14 }}>
+                                No Image
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                       {/* Column 2: All details */}
                       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0 }}>
                         {/* NEW LISTING badge */}
@@ -485,14 +487,19 @@ const SearchPage = () => {
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2, marginLeft: 18, fontSize: '0.92rem', color: '#555', flexWrap: 'wrap' }}>
                             <span style={{ fontWeight: 600 }}>{item.listingDate && formatListingDate(item.listingDate)}</span>
                             <span>{item.seller?.username} {item.seller?.feedbackPercentage && `${item.seller.feedbackPercentage}% positive`} {item.seller?.feedbackScore && `(${item.seller.feedbackScore})`}</span>
-                            <span style={{ color: '#aaa', fontSize: '0.92rem' }}>Item: {item.itemId}</span>
+                            {/* Row 3: Location | Item number (cleaned) */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 2 }}>
+                              <div style={{ color: '#444', fontSize: '1rem' }}>{item.location && `Located in ${item.location}`}</div>
+                              <div style={{ color: '#aaa', fontSize: '1rem' }}>
+                                {item.itemId && `Item: ${item.itemId.replace(/^v\|/, '').replace(/\|0$/, '')}`}
+                              </div>
+                            </div>
                           </div>
                         </div>
                         {item.bids && <div style={{ color: '#222', fontWeight: 500, fontSize: '0.98rem', marginBottom: 2 }}>{item.bids} bids</div>}
                         {item.bestOffer && <div style={{ color: '#222', fontWeight: 600, fontSize: '1.02rem', marginBottom: 2 }}>or Best Offer</div>}
                         {/* Shipping and Location */}
                         <div style={{ color: '#444', fontSize: '0.98rem', marginBottom: 2 }}>{item.shipping}</div>
-                        <div style={{ color: '#444', fontSize: '0.98rem', marginBottom: 2 }}>{item.location && `Located in ${item.location}`}</div>
                         {/* View on eBay button */}
                         <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', background: '#ffd700', color: '#000', fontWeight: 700, padding: '0.4rem 0.9rem', borderRadius: 7, textDecoration: 'none', border: '2px solid #000', fontSize: '0.92rem', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', maxWidth: 120, marginTop: 10 }}>View on eBay</a>
                       </div>
