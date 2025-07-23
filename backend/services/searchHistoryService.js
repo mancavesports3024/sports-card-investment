@@ -116,7 +116,7 @@ async function getSearchHistoryForUser(user) {
       const userKey = getUserSearchHistoryKey(userId);
       
       // Get search IDs in reverse chronological order (newest first)
-      const searchIds = await client.zRevRange(userKey, 0, -1);
+      const searchIds = await client.zRange(userKey, 0, -1, { REV: true });
       
       if (searchIds.length === 0) {
         return [];
