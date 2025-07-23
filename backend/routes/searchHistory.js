@@ -1,32 +1,17 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
 const router = express.Router();
 const searchHistoryService = require('../services/searchHistoryService');
 
-// Handle OPTIONS requests for CORS preflight
-router.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', 'https://www.mancavesportscardsllc.com');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Referer, User-Agent');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.status(200).end();
-});
-
-// Middleware to require JWT and extract user
-function requireUser(req, res, next) {
-  const auth = req.headers.authorization;
-  if (!auth || !auth.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Missing or invalid Authorization header' });
+// Middleware to require user authentication
+const requireUser = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required'
+    });
   }
-  const token = auth.split(' ')[1];
-  try {
-    const user = jwt.verify(token, process.env.JWT_SECRET || 'dev_secret');
-    req.user = user;
-    next();
-  } catch (err) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
-  }
-}
+  next();
+};
 
 // GET /api/search-history - Get all saved searches for user
 router.get('/', requireUser, async (req, res) => {
@@ -35,6 +20,7 @@ router.get('/', requireUser, async (req, res) => {
     res.set('Cache-Control', 'no-store');
     res.removeHeader && res.removeHeader('ETag');
     res.removeHeader && res.removeHeader('Last-Modified');
+    
     const history = await searchHistoryService.getSearchHistoryForUser(req.user);
     res.status(200).json({
       success: true,
@@ -47,6 +33,36 @@ router.get('/', requireUser, async (req, res) => {
     res.status(200).json({
       success: false,
       error: 'Failed to load search history',
+      details: error.message
+    });
+  }
+});
+
+// GET /api/search-history/stats - Get search history statistics (admin only)
+router.get('/stats', requireUser, async (req, res) => {
+  try {
+    // Check if user is admin
+    const isAdmin = req.user.email === process.env.ADMIN_EMAIL || req.user.email?.includes('admin');
+    
+    if (!isAdmin) {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required'
+      });
+    }
+    
+    const stats = await searchHistoryService.getSearchHistoryStats();
+    
+    res.json({
+      success: true,
+      stats,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error getting search history stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load search history stats',
       details: error.message
     });
   }

@@ -7,9 +7,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "build": "echo 'No build step required'",
-    "sitemap": "node generate-sitemap.js",
-    "migrate": "node migrate-data.js",
-    "backup": "node migrate-data.js"
+    "sitemap": "node generate-sitemap.js"
   },
   "engines": {
     "node": ">=18.0.0"

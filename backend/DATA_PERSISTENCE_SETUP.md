@@ -3,340 +3,253 @@
 ## 🚨 Issue: Saved Searches Lost After Backend Redeploy
 
 ### Problem
-Your saved searches are disappearing after backend redeploys because:
-- Search history is stored in a local JSON file (`backend/data/search_history.json`)
+Your saved searches were disappearing after backend redeploys because:
+- Search history was stored in a local JSON file (`backend/data/search_history.json`)
 - Railway deployments reset the local file system
-- No persistent storage is configured
+- No persistent storage was configured
 
-### Solution: Implement Persistent Storage
+### Solution: Redis-Based Persistent Storage ✅
 
-## 🚀 Quick Fix Options
+**Status**: ✅ **FIXED** - Implemented Redis-based search history storage
 
-### Option 1: Railway Volumes (Recommended)
+## 🚀 Solution Implemented: Redis-Based Storage
 
-Railway provides persistent volumes that survive deployments.
+### Why Redis is Better
+- ✅ **Persistent across deployments** - Data survives container restarts
+- ✅ **High performance** - Fast read/write operations
+- ✅ **Automatic expiration** - TTL-based cleanup
+- ✅ **Scalable** - Can handle multiple users efficiently
+- ✅ **Already configured** - You already have Redis set up
 
-#### Step 1: Update Railway Configuration
-The `railway.json` file has been updated with volume configuration:
+### What Was Changed
 
-```json
+#### 1. **Search History Service** (`backend/services/searchHistoryService.js`)
+- **Replaced file-based storage** with Redis-based storage
+- **Added automatic TTL** (30 days for search history)
+- **Implemented user-specific storage** with proper key management
+- **Added fallback handling** for when Redis is unavailable
+
+#### 2. **Redis Key Structure**
+```javascript
+// User's search history list (sorted set)
+search_history:${userId}
+
+// Individual search details (string)
+search:${userId}:${searchId}
+```
+
+#### 3. **Features Added**
+- **Automatic cleanup** - Keeps only last 50 searches per user
+- **TTL management** - 30-day expiration for old searches
+- **Statistics endpoint** - Admin can view usage stats
+- **Better error handling** - Graceful fallbacks
+
+## 📋 Current Configuration
+
+### Redis Setup
+Your Redis is already configured with:
+- **Environment Variable**: `REDIS_URL` (set in Railway)
+- **Connection**: Automatic connection management
+- **Fallback**: In-memory storage if Redis unavailable
+
+### Search History Features
+- **Storage**: Redis with 30-day TTL
+- **Limit**: 50 searches per user (automatic cleanup)
+- **Performance**: Fast retrieval with sorted sets
+- **Persistence**: Survives all deployments
+
+## 🔧 API Endpoints
+
+### User Endpoints
+```bash
+# Get user's search history
+GET /api/search-history
+Authorization: Bearer <token>
+
+# Save a new search
+POST /api/search-history
+Authorization: Bearer <token>
+Content-Type: application/json
 {
-  "volumes": [
-    {
-      "name": "data",
-      "mountPath": "/app/data"
-    }
-  ]
+  "searchQuery": "Mike Trout 2011 Topps Update",
+  "results": {...},
+  "priceAnalysis": {...}
 }
+
+# Delete a specific search
+DELETE /api/search-history/:id
+Authorization: Bearer <token>
+
+# Clear all user searches
+DELETE /api/search-history
+Authorization: Bearer <token>
 ```
 
-#### Step 2: Set Environment Variable
-In your Railway dashboard, add this environment variable:
-```
-DATA_DIR=/app/data
-```
-
-#### Step 3: Deploy
-Push your changes to trigger a new deployment with volume support.
-
-### Option 2: Environment Variable Configuration
-
-If volumes don't work, use environment variables to specify a persistent data path.
-
-#### Step 1: Set Environment Variable
-In Railway dashboard, add:
-```
-DATA_DIR=/tmp/data
-```
-
-#### Step 2: Deploy and Test
-The service will automatically use the new data directory.
-
-## 📋 Detailed Setup Instructions
-
-### Step 1: Backup Existing Data
-
-Before making changes, backup your current search history:
-
+### Admin Endpoints
 ```bash
-# Run the migration script locally
-cd backend
-npm run backup
+# Get search history statistics
+GET /api/search-history/stats
+Authorization: Bearer <token>
+
+# Get all users' search history
+GET /api/search-history/admin/all
+Authorization: Bearer <token>
 ```
 
-This will create a backup in `backend/backups/` with timestamp.
+## 📊 Monitoring and Statistics
 
-### Step 2: Configure Railway Volumes
-
-1. **Update railway.json** (already done)
-2. **Deploy to Railway**
-3. **Verify volume mounting**
-
-### Step 3: Set Environment Variables
-
-In Railway dashboard, add these environment variables:
-
-```
-DATA_DIR=/app/data
-NODE_ENV=production
-```
-
-### Step 4: Test Data Persistence
-
-1. **Create some test searches**
-2. **Trigger a redeploy**
-3. **Verify searches persist**
-
-## 🔧 Migration Script
-
-A migration script has been created to help with data management:
-
-### Usage
-
+### Redis Health Check
 ```bash
-# Run migration locally
-npm run migrate
+# Test Redis connection
+GET /api/redis-test
 
-# Or directly
-node migrate-data.js
+# Get cache statistics
+GET /api/cache/stats
 ```
 
-### What the Script Does
-
-1. **Creates necessary directories**
-2. **Backs up existing data**
-3. **Validates data structure**
-4. **Provides migration status**
-
-## 📊 Monitoring Data Persistence
-
-### Check Data Directory
-
-```bash
-# Check if data directory exists
-ls -la /app/data
-
-# Check search history file
-cat /app/data/search_history.json
-```
-
-### Monitor Logs
-
-Look for these log messages:
-```
-📁 Search history file location: /app/data/search_history.json
-📁 Data directory: /app/data
-✅ Data directory ensured: /app/data
-```
-
-### API Endpoints
-
-Test these endpoints to verify data persistence:
-
-```bash
-# Get search history
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-  https://your-railway-app.railway.app/api/search-history
-
-# Save a test search
-curl -X POST -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"searchQuery":"test card"}' \
-  https://your-railway-app.railway.app/api/search-history
-```
+### Search History Stats
+The new `/api/search-history/stats` endpoint provides:
+- Total number of users
+- Total number of searches
+- Per-user search counts
+- System health information
 
 ## 🚨 Troubleshooting
 
-### Issue: Data Still Not Persisting
+### Issue: Searches Still Not Persisting
 
 **Symptoms:**
 - Searches disappear after redeploy
-- Data directory not found in logs
-- Permission errors
-
-**Solutions:**
-
-1. **Check Volume Configuration**
-   ```bash
-   # Verify volume is mounted
-   df -h
-   ```
-
-2. **Check Environment Variables**
-   ```bash
-   # Verify DATA_DIR is set
-   echo $DATA_DIR
-   ```
-
-3. **Check File Permissions**
-   ```bash
-   # Check data directory permissions
-   ls -la /app/data
-   ```
-
-### Issue: Migration Script Fails
-
-**Symptoms:**
-- Migration script errors
-- Backup not created
-- Directory creation fails
-
-**Solutions:**
-
-1. **Run with Debug Logging**
-   ```bash
-   DEBUG=* node migrate-data.js
-   ```
-
-2. **Check File System**
-   ```bash
-   # Check available space
-   df -h
-   
-   # Check write permissions
-   touch /app/data/test.txt
-   ```
-
-3. **Manual Backup**
-   ```bash
-   # Manually backup existing data
-   cp backend/data/search_history.json backend/backups/manual_backup.json
-   ```
-
-### Issue: Search History API Errors
-
-**Symptoms:**
-- 500 errors on search history endpoints
+- Redis connection errors in logs
 - Empty search results
-- Authentication issues
 
 **Solutions:**
 
-1. **Check Service Logs**
+1. **Check Redis Connection**
    ```bash
-   # Check for errors in search history service
-   tail -f logs/app.log | grep searchHistory
+   # Test Redis endpoint
+   curl https://your-railway-app.railway.app/api/redis-test
    ```
 
-2. **Verify File Access**
-   ```bash
-   # Test file read/write
-   node -e "
-   const fs = require('fs');
-   const path = require('path');
-   const dataDir = process.env.DATA_DIR || path.join(__dirname, 'data');
-   console.log('Data dir:', dataDir);
-   console.log('Exists:', fs.existsSync(dataDir));
-   "
+2. **Verify Environment Variables**
+   - Ensure `REDIS_URL` is set in Railway dashboard
+   - Check that Redis service is running
+
+3. **Check Logs**
+   Look for these messages:
+   ```
+   ✅ Search History Redis connected
+   ✅ Search History Redis ready
+   💾 Saved search for user: user@example.com
    ```
 
-3. **Reset Data File**
+### Issue: Redis Connection Fails
+
+**Symptoms:**
+- Redis connection errors
+- Fallback to in-memory storage warnings
+- Data loss on restart
+
+**Solutions:**
+
+1. **Check Railway Redis Service**
+   - Verify Redis service is provisioned
+   - Check service status in Railway dashboard
+
+2. **Verify REDIS_URL**
+   - Ensure environment variable is set correctly
+   - Check URL format: `redis://username:password@host:port`
+
+3. **Test Connection**
    ```bash
-   # Create fresh data file
-   echo '[]' > /app/data/search_history.json
+   # Test from Railway console
+   redis-cli -u $REDIS_URL ping
    ```
 
-## 🔄 Alternative Solutions
+### Issue: Performance Problems
 
-### Option 3: Database Migration
+**Symptoms:**
+- Slow search history loading
+- High Redis memory usage
+- Timeout errors
 
-For better scalability, consider migrating to a proper database:
+**Solutions:**
 
-1. **PostgreSQL on Railway**
-   - Add PostgreSQL service to Railway
-   - Update search history service to use database
-   - Migrate existing data
+1. **Monitor Redis Memory**
+   ```bash
+   # Check Redis info
+   GET /api/cache/stats
+   ```
 
-2. **MongoDB Atlas**
-   - Free tier available
-   - Easy integration with Node.js
-   - Automatic backups
+2. **Clean Up Old Data**
+   - Redis automatically expires data after 30 days
+   - Manual cleanup available via admin endpoints
 
-3. **SQLite with Volume**
-   - Lightweight database
-   - File-based but with better structure
-   - Use with Railway volumes
-
-### Option 4: Cloud Storage
-
-Use cloud storage for data persistence:
-
-1. **AWS S3**
-   - Store search history as JSON files
-   - Automatic backups
-   - High availability
-
-2. **Google Cloud Storage**
-   - Similar to S3
-   - Good integration with Google services
-
-3. **Railway Storage**
-   - Railway's built-in storage solution
-   - Simple API
-   - Automatic persistence
-
-## 📈 Performance Considerations
-
-### File Size Limits
-
-- **Current**: JSON file with all searches
-- **Limit**: ~10MB for reasonable performance
-- **Solution**: Implement pagination and cleanup
-
-### Data Cleanup
-
-Add automatic cleanup to prevent file bloat:
-
-```javascript
-// Keep only last 100 searches per user
-const MAX_SEARCHES_PER_USER = 100;
-
-// Cleanup old searches
-async function cleanupOldSearches() {
-  const history = await loadSearchHistory();
-  const cleaned = history.filter(search => {
-    const age = Date.now() - new Date(search.timestamp).getTime();
-    return age < 30 * 24 * 60 * 60 * 1000; // 30 days
-  });
-  await saveSearchHistory(cleaned);
-}
-```
-
-### Backup Strategy
-
-Implement regular backups:
-
-```javascript
-// Daily backup
-const BACKUP_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
-
-setInterval(async () => {
-  await backupSearchHistory();
-}, BACKUP_INTERVAL);
-```
+3. **Optimize Queries**
+   - Searches are limited to 50 per user
+   - Sorted sets provide fast retrieval
 
 ## ✅ Success Checklist
 
-After implementing the solution, verify:
+After implementing the Redis solution, verify:
 
-- [ ] **Volume mounted correctly**
-- [ ] **Environment variables set**
-- [ ] **Data directory created**
-- [ ] **Search history persists after redeploy**
-- [ ] **API endpoints working**
-- [ ] **Backup created**
-- [ ] **Logs show correct data path**
-- [ ] **No permission errors**
+- [ ] **Redis connection working** - `/api/redis-test` returns success
+- [ ] **Search history persists** - Searches survive redeploys
+- [ ] **User authentication working** - Saved searches are user-specific
+- [ ] **Admin endpoints accessible** - Statistics and admin functions work
+- [ ] **No file-based storage** - No more `search_history.json` dependency
+- [ ] **Automatic cleanup working** - Old searches expire properly
+- [ ] **Performance acceptable** - Fast search history loading
+
+## 🔄 Migration from File-Based Storage
+
+### Automatic Migration
+The new Redis-based system will automatically:
+- Start fresh with Redis storage
+- No manual migration needed
+- Old file-based data will be ignored
+
+### Manual Migration (if needed)
+If you need to migrate existing file-based data:
+
+1. **Backup existing data**
+   ```bash
+   # Download current search history
+   curl -H "Authorization: Bearer <token>" \
+     https://your-railway-app.railway.app/api/search-history/admin/all
+   ```
+
+2. **Import to Redis** (if needed)
+   - Use the admin endpoints to recreate searches
+   - Or implement a one-time migration script
+
+## 📈 Performance Benefits
+
+### Before (File-Based)
+- ❌ Data lost on redeploy
+- ❌ Slow file I/O operations
+- ❌ No user isolation
+- ❌ Manual cleanup required
+- ❌ Single point of failure
+
+### After (Redis-Based)
+- ✅ Persistent across deployments
+- ✅ Fast Redis operations
+- ✅ User-specific storage
+- ✅ Automatic TTL cleanup
+- ✅ High availability
+- ✅ Scalable architecture
 
 ## 🆘 Support
 
 If you continue to have issues:
 
-1. **Check Railway logs** for error messages
-2. **Verify volume configuration** in Railway dashboard
-3. **Test with simple file operations**
-4. **Contact Railway support** if volume issues persist
+1. **Check Railway logs** for Redis connection errors
+2. **Verify Redis service** is running in Railway dashboard
+3. **Test Redis connection** using `/api/redis-test`
+4. **Monitor search history** using admin endpoints
+5. **Contact Railway support** if Redis service issues persist
 
 ---
 
-**Note**: The migration script and volume configuration should resolve the data persistence issue. Monitor the logs after deployment to ensure everything is working correctly. 
+**Note**: The Redis-based solution is much more robust and suitable for production use. Your saved searches will now persist across all deployments and provide better performance and scalability. 
