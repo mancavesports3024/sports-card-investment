@@ -1,16 +1,29 @@
 const express = require('express');
 const router = express.Router();
 const searchHistoryService = require('../services/searchHistoryService');
+const jwt = require('jsonwebtoken');
 
-// Middleware to require user authentication
+// Middleware to require JWT authentication
 const requireUser = (req, res, next) => {
-  if (!req.user) {
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Bearer ')) {
     return res.status(401).json({
       success: false,
       error: 'Authentication required'
     });
   }
-  next();
+  
+  const token = auth.split(' ')[1];
+  try {
+    const user = jwt.verify(token, process.env.JWT_SECRET || 'dev_secret');
+    req.user = user;
+    next();
+  } catch (err) {
+    return res.status(401).json({
+      success: false,
+      error: 'Invalid or expired token'
+    });
+  }
 };
 
 // GET /api/search-history - Get all saved searches for user
