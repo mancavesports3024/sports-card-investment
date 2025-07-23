@@ -1121,7 +1121,8 @@ router.post('/', async (req, res) => {
         aigrade9: sorted.aigrade9.length,
         aigrade10: sorted.aigrade10.length,
         otherGraded: sorted.otherGraded.length
-      }
+      },
+      debug: 'psa10 filter active'
     };
 
     // Add eBay API usage info (temporarily disabled)
