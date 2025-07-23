@@ -1,4 +1,5 @@
 import React from 'react';
+import { HeaderAd, InContentAd } from './AdSense';
 
 const HomePage = () => {
   return (
@@ -32,6 +33,9 @@ const HomePage = () => {
           </div>
         </section>
 
+        {/* Header Ad */}
+        <HeaderAd />
+
         {/* Features Section */}
         <section className="features-section">
           <h2 className="section-title">Why Choose Scorecard?</h2>
@@ -63,6 +67,9 @@ const HomePage = () => {
             </div>
           </div>
         </section>
+
+        {/* In-Content Ad */}
+        <InContentAd />
 
         {/* How It Works */}
         <section className="how-it-works">

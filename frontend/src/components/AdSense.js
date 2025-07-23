@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const AdSense = ({ 
   adSlot, 
@@ -6,11 +6,26 @@ const AdSense = ({
   style = {}, 
   className = '',
   responsive = true,
-  fullWidthResponsive = false 
+  fullWidthResponsive = false,
+  requireContent = true,
+  minContentLength = 500 // Minimum content length required to show ads
 }) => {
   const adRef = useRef(null);
+  const [shouldShowAd, setShouldShowAd] = useState(false);
 
   useEffect(() => {
+    // Check if we should show the ad based on content requirements
+    if (requireContent) {
+      const hasSufficientContent = checkContentRequirements(minContentLength);
+      setShouldShowAd(hasSufficientContent);
+    } else {
+      setShouldShowAd(true);
+    }
+  }, [requireContent, minContentLength]);
+
+  useEffect(() => {
+    if (!shouldShowAd) return;
+
     try {
       // Check if AdSense is loaded
       if (window.adsbygoogle && adRef.current) {
@@ -20,7 +35,40 @@ const AdSense = ({
     } catch (error) {
       console.log('AdSense error:', error);
     }
-  }, [adSlot]);
+  }, [adSlot, shouldShowAd]);
+
+  // Function to check if page has sufficient content
+  const checkContentRequirements = (minLength) => {
+    try {
+      // Get the main content area
+      const mainContent = document.querySelector('main') || 
+                         document.querySelector('.main-content') || 
+                         document.querySelector('#root');
+      
+      if (!mainContent) return false;
+
+      // Get text content and remove extra whitespace
+      const textContent = mainContent.textContent || mainContent.innerText || '';
+      const cleanContent = textContent.replace(/\s+/g, ' ').trim();
+      
+      // Check if content meets minimum length requirement
+      const hasSufficientContent = cleanContent.length >= minLength;
+      
+      // Additional checks for quality content
+      const hasSearchResults = document.querySelector('.search-results') || 
+                              document.querySelector('.card-section') ||
+                              document.querySelector('.price-analysis');
+      
+      const hasUserInteraction = document.querySelector('.search-form') ||
+                                document.querySelector('.search-input');
+      
+      // Only show ads if we have sufficient content AND either search results or user interaction
+      return hasSufficientContent && (hasSearchResults || hasUserInteraction);
+    } catch (error) {
+      console.log('Content check error:', error);
+      return false; // Default to not showing ads if there's an error
+    }
+  };
 
   const getAdStyle = () => {
     const baseStyle = {
@@ -36,6 +84,11 @@ const AdSense = ({
 
     return baseStyle;
   };
+
+  // Don't render anything if we shouldn't show the ad
+  if (!shouldShowAd) {
+    return null;
+  }
 
   return (
     <div 
@@ -55,7 +108,7 @@ const AdSense = ({
   );
 };
 
-// Predefined ad components for different placements
+// Predefined ad components for different placements with content requirements
 export const HeaderAd = () => (
   <AdSense 
     adSlot="1234567890" 
@@ -66,6 +119,8 @@ export const HeaderAd = () => (
       minHeight: '90px'
     }}
     className="header-ad"
+    requireContent={true}
+    minContentLength={300}
   />
 );
 
@@ -79,6 +134,8 @@ export const SidebarAd = () => (
       minHeight: '250px'
     }}
     className="sidebar-ad"
+    requireContent={true}
+    minContentLength={500}
   />
 );
 
@@ -92,6 +149,8 @@ export const InContentAd = () => (
       minHeight: '90px'
     }}
     className="in-content-ad"
+    requireContent={true}
+    minContentLength={800} // Higher requirement for in-content ads
   />
 );
 
@@ -105,6 +164,8 @@ export const FooterAd = () => (
       minHeight: '90px'
     }}
     className="footer-ad"
+    requireContent={true}
+    minContentLength={500}
   />
 );
 
@@ -118,10 +179,13 @@ export const MobileAd = () => (
       minHeight: '50px'
     }}
     className="mobile-ad"
+    requireContent={true}
+    minContentLength={400}
   />
 );
 
-export const KindCupAd = () => (
+// Content-specific ad component for search results pages
+export const SearchResultsAd = () => (
   <AdSense 
     adSlot="1498724356" 
     adFormat="auto"
@@ -130,7 +194,9 @@ export const KindCupAd = () => (
       maxWidth: '728px',
       minHeight: '90px'
     }}
-    className="kind-cup-ad"
+    className="search-results-ad"
+    requireContent={true}
+    minContentLength={1000} // High requirement for search results pages
   />
 );
 

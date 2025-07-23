@@ -3,6 +3,7 @@ import config from '../config';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 import SavedSearches from './SavedSearches';
 import { Helmet } from 'react-helmet';
+import { InContentAd, SearchResultsAd } from './AdSense';
 
 // FeaturedEbayListing component
 const FeaturedEbayListing = () => {
@@ -939,6 +940,9 @@ const SearchPage = () => {
             {/* Price Analysis */}
             {renderPriceAnalysis(results.priceAnalysis)}
 
+            {/* Ad after price analysis */}
+            <InContentAd />
+
             {/* Investment Insight */}
             <div style={{ marginTop: '2.5rem' }}>
               <h3 style={{ color: '#fff', fontWeight: 800, marginBottom: '1rem', fontSize: '1.4rem' }}>Investment Insight</h3>
@@ -947,6 +951,10 @@ const SearchPage = () => {
 
             {/* Card Sections */}
             {renderCardSection('Raw Cards', results.results.raw, '📄')}
+            
+            {/* Ad after first card section */}
+            <SearchResultsAd />
+            
             {renderCardSection('PSA 9', results.results.psa9, '🏆')}
             {renderCardSection('PSA 10', results.results.psa10, '🏆')}
           </div>
