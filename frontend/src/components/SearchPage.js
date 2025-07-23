@@ -444,15 +444,15 @@ const SearchPage = () => {
                   .map(item => (
                     <li key={item.itemId} style={{ borderBottom: '1px solid #eee', padding: '1.2rem 0', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 24 }}>
                       {/* Column 1: Image */}
-                      <div style={{ flexShrink: 0, width: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 110 }}>
+                      <div style={{ flexShrink: 0, width: 130, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 140 }}>
                         {(() => {
                           const imageUrl = typeof item.image === 'string'
                             ? item.image
                             : item.image?.imageUrl || null;
                           return imageUrl ? (
-                            <img src={imageUrl} alt={item.title} style={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 8, border: '1px solid #ccc', background: '#fafafa' }} />
+                            <img src={imageUrl} alt={item.title} style={{ width: 130, height: 130, objectFit: 'cover', borderRadius: 8, border: '1px solid #ccc', background: '#fafafa' }} />
                           ) : (
-                            <div style={{ width: 90, height: 90, borderRadius: 8, border: '1px solid #ccc', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 12 }}>
+                            <div style={{ width: 130, height: 130, borderRadius: 8, border: '1px solid #ccc', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 12 }}>
                               No Image
                             </div>
                           );
@@ -478,11 +478,11 @@ const SearchPage = () => {
                           )}
                         </div>
                         {/* Price row: price left, date/seller/item ID right */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', width: '100%', margin: '4px 0 2px 0' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', margin: '4px 0 2px 0' }}>
                           <div style={{ fontSize: '1.25rem', color: '#111', fontWeight: 800, letterSpacing: '-0.5px', minWidth: 90 }}>
                             {item.price && item.price.value && `$${Number(item.price.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginLeft: 18, fontSize: '0.92rem', color: '#555', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2, marginLeft: 18, fontSize: '0.92rem', color: '#555', flexWrap: 'wrap' }}>
                             <span style={{ fontWeight: 600 }}>{item.listingDate && formatListingDate(item.listingDate)}</span>
                             <span>{item.seller?.username} {item.seller?.feedbackPercentage && `${item.seller.feedbackPercentage}% positive`} {item.seller?.feedbackScore && `(${item.seller.feedbackScore})`}</span>
                             <span style={{ color: '#aaa', fontSize: '0.92rem' }}>Item: {item.itemId}</span>
