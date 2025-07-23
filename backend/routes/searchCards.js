@@ -260,7 +260,9 @@ const calculatePriceAnalysis = (raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8,
     console.log('PSA10 threshold (avg/1.5):', psa10Threshold);
     filteredPsa10 = psa10.filter(card => {
       const price = parseFloat(card.price?.value || 0);
-      return price > 0 && price >= psa10Threshold;
+      const include = price > 0 && price >= psa10Threshold;
+      console.log(`[PSA10 FILTER] Title: ${card.title}, Raw price: ${card.price?.value}, Parsed price: ${price}, Threshold: ${psa10Threshold}, Include: ${include}`);
+      return include;
     });
     const filteredPrices = filteredPsa10.map(card => parseFloat(card.price?.value || 0));
     console.log('PSA10 prices (filtered):', filteredPrices);
