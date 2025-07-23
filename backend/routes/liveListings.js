@@ -443,10 +443,12 @@ async function getLiveListings({ query, grade, saleType, forceRefresh = false })
         feedbackScore: item.seller?.feedbackScore,
         feedbackPercentage: item.seller?.feedbackPercentage
       },
+      image: item.image?.imageUrl || item.imageUrl || null,
       itemWebUrl: addEbayTracking(item.itemWebUrl),
       // Optionally include star rating and number of ratings if available
       starRating: item.reviewRating?.averageRating || null,
-      numRatings: item.reviewRating?.reviewCount || null
+      numRatings: item.reviewRating?.reviewCount || null,
+      bids: item.bidCount || null
     }));
 
     const responseData = { items };

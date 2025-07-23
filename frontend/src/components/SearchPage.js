@@ -445,9 +445,18 @@ const SearchPage = () => {
                     <li key={item.itemId} style={{ borderBottom: '1px solid #eee', padding: '1.2rem 0', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 24 }}>
                       {/* Column 1: Image */}
                       <div style={{ flexShrink: 0, width: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 110 }}>
-                        {item.image?.imageUrl && (
-                          <img src={item.image.imageUrl} alt={item.title} style={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 8, border: '1px solid #ccc', background: '#fafafa' }} />
-                        )}
+                        {(() => {
+                          const imageUrl = typeof item.image === 'string'
+                            ? item.image
+                            : item.image?.imageUrl || null;
+                          return imageUrl ? (
+                            <img src={imageUrl} alt={item.title} style={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 8, border: '1px solid #ccc', background: '#fafafa' }} />
+                          ) : (
+                            <div style={{ width: 90, height: 90, borderRadius: 8, border: '1px solid #ccc', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 12 }}>
+                              No Image
+                            </div>
+                          );
+                        })()}
                       </div>
                       {/* Column 2: All details */}
                       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0 }}>
@@ -455,12 +464,6 @@ const SearchPage = () => {
                         {isNewListing(item.listingDate) && <div style={{ color: '#555', background: '#f2f2f2', fontWeight: 600, fontSize: '0.85rem', padding: '2px 10px', borderRadius: 5, letterSpacing: 1, marginBottom: 6 }}>NEW LISTING</div>}
                         {/* Title */}
                         <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#222', marginBottom: 4 }}>{item.title}</div>
-                        {/* Date, Seller, Item ID row (now under title, smaller font) */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, margin: '0 0 6px 0', fontSize: '0.92rem', color: '#555', width: '100%' }}>
-                          <span style={{ fontWeight: 600 }}>{item.listingDate && formatListingDate(item.listingDate)}</span>
-                          <span>{item.seller?.username} {item.seller?.feedbackPercentage && `${item.seller.feedbackPercentage}% positive`} {item.seller?.feedbackScore && `(${item.seller.feedbackScore})`}</span>
-                          <span style={{ color: '#aaa', fontSize: '0.92rem' }}>Item: {item.itemId}</span>
-                        </div>
                         {/* Condition */}
                         <div style={{ color: '#666', fontSize: '0.95rem', marginBottom: 4 }}>{item.condition}</div>
                         {/* Star rating and product ratings link */}
@@ -474,9 +477,16 @@ const SearchPage = () => {
                             </a>
                           )}
                         </div>
-                        {/* Price and bids */}
-                        <div style={{ fontSize: '1.25rem', color: '#111', fontWeight: 800, margin: '4px 0 2px 0', letterSpacing: '-0.5px' }}>
-                          {item.price && item.price.value && `$${Number(item.price.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                        {/* Price row: price left, date/seller/item ID right */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', width: '100%', margin: '4px 0 2px 0' }}>
+                          <div style={{ fontSize: '1.25rem', color: '#111', fontWeight: 800, letterSpacing: '-0.5px', minWidth: 90 }}>
+                            {item.price && item.price.value && `$${Number(item.price.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginLeft: 18, fontSize: '0.92rem', color: '#555', flexWrap: 'wrap' }}>
+                            <span style={{ fontWeight: 600 }}>{item.listingDate && formatListingDate(item.listingDate)}</span>
+                            <span>{item.seller?.username} {item.seller?.feedbackPercentage && `${item.seller.feedbackPercentage}% positive`} {item.seller?.feedbackScore && `(${item.seller.feedbackScore})`}</span>
+                            <span style={{ color: '#aaa', fontSize: '0.92rem' }}>Item: {item.itemId}</span>
+                          </div>
                         </div>
                         {item.bids && <div style={{ color: '#222', fontWeight: 500, fontSize: '0.98rem', marginBottom: 2 }}>{item.bids} bids</div>}
                         {item.bestOffer && <div style={{ color: '#222', fontWeight: 600, fontSize: '1.02rem', marginBottom: 2 }}>or Best Offer</div>}
