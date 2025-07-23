@@ -1040,7 +1040,10 @@ router.post('/', async (req, res) => {
     // Save the search to history only if there are results
     if (allCards.length > 0) {
       try {
-        await searchHistoryService.addSearch({
+        // Use the new Redis-based function with a default user
+        // In a real app, you'd get the user from req.user or session
+        const defaultUser = { id: 'default', email: 'default@example.com' };
+        await searchHistoryService.addSearchForUser(defaultUser, {
           searchQuery,
           results: sorted,
           priceAnalysis: sorted.priceAnalysis
