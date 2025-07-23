@@ -169,13 +169,13 @@ const categorizeCards = (cards) => {
     }
     // Always use filteredPsa10 for the returned psa10 bucket
     if (priceAnalysis && priceAnalysis.psa10 && Array.isArray(legacyBuckets.psa10)) {
-      // Find the filteredPsa10 set by matching the price and title to the filtered set used in priceAnalysis
+      // Use the same threshold as above
+      const psa10Prices = legacyBuckets.psa10.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
+      const psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
+      const psa10Threshold = psa10Avg / 1.5;
       const filteredPsa10Set = legacyBuckets.psa10.filter(card => {
         const price = parseFloat(card.price?.value || 0);
-        // Use the same filtering as in price analysis
-        // Use the psa10Avg from calculatePriceAnalysis
-        const psa10Avg = priceAnalysis.psa10.avgPrice * priceAnalysis.psa10.count / (priceAnalysis.psa10.count || 1); // reconstruct avg
-        return price > 0 && price >= psa10Avg / 1.5;
+        return price > 0 && price >= psa10Threshold;
       });
       categorizedResult.psa10 = filteredPsa10Set;
     }
@@ -252,19 +252,21 @@ const calculatePriceAnalysis = (raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8,
   if (psa10.length > 0) {
     const psa10Prices = psa10.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
     psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
-    filteredPsa10 = psa10.filter(card => {
-      const price = parseFloat(card.price?.value || 0);
-      return price > 0 && price >= psa10Avg / 1.5;
-    });
-    // Debug logging
+    const psa10Threshold = psa10Avg / 1.5;
+    // Debug logging for filtering
     console.log('--- PSA10 OUTLIER FILTERING ---');
     console.log('PSA10 prices (all):', psa10Prices);
     console.log('PSA10 average (pre-filter):', psa10Avg);
+    console.log('PSA10 threshold (avg/1.5):', psa10Threshold);
+    filteredPsa10 = psa10.filter(card => {
+      const price = parseFloat(card.price?.value || 0);
+      return price > 0 && price >= psa10Threshold;
+    });
     const filteredPrices = filteredPsa10.map(card => parseFloat(card.price?.value || 0));
     console.log('PSA10 prices (filtered):', filteredPrices);
     const excluded = psa10.filter(card => {
       const price = parseFloat(card.price?.value || 0);
-      return price < psa10Avg / 1.5;
+      return price < psa10Threshold;
     });
     if (excluded.length > 0) {
       console.log('PSA10 outliers excluded:', excluded.map(card => ({ title: card.title, price: card.price?.value })));
