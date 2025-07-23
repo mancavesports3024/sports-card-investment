@@ -542,6 +542,17 @@ const SearchPage = () => {
                   {card.seller && card.seller !== '130point' && (
                     <div className="card-seller" style={{ fontSize: '0.85em', color: '#666' }}>Via: {card.seller}</div>
                   )}
+                  {/* Item number, extract from itemWebUrl if possible */}
+                  {card.itemWebUrl && (() => {
+                    // Try to extract eBay item number from URL
+                    const match = card.itemWebUrl.match(/\/itm\/(\d{6,})|\/(\d{6,})(?:\?.*)?$/);
+                    const itemNum = match ? (match[1] || match[2]) : null;
+                    return itemNum ? (
+                      <div className="card-item-number" style={{ fontSize: '0.85em', color: '#aaa', marginTop: 2 }}>
+                        Item: {itemNum}
+                      </div>
+                    ) : null;
+                  })()}
                   {card.itemWebUrl && (
                     <a 
                       href={card.itemWebUrl} 
