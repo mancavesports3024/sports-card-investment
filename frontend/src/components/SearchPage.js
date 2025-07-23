@@ -281,14 +281,14 @@ const SearchPage = () => {
   // Helper to generate a unique key for live listings per section and query
   const getLiveKey = (sectionKey, query) => `${sectionKey}_${query}`;
 
-  const fetchLiveListings = async (sectionKey, query, grade) => {
+  const fetchLiveListings = async (sectionKey, query, grade, forceRefresh = false) => {
     const liveKey = getLiveKey(sectionKey, query);
     setLiveListings(prev => ({
       ...prev,
       [liveKey]: { ...prev[liveKey], loading: true, error: null, open: true }
     }));
     try {
-      const url = `${config.API_BASE_URL}/api/live-listings?query=${encodeURIComponent(query)}&grade=${encodeURIComponent(grade)}`;
+      const url = `${config.API_BASE_URL}/api/live-listings?query=${encodeURIComponent(query)}&grade=${encodeURIComponent(grade)}${forceRefresh ? '&forceRefresh=true' : ''}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch live listings');
       const data = await res.json();
@@ -309,11 +309,8 @@ const SearchPage = () => {
     if (liveListings[liveKey]?.open) {
       setLiveListings(prev => ({ ...prev, [liveKey]: { ...prev[liveKey], open: false } }));
     } else {
-      if (!liveListings[liveKey] || !liveListings[liveKey].items) {
-        fetchLiveListings(sectionKey, query, grade);
-      } else {
-        setLiveListings(prev => ({ ...prev, [liveKey]: { ...prev[liveKey], open: true } }));
-      }
+      // Always fetch fresh data when opening live listings
+      fetchLiveListings(sectionKey, query, grade, true);
     }
   };
 
@@ -352,7 +349,7 @@ const SearchPage = () => {
         // Parse sectionKey and query from liveKey
         const [sectionKey, ...queryParts] = liveKey.split('_');
         const query = queryParts.join('_');
-        fetchLiveListings(sectionKey, query, entry.grade || 'Raw');
+        fetchLiveListings(sectionKey, query, entry.grade || 'Raw', true);
       }
     });
     // eslint-disable-next-line

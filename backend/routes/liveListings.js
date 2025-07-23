@@ -90,14 +90,20 @@ function addEbayTracking(url) {
 }
 
 // Extracted function for programmatic use
-async function getLiveListings({ query, grade, saleType }) {
+async function getLiveListings({ query, grade, saleType, forceRefresh = false }) {
   if (!query || !grade) {
     throw new Error('Missing query or grade parameter');
   }
   const cacheKey = cacheService.generateLiveListingsKey(query, grade, saleType);
-  const cachedResult = await cacheService.get(cacheKey);
-  if (cachedResult) {
-    return { ...cachedResult, cached: true, cacheKey };
+  
+  // Only check cache if not forcing refresh
+  if (!forceRefresh) {
+    const cachedResult = await cacheService.get(cacheKey);
+    if (cachedResult) {
+      return { ...cachedResult, cached: true, cacheKey };
+    }
+  } else {
+    console.log(`🔄 Force refresh requested for live listings: ${query} (${grade})`);
   }
   const ebayQuery = buildEbayQuery(query, grade);
   try {
@@ -440,9 +446,14 @@ async function getLiveListings({ query, grade, saleType }) {
 
 // Express route handler now calls the function
 router.get('/', async (req, res) => {
-  const { query, grade, saleType } = req.query;
+  const { query, grade, saleType, forceRefresh } = req.query;
   try {
-    const data = await getLiveListings({ query, grade, saleType });
+    const data = await getLiveListings({ 
+      query, 
+      grade, 
+      saleType, 
+      forceRefresh: forceRefresh === 'true' 
+    });
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch live listings', details: error.message });
