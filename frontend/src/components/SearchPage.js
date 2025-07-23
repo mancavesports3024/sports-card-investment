@@ -442,7 +442,7 @@ const SearchPage = () => {
                     return dateB - dateA;
                   })
                   .map(item => (
-                    <li key={item.itemId} style={{ borderBottom: '1px solid #eee', padding: '1.2rem 0', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 24 }}>
+                    <li key={item.itemId} style={{ borderBottom: '1px solid #eee', padding: '1.2rem 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {/* Column 1: Image */}
                       {(() => {
                         const imageUrl = typeof item.image === 'string'
@@ -479,21 +479,26 @@ const SearchPage = () => {
                             </a>
                           )}
                         </div>
-                        {/* Price row: price left, date/seller/item ID right */}
-                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', margin: '4px 0 2px 0' }}>
-                          <div style={{ fontSize: '1.25rem', color: '#111', fontWeight: 800, letterSpacing: '-0.5px', minWidth: 90 }}>
-                            {item.price && item.price.value && `$${Number(item.price.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                        {/* Lower section: 3 rows, each with left/right content */}
+                        <div style={{ marginTop: 8, width: '100%' }}>
+                          {/* Row 1: Price | Date */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                            <span style={{ fontWeight: 800, fontSize: '1.2rem', color: '#111' }}>
+                              {item.price && item.price.value && `$${Number(item.price.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                            </span>
+                            <span style={{ color: '#555', fontWeight: 600 }}>{item.listingDate && formatListingDate(item.listingDate)}</span>
                           </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2, marginLeft: 18, fontSize: '0.92rem', color: '#555', flexWrap: 'wrap' }}>
-                            <span style={{ fontWeight: 600 }}>{item.listingDate && formatListingDate(item.listingDate)}</span>
-                            <span>{item.seller?.username} {item.seller?.feedbackPercentage && `${item.seller.feedbackPercentage}% positive`} {item.seller?.feedbackScore && `(${item.seller.feedbackScore})`}</span>
-                            {/* Row 3: Location | Item number (cleaned) */}
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 2 }}>
-                              <div style={{ color: '#444', fontSize: '1rem' }}>{item.location && `Located in ${item.location}`}</div>
-                              <div style={{ color: '#aaa', fontSize: '1rem' }}>
-                                {item.itemId && `Item: ${item.itemId.replace(/^v\|/, '').replace(/\|0$/, '')}`}
-                              </div>
-                            </div>
+                          {/* Row 2: Price (again, for auctions) | Seller info */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                            <span style={{ fontWeight: 700, fontSize: '1.1rem', color: '#111' }}>
+                              {item.bids && item.price && item.price.value && `$${Number(item.price.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                            </span>
+                            <span style={{ color: '#555' }}>{item.seller?.username} {item.seller?.feedbackPercentage && `${item.seller.feedbackPercentage}% positive`} {item.seller?.feedbackScore && `(${item.seller.feedbackScore})`}</span>
+                          </div>
+                          {/* Row 3: Location | Item number (cleaned) */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: '#444' }}>{item.location && `Located in ${item.location}`}</span>
+                            <span style={{ color: '#aaa' }}>{item.itemId && `Item: ${item.itemId.replace(/^v\|/, '').replace(/\|0$/, '')}`}</span>
                           </div>
                         </div>
                         {item.bids && <div style={{ color: '#222', fontWeight: 500, fontSize: '0.98rem', marginBottom: 2 }}>{item.bids} bids</div>}
