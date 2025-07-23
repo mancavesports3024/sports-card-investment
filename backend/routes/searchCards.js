@@ -167,6 +167,18 @@ const categorizeCards = (cards) => {
       });
       categorizedResult.raw = filteredRawSet;
     }
+    // Always use filteredPsa10 for the returned psa10 bucket
+    if (priceAnalysis && priceAnalysis.psa10 && Array.isArray(legacyBuckets.psa10)) {
+      // Find the filteredPsa10 set by matching the price and title to the filtered set used in priceAnalysis
+      const filteredPsa10Set = legacyBuckets.psa10.filter(card => {
+        const price = parseFloat(card.price?.value || 0);
+        // Use the same filtering as in price analysis
+        // Use the psa10Avg from calculatePriceAnalysis
+        const psa10Avg = priceAnalysis.psa10.avgPrice * priceAnalysis.psa10.count / (priceAnalysis.psa10.count || 1); // reconstruct avg
+        return price > 0 && price >= psa10Avg / 1.5;
+      });
+      categorizedResult.psa10 = filteredPsa10Set;
+    }
     Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
       if (bucket !== 'raw') categorizedResult[bucket] = arr;
     });
@@ -235,12 +247,38 @@ const calculatePriceAnalysis = (raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8,
     }
     console.log('--- END RAW OUTLIER FILTERING ---');
   }
+  let filteredPsa10 = psa10;
+  let psa10Avg = 0;
+  if (psa10.length > 0) {
+    const psa10Prices = psa10.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
+    psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
+    filteredPsa10 = psa10.filter(card => {
+      const price = parseFloat(card.price?.value || 0);
+      return price > 0 && price >= psa10Avg / 1.5;
+    });
+    // Debug logging
+    console.log('--- PSA10 OUTLIER FILTERING ---');
+    console.log('PSA10 prices (all):', psa10Prices);
+    console.log('PSA10 average (pre-filter):', psa10Avg);
+    const filteredPrices = filteredPsa10.map(card => parseFloat(card.price?.value || 0));
+    console.log('PSA10 prices (filtered):', filteredPrices);
+    const excluded = psa10.filter(card => {
+      const price = parseFloat(card.price?.value || 0);
+      return price < psa10Avg / 1.5;
+    });
+    if (excluded.length > 0) {
+      console.log('PSA10 outliers excluded:', excluded.map(card => ({ title: card.title, price: card.price?.value })));
+    } else {
+      console.log('No PSA10 outliers excluded.');
+    }
+    console.log('--- END PSA10 OUTLIER FILTERING ---');
+  }
   const analysis = {
     raw: { count: filteredRaw.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
     psa7: { count: psa7.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
     psa8: { count: psa8.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
     psa9: { count: psa9.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
-    psa10: { count: psa10.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
+    psa10: { count: filteredPsa10.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
     cgc9: { count: cgc9.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
     cgc10: { count: cgc10.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
     tag8: { count: tag8.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
@@ -282,8 +320,8 @@ const calculatePriceAnalysis = (raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8,
     analysis.psa9.maxPrice = psa9Prices.length > 0 ? Math.max(...psa9Prices) : 0;
   }
 
-  if (psa10.length > 0) {
-    const psa10Prices = psa10.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
+  if (filteredPsa10.length > 0) {
+    const psa10Prices = filteredPsa10.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
     analysis.psa10.avgPrice = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
     analysis.psa10.minPrice = psa10Prices.length > 0 ? Math.min(...psa10Prices) : 0;
     analysis.psa10.maxPrice = psa10Prices.length > 0 ? Math.max(...psa10Prices) : 0;
@@ -357,7 +395,7 @@ const calculatePriceAnalysis = (raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8,
   analysis.psa7.trend = calculatePriceTrend(psa7);
   analysis.psa8.trend = calculatePriceTrend(psa8);
   analysis.psa9.trend = calculatePriceTrend(psa9);
-  analysis.psa10.trend = calculatePriceTrend(psa10);
+  analysis.psa10.trend = calculatePriceTrend(filteredPsa10);
   analysis.cgc9.trend = calculatePriceTrend(cgc9);
   analysis.cgc10.trend = calculatePriceTrend(cgc10);
   analysis.tag8.trend = calculatePriceTrend(tag8);
