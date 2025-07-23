@@ -1,3 +1,4 @@
+// Trigger redeploy: trivial comment
 import React, { useState, useEffect, useRef } from 'react';
 import config from '../config';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -442,8 +443,8 @@ const SearchPage = () => {
                     return dateB - dateA;
                   })
                   .map(item => (
-                    <li key={item.itemId} style={{ borderBottom: '1px solid #eee', padding: '1.2rem 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {/* Column 1: Image */}
+                    <li key={item.itemId} style={{ borderBottom: '1px solid #eee', padding: '1.2rem 0', display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: 32 }}>
+                      {/* Left: Image */}
                       {(() => {
                         const imageUrl = typeof item.image === 'string'
                           ? item.image
@@ -460,53 +461,51 @@ const SearchPage = () => {
                           </div>
                         );
                       })()}
-                      {/* Column 2: All details */}
+                      {/* Right: All text/details */}
                       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0 }}>
-                        {/* NEW LISTING badge */}
-                        {isNewListing(item.listingDate) && <div style={{ color: '#555', background: '#f2f2f2', fontWeight: 600, fontSize: '0.85rem', padding: '2px 10px', borderRadius: 5, letterSpacing: 1, marginBottom: 6 }}>NEW LISTING</div>}
-                        {/* Title */}
-                        <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#222', marginBottom: 4 }}>{item.title}</div>
-                        {/* Condition */}
-                        <div style={{ color: '#666', fontSize: '0.95rem', marginBottom: 4 }}>{item.condition}</div>
-                        {/* Star rating and product ratings link */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                          {item.starRating && (
-                            <span style={{ color: '#f5a623', fontWeight: 600, fontSize: '0.98rem' }}>★</span>
-                          )}
-                          {item.starRating && item.numRatings && (
-                            <a href="#" style={{ color: '#0066c0', fontWeight: 500, fontSize: '0.92rem', textDecoration: 'underline', marginRight: 4 }} target="_blank" rel="noopener noreferrer">
-                              {item.numRatings} product ratings
-                            </a>
-                          )}
+                        {/* Top section: 3 rows, left-aligned */}
+                        <div style={{ marginBottom: 10, width: '100%' }}>
+                          {/* Row 1: NEW LISTING and title */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
+                            {isNewListing(item.listingDate) && <span style={{ color: '#555', background: '#f2f2f2', fontWeight: 600, fontSize: '0.85rem', padding: '2px 10px', borderRadius: 5, letterSpacing: 1 }}>NEW LISTING</span>}
+                            <span style={{ fontWeight: 700, fontSize: '1.15rem', color: '#222' }}>{item.title}</span>
+                          </div>
+                          {/* Row 2: Condition (left, fully left-aligned, no extra margin/gap) */}
+                          <div style={{ color: '#666', fontSize: '0.95rem', marginBottom: 2, textAlign: 'left' }}>{item.condition}</div>
+                          {/* Row 3: Product rating (left, fully left-aligned) */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                            {item.starRating && (
+                              <span style={{ color: '#f5a623', fontWeight: 600, fontSize: '0.98rem' }}>★</span>
+                            )}
+                            {item.starRating && item.numRatings && (
+                              <a href="#" style={{ color: '#0066c0', fontWeight: 500, fontSize: '0.92rem', textDecoration: 'underline', marginRight: 4 }} target="_blank" rel="noopener noreferrer">
+                                {item.numRatings} product ratings
+                              </a>
+                            )}
+                          </div>
                         </div>
-                        {/* Lower section: 3 rows, each with left/right content */}
-                        <div style={{ marginTop: 8, width: '100%' }}>
-                          {/* Row 1: Price | Date */}
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-                            <span style={{ fontWeight: 800, fontSize: '1.2rem', color: '#111' }}>
+                        {/* Lower section: 3 rows, each a flex row with smaller gap and left-justified */}
+                        <div style={{ width: '100%' }}>
+                          {/* Row 1: Price (left), gap, date (right) */}
+                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
+                            <span style={{ fontWeight: 800, fontSize: '1.2rem', color: '#111', minWidth: 100, textAlign: 'left' }}>
                               {item.price && item.price.value && `$${Number(item.price.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
                             </span>
-                            <span style={{ color: '#555', fontWeight: 600 }}>{item.listingDate && formatListingDate(item.listingDate)}</span>
+                            <span style={{ marginLeft: '10em', color: '#555', fontWeight: 600, minWidth: 60, textAlign: 'left' }}>{item.listingDate && formatListingDate(item.listingDate)}</span>
                           </div>
-                          {/* Row 2: Price (again, for auctions) | Seller info */}
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-                            <span style={{ fontWeight: 700, fontSize: '1.1rem', color: '#111' }}>
-                              {item.bids && item.price && item.price.value && `$${Number(item.price.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-                            </span>
-                            <span style={{ color: '#555' }}>{item.seller?.username} {item.seller?.feedbackPercentage && `${item.seller.feedbackPercentage}% positive`} {item.seller?.feedbackScore && `(${item.seller.feedbackScore})`}</span>
+                          {/* Row 2: Shipping price (left), gap, seller info (left) */}
+                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
+                            <span style={{ color: '#444', fontSize: '1rem', minWidth: 100, textAlign: 'left' }}>{item.shipping}</span>
+                            <span style={{ marginLeft: '10em', color: '#555', minWidth: 60, textAlign: 'left' }}>{item.seller?.username} {item.seller?.feedbackPercentage && `${item.seller?.feedbackPercentage}% positive`} {item.seller?.feedbackScore && `(${item.seller?.feedbackScore})`}</span>
                           </div>
-                          {/* Row 3: Location | Item number (cleaned) */}
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ color: '#444' }}>{item.location && `Located in ${item.location}`}</span>
-                            <span style={{ color: '#aaa' }}>{item.itemId && `Item: ${item.itemId.replace(/^v\|/, '').replace(/\|0$/, '')}`}</span>
+                          {/* Row 3: Location (left), gap, item number (left, cleaned) */}
+                          <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <span style={{ color: '#444', fontSize: '1rem', minWidth: 100, textAlign: 'left' }}>{item.location && `Located in ${item.location}`}</span>
+                            <span style={{ marginLeft: '10em', color: '#aaa', minWidth: 60, textAlign: 'left' }}>{item.itemId && `Item: ${(item.itemId.match(/[0-9]{6,}/) || [])[0] || item.itemId}`}</span>
                           </div>
                         </div>
-                        {item.bids && <div style={{ color: '#222', fontWeight: 500, fontSize: '0.98rem', marginBottom: 2 }}>{item.bids} bids</div>}
-                        {item.bestOffer && <div style={{ color: '#222', fontWeight: 600, fontSize: '1.02rem', marginBottom: 2 }}>or Best Offer</div>}
-                        {/* Shipping and Location */}
-                        <div style={{ color: '#444', fontSize: '0.98rem', marginBottom: 2 }}>{item.shipping}</div>
                         {/* View on eBay button */}
-                        <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', background: '#ffd700', color: '#000', fontWeight: 700, padding: '0.4rem 0.9rem', borderRadius: 7, textDecoration: 'none', border: '2px solid #000', fontSize: '0.92rem', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', maxWidth: 120, marginTop: 10 }}>View on eBay</a>
+                        <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', background: '#ffd700', color: '#000', fontWeight: 700, padding: '0.1rem 1.2rem', borderRadius: 7, textDecoration: 'none', border: '2px solid #000', fontSize: '0.8rem', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', maxWidth: 140, whiteSpace: 'nowrap' }}>View on eBay</a>
                       </div>
                     </li>
                   ))}
@@ -671,19 +670,39 @@ const SearchPage = () => {
         });
       });
     });
+    // Find the tile with the smallest price difference to PSA 10 (best value)
+    let bestValueKey = null;
+    if (comparisonTiles.length > 0) {
+      bestValueKey = comparisonTiles.reduce((best, tile) =>
+        tile.diff < best.diff ? tile : best, comparisonTiles[0]).key;
+    }
     return (
-      <div className="investment-insight-section" style={{ margin: '2.5rem 0 2rem 0' }}>
-        <div className="other-graded-breakdown" style={{ background: '#f7f7f7', border: '1.5px solid #ccc', borderRadius: 8, padding: '1.2rem 1.5rem' }}>
-          <h4 style={{ color: '#000', marginBottom: 8, fontSize: '1.1rem' }}>Other Graded Cards</h4>
+      <div className="investment-insight-section" style={{ margin: '2.5rem 0 2rem 0', background: 'linear-gradient(90deg, #111 0%, #ffd700 100%)', borderRadius: 12, boxShadow: '0 4px 24px rgba(0,0,0,0.10)', padding: '2.2rem 1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+          <span style={{ fontSize: 32, marginRight: 12, color: '#ffd700', filter: 'drop-shadow(0 2px 4px #0008)' }}>🏆</span>
+          <h3 style={{ color: '#000', fontWeight: 900, fontSize: '1.5rem', margin: 0, letterSpacing: 1 }}>Investment Insight</h3>
+        </div>
+        <div style={{ color: '#222', background: '#fffbe6', borderRadius: 8, padding: '0.8rem 1.2rem', marginBottom: 18, fontSize: '1.08rem', fontWeight: 500, borderLeft: '6px solid #ffd700', boxShadow: '0 1px 6px rgba(255,215,0,0.08)' }}>
+          Compare how other graded cards stack up to PSA 10s. The closer the value, the better the investment potential.
+        </div>
+        <div className="other-graded-breakdown" style={{ background: 'rgba(255,255,255,0.95)', border: '1.5px solid #ffd700', borderRadius: 10, padding: '1.2rem 1.5rem', boxShadow: '0 2px 12px rgba(255,215,0,0.08)' }}>
+          <h4 style={{ color: '#000', marginBottom: 8, fontSize: '1.1rem', fontWeight: 800, letterSpacing: 0.5 }}>Other Graded Cards</h4>
           {/* Comparison Grid */}
           {comparisonTiles.length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.8rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.1rem', marginBottom: '1.5rem' }}>
               {comparisonTiles.map(tile => (
-                <div key={tile.key} style={{ background: '#e6f7ff', border: '1.5px solid #1890ff', borderRadius: 8, padding: '0.75rem 1.1rem', minWidth: 120, fontSize: '0.97rem', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
-                  <h4 style={{ color: '#0050b3', marginBottom: 4, fontSize: '1.05rem' }}>{tile.label}</h4>
-                  <div style={{ marginBottom: 4, fontSize: '0.98em', color: '#333' }}>{tile.count} sold, avg {formatPrice({ value: tile.avg })} (range: {formatPrice({ value: tile.min })} - {formatPrice({ value: tile.max })})</div>
-                  <div style={{ fontSize: '0.97em', color: tile.isMore ? '#388e3c' : '#b00', fontWeight: 600 }}>
-                    PSA 10 is {tile.diff > 0 ? '' : ''}{formatPrice({ value: tile.diff })} ({tile.percent > 0 ? '' : ''}{tile.percent.toFixed(1)}%) {tile.isMore ? 'more' : 'less'} than {tile.baseLabel}
+                <div key={tile.key} style={{ background: '#fff', border: tile.key === bestValueKey ? '3px solid #ffd700' : '2px solid #222', borderRadius: 10, padding: '1.1rem 1.2rem', minWidth: 120, fontSize: '1.01rem', boxShadow: tile.key === bestValueKey ? '0 4px 18px #ffd70044' : '0 1px 6px #0001', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                    <span style={{ fontSize: 20, color: '#ffd700', marginRight: 2 }}>💹</span>
+                    <span style={{ fontWeight: 700, color: '#000', fontSize: '1.08rem' }}>{tile.label}</span>
+                    {tile.key === bestValueKey && (
+                      <span style={{ background: '#ffd700', color: '#000', fontWeight: 800, fontSize: '0.85rem', borderRadius: 6, padding: '2px 10px', marginLeft: 8, boxShadow: '0 2px 8px #ffd70044' }}>Best Value</span>
+                    )}
+                  </div>
+                  <div style={{ marginBottom: 2, fontSize: '0.99em', color: '#333', fontWeight: 500 }}>{tile.count} sold, avg <span style={{ color: '#000', fontWeight: 700 }}>{formatPrice({ value: tile.avg })}</span></div>
+                  <div style={{ fontSize: '0.97em', color: '#666', marginBottom: 2 }}>Range: {formatPrice({ value: tile.min })} - {formatPrice({ value: tile.max })}</div>
+                  <div style={{ fontSize: '1.01em', color: tile.isMore ? '#388e3c' : '#b00', fontWeight: 700, marginTop: 2 }}>
+                    PSA 10 is {formatPrice({ value: tile.diff })} ({tile.percent.toFixed(1)}%) {tile.isMore ? 'more' : 'less'} than {tile.baseLabel}
                   </div>
                 </div>
               ))}
