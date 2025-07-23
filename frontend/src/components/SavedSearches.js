@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import config from '../config';
 
 const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
   const [searches, setSearches] = useState([]);
@@ -25,7 +26,7 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
       return;
     }
     try {
-      const res = await fetch('/api/search-history', {
+      const res = await fetch(config.getSearchHistoryUrl(), {
         headers: {
           'Authorization': `Bearer ${token}`
         },
@@ -67,7 +68,7 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
     const token = localStorage.getItem('authToken');
     if (!token) return;
     try {
-      const res = await fetch(`/api/search-history/${searchId}`, {
+      const res = await fetch(config.getDeleteSearchUrl(searchId), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -85,7 +86,7 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
     const token = localStorage.getItem('authToken');
     if (!token) return;
     try {
-      const res = await fetch('/api/search-history', {
+      const res = await fetch(config.getClearHistoryUrl(), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

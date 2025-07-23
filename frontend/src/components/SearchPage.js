@@ -101,7 +101,7 @@ const SearchPage = () => {
       const token = localStorage.getItem('authToken');
       if (!token) return;
       try {
-        const res = await fetch('/api/search-history', {
+        const res = await fetch(config.getSearchHistoryUrl(), {
           headers: { 'Authorization': `Bearer ${token}` },
           cache: 'no-store'
         });
