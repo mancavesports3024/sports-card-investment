@@ -1,18 +1,26 @@
 const fs = require('fs').promises;
 const path = require('path');
 
-// Use local data directory for now
-const SEARCH_HISTORY_FILE = path.join(__dirname, '../../data/search_history.json');
+// Use environment variable for data path, fallback to local directory
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '../../data');
+const SEARCH_HISTORY_FILE = path.join(DATA_DIR, 'search_history.json');
 
 console.log('📁 Search history file location:', SEARCH_HISTORY_FILE);
+console.log('📁 Data directory:', DATA_DIR);
 
 // Ensure data directory exists
 async function ensureDataDirectory() {
-  const dataDir = path.dirname(SEARCH_HISTORY_FILE);
   try {
-    await fs.access(dataDir);
-  } catch {
-    await fs.mkdir(dataDir, { recursive: true });
+    await fs.mkdir(DATA_DIR, { recursive: true });
+    console.log('✅ Data directory ensured:', DATA_DIR);
+  } catch (error) {
+    console.error('❌ Error creating data directory:', error);
+    // Fallback to local directory if environment path fails
+    const fallbackDir = path.join(__dirname, '../../data');
+    if (DATA_DIR !== fallbackDir) {
+      console.log('🔄 Falling back to local data directory:', fallbackDir);
+      await fs.mkdir(fallbackDir, { recursive: true });
+    }
   }
 }
 
