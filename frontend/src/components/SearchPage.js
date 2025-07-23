@@ -494,7 +494,7 @@ const SearchPage = () => {
                         <div style={{ color: '#444', fontSize: '0.98rem', marginBottom: 2 }}>{item.shipping}</div>
                         <div style={{ color: '#444', fontSize: '0.98rem', marginBottom: 2 }}>{item.location && `Located in ${item.location}`}</div>
                         {/* View on eBay button */}
-                        <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', background: '#ffd700', color: '#000', fontWeight: 700, padding: '0.6rem 1.3rem', borderRadius: 7, textDecoration: 'none', border: '2px solid #000', fontSize: '1.02rem', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', maxWidth: 180, marginTop: 10 }}>View on eBay</a>
+                        <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', background: '#ffd700', color: '#000', fontWeight: 700, padding: '0.4rem 0.9rem', borderRadius: 7, textDecoration: 'none', border: '2px solid #000', fontSize: '0.92rem', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', maxWidth: 120, marginTop: 10 }}>View on eBay</a>
                       </div>
                     </li>
                   ))}
