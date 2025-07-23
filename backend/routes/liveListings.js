@@ -426,10 +426,27 @@ async function getLiveListings({ query, grade, saleType, forceRefresh = false })
       console.log(`🎯 After filtering graded items: ${items.length} raw items remaining`);
     }
 
-    // Add EPN tracking to all eBay URLs
+    // Add EPN tracking to all eBay URLs and map extra details for frontend display
     items = items.map(item => ({
-      ...item,
-      itemWebUrl: addEbayTracking(item.itemWebUrl)
+      itemId: item.itemId,
+      title: item.title,
+      condition: item.condition,
+      price: item.price,
+      bestOffer: item.price?.displayType === 'BestOffer' || item.bestOfferEnabled || false,
+      shipping: item.shippingOptions?.[0]?.shippingCost?.value
+        ? `$${item.shippingOptions[0].shippingCost.value} ${item.shippingOptions[0].shippingCost.currency}`
+        : 'See listing',
+      location: item.itemLocation?.country || item.itemLocation?.stateOrProvince || '',
+      listingDate: item.itemCreationDate || item.listingDate || null,
+      seller: {
+        username: item.seller?.username,
+        feedbackScore: item.seller?.feedbackScore,
+        feedbackPercentage: item.seller?.feedbackPercentage
+      },
+      itemWebUrl: addEbayTracking(item.itemWebUrl),
+      // Optionally include star rating and number of ratings if available
+      starRating: item.reviewRating?.averageRating || null,
+      numRatings: item.reviewRating?.reviewCount || null
     }));
 
     const responseData = { items };
