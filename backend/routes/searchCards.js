@@ -707,12 +707,33 @@ const sortBySoldDate = (categorized) => {
     return array || [];
   };
 
+  // Debug: Log PSA 10 count before sorting
+  console.log('=== BEFORE SORT ===');
+  console.log('PSA10 count before sort:', categorized.psa10?.length || 0);
+  if (categorized.psa10 && Array.isArray(categorized.psa10)) {
+    categorized.psa10.forEach(card => {
+      console.log(`[BEFORE SORT] Title: ${card.title}, Price: ${card.price?.value}, ItemId: ${card.id || card.itemId}`);
+    });
+  }
+  console.log('=== END BEFORE SORT ===');
+
   // Safely sort each category
   categorized.raw = safeSort(categorized.raw);
   categorized.psa7 = safeSort(categorized.psa7);
   categorized.psa8 = safeSort(categorized.psa8);
   categorized.psa9 = safeSort(categorized.psa9);
   categorized.psa10 = safeSort(categorized.psa10);
+  
+  // Debug: Log PSA 10 count after sorting
+  console.log('=== AFTER SORT ===');
+  console.log('PSA10 count after sort:', categorized.psa10?.length || 0);
+  if (categorized.psa10 && Array.isArray(categorized.psa10)) {
+    categorized.psa10.forEach(card => {
+      console.log(`[AFTER SORT] Title: ${card.title}, Price: ${card.price?.value}, ItemId: ${card.id || card.itemId}`);
+    });
+  }
+  console.log('=== END AFTER SORT ===');
+  
   categorized.cgc9 = safeSort(categorized.cgc9);
   categorized.cgc10 = safeSort(categorized.cgc10);
   categorized.tag8 = safeSort(categorized.tag8);
