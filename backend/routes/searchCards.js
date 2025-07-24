@@ -153,18 +153,19 @@ const categorizeCards = (cards) => {
       legacyBuckets.cgc9, legacyBuckets.cgc10, legacyBuckets.tag8, legacyBuckets.tag9, legacyBuckets.tag10,
       legacyBuckets.sgc10, legacyBuckets.aigrade9, legacyBuckets.aigrade10, legacyBuckets.otherGraded
     );
-    // Merge dynamic buckets into result
-    const categorizedResult = { ...legacyBuckets, priceAnalysis, gradingStats };
+    // Merge dynamic buckets into result, but don't include psa10 yet (we'll add it after filtering)
+    const { psa10, ...legacyBucketsWithoutPsa10 } = legacyBuckets;
+    const categorizedResult = { ...legacyBucketsWithoutPsa10, priceAnalysis, gradingStats };
     
-    // Debug: Log initial categorizedResult.psa10
-    console.log('=== INITIAL CATEGORIZED RESULT ===');
-    console.log('Initial categorizedResult.psa10 count:', categorizedResult.psa10?.length || 0);
-    if (categorizedResult.psa10 && Array.isArray(categorizedResult.psa10)) {
-      categorizedResult.psa10.forEach(card => {
-        console.log(`[INITIAL CATEGORIZED] Title: ${card.title}, Price: ${card.price?.value}, ItemId: ${card.id || card.itemId}`);
+    // Debug: Log initial legacyBuckets.psa10
+    console.log('=== INITIAL LEGACY BUCKETS PSA10 ===');
+    console.log('Initial legacyBuckets.psa10 count:', legacyBuckets.psa10?.length || 0);
+    if (legacyBuckets.psa10 && Array.isArray(legacyBuckets.psa10)) {
+      legacyBuckets.psa10.forEach(card => {
+        console.log(`[INITIAL LEGACY] Title: ${card.title}, Price: ${card.price?.value}, ItemId: ${card.id || card.itemId}`);
       });
     }
-    console.log('=== END INITIAL CATEGORIZED RESULT ===');
+    console.log('=== END INITIAL LEGACY BUCKETS PSA10 ===');
     // Always use filteredRaw for the returned raw bucket
     if (priceAnalysis && priceAnalysis.raw && Array.isArray(legacyBuckets.raw)) {
       // Find the filteredRaw set by matching the price and title to the filtered set used in priceAnalysis
