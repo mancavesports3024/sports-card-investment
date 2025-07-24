@@ -169,7 +169,22 @@ const categorizeCards = (cards) => {
     }
     // Always use filteredPsa10 for the returned psa10 bucket
     if (Array.isArray(legacyBuckets.psa10)) {
-      categorizedResult.psa10 = legacyBuckets.psa10;
+      const filteredPsa10 = legacyBuckets.psa10.filter(card => {
+        const price = parseFloat(card.price?.value || 0);
+        const rawAvg = priceAnalysis.raw.avgPrice * priceAnalysis.raw.count / (priceAnalysis.raw.count || 1);
+        return price > 0 && price <= 1.5 * rawAvg;
+      });
+      categorizedResult.psa10 = filteredPsa10;
+    }
+    // Also filter gradingStats['psa']['10'].cards if it exists
+    if (gradingStats.psa && gradingStats.psa['10'] && Array.isArray(gradingStats.psa['10'].cards)) {
+      const gsPsa10Prices = gradingStats.psa['10'].cards.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
+      const gsPsa10Avg = gsPsa10Prices.length > 0 ? gsPsa10Prices.reduce((a, b) => a + b, 0) / gsPsa10Prices.length : 0;
+      const gsPsa10Threshold = gsPsa10Avg / 1.5;
+      gradingStats.psa['10'].cards = gradingStats.psa['10'].cards.filter(card => {
+        const price = parseFloat(card.price?.value || 0);
+        return price > 0 && price >= gsPsa10Threshold;
+      });
     }
     Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
       if (bucket !== 'raw') categorizedResult[bucket] = arr;
