@@ -165,6 +165,13 @@ const SearchPage = () => {
     }
     if (!combinedQuery) return;
 
+    // Google Analytics 4 site search event
+    if (window.gtag) {
+      window.gtag('event', 'search', {
+        search_term: combinedQuery
+      });
+    }
+
     setIsLoading(true);
     setError(null);
     setResults(null);
