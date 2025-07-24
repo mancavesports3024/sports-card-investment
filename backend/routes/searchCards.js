@@ -169,11 +169,22 @@ const categorizeCards = (cards) => {
     }
     // Always use filteredPsa10 for the returned psa10 bucket
     if (Array.isArray(legacyBuckets.psa10)) {
+      // Use the same PSA 10 filtering logic as in calculatePriceAnalysis
+      const psa10Prices = legacyBuckets.psa10.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
+      const psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
+      const psa10Threshold = psa10Avg / 1.5;
+      console.log('--- CATEGORIZE PSA10 FILTERING ---');
+      console.log('PSA10 prices (all):', psa10Prices);
+      console.log('PSA10 average (pre-filter):', psa10Avg);
+      console.log('PSA10 threshold (avg/1.5):', psa10Threshold);
       const filteredPsa10 = legacyBuckets.psa10.filter(card => {
         const price = parseFloat(card.price?.value || 0);
-        const rawAvg = priceAnalysis.raw.avgPrice * priceAnalysis.raw.count / (priceAnalysis.raw.count || 1);
-        return price > 0 && price <= 1.5 * rawAvg;
+        const include = price > 0 && price >= psa10Threshold;
+        console.log(`[CATEGORIZE PSA10] Title: ${card.title}, Price: ${card.price?.value}, Include: ${include}`);
+        return include;
       });
+      console.log('PSA10 prices (filtered):', filteredPsa10.map(card => parseFloat(card.price?.value || 0)));
+      console.log('--- END CATEGORIZE PSA10 FILTERING ---');
       categorizedResult.psa10 = filteredPsa10;
     }
     // Also filter gradingStats['psa']['10'].cards if it exists
