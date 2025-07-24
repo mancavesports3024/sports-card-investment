@@ -168,16 +168,8 @@ const categorizeCards = (cards) => {
       categorizedResult.raw = filteredRawSet;
     }
     // Always use filteredPsa10 for the returned psa10 bucket
-    if (priceAnalysis && priceAnalysis.psa10 && Array.isArray(legacyBuckets.psa10)) {
-      // Use the same threshold as above
-      const psa10Prices = legacyBuckets.psa10.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
-      const psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
-      const psa10Threshold = psa10Avg / 1.5;
-      const filteredPsa10Set = legacyBuckets.psa10.filter(card => {
-        const price = parseFloat(card.price?.value || 0);
-        return price > 0 && price >= psa10Threshold;
-      });
-      categorizedResult.psa10 = filteredPsa10Set;
+    if (Array.isArray(legacyBuckets.psa10)) {
+      categorizedResult.psa10 = legacyBuckets.psa10;
     }
     Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
       if (bucket !== 'raw') categorizedResult[bucket] = arr;
@@ -248,34 +240,22 @@ const calculatePriceAnalysis = (raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8,
     console.log('--- END RAW OUTLIER FILTERING ---');
   }
   let filteredPsa10 = psa10;
-  let psa10Avg = 0;
   if (psa10.length > 0) {
+    // Calculate initial average from all PSA 10s
     const psa10Prices = psa10.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
-    psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
+    const psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
     const psa10Threshold = psa10Avg / 1.5;
-    // Debug logging for filtering
-    console.log('--- PSA10 OUTLIER FILTERING ---');
-    console.log('PSA10 prices (all):', psa10Prices);
-    console.log('PSA10 average (pre-filter):', psa10Avg);
-    console.log('PSA10 threshold (avg/1.5):', psa10Threshold);
+    // Filter out low outliers
     filteredPsa10 = psa10.filter(card => {
       const price = parseFloat(card.price?.value || 0);
-      const include = price > 0 && price >= psa10Threshold;
-      console.log(`[PSA10 FILTER] Title: ${card.title}, Raw price: ${card.price?.value}, Parsed price: ${price}, Threshold: ${psa10Threshold}, Include: ${include}`);
-      return include;
+      return price > 0 && price >= psa10Threshold;
     });
-    const filteredPrices = filteredPsa10.map(card => parseFloat(card.price?.value || 0));
-    console.log('PSA10 prices (filtered):', filteredPrices);
-    const excluded = psa10.filter(card => {
-      const price = parseFloat(card.price?.value || 0);
-      return price < psa10Threshold;
-    });
-    if (excluded.length > 0) {
-      console.log('PSA10 outliers excluded:', excluded.map(card => ({ title: card.title, price: card.price?.value })));
-    } else {
-      console.log('No PSA10 outliers excluded.');
-    }
-    console.log('--- END PSA10 OUTLIER FILTERING ---');
+    // Now recalculate stats from the filtered set
+    const filteredPrices = filteredPsa10.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
+    analysis.psa10.count = filteredPsa10.length;
+    analysis.psa10.avgPrice = filteredPrices.length > 0 ? filteredPrices.reduce((a, b) => a + b, 0) / filteredPrices.length : 0;
+    analysis.psa10.minPrice = filteredPrices.length > 0 ? Math.min(...filteredPrices) : 0;
+    analysis.psa10.maxPrice = filteredPrices.length > 0 ? Math.max(...filteredPrices) : 0;
   }
   const analysis = {
     raw: { count: filteredRaw.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
