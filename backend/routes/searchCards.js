@@ -936,6 +936,15 @@ router.get('/', async (req, res) => {
     //   console.error('Failed to fetch eBay API usage:', usageError.message);
     // }
 
+    // Debug: Log final PSA 10 cards being sent to frontend
+    if (sorted.psa10 && Array.isArray(sorted.psa10)) {
+      console.log('=== FINAL PSA10 CARDS SENT TO FRONTEND ===');
+      sorted.psa10.forEach(card => {
+        console.log(`[FINAL PSA10] Title: ${card.title}, Price: ${card.price?.value}, Source: ${card.source}, ItemId: ${card.id || card.itemId}`);
+      });
+      console.log('=== END FINAL PSA10 CARDS ===');
+    }
+
     res.json({ 
       searchParams: { searchQuery, numSales: 25 },
       results: sorted,
