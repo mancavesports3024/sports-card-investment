@@ -2789,7 +2789,6 @@
 /* ... existing code ... */
 
 @media (max-width: 600px) {
-  /* Live listings card section: stack vertically, image on top, text below */
   .card-section ul {
     padding: 0;
   }
@@ -2798,6 +2797,9 @@
     align-items: stretch !important;
     gap: 12px !important;
     padding: 1rem 0 !important;
+    width: 100% !important;
+    box-sizing: border-box;
+    overflow-x: hidden;
   }
   .card-section ul li > div:first-child {
     width: 100% !important;
@@ -2813,11 +2815,18 @@
     height: auto !important;
     max-height: 50vw !important;
     border-radius: 10px;
+    display: block;
+    margin: 0 auto;
   }
   .card-section ul li > div:last-child {
     width: 100% !important;
     min-width: 0 !important;
     padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    word-break: break-word;
   }
   .card-section h3 {
     font-size: 1.1em !important;
@@ -2825,5 +2834,19 @@
   .live-listings-btn {
     font-size: 1em !important;
     padding: 0.5em 1em !important;
+    width: 100% !important;
+    box-sizing: border-box;
+    margin-top: 0.5em;
+  }
+  .card-section ul li [style*='display: flex'][style*='flex-direction: row'] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5em !important;
+    width: 100% !important;
+  }
+  .card-section ul li span, .card-section ul li div {
+    font-size: 1em !important;
+    word-break: break-word;
+    text-align: left !important;
   }
 }
