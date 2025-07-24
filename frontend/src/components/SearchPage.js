@@ -467,7 +467,7 @@ const SearchPage = () => {
                         <div style={{ marginBottom: 10, width: '100%' }}>
                           {/* Row 1: NEW LISTING and title */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
-                            {isNewListing(item.listingDate) && <span style={{ color: '#555', background: '#f2f2f2', fontWeight: 600, fontSize: '0.85rem', padding: '2px 10px', borderRadius: 5, letterSpacing: 1 }}>NEW LISTING</span>}
+                            {isNewListing(item.listingDate) && <span className="live-listing-badge">NEW LISTING</span>}
                             <span style={{ fontWeight: 700, fontSize: '1.15rem', color: '#222' }}>{item.title}</span>
                           </div>
                           {/* Row 2: Condition (left, fully left-aligned, no extra margin/gap) */}
