@@ -2932,5 +2932,7 @@
     border-radius: 3px !important;
     margin-bottom: 0.08em !important;
     letter-spacing: 0.5px !important;
+    background: red !important; /* TEMP: test if this applies */
+    color: #fff !important;
   }
 }
