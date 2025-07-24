@@ -2923,9 +2923,11 @@
   letter-spacing: 1px;
   display: inline-block;
   margin-bottom: 0.2em;
+  white-space: nowrap;
 }
 
 @media (max-width: 600px) {
+  .card-section ul li .live-listing-badge,
   .live-listing-badge {
     font-size: 0.72em !important;
     padding: 1px 5px !important;
@@ -2934,5 +2936,8 @@
     letter-spacing: 0.5px !important;
     background: #f2f2f2 !important;
     color: #555 !important;
+    white-space: nowrap !important;
+    min-width: 0;
+    max-width: 100%;
   }
 }
