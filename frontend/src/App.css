@@ -2849,7 +2849,7 @@
   .card-section ul li > div:last-child > div:first-child {
     flex-direction: column !important;
     align-items: flex-start !important;
-    gap: 0.2em !important;
+    gap: 0.1em !important;
     margin-bottom: 0.2em !important;
   }
   .card-section ul li span[style*='background: #f2f2f2'] {
@@ -2932,12 +2932,13 @@
     font-size: 0.72em !important;
     padding: 1px 5px !important;
     border-radius: 3px !important;
-    margin-bottom: 0.08em !important;
+    margin-bottom: 0.18em !important;
     letter-spacing: 0.5px !important;
     background: #f2f2f2 !important;
     color: #555 !important;
     white-space: nowrap !important;
     min-width: 0;
     max-width: 100%;
+    display: inline-block;
   }
 }
