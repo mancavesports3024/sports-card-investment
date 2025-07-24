@@ -155,6 +155,16 @@ const categorizeCards = (cards) => {
     );
     // Merge dynamic buckets into result
     const categorizedResult = { ...legacyBuckets, priceAnalysis, gradingStats };
+    
+    // Debug: Log initial categorizedResult.psa10
+    console.log('=== INITIAL CATEGORIZED RESULT ===');
+    console.log('Initial categorizedResult.psa10 count:', categorizedResult.psa10?.length || 0);
+    if (categorizedResult.psa10 && Array.isArray(categorizedResult.psa10)) {
+      categorizedResult.psa10.forEach(card => {
+        console.log(`[INITIAL CATEGORIZED] Title: ${card.title}, Price: ${card.price?.value}, ItemId: ${card.id || card.itemId}`);
+      });
+    }
+    console.log('=== END INITIAL CATEGORIZED RESULT ===');
     // Always use filteredRaw for the returned raw bucket
     if (priceAnalysis && priceAnalysis.raw && Array.isArray(legacyBuckets.raw)) {
       // Find the filteredRaw set by matching the price and title to the filtered set used in priceAnalysis
@@ -185,7 +195,10 @@ const categorizeCards = (cards) => {
       });
       console.log('PSA10 prices (filtered):', filteredPsa10.map(card => parseFloat(card.price?.value || 0)));
       console.log('--- END CATEGORIZE PSA10 FILTERING ---');
-      categorizedResult.psa10 = filteredPsa10;
+      
+      // Force update the categorizedResult.psa10 array
+      categorizedResult.psa10 = [...filteredPsa10];
+      
       console.log('=== CATEGORIZED RESULT PSA10 ===');
       console.log('categorizedResult.psa10 count:', categorizedResult.psa10?.length || 0);
       if (categorizedResult.psa10 && Array.isArray(categorizedResult.psa10)) {
