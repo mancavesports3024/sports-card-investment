@@ -192,10 +192,19 @@ const categorizeCards = (cards) => {
       const gsPsa10Prices = gradingStats.psa['10'].cards.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
       const gsPsa10Avg = gsPsa10Prices.length > 0 ? gsPsa10Prices.reduce((a, b) => a + b, 0) / gsPsa10Prices.length : 0;
       const gsPsa10Threshold = gsPsa10Avg / 1.5;
+      console.log('--- GRADINGSTATS PSA10 FILTERING ---');
+      console.log('GS PSA10 prices (all):', gsPsa10Prices);
+      console.log('GS PSA10 average (pre-filter):', gsPsa10Avg);
+      console.log('GS PSA10 threshold (avg/1.5):', gsPsa10Threshold);
+      const originalGsPsa10Count = gradingStats.psa['10'].cards.length;
       gradingStats.psa['10'].cards = gradingStats.psa['10'].cards.filter(card => {
         const price = parseFloat(card.price?.value || 0);
-        return price > 0 && price >= gsPsa10Threshold;
+        const include = price > 0 && price >= gsPsa10Threshold;
+        console.log(`[GS PSA10] Title: ${card.title}, Price: ${card.price?.value}, Include: ${include}`);
+        return include;
       });
+      console.log(`GS PSA10 filtered: ${originalGsPsa10Count} -> ${gradingStats.psa['10'].cards.length}`);
+      console.log('--- END GRADINGSTATS PSA10 FILTERING ---');
     }
     Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
       if (bucket !== 'raw') categorizedResult[bucket] = arr;
@@ -939,10 +948,23 @@ router.get('/', async (req, res) => {
     // Debug: Log final PSA 10 cards being sent to frontend
     if (sorted.psa10 && Array.isArray(sorted.psa10)) {
       console.log('=== FINAL PSA10 CARDS SENT TO FRONTEND ===');
+      console.log('PSA10 count in sorted:', sorted.psa10.length);
       sorted.psa10.forEach(card => {
         console.log(`[FINAL PSA10] Title: ${card.title}, Price: ${card.price?.value}, Source: ${card.source}, ItemId: ${card.id || card.itemId}`);
       });
       console.log('=== END FINAL PSA10 CARDS ===');
+    }
+    
+    // Also check if gradingStats has PSA 10 cards
+    if (sorted.gradingStats && sorted.gradingStats.psa && sorted.gradingStats.psa['10']) {
+      console.log('=== GRADINGSTATS PSA10 IN FINAL RESPONSE ===');
+      console.log('GS PSA10 count:', sorted.gradingStats.psa['10'].cards?.length || 0);
+      if (sorted.gradingStats.psa['10'].cards && Array.isArray(sorted.gradingStats.psa['10'].cards)) {
+        sorted.gradingStats.psa['10'].cards.forEach(card => {
+          console.log(`[GS FINAL] Title: ${card.title}, Price: ${card.price?.value}, Source: ${card.source}, ItemId: ${card.id || card.itemId}`);
+        });
+      }
+      console.log('=== END GRADINGSTATS PSA10 IN FINAL RESPONSE ===');
     }
 
     res.json({ 
