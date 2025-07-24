@@ -487,19 +487,19 @@ const SearchPage = () => {
                         {/* Lower section: 3 rows, each a flex row with smaller gap and left-justified */}
                         <div style={{ width: '100%' }}>
                           {/* Row 1: Price (left), gap, date (right) */}
-                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
+                          <div className="live-listing-details-row" style={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
                             <span style={{ fontWeight: 800, fontSize: '1.2rem', color: '#111', minWidth: 100, textAlign: 'left' }}>
                               {item.price && item.price.value && `$${Number(item.price.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
                             </span>
                             <span style={{ marginLeft: '10em', color: '#555', fontWeight: 600, minWidth: 60, textAlign: 'left' }}>{item.listingDate && formatListingDate(item.listingDate)}</span>
                           </div>
                           {/* Row 2: Shipping price (left), gap, seller info (left) */}
-                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
+                          <div className="live-listing-details-row" style={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
                             <span style={{ color: '#444', fontSize: '1rem', minWidth: 100, textAlign: 'left' }}>{item.shipping}</span>
                             <span style={{ marginLeft: '10em', color: '#555', minWidth: 60, textAlign: 'left' }}>{item.seller?.username} {item.seller?.feedbackPercentage && `${item.seller?.feedbackPercentage}% positive`} {item.seller?.feedbackScore && `(${item.seller?.feedbackScore})`}</span>
                           </div>
                           {/* Row 3: Location (left), gap, item number (left, cleaned) */}
-                          <div style={{ display: 'flex', alignItems: 'center' }}>
+                          <div className="live-listing-details-row" style={{ display: 'flex', alignItems: 'center' }}>
                             <span style={{ color: '#444', fontSize: '1rem', minWidth: 100, textAlign: 'left' }}>{item.location && `Located in ${item.location}`}</span>
                             <span style={{ marginLeft: '10em', color: '#aaa', minWidth: 60, textAlign: 'left' }}>{item.itemId && `Item: ${(item.itemId.match(/[0-9]{6,}/) || [])[0] || item.itemId}`}</span>
                           </div>
