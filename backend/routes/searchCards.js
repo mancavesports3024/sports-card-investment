@@ -229,7 +229,7 @@ const categorizeCards = (cards) => {
       console.log('--- END GRADINGSTATS PSA10 FILTERING ---');
     }
     Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
-      if (bucket !== 'raw') categorizedResult[bucket] = arr;
+      if (bucket !== 'raw' && bucket !== 'psa10') categorizedResult[bucket] = arr;
     });
     
     // Debug: Log final categorized result before returning
