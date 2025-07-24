@@ -466,7 +466,7 @@ const SearchPage = () => {
                         {/* Top section: 3 rows, left-aligned */}
                         <div style={{ marginBottom: 10, width: '100%' }}>
                           {/* Row 1: NEW LISTING and title */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
+                          <div className="live-listing-badge-title-row" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
                             {isNewListing(item.listingDate) && <span className="live-listing-badge">NEW LISTING</span>}
                             <span style={{ fontWeight: 700, fontSize: '1.15rem', color: '#222' }}>{item.title}</span>
                           </div>
