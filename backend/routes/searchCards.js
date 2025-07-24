@@ -186,6 +186,14 @@ const categorizeCards = (cards) => {
       console.log('PSA10 prices (filtered):', filteredPsa10.map(card => parseFloat(card.price?.value || 0)));
       console.log('--- END CATEGORIZE PSA10 FILTERING ---');
       categorizedResult.psa10 = filteredPsa10;
+      console.log('=== CATEGORIZED RESULT PSA10 ===');
+      console.log('categorizedResult.psa10 count:', categorizedResult.psa10?.length || 0);
+      if (categorizedResult.psa10 && Array.isArray(categorizedResult.psa10)) {
+        categorizedResult.psa10.forEach(card => {
+          console.log(`[CATEGORIZED RESULT] Title: ${card.title}, Price: ${card.price?.value}, ItemId: ${card.id || card.itemId}`);
+        });
+      }
+      console.log('=== END CATEGORIZED RESULT PSA10 ===');
     }
     // Also filter gradingStats['psa']['10'].cards if it exists
     if (gradingStats.psa && gradingStats.psa['10'] && Array.isArray(gradingStats.psa['10'].cards)) {
@@ -209,6 +217,17 @@ const categorizeCards = (cards) => {
     Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
       if (bucket !== 'raw') categorizedResult[bucket] = arr;
     });
+    
+    // Debug: Log final categorized result before returning
+    console.log('=== FINAL CATEGORIZED RESULT ===');
+    console.log('Final categorizedResult.psa10 count:', categorizedResult.psa10?.length || 0);
+    if (categorizedResult.psa10 && Array.isArray(categorizedResult.psa10)) {
+      categorizedResult.psa10.forEach(card => {
+        console.log(`[FINAL CATEGORIZED] Title: ${card.title}, Price: ${card.price?.value}, ItemId: ${card.id || card.itemId}`);
+      });
+    }
+    console.log('=== END FINAL CATEGORIZED RESULT ===');
+    
     return categorizedResult;
   } catch (err) {
     console.error('Error in categorizeCards:', err);
