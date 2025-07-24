@@ -2927,12 +2927,12 @@
 
 @media (max-width: 600px) {
   .live-listing-badge {
-    font-size: 0.82em !important;
-    padding: 1.5px 7px !important;
+    font-size: 0.72em !important;
+    padding: 1px 5px !important;
     border-radius: 3px !important;
     margin-bottom: 0.08em !important;
     letter-spacing: 0.5px !important;
-    background: red !important; /* TEMP: test if this applies */
-    color: #fff !important;
+    background: #f2f2f2 !important;
+    color: #555 !important;
   }
 }
