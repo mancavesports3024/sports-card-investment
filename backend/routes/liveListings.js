@@ -4,6 +4,9 @@ const router = express.Router();
 const cacheService = require('../services/cacheService');
 const xml2js = require('xml2js');
 const RSS_URL = 'https://www.ebay.com/sch/i.html?_rss=1&_saslop=1&_sasl=mancavesportscardsllc24';
+const fs = require('fs');
+const path = require('path');
+const ebayService = require('../services/ebayService');
 
 // Helper function to refresh eBay token
 async function refreshEbayToken() {
@@ -476,6 +479,38 @@ router.get('/', async (req, res) => {
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch live listings', details: error.message });
+  }
+});
+
+// Featured eBay items endpoint
+router.get('/featured-ebay-items', async (req, res) => {
+  try {
+    const filePath = path.join(__dirname, '../data/featured_ebay_items.json');
+    const itemNumbers = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    // Shuffle and pick 10 random items
+    const shuffled = itemNumbers.sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 10);
+    // Fetch details for each item
+    const results = await Promise.all(selected.map(async (itemId) => {
+      const details = await ebayService.getItemDetailsFromEbay(itemId);
+      // Build affiliate link
+      const baseUrl = `https://www.ebay.com/itm/${itemId}`;
+      // Use your addEbayTracking helper if available, else just use baseUrl
+      let affiliateLink = baseUrl;
+      if (typeof addEbayTracking === 'function') {
+        affiliateLink = addEbayTracking(baseUrl);
+      }
+      return {
+        itemId,
+        title: details.title || `eBay Item ${itemId}`,
+        image: details.image?.imageUrl || null,
+        affiliateLink
+      };
+    }));
+    res.json({ items: results });
+  } catch (err) {
+    console.error('Error in /api/featured-ebay-items:', err);
+    res.status(500).json({ error: 'Failed to fetch featured eBay items' });
   }
 });
 
