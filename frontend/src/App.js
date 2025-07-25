@@ -4,6 +4,7 @@ import HomePage from './components/HomePage';
 import SearchPage from './components/SearchPage';
 import AuthSuccess from './components/AuthSuccess';
 import SavedSearches from './components/SavedSearches';
+import CardSetAnalysis from './components/CardSetAnalysis';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
@@ -54,8 +55,13 @@ function App() {
           <div className="header-row header-row-top" style={{ justifyContent: 'center' }}>
             <span className="header-title main-title">Scorecard</span>
           </div>
-          {/* Second row: social left, login/logout right */}
+          {/* Second row: navigation, social left, login/logout right */}
           <div className="header-row header-row-bottom" style={{ justifyContent: 'space-between' }}>
+            <div className="header-nav-group">
+              <a href="/" className="header-nav-link">Home</a>
+              <a href="/search" className="header-nav-link">Search Cards</a>
+              <a href="/card-set-analysis" className="header-nav-link">Card Set Analysis</a>
+            </div>
             <div className="header-social-group">
               <a href="https://x.com/Mancavesportsc1" target="_blank" rel="noopener noreferrer" className="header-social">𝕏</a>
               <a href="https://www.instagram.com/mancavesportscardllc?igsh=NWoxOHJycGdrYzZk&utm_source=qr" target="_blank" rel="noopener noreferrer" className="header-social">📷</a>
@@ -78,6 +84,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/card-set-analysis" element={<CardSetAnalysis />} />
           <Route path="/auth-success" element={<AuthSuccess onAuthSuccess={checkAuthStatus} />} />
         </Routes>
       </div>

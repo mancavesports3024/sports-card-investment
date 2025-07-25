@@ -1257,6 +1257,184 @@ router.post('/', async (req, res) => {
   }
 });
 
+// GET /api/card-set-analysis - New route for analyzing specific card sets
+router.get('/card-set-analysis', async (req, res) => {
+  const { cardSet, year, limit = 50 } = req.query;
+  
+  // Validate required parameters
+  if (!cardSet) {
+    return res.status(400).json({ 
+      error: 'Missing required parameter: cardSet',
+      example: '/api/card-set-analysis?cardSet=Topps Series One&year=2025&limit=50'
+    });
+  }
+
+  try {
+    // Build search query
+    const searchQuery = year ? `${cardSet} ${year}` : cardSet;
+    console.log(`[CARD SET ANALYSIS] Analyzing card set: "${searchQuery}" at ${new Date().toISOString()}`);
+    
+    // Fetch more data for comprehensive analysis
+    const point130Cards = await point130Service.search130point(searchQuery, parseInt(limit) * 2);
+    let allCards = point130Cards;
+
+    // Remove duplicates
+    const uniqueCards = [];
+    const seen = new Set();
+    
+    allCards.forEach(card => {
+      const key = `${card.title}-${card.price?.value}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueCards.push(card);
+      }
+    });
+    
+    allCards = uniqueCards;
+    console.log(`📊 Total unique cards found for ${cardSet}: ${allCards.length}`);
+
+    // Categorize cards
+    const categorized = categorizeCards(allCards);
+    
+    // Analyze card performance by player/card
+    const cardAnalysis = analyzeCardSetPerformance(allCards);
+    
+    // Sort by different criteria
+    const sortedByValue = [...allCards].sort((a, b) => {
+      const priceA = parseFloat(a.price?.value || 0);
+      const priceB = parseFloat(b.price?.value || 0);
+      return priceB - priceA; // Highest first
+    });
+
+    const sortedBySalesVolume = cardAnalysis.sort((a, b) => b.salesCount - a.salesCount);
+
+    // Add EPN tracking
+    const addTrackingToCards = (cards) => {
+      if (!Array.isArray(cards)) return [];
+      return cards.map(card => ({
+        ...card,
+        itemWebUrl: addEbayTracking(card.itemWebUrl)
+      }));
+    };
+
+    const responseData = {
+      searchParams: { cardSet, year, limit },
+      summary: {
+        totalCards: allCards.length,
+        totalSales: allCards.reduce((sum, card) => sum + parseFloat(card.price?.value || 0), 0),
+        averagePrice: allCards.length > 0 ? allCards.reduce((sum, card) => sum + parseFloat(card.price?.value || 0), 0) / allCards.length : 0,
+        dateRange: {
+          earliest: allCards.length > 0 ? Math.min(...allCards.map(card => new Date(card.soldDate || 0))) : null,
+          latest: allCards.length > 0 ? Math.max(...allCards.map(card => new Date(card.soldDate || 0))) : null
+        }
+      },
+      topCardsByValue: addTrackingToCards(sortedByValue.slice(0, 20)),
+      topCardsBySalesVolume: sortedBySalesVolume.slice(0, 20),
+      categorizedResults: {
+        raw: addTrackingToCards(categorized.raw),
+        psa10: addTrackingToCards(categorized.psa10),
+        psa9: addTrackingToCards(categorized.psa9),
+        psa8: addTrackingToCards(categorized.psa8),
+        psa7: addTrackingToCards(categorized.psa7),
+        cgc10: addTrackingToCards(categorized.cgc10),
+        cgc9: addTrackingToCards(categorized.cgc9),
+        tag10: addTrackingToCards(categorized.tag10),
+        tag9: addTrackingToCards(categorized.tag9),
+        tag8: addTrackingToCards(categorized.tag8),
+        sgc10: addTrackingToCards(categorized.sgc10),
+        aigrade10: addTrackingToCards(categorized.aigrade10),
+        aigrade9: addTrackingToCards(categorized.aigrade9),
+        otherGraded: addTrackingToCards(categorized.otherGraded)
+      },
+      gradingStats: categorized.gradingStats || {}
+    };
+
+    res.json(responseData);
+  } catch (error) {
+    console.error('Card set analysis error:', error);
+    res.status(500).json({ error: 'Failed to analyze card set', details: error?.message || error });
+  }
+});
+
+// Helper function to analyze card set performance
+function analyzeCardSetPerformance(cards) {
+  const cardMap = new Map();
+  
+  cards.forEach(card => {
+    // Extract player name and card number from title
+    const title = card.title || '';
+    const price = parseFloat(card.price?.value || 0);
+    
+    // Try to extract card number (common patterns)
+    const cardNumberMatch = title.match(/#(\d+)/i);
+    const cardNumber = cardNumberMatch ? cardNumberMatch[1] : 'Unknown';
+    
+    // Try to extract player name (before card number or common keywords)
+    let playerName = 'Unknown';
+    const beforeNumber = title.split(/#\d+/i)[0];
+    if (beforeNumber) {
+      // Remove common card set keywords
+      const cleanName = beforeNumber
+        .replace(/\b(topps|bowman|panini|upper deck|fleer|donruss|score|stadium club|gallery|heritage|chrome|update|series|one|two|three|first|second|third|base|parallel|insert|rookie|rc|auto|autograph|patch|relic|numbered|limited|gold|silver|bronze|platinum|diamond|emerald|sapphire|ruby|amethyst|onyx|black|white|blue|red|green|orange|purple|pink|yellow|brown|gray|grey|tan|cream|ivory|beige|mint|nm|near mint|used|good|excellent|very good|fair|poor|graded|psa|bgs|beckett|sgc|cgc|tag|ace|hga|gma|pgs|bvg|csg|rcg|ksa|fgs|pgm|dga|isa)\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      if (cleanName && cleanName.length > 2) {
+        playerName = cleanName;
+      }
+    }
+    
+    const key = `${playerName} #${cardNumber}`;
+    
+    if (!cardMap.has(key)) {
+      cardMap.set(key, {
+        playerName,
+        cardNumber,
+        title: card.title,
+        salesCount: 0,
+        totalValue: 0,
+        averagePrice: 0,
+        highestPrice: 0,
+        lowestPrice: Infinity,
+        recentSales: [],
+        gradingBreakdown: {}
+      });
+    }
+    
+    const cardData = cardMap.get(key);
+    cardData.salesCount++;
+    cardData.totalValue += price;
+    cardData.averagePrice = cardData.totalValue / cardData.salesCount;
+    cardData.highestPrice = Math.max(cardData.highestPrice, price);
+    cardData.lowestPrice = Math.min(cardData.lowestPrice, price);
+    
+    // Add recent sale
+    cardData.recentSales.push({
+      price,
+      soldDate: card.soldDate,
+      condition: card.condition,
+      title: card.title,
+      itemWebUrl: card.itemWebUrl
+    });
+    
+    // Track grading breakdown
+    const condition = card.condition || 'Unknown';
+    if (!cardData.gradingBreakdown[condition]) {
+      cardData.gradingBreakdown[condition] = 0;
+    }
+    cardData.gradingBreakdown[condition]++;
+  });
+  
+  // Convert to array and sort by sales count
+  return Array.from(cardMap.values())
+    .map(card => ({
+      ...card,
+      lowestPrice: card.lowestPrice === Infinity ? 0 : card.lowestPrice,
+      recentSales: card.recentSales.sort((a, b) => new Date(b.soldDate) - new Date(a.soldDate)).slice(0, 5)
+    }))
+    .sort((a, b) => b.salesCount - a.salesCount);
+}
+
 module.exports = {
   router,
   categorizeCards

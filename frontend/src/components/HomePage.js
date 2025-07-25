@@ -18,8 +18,8 @@ const HomePage = () => {
               Make informed buying and selling decisions with our comprehensive analytics platform.
             </p>
             <div className="hero-cta">
- 
               <a href="/search" className="cta-button large">Search Cards</a>
+              <a href="/card-set-analysis" className="cta-button" style={{ marginLeft: '1rem' }}>Card Set Analysis</a>
               <p className="cta-note">Free to use • No registration required</p>
             </div>
           </div>
@@ -75,6 +75,11 @@ const HomePage = () => {
               <div className="feature-icon">📈</div>
               <h3>Live Listings</h3>
               <p>Monitor active auctions and listings to track real-time market activity.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">🃏</div>
+              <h3>Card Set Analysis</h3>
+              <p>Discover the most valuable and best-selling cards from specific sets like Topps 2025 Series One.</p>
             </div>
           </div>
         </section>

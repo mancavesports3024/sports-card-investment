@@ -2757,6 +2757,29 @@
   justify-content: space-between;
   align-items: center;
 }
+
+.header-nav-group {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.header-nav-link {
+  color: #ffd700;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.header-nav-link:hover {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(255, 215, 0, 0.3);
+  transform: translateY(-1px);
+}
 .header-social-group {
   display: flex;
   align-items: center;
@@ -2782,6 +2805,15 @@
     justify-content: space-between;
     align-items: center;
   }
+  .header-nav-group {
+    gap: 0.5rem;
+  }
+  
+  .header-nav-link {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+  
   .header-social-group {
     gap: 0.7rem;
   }
