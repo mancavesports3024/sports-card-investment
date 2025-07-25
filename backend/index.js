@@ -4,6 +4,8 @@ const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
 const session = require('express-session');
+const fs = require('fs');
+const path = require('path');
 
 // Debug connect-redis structure - Railway deployment fix
 const connectRedis = require('connect-redis');
@@ -34,6 +36,63 @@ const {
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Ensure featured_ebay_items.json exists at startup
+const featuredFilePath = path.join(__dirname, 'data', 'featured_ebay_items.json');
+if (!fs.existsSync(featuredFilePath)) {
+  const defaultItems = [
+    "396562232611",
+    "396409182852",
+    "396420364849",
+    "396814361496",
+    "396814322747",
+    "396395311328",
+    "396398176039",
+    "396399664743",
+    "396399682791",
+    "396806804172",
+    "396814321328",
+    "396814368775",
+    "396406758593",
+    "396406643392",
+    "396069515947",
+    "396193843686",
+    "396193850211",
+    "396066034218",
+    "396067091301",
+    "396814390046",
+    "396818492484",
+    "396818481683",
+    "396461824345",
+    "396814384386",
+    "396818502777",
+    "396433539437",
+    "396818461635",
+    "396818458907",
+    "396818304516",
+    "396814415369",
+    "396469137213",
+    "396462089473",
+    "396818441066",
+    "396805370126",
+    "396803420759",
+    "396803535898",
+    "396398879500",
+    "396265911242",
+    "396266390556",
+    "396803703906",
+    "396803652374",
+    "396394128674",
+    "396803691925",
+    "396803660393",
+    "396803675227",
+    "396817323293"
+  ];
+  fs.writeFileSync(featuredFilePath, JSON.stringify(defaultItems, null, 2));
+  console.log('✅ Created missing featured_ebay_items.json at startup');
+} else {
+  console.log('✅ featured_ebay_items.json already exists');
+}
 
 // CORS Configuration
 const corsOptions = {
