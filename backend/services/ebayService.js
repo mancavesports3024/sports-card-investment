@@ -211,11 +211,13 @@ async function getItemDetailsFromEbay(itemId) {
     const response = await axios.get(`${EBAY_BROWSE_ITEM_ENDPOINT}${itemId}`, { headers });
     return {
       condition: response.data.condition,
-      conditionId: response.data.conditionId
+      conditionId: response.data.conditionId,
+      title: response.data.title,
+      image: response.data.image // This is usually { imageUrl: ... }
     };
   } catch (error) {
     console.error(`eBay Browse API getItem error for itemId ${itemId}:`, error.response?.data || error.message);
-    return { condition: undefined, conditionId: undefined };
+    return { condition: undefined, conditionId: undefined, title: undefined, image: undefined };
   }
 }
 
