@@ -448,6 +448,12 @@ async function getLiveListings({ query, grade, saleType, forceRefresh = false })
   }
 }
 
+function getCleanItemId(itemId) {
+  // Extract the first group of 9+ digits from the itemId string
+  const match = String(itemId).match(/[0-9]{9,}/);
+  return match ? match[0] : itemId;
+}
+
 // Express route handler now calls the function
 router.get('/', async (req, res) => {
   const { query, grade, saleType, forceRefresh } = req.query;
@@ -503,12 +509,15 @@ router.get('/featured-ebay-items', async (req, res) => {
     const shuffled = items.sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, 10);
 
-    const results = selected.map(item => ({
-      itemId: item.itemId,
-      title: item.title,
-      image: item.image?.imageUrl,
-      affiliateLink: addEbayTracking(`https://www.ebay.com/itm/${item.itemId}`)
-    }));
+    const results = selected.map(item => {
+      const cleanId = getCleanItemId(item.itemId);
+      return {
+        itemId: cleanId,
+        title: item.title,
+        image: item.image?.imageUrl,
+        affiliateLink: addEbayTracking(`https://www.ebay.com/itm/${cleanId}`)
+      };
+    });
 
     res.json({ items: results });
   } catch (err) {
