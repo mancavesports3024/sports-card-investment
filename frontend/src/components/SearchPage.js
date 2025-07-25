@@ -5,6 +5,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Ca
 import SavedSearches from './SavedSearches';
 import { Helmet } from 'react-helmet';
 import { InContentAd, SearchResultsAd } from './AdSense';
+import FeaturedEbayRotator from './FeaturedEbayRotator';
 
 // FeaturedEbayListing component
 const FeaturedEbayListing = () => {
@@ -766,7 +767,7 @@ const SearchPage = () => {
       <Helmet>
         <link rel="canonical" href="https://www.mancavesportscardsllc.com/search" />
       </Helmet>
-      <FeaturedEbayListing />
+      <FeaturedEbayRotator />
       {/* Main Content */}
       <main className="App-main">
         {/* Store Info Section */}
