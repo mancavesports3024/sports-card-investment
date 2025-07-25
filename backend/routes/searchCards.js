@@ -1266,24 +1266,757 @@ router.get('/card-set-suggestions', async (req, res) => {
   try {
     console.log(`[CARD SET SUGGESTIONS] Request received: query="${query}", limit=${limit}`);
     
-    // Read the card sets data
-    const cardSetsPath = path.join(__dirname, '../data/cardSets.json');
-    console.log(`[CARD SET SUGGESTIONS] Reading file from: ${cardSetsPath}`);
+    // Define card sets data inline since file deployment is unreliable
+    const cardSetsData = {
+      cardSets: [
+        {
+          name: "Topps Series One",
+          years: ["2025", "2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010", "2009", "2008", "2007", "2006", "2005", "2004", "2003", "2002", "2001", "2000"],
+          category: "Baseball",
+          brand: "Topps"
+        },
+        {
+          name: "Topps Series Two",
+          years: ["2025", "2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010", "2009", "2008", "2007", "2006", "2005", "2004", "2003", "2002", "2001", "2000"],
+          category: "Baseball",
+          brand: "Topps"
+        },
+        {
+          name: "Topps Update",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010", "2009", "2008", "2007", "2006", "2005", "2004", "2003", "2002", "2001", "2000"],
+          category: "Baseball",
+          brand: "Topps"
+        },
+        {
+          name: "Topps Chrome",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010", "2009", "2008", "2007", "2006", "2005", "2004", "2003", "2002", "2001", "2000"],
+          category: "Baseball",
+          brand: "Topps"
+        },
+        {
+          name: "Topps Heritage",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010", "2009", "2008", "2007", "2006", "2005", "2004", "2003", "2002", "2001"],
+          category: "Baseball",
+          brand: "Topps"
+        },
+        {
+          name: "Topps Stadium Club",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010", "2009", "2008", "2007", "2006", "2005", "2004", "2003", "2002", "2001", "2000"],
+          category: "Baseball",
+          brand: "Topps"
+        },
+        {
+          name: "Topps Gallery",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010", "2009", "2008", "2007", "2006", "2005", "2004", "2003", "2002", "2001", "2000"],
+          category: "Baseball",
+          brand: "Topps"
+        },
+        {
+          name: "Bowman",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010", "2009", "2008", "2007", "2006", "2005", "2004", "2003", "2002", "2001", "2000"],
+          category: "Baseball",
+          brand: "Bowman"
+        },
+        {
+          name: "Bowman Chrome",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010", "2009", "2008", "2007", "2006", "2005", "2004", "2003", "2002", "2001", "2000"],
+          category: "Baseball",
+          brand: "Bowman"
+        },
+        {
+          name: "Bowman Draft",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010", "2009", "2008", "2007", "2006", "2005", "2004", "2003", "2002", "2001", "2000"],
+          category: "Baseball",
+          brand: "Bowman"
+        },
+        {
+          name: "Panini Prizm",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012"],
+          category: "Basketball",
+          brand: "Panini"
+        },
+        {
+          name: "Panini Donruss",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012"],
+          category: "Basketball",
+          brand: "Panini"
+        },
+        {
+          name: "Panini Optic",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012"],
+          category: "Basketball",
+          brand: "Panini"
+        },
+        {
+          name: "Panini Select",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012"],
+          category: "Basketball",
+          brand: "Panini"
+        },
+        {
+          name: "Panini Mosaic",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012"],
+          category: "Basketball",
+          brand: "Panini"
+        },
+        {
+          name: "Panini Contenders",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012"],
+          category: "Football",
+          brand: "Panini"
+        },
+        {
+          name: "Panini Playoff",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012"],
+          category: "Football",
+          brand: "Panini"
+        },
+        {
+          name: "Panini Absolute",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012"],
+          category: "Football",
+          brand: "Panini"
+        },
+        {
+          name: "Upper Deck",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010", "2009", "2008", "2007", "2006", "2005", "2004", "2003", "2002", "2001", "2000"],
+          category: "Hockey",
+          brand: "Upper Deck"
+        },
+        {
+          name: "Upper Deck Young Guns",
+          years: ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010", "2009", "2008", "2007", "2006", "2005", "2004", "2003", "2002", "2001", "2000"],
+          category: "Hockey",
+          brand: "Upper Deck"
+        },
+        {
+          name: "Pokemon Base Set",
+          years: ["1999"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Jungle",
+          years: ["1999"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Fossil",
+          years: ["1999"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Team Rocket",
+          years: ["2000"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Neo Genesis",
+          years: ["2000"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Neo Discovery",
+          years: ["2001"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Neo Revelation",
+          years: ["2001"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Neo Destiny",
+          years: ["2002"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Legendary Collection",
+          years: ["2002"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX Ruby & Sapphire",
+          years: ["2003"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX Sandstorm",
+          years: ["2003"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX Dragon",
+          years: ["2003"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX Team Magma vs Team Aqua",
+          years: ["2004"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX Hidden Legends",
+          years: ["2004"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX FireRed & LeafGreen",
+          years: ["2004"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX Team Rocket Returns",
+          years: ["2004"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX Deoxys",
+          years: ["2005"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX Emerald",
+          years: ["2005"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX Unseen Forces",
+          years: ["2005"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX Delta Species",
+          years: ["2005"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX Legend Maker",
+          years: ["2006"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX Holon Phantoms",
+          years: ["2006"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX Crystal Guardians",
+          years: ["2006"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX Dragon Frontiers",
+          years: ["2006"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon EX Power Keepers",
+          years: ["2007"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Diamond & Pearl",
+          years: ["2007"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Mysterious Treasures",
+          years: ["2007"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Secret Wonders",
+          years: ["2007"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Great Encounters",
+          years: ["2008"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Majestic Dawn",
+          years: ["2008"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Legends Awakened",
+          years: ["2008"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Stormfront",
+          years: ["2008"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Platinum",
+          years: ["2009"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Rising Rivals",
+          years: ["2009"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Supreme Victors",
+          years: ["2009"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Arceus",
+          years: ["2009"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon HeartGold & SoulSilver",
+          years: ["2010"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Unleashed",
+          years: ["2010"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Undaunted",
+          years: ["2010"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Triumphant",
+          years: ["2010"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Call of Legends",
+          years: ["2011"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Black & White",
+          years: ["2011"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Emerging Powers",
+          years: ["2011"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Noble Victories",
+          years: ["2011"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Next Destinies",
+          years: ["2012"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Dark Explorers",
+          years: ["2012"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Dragons Exalted",
+          years: ["2012"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Boundaries Crossed",
+          years: ["2012"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Plasma Storm",
+          years: ["2013"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Plasma Freeze",
+          years: ["2013"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Plasma Blast",
+          years: ["2013"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Legendary Treasures",
+          years: ["2013"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon XY",
+          years: ["2014"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Flashfire",
+          years: ["2014"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Furious Fists",
+          years: ["2014"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Phantom Forces",
+          years: ["2014"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Primal Clash",
+          years: ["2015"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Roaring Skies",
+          years: ["2015"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Ancient Origins",
+          years: ["2015"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Breakthrough",
+          years: ["2015"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Breakpoint",
+          years: ["2016"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Fates Collide",
+          years: ["2016"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Steam Siege",
+          years: ["2016"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Evolutions",
+          years: ["2016"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Sun & Moon",
+          years: ["2017"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Guardians Rising",
+          years: ["2017"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Burning Shadows",
+          years: ["2017"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Crimson Invasion",
+          years: ["2017"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Ultra Prism",
+          years: ["2018"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Forbidden Light",
+          years: ["2018"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Celestial Storm",
+          years: ["2018"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Dragon Majesty",
+          years: ["2018"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Lost Thunder",
+          years: ["2018"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Team Up",
+          years: ["2019"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Detective Pikachu",
+          years: ["2019"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Unbroken Bonds",
+          years: ["2019"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Unified Minds",
+          years: ["2019"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Hidden Fates",
+          years: ["2019"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Cosmic Eclipse",
+          years: ["2019"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Sword & Shield",
+          years: ["2020"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Rebel Clash",
+          years: ["2020"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Darkness Ablaze",
+          years: ["2020"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Champions Path",
+          years: ["2020"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Vivid Voltage",
+          years: ["2020"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Shining Fates",
+          years: ["2021"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Battle Styles",
+          years: ["2021"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Chilling Reign",
+          years: ["2021"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Evolving Skies",
+          years: ["2021"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Fusion Strike",
+          years: ["2021"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Brilliant Stars",
+          years: ["2022"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Astral Radiance",
+          years: ["2022"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Lost Origin",
+          years: ["2022"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Silver Tempest",
+          years: ["2022"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Crown Zenith",
+          years: ["2023"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Scarlet & Violet",
+          years: ["2023"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Paldea Evolved",
+          years: ["2023"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Obsidian Flames",
+          years: ["2023"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon 151",
+          years: ["2023"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Paradox Rift",
+          years: ["2023"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Paldean Fates",
+          years: ["2024"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Temporal Forces",
+          years: ["2024"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Twilight Masquerade",
+          years: ["2024"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Ancient Roar",
+          years: ["2024"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Future Flash",
+          years: ["2024"],
+          category: "Pokemon",
+          brand: "Pokemon"
+        }
+      ]
+    };
     
-    // Check if file exists
-    if (!fs.existsSync(cardSetsPath)) {
-      console.error(`[CARD SET SUGGESTIONS] File not found: ${cardSetsPath}`);
-      return res.status(500).json({ 
-        error: 'Card sets database not found',
-        details: 'The card sets data file is missing'
-      });
-    }
-    
-    const fileContent = fs.readFileSync(cardSetsPath, 'utf8');
-    console.log(`[CARD SET SUGGESTIONS] File read successfully, size: ${fileContent.length} characters`);
-    
-    const cardSetsData = JSON.parse(fileContent);
-    console.log(`[CARD SET SUGGESTIONS] JSON parsed successfully, ${cardSetsData.cardSets?.length || 0} card sets found`);
+    console.log(`[CARD SET SUGGESTIONS] Using inline data, ${cardSetsData.cardSets.length} card sets available`);
     
     if (!cardSetsData.cardSets || !Array.isArray(cardSetsData.cardSets)) {
       console.error('[CARD SET SUGGESTIONS] Invalid data structure: cardSets array not found');
