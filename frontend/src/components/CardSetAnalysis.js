@@ -21,7 +21,7 @@ const CardSetAnalysis = () => {
     try {
       const params = new URLSearchParams({
         cardSet: cardSet.trim(),
-        limit: 100
+        limit: 2000
       });
       
       if (year.trim()) {
@@ -244,13 +244,13 @@ const CardSetAnalysis = () => {
         <h1 style={{ 
           fontSize: '2.5rem', 
           fontWeight: 800, 
-          color: '#000', 
+          color: '#ffd700', 
           marginBottom: '1rem',
-          textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+          textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
         }}>
           🃏 Card Set Analysis
         </h1>
-        <p style={{ fontSize: '1.1rem', color: '#666', maxWidth: 600, margin: '0 auto' }}>
+        <p style={{ fontSize: '1.1rem', color: '#fff', maxWidth: 600, margin: '0 auto', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
           Discover the most valuable and best-selling cards from specific card sets like Topps 2025 Series One
         </p>
       </div>
@@ -375,7 +375,7 @@ const CardSetAnalysis = () => {
 
             {activeTab === 'value' && (
               <div>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: '#333' }}>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: '#ffd700', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
                   💎 Top 20 Highest Value Cards
                 </h3>
                 {results.topCardsByValue?.length > 0 ? (
@@ -390,7 +390,7 @@ const CardSetAnalysis = () => {
 
             {activeTab === 'volume' && (
               <div>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: '#333' }}>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: '#ffd700', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
                   📈 Top 20 Most Sold Cards
                 </h3>
                 {results.topCardsBySalesVolume?.length > 0 ? (
@@ -406,7 +406,7 @@ const CardSetAnalysis = () => {
 
           {results.categorizedResults && (
             <div>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: '#333' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: '#ffd700', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
                 📊 Cards by Grade
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>

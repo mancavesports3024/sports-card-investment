@@ -1259,15 +1259,26 @@ router.post('/', async (req, res) => {
 
 // GET /api/card-set-analysis - New route for analyzing specific card sets
 router.get('/card-set-analysis', async (req, res) => {
-  const { cardSet, year, limit = 50 } = req.query;
+  const { cardSet, year, limit = 2000 } = req.query;
   
   // Validate required parameters
   if (!cardSet) {
     return res.status(400).json({ 
       error: 'Missing required parameter: cardSet',
-      example: '/api/card-set-analysis?cardSet=Topps Series One&year=2025&limit=50'
+      example: '/api/card-set-analysis?cardSet=Topps Series One&year=2025&limit=2000'
     });
   }
+
+  // Set timeout for this request
+  const timeout = setTimeout(() => {
+    if (!res.headersSent) {
+      res.status(408).json({
+        error: 'Request timeout',
+        message: 'The card set analysis took too long to process. Please try again.',
+        timestamp: new Date().toISOString()
+      });
+    }
+  }, 180000); // 3 minute timeout for large data sets
 
   try {
     // Build search query
@@ -1349,10 +1360,13 @@ router.get('/card-set-analysis', async (req, res) => {
       gradingStats: categorized.gradingStats || {}
     };
 
+    clearTimeout(timeout);
     res.json(responseData);
   } catch (error) {
     console.error('Card set analysis error:', error);
     res.status(500).json({ error: 'Failed to analyze card set', details: error?.message || error });
+  } finally {
+    clearTimeout(timeout);
   }
 });
 
