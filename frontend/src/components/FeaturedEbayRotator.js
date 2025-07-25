@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const FeaturedEbayRotator = ({ apiUrl = '/api/featured-ebay-items', interval = 5000 }) => {
+const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items', interval = 5000 }) => {
   const [items, setItems] = useState([]);
   const [current, setCurrent] = useState(0);
   const timerRef = useRef();
