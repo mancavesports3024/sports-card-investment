@@ -503,31 +503,34 @@ router.get('/debug-list-data', (req, res) => {
 // Featured eBay items endpoint
 router.get('/featured-ebay-items', async (req, res) => {
   try {
-    const filePath = path.join(__dirname, '../data/featured_ebay_items.json');
-    const itemNumbers = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    // Shuffle and pick 10 random items
-    const shuffled = itemNumbers.sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 10);
-    // Fetch details for each item
-    const results = await Promise.all(selected.map(async (itemId) => {
-      const details = await ebayService.getItemDetailsFromEbay(itemId);
-      // Build affiliate link
-      const baseUrl = `https://www.ebay.com/itm/${itemId}`;
-      // Use your addEbayTracking helper if available, else just use baseUrl
-      let affiliateLink = baseUrl;
-      if (typeof addEbayTracking === 'function') {
-        affiliateLink = addEbayTracking(baseUrl);
+    const EBAY_AUTH_TOKEN = process.env.EBAY_AUTH_TOKEN;
+    const seller = 'mancavesportscardsllc24';
+    const query = 'card'; // or any keyword you want
+    const url = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(query)}&filter=sellers:{${seller}}`;
+
+    const response = await axios.get(url, {
+      headers: {
+        'Authorization': `Bearer ${EBAY_AUTH_TOKEN}`,
+        'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+        'Accept': 'application/json'
       }
-      return {
-        itemId,
-        title: details.title || `eBay Item ${itemId}`,
-        image: details.image?.imageUrl || null,
-        affiliateLink
-      };
+    });
+
+    const items = response.data.itemSummaries || [];
+    // Shuffle and pick 10 random items
+    const shuffled = items.sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 10);
+
+    const results = selected.map(item => ({
+      itemId: item.itemId,
+      title: item.title,
+      image: item.image?.imageUrl,
+      affiliateLink: `https://www.ebay.com/itm/${item.itemId}` // Add your affiliate tracking if needed
     }));
+
     res.json({ items: results });
   } catch (err) {
-    console.error('Error in /api/featured-ebay-items:', err);
+    console.error('Error in /api/featured-ebay-items:', err.response?.data || err.message);
     res.status(500).json({ error: 'Failed to fetch featured eBay items' });
   }
 });
