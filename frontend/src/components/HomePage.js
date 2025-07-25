@@ -1,5 +1,6 @@
 import React from 'react';
 import { HeaderAd, InContentAd } from './AdSense';
+import FeaturedEbayRotator from './FeaturedEbayRotator';
 
 const HomePage = () => {
   return (
@@ -120,6 +121,7 @@ const HomePage = () => {
           </div>
           <div className="footer-section">
             <h4>Shop on eBay</h4>
+            <FeaturedEbayRotator />
             <div className="ebay-promo">
               <p>Find great deals on sports cards!</p>
               <a href="https://ebay.com" className="ebay-store-btn" target="_blank" rel="noopener noreferrer">             Visit eBay Store
