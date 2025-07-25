@@ -34,6 +34,12 @@ const HomePage = () => {
           </div>
         </section>
 
+        {/* Featured eBay Items - Moved to top */}
+        <section className="featured-ebay-section">
+          <h2 className="section-title">Featured Items from Our eBay Store</h2>
+          <FeaturedEbayRotator />
+        </section>
+
         {/* Header Ad */}
         <HeaderAd />
 
@@ -121,7 +127,6 @@ const HomePage = () => {
           </div>
           <div className="footer-section">
             <h4>Shop on eBay</h4>
-            <FeaturedEbayRotator />
             <div className="ebay-promo">
               <p>Find great deals on sports cards!</p>
               <a href="https://ebay.com" className="ebay-store-btn" target="_blank" rel="noopener noreferrer">             Visit eBay Store

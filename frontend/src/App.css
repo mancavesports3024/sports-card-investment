@@ -2949,3 +2949,86 @@
     display: inline-block;
   }
 }
+
+/* Featured eBay Section Styles */
+.featured-ebay-section {
+  background: linear-gradient(135deg, #fffbe6 0%, #fff8cc 100%);
+  border: 2px solid #ffd700;
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 2rem 0;
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.15);
+}
+
+.featured-ebay-section h2 {
+  color: #000;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.featured-ebay-listing {
+  background: #fff !important;
+  border: 2px solid #ffd700 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  padding: 1.5rem !important;
+  margin: 1rem auto !important;
+  max-width: 400px !important;
+  text-align: center !important;
+  position: relative !important;
+  transition: all 0.3s ease !important;
+}
+
+.featured-ebay-listing:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+.featured-ebay-listing img {
+  max-width: 200px !important;
+  border-radius: 8px !important;
+  margin-bottom: 1rem !important;
+  border: 2px solid #ffd700 !important;
+  background: #fff !important;
+}
+
+.featured-ebay-listing a {
+  background: #ffd700 !important;
+  color: #000 !important;
+  font-weight: 700 !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 8px !important;
+  text-decoration: none !important;
+  border: 2px solid #000 !important;
+  font-size: 1rem !important;
+  display: inline-block !important;
+  margin: 0.5rem 0 !important;
+  transition: all 0.3s ease !important;
+}
+
+.featured-ebay-listing a:hover {
+  background: #000 !important;
+  color: #ffd700 !important;
+  transform: scale(1.05) !important;
+}
+
+@media (max-width: 768px) {
+  .featured-ebay-section {
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+  
+  .featured-ebay-section h2 {
+    font-size: 1.5rem;
+  }
+  
+  .featured-ebay-listing {
+    max-width: 350px !important;
+    padding: 1.2rem !important;
+  }
+  
+  .featured-ebay-listing img {
+    max-width: 160px !important;
+  }
+}

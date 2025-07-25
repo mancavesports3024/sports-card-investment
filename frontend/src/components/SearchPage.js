@@ -769,9 +769,13 @@ const SearchPage = () => {
         <meta name="description" content="Search for sports card prices, market data, and investment insights." />
         <link rel="canonical" href="https://www.mancavesportscardsllc.com/search" />
       </Helmet>
-      <FeaturedEbayRotator />
       {/* Main Content */}
       <main className="App-main">
+        {/* Featured eBay Items Section */}
+        <section className="featured-ebay-section" style={{ margin: '2rem 0', textAlign: 'center' }}>
+          <h2 style={{ color: '#000', marginBottom: '1rem' }}>Featured Items from Our eBay Store</h2>
+          <FeaturedEbayRotator />
+        </section>
         {/* Store Info Section */}
         <div className="store-info" style={{ margin: '2rem 0', textAlign: 'center', background: '#fffbe6', borderRadius: '8px', padding: '1.5rem', border: '1px solid #ffd700' }}>
           <h2 style={{ color: '#000' }}>Welcome to Mancave Sports Cards LLC!</h2>
