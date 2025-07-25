@@ -773,37 +773,13 @@ const SearchPage = () => {
       <main className="App-main">
         {/* Featured eBay Items Section */}
         <section className="featured-ebay-section" style={{ margin: '2rem 0', textAlign: 'center' }}>
-          <h2 style={{ color: '#000', marginBottom: '1rem' }}>Featured Items from Our eBay Store</h2>
-          <FeaturedEbayRotator />
-        </section>
-        {/* Store Info Section */}
-        <div className="store-info" style={{ margin: '2rem 0', textAlign: 'center', background: '#fffbe6', borderRadius: '8px', padding: '1.5rem', border: '1px solid #ffd700' }}>
-          <h2 style={{ color: '#000' }}>Welcome to Mancave Sports Cards LLC!</h2>
-          <p style={{ color: '#333', fontSize: '1.1rem', margin: '0.5rem 0 0.5rem 0' }}>
+          <h2 style={{ color: '#000', marginBottom: '1rem' }}>Welcome to ManCave Sports Cards LLC!</h2>
+          <p style={{ color: '#333', fontSize: '1.1rem', margin: '0.5rem 0 1rem 0' }}>
             Your destination for all things trading cards—specializing in sports cards and Pokémon! We offer a diverse range of high-quality cards for collectors of all levels.
           </p>
-          <p style={{ color: '#333', fontSize: '1.1rem', margin: '0.5rem 0' }}>
-            <strong>Fast shipping</strong> on every order and <strong>new items added weekly</strong>—check back often for the latest deals!
-          </p>
-          <a
-            href="https://www.ebay.com/usr/mancavesportscardsllc24?mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339115973&customid=&toolid=10001&mkevt=1"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'inline-block',
-              background: '#ffd700',
-              color: '#000',
-              fontWeight: 'bold',
-              padding: '0.75rem 2rem',
-              borderRadius: '6px',
-              textDecoration: 'none',
-              border: '2px solid #000',
-              marginTop: '0.5rem'
-            }}
-          >
-            Visit Our eBay Store
-          </a>
-        </div>
+          <h3 style={{ color: '#000', marginBottom: '1rem' }}>Featured Items from Our eBay Store</h3>
+          <FeaturedEbayRotator />
+        </section>
         {/* Search Form */}
         <form id="search-form" onSubmit={handleSearch} className="search-form">
           <div className="form-group">
