@@ -5,7 +5,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Ca
 import SavedSearches from './SavedSearches';
 import { Helmet } from 'react-helmet';
 import { InContentAd, SearchResultsAd } from './AdSense';
-// import FeaturedEbayRotator from './FeaturedEbayRotator'; // Removed
+import FeaturedEbayRotator from './FeaturedEbayRotator';
 
 // FeaturedEbayListing component
 const FeaturedEbayListing = () => {
@@ -763,10 +763,13 @@ const SearchPage = () => {
   };
 
   return (
-    <div className="App">
+    <>
       <Helmet>
+        <title>Search - Scorecard</title>
+        <meta name="description" content="Search for sports card prices, market data, and investment insights." />
         <link rel="canonical" href="https://www.mancavesportscardsllc.com/search" />
       </Helmet>
+      <FeaturedEbayRotator />
       {/* Main Content */}
       <main className="App-main">
         {/* Store Info Section */}
@@ -999,7 +1002,7 @@ const SearchPage = () => {
           </div>
         )}
       </main>
-    </div>
+    </>
   );
 };
 
