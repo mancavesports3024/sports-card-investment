@@ -1264,30 +1264,62 @@ router.get('/card-set-suggestions', async (req, res) => {
   const { query = '', limit = 10 } = req.query;
   
   try {
+    console.log(`[CARD SET SUGGESTIONS] Request received: query="${query}", limit=${limit}`);
+    
     // Read the card sets data
     const cardSetsPath = path.join(__dirname, '../data/cardSets.json');
-    const cardSetsData = JSON.parse(fs.readFileSync(cardSetsPath, 'utf8'));
+    console.log(`[CARD SET SUGGESTIONS] Reading file from: ${cardSetsPath}`);
+    
+    // Check if file exists
+    if (!fs.existsSync(cardSetsPath)) {
+      console.error(`[CARD SET SUGGESTIONS] File not found: ${cardSetsPath}`);
+      return res.status(500).json({ 
+        error: 'Card sets database not found',
+        details: 'The card sets data file is missing'
+      });
+    }
+    
+    const fileContent = fs.readFileSync(cardSetsPath, 'utf8');
+    console.log(`[CARD SET SUGGESTIONS] File read successfully, size: ${fileContent.length} characters`);
+    
+    const cardSetsData = JSON.parse(fileContent);
+    console.log(`[CARD SET SUGGESTIONS] JSON parsed successfully, ${cardSetsData.cardSets?.length || 0} card sets found`);
+    
+    if (!cardSetsData.cardSets || !Array.isArray(cardSetsData.cardSets)) {
+      console.error('[CARD SET SUGGESTIONS] Invalid data structure: cardSets array not found');
+      return res.status(500).json({ 
+        error: 'Invalid card sets data structure',
+        details: 'The card sets data is not in the expected format'
+      });
+    }
     
     if (!query.trim()) {
       // Return popular sets if no query
+      console.log('[CARD SET SUGGESTIONS] No query provided, returning popular sets');
       const popularSets = cardSetsData.cardSets
-        .filter(set => set.years.includes('2024') || set.years.includes('2023'))
+        .filter(set => set.years && Array.isArray(set.years) && (set.years.includes('2024') || set.years.includes('2023')))
         .slice(0, parseInt(limit));
+      
+      console.log(`[CARD SET SUGGESTIONS] Found ${popularSets.length} popular sets`);
       
       return res.json({
         suggestions: popularSets.map(set => ({
           name: set.name,
           brand: set.brand,
           category: set.category,
-          years: set.years.slice(-5) // Last 5 years
+          years: set.years ? set.years.slice(-5) : [] // Last 5 years
         }))
       });
     }
     
     // Search for matching card sets
     const searchTerm = query.toLowerCase();
+    console.log(`[CARD SET SUGGESTIONS] Searching for: "${searchTerm}"`);
+    
     const suggestions = cardSetsData.cardSets
       .filter(set => {
+        if (!set.name || !set.brand || !set.category) return false;
+        
         const nameMatch = set.name.toLowerCase().includes(searchTerm);
         const brandMatch = set.brand.toLowerCase().includes(searchTerm);
         const categoryMatch = set.category.toLowerCase().includes(searchTerm);
@@ -1298,13 +1330,40 @@ router.get('/card-set-suggestions', async (req, res) => {
         name: set.name,
         brand: set.brand,
         category: set.category,
-        years: set.years.slice(-5) // Last 5 years
+        years: set.years ? set.years.slice(-5) : [] // Last 5 years
       }));
     
+    console.log(`[CARD SET SUGGESTIONS] Found ${suggestions.length} matching sets`);
     res.json({ suggestions });
   } catch (error) {
-    console.error('Card set suggestions error:', error);
-    res.status(500).json({ error: 'Failed to fetch card set suggestions' });
+    console.error('[CARD SET SUGGESTIONS] Error details:', error);
+    console.error('[CARD SET SUGGESTIONS] Error stack:', error.stack);
+    
+    // Fallback to hardcoded popular sets if file reading fails
+    console.log('[CARD SET SUGGESTIONS] Using fallback hardcoded suggestions');
+    const fallbackSets = [
+      { name: "Topps Series One", brand: "Topps", category: "Baseball", years: ["2025", "2024", "2023", "2022", "2021"] },
+      { name: "Topps Chrome", brand: "Topps", category: "Baseball", years: ["2024", "2023", "2022", "2021", "2020"] },
+      { name: "Bowman Chrome", brand: "Bowman", category: "Baseball", years: ["2024", "2023", "2022", "2021", "2020"] },
+      { name: "Panini Prizm", brand: "Panini", category: "Basketball", years: ["2024", "2023", "2022", "2021", "2020"] },
+      { name: "Panini Donruss", brand: "Panini", category: "Basketball", years: ["2024", "2023", "2022", "2021", "2020"] },
+      { name: "Pokemon Base Set", brand: "Pokemon", category: "Pokemon", years: ["1999"] },
+      { name: "Pokemon 151", brand: "Pokemon", category: "Pokemon", years: ["2023"] },
+      { name: "Pokemon Evolving Skies", brand: "Pokemon", category: "Pokemon", years: ["2021"] }
+    ];
+    
+    if (!query.trim()) {
+      return res.json({ suggestions: fallbackSets.slice(0, parseInt(limit)) });
+    }
+    
+    const searchTerm = query.toLowerCase();
+    const filteredSets = fallbackSets.filter(set => 
+      set.name.toLowerCase().includes(searchTerm) ||
+      set.brand.toLowerCase().includes(searchTerm) ||
+      set.category.toLowerCase().includes(searchTerm)
+    );
+    
+    res.json({ suggestions: filteredSets.slice(0, parseInt(limit)) });
   }
 });
 
