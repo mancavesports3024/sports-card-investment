@@ -482,6 +482,24 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Debug endpoint to list files in data directory
+router.get('/debug-list-data', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  const dirPath = path.join(__dirname, '../data');
+  try {
+    const files = fs.readdirSync(dirPath);
+    res.json({ 
+      files,
+      dirPath,
+      exists: fs.existsSync(dirPath),
+      featuredFileExists: fs.existsSync(path.join(dirPath, 'featured_ebay_items.json'))
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message, dirPath });
+  }
+});
+
 // Featured eBay items endpoint
 router.get('/featured-ebay-items', async (req, res) => {
   try {
