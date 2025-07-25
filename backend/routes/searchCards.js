@@ -7,6 +7,8 @@ const searchHistoryService = require('../services/searchHistoryService');
 const cacheService = require('../services/cacheService');
 const { getEbayApiUsage } = require('../services/ebayService');
 const point130Service = require('../services/130pointService');
+const fs = require('fs');
+const path = require('path');
 
 // Helper to add EPN tracking parameters to eBay URLs
 function addEbayTracking(url) {
@@ -1254,6 +1256,55 @@ router.post('/', async (req, res) => {
     console.error('Search error:', error, error?.response?.status);
     clearTimeout(timeout);
     res.status(500).json({ error: 'Failed to fetch card data', details: error?.message || error });
+  }
+});
+
+// GET /api/card-set-suggestions - Route for card set autocomplete
+router.get('/card-set-suggestions', async (req, res) => {
+  const { query = '', limit = 10 } = req.query;
+  
+  try {
+    // Read the card sets data
+    const cardSetsPath = path.join(__dirname, '../data/cardSets.json');
+    const cardSetsData = JSON.parse(fs.readFileSync(cardSetsPath, 'utf8'));
+    
+    if (!query.trim()) {
+      // Return popular sets if no query
+      const popularSets = cardSetsData.cardSets
+        .filter(set => set.years.includes('2024') || set.years.includes('2023'))
+        .slice(0, parseInt(limit));
+      
+      return res.json({
+        suggestions: popularSets.map(set => ({
+          name: set.name,
+          brand: set.brand,
+          category: set.category,
+          years: set.years.slice(-5) // Last 5 years
+        }))
+      });
+    }
+    
+    // Search for matching card sets
+    const searchTerm = query.toLowerCase();
+    const suggestions = cardSetsData.cardSets
+      .filter(set => {
+        const nameMatch = set.name.toLowerCase().includes(searchTerm);
+        const brandMatch = set.brand.toLowerCase().includes(searchTerm);
+        const categoryMatch = set.category.toLowerCase().includes(searchTerm);
+        return nameMatch || brandMatch || categoryMatch;
+      })
+      .slice(0, parseInt(limit))
+      .map(set => ({
+        name: set.name,
+        brand: set.brand,
+        category: set.category,
+        years: set.years.slice(-5) // Last 5 years
+      }));
+    
+    res.json({ suggestions });
+  } catch (error) {
+    console.error('Card set suggestions error:', error);
+    res.status(500).json({ error: 'Failed to fetch card set suggestions' });
   }
 });
 

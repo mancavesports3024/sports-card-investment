@@ -9,6 +9,78 @@ const CardSetAnalysis = () => {
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('value'); // 'value' or 'volume'
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedSuggestion, setSelectedSuggestion] = useState(-1);
+
+  // Fetch card set suggestions
+  const fetchSuggestions = async (query) => {
+    if (!query.trim()) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    try {
+      const params = new URLSearchParams({
+        query: query.trim(),
+        limit: 10
+      });
+
+      const response = await fetch(`${config.API_BASE_URL}/api/search-cards/card-set-suggestions?${params}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuggestions(data.suggestions || []);
+        setShowSuggestions(true);
+        setSelectedSuggestion(-1);
+      }
+    } catch (err) {
+      console.error('Failed to fetch suggestions:', err);
+    }
+  };
+
+  // Handle card set input change
+  const handleCardSetChange = (e) => {
+    const value = e.target.value;
+    setCardSet(value);
+    fetchSuggestions(value);
+  };
+
+  // Handle suggestion selection
+  const handleSuggestionClick = (suggestion) => {
+    setCardSet(suggestion.name);
+    setShowSuggestions(false);
+    setSuggestions([]);
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e) => {
+    if (!showSuggestions) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedSuggestion(prev => 
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedSuggestion(prev => prev > 0 ? prev - 1 : -1);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedSuggestion >= 0 && suggestions[selectedSuggestion]) {
+          handleSuggestionClick(suggestions[selectedSuggestion]);
+        }
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        setSuggestions([]);
+        break;
+    }
+  };
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -17,6 +89,7 @@ const CardSetAnalysis = () => {
     setIsLoading(true);
     setError(null);
     setResults(null);
+    setShowSuggestions(false);
 
     try {
       const params = new URLSearchParams({
@@ -263,14 +336,17 @@ const CardSetAnalysis = () => {
         marginBottom: '2rem'
       }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-          <div>
+          <div style={{ position: 'relative' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#333' }}>
               Card Set *
             </label>
             <input
               type="text"
               value={cardSet}
-              onChange={(e) => setCardSet(e.target.value)}
+              onChange={handleCardSetChange}
+              onKeyDown={handleKeyDown}
+              onFocus={() => cardSet.trim() && setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               placeholder="e.g., Topps Series One, Bowman Chrome, Panini Prizm"
               style={{
                 width: '100%',
@@ -282,6 +358,49 @@ const CardSetAnalysis = () => {
               }}
               required
             />
+            
+            {/* Autocomplete Suggestions */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                background: '#fff',
+                border: '2px solid #e0e0e0',
+                borderTop: 'none',
+                borderRadius: '0 0 8px 8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                zIndex: 1000,
+                maxHeight: '300px',
+                overflowY: 'auto'
+              }}>
+                {suggestions.map((suggestion, index) => (
+                  <div
+                    key={`${suggestion.name}-${suggestion.brand}`}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    style={{
+                      padding: '0.75rem',
+                      cursor: 'pointer',
+                      borderBottom: index < suggestions.length - 1 ? '1px solid #f0f0f0' : 'none',
+                      background: selectedSuggestion === index ? '#f8f9fa' : '#fff',
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseEnter={() => setSelectedSuggestion(index)}
+                  >
+                    <div style={{ fontWeight: 600, color: '#333', marginBottom: '0.25rem' }}>
+                      {suggestion.name}
+                    </div>
+                    <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                      {suggestion.brand} • {suggestion.category}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#999' }}>
+                      Years: {suggestion.years.join(', ')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#333' }}>
