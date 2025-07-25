@@ -62,34 +62,16 @@ function buildEbayQuery(searchQuery, grade) {
 
 // Helper to add EPN tracking parameters to eBay URLs
 function addEbayTracking(url) {
-  if (!url) return url;
-  
-  // Your EPN tracking parameters - replace with your actual values
-  const epnParams = {
-    mkevt: process.env.EBAY_MKEVT || '1', // Your affiliate ID
-    mkcid: process.env.EBAY_MKCID || '1', // Campaign ID
-    mkrid: process.env.EBAY_MKRID || '711-53200-19255-0', // Rotation ID (marketplace)
-    siteid: process.env.EBAY_SITEID || '0', // Site ID (0 for US)
-    campid: process.env.EBAY_CAMPID || '5338333097', // Your EPN campaign ID
-    toolid: process.env.EBAY_TOOLID || '10001', // Tool ID
-    customid: process.env.EBAY_CUSTOMID || 'trading-card-tracker' // Sub-ID for tracking
-  };
-  
-  try {
-    const urlObj = new URL(url);
-    
-    // Add EPN parameters
-    Object.entries(epnParams).forEach(([key, value]) => {
-      if (value) {
-        urlObj.searchParams.set(key, value);
-      }
-    });
-    
-    return urlObj.toString();
-  } catch (error) {
-    console.error('Error adding EPN tracking to URL:', error);
-    return url; // Return original URL if there's an error
-  }
+  const params = [
+    'mkevt=1',
+    'mkcid=1',
+    'mkrid=711-53200-19255-0',
+    'siteid=0',
+    'campid=5338333097',
+    'toolid=10001',
+    'customid=trading-card-tracker'
+  ];
+  return url + (url.includes('?') ? '&' : '?') + params.join('&');
 }
 
 // Extracted function for programmatic use
@@ -525,7 +507,7 @@ router.get('/featured-ebay-items', async (req, res) => {
       itemId: item.itemId,
       title: item.title,
       image: item.image?.imageUrl,
-      affiliateLink: `https://www.ebay.com/itm/${item.itemId}` // Add your affiliate tracking if needed
+      affiliateLink: addEbayTracking(`https://www.ebay.com/itm/${item.itemId}`)
     }));
 
     res.json({ items: results });
