@@ -44,17 +44,95 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
       position: 'relative'
     }}>
       {item.image && (
-        <img src={item.image} alt={item.title} style={{ maxWidth: 180, borderRadius: 8, marginBottom: 10 }} />
+        <img src={item.image} alt={item.title} style={{ maxWidth: 180, borderRadius: 8, marginBottom: 15 }} />
       )}
-      <div style={{ fontWeight: 600, fontSize: '1.1em', marginBottom: 6 }}>{item.title}</div>
+      
+      {/* Enhanced Title Section */}
+      <div style={{ 
+        background: '#000', 
+        color: '#ffd700', 
+        padding: '0.8em 1em', 
+        borderRadius: 8, 
+        marginBottom: 12,
+        border: '2px solid #ffd700'
+      }}>
+        <div style={{ 
+          fontWeight: 700, 
+          fontSize: '1.2em', 
+          marginBottom: 4,
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px'
+        }}>
+          {item.title}
+        </div>
+        {item.price && (
+          <div style={{ 
+            fontSize: '1.1em', 
+            fontWeight: 600,
+            color: '#fff'
+          }}>
+            {typeof item.price === 'object' ? `$${Number(item.price.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : item.price}
+          </div>
+        )}
+      </div>
+      
       <a href={item.affiliateLink} target="_blank" rel="noopener noreferrer"
-         style={{ background: '#ffd700', color: '#000', fontWeight: 700, padding: '0.5em 1.2em', borderRadius: 6, textDecoration: 'none', border: '2px solid #000', fontSize: '1em', display: 'inline-block', marginBottom: 8 }}>
+         style={{ 
+           background: '#ffd700', 
+           color: '#000', 
+           fontWeight: 700, 
+           padding: '0.6em 1.4em', 
+           borderRadius: 6, 
+           textDecoration: 'none', 
+           border: '2px solid #000', 
+           fontSize: '1em', 
+           display: 'inline-block', 
+           marginBottom: 12,
+           transition: 'all 0.3s ease'
+         }}
+         onMouseEnter={(e) => {
+           e.target.style.background = '#000';
+           e.target.style.color = '#ffd700';
+         }}
+         onMouseLeave={(e) => {
+           e.target.style.background = '#ffd700';
+           e.target.style.color = '#000';
+         }}>
         View on eBay
       </a>
+      
       <div style={{ marginTop: 10, display: 'flex', justifyContent: 'center', gap: 16 }}>
-        <button onClick={() => goTo((current - 1 + items.length) % items.length)} style={{ fontSize: 18, border: 'none', background: 'none', cursor: 'pointer' }}>&lt;</button>
-        <span style={{ fontSize: 14 }}>{current + 1} / {items.length}</span>
-        <button onClick={() => goTo((current + 1) % items.length)} style={{ fontSize: 18, border: 'none', background: 'none', cursor: 'pointer' }}>&gt;</button>
+        <button 
+          onClick={() => goTo((current - 1 + items.length) % items.length)} 
+          style={{ 
+            fontSize: 18, 
+            border: 'none', 
+            background: 'none', 
+            cursor: 'pointer',
+            color: '#666',
+            transition: 'color 0.3s ease'
+          }}
+          onMouseEnter={(e) => e.target.style.color = '#000'}
+          onMouseLeave={(e) => e.target.style.color = '#666'}
+        >
+          &lt;
+        </button>
+        <span style={{ fontSize: 14, color: '#666', fontWeight: 600 }}>{current + 1} / {items.length}</span>
+        <button 
+          onClick={() => goTo((current + 1) % items.length)} 
+          style={{ 
+            fontSize: 18, 
+            border: 'none', 
+            background: 'none', 
+            cursor: 'pointer',
+            color: '#666',
+            transition: 'color 0.3s ease'
+          }}
+          onMouseEnter={(e) => e.target.style.color = '#000'}
+          onMouseLeave={(e) => e.target.style.color = '#666'}
+        >
+          &gt;
+        </button>
       </div>
     </div>
   );

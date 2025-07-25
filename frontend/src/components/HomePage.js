@@ -7,6 +7,16 @@ const HomePage = () => {
     <div className="home-page">
       {/* Main Content */}
       <main className="home-main">
+        {/* Featured eBay Items - Moved to TOP */}
+        <section className="featured-ebay-section" style={{ marginTop: '0', paddingTop: '2rem' }}>
+          <h2 className="section-title">Welcome to ManCave Sports Cards LLC!</h2>
+          <p style={{ color: '#333', fontSize: '1.1rem', margin: '0.5rem 0 1.5rem 0', textAlign: 'center' }}>
+            Your destination for all things trading cards—specializing in sports cards and Pokémon! We offer a diverse range of high-quality cards for collectors of all levels.
+          </p>
+          <h3 className="section-title" style={{ fontSize: '1.4rem', marginBottom: '1rem' }}>Featured Items from Our eBay Store</h3>
+          <FeaturedEbayRotator />
+        </section>
+
         {/* Hero Section */}
         <section className="hero-section">
           <div className="hero-content">
@@ -32,16 +42,6 @@ const HomePage = () => {
               </div>
             </div>
           </div>
-        </section>
-
-        {/* Featured eBay Items - First section after hero */}
-        <section className="featured-ebay-section">
-          <h2 className="section-title">Welcome to ManCave Sports Cards LLC!</h2>
-          <p style={{ color: '#333', fontSize: '1.1rem', margin: '0.5rem 0 1.5rem 0', textAlign: 'center' }}>
-            Your destination for all things trading cards—specializing in sports cards and Pokémon! We offer a diverse range of high-quality cards for collectors of all levels.
-          </p>
-          <h3 className="section-title" style={{ fontSize: '1.4rem', marginBottom: '1rem' }}>Featured Items from Our eBay Store</h3>
-          <FeaturedEbayRotator />
         </section>
 
         {/* Header Ad */}
