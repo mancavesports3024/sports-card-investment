@@ -2150,6 +2150,9 @@ router.get('/card-set-analysis', async (req, res) => {
     // Categorize cards
     const categorized = categorizeCards(allCards);
     
+    // Sort categorized results by value
+    const sortedCategorized = sortByValue(categorized);
+    
     // Analyze card performance by player/card
     const cardAnalysis = analyzeCardSetPerformance(allCards);
     
@@ -2185,20 +2188,20 @@ router.get('/card-set-analysis', async (req, res) => {
       topCardsByValue: addTrackingToCards(sortedByValue.slice(0, 20)),
       topCardsBySalesVolume: sortedBySalesVolume.slice(0, 20),
       categorizedResults: {
-        raw: addTrackingToCards(categorized.raw),
-        psa10: addTrackingToCards(categorized.psa10),
-        psa9: addTrackingToCards(categorized.psa9),
-        psa8: addTrackingToCards(categorized.psa8),
-        psa7: addTrackingToCards(categorized.psa7),
-        cgc10: addTrackingToCards(categorized.cgc10),
-        cgc9: addTrackingToCards(categorized.cgc9),
-        tag10: addTrackingToCards(categorized.tag10),
-        tag9: addTrackingToCards(categorized.tag9),
-        tag8: addTrackingToCards(categorized.tag8),
-        sgc10: addTrackingToCards(categorized.sgc10),
-        aigrade10: addTrackingToCards(categorized.aigrade10),
-        aigrade9: addTrackingToCards(categorized.aigrade9),
-        otherGraded: addTrackingToCards(categorized.otherGraded)
+        raw: addTrackingToCards(sortedCategorized.raw),
+        psa10: addTrackingToCards(sortedCategorized.psa10),
+        psa9: addTrackingToCards(sortedCategorized.psa9),
+        psa8: addTrackingToCards(sortedCategorized.psa8),
+        psa7: addTrackingToCards(sortedCategorized.psa7),
+        cgc10: addTrackingToCards(sortedCategorized.cgc10),
+        cgc9: addTrackingToCards(sortedCategorized.cgc9),
+        tag10: addTrackingToCards(sortedCategorized.tag10),
+        tag9: addTrackingToCards(sortedCategorized.tag9),
+        tag8: addTrackingToCards(sortedCategorized.tag8),
+        sgc10: addTrackingToCards(sortedCategorized.sgc10),
+        aigrade10: addTrackingToCards(sortedCategorized.aigrade10),
+        aigrade9: addTrackingToCards(sortedCategorized.aigrade9),
+        otherGraded: addTrackingToCards(sortedCategorized.otherGraded)
       },
       gradingStats: categorized.gradingStats || {}
     };
