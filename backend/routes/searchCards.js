@@ -726,18 +726,18 @@ const fetchDataForEachCategory = async (searchQuery, targetPerCategory = 25) => 
   return allCards;
 };
 
-// Helper function to sort by sold date
-const sortBySoldDate = (categorized) => {
-  const sortByDate = (a, b) => {
-    const dateA = new Date(a.soldDate || 0);
-    const dateB = new Date(b.soldDate || 0);
-    return dateB - dateA; // Most recent first
+// Helper function to sort by value (price)
+const sortByValue = (categorized) => {
+  const sortByValue = (a, b) => {
+    const priceA = parseFloat(a.price?.value || 0);
+    const priceB = parseFloat(b.price?.value || 0);
+    return priceB - priceA; // Highest value first
   };
 
   // Helper function to safely sort arrays
   const safeSort = (array) => {
     if (Array.isArray(array) && array.length > 0) {
-      return array.sort(sortByDate);
+      return array.sort(sortByValue);
     }
     return array || [];
   };
@@ -917,7 +917,7 @@ router.get('/', async (req, res) => {
       console.log('No eBay token found, returning mock data for testing');
       const mockData = getMockData(searchQuery, parseInt(numSales));
       const categorized = categorizeCards(mockData);
-      const sorted = sortBySoldDate(categorized);
+      const sorted = sortByValue(categorized);
       return res.json({ 
         searchParams: { searchQuery, numSales },
         results: sorted,
@@ -966,7 +966,7 @@ router.get('/', async (req, res) => {
 
     // Categorize and sort the results
     const categorized = categorizeCards(allCards);
-    const sorted = sortBySoldDate(categorized);
+    const sorted = sortByValue(categorized);
 
     // Add EPN tracking to all eBay URLs in the results
     const addTrackingToCards = (cards) => {
@@ -1145,7 +1145,7 @@ router.post('/', async (req, res) => {
 
     // Categorize and sort the results
     const categorized = categorizeCards(allCards);
-    const sorted = sortBySoldDate(categorized);
+    const sorted = sortByValue(categorized);
 
     // Add EPN tracking to all eBay URLs in the results
     const addTrackingToCards = (cards) => {
