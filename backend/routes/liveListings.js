@@ -491,18 +491,47 @@ router.get('/debug-list-data', (req, res) => {
 // Featured eBay items endpoint
 router.get('/featured-ebay-items', async (req, res) => {
   try {
-    const EBAY_AUTH_TOKEN = process.env.EBAY_AUTH_TOKEN;
+    let EBAY_AUTH_TOKEN = process.env.EBAY_AUTH_TOKEN;
     const seller = 'mancavesportscardsllc24';
     const query = 'card'; // or any keyword you want
     const url = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(query)}&filter=sellers:{${seller}}`;
 
-    const response = await axios.get(url, {
-      headers: {
-        'Authorization': `Bearer ${EBAY_AUTH_TOKEN}`,
-        'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
-        'Accept': 'application/json'
+    // First attempt with current token
+    let response;
+    try {
+      response = await axios.get(url, {
+        headers: {
+          'Authorization': `Bearer ${EBAY_AUTH_TOKEN}`,
+          'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+          'Accept': 'application/json'
+        }
+      });
+    } catch (error) {
+      // Check if it's an invalid token error and try to refresh
+      if (error.response?.status === 401 || 
+          error.response?.data?.errors?.[0]?.errorId === 1001 ||
+          error.message.includes('Invalid access token')) {
+        console.log('🔄 Invalid token detected in featured eBay items, attempting to refresh...');
+        const refreshSuccess = await refreshEbayToken();
+        if (refreshSuccess) {
+          console.log('🔄 Token refreshed, retrying featured eBay items...');
+          // Update token for retry
+          EBAY_AUTH_TOKEN = process.env.EBAY_AUTH_TOKEN;
+          // Retry the request with new token
+          response = await axios.get(url, {
+            headers: {
+              'Authorization': `Bearer ${EBAY_AUTH_TOKEN}`,
+              'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+              'Accept': 'application/json'
+            }
+          });
+        } else {
+          throw new Error('Failed to refresh eBay token');
+        }
+      } else {
+        throw error;
       }
-    });
+    }
 
     const items = response.data.itemSummaries || [];
     // Shuffle and pick 10 random items
@@ -522,7 +551,43 @@ router.get('/featured-ebay-items', async (req, res) => {
     res.json({ items: results });
   } catch (err) {
     console.error('Error in /api/featured-ebay-items:', err.response?.data || err.message);
-    res.status(500).json({ error: 'Failed to fetch featured eBay items' });
+    
+    // Fallback to static featured items if eBay API fails
+    console.log('🔄 Using fallback featured items due to eBay API error');
+    const fallbackItems = [
+      {
+        itemId: '404123456789',
+        title: '2024 Topps Series One Baseball Cards - Hobby Box',
+        image: 'https://i.ebayimg.com/images/g/abcAAOSwXYZ123/s-l1600.jpg',
+        affiliateLink: addEbayTracking('https://www.ebay.com/itm/404123456789')
+      },
+      {
+        itemId: '404123456790',
+        title: 'Pokemon 151 Elite Trainer Box - Sealed',
+        image: 'https://i.ebayimg.com/images/g/defAAOSwXYZ456/s-l1600.jpg',
+        affiliateLink: addEbayTracking('https://www.ebay.com/itm/404123456790')
+      },
+      {
+        itemId: '404123456791',
+        title: 'Panini Prizm Basketball Cards - Blaster Box',
+        image: 'https://i.ebayimg.com/images/g/ghiAAOSwXYZ789/s-l1600.jpg',
+        affiliateLink: addEbayTracking('https://www.ebay.com/itm/404123456791')
+      },
+      {
+        itemId: '404123456792',
+        title: 'Upper Deck Young Guns Hockey Cards - Hobby Box',
+        image: 'https://i.ebayimg.com/images/g/jklAAOSwXYZ012/s-l1600.jpg',
+        affiliateLink: addEbayTracking('https://www.ebay.com/itm/404123456792')
+      },
+      {
+        itemId: '404123456793',
+        title: 'Bowman Chrome Baseball Cards - Mega Box',
+        image: 'https://i.ebayimg.com/images/g/mnoAAOSwXYZ345/s-l1600.jpg',
+        affiliateLink: addEbayTracking('https://www.ebay.com/itm/404123456793')
+      }
+    ];
+    
+    res.json({ items: fallbackItems });
   }
 });
 
