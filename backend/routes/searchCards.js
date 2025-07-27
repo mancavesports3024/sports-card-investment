@@ -830,6 +830,43 @@ router.get('/test-ebay-scraping', async (req, res) => {
   }
 });
 
+// Test endpoint for TCDB service
+router.get('/test-tcdb', async (req, res) => {
+  try {
+    console.log('🧪 Testing TCDB service...');
+    
+    const tcdbService = require('../services/tcdbService');
+    
+    // Test TCDB status
+    const status = await tcdbService.checkTCDBStatus();
+    console.log('TCDB Status:', status);
+    
+    // Test popular sets
+    const popularSets = await tcdbService.getPopularTCDBSets(5);
+    console.log('Popular Sets:', popularSets);
+    
+    // Test search
+    const searchResults = await tcdbService.searchTCDBSets('Topps', null, 3);
+    console.log('Search Results:', searchResults);
+    
+    res.json({
+      success: true,
+      message: 'TCDB test completed',
+      status: status,
+      popularSets: popularSets,
+      searchResults: searchResults,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('TCDB test error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // GET /api/rate-limits - Check eBay API rate limits
 router.get('/rate-limits', async (req, res) => {
   try {
@@ -1265,6 +1302,9 @@ router.get('/card-set-suggestions', async (req, res) => {
   
   try {
     console.log(`[CARD SET SUGGESTIONS] Request received: query="${query}", limit=${limit}`);
+    
+    // Import TCDB service
+    const tcdbService = require('../services/tcdbService');
     
     // Define card sets data inline since file deployment is unreliable
     const cardSetsData = {
@@ -2029,18 +2069,41 @@ router.get('/card-set-suggestions', async (req, res) => {
     if (!query.trim()) {
       // Return popular sets if no query
       console.log('[CARD SET SUGGESTIONS] No query provided, returning popular sets');
-      const popularSets = cardSetsData.cardSets
-        .filter(set => set.years && Array.isArray(set.years) && (set.years.includes('2024') || set.years.includes('2023')))
-        .slice(0, parseInt(limit));
       
-      console.log(`[CARD SET SUGGESTIONS] Found ${popularSets.length} popular sets`);
+      // Try to get popular sets from TCDB first
+      let popularSets = [];
+      try {
+        console.log('[CARD SET SUGGESTIONS] Attempting to fetch popular sets from TCDB...');
+        const tcdbSets = await tcdbService.getPopularTCDBSets(parseInt(limit));
+        if (tcdbSets.length > 0) {
+          popularSets = tcdbSets.map(set => ({
+            name: set.name,
+            brand: set.brand,
+            category: set.category,
+            years: set.years || [],
+            source: 'TCDB'
+          }));
+          console.log(`[CARD SET SUGGESTIONS] Found ${popularSets.length} popular sets from TCDB`);
+        }
+      } catch (tcdbError) {
+        console.log('[CARD SET SUGGESTIONS] TCDB failed, falling back to inline data:', tcdbError.message);
+      }
+      
+      // Fallback to inline data if TCDB fails
+      if (popularSets.length === 0) {
+        popularSets = cardSetsData.cardSets
+          .filter(set => set.years && Array.isArray(set.years) && (set.years.includes('2024') || set.years.includes('2023')))
+          .slice(0, parseInt(limit));
+        console.log(`[CARD SET SUGGESTIONS] Using ${popularSets.length} fallback sets from inline data`);
+      }
       
       return res.json({
         suggestions: popularSets.map(set => ({
           name: set.name,
           brand: set.brand,
           category: set.category,
-          years: set.years ? set.years.slice(-5) : [] // Last 5 years
+          years: set.years ? set.years.slice(-5) : [], // Last 5 years
+          source: set.source || 'Inline'
         }))
       });
     }
@@ -2049,24 +2112,48 @@ router.get('/card-set-suggestions', async (req, res) => {
     const searchTerm = query.toLowerCase();
     console.log(`[CARD SET SUGGESTIONS] Searching for: "${searchTerm}"`);
     
-    const suggestions = cardSetsData.cardSets
-      .filter(set => {
-        if (!set.name || !set.brand || !set.category) return false;
-        
-        const nameMatch = set.name.toLowerCase().includes(searchTerm);
-        const brandMatch = set.brand.toLowerCase().includes(searchTerm);
-        const categoryMatch = set.category.toLowerCase().includes(searchTerm);
-        return nameMatch || brandMatch || categoryMatch;
-      })
-      .slice(0, parseInt(limit))
-      .map(set => ({
-        name: set.name,
-        brand: set.brand,
-        category: set.category,
-        years: set.years ? set.years.slice(-5) : [] // Last 5 years
-      }));
+    // Try to search TCDB first
+    let suggestions = [];
+    try {
+      console.log('[CARD SET SUGGESTIONS] Attempting to search TCDB...');
+      const tcdbResults = await tcdbService.searchTCDBSets(query, null, parseInt(limit));
+      if (tcdbResults.length > 0) {
+        suggestions = tcdbResults.map(set => ({
+          name: set.name,
+          brand: set.brand,
+          category: set.category,
+          years: set.years || [],
+          source: 'TCDB'
+        }));
+        console.log(`[CARD SET SUGGESTIONS] Found ${suggestions.length} matching sets from TCDB`);
+      }
+    } catch (tcdbError) {
+      console.log('[CARD SET SUGGESTIONS] TCDB search failed, falling back to inline data:', tcdbError.message);
+    }
     
-    console.log(`[CARD SET SUGGESTIONS] Found ${suggestions.length} matching sets`);
+    // Fallback to inline data if TCDB fails or returns no results
+    if (suggestions.length === 0) {
+      suggestions = cardSetsData.cardSets
+        .filter(set => {
+          if (!set.name || !set.brand || !set.category) return false;
+          
+          const nameMatch = set.name.toLowerCase().includes(searchTerm);
+          const brandMatch = set.brand.toLowerCase().includes(searchTerm);
+          const categoryMatch = set.category.toLowerCase().includes(searchTerm);
+          return nameMatch || brandMatch || categoryMatch;
+        })
+        .slice(0, parseInt(limit))
+        .map(set => ({
+          name: set.name,
+          brand: set.brand,
+          category: set.category,
+          years: set.years ? set.years.slice(-5) : [], // Last 5 years
+          source: 'Inline'
+        }));
+      console.log(`[CARD SET SUGGESTIONS] Using ${suggestions.length} fallback sets from inline data`);
+    }
+    
+    console.log(`[CARD SET SUGGESTIONS] Returning ${suggestions.length} total suggestions`);
     res.json({ suggestions });
   } catch (error) {
     console.error('[CARD SET SUGGESTIONS] Error details:', error);
