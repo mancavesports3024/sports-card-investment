@@ -22,17 +22,23 @@ const TCDB_SPORTS_URLS = {
   Wrestling: 'https://www.tcdb.com/ViewAll.cfm/sp/Wrestling'
 };
 
-// Rate limiting
+// Rate limiting - increased to be more respectful
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 3000; // 3 seconds between requests
+const MIN_REQUEST_INTERVAL = 5000; // 5 seconds between requests
 
-// User agent rotation
+// User agent rotation - more diverse and realistic
 const USER_AGENTS = [
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
-  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0'
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15',
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/120.0.0.0'
 ];
+
+// Track failed requests to avoid repeated failures
+let consecutiveFailures = 0;
+const MAX_CONSECUTIVE_FAILURES = 3;
 
 function getRandomUserAgent() {
   return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
@@ -73,6 +79,12 @@ function extractBrandFromSetName(setName) {
 // Main function to scrape TCDB for card sets
 async function scrapeTCDBSets(sport = 'Baseball', limit = 50) {
   try {
+    // Check if we've had too many consecutive failures
+    if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+      console.log(`⚠️ TCDB temporarily disabled due to ${consecutiveFailures} consecutive failures`);
+      return [];
+    }
+
     // Rate limiting
     const now = Date.now();
     const timeSinceLastRequest = now - lastRequestTime;
@@ -97,14 +109,20 @@ async function scrapeTCDBSets(sport = 'Baseball', limit = 50) {
         'Accept-Language': 'en-US,en;q=0.5',
         'Accept-Encoding': 'gzip, deflate',
         'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1'
+        'Upgrade-Insecure-Requests': '1',
+        'Referer': 'https://www.tcdb.com/',
+        'Cache-Control': 'no-cache'
       },
-      timeout: 15000
+      timeout: 20000,
+      maxRedirects: 5
     });
 
     if (!response || response.status !== 200) {
       throw new Error(`HTTP ${response?.status}: Failed to fetch TCDB data`);
     }
+
+    // Reset consecutive failures on success
+    consecutiveFailures = 0;
 
     const $ = cheerio.load(response.data);
     const sets = [];
@@ -137,7 +155,20 @@ async function scrapeTCDBSets(sport = 'Baseball', limit = 50) {
     return sets;
 
   } catch (error) {
+    consecutiveFailures++;
     console.error(`❌ TCDB scraping error for ${sport}:`, error.message);
+    
+    // Log specific error details for debugging
+    if (error.response) {
+      console.error(`HTTP Status: ${error.response.status}`);
+      console.error(`Response Headers:`, error.response.headers);
+    }
+    
+    // If we get a 403, log it specifically
+    if (error.response && error.response.status === 403) {
+      console.error(`🚫 TCDB blocked our request (403 Forbidden) - this may be temporary`);
+    }
+    
     return [];
   }
 }
@@ -145,6 +176,12 @@ async function scrapeTCDBSets(sport = 'Baseball', limit = 50) {
 // Function to search TCDB for specific sets
 async function searchTCDBSets(query, sport = null, limit = 20) {
   try {
+    // Check if we've had too many consecutive failures
+    if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+      console.log(`⚠️ TCDB temporarily disabled due to ${consecutiveFailures} consecutive failures`);
+      return [];
+    }
+
     // Rate limiting
     const now = Date.now();
     const timeSinceLastRequest = now - lastRequestTime;
@@ -169,14 +206,20 @@ async function searchTCDBSets(query, sport = null, limit = 20) {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
         'Accept-Encoding': 'gzip, deflate',
-        'Connection': 'keep-alive'
+        'Connection': 'keep-alive',
+        'Referer': 'https://www.tcdb.com/',
+        'Cache-Control': 'no-cache'
       },
-      timeout: 15000
+      timeout: 20000,
+      maxRedirects: 5
     });
 
     if (!response || response.status !== 200) {
       throw new Error(`HTTP ${response?.status}: Failed to search TCDB`);
     }
+
+    // Reset consecutive failures on success
+    consecutiveFailures = 0;
 
     const $ = cheerio.load(response.data);
     const sets = [];
@@ -209,7 +252,20 @@ async function searchTCDBSets(query, sport = null, limit = 20) {
     return sets;
 
   } catch (error) {
+    consecutiveFailures++;
     console.error(`❌ TCDB search error:`, error.message);
+    
+    // Log specific error details for debugging
+    if (error.response) {
+      console.error(`HTTP Status: ${error.response.status}`);
+      console.error(`Response Headers:`, error.response.headers);
+    }
+    
+    // If we get a 403, log it specifically
+    if (error.response && error.response.status === 403) {
+      console.error(`🚫 TCDB blocked our search request (403 Forbidden) - this may be temporary`);
+    }
+    
     return [];
   }
 }
@@ -316,15 +372,23 @@ async function checkTCDBStatus() {
     
     const response = await axios.get('https://www.tcdb.com', {
       headers: {
-        'User-Agent': getRandomUserAgent()
+        'User-Agent': getRandomUserAgent(),
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate',
+        'Connection': 'keep-alive'
       },
-      timeout: 10000
+      timeout: 15000
     });
+    
+    // Reset consecutive failures if we can reach TCDB
+    consecutiveFailures = 0;
     
     return {
       success: response.status === 200,
       status: response.status,
       message: response.status === 200 ? 'TCDB is accessible' : `HTTP ${response.status}`,
+      consecutiveFailures: consecutiveFailures,
       timestamp: new Date().toISOString()
     };
   } catch (error) {
@@ -332,14 +396,22 @@ async function checkTCDBStatus() {
       success: false,
       error: error.message,
       message: 'TCDB is not accessible',
+      consecutiveFailures: consecutiveFailures,
       timestamp: new Date().toISOString()
     };
   }
+}
+
+// Function to reset failure counter (useful for testing)
+function resetTCDBFailures() {
+  consecutiveFailures = 0;
+  console.log('🔄 TCDB failure counter reset');
 }
 
 module.exports = {
   scrapeTCDBSets,
   searchTCDBSets,
   getPopularTCDBSets,
-  checkTCDBStatus
+  checkTCDBStatus,
+  resetTCDBFailures
 }; 

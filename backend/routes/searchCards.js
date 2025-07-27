@@ -837,6 +837,9 @@ router.get('/test-tcdb', async (req, res) => {
     
     const tcdbService = require('../services/tcdbService');
     
+    // Reset failure counter for testing
+    tcdbService.resetTCDBFailures();
+    
     // Test TCDB status
     const status = await tcdbService.checkTCDBStatus();
     console.log('TCDB Status:', status);
@@ -859,6 +862,29 @@ router.get('/test-tcdb', async (req, res) => {
     });
   } catch (error) {
     console.error('TCDB test error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Reset TCDB failure counter endpoint
+router.post('/reset-tcdb-failures', async (req, res) => {
+  try {
+    console.log('🔄 Resetting TCDB failure counter...');
+    
+    const tcdbService = require('../services/tcdbService');
+    tcdbService.resetTCDBFailures();
+    
+    res.json({
+      success: true,
+      message: 'TCDB failure counter reset successfully',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Reset TCDB failures error:', error);
     res.status(500).json({
       success: false,
       error: error.message,
