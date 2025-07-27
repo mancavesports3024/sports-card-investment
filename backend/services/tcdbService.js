@@ -6,11 +6,20 @@ const TCDB_BASE_URL = 'https://www.tcdb.com';
 const TCDB_SPORTS_URLS = {
   Baseball: 'https://www.tcdb.com/ViewAll.cfm/sp/Baseball',
   Basketball: 'https://www.tcdb.com/ViewAll.cfm/sp/Basketball',
+  Boxing: 'https://www.tcdb.com/ViewAll.cfm/sp/Boxing',
+  Cricket: 'https://www.tcdb.com/ViewAll.cfm/sp/Cricket',
   Football: 'https://www.tcdb.com/ViewAll.cfm/sp/Football',
+  Gaming: 'https://www.tcdb.com/ViewAll.cfm/sp/Gaming',
+  Golf: 'https://www.tcdb.com/ViewAll.cfm/sp/Golf',
   Hockey: 'https://www.tcdb.com/ViewAll.cfm/sp/Hockey',
-  Pokemon: 'https://www.tcdb.com/ViewAll.cfm/sp/Pokemon',
-  Magic: 'https://www.tcdb.com/ViewAll.cfm/sp/Magic',
-  YuGiOh: 'https://www.tcdb.com/ViewAll.cfm/sp/YuGiOh'
+  'Misc Sports': 'https://www.tcdb.com/ViewAll.cfm/sp/Misc%20Sports',
+  MMA: 'https://www.tcdb.com/ViewAll.cfm/sp/MMA',
+  'Multi-Sport': 'https://www.tcdb.com/ViewAll.cfm/sp/Multi-Sport',
+  'Non-Sport': 'https://www.tcdb.com/ViewAll.cfm/sp/Non-Sport',
+  Racing: 'https://www.tcdb.com/ViewAll.cfm/sp/Racing',
+  Soccer: 'https://www.tcdb.com/ViewAll.cfm/sp/Soccer',
+  Tennis: 'https://www.tcdb.com/ViewAll.cfm/sp/Tennis',
+  Wrestling: 'https://www.tcdb.com/ViewAll.cfm/sp/Wrestling'
 };
 
 // Rate limiting
@@ -41,7 +50,16 @@ function extractYearFromSetName(setName) {
 
 // Helper function to extract brand from set name
 function extractBrandFromSetName(setName) {
-  const brands = ['Topps', 'Bowman', 'Panini', 'Upper Deck', 'Fleer', 'Donruss', 'Score', 'Stadium Club', 'Gallery', 'Heritage', 'Chrome', 'Update', 'Series', 'Pokemon', 'Magic', 'YuGiOh'];
+  const brands = [
+    // Traditional sports brands
+    'Topps', 'Bowman', 'Panini', 'Upper Deck', 'Fleer', 'Donruss', 'Score', 'Stadium Club', 'Gallery', 'Heritage', 'Chrome', 'Update', 'Series',
+    // Gaming brands
+    'Pokemon', 'Magic', 'YuGiOh', 'Wizards of the Coast', 'Konami', 'Nintendo',
+    // Non-sport brands
+    'Topps', 'Upper Deck', 'Fleer', 'Donruss', 'Panini', 'Leaf', 'Press Pass', 'Rittenhouse',
+    // Other brands
+    'Pinnacle', 'Skybox', 'Pacific', 'Playoff', 'SP', 'Finest', 'Flair', 'Stadium Club'
+  ];
   const lowerSetName = setName.toLowerCase();
   
   for (const brand of brands) {
@@ -200,15 +218,21 @@ async function searchTCDBSets(query, sport = null, limit = 20) {
 function detectSportFromSet(setName) {
   const lowerSetName = setName.toLowerCase();
   
+  // Gaming/Non-Sport categories
   if (lowerSetName.includes('pokemon') || lowerSetName.includes('charizard') || lowerSetName.includes('pikachu')) {
-    return 'Pokemon';
+    return 'Gaming';
   }
   if (lowerSetName.includes('magic') || lowerSetName.includes('mtg')) {
-    return 'Magic';
+    return 'Gaming';
   }
   if (lowerSetName.includes('yugioh') || lowerSetName.includes('yu-gi-oh')) {
-    return 'YuGiOh';
+    return 'Gaming';
   }
+  if (lowerSetName.includes('star wars') || lowerSetName.includes('marvel') || lowerSetName.includes('dc') || lowerSetName.includes('disney')) {
+    return 'Non-Sport';
+  }
+  
+  // Traditional sports
   if (lowerSetName.includes('hockey') || lowerSetName.includes('nhl') || lowerSetName.includes('young guns')) {
     return 'Hockey';
   }
@@ -217,6 +241,30 @@ function detectSportFromSet(setName) {
   }
   if (lowerSetName.includes('football') || lowerSetName.includes('nfl')) {
     return 'Football';
+  }
+  if (lowerSetName.includes('soccer') || lowerSetName.includes('fifa') || lowerSetName.includes('mls')) {
+    return 'Soccer';
+  }
+  if (lowerSetName.includes('tennis')) {
+    return 'Tennis';
+  }
+  if (lowerSetName.includes('golf')) {
+    return 'Golf';
+  }
+  if (lowerSetName.includes('boxing')) {
+    return 'Boxing';
+  }
+  if (lowerSetName.includes('mma') || lowerSetName.includes('ufc')) {
+    return 'MMA';
+  }
+  if (lowerSetName.includes('wrestling') || lowerSetName.includes('wwe')) {
+    return 'Wrestling';
+  }
+  if (lowerSetName.includes('racing') || lowerSetName.includes('nascar') || lowerSetName.includes('f1')) {
+    return 'Racing';
+  }
+  if (lowerSetName.includes('cricket')) {
+    return 'Cricket';
   }
   
   // Default to Baseball for most trading card sets
@@ -228,12 +276,12 @@ async function getPopularTCDBSets(limit = 30) {
   try {
     const allSets = [];
     
-    // Scrape popular sports
-    const sports = ['Baseball', 'Basketball', 'Football', 'Hockey', 'Pokemon'];
+    // Scrape popular sports (focus on the most popular ones to avoid too many requests)
+    const popularSports = ['Baseball', 'Basketball', 'Football', 'Hockey', 'Gaming', 'Non-Sport'];
     
-    for (const sport of sports) {
+    for (const sport of popularSports) {
       try {
-        const sets = await scrapeTCDBSets(sport, Math.ceil(limit / sports.length));
+        const sets = await scrapeTCDBSets(sport, Math.ceil(limit / popularSports.length));
         allSets.push(...sets);
         
         // Add delay between sports to be respectful
