@@ -1112,6 +1112,37 @@ router.post('/', async (req, res) => {
     console.log(`[130POINT] Using 130point service for sold items search: "${searchQuery}" at ${new Date().toISOString()}`);
     let allCards = await point130Service.search130point(searchQuery, 500);
 
+    // Filter out sealed products and hobby boxes
+    const filteredCards = allCards.filter(card => {
+      const title = (card.title || '').toLowerCase();
+      
+      // Keywords that indicate sealed products, hobby boxes, or factory sealed items
+      const sealedKeywords = [
+        'hobby box', 'factory sealed', 'sealed box', 'sealed pack', 'sealed case',
+        'booster box', 'booster pack', 'blaster box', 'blaster pack', 'fat pack',
+        'jumbo pack', 'retail box', 'retail pack', 'hanger box', 'hanger pack',
+        'value pack', 'value box', 'complete set', 'factory set', 'sealed product',
+        'unopened', 'sealed', 'box', 'case', 'lot of', 'lots of', 'bundle',
+        'collection', 'set', 'series', 'complete', 'full set', 'entire set'
+      ];
+      
+      // Check if title contains any sealed product keywords
+      const hasSealedKeywords = sealedKeywords.some(keyword => title.includes(keyword));
+      
+      // Also check for quantity indicators that suggest sealed products
+      const hasQuantityIndicators = /\d+\s*(box|pack|case|lot|bundle|set)/i.test(title);
+      
+      // Check for price ranges that suggest sealed products (usually higher than individual cards)
+      const price = parseFloat(card.price?.value || 0);
+      const isHighValueSealed = price > 100 && (hasSealedKeywords || hasQuantityIndicators);
+      
+      // Filter out if it's a sealed product
+      return !hasSealedKeywords && !hasQuantityIndicators && !isHighValueSealed;
+    });
+
+    console.log(`📊 Filtered out ${allCards.length - filteredCards.length} sealed products, keeping ${filteredCards.length} individual cards`);
+    allCards = filteredCards;
+
 
     // Combine results from both eBay sources
     // let allCards = [];
@@ -1678,6 +1709,37 @@ router.get('/card-set-analysis', async (req, res) => {
     // Fetch more data for comprehensive analysis
     const point130Cards = await point130Service.search130point(searchQuery, parseInt(limit) * 2);
     let allCards = point130Cards;
+
+    // Filter out sealed products and hobby boxes
+    const filteredCards = allCards.filter(card => {
+      const title = (card.title || '').toLowerCase();
+      
+      // Keywords that indicate sealed products, hobby boxes, or factory sealed items
+      const sealedKeywords = [
+        'hobby box', 'factory sealed', 'sealed box', 'sealed pack', 'sealed case',
+        'booster box', 'booster pack', 'blaster box', 'blaster pack', 'fat pack',
+        'jumbo pack', 'retail box', 'retail pack', 'hanger box', 'hanger pack',
+        'value pack', 'value box', 'complete set', 'factory set', 'sealed product',
+        'unopened', 'sealed', 'box', 'case', 'lot of', 'lots of', 'bundle',
+        'collection', 'set', 'series', 'complete', 'full set', 'entire set'
+      ];
+      
+      // Check if title contains any sealed product keywords
+      const hasSealedKeywords = sealedKeywords.some(keyword => title.includes(keyword));
+      
+      // Also check for quantity indicators that suggest sealed products
+      const hasQuantityIndicators = /\d+\s*(box|pack|case|lot|bundle|set)/i.test(title);
+      
+      // Check for price ranges that suggest sealed products (usually higher than individual cards)
+      const price = parseFloat(card.price?.value || 0);
+      const isHighValueSealed = price > 100 && (hasSealedKeywords || hasQuantityIndicators);
+      
+      // Filter out if it's a sealed product
+      return !hasSealedKeywords && !hasQuantityIndicators && !isHighValueSealed;
+    });
+
+    console.log(`📊 Filtered out ${allCards.length - filteredCards.length} sealed products, keeping ${filteredCards.length} individual cards`);
+    allCards = filteredCards;
 
     // Remove duplicates
     const uniqueCards = [];
