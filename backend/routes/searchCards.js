@@ -830,68 +830,7 @@ router.get('/test-ebay-scraping', async (req, res) => {
   }
 });
 
-// Test endpoint for TCDB service
-router.get('/test-tcdb', async (req, res) => {
-  try {
-    console.log('🧪 Testing TCDB service...');
-    
-    const tcdbService = require('../services/tcdbService');
-    
-    // Reset failure counter for testing
-    tcdbService.resetTCDBFailures();
-    
-    // Test TCDB status
-    const status = await tcdbService.checkTCDBStatus();
-    console.log('TCDB Status:', status);
-    
-    // Test popular sets
-    const popularSets = await tcdbService.getPopularTCDBSets(5);
-    console.log('Popular Sets:', popularSets);
-    
-    // Test search
-    const searchResults = await tcdbService.searchTCDBSets('Topps', null, 3);
-    console.log('Search Results:', searchResults);
-    
-    res.json({
-      success: true,
-      message: 'TCDB test completed',
-      status: status,
-      popularSets: popularSets,
-      searchResults: searchResults,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('TCDB test error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
 
-// Reset TCDB failure counter endpoint
-router.post('/reset-tcdb-failures', async (req, res) => {
-  try {
-    console.log('🔄 Resetting TCDB failure counter...');
-    
-    const tcdbService = require('../services/tcdbService');
-    tcdbService.resetTCDBFailures();
-    
-    res.json({
-      success: true,
-      message: 'TCDB failure counter reset successfully',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Reset TCDB failures error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
 
 // GET /api/rate-limits - Check eBay API rate limits
 router.get('/rate-limits', async (req, res) => {
@@ -1329,9 +1268,6 @@ router.get('/card-set-suggestions', async (req, res) => {
   try {
     console.log(`[CARD SET SUGGESTIONS] Request received: query="${query}", limit=${limit}`);
     
-    // Import TCDB service
-    const tcdbService = require('../services/tcdbService');
-    
     // Define card sets data inline since file deployment is unreliable
     const cardSetsData = {
       cardSets: [
@@ -1458,625 +1394,67 @@ router.get('/card-set-suggestions', async (req, res) => {
         {
           name: "Pokemon Base Set",
           years: ["1999"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Jungle",
-          years: ["1999"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Fossil",
-          years: ["1999"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Team Rocket",
-          years: ["2000"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Neo Genesis",
-          years: ["2000"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Neo Discovery",
-          years: ["2001"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Neo Revelation",
-          years: ["2001"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Neo Destiny",
-          years: ["2002"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Legendary Collection",
-          years: ["2002"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX Ruby & Sapphire",
-          years: ["2003"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX Sandstorm",
-          years: ["2003"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX Dragon",
-          years: ["2003"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX Team Magma vs Team Aqua",
-          years: ["2004"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX Hidden Legends",
-          years: ["2004"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX FireRed & LeafGreen",
-          years: ["2004"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX Team Rocket Returns",
-          years: ["2004"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX Deoxys",
-          years: ["2005"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX Emerald",
-          years: ["2005"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX Unseen Forces",
-          years: ["2005"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX Delta Species",
-          years: ["2005"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX Legend Maker",
-          years: ["2006"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX Holon Phantoms",
-          years: ["2006"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX Crystal Guardians",
-          years: ["2006"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX Dragon Frontiers",
-          years: ["2006"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon EX Power Keepers",
-          years: ["2007"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Diamond & Pearl",
-          years: ["2007"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Mysterious Treasures",
-          years: ["2007"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Secret Wonders",
-          years: ["2007"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Great Encounters",
-          years: ["2008"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Majestic Dawn",
-          years: ["2008"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Legends Awakened",
-          years: ["2008"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Stormfront",
-          years: ["2008"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Platinum",
-          years: ["2009"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Rising Rivals",
-          years: ["2009"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Supreme Victors",
-          years: ["2009"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Arceus",
-          years: ["2009"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon HeartGold & SoulSilver",
-          years: ["2010"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Unleashed",
-          years: ["2010"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Undaunted",
-          years: ["2010"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Triumphant",
-          years: ["2010"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Call of Legends",
-          years: ["2011"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Black & White",
-          years: ["2011"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Emerging Powers",
-          years: ["2011"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Noble Victories",
-          years: ["2011"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Next Destinies",
-          years: ["2012"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Dark Explorers",
-          years: ["2012"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Dragons Exalted",
-          years: ["2012"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Boundaries Crossed",
-          years: ["2012"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Plasma Storm",
-          years: ["2013"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Plasma Freeze",
-          years: ["2013"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Plasma Blast",
-          years: ["2013"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Legendary Treasures",
-          years: ["2013"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon XY",
-          years: ["2014"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Flashfire",
-          years: ["2014"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Furious Fists",
-          years: ["2014"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Phantom Forces",
-          years: ["2014"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Primal Clash",
-          years: ["2015"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Roaring Skies",
-          years: ["2015"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Ancient Origins",
-          years: ["2015"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Breakthrough",
-          years: ["2015"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Breakpoint",
-          years: ["2016"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Fates Collide",
-          years: ["2016"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Steam Siege",
-          years: ["2016"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Evolutions",
-          years: ["2016"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Sun & Moon",
-          years: ["2017"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Guardians Rising",
-          years: ["2017"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Burning Shadows",
-          years: ["2017"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Crimson Invasion",
-          years: ["2017"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Ultra Prism",
-          years: ["2018"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Forbidden Light",
-          years: ["2018"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Celestial Storm",
-          years: ["2018"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Dragon Majesty",
-          years: ["2018"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Lost Thunder",
-          years: ["2018"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Team Up",
-          years: ["2019"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Detective Pikachu",
-          years: ["2019"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Unbroken Bonds",
-          years: ["2019"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Unified Minds",
-          years: ["2019"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Hidden Fates",
-          years: ["2019"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Cosmic Eclipse",
-          years: ["2019"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Sword & Shield",
-          years: ["2020"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Rebel Clash",
-          years: ["2020"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Darkness Ablaze",
-          years: ["2020"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Champions Path",
-          years: ["2020"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Vivid Voltage",
-          years: ["2020"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Shining Fates",
-          years: ["2021"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Battle Styles",
-          years: ["2021"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Chilling Reign",
-          years: ["2021"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Evolving Skies",
-          years: ["2021"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Fusion Strike",
-          years: ["2021"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Brilliant Stars",
-          years: ["2022"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Astral Radiance",
-          years: ["2022"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Lost Origin",
-          years: ["2022"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Silver Tempest",
-          years: ["2022"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Crown Zenith",
-          years: ["2023"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Scarlet & Violet",
-          years: ["2023"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Paldea Evolved",
-          years: ["2023"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Obsidian Flames",
-          years: ["2023"],
-          category: "Pokemon",
+          category: "Gaming",
           brand: "Pokemon"
         },
         {
           name: "Pokemon 151",
           years: ["2023"],
-          category: "Pokemon",
+          category: "Gaming",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Evolving Skies",
+          years: ["2021"],
+          category: "Gaming",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Crown Zenith",
+          years: ["2023"],
+          category: "Gaming",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Scarlet & Violet",
+          years: ["2023"],
+          category: "Gaming",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Paldea Evolved",
+          years: ["2023"],
+          category: "Gaming",
+          brand: "Pokemon"
+        },
+        {
+          name: "Pokemon Obsidian Flames",
+          years: ["2023"],
+          category: "Gaming",
           brand: "Pokemon"
         },
         {
           name: "Pokemon Paradox Rift",
           years: ["2023"],
-          category: "Pokemon",
+          category: "Gaming",
           brand: "Pokemon"
         },
         {
           name: "Pokemon Paldean Fates",
           years: ["2024"],
-          category: "Pokemon",
+          category: "Gaming",
           brand: "Pokemon"
         },
         {
           name: "Pokemon Temporal Forces",
           years: ["2024"],
-          category: "Pokemon",
+          category: "Gaming",
           brand: "Pokemon"
         },
         {
           name: "Pokemon Twilight Masquerade",
           years: ["2024"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Ancient Roar",
-          years: ["2024"],
-          category: "Pokemon",
-          brand: "Pokemon"
-        },
-        {
-          name: "Pokemon Future Flash",
-          years: ["2024"],
-          category: "Pokemon",
+          category: "Gaming",
           brand: "Pokemon"
         }
       ]
@@ -2096,32 +1474,11 @@ router.get('/card-set-suggestions', async (req, res) => {
       // Return popular sets if no query
       console.log('[CARD SET SUGGESTIONS] No query provided, returning popular sets');
       
-      // Try to get popular sets from TCDB first
-      let popularSets = [];
-      try {
-        console.log('[CARD SET SUGGESTIONS] Attempting to fetch popular sets from TCDB...');
-        const tcdbSets = await tcdbService.getPopularTCDBSets(parseInt(limit));
-        if (tcdbSets.length > 0) {
-          popularSets = tcdbSets.map(set => ({
-            name: set.name,
-            brand: set.brand,
-            category: set.category,
-            years: set.years || [],
-            source: 'TCDB'
-          }));
-          console.log(`[CARD SET SUGGESTIONS] Found ${popularSets.length} popular sets from TCDB`);
-        }
-      } catch (tcdbError) {
-        console.log('[CARD SET SUGGESTIONS] TCDB failed, falling back to inline data:', tcdbError.message);
-      }
-      
-      // Fallback to inline data if TCDB fails
-      if (popularSets.length === 0) {
-        popularSets = cardSetsData.cardSets
-          .filter(set => set.years && Array.isArray(set.years) && (set.years.includes('2024') || set.years.includes('2023')))
-          .slice(0, parseInt(limit));
-        console.log(`[CARD SET SUGGESTIONS] Using ${popularSets.length} fallback sets from inline data`);
-      }
+      // Use inline data for popular sets
+      const popularSets = cardSetsData.cardSets
+        .filter(set => set.years && Array.isArray(set.years) && (set.years.includes('2024') || set.years.includes('2023')))
+        .slice(0, parseInt(limit));
+      console.log(`[CARD SET SUGGESTIONS] Using ${popularSets.length} popular sets from inline data`);
       
       return res.json({
         suggestions: popularSets.map(set => ({
@@ -2129,7 +1486,7 @@ router.get('/card-set-suggestions', async (req, res) => {
           brand: set.brand,
           category: set.category,
           years: set.years ? set.years.slice(-5) : [], // Last 5 years
-          source: set.source || 'Inline'
+          source: 'Inline'
         }))
       });
     }
@@ -2138,32 +1495,49 @@ router.get('/card-set-suggestions', async (req, res) => {
     const searchTerm = query.toLowerCase();
     console.log(`[CARD SET SUGGESTIONS] Searching for: "${searchTerm}"`);
     
-    // Try to search TCDB first
-    let suggestions = [];
-    try {
-      console.log('[CARD SET SUGGESTIONS] Attempting to search TCDB...');
-      const tcdbResults = await tcdbService.searchTCDBSets(query, null, parseInt(limit));
-      if (tcdbResults.length > 0) {
-        suggestions = tcdbResults.map(set => ({
-          name: set.name,
-          brand: set.brand,
-          category: set.category,
-          years: set.years || [],
-          source: 'TCDB'
-        }));
-        console.log(`[CARD SET SUGGESTIONS] Found ${suggestions.length} matching sets from TCDB`);
-      }
-    } catch (tcdbError) {
-      console.log('[CARD SET SUGGESTIONS] TCDB search failed, falling back to inline data:', tcdbError.message);
-    }
+    // Use inline data for search
+    console.log(`[CARD SET SUGGESTIONS] Searching inline data for: "${searchTerm}"`);
     
-    // Fallback to inline data if TCDB fails or returns no results
-    if (suggestions.length === 0) {
-      console.log(`[CARD SET SUGGESTIONS] TCDB returned no results, searching inline data for: "${searchTerm}"`);
-      
-      // Split search term into words for more flexible matching
-      const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
-      console.log(`[CARD SET SUGGESTIONS] Search words: [${searchWords.join(', ')}]`);
+    // Split search term into words for more flexible matching
+    const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
+    console.log(`[CARD SET SUGGESTIONS] Search words: [${searchWords.join(', ')}]`);
+    
+    let suggestions = cardSetsData.cardSets
+      .filter(set => {
+        if (!set.name || !set.brand || !set.category) return false;
+        
+        const setName = set.name.toLowerCase();
+        const setBrand = set.brand.toLowerCase();
+        const setCategory = set.category.toLowerCase();
+        
+        // Check if any search word matches any part of the set
+        const hasMatch = searchWords.some(word => 
+          setName.includes(word) || 
+          setBrand.includes(word) || 
+          setCategory.includes(word)
+        );
+        
+        // Also check for exact phrase match
+        const exactMatch = setName.includes(searchTerm) || 
+                          setBrand.includes(searchTerm) || 
+                          setCategory.includes(searchTerm);
+        
+        return hasMatch || exactMatch;
+      })
+      .slice(0, parseInt(limit))
+      .map(set => ({
+        name: set.name,
+        brand: set.brand,
+        category: set.category,
+        years: set.years ? set.years.slice(-5) : [], // Last 5 years
+        source: 'Inline'
+      }));
+    
+    console.log(`[CARD SET SUGGESTIONS] Found ${suggestions.length} matching sets in inline data`);
+    
+    // If still no results, try broader search
+    if (suggestions.length === 0 && searchWords.length > 0) {
+      console.log(`[CARD SET SUGGESTIONS] No exact matches, trying broader search with first word: "${searchWords[0]}"`);
       
       suggestions = cardSetsData.cardSets
         .filter(set => {
@@ -2173,19 +1547,9 @@ router.get('/card-set-suggestions', async (req, res) => {
           const setBrand = set.brand.toLowerCase();
           const setCategory = set.category.toLowerCase();
           
-          // Check if any search word matches any part of the set
-          const hasMatch = searchWords.some(word => 
-            setName.includes(word) || 
-            setBrand.includes(word) || 
-            setCategory.includes(word)
-          );
-          
-          // Also check for exact phrase match
-          const exactMatch = setName.includes(searchTerm) || 
-                           setBrand.includes(searchTerm) || 
-                           setCategory.includes(searchTerm);
-          
-          return hasMatch || exactMatch;
+          return setName.includes(searchWords[0]) || 
+                 setBrand.includes(searchWords[0]) || 
+                 setCategory.includes(searchWords[0]);
         })
         .slice(0, parseInt(limit))
         .map(set => ({
@@ -2196,35 +1560,7 @@ router.get('/card-set-suggestions', async (req, res) => {
           source: 'Inline'
         }));
       
-      console.log(`[CARD SET SUGGESTIONS] Found ${suggestions.length} matching sets in inline data`);
-      
-      // If still no results, try broader search
-      if (suggestions.length === 0 && searchWords.length > 0) {
-        console.log(`[CARD SET SUGGESTIONS] No exact matches, trying broader search with first word: "${searchWords[0]}"`);
-        
-        suggestions = cardSetsData.cardSets
-          .filter(set => {
-            if (!set.name || !set.brand || !set.category) return false;
-            
-            const setName = set.name.toLowerCase();
-            const setBrand = set.brand.toLowerCase();
-            const setCategory = set.category.toLowerCase();
-            
-            return setName.includes(searchWords[0]) || 
-                   setBrand.includes(searchWords[0]) || 
-                   setCategory.includes(searchWords[0]);
-          })
-          .slice(0, parseInt(limit))
-          .map(set => ({
-            name: set.name,
-            brand: set.brand,
-            category: set.category,
-            years: set.years ? set.years.slice(-5) : [], // Last 5 years
-            source: 'Inline'
-          }));
-        
-        console.log(`[CARD SET SUGGESTIONS] Broader search found ${suggestions.length} sets`);
-      }
+      console.log(`[CARD SET SUGGESTIONS] Broader search found ${suggestions.length} sets`);
     }
     
     console.log(`[CARD SET SUGGESTIONS] Returning ${suggestions.length} total suggestions`);
