@@ -2159,14 +2159,33 @@ router.get('/card-set-suggestions', async (req, res) => {
     
     // Fallback to inline data if TCDB fails or returns no results
     if (suggestions.length === 0) {
+      console.log(`[CARD SET SUGGESTIONS] TCDB returned no results, searching inline data for: "${searchTerm}"`);
+      
+      // Split search term into words for more flexible matching
+      const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
+      console.log(`[CARD SET SUGGESTIONS] Search words: [${searchWords.join(', ')}]`);
+      
       suggestions = cardSetsData.cardSets
         .filter(set => {
           if (!set.name || !set.brand || !set.category) return false;
           
-          const nameMatch = set.name.toLowerCase().includes(searchTerm);
-          const brandMatch = set.brand.toLowerCase().includes(searchTerm);
-          const categoryMatch = set.category.toLowerCase().includes(searchTerm);
-          return nameMatch || brandMatch || categoryMatch;
+          const setName = set.name.toLowerCase();
+          const setBrand = set.brand.toLowerCase();
+          const setCategory = set.category.toLowerCase();
+          
+          // Check if any search word matches any part of the set
+          const hasMatch = searchWords.some(word => 
+            setName.includes(word) || 
+            setBrand.includes(word) || 
+            setCategory.includes(word)
+          );
+          
+          // Also check for exact phrase match
+          const exactMatch = setName.includes(searchTerm) || 
+                           setBrand.includes(searchTerm) || 
+                           setCategory.includes(searchTerm);
+          
+          return hasMatch || exactMatch;
         })
         .slice(0, parseInt(limit))
         .map(set => ({
@@ -2176,7 +2195,36 @@ router.get('/card-set-suggestions', async (req, res) => {
           years: set.years ? set.years.slice(-5) : [], // Last 5 years
           source: 'Inline'
         }));
-      console.log(`[CARD SET SUGGESTIONS] Using ${suggestions.length} fallback sets from inline data`);
+      
+      console.log(`[CARD SET SUGGESTIONS] Found ${suggestions.length} matching sets in inline data`);
+      
+      // If still no results, try broader search
+      if (suggestions.length === 0 && searchWords.length > 0) {
+        console.log(`[CARD SET SUGGESTIONS] No exact matches, trying broader search with first word: "${searchWords[0]}"`);
+        
+        suggestions = cardSetsData.cardSets
+          .filter(set => {
+            if (!set.name || !set.brand || !set.category) return false;
+            
+            const setName = set.name.toLowerCase();
+            const setBrand = set.brand.toLowerCase();
+            const setCategory = set.category.toLowerCase();
+            
+            return setName.includes(searchWords[0]) || 
+                   setBrand.includes(searchWords[0]) || 
+                   setCategory.includes(searchWords[0]);
+          })
+          .slice(0, parseInt(limit))
+          .map(set => ({
+            name: set.name,
+            brand: set.brand,
+            category: set.category,
+            years: set.years ? set.years.slice(-5) : [], // Last 5 years
+            source: 'Inline'
+          }));
+        
+        console.log(`[CARD SET SUGGESTIONS] Broader search found ${suggestions.length} sets`);
+      }
     }
     
     console.log(`[CARD SET SUGGESTIONS] Returning ${suggestions.length} total suggestions`);
@@ -2188,14 +2236,48 @@ router.get('/card-set-suggestions', async (req, res) => {
     // Fallback to hardcoded popular sets if file reading fails
     console.log('[CARD SET SUGGESTIONS] Using fallback hardcoded suggestions');
     const fallbackSets = [
+      // Baseball - Topps
       { name: "Topps Series One", brand: "Topps", category: "Baseball", years: ["2025", "2024", "2023", "2022", "2021"] },
+      { name: "Topps Series Two", brand: "Topps", category: "Baseball", years: ["2025", "2024", "2023", "2022", "2021"] },
+      { name: "Topps Update", brand: "Topps", category: "Baseball", years: ["2024", "2023", "2022", "2021", "2020"] },
       { name: "Topps Chrome", brand: "Topps", category: "Baseball", years: ["2024", "2023", "2022", "2021", "2020"] },
+      { name: "Topps Heritage", brand: "Topps", category: "Baseball", years: ["2024", "2023", "2022", "2021", "2020"] },
+      { name: "Topps Stadium Club", brand: "Topps", category: "Baseball", years: ["2024", "2023", "2022", "2021", "2020"] },
+      { name: "Topps Gallery", brand: "Topps", category: "Baseball", years: ["2024", "2023", "2022", "2021", "2020"] },
+      
+      // Baseball - Bowman
+      { name: "Bowman", brand: "Bowman", category: "Baseball", years: ["2024", "2023", "2022", "2021", "2020"] },
       { name: "Bowman Chrome", brand: "Bowman", category: "Baseball", years: ["2024", "2023", "2022", "2021", "2020"] },
+      { name: "Bowman Draft", brand: "Bowman", category: "Baseball", years: ["2024", "2023", "2022", "2021", "2020"] },
+      
+      // Basketball - Panini
       { name: "Panini Prizm", brand: "Panini", category: "Basketball", years: ["2024", "2023", "2022", "2021", "2020"] },
       { name: "Panini Donruss", brand: "Panini", category: "Basketball", years: ["2024", "2023", "2022", "2021", "2020"] },
-      { name: "Pokemon Base Set", brand: "Pokemon", category: "Pokemon", years: ["1999"] },
-      { name: "Pokemon 151", brand: "Pokemon", category: "Pokemon", years: ["2023"] },
-      { name: "Pokemon Evolving Skies", brand: "Pokemon", category: "Pokemon", years: ["2021"] }
+      { name: "Panini Optic", brand: "Panini", category: "Basketball", years: ["2024", "2023", "2022", "2021", "2020"] },
+      { name: "Panini Select", brand: "Panini", category: "Basketball", years: ["2024", "2023", "2022", "2021", "2020"] },
+      { name: "Panini Mosaic", brand: "Panini", category: "Basketball", years: ["2024", "2023", "2022", "2021", "2020"] },
+      
+      // Football - Panini
+      { name: "Panini Contenders", brand: "Panini", category: "Football", years: ["2024", "2023", "2022", "2021", "2020"] },
+      { name: "Panini Playoff", brand: "Panini", category: "Football", years: ["2024", "2023", "2022", "2021", "2020"] },
+      { name: "Panini Absolute", brand: "Panini", category: "Football", years: ["2024", "2023", "2022", "2021", "2020"] },
+      
+      // Hockey - Upper Deck
+      { name: "Upper Deck", brand: "Upper Deck", category: "Hockey", years: ["2024", "2023", "2022", "2021", "2020"] },
+      { name: "Upper Deck Young Guns", brand: "Upper Deck", category: "Hockey", years: ["2024", "2023", "2022", "2021", "2020"] },
+      
+      // Pokemon - Gaming
+      { name: "Pokemon Base Set", brand: "Pokemon", category: "Gaming", years: ["1999"] },
+      { name: "Pokemon 151", brand: "Pokemon", category: "Gaming", years: ["2023"] },
+      { name: "Pokemon Evolving Skies", brand: "Pokemon", category: "Gaming", years: ["2021"] },
+      { name: "Pokemon Crown Zenith", brand: "Pokemon", category: "Gaming", years: ["2023"] },
+      { name: "Pokemon Scarlet & Violet", brand: "Pokemon", category: "Gaming", years: ["2023"] },
+      { name: "Pokemon Paldea Evolved", brand: "Pokemon", category: "Gaming", years: ["2023"] },
+      { name: "Pokemon Obsidian Flames", brand: "Pokemon", category: "Gaming", years: ["2023"] },
+      { name: "Pokemon Paradox Rift", brand: "Pokemon", category: "Gaming", years: ["2023"] },
+      { name: "Pokemon Paldean Fates", brand: "Pokemon", category: "Gaming", years: ["2024"] },
+      { name: "Pokemon Temporal Forces", brand: "Pokemon", category: "Gaming", years: ["2024"] },
+      { name: "Pokemon Twilight Masquerade", brand: "Pokemon", category: "Gaming", years: ["2024"] }
     ];
     
     if (!query.trim()) {
@@ -2203,11 +2285,27 @@ router.get('/card-set-suggestions', async (req, res) => {
     }
     
     const searchTerm = query.toLowerCase();
-    const filteredSets = fallbackSets.filter(set => 
-      set.name.toLowerCase().includes(searchTerm) ||
-      set.brand.toLowerCase().includes(searchTerm) ||
-      set.category.toLowerCase().includes(searchTerm)
-    );
+    const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
+    
+    const filteredSets = fallbackSets.filter(set => {
+      const setName = set.name.toLowerCase();
+      const setBrand = set.brand.toLowerCase();
+      const setCategory = set.category.toLowerCase();
+      
+      // Check if any search word matches any part of the set
+      const hasMatch = searchWords.some(word => 
+        setName.includes(word) || 
+        setBrand.includes(word) || 
+        setCategory.includes(word)
+      );
+      
+      // Also check for exact phrase match
+      const exactMatch = setName.includes(searchTerm) || 
+                        setBrand.includes(searchTerm) || 
+                        setCategory.includes(searchTerm);
+      
+      return hasMatch || exactMatch;
+    });
     
     res.json({ suggestions: filteredSets.slice(0, parseInt(limit)) });
   }
