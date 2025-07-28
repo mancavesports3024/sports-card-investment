@@ -64,39 +64,43 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
       textAlign: 'center',
       maxWidth: 350,
       width: 350,
-      minHeight: 450, // Minimum height to prevent jumping
+      height: 480, // Fixed height to completely prevent jumping
       marginLeft: 'auto',
       marginRight: 'auto',
-      position: 'relative'
+      position: 'relative',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between'
     }}>
-      {/* Fixed-size image container with robust centering */}
-      <div style={{
-        width: 180,
-        height: 180,
-        marginBottom: 15,
-        background: '#f8f9fa',
-        borderRadius: 8,
-        border: '1px solid #e0e0e0',
-        position: 'relative',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden'
-      }}>
+      {/* Content wrapper for proper spacing */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        {/* Fixed-size image container with CSS Grid centering */}
+        <div style={{
+          width: 180,
+          height: 180,
+          marginBottom: 15,
+          background: '#f8f9fa',
+          borderRadius: 8,
+          border: '1px solid #e0e0e0',
+          display: 'grid',
+          placeItems: 'center',
+          overflow: 'hidden'
+        }}>
         {item.image && imagesLoaded[current] !== false ? (
           <img 
             src={item.image} 
             alt={item.title} 
             style={{ 
-              maxWidth: '100%',
-              maxHeight: '100%',
+              maxWidth: '160px',
+              maxHeight: '160px',
               width: 'auto',
               height: 'auto',
               objectFit: 'contain',
               borderRadius: 6,
-              display: 'block',
               opacity: imagesLoaded[current] ? 1 : 0,
-              transition: 'opacity 0.3s ease'
+              transition: 'opacity 0.3s ease',
+              justifySelf: 'center',
+              alignSelf: 'center'
             }} 
             onLoad={(e) => {
               setImagesLoaded(prev => ({ ...prev, [current]: true }));
@@ -110,15 +114,13 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
             color: '#999',
             fontSize: '0.9rem',
             textAlign: 'center',
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100%'
+            justifySelf: 'center',
+            alignSelf: 'center'
           }}>
             {imagesLoaded[current] === false ? 'Image Error' : 'Loading...'}
           </div>
         )}
+      </div>
       </div>
       
       {/* Enhanced Title Section */}
