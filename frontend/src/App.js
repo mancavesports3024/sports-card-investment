@@ -5,6 +5,7 @@ import SearchPage from './components/SearchPage';
 import AuthSuccess from './components/AuthSuccess';
 import SavedSearches from './components/SavedSearches';
 import CardSetAnalysis from './components/CardSetAnalysis';
+import NewsPage from './components/NewsPage';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
@@ -61,6 +62,7 @@ function App() {
               <a href="/" className="header-nav-link">Home</a>
               <a href="/search" className="header-nav-link">Search Cards</a>
               <a href="/card-set-analysis" className="header-nav-link">Card Set Analysis</a>
+              <a href="/news" className="header-nav-link">News</a>
             </div>
             <div className="header-social-group">
               <a href="https://x.com/Mancavesportsc1" target="_blank" rel="noopener noreferrer" className="header-social">𝕏</a>
@@ -85,6 +87,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/card-set-analysis" element={<CardSetAnalysis />} />
+          <Route path="/news" element={<NewsPage />} />
           <Route path="/auth-success" element={<AuthSuccess onAuthSuccess={checkAuthStatus} />} />
         </Routes>
       </div>

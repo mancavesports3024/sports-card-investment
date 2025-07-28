@@ -81,6 +81,11 @@ const HomePage = () => {
               <h3>Card Set Analysis</h3>
               <p>Discover the most valuable and best-selling cards from specific sets like Topps 2025 Series One.</p>
             </div>
+            <div className="feature-card">
+              <div className="feature-icon">📰</div>
+              <h3>Release Calendar</h3>
+              <p>Stay updated on the latest card releases with our comprehensive calendar and industry news.</p>
+            </div>
           </div>
         </section>
 
