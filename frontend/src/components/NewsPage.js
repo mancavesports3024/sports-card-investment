@@ -301,7 +301,11 @@ const NewsPage = () => {
           Stay updated on the latest sports card releases from major brands including Topps, Panini, Bowman, and Upper Deck.
           {releases.length > 0 && (
             <span style={{ display: 'block', marginTop: '0.5rem', fontWeight: 600 }}>
-              📊 {releases.length} releases found from {[...new Set(releases.map(r => r.source))].join(', ')}
+              📊 {releases.filter(release => {
+                if (!release.releaseDate) return false;
+                const releaseYear = new Date(release.releaseDate).getFullYear();
+                return releaseYear === currentYear;
+              }).length} releases found for {currentYear} from {[...new Set(releases.map(r => r.source))].join(', ')}
             </span>
           )}
         </p>
@@ -369,25 +373,36 @@ const NewsPage = () => {
 
       {!isLoading && !error && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-          {releases.length > 0 ? (
-            releases.map((release, index) => renderReleaseCard(release, index))
-          ) : (
-            <div style={{
-              background: '#1f2937',
-              borderRadius: 12,
-              padding: '2rem',
-              textAlign: 'center',
-              border: '2px solid #374151',
-              gridColumn: '1 / -1'
-            }}>
-              <div style={{ color: '#ffd700', fontSize: '1.2rem', marginBottom: '1rem' }}>
-                📭 No releases found
-              </div>
-              <div style={{ color: '#d1d5db' }}>
-                No release information is currently available. Check back later for updates.
-              </div>
-            </div>
-          )}
+          {(() => {
+            // Filter releases by the selected year
+            const filteredReleases = releases.filter(release => {
+              if (!release.releaseDate) return false;
+              const releaseYear = new Date(release.releaseDate).getFullYear();
+              return releaseYear === currentYear;
+            });
+
+            if (filteredReleases.length > 0) {
+              return filteredReleases.map((release, index) => renderReleaseCard(release, index));
+            } else {
+              return (
+                <div style={{
+                  background: '#1f2937',
+                  borderRadius: 12,
+                  padding: '2rem',
+                  textAlign: 'center',
+                  border: '2px solid #374151',
+                  gridColumn: '1 / -1'
+                }}>
+                  <div style={{ color: '#ffd700', fontSize: '1.2rem', marginBottom: '1rem' }}>
+                    📭 No releases found for {currentYear}
+                  </div>
+                  <div style={{ color: '#d1d5db' }}>
+                    No release information is currently available for {currentYear}. Try selecting a different year.
+                  </div>
+                </div>
+              );
+            }
+          })()}
         </div>
       )}
     </div>

@@ -664,6 +664,126 @@ class ReleaseInfoService {
         description: 'Panini Silhouette premium basketball cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
+      },
+      {
+        title: '2026 Topps Series One Baseball',
+        brand: 'Topps',
+        sport: 'Baseball',
+        releaseDate: '2026-01-15',
+        year: '2026',
+        source: 'Comprehensive Release Data',
+        status: 'Announced',
+        description: 'The flagship 2026 baseball card set featuring current MLB players and rookies',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2026 Bowman Chrome Baseball',
+        brand: 'Bowman',
+        sport: 'Baseball',
+        releaseDate: '2026-02-05',
+        year: '2026',
+        source: 'Comprehensive Release Data',
+        status: 'Announced',
+        description: 'Chrome prospect cards featuring future MLB stars',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025/26 Panini Prizm Basketball',
+        brand: 'Panini',
+        sport: 'Basketball',
+        releaseDate: '2026-01-22',
+        year: '2026',
+        source: 'Comprehensive Release Data',
+        status: 'Announced',
+        description: 'Premium basketball cards with stunning Prizm technology',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025/26 Upper Deck Young Guns Hockey',
+        brand: 'Upper Deck',
+        sport: 'Hockey',
+        releaseDate: '2026-02-12',
+        year: '2026',
+        source: 'Comprehensive Release Data',
+        status: 'Announced',
+        description: 'Premier rookie cards for NHL prospects',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2026 Topps Chrome Baseball',
+        brand: 'Topps',
+        sport: 'Baseball',
+        releaseDate: '2026-03-01',
+        year: '2026',
+        source: 'Comprehensive Release Data',
+        status: 'Announced',
+        description: 'Chrome version of the flagship baseball set',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025/26 Panini Select Basketball',
+        brand: 'Panini',
+        sport: 'Basketball',
+        releaseDate: '2026-03-15',
+        year: '2026',
+        source: 'Comprehensive Release Data',
+        status: 'Announced',
+        description: 'Select basketball cards with unique design',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2026 Topps Heritage Baseball',
+        brand: 'Topps',
+        sport: 'Baseball',
+        releaseDate: '2026-04-02',
+        year: '2026',
+        source: 'Comprehensive Release Data',
+        status: 'Announced',
+        description: 'Retro-style cards inspired by classic Topps designs',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2026 Bowman Baseball',
+        brand: 'Bowman',
+        sport: 'Baseball',
+        releaseDate: '2026-05-07',
+        year: '2026',
+        source: 'Comprehensive Release Data',
+        status: 'Announced',
+        description: 'Paper prospect cards featuring future stars',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2026 Topps Series Two Baseball',
+        brand: 'Topps',
+        sport: 'Baseball',
+        releaseDate: '2026-06-11',
+        year: '2026',
+        source: 'Comprehensive Release Data',
+        status: 'Announced',
+        description: 'Second series of the flagship baseball set',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025/26 Panini Donruss Football',
+        brand: 'Panini',
+        sport: 'Football',
+        releaseDate: '2026-07-08',
+        year: '2026',
+        source: 'Comprehensive Release Data',
+        status: 'Announced',
+        description: 'Classic Donruss football cards with modern design',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
       }
     ];
   }
