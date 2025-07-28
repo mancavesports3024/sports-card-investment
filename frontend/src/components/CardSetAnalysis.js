@@ -328,6 +328,33 @@ const CardSetAnalysis = () => {
         </p>
       </div>
 
+      {/* Search Tips */}
+      <div style={{
+        background: 'linear-gradient(135deg, #ffd700, #ffed4e)',
+        padding: '1.5rem',
+        borderRadius: 12,
+        marginBottom: '1.5rem',
+        border: '2px solid #000'
+      }}>
+        <h3 style={{ margin: '0 0 1rem 0', color: '#000', fontSize: '1.2rem', fontWeight: 700 }}>
+          💡 Search Tips
+        </h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', fontSize: '0.9rem', color: '#333' }}>
+          <div>
+            <strong>Popular Sets:</strong> Topps Series One, Bowman Chrome, Panini Prizm, Pokemon 151
+          </div>
+          <div>
+            <strong>Search by Sport:</strong> Baseball, Basketball, Football, Hockey, Gaming
+          </div>
+          <div>
+            <strong>Search by Brand:</strong> Topps, Bowman, Panini, Upper Deck, Pokemon
+          </div>
+          <div>
+            <strong>Search by Type:</strong> Base Set, Premium Set, Prospect Set, Retro Set
+          </div>
+        </div>
+      </div>
+
       <form onSubmit={handleSearch} style={{
         background: '#fff',
         padding: '2rem',
@@ -391,11 +418,28 @@ const CardSetAnalysis = () => {
                     <div style={{ fontWeight: 600, color: '#333', marginBottom: '0.25rem' }}>
                       {suggestion.name}
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: '#666' }}>
-                      {suggestion.brand} • {suggestion.category}
+                    <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.25rem' }}>
+                      {suggestion.brand} • {suggestion.sport || suggestion.category} • {suggestion.setType}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#999' }}>
-                      Years: {suggestion.years.join(', ')}
+                    {suggestion.description && (
+                      <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.25rem', fontStyle: 'italic' }}>
+                        {suggestion.description.length > 80 ? suggestion.description.substring(0, 80) + '...' : suggestion.description}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#999' }}>
+                      <span>Years: {suggestion.years.join(', ')}</span>
+                      {suggestion.popularity && (
+                        <span style={{ 
+                          background: suggestion.popularity >= 9 ? '#28a745' : suggestion.popularity >= 7 ? '#ffc107' : '#dc3545',
+                          color: '#fff',
+                          padding: '0.2rem 0.5rem',
+                          borderRadius: '4px',
+                          fontSize: '0.7rem',
+                          fontWeight: 'bold'
+                        }}>
+                          {suggestion.popularity}/10
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}
