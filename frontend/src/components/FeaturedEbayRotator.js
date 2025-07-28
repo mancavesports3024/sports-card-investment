@@ -64,7 +64,7 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
       textAlign: 'center',
       maxWidth: 350,
       width: 350,
-      height: 480, // Fixed height to completely prevent jumping
+      minHeight: 480, // Minimum height to prevent jumping, but allow expansion
       marginLeft: 'auto',
       marginRight: 'auto',
       position: 'relative',
@@ -73,7 +73,7 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
       justifyContent: 'space-between'
     }}>
       {/* Content wrapper for proper spacing */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start' }}>
         {/* Fixed-size image container with CSS Grid centering */}
         <div style={{
           width: 180,
@@ -177,7 +177,7 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
         View on eBay
       </a>
       
-      <div style={{ marginTop: 10, display: 'flex', justifyContent: 'center', gap: 16 }}>
+      <div style={{ marginTop: 15, paddingBottom: 5, display: 'flex', justifyContent: 'center', gap: 16 }}>
         <button 
           onClick={() => goTo((current - 1 + items.length) % items.length)} 
           style={{ 
