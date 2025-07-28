@@ -35,7 +35,7 @@ const HomePage = () => {
           </div>
           <div className="hero-image">
             <div className="mockup-card">
-              <div className="mockup-header">220 Panini Prizm</div>
+              <div className="mockup-header">#220 Panini Prizm</div>
               <div className="mockup-content">
                 <div className="mockup-price">$1,250</div>
                 <div className="mockup-trend">↗️ +15% {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
