@@ -360,6 +360,7 @@ async function initializeServer() {
   app.use('/api/search-cards', require('./routes/searchCards').router);
   app.use('/api/search-history', require('./routes/searchHistory'));
   app.use('/api/live-listings', require('./routes/liveListings'));
+  app.use('/api/news', require('./routes/news'));
   
   // Routes
   app.use('/api/auth', require('./routes/auth'));

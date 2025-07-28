@@ -5,8 +5,37 @@ const NewsPage = () => {
   const [activeTab, setActiveTab] = useState('releases');
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [releases, setReleases] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Sample release data - this could be fetched from an API later
+  // Fetch release data from API
+  useEffect(() => {
+    const fetchReleases = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const response = await fetch('/api/news/releases');
+        const data = await response.json();
+        
+        if (data.success) {
+          setReleases(data.releases);
+        } else {
+          setError(data.error || 'Failed to fetch releases');
+        }
+      } catch (err) {
+        setError('Failed to connect to server');
+        console.error('Error fetching releases:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchReleases();
+  }, []);
+
+  // Sample release data - fallback if API fails
   const releaseData = {
     '2025': {
       'January': [
@@ -204,12 +233,16 @@ const NewsPage = () => {
         <div>
           <strong style={{ color: '#374151' }}>Release Date:</strong>
           <div style={{ color: '#6b7280' }}>
-            {new Date(release.date).toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
+            {release.releaseDate ? (
+              new Date(release.releaseDate).toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })
+            ) : (
+              'TBD'
+            )}
           </div>
         </div>
         <div>
@@ -218,16 +251,16 @@ const NewsPage = () => {
             color: getBrandColor(release.brand),
             fontWeight: 600
           }}>
-            {release.brand}
+            {release.brand || 'Unknown'}
           </div>
         </div>
         <div>
           <strong style={{ color: '#374151' }}>Sport:</strong>
-          <div style={{ color: '#6b7280' }}>{release.sport}</div>
+          <div style={{ color: '#6b7280' }}>{release.sport || 'Trading Cards'}</div>
         </div>
         <div>
-          <strong style={{ color: '#374151' }}>Type:</strong>
-          <div style={{ color: '#6b7280' }}>{release.type}</div>
+          <strong style={{ color: '#374151' }}>Source:</strong>
+          <div style={{ color: '#6b7280' }}>{release.source || 'Unknown'}</div>
         </div>
       </div>
 
@@ -242,11 +275,11 @@ const NewsPage = () => {
       }}>
         <div>
           <strong style={{ color: '#374151' }}>Retail Pack:</strong>
-          <div style={{ color: '#059669', fontWeight: 600 }}>{release.retailPrice}</div>
+          <div style={{ color: '#059669', fontWeight: 600 }}>{release.retailPrice || 'TBD'}</div>
         </div>
         <div>
           <strong style={{ color: '#374151' }}>Hobby Box:</strong>
-          <div style={{ color: '#dc2626', fontWeight: 600 }}>{release.hobbyPrice}</div>
+          <div style={{ color: '#dc2626', fontWeight: 600 }}>{release.hobbyPrice || 'TBD'}</div>
         </div>
       </div>
     </div>
@@ -266,8 +299,37 @@ const NewsPage = () => {
         </h3>
         <p style={{ margin: 0, color: '#333', fontSize: '0.95rem' }}>
           Stay updated on the latest sports card releases from major brands including Topps, Panini, Bowman, and Upper Deck.
+          {releases.length > 0 && (
+            <span style={{ display: 'block', marginTop: '0.5rem', fontWeight: 600 }}>
+              📊 {releases.length} releases found from {[...new Set(releases.map(r => r.source))].join(', ')}
+            </span>
+          )}
         </p>
       </div>
+
+      {isLoading && (
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <div style={{ fontSize: '1.2rem', color: '#ffd700', marginBottom: '1rem' }}>
+            🔄 Loading release information...
+          </div>
+          <div style={{ color: '#fff' }}>
+            Fetching data from Blowout Forums and other sources
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div style={{ 
+          background: '#dc3545', 
+          color: '#fff', 
+          padding: '1rem', 
+          borderRadius: 8, 
+          marginBottom: '2rem',
+          textAlign: 'center'
+        }}>
+          ❌ {error}
+        </div>
+      )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -305,34 +367,29 @@ const NewsPage = () => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-        {months.map((month, index) => {
-          const monthReleases = releaseData[currentYear]?.[month] || [];
-          if (monthReleases.length === 0) return null;
-
-          return (
-            <div key={month} style={{
+      {!isLoading && !error && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+          {releases.length > 0 ? (
+            releases.map((release, index) => renderReleaseCard(release, index))
+          ) : (
+            <div style={{
               background: '#1f2937',
               borderRadius: 12,
-              padding: '1.5rem',
-              border: '2px solid #374151'
+              padding: '2rem',
+              textAlign: 'center',
+              border: '2px solid #374151',
+              gridColumn: '1 / -1'
             }}>
-              <h3 style={{
-                margin: '0 0 1.5rem 0',
-                color: '#ffd700',
-                fontSize: '1.4rem',
-                fontWeight: 700,
-                textAlign: 'center',
-                borderBottom: '2px solid #374151',
-                paddingBottom: '0.5rem'
-              }}>
-                {month}
-              </h3>
-              {monthReleases.map((release, releaseIndex) => renderReleaseCard(release, releaseIndex))}
+              <div style={{ color: '#ffd700', fontSize: '1.2rem', marginBottom: '1rem' }}>
+                📭 No releases found
+              </div>
+              <div style={{ color: '#d1d5db' }}>
+                No release information is currently available. Check back later for updates.
+              </div>
             </div>
-          );
-        })}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 
