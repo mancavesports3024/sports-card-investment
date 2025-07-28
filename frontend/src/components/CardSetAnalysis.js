@@ -276,10 +276,10 @@ const CardSetAnalysis = () => {
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.25rem' }}>
-              {summary.totalCards}
+            <div style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.25rem', color: '#ffd700' }}>
+              {summary.totalCards.toLocaleString()}
             </div>
-            <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Total Cards Sold</div>
+            <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Last Sales Analyzed</div>
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.25rem' }}>
@@ -496,6 +496,31 @@ const CardSetAnalysis = () => {
         }}>
           ❌ {error}
         </div>
+      )}
+
+      {results && (
+        <>
+          {/* Data Coverage Info */}
+          <div style={{
+            background: 'linear-gradient(135deg, #28a745, #20c997)',
+            color: '#fff',
+            padding: '1rem 1.5rem',
+            borderRadius: 12,
+            marginBottom: '2rem',
+            textAlign: 'center',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+              📊 Data Coverage
+            </div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.25rem' }}>
+              This search includes the last {results.summary?.totalCards?.toLocaleString() || '0'} sales
+            </div>
+            <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>
+              Comprehensive analysis based on recent marketplace activity
+            </div>
+          </div>
+        </>
       )}
 
       {results && (
