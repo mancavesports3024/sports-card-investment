@@ -782,6 +782,80 @@ const sortByValue = (categorized) => {
   return categorized;
 };
 
+const sortByDate = (categorized) => {
+  const sortByDate = (a, b) => {
+    const dateA = new Date(a.soldDate || 0);
+    const dateB = new Date(b.soldDate || 0);
+    return dateB - dateA; // Most recent first
+  };
+
+  // Helper function to safely sort arrays
+  const safeSort = (array) => {
+    if (Array.isArray(array) && array.length > 0) {
+      return array.sort(sortByDate);
+    }
+    return array || [];
+  };
+
+  // Safely sort each category by date
+  categorized.raw = safeSort(categorized.raw);
+  categorized.psa7 = safeSort(categorized.psa7);
+  categorized.psa8 = safeSort(categorized.psa8);
+  categorized.psa9 = safeSort(categorized.psa9);
+  categorized.psa10 = safeSort(categorized.psa10);
+  categorized.cgc9 = safeSort(categorized.cgc9);
+  categorized.cgc10 = safeSort(categorized.cgc10);
+  categorized.tag8 = safeSort(categorized.tag8);
+  categorized.tag9 = safeSort(categorized.tag9);
+  categorized.tag10 = safeSort(categorized.tag10);
+  categorized.sgc10 = safeSort(categorized.sgc10);
+  categorized.aigrade9 = safeSort(categorized.aigrade9);
+  categorized.aigrade10 = safeSort(categorized.aigrade10);
+  categorized.otherGraded = safeSort(categorized.otherGraded);
+
+  return categorized;
+};
+
+  // Debug: Log PSA 10 count before sorting
+  console.log('=== BEFORE SORT ===');
+  console.log('PSA10 count before sort:', categorized.psa10?.length || 0);
+  if (categorized.psa10 && Array.isArray(categorized.psa10)) {
+    categorized.psa10.forEach(card => {
+      console.log(`[BEFORE SORT] Title: ${card.title}, Price: ${card.price?.value}, ItemId: ${card.id || card.itemId}`);
+    });
+  }
+  console.log('=== END BEFORE SORT ===');
+
+  // Safely sort each category
+  categorized.raw = safeSort(categorized.raw);
+  categorized.psa7 = safeSort(categorized.psa7);
+  categorized.psa8 = safeSort(categorized.psa8);
+  categorized.psa9 = safeSort(categorized.psa9);
+  categorized.psa10 = safeSort(categorized.psa10);
+  
+  // Debug: Log PSA 10 count after sorting
+  console.log('=== AFTER SORT ===');
+  console.log('PSA10 count after sort:', categorized.psa10?.length || 0);
+  if (categorized.psa10 && Array.isArray(categorized.psa10)) {
+    categorized.psa10.forEach(card => {
+      console.log(`[AFTER SORT] Title: ${card.title}, Price: ${card.price?.value}, ItemId: ${card.id || card.itemId}`);
+    });
+  }
+  console.log('=== END AFTER SORT ===');
+  
+  categorized.cgc9 = safeSort(categorized.cgc9);
+  categorized.cgc10 = safeSort(categorized.cgc10);
+  categorized.tag8 = safeSort(categorized.tag8);
+  categorized.tag9 = safeSort(categorized.tag9);
+  categorized.tag10 = safeSort(categorized.tag10);
+  categorized.sgc10 = safeSort(categorized.sgc10);
+  categorized.aigrade9 = safeSort(categorized.aigrade9);
+  categorized.aigrade10 = safeSort(categorized.aigrade10);
+  categorized.otherGraded = safeSort(categorized.otherGraded);
+
+  return categorized;
+};
+
 // Test endpoint for 130point service
 router.get('/test-130point', async (req, res) => {
   try {
@@ -968,7 +1042,7 @@ router.get('/', async (req, res) => {
 
     // Categorize and sort the results
     const categorized = categorizeCards(allCards);
-    const sorted = sortByValue(categorized);
+    const sorted = sortByDate(categorized); // Sort by date for regular search
 
     // Add EPN tracking to all eBay URLs in the results
     const addTrackingToCards = (cards) => {
