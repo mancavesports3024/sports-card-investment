@@ -409,7 +409,7 @@ const CardSetAnalysis = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
           <div style={{ position: 'relative' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#333' }}>
-              Card Set *
+              Card Set
             </label>
             <input
               type="text"
