@@ -41,18 +41,7 @@ class ReleaseInfoService {
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
       },
-      {
-        title: '2025 Blowout Cards Mega Mix',
-        brand: 'Blowout Cards',
-        sport: 'Multi-Sport',
-        releaseDate: '2025-07-30',
-        year: '2025',
-        source: 'Comprehensive Release Data',
-        status: 'Upcoming',
-        description: 'Mega mix collection from Blowout Cards',
-        retailPrice: 'TBD',
-        hobbyPrice: 'TBD'
-      },
+
       {
         title: '2024 Pulse Lumin Baseball',
         brand: 'Pulse',
