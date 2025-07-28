@@ -3,12 +3,36 @@ import React, { useState, useEffect, useRef } from 'react';
 const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items', interval = 5000 }) => {
   const [items, setItems] = useState([]);
   const [current, setCurrent] = useState(0);
+  const [imagesLoaded, setImagesLoaded] = useState({});
   const timerRef = useRef();
+
+  // Preload images to prevent layout shifts
+  const preloadImages = (items) => {
+    const newImagesLoaded = {};
+    items.forEach((item, index) => {
+      if (item.image) {
+        const img = new Image();
+        img.onload = () => {
+          newImagesLoaded[index] = true;
+          setImagesLoaded(prev => ({ ...prev, [index]: true }));
+        };
+        img.onerror = () => {
+          newImagesLoaded[index] = false;
+          setImagesLoaded(prev => ({ ...prev, [index]: false }));
+        };
+        img.src = item.image;
+      }
+    });
+  };
 
   useEffect(() => {
     fetch(apiUrl)
       .then(res => res.json())
-      .then(data => setItems(data.items || []));
+      .then(data => {
+        const itemsData = data.items || [];
+        setItems(itemsData);
+        preloadImages(itemsData);
+      });
   }, [apiUrl]);
 
   useEffect(() => {
@@ -56,28 +80,29 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        overflow: 'hidden'
       }}>
-        {item.image ? (
+        {item.image && imagesLoaded[current] !== false ? (
           <img 
             src={item.image} 
             alt={item.title} 
             style={{ 
-              maxWidth: '160px',
-              maxHeight: '160px',
+              maxWidth: '100%',
+              maxHeight: '100%',
               width: 'auto',
               height: 'auto',
               objectFit: 'contain',
               borderRadius: 6,
-              display: 'block'
+              display: 'block',
+              opacity: imagesLoaded[current] ? 1 : 0,
+              transition: 'opacity 0.3s ease'
             }} 
             onLoad={(e) => {
-              // Ensure consistent sizing after load
-              e.target.style.opacity = '1';
+              setImagesLoaded(prev => ({ ...prev, [current]: true }));
             }}
             onError={(e) => {
-              // Hide broken images
-              e.target.style.display = 'none';
+              setImagesLoaded(prev => ({ ...prev, [current]: false }));
             }}
           />
         ) : (
@@ -85,9 +110,13 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
             color: '#999',
             fontSize: '0.9rem',
             textAlign: 'center',
-            width: '100%'
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%'
           }}>
-            No Image
+            {imagesLoaded[current] === false ? 'Image Error' : 'Loading...'}
           </div>
         )}
       </div>
