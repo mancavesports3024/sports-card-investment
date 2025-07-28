@@ -40,11 +40,9 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
       textAlign: 'center',
       maxWidth: 350,
       width: 350,
-      height: 420, // Fixed height to prevent layout shifts
       marginLeft: 'auto',
       marginRight: 'auto',
-      position: 'relative',
-      overflow: 'hidden' // Prevent content overflow
+      position: 'relative'
     }}>
       {/* Fixed-size image container to prevent layout shifts */}
       <div style={{
@@ -56,8 +54,7 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
         justifyContent: 'center',
         background: '#f8f9fa',
         borderRadius: 8,
-        border: '1px solid #e0e0e0',
-        position: 'relative'
+        border: '1px solid #e0e0e0'
       }}>
         {item.image ? (
           <img 
@@ -69,16 +66,8 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
               width: 'auto',
               height: 'auto',
               objectFit: 'contain',
-              borderRadius: 6,
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)'
+              borderRadius: 6
             }} 
-            onLoad={(e) => {
-              // Ensure image is properly centered after loading
-              e.target.style.opacity = '1';
-            }}
             onError={(e) => {
               // Hide broken images
               e.target.style.display = 'none';
@@ -88,11 +77,7 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
           <div style={{
             color: '#999',
             fontSize: '0.9rem',
-            textAlign: 'center',
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)'
+            textAlign: 'center'
           }}>
             No Image
           </div>
