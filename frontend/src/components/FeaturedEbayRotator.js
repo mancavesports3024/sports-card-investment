@@ -43,9 +43,41 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
       marginRight: 'auto',
       position: 'relative'
     }}>
-      {item.image && (
-        <img src={item.image} alt={item.title} style={{ maxWidth: 180, borderRadius: 8, marginBottom: 15 }} />
-      )}
+      {/* Fixed-size image container to prevent layout shifts */}
+      <div style={{
+        width: 180,
+        height: 180,
+        marginBottom: 15,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#f8f9fa',
+        borderRadius: 8,
+        border: '1px solid #e0e0e0'
+      }}>
+        {item.image ? (
+          <img 
+            src={item.image} 
+            alt={item.title} 
+            style={{ 
+              maxWidth: '100%',
+              maxHeight: '100%',
+              width: 'auto',
+              height: 'auto',
+              objectFit: 'contain',
+              borderRadius: 6
+            }} 
+          />
+        ) : (
+          <div style={{
+            color: '#999',
+            fontSize: '0.9rem',
+            textAlign: 'center'
+          }}>
+            No Image
+          </div>
+        )}
+      </div>
       
       {/* Enhanced Title Section */}
       <div style={{ 
