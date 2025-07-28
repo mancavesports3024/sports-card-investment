@@ -1,184 +1,671 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
 const cacheService = require('./cacheService');
 
 class ReleaseInfoService {
   constructor() {
-    this.baseUrl = 'https://www.blowoutforums.com';
     this.cacheTimeout = 3600; // 1 hour cache
   }
 
-  async getBlowoutForumsReleases() {
-    const cacheKey = 'blowout_forums_releases';
+  async getReleaseData() {
+    const cacheKey = 'release_data';
     
     // Check cache first
     const cached = await cacheService.get(cacheKey);
     if (cached) {
-      console.log('📋 Using cached Blowout Forums release data');
+      console.log('📋 Using cached release data');
       return cached;
     }
 
-    try {
-      console.log('🔄 Fetching release information from Blowout Forums...');
-      
-      // Fetch the main release thread
-      const response = await axios.get('https://www.blowoutforums.com/showthread.php?t=803', {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.5',
-          'Accept-Encoding': 'gzip, deflate',
-          'Connection': 'keep-alive',
-          'Upgrade-Insecure-Requests': '1',
-        },
-        timeout: 10000
-      });
-
-      // Check if we got blocked by Incapsula
-      if (response.data.includes('Incapsula') || response.data.includes('Request unsuccessful')) {
-        console.log('🚫 Blowout Forums blocked our request with Incapsula protection');
-        console.log('📋 Using enhanced fallback data instead');
-        const fallbackReleases = this.getEnhancedFallbackReleases();
-        await cacheService.set(cacheKey, fallbackReleases, this.cacheTimeout);
-        return fallbackReleases;
-      }
-
-      const $ = cheerio.load(response.data);
-      const releases = [];
-
-      // Parse forum posts for release information
-      $('.postcontent').each((index, element) => {
-        const postText = $(element).text();
-        
-        // Look for release patterns in the text
-        const releaseMatches = this.extractReleaseInfo(postText);
-        releases.push(...releaseMatches);
-      });
-
-      // Clean and format the releases
-      const formattedReleases = this.formatReleases(releases);
-      
-      // Cache the results
-      await cacheService.set(cacheKey, formattedReleases, this.cacheTimeout);
-      
-      console.log(`✅ Found ${formattedReleases.length} releases from Blowout Forums`);
-      return formattedReleases;
-
-    } catch (error) {
-      console.error('❌ Error fetching Blowout Forums releases:', error.message);
-      
-      // Return enhanced fallback data if scraping fails
-      return this.getEnhancedFallbackReleases();
-    }
-  }
-
-  extractReleaseInfo(text) {
-    const releases = [];
+    console.log('🔄 Loading comprehensive release data...');
     
-    // Common release patterns
-    const patterns = [
-      // Pattern: "2025 Topps Series One Baseball - January 15, 2025"
-      /(\d{4})\s+(Topps|Panini|Bowman|Upper Deck|Donruss|Fleer|Score)\s+([^-]+?)\s*-\s*([A-Za-z]+\s+\d{1,2},?\s+\d{4})/gi,
-      
-      // Pattern: "Topps 2025 Series One - Jan 15"
-      /(Topps|Panini|Bowman|Upper Deck|Donruss|Fleer|Score)\s+(\d{4})\s+([^-]+?)\s*-\s*([A-Za-z]{3}\s+\d{1,2})/gi,
-      
-      // Pattern: "Release Date: January 15, 2025"
-      /Release\s+Date:\s*([A-Za-z]+\s+\d{1,2},?\s+\d{4})/gi,
-      
-      // Pattern: "Coming: January 2025"
-      /Coming:\s*([A-Za-z]+\s+\d{4})/gi
-    ];
-
-    patterns.forEach(pattern => {
-      let match;
-      while ((match = pattern.exec(text)) !== null) {
-        releases.push({
-          raw: match[0],
-          matches: match.slice(1)
-        });
-      }
-    });
-
+    // Use the comprehensive release data provided
+    const releases = this.getComprehensiveReleases();
+    
+    // Cache the results
+    await cacheService.set(cacheKey, releases, this.cacheTimeout);
+    
+    console.log(`✅ Loaded ${releases.length} releases`);
     return releases;
   }
 
-  formatReleases(rawReleases) {
-    const formatted = [];
-    const seen = new Set();
-
-    rawReleases.forEach(release => {
-      try {
-        const formattedRelease = this.parseReleaseData(release);
-        
-        if (formattedRelease && !seen.has(formattedRelease.title)) {
-          seen.add(formattedRelease.title);
-          formatted.push(formattedRelease);
-        }
-      } catch (error) {
-        console.log('⚠️ Error parsing release:', release.raw);
+  getComprehensiveReleases() {
+    return [
+      {
+        title: '2025 Onyx RIPS Collection Baseball',
+        brand: 'Onyx',
+        sport: 'Baseball',
+        releaseDate: '2025-07-29',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Onyx RIPS Collection featuring baseball cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Blowout Cards Mega Mix',
+        brand: 'Blowout Cards',
+        sport: 'Multi-Sport',
+        releaseDate: '2025-07-30',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Mega mix collection from Blowout Cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2024 Pulse Lumin Baseball',
+        brand: 'Pulse',
+        sport: 'Baseball',
+        releaseDate: '2025-07-30',
+        year: '2024',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Pulse Lumin baseball card collection',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Tristar Hidden Treasures Autographed Baseball 8 x 10 Photo Edition',
+        brand: 'Tristar',
+        sport: 'Baseball',
+        releaseDate: '2025-07-30',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Autographed baseball 8x10 photo collection',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Topps Garbage Pail Kids: Worst of GPK 40th Anniversary',
+        brand: 'Topps',
+        sport: 'Non-Sport',
+        releaseDate: '2025-07-30',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: '40th Anniversary Garbage Pail Kids collection',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025/26 Upper Deck MVP Hockey',
+        brand: 'Upper Deck',
+        sport: 'Hockey',
+        releaseDate: '2025-07-30',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Upper Deck MVP hockey card series',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Leaf Metal Baseball Hobby & Jumbo',
+        brand: 'Leaf',
+        sport: 'Baseball',
+        releaseDate: '2025-08-01',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Leaf Metal baseball cards in hobby and jumbo formats',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2024/25 Panini Mosaic Basketball Fast Break',
+        brand: 'Panini',
+        sport: 'Basketball',
+        releaseDate: '2025-08-01',
+        year: '2024',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini Mosaic basketball Fast Break edition',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2024/25 Topps Chrome Manchester United Soccer Deluxe Edition',
+        brand: 'Topps',
+        sport: 'Soccer',
+        releaseDate: '2025-08-01',
+        year: '2024',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Topps Chrome Manchester United deluxe edition',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: 'Pokemon Scarlet & Violet Victini Illustration Collection',
+        brand: 'Pokemon',
+        sport: 'Gaming',
+        releaseDate: '2025-08-01',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Pokemon Scarlet & Violet Victini illustration cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Pro Athletes Direct Signature Edition Football',
+        brand: 'Pro Athletes Direct',
+        sport: 'Football',
+        releaseDate: '2025-08-04',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Signature edition football cards from Pro Athletes Direct',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2024/25 Panini Noir Soccer',
+        brand: 'Panini',
+        sport: 'Soccer',
+        releaseDate: '2025-08-06',
+        year: '2024',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini Noir premium soccer card collection',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2024 Panini National Treasures Football',
+        brand: 'Panini',
+        sport: 'Football',
+        releaseDate: '2025-08-06',
+        year: '2024',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini National Treasures premium football cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Topps Archives Signature Series Active Player Edition Baseball',
+        brand: 'Topps',
+        sport: 'Baseball',
+        releaseDate: '2025-08-06',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Topps Archives signature series with active players',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Topps Chrome Baseball Mega',
+        brand: 'Topps',
+        sport: 'Baseball',
+        releaseDate: '2025-08-06',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Topps Chrome baseball mega edition',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Topps Complete Baseball Factory Set',
+        brand: 'Topps',
+        sport: 'Baseball',
+        releaseDate: '2025-08-06',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Complete Topps baseball factory set',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Upper Deck AEW Skybox Metal Universe',
+        brand: 'Upper Deck',
+        sport: 'Wrestling',
+        releaseDate: '2025-08-06',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Upper Deck AEW wrestling cards in Metal Universe style',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2024/25 Upper Deck Professional Women\'s Hockey League',
+        brand: 'Upper Deck',
+        sport: 'Hockey',
+        releaseDate: '2025-08-06',
+        year: '2024',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Upper Deck Professional Women\'s Hockey League cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Leaf Glory of the Game Football',
+        brand: 'Leaf',
+        sport: 'Football',
+        releaseDate: '2025-08-08',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Leaf Glory of the Game football collection',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Leaf National Lacrosse League Premier Edition',
+        brand: 'Leaf',
+        sport: 'Lacrosse',
+        releaseDate: '2025-08-08',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Leaf National Lacrosse League premier edition',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Panini Boys of Summer Baseball',
+        brand: 'Panini',
+        sport: 'Baseball',
+        releaseDate: '2025-08-08',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini Boys of Summer baseball collection',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Topps UFC Midnight',
+        brand: 'Topps',
+        sport: 'MMA',
+        releaseDate: '2025-08-08',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Topps UFC Midnight edition cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Topps Finest Baseball',
+        brand: 'Topps',
+        sport: 'Baseball',
+        releaseDate: '2025-08-12',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Topps Finest premium baseball cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Panini Prizm Baseball',
+        brand: 'Panini',
+        sport: 'Baseball',
+        releaseDate: '2025-08-13',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini Prizm baseball card collection',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2024/25 Upper Deck SP Authentic Hockey',
+        brand: 'Upper Deck',
+        sport: 'Hockey',
+        releaseDate: '2025-08-13',
+        year: '2024',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Upper Deck SP Authentic hockey cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2024/25 Topps Finest Basketball',
+        brand: 'Topps',
+        sport: 'Basketball',
+        releaseDate: '2025-08-14',
+        year: '2024',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Topps Finest basketball cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2024/25 Topps Finest Basketball Breaker\'s Delight',
+        brand: 'Topps',
+        sport: 'Basketball',
+        releaseDate: '2025-08-14',
+        year: '2024',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Topps Finest basketball Breaker\'s Delight edition',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Leaf Eclectic PBA Hobby & Jumbo',
+        brand: 'Leaf',
+        sport: 'Bowling',
+        releaseDate: '2025-08-15',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Leaf Eclectic PBA bowling cards in hobby and jumbo formats',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Leaf Major League Table Tennis Premier Edition',
+        brand: 'Leaf',
+        sport: 'Table Tennis',
+        releaseDate: '2025-08-15',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Leaf Major League Table Tennis premier edition',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Panini Donruss Football',
+        brand: 'Panini',
+        sport: 'Football',
+        releaseDate: '2025-08-15',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini Donruss football card collection',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2024/25 Panini National Treasures Basketball',
+        brand: 'Panini',
+        sport: 'Basketball',
+        releaseDate: '2025-08-15',
+        year: '2024',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini National Treasures premium basketball cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2024/25 Topps Chrome NBL Basketball',
+        brand: 'Topps',
+        sport: 'Basketball',
+        releaseDate: '2025-08-15',
+        year: '2024',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Topps Chrome NBL basketball cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: 'Foundation Seasons 1 & 2 (Rittenhouse)',
+        brand: 'Rittenhouse',
+        sport: 'Entertainment',
+        releaseDate: '2025-08-20',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Foundation TV series trading cards from Rittenhouse',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Panini Prizm Collegiate Draft Football',
+        brand: 'Panini',
+        sport: 'Football',
+        releaseDate: '2025-08-20',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini Prizm collegiate draft football cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Panini Prizm LIV Golf',
+        brand: 'Panini',
+        sport: 'Golf',
+        releaseDate: '2025-08-20',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini Prizm LIV Golf card collection',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: 'The Boys Season 1 & 2',
+        brand: 'Various',
+        sport: 'Entertainment',
+        releaseDate: '2025-08-20',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'The Boys TV series trading cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Tristar Hidden Treasures Football Autographed Full-Size Helmet Season Edition',
+        brand: 'Tristar',
+        sport: 'Football',
+        releaseDate: '2025-08-20',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Tristar Hidden Treasures football autographed helmet collection',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2024 Panini Immaculate Football',
+        brand: 'Panini',
+        sport: 'Football',
+        releaseDate: '2025-08-21',
+        year: '2024',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini Immaculate premium football cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Leaf Optichrome Football Hobby & Jumbo',
+        brand: 'Leaf',
+        sport: 'Football',
+        releaseDate: '2025-08-22',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Leaf Optichrome football cards in hobby and jumbo formats',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: 'Pokemon 2025 Holiday Calendar',
+        brand: 'Pokemon',
+        sport: 'Gaming',
+        releaseDate: '2025-08-22',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Pokemon 2025 holiday calendar collection',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: 'Pokemon Scarlet & Violet Black Bolt Booster Bundle',
+        brand: 'Pokemon',
+        sport: 'Gaming',
+        releaseDate: '2025-08-22',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Pokemon Scarlet & Violet Black Bolt booster bundle',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: 'Pokemon Scarlet & Violet White Flare Booster Bundle',
+        brand: 'Pokemon',
+        sport: 'Gaming',
+        releaseDate: '2025-08-22',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Pokemon Scarlet & Violet White Flare booster bundle',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Panini Origins Football',
+        brand: 'Panini',
+        sport: 'Football',
+        releaseDate: '2025-08-27',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini Origins football card collection',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Panini Prizm FIFA Club World Cup Soccer',
+        brand: 'Panini',
+        sport: 'Soccer',
+        releaseDate: '2025-08-27',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini Prizm FIFA Club World Cup soccer cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Panini Select Racing',
+        brand: 'Panini',
+        sport: 'Racing',
+        releaseDate: '2025-08-27',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini Select racing card collection',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Tristar Hidden Treasures Autographed Photos Football',
+        brand: 'Tristar',
+        sport: 'Football',
+        releaseDate: '2025-08-27',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Tristar Hidden Treasures football autographed photos',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2024/25 Upper Deck Clear Cut Hockey',
+        brand: 'Upper Deck',
+        sport: 'Hockey',
+        releaseDate: '2025-08-27',
+        year: '2024',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Upper Deck Clear Cut hockey cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: 'James Bond 007 No Time To Die (Upper Deck)',
+        brand: 'Upper Deck',
+        sport: 'Entertainment',
+        releaseDate: '2025-08-27',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'James Bond 007 No Time To Die trading cards from Upper Deck',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Pieces of the Past 1776: The Freedom Fighters Veterans Edition',
+        brand: 'Pieces of the Past',
+        sport: 'Historical',
+        releaseDate: '2025-08-28',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Pieces of the Past 1776 Freedom Fighters veterans edition',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: 'Skybox Metal Universe Batman (Upper Deck)',
+        brand: 'Upper Deck',
+        sport: 'Entertainment',
+        releaseDate: '2025-08-29',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Skybox Metal Universe Batman trading cards from Upper Deck',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2024/25 Panini Donruss Optic Choice Basketball',
+        brand: 'Panini',
+        sport: 'Basketball',
+        releaseDate: '2025-08-29',
+        year: '2024',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini Donruss Optic Choice basketball cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2025 Panini Impeccable Baseball',
+        brand: 'Panini',
+        sport: 'Baseball',
+        releaseDate: '2025-08-29',
+        year: '2025',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini Impeccable premium baseball cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
+      },
+      {
+        title: '2024/25 Panini Silhouette Basketball',
+        brand: 'Panini',
+        sport: 'Basketball',
+        releaseDate: '2025-08-29',
+        year: '2024',
+        source: 'Comprehensive Release Data',
+        status: 'Upcoming',
+        description: 'Panini Silhouette premium basketball cards',
+        retailPrice: 'TBD',
+        hobbyPrice: 'TBD'
       }
-    });
-
-    return formatted;
-  }
-
-  parseReleaseData(release) {
-    const { raw, matches } = release;
-    
-    // Try to extract information from the raw text
-    let title = '';
-    let brand = '';
-    let sport = '';
-    let releaseDate = '';
-    let year = '';
-
-    // Extract year
-    const yearMatch = raw.match(/\b(20\d{2})\b/);
-    if (yearMatch) {
-      year = yearMatch[1];
-    }
-
-    // Extract brand
-    const brandMatch = raw.match(/\b(Topps|Panini|Bowman|Upper Deck|Donruss|Fleer|Score)\b/i);
-    if (brandMatch) {
-      brand = brandMatch[1];
-    }
-
-    // Extract date
-    const dateMatch = raw.match(/([A-Za-z]+\s+\d{1,2},?\s+\d{4}|[A-Za-z]{3}\s+\d{1,2})/);
-    if (dateMatch) {
-      releaseDate = dateMatch[1];
-    }
-
-    // Determine sport based on keywords
-    if (raw.toLowerCase().includes('baseball') || raw.toLowerCase().includes('mlb')) {
-      sport = 'Baseball';
-    } else if (raw.toLowerCase().includes('basketball') || raw.toLowerCase().includes('nba')) {
-      sport = 'Basketball';
-    } else if (raw.toLowerCase().includes('football') || raw.toLowerCase().includes('nfl')) {
-      sport = 'Football';
-    } else if (raw.toLowerCase().includes('hockey') || raw.toLowerCase().includes('nhl')) {
-      sport = 'Hockey';
-    } else {
-      sport = 'Trading Cards';
-    }
-
-    // Create title
-    title = raw.trim();
-
-    return {
-      title,
-      brand,
-      sport,
-      releaseDate,
-      year,
-      source: 'Blowout Forums',
-      status: this.determineStatus(releaseDate),
-      description: `Release information from Blowout Forums: ${raw}`,
-      retailPrice: 'TBD',
-      hobbyPrice: 'TBD'
-    };
+    ];
   }
 
   determineStatus(releaseDate) {
@@ -200,166 +687,22 @@ class ReleaseInfoService {
     }
   }
 
-  getEnhancedFallbackReleases() {
-    return [
-      {
-        title: '2025 Topps Series One Baseball',
-        brand: 'Topps',
-        sport: 'Baseball',
-        releaseDate: 'January 15, 2025',
-        year: '2025',
-        source: 'Enhanced Fallback Data',
-        status: 'Released',
-        description: 'The flagship baseball card set featuring current MLB players and rookies',
-        retailPrice: '$4.99',
-        hobbyPrice: '$89.99'
-      },
-      {
-        title: '2024-25 Panini Prizm Basketball',
-        brand: 'Panini',
-        sport: 'Basketball',
-        releaseDate: 'January 22, 2025',
-        year: '2025',
-        source: 'Enhanced Fallback Data',
-        status: 'Released',
-        description: 'Premium basketball cards with stunning Prizm technology',
-        retailPrice: '$9.99',
-        hobbyPrice: '$299.99'
-      },
-      {
-        title: '2025 Bowman Chrome Baseball',
-        brand: 'Bowman',
-        sport: 'Baseball',
-        releaseDate: 'February 5, 2025',
-        year: '2025',
-        source: 'Enhanced Fallback Data',
-        status: 'Upcoming',
-        description: 'Chrome prospect cards featuring future MLB stars',
-        retailPrice: '$7.99',
-        hobbyPrice: '$199.99'
-      },
-      {
-        title: '2024-25 Upper Deck Young Guns Hockey',
-        brand: 'Upper Deck',
-        sport: 'Hockey',
-        releaseDate: 'February 12, 2025',
-        year: '2025',
-        source: 'Enhanced Fallback Data',
-        status: 'Upcoming',
-        description: 'Premier rookie cards for NHL prospects',
-        retailPrice: '$5.99',
-        hobbyPrice: '$149.99'
-      },
-      {
-        title: '2025 Topps Chrome Baseball',
-        brand: 'Topps',
-        sport: 'Baseball',
-        releaseDate: 'March 1, 2025',
-        year: '2025',
-        source: 'Enhanced Fallback Data',
-        status: 'Upcoming',
-        description: 'Chrome version of the flagship baseball set',
-        retailPrice: '$6.99',
-        hobbyPrice: '$179.99'
-      },
-      {
-        title: '2024-25 Panini Select Basketball',
-        brand: 'Panini',
-        sport: 'Basketball',
-        releaseDate: 'March 15, 2025',
-        year: '2025',
-        source: 'Enhanced Fallback Data',
-        status: 'Upcoming',
-        description: 'Select basketball cards with unique design',
-        retailPrice: '$8.99',
-        hobbyPrice: '$249.99'
-      },
-      {
-        title: '2025 Topps Heritage Baseball',
-        brand: 'Topps',
-        sport: 'Baseball',
-        releaseDate: 'April 2, 2025',
-        year: '2025',
-        source: 'Enhanced Fallback Data',
-        status: 'Upcoming',
-        description: 'Retro-style cards inspired by classic Topps designs',
-        retailPrice: '$5.99',
-        hobbyPrice: '$129.99'
-      },
-      {
-        title: '2025 Bowman Baseball',
-        brand: 'Bowman',
-        sport: 'Baseball',
-        releaseDate: 'May 7, 2025',
-        year: '2025',
-        source: 'Enhanced Fallback Data',
-        status: 'Upcoming',
-        description: 'Paper prospect cards featuring future stars',
-        retailPrice: '$4.99',
-        hobbyPrice: '$89.99'
-      },
-      {
-        title: '2025 Topps Series Two Baseball',
-        brand: 'Topps',
-        sport: 'Baseball',
-        releaseDate: 'June 11, 2025',
-        year: '2025',
-        source: 'Enhanced Fallback Data',
-        status: 'Upcoming',
-        description: 'Second series of the flagship baseball set',
-        retailPrice: '$4.99',
-        hobbyPrice: '$89.99'
-      },
-      {
-        title: '2024-25 Panini Donruss Football',
-        brand: 'Panini',
-        sport: 'Football',
-        releaseDate: 'July 8, 2025',
-        year: '2025',
-        source: 'Enhanced Fallback Data',
-        status: 'Announced',
-        description: 'Classic Donruss football cards with modern design',
-        retailPrice: '$6.99',
-        hobbyPrice: '$159.99'
-      }
-    ];
-  }
-
-  getFallbackReleases() {
-    return this.getEnhancedFallbackReleases();
-  }
-
   async getAllReleases() {
     try {
-      const [blowoutReleases, fallbackReleases] = await Promise.allSettled([
-        this.getBlowoutForumsReleases(),
-        Promise.resolve(this.getFallbackReleases())
-      ]);
-
-      let allReleases = [];
-
-      // Add Blowout Forums releases if successful
-      if (blowoutReleases.status === 'fulfilled' && blowoutReleases.value.length > 0) {
-        allReleases.push(...blowoutReleases.value);
-      }
-
-      // Add fallback releases if we don't have enough data
-      if (allReleases.length < 5 && fallbackReleases.status === 'fulfilled') {
-        allReleases.push(...fallbackReleases.value);
-      }
-
+      const releases = await this.getReleaseData();
+      
       // Sort by release date
-      allReleases.sort((a, b) => {
+      releases.sort((a, b) => {
         const dateA = new Date(a.releaseDate || 0);
         const dateB = new Date(b.releaseDate || 0);
-        return dateB - dateA; // Most recent first
+        return dateA - dateB; // Earliest first
       });
 
-      return allReleases;
+      return releases;
 
     } catch (error) {
       console.error('❌ Error getting all releases:', error.message);
-      return this.getFallbackReleases();
+      return this.getComprehensiveReleases();
     }
   }
 }
