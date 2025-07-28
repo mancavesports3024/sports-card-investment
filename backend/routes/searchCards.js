@@ -7,6 +7,7 @@ const searchHistoryService = require('../services/searchHistoryService');
 const cacheService = require('../services/cacheService');
 const { getEbayApiUsage } = require('../services/ebayService');
 const point130Service = require('../services/130pointService');
+const getCardBaseService = require('../services/getCardBaseService');
 const fs = require('fs');
 const path = require('path');
 
@@ -1357,6 +1358,16 @@ router.get('/card-set-suggestions', async (req, res) => {
   try {
     console.log(`[CARD SET SUGGESTIONS] Request received: query="${query}", limit=${limit}`);
     
+    // Try to get GetCardBase data first
+    let getCardBaseSuggestions = [];
+    try {
+      console.log('[CARD SET SUGGESTIONS] Attempting to get GetCardBase suggestions...');
+      getCardBaseSuggestions = await getCardBaseService.searchCardSets(query, parseInt(limit));
+      console.log(`[CARD SET SUGGESTIONS] GetCardBase returned ${getCardBaseSuggestions.length} suggestions`);
+    } catch (error) {
+      console.log('[CARD SET SUGGESTIONS] GetCardBase error:', error.message);
+    }
+    
     // Define card sets data inline since file deployment is unreliable
     const cardSetsData = {
       cardSets: [
@@ -2183,8 +2194,16 @@ router.get('/card-set-suggestions', async (req, res) => {
       console.log(`[CARD SET SUGGESTIONS] Broader search found ${suggestions.length} sets`);
     }
     
-    console.log(`[CARD SET SUGGESTIONS] Returning ${suggestions.length} total suggestions`);
-    res.json({ suggestions });
+    // Combine GetCardBase suggestions with inline suggestions
+    const allSuggestions = [...getCardBaseSuggestions, ...suggestions];
+    
+    // Remove duplicates based on name
+    const uniqueSuggestions = allSuggestions.filter((suggestion, index, self) => 
+      index === self.findIndex(s => s.name === suggestion.name)
+    );
+    
+    console.log(`[CARD SET SUGGESTIONS] Combined: ${getCardBaseSuggestions.length} GetCardBase + ${suggestions.length} inline = ${uniqueSuggestions.length} unique suggestions`);
+    res.json({ suggestions: uniqueSuggestions.slice(0, parseInt(limit)) });
   } catch (error) {
     console.error('[CARD SET SUGGESTIONS] Error details:', error);
     console.error('[CARD SET SUGGESTIONS] Error stack:', error.stack);
