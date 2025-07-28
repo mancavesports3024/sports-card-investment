@@ -229,6 +229,17 @@ async function initializeServer() {
 
   // Healthcheck route for Railway
   app.get('/', (req, res) => res.send('OK'));
+  
+  // Health check endpoint for Railway deployment
+  app.get('/api/health', (req, res) => {
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      version: process.version
+    });
+  });
 
   // CORS test endpoint
   app.options('/api/cors-test', (req, res) => {
