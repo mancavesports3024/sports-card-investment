@@ -1382,7 +1382,8 @@ router.get('/card-set-suggestions', async (req, res) => {
           const searchTerm = query.toLowerCase();
           const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
           
-          databaseSuggestions = database.sets.filter(set => {
+          // First, filter matching sets
+          const matchingSets = database.sets.filter(set => {
             const setName = (set.name || '').toLowerCase();
             const setBrand = (set.brand || '').toLowerCase();
             const setSet = (set.setName || '').toLowerCase();
@@ -1410,6 +1411,51 @@ router.get('/card-set-suggestions', async (req, res) => {
             
             return hasMatch || exactMatch;
           });
+          
+          // Then, score and sort by relevance
+          databaseSuggestions = matchingSets.map(set => {
+            const setName = (set.name || '').toLowerCase();
+            const setBrand = (set.brand || '').toLowerCase();
+            const setSet = (set.setName || '').toLowerCase();
+            const setYear = (set.year || '').toLowerCase();
+            const setSport = (set.sport || '').toLowerCase();
+            const setDisplayName = (set.displayName || '').toLowerCase();
+            const year = parseInt(set.year);
+            
+            let score = 0;
+            
+            // Exact year match gets highest priority
+            if (searchWords.includes(setYear)) {
+              score += 1000;
+            }
+            
+            // Recent years get higher priority
+            if (year >= 2023) score += 100;
+            else if (year >= 2020) score += 50;
+            else if (year >= 2010) score += 25;
+            
+            // Exact phrase matches
+            if (setDisplayName.includes(searchTerm)) score += 500;
+            if (setName.includes(searchTerm)) score += 400;
+            if (setBrand.includes(searchTerm)) score += 300;
+            if (setSet.includes(searchTerm)) score += 200;
+            
+            // Word matches
+            searchWords.forEach(word => {
+              if (setDisplayName.includes(word)) score += 100;
+              if (setName.includes(word)) score += 80;
+              if (setBrand.includes(word)) score += 60;
+              if (setSet.includes(word)) score += 40;
+              if (setYear.includes(word)) score += 200; // Year matches are important
+            });
+            
+            // Brand popularity bonus
+            if (['Topps', 'Panini', 'Upper Deck', 'Donruss'].includes(set.brand)) {
+              score += 10;
+            }
+            
+            return { ...set, relevanceScore: score };
+          }).sort((a, b) => b.relevanceScore - a.relevanceScore);
         } else {
           // Return popular sets if no query (filter by recent years and major brands)
           databaseSuggestions = database.sets
@@ -1437,7 +1483,8 @@ router.get('/card-set-suggestions', async (req, res) => {
         const searchTerm = query.toLowerCase();
         const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
         
-        databaseSuggestions = onTheFlyDatabase.filter(set => {
+        // First, filter matching sets
+        const matchingSets = onTheFlyDatabase.filter(set => {
           const setName = (set.name || '').toLowerCase();
           const setBrand = (set.brand || '').toLowerCase();
           const setYear = (set.year || '').toLowerCase();
@@ -1459,6 +1506,48 @@ router.get('/card-set-suggestions', async (req, res) => {
           
           return hasMatch || exactMatch;
         });
+        
+        // Then, score and sort by relevance
+        databaseSuggestions = matchingSets.map(set => {
+          const setName = (set.name || '').toLowerCase();
+          const setBrand = (set.brand || '').toLowerCase();
+          const setYear = (set.year || '').toLowerCase();
+          const setSport = (set.sport || '').toLowerCase();
+          const year = parseInt(set.year);
+          
+          let score = 0;
+          
+          // Exact year match gets highest priority
+          if (searchWords.includes(setYear)) {
+            score += 1000;
+          }
+          
+          // Recent years get higher priority
+          if (year >= 2023) score += 100;
+          else if (year >= 2020) score += 50;
+          else if (year >= 2010) score += 25;
+          
+          // Exact phrase matches
+          if (setName.includes(searchTerm)) score += 400;
+          if (setBrand.includes(searchTerm)) score += 300;
+          if (setYear.includes(searchTerm)) score += 200;
+          if (setSport.includes(searchTerm)) score += 200;
+          
+          // Word matches
+          searchWords.forEach(word => {
+            if (setName.includes(word)) score += 80;
+            if (setBrand.includes(word)) score += 60;
+            if (setYear.includes(word)) score += 200; // Year matches are important
+            if (setSport.includes(word)) score += 40;
+          });
+          
+          // Brand popularity bonus
+          if (['Topps', 'Panini', 'Upper Deck', 'Donruss'].includes(set.brand)) {
+            score += 10;
+          }
+          
+          return { ...set, relevanceScore: score };
+        }).sort((a, b) => b.relevanceScore - a.relevanceScore);
       } else {
         // Return popular sets if no query
         databaseSuggestions = onTheFlyDatabase
@@ -1475,21 +1564,28 @@ router.get('/card-set-suggestions', async (req, res) => {
     }
     
     // Transform database suggestions to match expected format
-    const transformedDatabaseSuggestions = databaseSuggestions.map(set => ({
-      id: set.id,
-      name: set.displayName || set.name,
-      brand: set.brand,
-      category: set.sport,
-      sport: set.sport,
-      league: set.sport === 'Baseball' ? 'MLB' : set.sport === 'Football' ? 'NFL' : set.sport === 'Basketball' ? 'NBA' : set.sport === 'Hockey' ? 'NHL' : set.sport,
-      years: [set.year],
-      setType: set.setName || 'Base Set',
-      cardCount: 0,
-      description: `${set.sport} ${set.year} ${set.brand} ${set.setName || 'Base Set'}`,
-      popularity: 8.0,
-      source: set.source || 'Database',
-      lastUpdated: new Date().toISOString().split('T')[0]
-    }));
+    const transformedDatabaseSuggestions = databaseSuggestions.map(set => {
+      // Calculate normalized relevance score (1-10)
+      const maxScore = 1500; // Approximate max score
+      const normalizedScore = Math.min(10, Math.max(1, Math.round((set.relevanceScore || 0) / maxScore * 10)));
+      
+      return {
+        id: set.id,
+        name: set.displayName || set.name,
+        brand: set.brand,
+        category: set.sport,
+        sport: set.sport,
+        league: set.sport === 'Baseball' ? 'MLB' : set.sport === 'Football' ? 'NFL' : set.sport === 'Basketball' ? 'NBA' : set.sport === 'Hockey' ? 'NHL' : set.sport,
+        years: [set.year],
+        setType: set.setName || 'Base Set',
+        cardCount: 0,
+        description: `${set.sport} ${set.year} ${set.brand} ${set.setName || 'Base Set'}`,
+        popularity: normalizedScore,
+        source: set.source || 'Database',
+        lastUpdated: new Date().toISOString().split('T')[0],
+        relevanceScore: set.relevanceScore || 0
+      };
+    });
     
     console.log(`[CARD SET SUGGESTIONS] Transformed ${transformedDatabaseSuggestions.length} database suggestions`);
     
@@ -2214,26 +2310,26 @@ router.get('/card-set-suggestions', async (req, res) => {
     }
     
     const searchTerm = query.toLowerCase();
-    const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
-    
+                  const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
+                  
     const filteredSets = fallbackSets.filter(set => {
-      const setName = set.name.toLowerCase();
-      const setBrand = set.brand.toLowerCase();
-      const setCategory = set.category.toLowerCase();
-      
-      // Check if any search word matches any part of the set
-      const hasMatch = searchWords.some(word => 
-        setName.includes(word) || 
-        setBrand.includes(word) || 
+                      const setName = set.name.toLowerCase();
+                      const setBrand = set.brand.toLowerCase();
+                      const setCategory = set.category.toLowerCase();
+                      
+                      // Check if any search word matches any part of the set
+                      const hasMatch = searchWords.some(word => 
+                        setName.includes(word) || 
+                        setBrand.includes(word) || 
         setCategory.includes(word)
-      );
-      
-      // Also check for exact phrase match
-      const exactMatch = setName.includes(searchTerm) || 
-                        setBrand.includes(searchTerm) || 
+                      );
+                      
+                      // Also check for exact phrase match
+                      const exactMatch = setName.includes(searchTerm) || 
+                                        setBrand.includes(searchTerm) || 
                         setCategory.includes(searchTerm);
-      
-      return hasMatch || exactMatch;
+                      
+                      return hasMatch || exactMatch;
     });
     
     // Combine database suggestions with filtered fallback sets
@@ -2267,25 +2363,43 @@ router.get('/card-set-suggestions', async (req, res) => {
     const searchTerm = query.toLowerCase();
     const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
     
-    const filteredSets = fallbackSets.filter(set => {
+    // Score and sort fallback sets by relevance
+    const scoredFallbackSets = fallbackSets.map(set => {
       const setName = set.name.toLowerCase();
       const setBrand = set.brand.toLowerCase();
       const setCategory = set.category.toLowerCase();
+      const setYears = set.years || [];
       
-      // Check if any search word matches any part of the set
-      const hasMatch = searchWords.some(word => 
-        setName.includes(word) || 
-        setBrand.includes(word) || 
-        setCategory.includes(word)
-      );
+      let score = 0;
       
-      // Also check for exact phrase match
-      const exactMatch = setName.includes(searchTerm) || 
-                        setBrand.includes(searchTerm) || 
-                        setCategory.includes(searchTerm);
+      // Exact year match gets highest priority
+      const matchingYear = setYears.find(year => searchWords.includes(year.toLowerCase()));
+      if (matchingYear) {
+        score += 1000;
+      }
       
-      return hasMatch || exactMatch;
-    });
+      // Recent years get higher priority
+      const recentYear = setYears.find(year => parseInt(year) >= 2023);
+      if (recentYear) score += 100;
+      else if (setYears.find(year => parseInt(year) >= 2020)) score += 50;
+      
+      // Exact phrase matches
+      if (setName.includes(searchTerm)) score += 400;
+      if (setBrand.includes(searchTerm)) score += 300;
+      if (setCategory.includes(searchTerm)) score += 200;
+      
+      // Word matches
+      searchWords.forEach(word => {
+        if (setName.includes(word)) score += 80;
+        if (setBrand.includes(word)) score += 60;
+        if (setCategory.includes(word)) score += 40;
+        if (setYears.some(year => year.toLowerCase().includes(word))) score += 200;
+      });
+      
+      return { ...set, relevanceScore: score };
+    }).sort((a, b) => b.relevanceScore - a.relevanceScore);
+    
+    const filteredSets = scoredFallbackSets.filter(set => set.relevanceScore > 0);
     
     res.json({ suggestions: filteredSets.slice(0, parseInt(limit)) });
   }
