@@ -2,7 +2,7 @@
   "sports": {
     "Baseball": {
       "yearCount": 149,
-      "setCount": 126,
+      "setCount": 2684,
       "years": [
         "1866",
         "1868",
@@ -157,7 +157,7 @@
     },
     "Basketball": {
       "yearCount": 149,
-      "setCount": 120,
+      "setCount": 2682,
       "years": [
         "1866",
         "1868",
@@ -312,7 +312,7 @@
     },
     "Football": {
       "yearCount": 149,
-      "setCount": 124,
+      "setCount": 3579,
       "years": [
         "1866",
         "1868",
@@ -467,7 +467,7 @@
     },
     "Hockey": {
       "yearCount": 149,
-      "setCount": 121,
+      "setCount": 2981,
       "years": [
         "1866",
         "1868",
@@ -622,7 +622,7 @@
     },
     "Soccer": {
       "yearCount": 149,
-      "setCount": 2,
+      "setCount": 1939,
       "years": [
         "1866",
         "1868",
@@ -777,7 +777,7 @@
     },
     "Boxing": {
       "yearCount": 149,
-      "setCount": 0,
+      "setCount": 2831,
       "years": [
         "1866",
         "1868",
@@ -932,7 +932,7 @@
     },
     "Golf": {
       "yearCount": 149,
-      "setCount": 0,
+      "setCount": 2831,
       "years": [
         "1866",
         "1868",
@@ -1087,7 +1087,7 @@
     },
     "MMA": {
       "yearCount": 149,
-      "setCount": 0,
+      "setCount": 2831,
       "years": [
         "1866",
         "1868",
@@ -1242,7 +1242,7 @@
     },
     "Racing": {
       "yearCount": 149,
-      "setCount": 0,
+      "setCount": 2831,
       "years": [
         "1866",
         "1868",
@@ -1397,7 +1397,7 @@
     },
     "Tennis": {
       "yearCount": 149,
-      "setCount": 0,
+      "setCount": 2831,
       "years": [
         "1866",
         "1868",
@@ -1552,7 +1552,7 @@
     },
     "Wrestling": {
       "yearCount": 149,
-      "setCount": 0,
+      "setCount": 2831,
       "years": [
         "1866",
         "1868",
@@ -1707,7 +1707,7 @@
     }
   },
   "totalCombinations": 1639,
-  "totalSets": 493,
+  "totalSets": 30851,
   "yearRange": {
     "min": 1866,
     "max": 202425

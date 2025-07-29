@@ -1,0 +1,47 @@
+{
+  "totalSets": 31700,
+  "totalCombinations": 1639,
+  "totalSetsInCombinations": 30851,
+  "sports": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "years": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "brands": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "filesCreated": [
+    "C:\\ScoreCard\\backend\\data\\spreadsheets\\Card_Sets_complete.csv",
+    "C:\\ScoreCard\\backend\\data\\spreadsheets\\Sport_Year_Combinations_complete.csv",
+    "C:\\ScoreCard\\backend\\data\\spreadsheets\\Statistics_complete.csv"
+  ],
+  "generatedAt": "2025-07-29T13:22:42.467Z"
+}
