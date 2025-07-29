@@ -1,0 +1,106 @@
+{
+  "lastUpdated": "2025-07-29T03:31:20.429Z",
+  "totalSports": 11,
+  "totalYears": 1639,
+  "sports": [
+    {
+      "name": "Baseball",
+      "id": 1,
+      "yearCount": 149,
+      "yearRange": {
+        "oldest": "1886",
+        "newest": "2025"
+      }
+    },
+    {
+      "name": "Basketball",
+      "id": 2,
+      "yearCount": 149,
+      "yearRange": {
+        "oldest": "1886",
+        "newest": "2025"
+      }
+    },
+    {
+      "name": "Football",
+      "id": 3,
+      "yearCount": 149,
+      "yearRange": {
+        "oldest": "1886",
+        "newest": "2025"
+      }
+    },
+    {
+      "name": "Hockey",
+      "id": 4,
+      "yearCount": 149,
+      "yearRange": {
+        "oldest": "1886",
+        "newest": "2025"
+      }
+    },
+    {
+      "name": "Soccer",
+      "id": 5,
+      "yearCount": 149,
+      "yearRange": {
+        "oldest": "1886",
+        "newest": "2025"
+      }
+    },
+    {
+      "name": "Boxing",
+      "id": 6,
+      "yearCount": 149,
+      "yearRange": {
+        "oldest": "1886",
+        "newest": "2025"
+      }
+    },
+    {
+      "name": "Golf",
+      "id": 7,
+      "yearCount": 149,
+      "yearRange": {
+        "oldest": "1886",
+        "newest": "2025"
+      }
+    },
+    {
+      "name": "MMA",
+      "id": 8,
+      "yearCount": 149,
+      "yearRange": {
+        "oldest": "1886",
+        "newest": "2025"
+      }
+    },
+    {
+      "name": "Racing",
+      "id": 9,
+      "yearCount": 149,
+      "yearRange": {
+        "oldest": "1886",
+        "newest": "2025"
+      }
+    },
+    {
+      "name": "Tennis",
+      "id": 10,
+      "yearCount": 149,
+      "yearRange": {
+        "oldest": "1886",
+        "newest": "2025"
+      }
+    },
+    {
+      "name": "Wrestling",
+      "id": 11,
+      "yearCount": 149,
+      "yearRange": {
+        "oldest": "1886",
+        "newest": "2025"
+      }
+    }
+  ]
+}

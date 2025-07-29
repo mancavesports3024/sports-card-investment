@@ -1,0 +1,44 @@
+{
+  "totalSets": 1342,
+  "sports": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "years": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "brands": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "filesCreated": [
+    "C:\\ScoreCard\\backend\\data\\spreadsheets\\Card_Sets.csv",
+    "C:\\ScoreCard\\backend\\data\\spreadsheets\\Statistics.csv"
+  ],
+  "generatedAt": "2025-07-29T12:41:11.238Z"
+}

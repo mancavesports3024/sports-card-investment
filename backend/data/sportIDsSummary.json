@@ -1,0 +1,66 @@
+{
+  "lastUpdated": "2025-07-29T02:48:17.834Z",
+  "totalSports": 12,
+  "sports": [
+    {
+      "name": "Hockey",
+      "id": 1946,
+      "setCount": 1
+    },
+    {
+      "name": "MMA",
+      "id": 958,
+      "setCount": 2
+    },
+    {
+      "name": "Baseball",
+      "id": 11,
+      "setCount": 0
+    },
+    {
+      "name": "Basketball",
+      "id": 1,
+      "setCount": 0
+    },
+    {
+      "name": "Football",
+      "id": 1573,
+      "setCount": 0
+    },
+    {
+      "name": "Soccer",
+      "id": 2087,
+      "setCount": 0
+    },
+    {
+      "name": "Boxing",
+      "id": 2119,
+      "setCount": 0
+    },
+    {
+      "name": "Golf",
+      "id": 2084,
+      "setCount": 0
+    },
+    {
+      "name": "Multi-Sport",
+      "id": 114879,
+      "setCount": 0
+    },
+    {
+      "name": "Racing",
+      "id": 2588,
+      "setCount": 0
+    },
+    {
+      "name": "Tennis",
+      "id": 117408,
+      "setCount": 0
+    },
+    {
+      "name": "Wrestling",
+      "id": 2085,
+      "setCount": 0
+    }
+  ]
+}

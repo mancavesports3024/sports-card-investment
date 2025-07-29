@@ -1,0 +1,2261 @@
+[
+  {
+    "id": 51,
+    "name": "Panini Prizm",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini prizm"
+  },
+  {
+    "id": 983,
+    "name": "Panini Mosaic",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini mosaic"
+  },
+  {
+    "id": 506,
+    "name": "Panini Select",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini select"
+  },
+  {
+    "id": 180,
+    "name": "Donruss Optic",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 donruss optic"
+  },
+  {
+    "id": 196181,
+    "name": "Panini Flux",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini flux"
+  },
+  {
+    "id": 1184,
+    "name": "Hoops",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 hoops"
+  },
+  {
+    "id": 1069,
+    "name": "Panini Chronicles",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini chronicles"
+  },
+  {
+    "id": 7,
+    "name": "Donruss",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 donruss"
+  },
+  {
+    "id": 1382,
+    "name": "Panini Spectra",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini spectra"
+  },
+  {
+    "id": 1719,
+    "name": "Panini Illusions",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini illusions"
+  },
+  {
+    "id": 294,
+    "name": "Panini Contenders Draft Picks",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini contenders draft picks"
+  },
+  {
+    "id": 1611,
+    "name": "Panini Obsidian",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini obsidian"
+  },
+  {
+    "id": 1178,
+    "name": "Panini National Treasures",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini national treasures"
+  },
+  {
+    "id": 2410,
+    "name": "Panini Prizm Draft Picks Collegiate",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini prizm draft picks collegiate"
+  },
+  {
+    "id": 1107,
+    "name": "Panini Contenders",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini contenders"
+  },
+  {
+    "id": 177219,
+    "name": "Panini Recon",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini recon"
+  },
+  {
+    "id": 1418,
+    "name": "Panini Immaculate Collection",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini immaculate collection"
+  },
+  {
+    "id": 1357,
+    "name": "Panini Flawless",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini flawless"
+  },
+  {
+    "id": 1140,
+    "name": "Panini Impeccable",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini impeccable"
+  },
+  {
+    "id": 1110,
+    "name": "Panini Contenders Optic",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini contenders optic"
+  },
+  {
+    "id": 1113,
+    "name": "Panini Certified",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini certified"
+  },
+  {
+    "id": 83683,
+    "name": "Panini Crown Royale",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini crown royale"
+  },
+  {
+    "id": 83447,
+    "name": "Panini Absolute Memorabilia",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini absolute memorabilia"
+  },
+  {
+    "id": 1067,
+    "name": "Panini Court Kings",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini court kings"
+  },
+  {
+    "id": 972,
+    "name": "Panini Revolution",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini revolution"
+  },
+  {
+    "id": 1339,
+    "name": "Panini Noir",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini noir"
+  },
+  {
+    "id": 114637,
+    "name": "Panini Prizm WNBA",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini prizm wnba"
+  },
+  {
+    "id": 114136,
+    "name": "Panini One and One",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini one and one"
+  },
+  {
+    "id": 1249,
+    "name": "Panini Origins",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini origins"
+  },
+  {
+    "id": 168595,
+    "name": "Panini Donruss Elite",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini donruss elite"
+  },
+  {
+    "id": 2424,
+    "name": "Clearly Donruss",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 clearly donruss"
+  },
+  {
+    "id": 2559,
+    "name": "Panini Flawless Collegiate",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini flawless collegiate"
+  },
+  {
+    "id": 134497,
+    "name": "Panini NBA Sticker & Card Collection",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini nba sticker & card collection"
+  },
+  {
+    "id": 139849,
+    "name": "National Treasures Collegiate",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 national treasures collegiate"
+  },
+  {
+    "id": 2375,
+    "name": "Panini Black",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini black"
+  },
+  {
+    "id": 2155,
+    "name": "Panini Stickers",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini stickers"
+  },
+  {
+    "id": 719554,
+    "name": "Lana Sports ABA",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 lana sports aba"
+  },
+  {
+    "id": 1634,
+    "name": "Panini Immaculate Collection Collegiate",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini immaculate collection collegiate"
+  },
+  {
+    "id": 128647,
+    "name": "Panini NBA Sticker & Card Collection European Edition",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini nba sticker & card collection european edition"
+  },
+  {
+    "id": 2641,
+    "name": "Hoops Winter",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 hoops winter"
+  },
+  {
+    "id": 114745,
+    "name": "Panini Instant NBA",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini instant nba"
+  },
+  {
+    "id": 106882,
+    "name": "Panini Player of the Day",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini player of the day"
+  },
+  {
+    "id": 1724,
+    "name": "Panini Immaculate Collegiate",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini immaculate collegiate"
+  },
+  {
+    "id": 169383,
+    "name": "Panini Instant NBA My City",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini instant nba my city"
+  },
+  {
+    "id": 142213,
+    "name": "Panini Instant NBA Rated Rookie Retro",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini instant nba rated rookie retro"
+  },
+  {
+    "id": 114309,
+    "name": "Panini Instant NBA Draft Night",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini instant nba draft night"
+  },
+  {
+    "id": 567798,
+    "name": "Panini Prizm WNBA Premium",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini prizm wnba premium"
+  },
+  {
+    "id": 570081,
+    "name": "BBM B.League Fast Break 2nd Half",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 bbm b.league fast break 2nd half"
+  },
+  {
+    "id": 570082,
+    "name": "BBM B.League Fast Break 1st Half",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 bbm b.league fast break 1st half"
+  },
+  {
+    "id": 157473,
+    "name": "Panini Instant NBA Rookie Impulse",
+    "sport": "Baseball",
+    "year": "2020",
+    "sportId": 1,
+    "yearId": 13,
+    "searchText": "baseball 2020 panini instant nba rookie impulse"
+  },
+  {
+    "id": 51,
+    "name": "Panini Prizm",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini prizm"
+  },
+  {
+    "id": 230928,
+    "name": "Wild Card Alumination",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 wild card alumination"
+  },
+  {
+    "id": 506,
+    "name": "Panini Select",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini select"
+  },
+  {
+    "id": 180,
+    "name": "Donruss Optic",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 donruss optic"
+  },
+  {
+    "id": 983,
+    "name": "Panini Mosaic",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini mosaic"
+  },
+  {
+    "id": 97869,
+    "name": "Leaf Metal",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 leaf metal"
+  },
+  {
+    "id": 1069,
+    "name": "Panini Chronicles",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini chronicles"
+  },
+  {
+    "id": 1582,
+    "name": "Panini Prizm Draft Picks",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini prizm draft picks"
+  },
+  {
+    "id": 1184,
+    "name": "Hoops",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 hoops"
+  },
+  {
+    "id": 1382,
+    "name": "Panini Spectra",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini spectra"
+  },
+  {
+    "id": 7,
+    "name": "Donruss",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 donruss"
+  },
+  {
+    "id": 1752,
+    "name": "Panini Prizm Collegiate Draft Picks",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini prizm collegiate draft picks"
+  },
+  {
+    "id": 114938,
+    "name": "Panini Chronicles Draft Picks",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini chronicles draft picks"
+  },
+  {
+    "id": 1178,
+    "name": "Panini National Treasures",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini national treasures"
+  },
+  {
+    "id": 1611,
+    "name": "Panini Obsidian",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini obsidian"
+  },
+  {
+    "id": 1719,
+    "name": "Panini Illusions",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini illusions"
+  },
+  {
+    "id": 1635,
+    "name": "Donruss Elite",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 donruss elite"
+  },
+  {
+    "id": 1107,
+    "name": "Panini Contenders",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini contenders"
+  },
+  {
+    "id": 177219,
+    "name": "Panini Recon",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini recon"
+  },
+  {
+    "id": 245523,
+    "name": "Topps Chrome Overtime Elite",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 topps chrome overtime elite"
+  },
+  {
+    "id": 1110,
+    "name": "Panini Contenders Optic",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini contenders optic"
+  },
+  {
+    "id": 1357,
+    "name": "Panini Flawless",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini flawless"
+  },
+  {
+    "id": 253679,
+    "name": "Bowman University",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 bowman university"
+  },
+  {
+    "id": 83683,
+    "name": "Panini Crown Royale",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini crown royale"
+  },
+  {
+    "id": 1140,
+    "name": "Panini Impeccable",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini impeccable"
+  },
+  {
+    "id": 972,
+    "name": "Panini Revolution",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini revolution"
+  },
+  {
+    "id": 1418,
+    "name": "Panini Immaculate Collection",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini immaculate collection"
+  },
+  {
+    "id": 1067,
+    "name": "Panini Court Kings",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini court kings"
+  },
+  {
+    "id": 1339,
+    "name": "Panini Noir",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini noir"
+  },
+  {
+    "id": 114637,
+    "name": "Panini Prizm WNBA",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini prizm wnba"
+  },
+  {
+    "id": 114136,
+    "name": "Panini One and One",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini one and one"
+  },
+  {
+    "id": 131897,
+    "name": "Leaf Memories",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 leaf memories"
+  },
+  {
+    "id": 124178,
+    "name": "Pro Set Power",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 pro set power"
+  },
+  {
+    "id": 290152,
+    "name": "Topps Inception Overtime Elite",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 topps inception overtime elite"
+  },
+  {
+    "id": 1249,
+    "name": "Panini Origins",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini origins"
+  },
+  {
+    "id": 134497,
+    "name": "Panini NBA Sticker & Card Collection",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini nba sticker & card collection"
+  },
+  {
+    "id": 371798,
+    "name": "Panini NBA G League Box Set",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini nba g league box set"
+  },
+  {
+    "id": 1615,
+    "name": "Panini National Treasures Collegiate",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini national treasures collegiate"
+  },
+  {
+    "id": 513,
+    "name": "Topps Finest",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 topps finest"
+  },
+  {
+    "id": 2559,
+    "name": "Panini Flawless Collegiate",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini flawless collegiate"
+  },
+  {
+    "id": 249657,
+    "name": "Flawless Collegiate",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 flawless collegiate"
+  },
+  {
+    "id": 114745,
+    "name": "Panini Instant NBA",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini instant nba"
+  },
+  {
+    "id": 269676,
+    "name": "Panini Photogenic",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini photogenic"
+  },
+  {
+    "id": 128647,
+    "name": "Panini NBA Sticker & Card Collection European Edition",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini nba sticker & card collection european edition"
+  },
+  {
+    "id": 2375,
+    "name": "Panini Black",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini black"
+  },
+  {
+    "id": 2641,
+    "name": "Hoops Winter",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 hoops winter"
+  },
+  {
+    "id": 100712,
+    "name": "Panini Eminence",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini eminence"
+  },
+  {
+    "id": 163469,
+    "name": "Panini NBA Player of the Day",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini nba player of the day"
+  },
+  {
+    "id": 1634,
+    "name": "Panini Immaculate Collection Collegiate",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 panini immaculate collection collegiate"
+  },
+  {
+    "id": 570082,
+    "name": "BBM B.League Fast Break 1st Half",
+    "sport": "Baseball",
+    "year": "2021",
+    "sportId": 1,
+    "yearId": 119141,
+    "searchText": "baseball 2021 bbm b.league fast break 1st half"
+  },
+  {
+    "id": 208529,
+    "name": "Wild Card Matte",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 wild card matte"
+  },
+  {
+    "id": 51,
+    "name": "Panini Prizm",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini prizm"
+  },
+  {
+    "id": 506,
+    "name": "Panini Select",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini select"
+  },
+  {
+    "id": 180,
+    "name": "Donruss Optic",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 donruss optic"
+  },
+  {
+    "id": 334854,
+    "name": "Leaf Optichrome",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 leaf optichrome"
+  },
+  {
+    "id": 983,
+    "name": "Panini Mosaic",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini mosaic"
+  },
+  {
+    "id": 114938,
+    "name": "Panini Chronicles Draft Picks",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini chronicles draft picks"
+  },
+  {
+    "id": 1069,
+    "name": "Panini Chronicles",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini chronicles"
+  },
+  {
+    "id": 1184,
+    "name": "Hoops",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 hoops"
+  },
+  {
+    "id": 1582,
+    "name": "Panini Prizm Draft Picks",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini prizm draft picks"
+  },
+  {
+    "id": 92087,
+    "name": "Leaf Signature Series",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 leaf signature series"
+  },
+  {
+    "id": 7,
+    "name": "Donruss",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 donruss"
+  },
+  {
+    "id": 196181,
+    "name": "Panini Flux",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini flux"
+  },
+  {
+    "id": 1382,
+    "name": "Panini Spectra",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini spectra"
+  },
+  {
+    "id": 1611,
+    "name": "Panini Obsidian",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini obsidian"
+  },
+  {
+    "id": 1178,
+    "name": "Panini National Treasures",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini national treasures"
+  },
+  {
+    "id": 1635,
+    "name": "Donruss Elite",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 donruss elite"
+  },
+  {
+    "id": 312767,
+    "name": "Leaf Exotic",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 leaf exotic"
+  },
+  {
+    "id": 177219,
+    "name": "Panini Recon",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini recon"
+  },
+  {
+    "id": 114637,
+    "name": "Panini Prizm WNBA",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini prizm wnba"
+  },
+  {
+    "id": 334457,
+    "name": "Leaf Vivid",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 leaf vivid"
+  },
+  {
+    "id": 1107,
+    "name": "Panini Contenders",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini contenders"
+  },
+  {
+    "id": 1110,
+    "name": "Panini Contenders Optic",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini contenders optic"
+  },
+  {
+    "id": 323071,
+    "name": "Bowman Chrome University",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 bowman chrome university"
+  },
+  {
+    "id": 372746,
+    "name": "Bowman University Chrome",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 bowman university chrome"
+  },
+  {
+    "id": 83683,
+    "name": "Panini Crown Royale",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini crown royale"
+  },
+  {
+    "id": 1140,
+    "name": "Panini Impeccable",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini impeccable"
+  },
+  {
+    "id": 972,
+    "name": "Panini Revolution",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini revolution"
+  },
+  {
+    "id": 1249,
+    "name": "Panini Origins",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini origins"
+  },
+  {
+    "id": 342699,
+    "name": "Bowman University Best",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 bowman university best"
+  },
+  {
+    "id": 1418,
+    "name": "Panini Immaculate Collection",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini immaculate collection"
+  },
+  {
+    "id": 1067,
+    "name": "Panini Court Kings",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini court kings"
+  },
+  {
+    "id": 284282,
+    "name": "Panini Prizm Monopoly",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini prizm monopoly"
+  },
+  {
+    "id": 1339,
+    "name": "Panini Noir",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini noir"
+  },
+  {
+    "id": 330934,
+    "name": "Topps Chrome McDonald's All American",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 topps chrome mcdonald's all american"
+  },
+  {
+    "id": 245523,
+    "name": "Topps Chrome Overtime Elite",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 topps chrome overtime elite"
+  },
+  {
+    "id": 381085,
+    "name": "Panini One & One",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini one & one"
+  },
+  {
+    "id": 114136,
+    "name": "Panini One and One",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini one and one"
+  },
+  {
+    "id": 269676,
+    "name": "Panini Photogenic",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini photogenic"
+  },
+  {
+    "id": 308459,
+    "name": "Panini Revolution WNBA",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini revolution wnba"
+  },
+  {
+    "id": 2559,
+    "name": "Panini Flawless Collegiate",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini flawless collegiate"
+  },
+  {
+    "id": 338838,
+    "name": "Leaf Multigraphics",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 leaf multigraphics"
+  },
+  {
+    "id": 2641,
+    "name": "Hoops Winter",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 hoops winter"
+  },
+  {
+    "id": 343487,
+    "name": "Topps NBL",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 topps nbl"
+  },
+  {
+    "id": 1066442,
+    "name": "Topps Chrome NBL",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 topps chrome nbl"
+  },
+  {
+    "id": 1634,
+    "name": "Panini Immaculate Collection Collegiate",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini immaculate collection collegiate"
+  },
+  {
+    "id": 740970,
+    "name": "Topps Now NBL",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 topps now nbl"
+  },
+  {
+    "id": 2375,
+    "name": "Panini Black",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini black"
+  },
+  {
+    "id": 163469,
+    "name": "Panini NBA Player of the Day",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 panini nba player of the day"
+  },
+  {
+    "id": 1613,
+    "name": "Leaf Draft",
+    "sport": "Baseball",
+    "year": "2022",
+    "sportId": 1,
+    "yearId": 196231,
+    "searchText": "baseball 2022 leaf draft"
+  },
+  {
+    "id": 983,
+    "name": "Panini Mosaic",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini mosaic"
+  },
+  {
+    "id": 180,
+    "name": "Donruss Optic",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 donruss optic"
+  },
+  {
+    "id": 506,
+    "name": "Panini Select",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini select"
+  },
+  {
+    "id": 51,
+    "name": "Panini Prizm",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini prizm"
+  },
+  {
+    "id": 7,
+    "name": "Donruss",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 donruss"
+  },
+  {
+    "id": 1650,
+    "name": "Panini Phoenix",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini phoenix"
+  },
+  {
+    "id": 1382,
+    "name": "Panini Spectra",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini spectra"
+  },
+  {
+    "id": 1582,
+    "name": "Panini Prizm Draft Picks",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini prizm draft picks"
+  },
+  {
+    "id": 208,
+    "name": "Topps Chrome",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 topps chrome"
+  },
+  {
+    "id": 1611,
+    "name": "Panini Obsidian",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini obsidian"
+  },
+  {
+    "id": 1635,
+    "name": "Donruss Elite",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 donruss elite"
+  },
+  {
+    "id": 1184,
+    "name": "Hoops",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 hoops"
+  },
+  {
+    "id": 191,
+    "name": "Finest",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 finest"
+  },
+  {
+    "id": 1107,
+    "name": "Panini Contenders",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini contenders"
+  },
+  {
+    "id": 2334831,
+    "name": "Donruss Turkish Airlines EuroLeague",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 donruss turkish airlines euroleague"
+  },
+  {
+    "id": 372746,
+    "name": "Bowman University Chrome",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 bowman university chrome"
+  },
+  {
+    "id": 115498,
+    "name": "Leaf Trinity",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 leaf trinity"
+  },
+  {
+    "id": 114169,
+    "name": "Hoops Premium Stock",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 hoops premium stock"
+  },
+  {
+    "id": 83683,
+    "name": "Panini Crown Royale",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini crown royale"
+  },
+  {
+    "id": 114637,
+    "name": "Panini Prizm WNBA",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini prizm wnba"
+  },
+  {
+    "id": 3390365,
+    "name": "Panini Prizm Turkish Airlines EuroLeague",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini prizm turkish airlines euroleague"
+  },
+  {
+    "id": 330934,
+    "name": "Topps Chrome McDonald's All American",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 topps chrome mcdonald's all american"
+  },
+  {
+    "id": 1067,
+    "name": "Panini Court Kings",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini court kings"
+  },
+  {
+    "id": 342699,
+    "name": "Bowman University Best",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 bowman university best"
+  },
+  {
+    "id": 245523,
+    "name": "Topps Chrome Overtime Elite",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 topps chrome overtime elite"
+  },
+  {
+    "id": 1110,
+    "name": "Panini Contenders Optic",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini contenders optic"
+  },
+  {
+    "id": 177219,
+    "name": "Panini Recon",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini recon"
+  },
+  {
+    "id": 3912435,
+    "name": "Panini Premium Stock",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini premium stock"
+  },
+  {
+    "id": 284282,
+    "name": "Panini Prizm Monopoly",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini prizm monopoly"
+  },
+  {
+    "id": 3787857,
+    "name": "Panini Prizm Deca",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini prizm deca"
+  },
+  {
+    "id": 1339,
+    "name": "Panini Noir",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini noir"
+  },
+  {
+    "id": 972,
+    "name": "Panini Revolution",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini revolution"
+  },
+  {
+    "id": 2324644,
+    "name": "Topps G-League",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 topps g-league"
+  },
+  {
+    "id": 1178,
+    "name": "Panini National Treasures",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini national treasures"
+  },
+  {
+    "id": 3641225,
+    "name": "Topps Motif",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 topps motif"
+  },
+  {
+    "id": 1140,
+    "name": "Panini Impeccable",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini impeccable"
+  },
+  {
+    "id": 394700,
+    "name": "Bowman Best University",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 bowman best university"
+  },
+  {
+    "id": 371082,
+    "name": "Topps Chrome Sapphire",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 topps chrome sapphire"
+  },
+  {
+    "id": 1249,
+    "name": "Panini Origins",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini origins"
+  },
+  {
+    "id": 114745,
+    "name": "Panini Instant NBA",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini instant nba"
+  },
+  {
+    "id": 1066442,
+    "name": "Topps Chrome NBL",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 topps chrome nbl"
+  },
+  {
+    "id": 379904,
+    "name": "Panini Origins WNBA",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini origins wnba"
+  },
+  {
+    "id": 343487,
+    "name": "Topps NBL",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 topps nbl"
+  },
+  {
+    "id": 410666,
+    "name": "Topps Chrome Cosmic",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 topps chrome cosmic"
+  },
+  {
+    "id": 114136,
+    "name": "Panini One and One",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini one and one"
+  },
+  {
+    "id": 3273062,
+    "name": "Hoops Haunted Hoops",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 hoops haunted hoops"
+  },
+  {
+    "id": 1418,
+    "name": "Panini Immaculate Collection",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini immaculate collection"
+  },
+  {
+    "id": 269676,
+    "name": "Panini Photogenic",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini photogenic"
+  },
+  {
+    "id": 134497,
+    "name": "Panini NBA Sticker & Card Collection",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini nba sticker & card collection"
+  },
+  {
+    "id": 2375,
+    "name": "Panini Black",
+    "sport": "Baseball",
+    "year": "2023",
+    "sportId": 1,
+    "yearId": 5,
+    "searchText": "baseball 2023 panini black"
+  },
+  {
+    "id": 51,
+    "name": "Panini Prizm",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini prizm"
+  },
+  {
+    "id": 7,
+    "name": "Donruss",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 donruss"
+  },
+  {
+    "id": 1184,
+    "name": "Hoops",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 hoops"
+  },
+  {
+    "id": 208,
+    "name": "Topps Chrome",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 topps chrome"
+  },
+  {
+    "id": 1582,
+    "name": "Panini Prizm Draft Picks",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini prizm draft picks"
+  },
+  {
+    "id": 3819669,
+    "name": "Panini Select WNBA",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini select wnba"
+  },
+  {
+    "id": 91212,
+    "name": "Panini Totally Certified",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini totally certified"
+  },
+  {
+    "id": 372746,
+    "name": "Bowman University Chrome",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 bowman university chrome"
+  },
+  {
+    "id": 114637,
+    "name": "Panini Prizm WNBA",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini prizm wnba"
+  },
+  {
+    "id": 1115477,
+    "name": "TOPPS CHROME MCDONALD'S ALL-AMERICAN",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 topps chrome mcdonald's all-american"
+  },
+  {
+    "id": 1067,
+    "name": "Panini Court Kings",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini court kings"
+  },
+  {
+    "id": 1249,
+    "name": "Panini Origins",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini origins"
+  },
+  {
+    "id": 3990320,
+    "name": "Panini Prizm Monopoly WNBA",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini prizm monopoly wnba"
+  },
+  {
+    "id": 284282,
+    "name": "Panini Prizm Monopoly",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini prizm monopoly"
+  },
+  {
+    "id": 2641,
+    "name": "Hoops Winter",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 hoops winter"
+  },
+  {
+    "id": 379904,
+    "name": "Panini Origins WNBA",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini origins wnba"
+  },
+  {
+    "id": 114745,
+    "name": "Panini Instant NBA",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini instant nba"
+  },
+  {
+    "id": 3114081,
+    "name": "Panini Caitlin Clark Collection",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini caitlin clark collection"
+  },
+  {
+    "id": 364023,
+    "name": "Bowman U Now",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 bowman u now"
+  },
+  {
+    "id": 2333189,
+    "name": "Panini Instant WNBA",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini instant wnba"
+  },
+  {
+    "id": 1112529,
+    "name": "NBA STICKER & CARD COLLECTION",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 nba sticker & card collection"
+  },
+  {
+    "id": 4338018,
+    "name": "Panini Turkish Airlines EuroLeague Stickers",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini turkish airlines euroleague stickers"
+  },
+  {
+    "id": 4338028,
+    "name": "Panini Turkish Airlines EuroLeague Top Class",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini turkish airlines euroleague top class"
+  },
+  {
+    "id": 3390743,
+    "name": "Panini Instant NBA RPS",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini instant nba rps"
+  },
+  {
+    "id": 2592,
+    "name": "Topps Now",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 topps now"
+  },
+  {
+    "id": 2334831,
+    "name": "Donruss Turkish Airlines EuroLeague",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 donruss turkish airlines euroleague"
+  },
+  {
+    "id": 134497,
+    "name": "Panini NBA Sticker & Card Collection",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini nba sticker & card collection"
+  },
+  {
+    "id": 3638393,
+    "name": "Panini Instant NBA Summer League",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini instant nba summer league"
+  },
+  {
+    "id": 4360165,
+    "name": "Kptain Nanterre 92",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 kptain nanterre 92"
+  },
+  {
+    "id": 1087153,
+    "name": "ONIT Athlete Marquette Golden Eagles",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 onit athlete marquette golden eagles"
+  },
+  {
+    "id": 4155194,
+    "name": "ONIT Athlete Auburn Tigers Men",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 onit athlete auburn tigers men"
+  },
+  {
+    "id": 3823637,
+    "name": "ONIT Athlete Purdue Boilermakers",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 onit athlete purdue boilermakers"
+  },
+  {
+    "id": 377455,
+    "name": "Panini Instant NBA Spotlight Rookies",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini instant nba spotlight rookies"
+  },
+  {
+    "id": 4360102,
+    "name": "ONIT Athlete Nebraska Cornhuskers Men",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 onit athlete nebraska cornhuskers men"
+  },
+  {
+    "id": 4229149,
+    "name": "ONIT Athlete West Virginia Mountaineers Women",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 onit athlete west virginia mountaineers women"
+  },
+  {
+    "id": 329482,
+    "name": "Panini Instant NBA The Franchise",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini instant nba the franchise"
+  },
+  {
+    "id": 4496135,
+    "name": "ONIT Athlete Texas A&M Aggies Women",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 onit athlete texas a&m aggies women"
+  },
+  {
+    "id": 1105059,
+    "name": "ONIT Athlete Wake Forest Demon Deacons Men",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 onit athlete wake forest demon deacons men"
+  },
+  {
+    "id": 4360129,
+    "name": "ONIT Athlete Washington Huskies Men",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 onit athlete washington huskies men"
+  },
+  {
+    "id": 4255408,
+    "name": "Panini Instant NBA Studio",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini instant nba studio"
+  },
+  {
+    "id": 142405,
+    "name": "Panini Instant NBA Breakaway",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini instant nba breakaway"
+  },
+  {
+    "id": 4312171,
+    "name": "ONIT Athlete Texas A&M Aggies Men",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 onit athlete texas a&m aggies men"
+  },
+  {
+    "id": 3876373,
+    "name": "Panini Instant The Logo",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini instant the logo"
+  },
+  {
+    "id": 3819668,
+    "name": "Panini Boston Celtics NBA Champions",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini boston celtics nba champions"
+  },
+  {
+    "id": 3390742,
+    "name": "Slam Deck Premium Collection",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 slam deck premium collection"
+  },
+  {
+    "id": 3390721,
+    "name": "Panini Instant Rated Rookie Retro WNBA",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini instant rated rookie retro wnba"
+  },
+  {
+    "id": 4155556,
+    "name": "Auburn Tigers Women",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 auburn tigers women"
+  },
+  {
+    "id": 4192869,
+    "name": "ONIT Athlete Wake Forest Demon Deacons",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 onit athlete wake forest demon deacons"
+  },
+  {
+    "id": 1054736,
+    "name": "Onit Athlete West Virginia Mountaineers",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 onit athlete west virginia mountaineers"
+  },
+  {
+    "id": 114309,
+    "name": "Panini Instant NBA Draft Night",
+    "sport": "Baseball",
+    "year": "2024",
+    "sportId": 1,
+    "yearId": 348057,
+    "searchText": "baseball 2024 panini instant nba draft night"
+  },
+  {
+    "id": 2198037,
+    "name": "Bowman U Now NCAA March Madness",
+    "sport": "Baseball",
+    "year": "2025",
+    "sportId": 1,
+    "yearId": 3914795,
+    "searchText": "baseball 2025 bowman u now ncaa march madness"
+  }
+]

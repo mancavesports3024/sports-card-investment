@@ -1,0 +1,27 @@
+{
+  "lastUpdated": "2025-07-29T03:07:15.660Z",
+  "totalSets": 200,
+  "totalVariations": 200,
+  "sports": [
+    "Unknown",
+    "Multi-Sport",
+    "Hockey",
+    "Basketball",
+    "MMA"
+  ],
+  "years": [
+    "Unknown",
+    "1992",
+    "1953"
+  ],
+  "brands": [
+    "Unknown",
+    "Topps",
+    "Donruss",
+    "Bowman",
+    "Panini",
+    "Upper Deck",
+    "Score",
+    "Fleer"
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "lastUpdated": "2025-07-29T03:41:32.815Z",
+  "totalSets": 1342,
+  "sources": {
+    "enhanced": 1000,
+    "existing": 0,
+    "sportYears": 480,
+    "inline": 10
+  },
+  "sports": [
+    "Unknown",
+    "Baseball",
+    "Multi-Sport",
+    "Hockey",
+    "MMA",
+    "Basketball",
+    "Soccer",
+    "Football",
+    "Boxing",
+    "Wrestling",
+    "Racing"
+  ],
+  "years": [
+    "1919",
+    "1950",
+    "1952",
+    "1954",
+    "1962",
+    "1966",
+    "1970",
+    "1991",
+    "1992",
+    "2000",
+    "2008",
+    "2020",
+    "2021",
+    "2022",
+    "2023",
+    "2024",
+    "2025",
+    "Unknown"
+  ],
+  "brands": [
+    "Unknown",
+    "Topps",
+    "Donruss",
+    "Bowman",
+    "Panini",
+    "Upper Deck",
+    "Score",
+    "Fleer",
+    "Skybox",
+    "Leaf"
+  ],
+  "sportBreakdown": [
+    {
+      "sport": "Unknown",
+      "count": 607
+    },
+    {
+      "sport": "Baseball",
+      "count": 241
+    },
+    {
+      "sport": "Multi-Sport",
+      "count": 74
+    },
+    {
+      "sport": "Hockey",
+      "count": 125
+    },
+    {
+      "sport": "MMA",
+      "count": 4
+    },
+    {
+      "sport": "Basketball",
+      "count": 141
+    },
+    {
+      "sport": "Soccer",
+      "count": 5
+    },
+    {
+      "sport": "Football",
+      "count": 140
+    },
+    {
+      "sport": "Boxing",
+      "count": 1
+    },
+    {
+      "sport": "Wrestling",
+      "count": 3
+    },
+    {
+      "sport": "Racing",
+      "count": 1
+    }
+  ]
+}

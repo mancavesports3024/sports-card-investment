@@ -2244,7 +2244,16 @@ router.get('/card-set-suggestions', async (req, res) => {
     );
     
     console.log(`[CARD SET SUGGESTIONS] Combined: ${databaseSuggestions.length} database + ${suggestions.length} inline = ${uniqueSuggestions.length} unique suggestions`);
-    res.json({ suggestions: uniqueSuggestions.slice(0, parseInt(limit)) });
+    res.json({
+      suggestions: uniqueSuggestions,
+      total: uniqueSuggestions.length,
+      sources: {
+        comprehensive: uniqueSuggestions.filter(s => s.source === 'comprehensive' || s.source === 'getcardbase' || s.source === 'generated').length,
+        existing: uniqueSuggestions.filter(s => s.source === 'existing').length,
+        inline: uniqueSuggestions.filter(s => s.source === 'inline').length
+      }
+    });
+
   } catch (error) {
     console.error('[CARD SET SUGGESTIONS] Error details:', error);
     console.error('[CARD SET SUGGESTIONS] Error stack:', error.stack);
@@ -2559,6 +2568,181 @@ function analyzeCardSetPerformance(cards) {
     }))
     .sort((a, b) => b.salesCount - a.salesCount);
 }
+
+// Card set suggestions endpoint
+router.get('/card-set-suggestions', async (req, res) => {
+  try {
+    const { query = '' } = req.query;
+    
+    if (!query || query.trim().length < 2) {
+      return res.json({ suggestions: [] });
+    }
+
+    console.log(`🔍 Card set suggestions for: "${query}"`);
+
+    // Load our enhanced set database
+               let comprehensiveDatabase = [];
+           try {
+             const comprehensivePath = path.join(__dirname, '../data/comprehensiveCardDatabase.json');
+             const comprehensiveData = await fs.readFile(comprehensivePath, 'utf8');
+             const comprehensive = JSON.parse(comprehensiveData);
+             comprehensiveDatabase = comprehensive.sets || [];
+             console.log(`✅ Loaded comprehensive database with ${comprehensiveDatabase.length} sets`);
+           } catch (error) {
+             console.log('⚠️ Could not load comprehensive database, falling back to enhanced data');
+           }
+
+           let enhancedDatabase = [];
+           if (comprehensiveDatabase.length === 0) {
+             try {
+               const enhancedPath = path.join(__dirname, '../data/enhancedSetFlatList.json');
+               const enhancedData = await fs.readFile(enhancedPath, 'utf8');
+               enhancedDatabase = JSON.parse(enhancedData);
+               console.log(`✅ Loaded enhanced database with ${enhancedDatabase.length} items`);
+             } catch (error) {
+               console.log('⚠️ Could not load enhanced database, falling back to existing data');
+             }
+           }
+
+    // Load existing card sets database as fallback
+    let existingDatabase = [];
+    try {
+      const existingPath = path.join(__dirname, '../data/cardSetsDatabase.json');
+      const existingData = await fs.readFile(existingPath, 'utf8');
+      existingDatabase = JSON.parse(existingData);
+      console.log(`✅ Loaded existing database with ${existingDatabase.length} items`);
+    } catch (error) {
+      console.log('⚠️ Could not load existing database');
+    }
+
+    // Combine and search both databases
+    const allSuggestions = [];
+    const searchQuery = query.toLowerCase().trim();
+
+    // Search comprehensive database first (prioritize comprehensive data)
+    if (comprehensiveDatabase.length > 0) {
+      const comprehensiveMatches = comprehensiveDatabase
+        .filter(set => {
+          return set.searchText.includes(searchQuery) ||
+                 set.name.toLowerCase().includes(searchQuery) ||
+                 set.sport.toLowerCase().includes(searchQuery) ||
+                 set.brand.toLowerCase().includes(searchQuery) ||
+                 set.setName.toLowerCase().includes(searchQuery) ||
+                 set.displayName.toLowerCase().includes(searchQuery);
+        })
+        .slice(0, 50) // Limit results
+        .map(set => ({
+          id: set.id,
+          name: set.name,
+          sport: set.sport,
+          year: set.year,
+          brand: set.brand,
+          setName: set.setName,
+          source: set.source,
+          displayName: set.displayName
+        }));
+
+      allSuggestions.push(...comprehensiveMatches);
+      console.log(`📋 Found ${comprehensiveMatches.length} matches in comprehensive database`);
+    } else if (enhancedDatabase.length > 0) {
+      const enhancedMatches = enhancedDatabase
+        .filter(item => {
+          if (item.type === 'set') {
+            return item.searchText.includes(searchQuery) || 
+                   item.name.toLowerCase().includes(searchQuery) ||
+                   item.sport.toLowerCase().includes(searchQuery) ||
+                   item.brand.toLowerCase().includes(searchQuery) ||
+                   item.setName.toLowerCase().includes(searchQuery);
+          }
+          return false;
+        })
+        .slice(0, 50) // Limit results
+        .map(item => ({
+          id: item.id,
+          name: item.name,
+          sport: item.sport,
+          year: item.year,
+          brand: item.brand,
+          setName: item.setName,
+          source: 'getcardbase',
+          displayName: `${item.sport} ${item.year} ${item.brand} ${item.setName}`.trim()
+        }));
+
+      allSuggestions.push(...enhancedMatches);
+      console.log(`📋 Found ${enhancedMatches.length} matches in enhanced database`);
+    }
+
+    // Search existing database as fallback
+    if (existingDatabase.length > 0) {
+      const existingMatches = existingDatabase
+        .filter(set => {
+          const setText = `${set.sport} ${set.year} ${set.brand} ${set.setName}`.toLowerCase();
+          return setText.includes(searchQuery);
+        })
+        .slice(0, 25) // Limit results
+        .map(set => ({
+          id: set.id || `existing_${set.sport}_${set.year}_${set.brand}`,
+          name: set.setName,
+          sport: set.sport,
+          year: set.year,
+          brand: set.brand,
+          setName: set.setName,
+          source: 'existing',
+          displayName: `${set.sport} ${set.year} ${set.brand} ${set.setName}`.trim()
+        }));
+
+      allSuggestions.push(...existingMatches);
+      console.log(`📋 Found ${existingMatches.length} matches in existing database`);
+    }
+
+    // Add inline suggestions for common searches
+    const inlineSuggestions = [
+      { id: 'inline_1', name: 'Topps Series One', sport: 'Baseball', year: '2025', brand: 'Topps', setName: 'Series One', source: 'inline', displayName: 'Baseball 2025 Topps Series One' },
+      { id: 'inline_2', name: 'Topps Chrome', sport: 'Baseball', year: '2024', brand: 'Topps', setName: 'Chrome', source: 'inline', displayName: 'Baseball 2024 Topps Chrome' },
+      { id: 'inline_3', name: 'Panini Prizm', sport: 'Basketball', year: '2024', brand: 'Panini', setName: 'Prizm', source: 'inline', displayName: 'Basketball 2024 Panini Prizm' },
+      { id: 'inline_4', name: 'Donruss Optic', sport: 'Football', year: '2024', brand: 'Donruss', setName: 'Optic', source: 'inline', displayName: 'Football 2024 Donruss Optic' },
+      { id: 'inline_5', name: 'Upper Deck Series One', sport: 'Hockey', year: '2024', brand: 'Upper Deck', setName: 'Series One', source: 'inline', displayName: 'Hockey 2024 Upper Deck Series One' }
+    ];
+
+    // Filter inline suggestions based on query
+    const filteredInline = inlineSuggestions.filter(suggestion => 
+      suggestion.displayName.toLowerCase().includes(searchQuery)
+    );
+
+    allSuggestions.push(...filteredInline);
+
+    // Remove duplicates and limit results
+    const uniqueSuggestions = [];
+    const seen = new Set();
+    
+    allSuggestions.forEach(suggestion => {
+      const key = `${suggestion.sport}_${suggestion.year}_${suggestion.brand}_${suggestion.setName}`;
+      if (!seen.has(key) && uniqueSuggestions.length < 50) {
+        seen.add(key);
+        uniqueSuggestions.push(suggestion);
+      }
+    });
+
+    console.log(`🎯 Returning ${uniqueSuggestions.length} unique suggestions`);
+
+    res.json({
+      suggestions: uniqueSuggestions,
+      total: uniqueSuggestions.length,
+      sources: {
+        comprehensive: uniqueSuggestions.filter(s => s.source === 'comprehensive' || s.source === 'getcardbase' || s.source === 'generated').length,
+        existing: uniqueSuggestions.filter(s => s.source === 'existing').length,
+        inline: uniqueSuggestions.filter(s => s.source === 'inline').length
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Card set suggestions error:', error);
+    res.status(500).json({ 
+      error: 'Failed to get card set suggestions',
+      suggestions: []
+    });
+  }
+});
 
 module.exports = {
   router,
