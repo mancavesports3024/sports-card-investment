@@ -159,6 +159,7 @@
   min-height: calc(100vh - 120px); /* Account for header */
   position: relative;
   overflow-x: hidden;
+  padding-top: 1rem; /* Add consistent spacing from header */
 }
 
 /* Search Form */
