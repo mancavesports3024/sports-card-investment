@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2025-07-29T13:44:02.440Z",
+  "lastUpdated": "2025-07-29T16:12:54.112Z",
   "totalSets": 30846,
   "sources": {
     "enhanced": 1000,
@@ -8,13 +8,13 @@
     "inline": 10
   },
   "cleaningStats": {
-    "originalCount": 31700,
-    "removedCount": 854,
+    "originalCount": 30846,
+    "removedCount": 0,
     "unknownStats": {
-      "sport": 607,
-      "year": 842,
-      "brand": 519,
-      "totalWithUnknowns": 854
+      "sport": 0,
+      "year": 0,
+      "brand": 0,
+      "totalWithUnknowns": 0
     }
   },
   "sports": [

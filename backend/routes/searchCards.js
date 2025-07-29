@@ -1151,6 +1151,12 @@ router.post('/', async (req, res) => {
     const filteredCards = allCards.filter(card => {
       const title = (card.title || '').toLowerCase();
       
+      // Debug specific problematic entry
+      if (title.includes('jumbo hobby case') || title.includes('2025 topps series one 1 baseball jumbo hobby case')) {
+        console.log(`[DEBUG] Found problematic entry: "${card.title}"`);
+        console.log(`[DEBUG] Title lowercase: "${title}"`);
+      }
+      
       // Enhanced sealed product patterns to catch more variations
       const sealedProductPatterns = [
         /\bhobby\s+box\b/i,
@@ -1224,6 +1230,16 @@ router.post('/', async (req, res) => {
       
       // Only filter out if it's clearly a sealed product
       const shouldFilter = isSealedProduct || hasQuantityIndicators || isHighValueSealed || hasSpecificSealedTerms;
+      
+      // Debug specific problematic entry
+      if (title.includes('jumbo hobby case') || title.includes('2025 topps series one 1 baseball jumbo hobby case')) {
+        console.log(`[DEBUG] Filtering analysis for "${card.title}":`);
+        console.log(`[DEBUG] - isSealedProduct: ${isSealedProduct}`);
+        console.log(`[DEBUG] - hasQuantityIndicators: ${hasQuantityIndicators}`);
+        console.log(`[DEBUG] - isHighValueSealed: ${isHighValueSealed}`);
+        console.log(`[DEBUG] - hasSpecificSealedTerms: ${hasSpecificSealedTerms}`);
+        console.log(`[DEBUG] - shouldFilter: ${shouldFilter}`);
+      }
       
       if (shouldFilter) {
         console.log(`[EBAY FILTERED] Sealed product removed: "${card.title}" - Price: $${card.price?.value || 'N/A'}`);

@@ -120,6 +120,47 @@ async function search130point(keywords, numSales = 10) {
       console.log('⚠️ Could not parse currency rates:', error.message);
     }
 
+    // Enhanced sealed product patterns to catch more variations
+    const sealedProductPatterns = [
+      /\bhobby\s+box\b/i,
+      /\bhobby\s+case\b/i,
+      /\bjumbo\s+hobby\s+case\b/i,
+      /\bjumbo\s+box\b/i,
+      /\bjumbo\s+pack\b/i,
+      /\bjumbo\b/i,  // Standalone JUMBO
+      /\bfactory\s+sealed\b/i,
+      /\bsealed\s+box\b/i,
+      /\bsealed\s+pack\b/i,
+      /\bsealed\s+case\b/i,
+      /\bbooster\s+box\b/i,
+      /\bbooster\s+pack\b/i,
+      /\bblaster\s+box\b/i,
+      /\bblaster\s+pack\b/i,
+      /\bfat\s+pack\b/i,
+      /\bjumbo\s+pack\b/i,
+      /\bretail\s+box\b/i,
+      /\bretail\s+pack\b/i,
+      /\bhanger\s+box\b/i,
+      /\bhanger\s+pack\b/i,
+      /\bvalue\s+pack\b/i,
+      /\bvalue\s+box\b/i,
+      /\bcomplete\s+set\b/i,
+      /\bfactory\s+set\b/i,
+      /\bsealed\s+product\b/i,
+      /\bunopened\b/i,
+      /\bsealed\s+item\b/i,
+      /\bsealed\s+lot\b/i,
+      /\bsuperbox\b/i,
+      /\bmega\s+box\b/i,
+      /\bcelebration\s+mega\s+box\b/i,
+      /\bcase\s+of\b/i,
+      /\bbreak\s+case\b/i,
+      /\bcase\s+break\b/i,
+      /\bwax\s+box\b/i,
+      /\bcellos?\b/i,
+      /\bwrappers?\b/i
+    ];
+
     // Extract sales data from the actual 130point table rows
     $('#salesDataTable-1 tr#dRow').each((index, el) => {
       if (sales.length >= numSales) return false; // Stop if we have enough results
@@ -189,6 +230,56 @@ async function search130point(keywords, numSales = 10) {
 
         // Only push if we have a title and price
         if (title && salePrice) {
+          // Filter out sealed products before adding to results
+          const titleLower = title.toLowerCase();
+          
+          // Check if title matches any sealed product pattern
+          const isSealedProduct = sealedProductPatterns.some(pattern => pattern.test(titleLower));
+          
+          // Check for quantity indicators that suggest sealed products
+          const hasQuantityIndicators = /\d+\s*(hobby\s+box|booster\s+box|blaster\s+box|retail\s+box|sealed\s+box|sealed\s+pack|sealed\s+case|lot\s+of|lots\s+of|bundle|complete\s+set|factory\s+set|hobby\s+case|jumbo\s+hobby\s+case)/i.test(titleLower);
+          
+          // Check for high-value items that are clearly sealed products
+          const isHighValueSealed = priceInUSD > 200 && (
+            titleLower.includes('hobby box') || 
+            titleLower.includes('hobby case') ||
+            titleLower.includes('jumbo hobby case') ||
+            titleLower.includes('booster box') || 
+            titleLower.includes('blaster box') || 
+            titleLower.includes('complete set') ||
+            titleLower.includes('factory set') ||
+            titleLower.includes('superbox') ||
+            titleLower.includes('mega box') ||
+            /\d+\s*(box|pack|case)/i.test(titleLower)
+          );
+          
+          // Additional specific checks for the problematic items
+          const hasSpecificSealedTerms = (
+            titleLower.includes('jumbo hobby case') ||
+            titleLower.includes('superbox') ||
+            titleLower.includes('mega box') ||
+            titleLower.includes('celebration mega box') ||
+            titleLower.includes('sealed') && (titleLower.includes('box') || titleLower.includes('case') || titleLower.includes('pack'))
+          );
+          
+          // Only filter out if it's clearly a sealed product
+          const shouldFilter = isSealedProduct || hasQuantityIndicators || isHighValueSealed || hasSpecificSealedTerms;
+          
+          // Debug specific problematic entry
+          if (titleLower.includes('jumbo hobby case') || titleLower.includes('2025 topps series one 1 baseball jumbo hobby case')) {
+            console.log(`[130POINT DEBUG] Found problematic entry: "${title}"`);
+            console.log(`[130POINT DEBUG] - isSealedProduct: ${isSealedProduct}`);
+            console.log(`[130POINT DEBUG] - hasQuantityIndicators: ${hasQuantityIndicators}`);
+            console.log(`[130POINT DEBUG] - isHighValueSealed: ${isHighValueSealed}`);
+            console.log(`[130POINT DEBUG] - hasSpecificSealedTerms: ${hasSpecificSealedTerms}`);
+            console.log(`[130POINT DEBUG] - shouldFilter: ${shouldFilter}`);
+          }
+          
+          if (shouldFilter) {
+            console.log(`[130POINT FILTERED] Sealed product removed: "${title}" - Price: $${priceInUSD.toFixed(2)}`);
+            return; // Skip this item
+          }
+
           sales.push({
             id: `130point_${index}_${Date.now()}`,
             title: title,
@@ -213,7 +304,7 @@ async function search130point(keywords, numSales = 10) {
       }
     });
 
-    console.log(`✅ Found ${sales.length} sales from 130point.com`);
+    console.log(`✅ Found ${sales.length} sales from 130point.com (after filtering sealed products)`);
     return sales;
   } catch (error) {
     console.error('❌ 130point search error:', error.message);

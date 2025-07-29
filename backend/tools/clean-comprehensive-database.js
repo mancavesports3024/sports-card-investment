@@ -40,12 +40,83 @@ function cleanComprehensiveDatabase() {
         console.log(`  Sets with Unknown brand: ${unknownStats.brand}`);
         console.log(`  Total sets with any Unknown: ${unknownStats.totalWithUnknowns}`);
 
-        // Filter out sets with Unknown values
+        // Enhanced sealed product patterns to catch more variations
+        const sealedProductPatterns = [
+            /\bhobby\s+box\b/i,
+            /\bhobby\s+case\b/i,
+            /\bjumbo\s+hobby\s+case\b/i,
+            /\bjumbo\s+box\b/i,
+            /\bjumbo\s+pack\b/i,
+            /\bjumbo\b/i,  // Standalone JUMBO
+            /\bfactory\s+sealed\b/i,
+            /\bsealed\s+box\b/i,
+            /\bsealed\s+pack\b/i,
+            /\bsealed\s+case\b/i,
+            /\bbooster\s+box\b/i,
+            /\bbooster\s+pack\b/i,
+            /\bblaster\s+box\b/i,
+            /\bblaster\s+pack\b/i,
+            /\bfat\s+pack\b/i,
+            /\bjumbo\s+pack\b/i,
+            /\bretail\s+box\b/i,
+            /\bretail\s+pack\b/i,
+            /\bhanger\s+box\b/i,
+            /\bhanger\s+pack\b/i,
+            /\bvalue\s+pack\b/i,
+            /\bvalue\s+box\b/i,
+            /\bcomplete\s+set\b/i,
+            /\bfactory\s+set\b/i,
+            /\bsealed\s+product\b/i,
+            /\bunopened\b/i,
+            /\bsealed\s+item\b/i,
+            /\bsealed\s+lot\b/i,
+            /\bsuperbox\b/i,
+            /\bmega\s+box\b/i,
+            /\bcelebration\s+mega\s+box\b/i,
+            /\bcase\s+of\b/i,
+            /\bbreak\s+case\b/i,
+            /\bcase\s+break\b/i,
+            /\bwax\s+box\b/i,
+            /\bcellos?\b/i,
+            /\bwrappers?\b/i
+        ];
+
+        // Filter out sets with Unknown values and sealed products
         console.log('\n🧹 Cleaning database...');
         const cleanedSets = data.sets.filter(set => {
-            return set.sport !== 'Unknown' && 
-                   set.year !== 'Unknown' && 
-                   set.brand !== 'Unknown';
+            // First check for Unknown values
+            if (set.sport === 'Unknown' || set.year === 'Unknown' || set.brand === 'Unknown') {
+                return false;
+            }
+
+            // Then check for sealed products
+            const setName = (set.name || '').toLowerCase();
+            const setDescription = (set.description || '').toLowerCase();
+            
+            // Check if name or description matches any sealed product pattern
+            const isSealedProduct = sealedProductPatterns.some(pattern => 
+                pattern.test(setName) || pattern.test(setDescription)
+            );
+
+            // Check for quantity indicators that suggest sealed products
+            const hasQuantityIndicators = /\d+\s*(hobby\s+box|booster\s+box|blaster\s+box|retail\s+box|sealed\s+box|sealed\s+pack|sealed\s+case|lot\s+of|lots\s+of|bundle|complete\s+set|factory\s+set|hobby\s+case|jumbo\s+hobby\s+case)/i.test(setName);
+
+            // Additional specific checks for problematic items
+            const hasSpecificSealedTerms = (
+                setName.includes('jumbo hobby case') ||
+                setName.includes('superbox') ||
+                setName.includes('mega box') ||
+                setName.includes('celebration mega box') ||
+                (setName.includes('sealed') && (setName.includes('box') || setName.includes('case') || setName.includes('pack')))
+            );
+
+            const shouldFilter = isSealedProduct || hasQuantityIndicators || hasSpecificSealedTerms;
+
+            if (shouldFilter) {
+                console.log(`[DATABASE FILTERED] Sealed product removed: "${set.name}"`);
+            }
+
+            return !shouldFilter;
         });
 
         console.log(`✅ Cleaning completed:`);
