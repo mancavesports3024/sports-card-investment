@@ -8,7 +8,7 @@ const HomePage = () => {
       {/* Main Content */}
       <main className="home-main">
         {/* Page Title Section */}
-        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
           <h1 style={{ 
             fontSize: '2.5rem', 
             fontWeight: 800, 
