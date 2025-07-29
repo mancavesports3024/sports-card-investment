@@ -981,6 +981,36 @@ const SearchPage = () => {
             {renderCardSection('PSA 10', results.results.psa10, '🏆')}
           </div>
         )}
+
+        {/* Loading placeholder to prevent layout shifts */}
+        {isLoading && (
+          <div className="search-results" style={{ 
+            minHeight: '400px', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '10px',
+            margin: '2rem 0',
+            border: '2px solid #ffd700'
+          }}>
+            <div style={{ 
+              color: '#ffd700', 
+              fontSize: '1.2rem', 
+              fontWeight: 'bold',
+              marginBottom: '1rem'
+            }}>
+              🔍 Searching for cards...
+            </div>
+            <div style={{ 
+              color: '#fff', 
+              fontSize: '1rem' 
+            }}>
+              Please wait while we fetch the latest sales data
+            </div>
+          </div>
+        )}
       </main>
     </>
   );

@@ -1,0 +1,5 @@
+[33m40de6fe[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Enhance sealed product filtering patterns to catch celebration mega boxes, super boxes, and other variations
+[33m6ee5a38[m Add sealed product filtering to 130point service and enhance search filtering to remove hobby cases and sealed products
+[33m6851d42[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Add news page to sitemap - now includes all 6 pages with proper priorities - homepage, search, card-set-analysis, news, history, and auth-success
+[33ma049f71[m Add sitemap automation and include card-set-analysis page - auto-update script and post-deploy hook - sitemap now includes all 5 pages with current dates
+[33mce5b94f[m Enhanced eBay search results filtering - add JUMBO hobby case and sealed product detection - filter out superbox, mega box, and other sealed items from main search

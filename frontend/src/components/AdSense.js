@@ -8,10 +8,12 @@ const AdSense = ({
   responsive = true,
   fullWidthResponsive = false,
   requireContent = true,
-  minContentLength = 500 // Minimum content length required to show ads
+  minContentLength = 500, // Minimum content length required to show ads
+  fixedHeight = null // Optional fixed height to prevent layout shifts
 }) => {
   const adRef = useRef(null);
   const [shouldShowAd, setShouldShowAd] = useState(false);
+  const [isAdLoaded, setIsAdLoaded] = useState(false);
 
   useEffect(() => {
     // Check if we should show the ad based on content requirements
@@ -31,9 +33,15 @@ const AdSense = ({
       if (window.adsbygoogle && adRef.current) {
         // Push the ad to AdSense
         (window.adsbygoogle = window.adsbygoogle || []).push({});
+        
+        // Set a timeout to mark ad as loaded (prevents infinite loading state)
+        setTimeout(() => {
+          setIsAdLoaded(true);
+        }, 3000);
       }
     } catch (error) {
       console.log('AdSense error:', error);
+      setIsAdLoaded(true); // Mark as loaded even if there's an error
     }
   }, [adSlot, shouldShowAd]);
 
@@ -82,6 +90,13 @@ const AdSense = ({
       baseStyle.overflow = 'hidden';
     }
 
+    // Add fixed height if specified to prevent layout shifts
+    if (fixedHeight) {
+      baseStyle.height = fixedHeight;
+      baseStyle.minHeight = fixedHeight;
+      baseStyle.maxHeight = fixedHeight;
+    }
+
     return baseStyle;
   };
 
@@ -96,9 +111,28 @@ const AdSense = ({
       className={`adsense-container ${className}`}
       style={getAdStyle()}
     >
+      {!isAdLoaded && (
+        <div style={{
+          height: fixedHeight || '90px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#f8f9fa',
+          border: '1px solid #e9ecef',
+          borderRadius: '4px',
+          color: '#6c757d',
+          fontSize: '0.875rem'
+        }}>
+          Loading advertisement...
+        </div>
+      )}
       <ins
         className="adsbygoogle"
-        style={{ display: 'block' }}
+        style={{
+          display: 'block',
+          opacity: isAdLoaded ? 1 : 0,
+          transition: 'opacity 0.3s ease'
+        }}
         data-ad-client="ca-pub-5981606678113994"
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
@@ -115,12 +149,12 @@ export const HeaderAd = () => (
     adFormat="auto"
     style={{ 
       margin: '10px auto',
-      maxWidth: '728px',
-      minHeight: '90px'
+      maxWidth: '728px'
     }}
     className="header-ad"
     requireContent={true}
     minContentLength={300}
+    fixedHeight="90px"
   />
 );
 
@@ -130,12 +164,12 @@ export const SidebarAd = () => (
     adFormat="auto"
     style={{ 
       margin: '20px auto',
-      maxWidth: '300px',
-      minHeight: '250px'
+      maxWidth: '300px'
     }}
     className="sidebar-ad"
     requireContent={true}
     minContentLength={500}
+    fixedHeight="250px"
   />
 );
 
@@ -145,12 +179,12 @@ export const InContentAd = () => (
     adFormat="auto"
     style={{ 
       margin: '30px auto',
-      maxWidth: '728px',
-      minHeight: '90px'
+      maxWidth: '728px'
     }}
     className="in-content-ad"
     requireContent={true}
     minContentLength={800} // Higher requirement for in-content ads
+    fixedHeight="90px"
   />
 );
 
@@ -160,12 +194,12 @@ export const FooterAd = () => (
     adFormat="auto"
     style={{ 
       margin: '20px auto',
-      maxWidth: '728px',
-      minHeight: '90px'
+      maxWidth: '728px'
     }}
     className="footer-ad"
     requireContent={true}
     minContentLength={500}
+    fixedHeight="90px"
   />
 );
 
@@ -175,28 +209,27 @@ export const MobileAd = () => (
     adFormat="auto"
     style={{ 
       margin: '15px auto',
-      maxWidth: '320px',
-      minHeight: '50px'
+      maxWidth: '320px'
     }}
     className="mobile-ad"
     requireContent={true}
     minContentLength={400}
+    fixedHeight="100px"
   />
 );
 
-// Content-specific ad component for search results pages
 export const SearchResultsAd = () => (
   <AdSense 
-    adSlot="1498724356" 
+    adSlot="4433221100" 
     adFormat="auto"
     style={{ 
-      margin: '30px auto',
-      maxWidth: '728px',
-      minHeight: '90px'
+      margin: '25px auto',
+      maxWidth: '728px'
     }}
     className="search-results-ad"
     requireContent={true}
     minContentLength={1000} // High requirement for search results pages
+    fixedHeight="90px"
   />
 );
 

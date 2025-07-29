@@ -4,6 +4,7 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
   const [items, setItems] = useState([]);
   const [current, setCurrent] = useState(0);
   const [imagesLoaded, setImagesLoaded] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
   const timerRef = useRef();
 
   // Preload images to prevent layout shifts
@@ -26,12 +27,17 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
   };
 
   useEffect(() => {
+    setIsLoading(true);
     fetch(apiUrl)
       .then(res => res.json())
       .then(data => {
         const itemsData = data.items || [];
         setItems(itemsData);
         preloadImages(itemsData);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setIsLoading(false);
       });
   }, [apiUrl]);
 
@@ -51,6 +57,32 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
     }, interval);
   };
 
+  // Show loading state or return null if no items
+  if (isLoading) {
+    return (
+      <div className="featured-ebay-listing" style={{
+        background: '#fff',
+        borderRadius: 10,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        padding: '1.2em',
+        margin: '1.5em 0',
+        textAlign: 'center',
+        maxWidth: 350,
+        width: 350,
+        height: 480, // Fixed height to prevent jumping
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <div style={{ color: '#666', fontSize: '1rem' }}>Loading featured items...</div>
+      </div>
+    );
+  }
+
   if (!items.length) return null;
   const item = items[current];
 
@@ -64,7 +96,7 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
       textAlign: 'center',
       maxWidth: 350,
       width: 350,
-      minHeight: 480, // Minimum height to prevent jumping, but allow expansion
+      height: 480, // Fixed height to prevent jumping
       marginLeft: 'auto',
       marginRight: 'auto',
       position: 'relative',
