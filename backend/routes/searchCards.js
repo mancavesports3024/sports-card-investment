@@ -8,7 +8,7 @@ const cacheService = require('../services/cacheService');
 const { getEbayApiUsage } = require('../services/ebayService');
 const point130Service = require('../services/130pointService');
 const getCardBaseService = require('../services/getCardBaseService');
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
 
 // Helper to add EPN tracking parameters to eBay URLs
@@ -1358,48 +1358,59 @@ router.get('/card-set-suggestions', async (req, res) => {
   try {
     console.log(`[CARD SET SUGGESTIONS] Request received: query="${query}", limit=${limit}`);
     
-    // Try to load database file first
+    // Try to load comprehensive database file first
     let databaseSuggestions = [];
     try {
-      console.log('[CARD SET SUGGESTIONS] Loading card set database...');
-      const databasePath = path.join(__dirname, '../data/cardSetsDatabase.json');
+      console.log('[CARD SET SUGGESTIONS] Loading comprehensive card database...');
+      const databasePath = path.join(__dirname, '../data/comprehensiveCardDatabase.json');
       const databaseData = await fs.readFile(databasePath, 'utf8');
       const database = JSON.parse(databaseData);
       
-      if (database && database.cardSets && database.cardSets.length > 0) {
-        console.log(`[CARD SET SUGGESTIONS] Loaded database with ${database.cardSets.length} card sets`);
+      if (database && database.sets && database.sets.length > 0) {
+        console.log(`[CARD SET SUGGESTIONS] Loaded comprehensive database with ${database.sets.length} card sets`);
         
         // Search the database
         if (query.trim()) {
           const searchTerm = query.toLowerCase();
           const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
           
-          databaseSuggestions = database.cardSets.filter(set => {
-            const setName = set.name.toLowerCase();
-            const setBrand = set.brand.toLowerCase();
-            const setSet = set.set.toLowerCase();
-            const setYear = set.year.toLowerCase();
+          databaseSuggestions = database.sets.filter(set => {
+            const setName = (set.name || '').toLowerCase();
+            const setBrand = (set.brand || '').toLowerCase();
+            const setSet = (set.setName || '').toLowerCase();
+            const setYear = (set.year || '').toLowerCase();
+            const setSport = (set.sport || '').toLowerCase();
+            const setDisplayName = (set.displayName || '').toLowerCase();
             
             // Check if any search word matches any part of the set
             const hasMatch = searchWords.some(word => 
               setName.includes(word) || 
               setBrand.includes(word) || 
               setSet.includes(word) ||
-              setYear.includes(word)
+              setYear.includes(word) ||
+              setSport.includes(word) ||
+              setDisplayName.includes(word)
             );
             
             // Also check for exact phrase match
             const exactMatch = setName.includes(searchTerm) || 
                               setBrand.includes(searchTerm) || 
                               setSet.includes(searchTerm) ||
-                              setYear.includes(searchTerm);
+                              setYear.includes(searchTerm) ||
+                              setSport.includes(searchTerm) ||
+                              setDisplayName.includes(searchTerm);
             
             return hasMatch || exactMatch;
           });
         } else {
-          // Return popular sets if no query
-          databaseSuggestions = database.cardSets
-            .filter(set => set.popularity === 'High' || set.popularity === 'Medium')
+          // Return popular sets if no query (filter by recent years and major brands)
+          databaseSuggestions = database.sets
+            .filter(set => {
+              const year = parseInt(set.year);
+              const isRecent = year >= 2020;
+              const isMajorBrand = ['Topps', 'Panini', 'Upper Deck', 'Donruss'].includes(set.brand);
+              return isRecent && isMajorBrand;
+            })
             .slice(0, parseInt(limit));
         }
         
@@ -1408,6 +1419,25 @@ router.get('/card-set-suggestions', async (req, res) => {
     } catch (error) {
       console.log('[CARD SET SUGGESTIONS] Database error:', error.message);
     }
+    
+    // Transform database suggestions to match expected format
+    const transformedDatabaseSuggestions = databaseSuggestions.map(set => ({
+      id: set.id,
+      name: set.displayName || set.name,
+      brand: set.brand,
+      category: set.sport,
+      sport: set.sport,
+      league: set.sport === 'Baseball' ? 'MLB' : set.sport === 'Football' ? 'NFL' : set.sport === 'Basketball' ? 'NBA' : set.sport === 'Hockey' ? 'NHL' : set.sport,
+      years: [set.year],
+      setType: set.setName || 'Base Set',
+      cardCount: 0,
+      description: `${set.sport} ${set.year} ${set.brand} ${set.setName || 'Base Set'}`,
+      popularity: 8.0,
+      source: set.source || 'Database',
+      lastUpdated: new Date().toISOString().split('T')[0]
+    }));
+    
+    console.log(`[CARD SET SUGGESTIONS] Transformed ${transformedDatabaseSuggestions.length} database suggestions`);
     
     // Define card sets data inline since file deployment is unreliable
     const cardSetsData = {
@@ -2121,138 +2151,46 @@ router.get('/card-set-suggestions', async (req, res) => {
     }
     
     if (!query.trim()) {
-      // Return popular sets if no query
-      console.log('[CARD SET SUGGESTIONS] No query provided, returning popular sets');
-      
-      // Use inline data for popular sets
-      const popularSets = cardSetsData.cardSets
-        .filter(set => set.years && Array.isArray(set.years) && (set.years.includes('2024') || set.years.includes('2023')))
-        .slice(0, parseInt(limit));
-      console.log(`[CARD SET SUGGESTIONS] Using ${popularSets.length} popular sets from inline data`);
-      
-      return res.json({
-        suggestions: popularSets.map(set => ({
-          name: set.name,
-          brand: set.brand,
-          category: set.category,
-          years: set.years ? set.years.slice(-5) : [], // Last 5 years
-          source: 'Inline'
-        }))
-      });
+      // Combine database suggestions with fallback sets for no query
+      const combinedSuggestions = [...transformedDatabaseSuggestions, ...fallbackSets];
+      const uniqueSuggestions = combinedSuggestions.filter((set, index, self) => 
+        index === self.findIndex(s => s.id === set.id)
+      );
+      return res.json({ suggestions: uniqueSuggestions.slice(0, parseInt(limit)) });
     }
     
-    // Search for matching card sets
     const searchTerm = query.toLowerCase();
-    console.log(`[CARD SET SUGGESTIONS] Searching for: "${searchTerm}"`);
+    const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
     
-    // Use inline data for search
-    console.log(`[CARD SET SUGGESTIONS] Searching inline data for: "${searchTerm}"`);
-    
-                      // Split search term into words for more flexible matching
-                  const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
-                  console.log(`[CARD SET SUGGESTIONS] Search words: [${searchWords.join(', ')}]`);
-                  
-                  let suggestions = cardSetsData.cardSets
-                    .filter(set => {
-                      if (!set.name || !set.brand || !set.category) return false;
-                      
-                      const setName = set.name.toLowerCase();
-                      const setBrand = set.brand.toLowerCase();
-                      const setCategory = set.category.toLowerCase();
-                      const setSport = set.sport?.toLowerCase() || '';
-                      const setLeague = set.league?.toLowerCase() || '';
-                      const setDescription = set.description?.toLowerCase() || '';
-                      
-                      // Check if any search word matches any part of the set
-                      const hasMatch = searchWords.some(word => 
-                        setName.includes(word) || 
-                        setBrand.includes(word) || 
-                        setCategory.includes(word) ||
-                        setSport.includes(word) ||
-                        setLeague.includes(word) ||
-                        setDescription.includes(word)
-                      );
-                      
-                      // Also check for exact phrase match
-                      const exactMatch = setName.includes(searchTerm) || 
-                                        setBrand.includes(searchTerm) || 
-                                        setCategory.includes(searchTerm) ||
-                                        setSport.includes(searchTerm) ||
-                                        setLeague.includes(searchTerm);
-                      
-                      return hasMatch || exactMatch;
-                    })
-                    .slice(0, parseInt(limit))
-                    .map(set => ({
-                      id: set.id,
-                      name: set.name,
-                      brand: set.brand,
-                      category: set.category,
-                      sport: set.sport,
-                      league: set.league,
-                      setType: set.setType,
-                      cardCount: set.cardCount,
-                      description: set.description,
-                      releaseMonth: set.releaseMonth,
-                      retailPrice: set.retailPrice,
-                      hobbyPrice: set.hobbyPrice,
-                      popularity: set.popularity,
-                      rookieCards: set.rookieCards,
-                      inserts: set.inserts,
-                      variations: set.variations,
-                      years: set.years ? set.years.slice(-5) : [], // Last 5 years
-                      source: set.source || 'Inline',
-                      lastUpdated: set.lastUpdated
-                    }));
-    
-    console.log(`[CARD SET SUGGESTIONS] Found ${suggestions.length} matching sets in inline data`);
-    
-    // If still no results, try broader search
-    if (suggestions.length === 0 && searchWords.length > 0) {
-      console.log(`[CARD SET SUGGESTIONS] No exact matches, trying broader search with first word: "${searchWords[0]}"`);
+    const filteredSets = fallbackSets.filter(set => {
+      const setName = set.name.toLowerCase();
+      const setBrand = set.brand.toLowerCase();
+      const setCategory = set.category.toLowerCase();
       
-      suggestions = cardSetsData.cardSets
-        .filter(set => {
-          if (!set.name || !set.brand || !set.category) return false;
-          
-          const setName = set.name.toLowerCase();
-          const setBrand = set.brand.toLowerCase();
-          const setCategory = set.category.toLowerCase();
-          
-          return setName.includes(searchWords[0]) || 
-                 setBrand.includes(searchWords[0]) || 
-                 setCategory.includes(searchWords[0]);
-        })
-        .slice(0, parseInt(limit))
-        .map(set => ({
-          name: set.name,
-          brand: set.brand,
-          category: set.category,
-          years: set.years ? set.years.slice(-5) : [], // Last 5 years
-          source: 'Inline'
-        }));
+      // Check if any search word matches any part of the set
+      const hasMatch = searchWords.some(word => 
+        setName.includes(word) || 
+        setBrand.includes(word) || 
+        setCategory.includes(word)
+      );
       
-      console.log(`[CARD SET SUGGESTIONS] Broader search found ${suggestions.length} sets`);
-    }
+      // Also check for exact phrase match
+      const exactMatch = setName.includes(searchTerm) || 
+                        setBrand.includes(searchTerm) || 
+                        setCategory.includes(searchTerm);
+      
+      return hasMatch || exactMatch;
+    });
     
-    // Combine database suggestions with inline suggestions
-    const allSuggestions = [...databaseSuggestions, ...suggestions];
-    
-    // Remove duplicates based on name
-    const uniqueSuggestions = allSuggestions.filter((suggestion, index, self) => 
-      index === self.findIndex(s => s.name === suggestion.name)
+    // Combine database suggestions with filtered fallback sets
+    const combinedSuggestions = [...transformedDatabaseSuggestions, ...filteredSets];
+    const uniqueSuggestions = combinedSuggestions.filter((set, index, self) => 
+      index === self.findIndex(s => s.id === set.id)
     );
     
-    console.log(`[CARD SET SUGGESTIONS] Combined: ${databaseSuggestions.length} database + ${suggestions.length} inline = ${uniqueSuggestions.length} unique suggestions`);
-    res.json({
-      suggestions: uniqueSuggestions,
-      total: uniqueSuggestions.length,
-      sources: {
-        comprehensive: uniqueSuggestions.filter(s => s.source === 'comprehensive' || s.source === 'getcardbase' || s.source === 'generated').length,
-        existing: uniqueSuggestions.filter(s => s.source === 'existing').length,
-        inline: uniqueSuggestions.filter(s => s.source === 'inline').length
-      }
-    });
+    console.log(`[CARD SET SUGGESTIONS] Combined: ${transformedDatabaseSuggestions.length} database + ${filteredSets.length} fallback = ${uniqueSuggestions.length} unique suggestions`);
+    
+    res.json({ suggestions: uniqueSuggestions.slice(0, parseInt(limit)) });
 
   } catch (error) {
     console.error('[CARD SET SUGGESTIONS] Error details:', error);
