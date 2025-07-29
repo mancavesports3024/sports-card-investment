@@ -771,47 +771,33 @@ const SearchPage = () => {
       </Helmet>
       {/* Main Content */}
       <main className="App-main">
-        {/* Welcome Message - Updated to match CardSetAnalysis styling */}
+        {/* Welcome Message - Compact version */}
         <div className="welcome-section" style={{
           background: 'linear-gradient(135deg, #000 0%, #333 100%)',
           color: '#ffd700',
-          padding: '2rem',
+          padding: '1.5rem',
           borderRadius: 12,
           marginBottom: '2rem',
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           border: '2px solid #ffd700'
         }}>
           <h2 style={{ 
-            margin: '0 0 1rem 0', 
-            fontSize: '1.8rem', 
+            margin: '0 0 0.75rem 0', 
+            fontSize: '1.6rem', 
             fontWeight: 700,
             textAlign: 'center'
           }}>
             Welcome to ManCave Sports Cards LLC!
           </h2>
           <p style={{ 
-            fontSize: '1.1rem', 
-            lineHeight: '1.6', 
-            marginBottom: '1.5rem',
+            fontSize: '1rem', 
+            lineHeight: '1.5', 
+            marginBottom: '0',
             textAlign: 'center',
             color: '#fff'
           }}>
             Your destination for all things trading cards—specializing in sports cards and Pokémon! We offer a diverse range of high-quality cards for collectors of all levels.
           </p>
-          <h3 style={{ 
-            margin: '0 0 1rem 0', 
-            fontSize: '1.3rem', 
-            fontWeight: 600,
-            textAlign: 'center',
-            color: '#ffd700'
-          }}>
-            Featured Items from Our eBay Store
-          </h3>
-          
-          {/* Featured eBay Items Rotator */}
-          <div style={{ marginTop: '1.5rem' }}>
-            <FeaturedEbayRotator />
-          </div>
         </div>
         {/* Search Form */}
         <form id="search-form" onSubmit={handleSearch} className="search-form">
