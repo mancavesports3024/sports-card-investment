@@ -795,7 +795,9 @@ const SearchPage = () => {
           borderRadius: 12,
           marginBottom: '2rem',
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          border: '2px solid #ffd700'
+          border: '2px solid #ffd700',
+          maxWidth: '600px',
+          margin: '0 auto 2rem auto'
         }}>
           <h2 style={{ 
             margin: '0 0 0.5rem 0', 
