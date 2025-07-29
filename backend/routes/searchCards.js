@@ -1355,6 +1355,14 @@ router.post('/', async (req, res) => {
 router.get('/card-set-suggestions', async (req, res) => {
   const { query = '', limit = 10 } = req.query;
   
+  // Define fallback sets to avoid scope issues
+  const fallbackSets = [
+    { id: "topps_series_one", name: "Topps Series One", brand: "Topps", category: "Baseball", sport: "Baseball", league: "MLB", years: ["2025", "2024", "2023"], setType: "Base Set", description: "Annual flagship baseball set", popularity: 9.5, source: "Manual" },
+    { id: "topps_chrome", name: "Topps Chrome", brand: "Topps", category: "Baseball", sport: "Baseball", league: "MLB", years: ["2024", "2023", "2022"], setType: "Premium Set", description: "Premium chrome version", popularity: 9.2, source: "Manual" },
+    { id: "panini_prizm", name: "Panini Prizm", brand: "Panini", category: "Basketball", sport: "Basketball", league: "NBA", years: ["2024", "2023", "2022"], setType: "Premium Set", description: "Premium basketball set", popularity: 9.4, source: "Manual" },
+    { id: "upper_deck", name: "Upper Deck", brand: "Upper Deck", category: "Hockey", sport: "Hockey", league: "NHL", years: ["2024", "2023", "2022"], setType: "Base Set", description: "Base hockey set", popularity: 8.2, source: "Manual" }
+  ];
+  
   try {
     console.log(`[CARD SET SUGGESTIONS] Request received: query="${query}", limit=${limit}`);
     
@@ -2200,30 +2208,10 @@ router.get('/card-set-suggestions', async (req, res) => {
     console.log('[CARD SET SUGGESTIONS] Using fallback hardcoded suggestions');
     const fallbackSets = [
       // Baseball - Topps
-      { id: "topps_series_one", name: "Topps Series One", brand: "Topps", category: "Baseball", sport: "Baseball", league: "MLB", years: ["2025", "2024", "2023", "2022", "2021"], setType: "Base Set", cardCount: 400, description: "Annual flagship baseball set", popularity: 9.5, source: "Manual" },
-      { id: "topps_series_two", name: "Topps Series Two", brand: "Topps", category: "Baseball", sport: "Baseball", league: "MLB", years: ["2025", "2024", "2023", "2022", "2021"], setType: "Base Set", cardCount: 400, description: "Second series of the annual flagship set", popularity: 8.5, source: "Manual" },
-      { id: "topps_update", name: "Topps Update", brand: "Topps", category: "Baseball", sport: "Baseball", league: "MLB", years: ["2024", "2023", "2022", "2021", "2020"], setType: "Update Set", cardCount: 300, description: "Update set featuring mid-season trades and rookies", popularity: 9.0, source: "Manual" },
-      { id: "topps_chrome", name: "Topps Chrome", brand: "Topps", category: "Baseball", sport: "Baseball", league: "MLB", years: ["2024", "2023", "2022", "2021", "2020"], setType: "Premium Set", cardCount: 220, description: "Premium chrome version of flagship set", popularity: 9.2, source: "Manual" },
-      { id: "topps_heritage", name: "Topps Heritage", brand: "Topps", category: "Baseball", sport: "Baseball", league: "MLB", years: ["2024", "2023", "2022", "2021", "2020"], setType: "Retro Set", cardCount: 500, description: "Retro-style set based on classic Topps designs", popularity: 8.8, source: "Manual" },
-      
-      // Baseball - Bowman
-      { id: "bowman", name: "Bowman", brand: "Bowman", category: "Baseball", sport: "Baseball", league: "MLB", years: ["2024", "2023", "2022", "2021", "2020"], setType: "Prospect Set", cardCount: 500, description: "Prospect-focused set featuring minor league and rookie players", popularity: 9.1, source: "Manual" },
-      { id: "bowman_chrome", name: "Bowman Chrome", brand: "Bowman", category: "Baseball", sport: "Baseball", league: "MLB", years: ["2024", "2023", "2022", "2021", "2020"], setType: "Premium Prospect Set", cardCount: 220, description: "Premium chrome version of Bowman", popularity: 9.3, source: "Manual" },
-      
-      // Basketball - Panini
-      { id: "panini_prizm", name: "Panini Prizm", brand: "Panini", category: "Basketball", sport: "Basketball", league: "NBA", years: ["2024", "2023", "2022", "2021", "2020"], setType: "Premium Set", cardCount: 300, description: "Premium basketball set with extensive parallel system", popularity: 9.4, source: "Manual" },
-      { id: "panini_donruss", name: "Panini Donruss", brand: "Panini", category: "Basketball", sport: "Basketball", league: "NBA", years: ["2024", "2023", "2022", "2021", "2020"], setType: "Base Set", cardCount: 400, description: "Base basketball set with classic Donruss design", popularity: 8.6, source: "Manual" },
-      
-      // Football - Panini
-      { id: "panini_contenders", name: "Panini Contenders", brand: "Panini", category: "Football", sport: "Football", league: "NFL", years: ["2024", "2023", "2022", "2021", "2020"], setType: "Rookie Set", cardCount: 200, description: "Rookie-focused football set with playoff ticket design", popularity: 8.7, source: "Manual" },
-      
-      // Hockey - Upper Deck
-      { id: "upper_deck", name: "Upper Deck", brand: "Upper Deck", category: "Hockey", sport: "Hockey", league: "NHL", years: ["2024", "2023", "2022", "2021", "2020"], setType: "Base Set", cardCount: 500, description: "Base hockey set featuring NHL players", popularity: 8.2, source: "Manual" },
-      
-      // Pokemon - Gaming
-      { id: "pokemon_base_set", name: "Pokemon Base Set", brand: "Pokemon", category: "Gaming", sport: "Gaming", league: "Pokemon", years: ["1999"], setType: "Base Set", cardCount: 102, description: "Original Pokemon trading card game base set", popularity: 9.8, source: "Manual" },
-      { id: "pokemon_151", name: "Pokemon 151", brand: "Pokemon", category: "Gaming", sport: "Gaming", league: "Pokemon", years: ["2023"], setType: "Special Set", cardCount: 165, description: "Special set featuring the original 151 Pokemon", popularity: 9.5, source: "Manual" },
-      { id: "pokemon_evolving_skies", name: "Pokemon Evolving Skies", brand: "Pokemon", category: "Gaming", sport: "Gaming", league: "Pokemon", years: ["2021"], setType: "Expansion Set", cardCount: 203, description: "Expansion set featuring Eevee evolutions and Dragon types", popularity: 9.6, source: "Manual" }
+      { id: "topps_series_one", name: "Topps Series One", brand: "Topps", category: "Baseball", sport: "Baseball", league: "MLB", years: ["2025", "2024", "2023"], setType: "Base Set", description: "Annual flagship baseball set", popularity: 9.5, source: "Manual" },
+      { id: "topps_chrome", name: "Topps Chrome", brand: "Topps", category: "Baseball", sport: "Baseball", league: "MLB", years: ["2024", "2023", "2022"], setType: "Premium Set", description: "Premium chrome version", popularity: 9.2, source: "Manual" },
+      { id: "panini_prizm", name: "Panini Prizm", brand: "Panini", category: "Basketball", sport: "Basketball", league: "NBA", years: ["2024", "2023", "2022"], setType: "Premium Set", description: "Premium basketball set", popularity: 9.4, source: "Manual" },
+      { id: "upper_deck", name: "Upper Deck", brand: "Upper Deck", category: "Hockey", sport: "Hockey", league: "NHL", years: ["2024", "2023", "2022"], setType: "Base Set", description: "Base hockey set", popularity: 8.2, source: "Manual" }
     ];
     
     if (!query.trim()) {
