@@ -6,7 +6,7 @@ const HomePage = () => {
   return (
     <div className="home-page">
       {/* Main Content */}
-      <main className="home-main">
+      <main className="home-main" style={{ marginTop: '2rem' }}>
         {/* Welcome Message - Updated to match CardSetAnalysis styling */}
         <div className="welcome-section" style={{
           background: 'linear-gradient(135deg, #000 0%, #333 100%)',
