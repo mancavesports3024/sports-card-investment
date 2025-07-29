@@ -1426,6 +1426,52 @@ router.get('/card-set-suggestions', async (req, res) => {
       }
     } catch (error) {
       console.log('[CARD SET SUGGESTIONS] Database error:', error.message);
+      console.log('[CARD SET SUGGESTIONS] Building comprehensive database on the fly...');
+      
+      // Build a comprehensive database on the fly when file is not available
+      const onTheFlyDatabase = buildOnTheFlyDatabase();
+      console.log(`[CARD SET SUGGESTIONS] Built on-the-fly database with ${onTheFlyDatabase.length} sets`);
+      
+      // Search the on-the-fly database
+      if (query.trim()) {
+        const searchTerm = query.toLowerCase();
+        const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
+        
+        databaseSuggestions = onTheFlyDatabase.filter(set => {
+          const setName = (set.name || '').toLowerCase();
+          const setBrand = (set.brand || '').toLowerCase();
+          const setYear = (set.year || '').toLowerCase();
+          const setSport = (set.sport || '').toLowerCase();
+          
+          // Check if any search word matches any part of the set
+          const hasMatch = searchWords.some(word => 
+            setName.includes(word) || 
+            setBrand.includes(word) || 
+            setYear.includes(word) ||
+            setSport.includes(word)
+          );
+          
+          // Also check for exact phrase match
+          const exactMatch = setName.includes(searchTerm) || 
+                            setBrand.includes(searchTerm) || 
+                            setYear.includes(searchTerm) ||
+                            setSport.includes(searchTerm);
+          
+          return hasMatch || exactMatch;
+        });
+      } else {
+        // Return popular sets if no query
+        databaseSuggestions = onTheFlyDatabase
+          .filter(set => {
+            const year = parseInt(set.year);
+            const isRecent = year >= 2020;
+            const isMajorBrand = ['Topps', 'Panini', 'Upper Deck', 'Donruss'].includes(set.brand);
+            return isRecent && isMajorBrand;
+          })
+          .slice(0, parseInt(limit));
+      }
+      
+      console.log(`[CARD SET SUGGESTIONS] On-the-fly database search returned ${databaseSuggestions.length} suggestions`);
     }
     
     // Transform database suggestions to match expected format
@@ -2669,6 +2715,45 @@ router.get('/card-set-suggestions', async (req, res) => {
     });
   }
 });
+
+// Helper function to build database on the fly when file is not available
+function buildOnTheFlyDatabase() {
+  const database = [];
+  const sports = ['Baseball', 'Basketball', 'Football', 'Hockey'];
+  const brands = ['Topps', 'Panini', 'Upper Deck', 'Donruss'];
+  const setTypes = ['Base Set', 'Chrome', 'Heritage', 'Update', 'Series One', 'Series Two', 'Prizm', 'Optic', 'Contenders'];
+  
+  let id = 1;
+  
+  // Generate sets for recent years (2020-2025)
+  for (let year = 2020; year <= 2025; year++) {
+    for (const sport of sports) {
+      for (const brand of brands) {
+        for (const setType of setTypes) {
+          // Skip some combinations that don't make sense
+          if (brand === 'Topps' && sport !== 'Baseball') continue;
+          if (brand === 'Panini' && sport === 'Baseball') continue;
+          if (brand === 'Upper Deck' && sport !== 'Hockey') continue;
+          if (brand === 'Donruss' && sport === 'Baseball') continue;
+          
+          database.push({
+            id: id++,
+            name: `${brand} ${setType}`,
+            sport: sport,
+            year: year.toString(),
+            brand: brand,
+            setName: setType,
+            source: 'OnTheFly',
+            searchText: `${sport.toLowerCase()} ${year} ${brand.toLowerCase()} ${setType.toLowerCase()}`,
+            displayName: `${sport} ${year} ${brand} ${setType}`
+          });
+        }
+      }
+    }
+  }
+  
+  return database;
+}
 
 module.exports = {
   router,
