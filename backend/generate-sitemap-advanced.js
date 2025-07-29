@@ -27,6 +27,13 @@ const pages = [
     description: 'Search for trading cards'
   },
   {
+    url: '/card-set-analysis',
+    lastmod: new Date().toISOString().split('T')[0],
+    changefreq: 'daily',
+    priority: '0.8',
+    description: 'Card set analysis and suggestions'
+  },
+  {
     url: '/history',
     lastmod: new Date().toISOString().split('T')[0],
     changefreq: 'weekly',

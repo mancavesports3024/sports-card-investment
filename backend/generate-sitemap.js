@@ -20,6 +20,12 @@ const pages = [
     priority: '0.9'
   },
   {
+    url: '/card-set-analysis',
+    lastmod: new Date().toISOString().split('T')[0],
+    changefreq: 'daily',
+    priority: '0.8'
+  },
+  {
     url: '/history',
     lastmod: new Date().toISOString().split('T')[0],
     changefreq: 'weekly',
