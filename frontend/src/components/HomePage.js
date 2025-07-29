@@ -7,33 +7,63 @@ const HomePage = () => {
     <div className="home-page">
       {/* Main Content */}
       <main className="home-main">
-        {/* Welcome Message - Compact version */}
+        {/* Page Title Section */}
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <h1 style={{ 
+            fontSize: '2.5rem', 
+            fontWeight: 800, 
+            color: '#ffd700', 
+            marginBottom: '1rem',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+          }}>
+            🏠 Home
+          </h1>
+          <p style={{ fontSize: '1.1rem', color: '#fff', maxWidth: 600, margin: '0 auto', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
+            Welcome to your trading card destination - find the best deals and track card values
+          </p>
+        </div>
+
+        {/* Welcome Message - Short version */}
         <div className="welcome-section" style={{
           background: 'linear-gradient(135deg, #000 0%, #333 100%)',
           color: '#ffd700',
-          padding: '1.5rem',
+          padding: '1rem',
           borderRadius: 12,
           marginBottom: '2rem',
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           border: '2px solid #ffd700'
         }}>
           <h2 style={{ 
-            margin: '0 0 0.75rem 0', 
-            fontSize: '1.6rem', 
+            margin: '0 0 0.5rem 0', 
+            fontSize: '1.4rem', 
             fontWeight: 700,
             textAlign: 'center'
           }}>
             Welcome to ManCave Sports Cards LLC!
           </h2>
           <p style={{ 
-            fontSize: '1rem', 
-            lineHeight: '1.5', 
+            fontSize: '0.95rem', 
+            lineHeight: '1.4', 
             marginBottom: '0',
             textAlign: 'center',
             color: '#fff'
           }}>
-            Your destination for all things trading cards—specializing in sports cards and Pokémon! We offer a diverse range of high-quality cards for collectors of all levels.
+            Your destination for all things trading cards—specializing in sports cards and Pokémon!
           </p>
+        </div>
+
+        {/* Featured eBay Items Section */}
+        <div style={{ marginBottom: '2rem' }}>
+          <h3 style={{ 
+            margin: '0 0 1rem 0', 
+            fontSize: '1.3rem', 
+            fontWeight: 600,
+            textAlign: 'center',
+            color: '#ffd700'
+          }}>
+            Featured Items from Our eBay Store
+          </h3>
+          <FeaturedEbayRotator />
         </div>
 
         {/* Hero Section */}
