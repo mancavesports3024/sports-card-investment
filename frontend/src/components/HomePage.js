@@ -7,15 +7,48 @@ const HomePage = () => {
     <div className="home-page">
       {/* Main Content */}
       <main className="home-main">
-        {/* Featured eBay Items - Moved to TOP */}
-        <section className="featured-ebay-section" style={{ marginTop: '0', paddingTop: '2rem' }}>
-          <h2 className="section-title">Welcome to ManCave Sports Cards LLC!</h2>
-          <p style={{ color: '#333', fontSize: '1.1rem', margin: '0.5rem 0 1.5rem 0', textAlign: 'center' }}>
+        {/* Welcome Message - Updated to match CardSetAnalysis styling */}
+        <div style={{
+          background: 'linear-gradient(135deg, #000 0%, #333 100%)',
+          color: '#ffd700',
+          padding: '2rem',
+          borderRadius: 12,
+          marginBottom: '2rem',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          border: '2px solid #ffd700'
+        }}>
+          <h2 style={{ 
+            margin: '0 0 1rem 0', 
+            fontSize: '1.8rem', 
+            fontWeight: 700,
+            textAlign: 'center'
+          }}>
+            Welcome to ManCave Sports Cards LLC!
+          </h2>
+          <p style={{ 
+            fontSize: '1.1rem', 
+            lineHeight: '1.6', 
+            marginBottom: '1.5rem',
+            textAlign: 'center',
+            color: '#fff'
+          }}>
             Your destination for all things trading cards—specializing in sports cards and Pokémon! We offer a diverse range of high-quality cards for collectors of all levels.
           </p>
-          <h3 className="section-title" style={{ fontSize: '1.4rem', marginBottom: '1rem' }}>Featured Items from Our eBay Store</h3>
-          <FeaturedEbayRotator />
-        </section>
+          <h3 style={{ 
+            margin: '0 0 1rem 0', 
+            fontSize: '1.3rem', 
+            fontWeight: 600,
+            textAlign: 'center',
+            color: '#ffd700'
+          }}>
+            Featured Items from Our eBay Store
+          </h3>
+          
+          {/* Featured eBay Items Rotator */}
+          <div style={{ marginTop: '1.5rem' }}>
+            <FeaturedEbayRotator />
+          </div>
+        </div>
 
         {/* Hero Section */}
         <section className="hero-section">

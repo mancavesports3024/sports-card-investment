@@ -771,15 +771,48 @@ const SearchPage = () => {
       </Helmet>
       {/* Main Content */}
       <main className="App-main">
-        {/* Featured eBay Items Section */}
-        <section className="featured-ebay-section" style={{ margin: '2rem 0', textAlign: 'center' }}>
-          <h2 style={{ color: '#000', marginBottom: '1rem' }}>Welcome to ManCave Sports Cards LLC!</h2>
-          <p style={{ color: '#333', fontSize: '1.1rem', margin: '0.5rem 0 1rem 0' }}>
+        {/* Welcome Message - Updated to match CardSetAnalysis styling */}
+        <div style={{
+          background: 'linear-gradient(135deg, #000 0%, #333 100%)',
+          color: '#ffd700',
+          padding: '2rem',
+          borderRadius: 12,
+          marginBottom: '2rem',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          border: '2px solid #ffd700'
+        }}>
+          <h2 style={{ 
+            margin: '0 0 1rem 0', 
+            fontSize: '1.8rem', 
+            fontWeight: 700,
+            textAlign: 'center'
+          }}>
+            Welcome to ManCave Sports Cards LLC!
+          </h2>
+          <p style={{ 
+            fontSize: '1.1rem', 
+            lineHeight: '1.6', 
+            marginBottom: '1.5rem',
+            textAlign: 'center',
+            color: '#fff'
+          }}>
             Your destination for all things trading cards—specializing in sports cards and Pokémon! We offer a diverse range of high-quality cards for collectors of all levels.
           </p>
-          <h3 style={{ color: '#000', marginBottom: '1rem' }}>Featured Items from Our eBay Store</h3>
-          <FeaturedEbayRotator />
-        </section>
+          <h3 style={{ 
+            margin: '0 0 1rem 0', 
+            fontSize: '1.3rem', 
+            fontWeight: 600,
+            textAlign: 'center',
+            color: '#ffd700'
+          }}>
+            Featured Items from Our eBay Store
+          </h3>
+          
+          {/* Featured eBay Items Rotator */}
+          <div style={{ marginTop: '1.5rem' }}>
+            <FeaturedEbayRotator />
+          </div>
+        </div>
         {/* Search Form */}
         <form id="search-form" onSubmit={handleSearch} className="search-form">
           <div className="form-group">
