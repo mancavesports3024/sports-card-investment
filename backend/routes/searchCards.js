@@ -1358,14 +1358,55 @@ router.get('/card-set-suggestions', async (req, res) => {
   try {
     console.log(`[CARD SET SUGGESTIONS] Request received: query="${query}", limit=${limit}`);
     
-    // Try to get GetCardBase data first
-    let getCardBaseSuggestions = [];
+    // Try to load database file first
+    let databaseSuggestions = [];
     try {
-      console.log('[CARD SET SUGGESTIONS] Attempting to get GetCardBase suggestions...');
-      getCardBaseSuggestions = await getCardBaseService.searchCardSets(query, parseInt(limit));
-      console.log(`[CARD SET SUGGESTIONS] GetCardBase returned ${getCardBaseSuggestions.length} suggestions`);
+      console.log('[CARD SET SUGGESTIONS] Loading card set database...');
+      const databasePath = path.join(__dirname, '../data/cardSetsDatabase.json');
+      const databaseData = await fs.readFile(databasePath, 'utf8');
+      const database = JSON.parse(databaseData);
+      
+      if (database && database.cardSets && database.cardSets.length > 0) {
+        console.log(`[CARD SET SUGGESTIONS] Loaded database with ${database.cardSets.length} card sets`);
+        
+        // Search the database
+        if (query.trim()) {
+          const searchTerm = query.toLowerCase();
+          const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
+          
+          databaseSuggestions = database.cardSets.filter(set => {
+            const setName = set.name.toLowerCase();
+            const setBrand = set.brand.toLowerCase();
+            const setSet = set.set.toLowerCase();
+            const setYear = set.year.toLowerCase();
+            
+            // Check if any search word matches any part of the set
+            const hasMatch = searchWords.some(word => 
+              setName.includes(word) || 
+              setBrand.includes(word) || 
+              setSet.includes(word) ||
+              setYear.includes(word)
+            );
+            
+            // Also check for exact phrase match
+            const exactMatch = setName.includes(searchTerm) || 
+                              setBrand.includes(searchTerm) || 
+                              setSet.includes(searchTerm) ||
+                              setYear.includes(searchTerm);
+            
+            return hasMatch || exactMatch;
+          });
+        } else {
+          // Return popular sets if no query
+          databaseSuggestions = database.cardSets
+            .filter(set => set.popularity === 'High' || set.popularity === 'Medium')
+            .slice(0, parseInt(limit));
+        }
+        
+        console.log(`[CARD SET SUGGESTIONS] Database search returned ${databaseSuggestions.length} suggestions`);
+      }
     } catch (error) {
-      console.log('[CARD SET SUGGESTIONS] GetCardBase error:', error.message);
+      console.log('[CARD SET SUGGESTIONS] Database error:', error.message);
     }
     
     // Define card sets data inline since file deployment is unreliable
@@ -2194,15 +2235,15 @@ router.get('/card-set-suggestions', async (req, res) => {
       console.log(`[CARD SET SUGGESTIONS] Broader search found ${suggestions.length} sets`);
     }
     
-    // Combine GetCardBase suggestions with inline suggestions
-    const allSuggestions = [...getCardBaseSuggestions, ...suggestions];
+    // Combine database suggestions with inline suggestions
+    const allSuggestions = [...databaseSuggestions, ...suggestions];
     
     // Remove duplicates based on name
     const uniqueSuggestions = allSuggestions.filter((suggestion, index, self) => 
       index === self.findIndex(s => s.name === suggestion.name)
     );
     
-    console.log(`[CARD SET SUGGESTIONS] Combined: ${getCardBaseSuggestions.length} GetCardBase + ${suggestions.length} inline = ${uniqueSuggestions.length} unique suggestions`);
+    console.log(`[CARD SET SUGGESTIONS] Combined: ${databaseSuggestions.length} database + ${suggestions.length} inline = ${uniqueSuggestions.length} unique suggestions`);
     res.json({ suggestions: uniqueSuggestions.slice(0, parseInt(limit)) });
   } catch (error) {
     console.error('[CARD SET SUGGESTIONS] Error details:', error);

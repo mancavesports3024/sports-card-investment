@@ -89,6 +89,7 @@ class GetCardBaseService {
       .map(value => value.text.trim())
       .filter(text => {
         const lower = text.toLowerCase();
+        // Be more inclusive - include any text that might be a brand
         return lower.includes('topps') || 
                lower.includes('panini') || 
                lower.includes('bowman') || 
@@ -108,7 +109,44 @@ class GetCardBaseService {
                lower.includes('contenders') ||
                lower.includes('national treasures') ||
                lower.includes('immaculate') ||
-               lower.includes('flawless');
+               lower.includes('flawless') ||
+               // Add more inclusive patterns
+               lower.includes('2025') ||
+               lower.includes('2024') ||
+               lower.includes('2023') ||
+               lower.includes('2022') ||
+               lower.includes('2021') ||
+               lower.includes('2020') ||
+               lower.includes('2019') ||
+               lower.includes('2018') ||
+               lower.includes('2017') ||
+               lower.includes('2016') ||
+               lower.includes('2015') ||
+               lower.includes('2014') ||
+               lower.includes('2013') ||
+               lower.includes('2012') ||
+               lower.includes('2011') ||
+               lower.includes('2010') ||
+               lower.includes('2009') ||
+               lower.includes('2008') ||
+               lower.includes('2007') ||
+               lower.includes('2006') ||
+               lower.includes('2005') ||
+               lower.includes('2004') ||
+               lower.includes('2003') ||
+               lower.includes('2002') ||
+               lower.includes('2001') ||
+               lower.includes('2000') ||
+               lower.includes('1999') ||
+               lower.includes('1998') ||
+               lower.includes('1997') ||
+               lower.includes('1996') ||
+               lower.includes('1995') ||
+               lower.includes('1994') ||
+               lower.includes('1993') ||
+               lower.includes('1992') ||
+               lower.includes('1991') ||
+               lower.includes('1990');
       })
       .map(brand => ({
         name: brand,
