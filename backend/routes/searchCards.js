@@ -1401,6 +1401,7 @@ router.get('/card-set-suggestions', async (req, res) => {
               /\bblaster\s+pack\b/i,
               /\bfat\s+pack\b/i,
               /\bjumbo\s+pack\b/i,
+              /\bjumbo\b/i,  // Add standalone JUMBO
               /\bretail\s+box\b/i,
               /\bretail\s+pack\b/i,
               /\bhanger\s+box\b/i,
@@ -1429,10 +1430,30 @@ router.get('/card-set-suggestions', async (req, res) => {
               pattern.test(setName) || 
               pattern.test(setBrand) || 
               pattern.test(setSet) || 
-              pattern.test(setDisplayName)
+              pattern.test(setDisplayName) ||
+              pattern.test(set.searchText || '')  // Also check searchText field
             );
             
-            if (isSealedProduct) {
+            // Additional specific checks for common sealed product patterns
+            const additionalSealedChecks = [
+              /\bjumbo\s+hobby\s+case\b/i,
+              /\bhobby\s+case\b/i,
+              /\bjumbo\s+box\b/i,
+              /\bjumbo\s+pack\b/i,
+              /\bcase\s+of\b/i,
+              /\bsealed\s+case\b/i
+            ];
+            
+            const hasAdditionalSealedTerms = additionalSealedChecks.some(pattern => 
+              pattern.test(setName) || 
+              pattern.test(setBrand) || 
+              pattern.test(setSet) || 
+              pattern.test(setDisplayName) ||
+              pattern.test(set.searchText || '')
+            );
+            
+            if (isSealedProduct || hasAdditionalSealedTerms) {
+              console.log(`[FILTERED OUT] Sealed product detected: ${set.displayName || set.name} - Pattern matched`);
               return false; // Exclude sealed products
             }
             
@@ -1532,8 +1553,10 @@ router.get('/card-set-suggestions', async (req, res) => {
         const matchingSets = onTheFlyDatabase.filter(set => {
           const setName = (set.name || '').toLowerCase();
           const setBrand = (set.brand || '').toLowerCase();
+          const setSet = (set.setName || '').toLowerCase();
           const setYear = (set.year || '').toLowerCase();
           const setSport = (set.sport || '').toLowerCase();
+          const setDisplayName = (set.displayName || '').toLowerCase();
           
           // Filter out sealed products
           const sealedProductPatterns = [
@@ -1545,6 +1568,7 @@ router.get('/card-set-suggestions', async (req, res) => {
             /\bblaster\s+pack\b/i,
             /\bfat\s+pack\b/i,
             /\bjumbo\s+pack\b/i,
+            /\bjumbo\b/i,  // Add standalone JUMBO
             /\bretail\s+box\b/i,
             /\bretail\s+pack\b/i,
             /\bhanger\s+box\b/i,
@@ -1571,10 +1595,32 @@ router.get('/card-set-suggestions', async (req, res) => {
           // Check if any field contains sealed product terms
           const isSealedProduct = sealedProductPatterns.some(pattern => 
             pattern.test(setName) || 
-            pattern.test(setBrand)
+            pattern.test(setBrand) || 
+            pattern.test(setSet) || 
+            pattern.test(setDisplayName) ||
+            pattern.test(set.searchText || '')  // Also check searchText field
           );
           
-          if (isSealedProduct) {
+          // Additional specific checks for common sealed product patterns
+          const additionalSealedChecks = [
+            /\bjumbo\s+hobby\s+case\b/i,
+            /\bhobby\s+case\b/i,
+            /\bjumbo\s+box\b/i,
+            /\bjumbo\s+pack\b/i,
+            /\bcase\s+of\b/i,
+            /\bsealed\s+case\b/i
+          ];
+          
+          const hasAdditionalSealedTerms = additionalSealedChecks.some(pattern => 
+            pattern.test(setName) || 
+            pattern.test(setBrand) || 
+            pattern.test(setSet) || 
+            pattern.test(setDisplayName) ||
+            pattern.test(set.searchText || '')
+          );
+          
+          if (isSealedProduct || hasAdditionalSealedTerms) {
+            console.log(`[FILTERED OUT] Sealed product detected: ${set.displayName || set.name} - Pattern matched`);
             return false; // Exclude sealed products
           }
           
@@ -1582,15 +1628,19 @@ router.get('/card-set-suggestions', async (req, res) => {
           const hasMatch = searchWords.some(word => 
             setName.includes(word) || 
             setBrand.includes(word) || 
+            setSet.includes(word) ||
             setYear.includes(word) ||
-            setSport.includes(word)
+            setSport.includes(word) ||
+            setDisplayName.includes(word)
           );
           
           // Also check for exact phrase match
           const exactMatch = setName.includes(searchTerm) || 
                             setBrand.includes(searchTerm) || 
+                            setSet.includes(searchTerm) ||
                             setYear.includes(searchTerm) ||
-                            setSport.includes(searchTerm);
+                            setSport.includes(searchTerm) ||
+                            setDisplayName.includes(searchTerm);
           
           return hasMatch || exactMatch;
         });
@@ -1599,8 +1649,10 @@ router.get('/card-set-suggestions', async (req, res) => {
         databaseSuggestions = matchingSets.map(set => {
           const setName = (set.name || '').toLowerCase();
           const setBrand = (set.brand || '').toLowerCase();
+          const setSet = (set.setName || '').toLowerCase();
           const setYear = (set.year || '').toLowerCase();
           const setSport = (set.sport || '').toLowerCase();
+          const setDisplayName = (set.displayName || '').toLowerCase();
           const year = parseInt(set.year);
           
           let score = 0;
@@ -1616,17 +1668,18 @@ router.get('/card-set-suggestions', async (req, res) => {
           else if (year >= 2010) score += 25;
           
           // Exact phrase matches
+          if (setDisplayName.includes(searchTerm)) score += 500;
           if (setName.includes(searchTerm)) score += 400;
           if (setBrand.includes(searchTerm)) score += 300;
-          if (setYear.includes(searchTerm)) score += 200;
-          if (setSport.includes(searchTerm)) score += 200;
+          if (setSet.includes(searchTerm)) score += 200;
           
           // Word matches
           searchWords.forEach(word => {
+            if (setDisplayName.includes(word)) score += 100;
             if (setName.includes(word)) score += 80;
             if (setBrand.includes(word)) score += 60;
+            if (setSet.includes(word)) score += 40;
             if (setYear.includes(word)) score += 200; // Year matches are important
-            if (setSport.includes(word)) score += 40;
           });
           
           // Brand popularity bonus
