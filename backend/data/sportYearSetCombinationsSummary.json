@@ -312,7 +312,7 @@
     },
     "Football": {
       "yearCount": 149,
-      "setCount": 3579,
+      "setCount": 3576,
       "years": [
         "1866",
         "1868",
@@ -622,7 +622,7 @@
     },
     "Soccer": {
       "yearCount": 149,
-      "setCount": 1939,
+      "setCount": 1937,
       "years": [
         "1866",
         "1868",
@@ -1707,7 +1707,7 @@
     }
   },
   "totalCombinations": 1639,
-  "totalSets": 30851,
+  "totalSets": 30846,
   "yearRange": {
     "min": 1866,
     "max": 202425

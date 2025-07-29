@@ -1,0 +1,57 @@
+{
+  "totalSets": 30846,
+  "totalCombinations": 1639,
+  "totalSetsInCombinations": 30846,
+  "cleaningStats": {
+    "originalCount": 31700,
+    "removedCount": 854,
+    "unknownStats": {
+      "sport": 607,
+      "year": 842,
+      "brand": 519,
+      "totalWithUnknowns": 854
+    }
+  },
+  "sports": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "years": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "brands": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "filesCreated": [
+    "C:\\ScoreCard\\backend\\data\\spreadsheets\\Card_Sets_cleaned.csv",
+    "C:\\ScoreCard\\backend\\data\\spreadsheets\\Sport_Year_Combinations_cleaned.csv",
+    "C:\\ScoreCard\\backend\\data\\spreadsheets\\Statistics_cleaned.csv"
+  ],
+  "generatedAt": "2025-07-29T13:45:27.651Z"
+}
