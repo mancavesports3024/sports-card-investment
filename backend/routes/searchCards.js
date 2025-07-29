@@ -1391,6 +1391,51 @@ router.get('/card-set-suggestions', async (req, res) => {
             const setSport = (set.sport || '').toLowerCase();
             const setDisplayName = (set.displayName || '').toLowerCase();
             
+            // Filter out sealed products
+            const sealedProductPatterns = [
+              /\bhobby\s+case\b/i,
+              /\bhobby\s+box\b/i,
+              /\bbooster\s+box\b/i,
+              /\bbooster\s+pack\b/i,
+              /\bblaster\s+box\b/i,
+              /\bblaster\s+pack\b/i,
+              /\bfat\s+pack\b/i,
+              /\bjumbo\s+pack\b/i,
+              /\bretail\s+box\b/i,
+              /\bretail\s+pack\b/i,
+              /\bhanger\s+box\b/i,
+              /\bhanger\s+pack\b/i,
+              /\bvalue\s+pack\b/i,
+              /\bvalue\s+box\b/i,
+              /\bcomplete\s+set\b/i,
+              /\bfactory\s+set\b/i,
+              /\bsealed\s+product\b/i,
+              /\bsealed\s+box\b/i,
+              /\bsealed\s+pack\b/i,
+              /\bsealed\s+case\b/i,
+              /\bunopened\b/i,
+              /\bsealed\s+item\b/i,
+              /\bsealed\s+lot\b/i,
+              /\bfactory\s+sealed\b/i,
+              /\bcase\s+break\b/i,
+              /\bbreak\s+case\b/i,
+              /\bwax\s+box\b/i,
+              /\bcellos?\b/i,
+              /\bwrappers?\b/i
+            ];
+            
+            // Check if any field contains sealed product terms
+            const isSealedProduct = sealedProductPatterns.some(pattern => 
+              pattern.test(setName) || 
+              pattern.test(setBrand) || 
+              pattern.test(setSet) || 
+              pattern.test(setDisplayName)
+            );
+            
+            if (isSealedProduct) {
+              return false; // Exclude sealed products
+            }
+            
             // Check if any search word matches any part of the set
             const hasMatch = searchWords.some(word => 
               setName.includes(word) || 
@@ -1489,6 +1534,49 @@ router.get('/card-set-suggestions', async (req, res) => {
           const setBrand = (set.brand || '').toLowerCase();
           const setYear = (set.year || '').toLowerCase();
           const setSport = (set.sport || '').toLowerCase();
+          
+          // Filter out sealed products
+          const sealedProductPatterns = [
+            /\bhobby\s+case\b/i,
+            /\bhobby\s+box\b/i,
+            /\bbooster\s+box\b/i,
+            /\bbooster\s+pack\b/i,
+            /\bblaster\s+box\b/i,
+            /\bblaster\s+pack\b/i,
+            /\bfat\s+pack\b/i,
+            /\bjumbo\s+pack\b/i,
+            /\bretail\s+box\b/i,
+            /\bretail\s+pack\b/i,
+            /\bhanger\s+box\b/i,
+            /\bhanger\s+pack\b/i,
+            /\bvalue\s+pack\b/i,
+            /\bvalue\s+box\b/i,
+            /\bcomplete\s+set\b/i,
+            /\bfactory\s+set\b/i,
+            /\bsealed\s+product\b/i,
+            /\bsealed\s+box\b/i,
+            /\bsealed\s+pack\b/i,
+            /\bsealed\s+case\b/i,
+            /\bunopened\b/i,
+            /\bsealed\s+item\b/i,
+            /\bsealed\s+lot\b/i,
+            /\bfactory\s+sealed\b/i,
+            /\bcase\s+break\b/i,
+            /\bbreak\s+case\b/i,
+            /\bwax\s+box\b/i,
+            /\bcellos?\b/i,
+            /\bwrappers?\b/i
+          ];
+          
+          // Check if any field contains sealed product terms
+          const isSealedProduct = sealedProductPatterns.some(pattern => 
+            pattern.test(setName) || 
+            pattern.test(setBrand)
+          );
+          
+          if (isSealedProduct) {
+            return false; // Exclude sealed products
+          }
           
           // Check if any search word matches any part of the set
           const hasMatch = searchWords.some(word => 
@@ -2835,7 +2923,7 @@ function buildOnTheFlyDatabase() {
   const database = [];
   const sports = ['Baseball', 'Basketball', 'Football', 'Hockey'];
   const brands = ['Topps', 'Panini', 'Upper Deck', 'Donruss'];
-  const setTypes = ['Base Set', 'Chrome', 'Heritage', 'Update', 'Series One', 'Series Two', 'Prizm', 'Optic', 'Contenders'];
+  const setTypes = ['Base Set', 'Chrome', 'Heritage', 'Update', 'Series One', 'Series Two', 'Prizm', 'Optic', 'Contenders', 'Finest', 'Select', 'Stadium Club', 'Gypsy Queen', 'Allen & Ginter', 'Bowman', 'Bowman Chrome'];
   
   let id = 1;
   
@@ -2849,6 +2937,11 @@ function buildOnTheFlyDatabase() {
           if (brand === 'Panini' && sport === 'Baseball') continue;
           if (brand === 'Upper Deck' && sport !== 'Hockey') continue;
           if (brand === 'Donruss' && sport === 'Baseball') continue;
+          
+          // Skip sealed product terms
+          const sealedTerms = ['hobby', 'box', 'pack', 'case', 'sealed', 'booster', 'blaster', 'fat', 'jumbo', 'retail', 'hanger', 'value', 'complete', 'factory', 'unopened', 'wax', 'cello', 'wrapper'];
+          const setTypeLower = setType.toLowerCase();
+          if (sealedTerms.some(term => setTypeLower.includes(term))) continue;
           
           database.push({
             id: id++,
