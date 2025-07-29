@@ -1391,6 +1391,9 @@ router.get('/card-set-suggestions', async (req, res) => {
             const setSport = (set.sport || '').toLowerCase();
             const setDisplayName = (set.displayName || '').toLowerCase();
             
+            // Debug: Log all items being processed
+            console.log(`[DEBUG] Processing item: "${setDisplayName || setName}"`);
+            
             // Filter out sealed products
             const sealedProductPatterns = [
               /\bhobby\s+case\b/i,
@@ -1475,7 +1478,10 @@ router.get('/card-set-suggestions', async (req, res) => {
                               setSport.includes(searchTerm) ||
                               setDisplayName.includes(searchTerm);
             
-            return hasMatch || exactMatch;
+            const shouldInclude = hasMatch || exactMatch;
+            console.log(`[DEBUG] Item "${setDisplayName || setName}" - Include: ${shouldInclude} (hasMatch: ${hasMatch}, exactMatch: ${exactMatch})`);
+            
+            return shouldInclude;
           });
           
           // Then, score and sort by relevance
@@ -1557,6 +1563,9 @@ router.get('/card-set-suggestions', async (req, res) => {
           const setYear = (set.year || '').toLowerCase();
           const setSport = (set.sport || '').toLowerCase();
           const setDisplayName = (set.displayName || '').toLowerCase();
+          
+          // Debug: Log all items being processed
+          console.log(`[DEBUG] Processing item: "${setDisplayName || setName}"`);
           
           // Filter out sealed products
           const sealedProductPatterns = [
@@ -1642,7 +1651,10 @@ router.get('/card-set-suggestions', async (req, res) => {
                             setSport.includes(searchTerm) ||
                             setDisplayName.includes(searchTerm);
           
-          return hasMatch || exactMatch;
+          const shouldInclude = hasMatch || exactMatch;
+          console.log(`[DEBUG] Item "${setDisplayName || setName}" - Include: ${shouldInclude} (hasMatch: ${hasMatch}, exactMatch: ${exactMatch})`);
+          
+          return shouldInclude;
         });
         
         // Then, score and sort by relevance
@@ -2510,25 +2522,27 @@ router.get('/card-set-suggestions', async (req, res) => {
       const setBrand = set.brand.toLowerCase();
       const setCategory = set.category.toLowerCase();
       const setYears = set.years || [];
-      
+
+      console.log(`[DEBUG FALLBACK] Processing fallback set: "${set.name}"`);
+
       let score = 0;
-      
+
       // Exact year match gets highest priority
       const matchingYear = setYears.find(year => searchWords.includes(year.toLowerCase()));
       if (matchingYear) {
         score += 1000;
       }
-      
+
       // Recent years get higher priority
       const recentYear = setYears.find(year => parseInt(year) >= 2023);
       if (recentYear) score += 100;
       else if (setYears.find(year => parseInt(year) >= 2020)) score += 50;
-      
+
       // Exact phrase matches
       if (setName.includes(searchTerm)) score += 400;
       if (setBrand.includes(searchTerm)) score += 300;
       if (setCategory.includes(searchTerm)) score += 200;
-      
+
       // Word matches
       searchWords.forEach(word => {
         if (setName.includes(word)) score += 80;
@@ -2536,11 +2550,17 @@ router.get('/card-set-suggestions', async (req, res) => {
         if (setCategory.includes(word)) score += 40;
         if (setYears.some(year => year.toLowerCase().includes(word))) score += 200;
       });
-      
+
+      console.log(`[DEBUG FALLBACK] Fallback set "${set.name}" - Score: ${score}`);
+
       return { ...set, relevanceScore: score };
     }).sort((a, b) => b.relevanceScore - a.relevanceScore);
-    
+
     const filteredSets = scoredFallbackSets.filter(set => set.relevanceScore > 0);
+    console.log(`[DEBUG FALLBACK] Filtered fallback sets: ${filteredSets.length} with score > 0`);
+    filteredSets.forEach(set => {
+      console.log(`[DEBUG FALLBACK] Included fallback: "${set.name}" (score: ${set.relevanceScore})`);
+    });
     
     res.json({ suggestions: filteredSets.slice(0, parseInt(limit)) });
   }
