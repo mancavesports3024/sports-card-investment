@@ -120,7 +120,7 @@ async function search130point(keywords, numSales = 10) {
       console.log('⚠️ Could not parse currency rates:', error.message);
     }
 
-    // Enhanced sealed product patterns to catch more variations
+    // Enhanced sealed product patterns to catch more variations - Updated for comprehensive filtering
     const sealedProductPatterns = [
       /\bhobby\s+box\b/i,
       /\bhobby\s+case\b/i,
