@@ -772,7 +772,7 @@ const SearchPage = () => {
       {/* Main Content */}
       <main className="App-main">
         {/* Page Title Section */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
           <h1 style={{ 
             fontSize: '2.5rem', 
             fontWeight: 800, 
@@ -787,7 +787,7 @@ const SearchPage = () => {
           </p>
         </div>
 
-        {/* Welcome Message - Short version */}
+        {/* Welcome Message with eBay Items */}
         <div className="welcome-section" style={{
           background: 'linear-gradient(135deg, #000 0%, #333 100%)',
           color: '#ffd700',
@@ -810,19 +810,15 @@ const SearchPage = () => {
           <p style={{ 
             fontSize: '0.95rem', 
             lineHeight: '1.4', 
-            marginBottom: '0',
+            marginBottom: '1rem',
             textAlign: 'center',
             color: '#fff'
           }}>
             Your destination for all things trading cards—specializing in sports cards and Pokémon!
           </p>
-        </div>
-
-        {/* Featured eBay Items Section */}
-        <div style={{ marginBottom: '2rem' }}>
           <h3 style={{ 
-            margin: '0 0 1rem 0', 
-            fontSize: '1.3rem', 
+            margin: '0 0 0.75rem 0', 
+            fontSize: '1.2rem', 
             fontWeight: 600,
             textAlign: 'center',
             color: '#ffd700'
@@ -831,8 +827,10 @@ const SearchPage = () => {
           </h3>
           <FeaturedEbayRotator />
         </div>
-        {/* Search Form */}
-        <form id="search-form" onSubmit={handleSearch} className="search-form">
+
+        {/* Search Form - Narrower */}
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <form id="search-form" onSubmit={handleSearch} className="search-form">
           <div className="form-fields-container">
             <div className="form-group">
               <label htmlFor="playerName">Player Name:</label>
@@ -918,6 +916,7 @@ const SearchPage = () => {
             </button>
           </div>
         </form>
+        </div>
         {/* Saved Searches below the form */}
         <div id="saved-searches-section">
           <SavedSearches onSearchAgain={handleReuseSavedSearch} refetchTrigger={savedSearchesRefetch} forceOpen={savedSearchesOpen} />

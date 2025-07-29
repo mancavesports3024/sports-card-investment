@@ -8,7 +8,7 @@ const HomePage = () => {
       {/* Main Content */}
       <main className="home-main">
         {/* Page Title Section */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
           <h1 style={{ 
             fontSize: '2.5rem', 
             fontWeight: 800, 
@@ -23,7 +23,7 @@ const HomePage = () => {
           </p>
         </div>
 
-        {/* Welcome Message - Short version */}
+        {/* Welcome Message with eBay Items */}
         <div className="welcome-section" style={{
           background: 'linear-gradient(135deg, #000 0%, #333 100%)',
           color: '#ffd700',
@@ -46,19 +46,15 @@ const HomePage = () => {
           <p style={{ 
             fontSize: '0.95rem', 
             lineHeight: '1.4', 
-            marginBottom: '0',
+            marginBottom: '1rem',
             textAlign: 'center',
             color: '#fff'
           }}>
             Your destination for all things trading cards—specializing in sports cards and Pokémon!
           </p>
-        </div>
-
-        {/* Featured eBay Items Section */}
-        <div style={{ marginBottom: '2rem' }}>
           <h3 style={{ 
-            margin: '0 0 1rem 0', 
-            fontSize: '1.3rem', 
+            margin: '0 0 0.75rem 0', 
+            fontSize: '1.2rem', 
             fontWeight: 600,
             textAlign: 'center',
             color: '#ffd700'
