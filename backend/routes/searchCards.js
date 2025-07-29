@@ -1151,9 +1151,14 @@ router.post('/', async (req, res) => {
     const filteredCards = allCards.filter(card => {
       const title = (card.title || '').toLowerCase();
       
-      // Only filter out clearly sealed products, not individual cards
+      // Enhanced sealed product patterns to catch more variations
       const sealedProductPatterns = [
         /\bhobby\s+box\b/i,
+        /\bhobby\s+case\b/i,
+        /\bjumbo\s+hobby\s+case\b/i,
+        /\bjumbo\s+box\b/i,
+        /\bjumbo\s+pack\b/i,
+        /\bjumbo\b/i,  // Standalone JUMBO
         /\bfactory\s+sealed\b/i,
         /\bsealed\s+box\b/i,
         /\bsealed\s+pack\b/i,
@@ -1175,28 +1180,56 @@ router.post('/', async (req, res) => {
         /\bsealed\s+product\b/i,
         /\bunopened\b/i,
         /\bsealed\s+item\b/i,
-        /\bsealed\s+lot\b/i
+        /\bsealed\s+lot\b/i,
+        /\bsuperbox\b/i,
+        /\bmega\s+box\b/i,
+        /\bcelebration\s+mega\s+box\b/i,
+        /\bcase\s+of\b/i,
+        /\bbreak\s+case\b/i,
+        /\bcase\s+break\b/i,
+        /\bwax\s+box\b/i,
+        /\bcellos?\b/i,
+        /\bwrappers?\b/i
       ];
       
       // Check if title matches any sealed product pattern
       const isSealedProduct = sealedProductPatterns.some(pattern => pattern.test(title));
       
       // Check for quantity indicators that suggest sealed products
-      const hasQuantityIndicators = /\d+\s*(hobby\s+box|booster\s+box|blaster\s+box|retail\s+box|sealed\s+box|sealed\s+pack|sealed\s+case|lot\s+of|lots\s+of|bundle|complete\s+set|factory\s+set)/i.test(title);
+      const hasQuantityIndicators = /\d+\s*(hobby\s+box|booster\s+box|blaster\s+box|retail\s+box|sealed\s+box|sealed\s+pack|sealed\s+case|lot\s+of|lots\s+of|bundle|complete\s+set|factory\s+set|hobby\s+case|jumbo\s+hobby\s+case)/i.test(title);
       
       // Check for high-value items that are clearly sealed products
       const price = parseFloat(card.price?.value || 0);
       const isHighValueSealed = price > 200 && (
         title.includes('hobby box') || 
+        title.includes('hobby case') ||
+        title.includes('jumbo hobby case') ||
         title.includes('booster box') || 
         title.includes('blaster box') || 
         title.includes('complete set') ||
         title.includes('factory set') ||
+        title.includes('superbox') ||
+        title.includes('mega box') ||
         /\d+\s*(box|pack|case)/i.test(title)
       );
       
+      // Additional specific checks for the problematic items
+      const hasSpecificSealedTerms = (
+        title.includes('jumbo hobby case') ||
+        title.includes('superbox') ||
+        title.includes('mega box') ||
+        title.includes('celebration mega box') ||
+        title.includes('sealed') && (title.includes('box') || title.includes('case') || title.includes('pack'))
+      );
+      
       // Only filter out if it's clearly a sealed product
-      return !isSealedProduct && !hasQuantityIndicators && !isHighValueSealed;
+      const shouldFilter = isSealedProduct || hasQuantityIndicators || isHighValueSealed || hasSpecificSealedTerms;
+      
+      if (shouldFilter) {
+        console.log(`[EBAY FILTERED] Sealed product removed: "${card.title}" - Price: $${card.price?.value || 'N/A'}`);
+      }
+      
+      return !shouldFilter;
     });
 
     console.log(`📊 Filtered out ${allCards.length - filteredCards.length} sealed products, keeping ${filteredCards.length} individual cards`);
