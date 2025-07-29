@@ -6,6 +6,7 @@ import SavedSearches from './SavedSearches';
 import { Helmet } from 'react-helmet';
 import { InContentAd, SearchResultsAd } from './AdSense';
 import FeaturedEbayRotator from './FeaturedEbayRotator';
+import PageLayout from './PageLayout';
 
 // FeaturedEbayListing component
 const FeaturedEbayListing = () => {
@@ -771,65 +772,54 @@ const SearchPage = () => {
       </Helmet>
       {/* Main Content */}
       <main className="App-main">
-        {/* Page Title Section */}
-        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <h1 style={{ 
-            fontSize: '2.5rem', 
-            fontWeight: 800, 
-            color: '#ffd700', 
-            marginBottom: '1rem',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+        <PageLayout
+          title="Search Cards"
+          subtitle="Search for trading cards and get real-time pricing data from recent sales"
+          icon="🔍"
+        >
+          {/* Welcome Message with eBay Items */}
+          <div className="welcome-section" style={{
+            background: 'linear-gradient(135deg, #000 0%, #333 100%)',
+            color: '#ffd700',
+            padding: '1rem',
+            borderRadius: 12,
+            marginBottom: '2rem',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            border: '2px solid #ffd700',
+            maxWidth: '600px',
+            margin: '0 auto 2rem auto'
           }}>
-            🔍 Search Cards
-          </h1>
-          <p style={{ fontSize: '1.1rem', color: '#fff', maxWidth: 600, margin: '0 auto', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
-            Search for trading cards and get real-time pricing data from recent sales
-          </p>
-        </div>
+            <h2 style={{ 
+              margin: '0 0 0.5rem 0', 
+              fontSize: '1.4rem', 
+              fontWeight: 700,
+              textAlign: 'center'
+            }}>
+              Welcome to ManCave Sports Cards LLC!
+            </h2>
+            <p style={{ 
+              fontSize: '0.95rem', 
+              lineHeight: '1.4', 
+              marginBottom: '1rem',
+              textAlign: 'center',
+              color: '#fff'
+            }}>
+              Your destination for all things trading cards—specializing in sports cards and Pokémon!
+            </p>
+            <h3 style={{ 
+              margin: '0 0 0.75rem 0', 
+              fontSize: '1.2rem', 
+              fontWeight: 600,
+              textAlign: 'center',
+              color: '#ffd700'
+            }}>
+              Featured Items from Our eBay Store
+            </h3>
+            <FeaturedEbayRotator />
+          </div>
 
-        {/* Welcome Message with eBay Items */}
-        <div className="welcome-section" style={{
-          background: 'linear-gradient(135deg, #000 0%, #333 100%)',
-          color: '#ffd700',
-          padding: '1rem',
-          borderRadius: 12,
-          marginBottom: '2rem',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          border: '2px solid #ffd700',
-          maxWidth: '600px',
-          margin: '0 auto 2rem auto'
-        }}>
-          <h2 style={{ 
-            margin: '0 0 0.5rem 0', 
-            fontSize: '1.4rem', 
-            fontWeight: 700,
-            textAlign: 'center'
-          }}>
-            Welcome to ManCave Sports Cards LLC!
-          </h2>
-          <p style={{ 
-            fontSize: '0.95rem', 
-            lineHeight: '1.4', 
-            marginBottom: '1rem',
-            textAlign: 'center',
-            color: '#fff'
-          }}>
-            Your destination for all things trading cards—specializing in sports cards and Pokémon!
-          </p>
-          <h3 style={{ 
-            margin: '0 0 0.75rem 0', 
-            fontSize: '1.2rem', 
-            fontWeight: 600,
-            textAlign: 'center',
-            color: '#ffd700'
-          }}>
-            Featured Items from Our eBay Store
-          </h3>
-          <FeaturedEbayRotator />
-        </div>
-
-        {/* Search Form - Narrower */}
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          {/* Search Form - Narrower */}
+          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
           <form id="search-form" onSubmit={handleSearch} className="search-form">
           <div className="form-fields-container">
             <div className="form-group">
@@ -1052,6 +1042,7 @@ const SearchPage = () => {
             </div>
           </div>
         )}
+        </PageLayout>
       </main>
     </>
   );

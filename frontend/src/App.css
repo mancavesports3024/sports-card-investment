@@ -3568,3 +3568,12 @@
     margin-bottom: 2rem;
   }
 }
+
+/* PageLayout Component Styles */
+.page-layout {
+  width: 100%;
+}
+
+.page-content {
+  width: 100%;
+}
