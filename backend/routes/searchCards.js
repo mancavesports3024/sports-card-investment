@@ -1188,14 +1188,29 @@ router.post('/', async (req, res) => {
         /\bsealed\s+item\b/i,
         /\bsealed\s+lot\b/i,
         /\bsuperbox\b/i,
+        /\bsuper\s+box\b/i,
         /\bmega\s+box\b/i,
         /\bcelebration\s+mega\s+box\b/i,
+        /\bcelebration\s+mega\s+fun\s+box\b/i,
+        /\bmega\s+celebration\s+fun\s+box\b/i,
         /\bcase\s+of\b/i,
         /\bbreak\s+case\b/i,
         /\bcase\s+break\b/i,
         /\bwax\s+box\b/i,
         /\bcellos?\b/i,
-        /\bwrappers?\b/i
+        /\bwrappers?\b/i,
+        /\bsealed\b/i,  // Catch any item with "sealed" in the title
+        /\bnew\s+sealed\b/i,
+        /\bsealed\s+new\b/i,
+        /\bexclusive\s+new\b/i,
+        /\bnew\s+exclusive\b/i,
+        /\bfun\s+box\b/i,
+        /\btrading\s+card\s+box\b/i,
+        /\btrading\s+card\s+super\s+box\b/i,
+        /\bflagship\s+box\b/i,
+        /\bcelebration\s+box\b/i,
+        /\bmega\s+celebration\b/i,
+        /\bcelebration\s+mega\b/i
       ];
       
       // Check if title matches any sealed product pattern
