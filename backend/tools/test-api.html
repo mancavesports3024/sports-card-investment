@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Set API Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .suggestion-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+        }
+        .suggestion-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .suggestion-details {
+            font-size: 12px;
+            color: #666;
+        }
+        .metadata {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        .quick-tests {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .quick-test-btn {
+            background-color: #28a745;
+            font-size: 12px;
+            padding: 8px 12px;
+        }
+        .quick-test-btn:hover {
+            background-color: #1e7e34;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Card Set API Tester</h1>
+        
+        <div class="test-section">
+            <h3>Quick Tests</h3>
+            <div class="quick-tests">
+                <button class="quick-test-btn" onclick="runQuickTest('topps', 5)">Topps (5 results)</button>
+                <button class="quick-test-btn" onclick="runQuickTest('chrome', 5)">Chrome (5 results)</button>
+                <button class="quick-test-btn" onclick="runQuickTest('2025', 5)">2025 (5 results)</button>
+                <button class="quick-test-btn" onclick="runQuickTest('bowman', 5)">Bowman (5 results)</button>
+                <button class="quick-test-btn" onclick="runQuickTest('prizm', 5)">Prizm (5 results)</button>
+                <button class="quick-test-btn" onclick="runQuickTest('baseball', 5)">Baseball (5 results)</button>
+                <button class="quick-test-btn" onclick="runQuickTest('', 10)">Popular Sets (10 results)</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>Custom Test</h3>
+            <div class="input-group">
+                <label for="query">Search Query:</label>
+                <input type="text" id="query" placeholder="e.g., topps chrome 2025" value="topps">
+            </div>
+            <div class="input-group">
+                <label for="limit">Result Limit:</label>
+                <select id="limit">
+                    <option value="5">5 results</option>
+                    <option value="10" selected>10 results</option>
+                    <option value="20">20 results</option>
+                    <option value="50">50 results</option>
+                </select>
+            </div>
+            <button onclick="runCustomTest()">🔍 Test API</button>
+            <button onclick="clearResults()">🗑️ Clear Results</button>
+        </div>
+
+        <div class="test-section">
+            <h3>Results</h3>
+            <div id="results">
+                <div class="loading">Click a test button above to see results...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001';
+
+        async function testAPI(query, limit) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">Loading...</div>';
+
+            try {
+                const url = `${API_BASE}/api/search-cards/card-set-suggestions?query=${encodeURIComponent(query)}&limit=${limit}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayResults(data);
+                } else {
+                    displayError(data.error || 'API request failed');
+                }
+            } catch (error) {
+                displayError(`Network error: ${error.message}`);
+            }
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+            let html = '';
+            
+            if (data.metadata) {
+                html += `
+                    <div class="metadata">
+                        <strong>Query:</strong> "${data.metadata.query}"<br>
+                        <strong>Limit:</strong> ${data.metadata.limit}<br>
+                        <strong>Total Found:</strong> ${data.metadata.totalFound}<br>
+                        <strong>Returned:</strong> ${data.metadata.returned}<br>
+                        <strong>Database Size:</strong> ${data.metadata.databaseSize}
+                    </div>
+                `;
+            }
+
+            if (data.suggestions && data.suggestions.length > 0) {
+                html += `<h4>Found ${data.suggestions.length} suggestions:</h4>`;
+                
+                data.suggestions.forEach((suggestion, index) => {
+                    html += `
+                        <div class="suggestion-item">
+                            <div class="suggestion-name">${index + 1}. ${suggestion.name}</div>
+                            <div class="suggestion-details">
+                                <strong>Brand:</strong> ${suggestion.brand} | 
+                                <strong>Set:</strong> ${suggestion.set || 'N/A'} | 
+                                <strong>Year:</strong> ${suggestion.year || 'N/A'} | 
+                                <strong>Sport:</strong> ${suggestion.sport} | 
+                                <strong>Popularity:</strong> ${suggestion.popularity} | 
+                                <strong>Source:</strong> ${suggestion.source}
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html += '<div class="loading">No suggestions found</div>';
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function displayError(message) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `<div class="error">❌ ${message}</div>`;
+        }
+
+        function runQuickTest(query, limit) {
+            document.getElementById('query').value = query;
+            document.getElementById('limit').value = limit;
+            testAPI(query, limit);
+        }
+
+        function runCustomTest() {
+            const query = document.getElementById('query').value;
+            const limit = document.getElementById('limit').value;
+            testAPI(query, parseInt(limit));
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '<div class="loading">Click a test button above to see results...</div>';
+        }
+
+        // Check if server is running on page load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_BASE}/test`);
+                if (!response.ok) {
+                    throw new Error('Server not responding');
+                }
+                console.log('✅ Test server is running');
+            } catch (error) {
+                displayError('Test server is not running. Please start it with: node tools/test-card-set-api.js');
+            }
+        });
+    </script>
+</body>
+</html> 
