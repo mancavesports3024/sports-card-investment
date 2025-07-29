@@ -815,95 +815,86 @@ const SearchPage = () => {
         </div>
         {/* Search Form */}
         <form id="search-form" onSubmit={handleSearch} className="search-form">
-          <div className="form-group">
-            <label htmlFor="playerName">Player Name:</label>
-            <input
-              type="text"
-              id="playerName"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              placeholder="e.g., Mike Trout"
-            />
+          <div className="form-fields-container">
+            <div className="form-group">
+              <label htmlFor="playerName">Player Name:</label>
+              <input
+                type="text"
+                id="playerName"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                placeholder="e.g., Mike Trout"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="cardSet">Card Set:</label>
+              <input
+                type="text"
+                id="cardSet"
+                value={cardSet}
+                onChange={(e) => setCardSet(e.target.value)}
+                placeholder="e.g., Topps Chrome"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="year">Year:</label>
+              <input
+                type="text"
+                id="year"
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                placeholder="e.g., 2011"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="cardNumber">Card Number:</label>
+              <input
+                type="text"
+                id="cardNumber"
+                value={cardNumber}
+                onChange={(e) => setCardNumber(e.target.value)}
+                placeholder="e.g., 175"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="cardType">Card Type:</label>
+              <input
+                type="text"
+                id="cardType"
+                value={cardType}
+                onChange={(e) => setCardType(e.target.value)}
+                placeholder="e.g., Base, Insert, Auto, Relic"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="exclude">Exclude (keywords):</label>
+              <input
+                type="text"
+                id="exclude"
+                value={exclude}
+                onChange={(e) => setExclude(e.target.value)}
+                placeholder="e.g., graded, PSA"
+              />
+            </div>
+            <div className="form-group advanced-search">
+              <label htmlFor="searchQuery"><strong>Advanced Search</strong> (overrides all fields):</label>
+              <input
+                type="text"
+                id="searchQuery"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="e.g., Mike Trout 2011 Topps Update Rookie"
+              />
+            </div>
           </div>
-          <div className="form-group">
-            <label htmlFor="cardSet">Card Set:</label>
-            <input
-              type="text"
-              id="cardSet"
-              value={cardSet}
-              onChange={(e) => setCardSet(e.target.value)}
-              placeholder="e.g., Topps Chrome"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="year">Year:</label>
-            <input
-              type="text"
-              id="year"
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              placeholder="e.g., 2011"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="cardNumber">Card Number:</label>
-            <input
-              type="text"
-              id="cardNumber"
-              value={cardNumber}
-              onChange={(e) => setCardNumber(e.target.value)}
-              placeholder="e.g., 175"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="cardType">Card Type:</label>
-            <input
-              type="text"
-              id="cardType"
-              value={cardType}
-              onChange={(e) => setCardType(e.target.value)}
-              placeholder="e.g., Base, Insert, Auto, Relic"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="exclude">Exclude (keywords):</label>
-            <input
-              type="text"
-              id="exclude"
-              value={exclude}
-              onChange={(e) => setExclude(e.target.value)}
-              placeholder="e.g., graded, PSA"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="searchQuery"><strong>Advanced Search</strong> (overrides all fields):</label>
-            <input
-              type="text"
-              id="searchQuery"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="e.g., Mike Trout 2011 Topps Update Rookie"
-            />
-          </div>
-          <div className="form-group" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div className="form-buttons-container">
             <button type="submit" disabled={isLoading} className="search-button">
               {isLoading ? '🔍 Searching...' : '🔍 Search Cards'}
             </button>
             <button
               type="button"
               onClick={handleClear}
-              style={{
-                background: '#000',
-                color: '#ffd700',
-                border: '2px solid #ffd700',
-                borderRadius: 5,
-                padding: '0.5rem 1.2rem',
-                fontWeight: 'bold',
-                fontSize: '1rem',
-                marginLeft: '0.5rem',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
+              className="clear-button"
             >
               Clear
             </button>
