@@ -3275,3 +3275,275 @@
     justify-content: center;
   }
 }
+
+/* Mobile Responsive Styles for Welcome Sections */
+@media (max-width: 768px) {
+  /* Welcome section mobile styles */
+  .welcome-section {
+    padding: 1.5rem !important;
+    margin: 1rem 0 !important;
+    border-radius: 8px !important;
+  }
+  
+  .welcome-section h2 {
+    font-size: 1.5rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .welcome-section h3 {
+    font-size: 1.1rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .welcome-section p {
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  /* Featured eBay Rotator mobile styles */
+  .featured-ebay-listing {
+    max-width: 320px !important;
+    width: 100% !important;
+    padding: 1rem !important;
+    margin: 1rem auto !important;
+    height: auto !important;
+    min-height: 400px !important;
+  }
+  
+  .featured-ebay-listing img {
+    max-width: 140px !important;
+    max-height: 140px !important;
+  }
+  
+  /* Search form mobile styles */
+  .search-form {
+    padding: 1.5rem !important;
+    margin: 1rem 0 !important;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem !important;
+  }
+  
+  .form-group label {
+    font-size: 0.9rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .form-group input {
+    font-size: 1rem !important;
+    padding: 0.75rem !important;
+  }
+  
+  .search-button {
+    width: 100% !important;
+    margin-top: 1rem !important;
+    font-size: 1rem !important;
+    padding: 0.75rem !important;
+  }
+  
+  /* Main content mobile styles */
+  .App-main {
+    padding: 0 1rem !important;
+    max-width: 100% !important;
+  }
+  
+  /* Header mobile styles */
+  .global-header {
+    min-height: 60px !important;
+    padding: 0.5rem 0 !important;
+  }
+  
+  .responsive-header {
+    padding: 0 1rem !important;
+  }
+  
+  .header-title {
+    font-size: 1.8rem !important;
+  }
+  
+  .main-title {
+    font-size: 2.2rem !important;
+  }
+  
+  .header-nav-group {
+    gap: 1rem !important;
+  }
+  
+  .header-nav-link {
+    font-size: 0.8rem !important;
+    padding: 0.4rem 0.8rem !important;
+  }
+  
+  .header-social {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 1rem !important;
+  }
+  
+  .header-login-btn {
+    padding: 0.4rem 1rem !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra small mobile styles */
+  .welcome-section {
+    padding: 1rem !important;
+    margin: 0.5rem 0 !important;
+  }
+  
+  .welcome-section h2 {
+    font-size: 1.3rem !important;
+  }
+  
+  .welcome-section h3 {
+    font-size: 1rem !important;
+  }
+  
+  .welcome-section p {
+    font-size: 0.9rem !important;
+  }
+  
+  /* Header extra small mobile */
+  .header-row {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+  
+  .header-title {
+    font-size: 1.5rem !important;
+  }
+  
+  .main-title {
+    font-size: 1.8rem !important;
+  }
+  
+  .header-nav-group {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+  }
+  
+  .header-social-group {
+    justify-content: center !important;
+  }
+  
+  .header-user-actions {
+    justify-content: center !important;
+  }
+  
+  /* Featured eBay Rotator extra small */
+  .featured-ebay-listing {
+    max-width: 280px !important;
+    padding: 0.8rem !important;
+    min-height: 350px !important;
+  }
+  
+  .featured-ebay-listing img {
+    max-width: 120px !important;
+    max-height: 120px !important;
+  }
+  
+  /* Search form extra small */
+  .search-form {
+    padding: 1rem !important;
+  }
+  
+  .form-group input {
+    font-size: 0.9rem !important;
+    padding: 0.6rem !important;
+  }
+  
+  .search-button {
+    font-size: 0.9rem !important;
+    padding: 0.6rem !important;
+  }
+  
+  /* Main content extra small */
+  .App-main {
+    padding: 0 0.5rem !important;
+  }
+}
+
+@media (max-width: 360px) {
+  /* Very small mobile styles */
+  .welcome-section {
+    padding: 0.8rem !important;
+  }
+  
+  .welcome-section h2 {
+    font-size: 1.2rem !important;
+  }
+  
+  .welcome-section h3 {
+    font-size: 0.9rem !important;
+  }
+  
+  .welcome-section p {
+    font-size: 0.85rem !important;
+  }
+  
+  .featured-ebay-listing {
+    max-width: 260px !important;
+    padding: 0.6rem !important;
+    min-height: 320px !important;
+  }
+  
+  .featured-ebay-listing img {
+    max-width: 100px !important;
+    max-height: 100px !important;
+  }
+  
+  .header-title {
+    font-size: 1.3rem !important;
+  }
+  
+  .main-title {
+    font-size: 1.5rem !important;
+  }
+  
+  .header-nav-link {
+    font-size: 0.7rem !important;
+    padding: 0.3rem 0.6rem !important;
+  }
+  
+  .header-social {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 0.9rem !important;
+  }
+}
+
+/* Ensure proper text wrapping and prevent overflow */
+.welcome-section h2,
+.welcome-section h3,
+.welcome-section p {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Prevent horizontal scrolling */
+.App {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.App-main {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Ensure proper spacing for mobile */
+@media (max-width: 768px) {
+  .App-main > div:first-child {
+    margin-top: 0;
+  }
+  
+  .App-main > div:last-child {
+    margin-bottom: 2rem;
+  }
+}

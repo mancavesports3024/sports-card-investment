@@ -772,7 +772,7 @@ const SearchPage = () => {
       {/* Main Content */}
       <main className="App-main">
         {/* Welcome Message - Updated to match CardSetAnalysis styling */}
-        <div style={{
+        <div className="welcome-section" style={{
           background: 'linear-gradient(135deg, #000 0%, #333 100%)',
           color: '#ffd700',
           padding: '2rem',
