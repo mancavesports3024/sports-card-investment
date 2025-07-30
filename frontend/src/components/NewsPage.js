@@ -18,15 +18,22 @@ const NewsPage = () => {
         setIsLoading(true);
         setError(null);
         
+        console.log('🔄 Fetching releases from API...');
         const response = await fetch('/api/news/releases');
         const data = await response.json();
         
+        console.log('📦 API Response:', data);
+        
         if (data.success) {
+          console.log(`✅ Loaded ${data.releases.length} releases`);
+          console.log('📅 Sample releases:', data.releases.slice(0, 3));
           setReleases(data.releases);
         } else {
+          console.error('❌ API Error:', data.error);
           setError(data.error || 'Failed to fetch releases');
         }
       } catch (err) {
+        console.error('❌ Network Error:', err);
         setError('Failed to connect to server');
         console.error('Error fetching releases:', err);
       } finally {
@@ -198,13 +205,20 @@ const NewsPage = () => {
 
   const getReleasesForDate = (day, month, year) => {
     const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return releases.filter(release => {
+    const filteredReleases = releases.filter(release => {
       if (!release.releaseDate) return false;
       const releaseDate = new Date(release.releaseDate);
       return releaseDate.getFullYear() === year && 
              releaseDate.getMonth() === month && 
              releaseDate.getDate() === day;
     });
+    
+    // Debug logging for September 2025
+    if (month === 8 && year === 2025 && filteredReleases.length > 0) {
+      console.log(`📅 Found ${filteredReleases.length} releases for ${dateString}:`, filteredReleases);
+    }
+    
+    return filteredReleases;
   };
 
   const handleReleaseClick = (release) => {
