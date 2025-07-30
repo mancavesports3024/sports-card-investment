@@ -622,15 +622,6 @@ const NewsPage = () => {
         </h3>
         <p style={{ margin: 0, color: '#333', fontSize: '0.95rem' }}>
           Stay updated on the latest sports card releases from major brands including Topps, Panini, Bowman, and Upper Deck.
-          {releases.length > 0 && (
-            <span style={{ display: 'block', marginTop: '0.5rem', fontWeight: 600 }}>
-              📊 {releases.filter(release => {
-                if (!release.releaseDate) return false;
-                const releaseYear = new Date(release.releaseDate).getFullYear();
-                return releaseYear === currentYear;
-              }).length} releases found for {currentYear} from {[...new Set(releases.map(r => r.source))].join(', ')}
-            </span>
-          )}
         </p>
       </div>
 
