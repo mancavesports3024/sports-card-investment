@@ -789,14 +789,6 @@ const SearchPage = () => {
             maxWidth: '600px',
             margin: '0 auto 2rem auto'
           }}>
-            <h2 style={{ 
-              margin: '0 0 0.5rem 0', 
-              fontSize: '1.4rem', 
-              fontWeight: 700,
-              textAlign: 'center'
-            }}>
-              Welcome to ManCave Sports Cards LLC!
-            </h2>
             <p style={{ 
               fontSize: '0.95rem', 
               lineHeight: '1.4', 
