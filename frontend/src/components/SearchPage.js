@@ -727,10 +727,6 @@ const SearchPage = () => {
     }
     return (
       <div className="investment-insight-section" style={{ margin: '2.5rem 0 2rem 0', background: 'linear-gradient(90deg, #111 0%, #ffd700 100%)', borderRadius: 12, boxShadow: '0 4px 24px rgba(0,0,0,0.10)', padding: '2.2rem 1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-          <span style={{ fontSize: 32, marginRight: 12, color: '#ffd700', filter: 'drop-shadow(0 2px 4px #0008)' }}>🏆</span>
-          <h3 style={{ color: '#000', fontWeight: 900, fontSize: '1.5rem', margin: 0, letterSpacing: 1 }}>Investment Insight</h3>
-        </div>
         <div style={{ color: '#222', background: '#fffbe6', borderRadius: 8, padding: '0.8rem 1.2rem', marginBottom: 18, fontSize: '1.08rem', fontWeight: 500, borderLeft: '6px solid #ffd700', boxShadow: '0 1px 6px rgba(255,215,0,0.08)' }}>
           Compare how other graded cards stack up to PSA 10s. The closer the value, the better the investment potential.
         </div>
@@ -804,7 +800,7 @@ const SearchPage = () => {
         <PageLayout
           title="Search Cards"
           subtitle="Search for trading cards and get real-time pricing data from recent sales"
-          icon="🔍"
+          icon="🔍 🏆"
         >
           {/* Welcome Message with eBay Items */}
           <div className="welcome-section" style={{
@@ -1019,7 +1015,6 @@ const SearchPage = () => {
 
             {/* Investment Insight */}
             <div style={{ marginTop: '2.5rem' }}>
-              <h3 style={{ color: '#fff', fontWeight: 800, marginBottom: '1rem', fontSize: '1.4rem' }}>Investment Insight</h3>
               {renderInvestmentInsight(results.results?.gradingStats)}
             </div>
 
