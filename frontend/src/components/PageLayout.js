@@ -12,7 +12,7 @@ const PageLayout = ({
   return (
     <div className="page-layout" style={containerStyle}>
       {/* Standard Page Title Section */}
-      <div style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
+      <div style={{ textAlign: 'center' }}>
         <h1 style={{ 
           fontSize: '2.5rem', 
           fontWeight: 800, 

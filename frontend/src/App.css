@@ -159,7 +159,7 @@
   min-height: calc(100vh - 120px); /* Account for header */
   position: relative;
   overflow-x: hidden;
-  padding-top: 0.5rem; /* Reduced spacing from header */
+  padding-top: 1rem; /* Consistent spacing from header */
 }
 
 /* Search Form */
@@ -3572,6 +3572,10 @@
 /* PageLayout Component Styles */
 .page-layout {
   width: 100%;
+}
+
+.page-layout > div:first-child {
+  margin-bottom: 1.5rem;
 }
 
 .page-content {

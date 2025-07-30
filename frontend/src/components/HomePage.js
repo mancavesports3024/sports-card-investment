@@ -7,7 +7,7 @@ const HomePage = () => {
   return (
     <div className="home-page">
       {/* Main Content */}
-      <main className="home-main">
+      <main className="App-main">
         <PageLayout
           title="Home"
           subtitle="Welcome to your trading card destination - find the best deals and track card values"
