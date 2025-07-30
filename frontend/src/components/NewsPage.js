@@ -8,6 +8,8 @@ const NewsPage = () => {
   const [releases, setReleases] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedRelease, setSelectedRelease] = useState(null);
+  const [showReleaseModal, setShowReleaseModal] = useState(false);
 
   // Fetch release data from API
   useEffect(() => {
@@ -205,6 +207,16 @@ const NewsPage = () => {
     });
   };
 
+  const handleReleaseClick = (release) => {
+    setSelectedRelease(release);
+    setShowReleaseModal(true);
+  };
+
+  const closeReleaseModal = () => {
+    setShowReleaseModal(false);
+    setSelectedRelease(null);
+  };
+
   const renderCalendarDay = (day, month, year, isCurrentMonth = true) => {
     const releasesForDay = getReleasesForDate(day, month, year);
     const isToday = new Date().getDate() === day && 
@@ -213,7 +225,7 @@ const NewsPage = () => {
     
     return (
       <div
-        key={day}
+        key={`${month}-${day}-${year}`}
         style={{
           minHeight: '120px',
           padding: '8px',
@@ -224,7 +236,16 @@ const NewsPage = () => {
           cursor: releasesForDay.length > 0 ? 'pointer' : 'default',
           transition: 'all 0.2s ease'
         }}
-        onClick={() => releasesForDay.length > 0 && console.log(`Releases for ${month + 1}/${day}/${year}:`, releasesForDay)}
+        onClick={() => {
+          if (releasesForDay.length > 0) {
+            if (releasesForDay.length === 1) {
+              handleReleaseClick(releasesForDay[0]);
+            } else {
+              // If multiple releases, show the first one or could show a list
+              handleReleaseClick(releasesForDay[0]);
+            }
+          }
+        }}
       >
         <div style={{
           fontSize: '0.9rem',
@@ -236,21 +257,35 @@ const NewsPage = () => {
         
         {releasesForDay.map((release, index) => (
           <div
-            key={index}
+            key={`${release.title}-${index}`}
             style={{
               fontSize: '0.7rem',
               padding: '2px 4px',
               marginBottom: '2px',
               borderRadius: '3px',
-              backgroundColor: getStatusColor(release.status),
+              backgroundColor: getBrandColor(release.brand),
               color: '#fff',
               fontWeight: 600,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              border: '1px solid rgba(255,255,255,0.2)'
+              border: '1px solid rgba(255,255,255,0.2)',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
             }}
-            title={`${release.title} - ${release.brand}`}
+            title={`${release.title} - ${release.brand} (${release.status})`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleReleaseClick(release);
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'scale(1.05)';
+              e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'scale(1)';
+              e.target.style.boxShadow = 'none';
+            }}
           >
             {release.title.length > 15 ? release.title.substring(0, 15) + '...' : release.title}
           </div>
@@ -295,6 +330,165 @@ const NewsPage = () => {
     }
     
     return calendarDays;
+  };
+
+  // Release Detail Modal
+  const renderReleaseModal = () => {
+    if (!showReleaseModal || !selectedRelease) return null;
+
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+        padding: '2rem'
+      }}
+      onClick={closeReleaseModal}
+      >
+        <div style={{
+          background: '#1f2937',
+          borderRadius: 12,
+          padding: '2rem',
+          maxWidth: '600px',
+          width: '100%',
+          maxHeight: '80vh',
+          overflow: 'auto',
+          border: '2px solid #ffd700',
+          position: 'relative'
+        }}
+        onClick={(e) => e.stopPropagation()}
+        >
+          {/* Close button */}
+          <button
+            onClick={closeReleaseModal}
+            style={{
+              position: 'absolute',
+              top: '1rem',
+              right: '1rem',
+              background: 'none',
+              border: 'none',
+              color: '#ffd700',
+              fontSize: '1.5rem',
+              cursor: 'pointer',
+              fontWeight: 'bold'
+            }}
+          >
+            ×
+          </button>
+
+          {/* Release details */}
+          <div style={{ marginBottom: '1.5rem' }}>
+            <div style={{
+              background: getBrandColor(selectedRelease.brand),
+              color: '#fff',
+              padding: '0.5rem 1rem',
+              borderRadius: 20,
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              display: 'inline-block',
+              marginBottom: '1rem'
+            }}>
+              {selectedRelease.brand}
+            </div>
+            <h2 style={{
+              color: '#ffd700',
+              fontSize: '1.8rem',
+              fontWeight: 700,
+              margin: '0 0 1rem 0',
+              lineHeight: '1.3'
+            }}>
+              {selectedRelease.title}
+            </h2>
+            <p style={{
+              color: '#d1d5db',
+              fontSize: '1rem',
+              lineHeight: '1.6',
+              marginBottom: '1.5rem'
+            }}>
+              {selectedRelease.description}
+            </p>
+          </div>
+
+          {/* Release info grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '1rem',
+            marginBottom: '1.5rem'
+          }}>
+            <div>
+              <strong style={{ color: '#ffd700' }}>Release Date:</strong>
+              <div style={{ color: '#d1d5db' }}>
+                {selectedRelease.releaseDate ? (
+                  new Date(selectedRelease.releaseDate).toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })
+                ) : (
+                  'TBD'
+                )}
+              </div>
+            </div>
+            <div>
+              <strong style={{ color: '#ffd700' }}>Sport:</strong>
+              <div style={{ color: '#d1d5db' }}>{selectedRelease.sport || 'Trading Cards'}</div>
+            </div>
+            <div>
+              <strong style={{ color: '#ffd700' }}>Type:</strong>
+              <div style={{ color: '#d1d5db' }}>{selectedRelease.type || 'Unknown'}</div>
+            </div>
+            <div>
+              <strong style={{ color: '#ffd700' }}>Status:</strong>
+              <div style={{
+                color: '#fff',
+                backgroundColor: getStatusColor(selectedRelease.status),
+                padding: '0.25rem 0.75rem',
+                borderRadius: 20,
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                display: 'inline-block'
+              }}>
+                {selectedRelease.status}
+              </div>
+            </div>
+          </div>
+
+          {/* Pricing */}
+          <div style={{
+            background: '#374151',
+            borderRadius: 8,
+            padding: '1rem',
+            border: '1px solid #4b5563'
+          }}>
+            <h3 style={{ color: '#ffd700', margin: '0 0 1rem 0', fontSize: '1.1rem' }}>Pricing</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <strong style={{ color: '#d1d5db' }}>Retail Pack:</strong>
+                <div style={{ color: '#10b981', fontWeight: 600, fontSize: '1.1rem' }}>
+                  {selectedRelease.retailPrice || 'TBD'}
+                </div>
+              </div>
+              <div>
+                <strong style={{ color: '#d1d5db' }}>Hobby Box:</strong>
+                <div style={{ color: '#ef4444', fontWeight: 600, fontSize: '1.1rem' }}>
+                  {selectedRelease.hobbyPrice || 'TBD'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const renderReleaseCard = (release, index) => (
@@ -575,19 +769,37 @@ const NewsPage = () => {
                 <div style={{
                   width: '12px',
                   height: '12px',
-                  backgroundColor: '#28a745',
+                  backgroundColor: '#1e3a8a',
                   borderRadius: '2px'
                 }}></div>
-                <span style={{ color: '#fff', fontSize: '0.9rem' }}>Released</span>
+                <span style={{ color: '#fff', fontSize: '0.9rem' }}>Topps</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{
                   width: '12px',
                   height: '12px',
-                  backgroundColor: '#ffc107',
+                  backgroundColor: '#dc2626',
                   borderRadius: '2px'
                 }}></div>
-                <span style={{ color: '#fff', fontSize: '0.9rem' }}>Upcoming</span>
+                <span style={{ color: '#fff', fontSize: '0.9rem' }}>Panini</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{
+                  width: '12px',
+                  height: '12px',
+                  backgroundColor: '#059669',
+                  borderRadius: '2px'
+                }}></div>
+                <span style={{ color: '#fff', fontSize: '0.9rem' }}>Bowman</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{
+                  width: '12px',
+                  height: '12px',
+                  backgroundColor: '#7c3aed',
+                  borderRadius: '2px'
+                }}></div>
+                <span style={{ color: '#fff', fontSize: '0.9rem' }}>Upper Deck</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{
@@ -919,6 +1131,7 @@ const NewsPage = () => {
 
       {/* Tab Content */}
       {activeTab === 'releases' ? renderReleasesTab() : renderNewsTab()}
+      {renderReleaseModal()}
     </div>
   );
 };
