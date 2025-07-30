@@ -545,7 +545,7 @@ const SearchPage = () => {
             )}
           </div>
         )}
-        <div className="cards-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem' }}>
+        <div className="cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.7rem', gridAutoFlow: 'row' }}>
           {visibleCards.map((card, index) => {
             // Skip cards with invalid price
             const priceValue = Number(card.price?.value);
