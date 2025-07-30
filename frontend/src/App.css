@@ -160,6 +160,10 @@
   position: relative;
   overflow-x: hidden;
   padding-top: 1rem; /* Consistent spacing from header */
+  padding-left: 2rem; /* Add horizontal padding to prevent content from touching edges */
+  padding-right: 2rem; /* Add horizontal padding to prevent content from touching edges */
+  max-width: 1400px; /* Set a maximum width for better readability */
+  margin: 0 auto; /* Center the content */
 }
 
 /* Search Form */
@@ -1045,6 +1049,8 @@
   
   .App-main {
     padding: 0 1rem;
+    padding-left: 1rem; /* Maintain horizontal padding on mobile */
+    padding-right: 1rem; /* Maintain horizontal padding on mobile */
   }
   
   .price-analysis-section {
@@ -3486,6 +3492,8 @@
   /* Main content extra small */
   .App-main {
     padding: 0 0.5rem !important;
+    padding-left: 0.5rem !important; /* Maintain horizontal padding on extra small mobile */
+    padding-right: 0.5rem !important; /* Maintain horizontal padding on extra small mobile */
   }
 }
 
@@ -3572,6 +3580,8 @@
 /* PageLayout Component Styles */
 .page-layout {
   width: 100%;
+  max-width: 100%; /* Ensure it doesn't exceed parent width */
+  margin: 0 auto; /* Center the layout */
 }
 
 .page-layout > div:first-child {
@@ -3580,6 +3590,24 @@
 
 .page-content {
   width: 100%;
+  max-width: 100%; /* Ensure it doesn't exceed parent width */
+}
+
+/* Ensure price analysis and investment insight sections have proper spacing */
+.price-analysis {
+  margin: 2rem 0;
+  padding: 0 1rem;
+}
+
+.investment-insight-section {
+  margin: 2.5rem 0 2rem 0;
+  padding: 0 1rem;
+}
+
+/* Ensure card sections have proper spacing */
+.card-section {
+  margin: 2rem 0;
+  padding: 0 1rem;
 }
 
 /* Prevent layout shifts from dynamic content */

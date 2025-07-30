@@ -727,7 +727,7 @@ const SearchPage = () => {
     }
       return (
     <div className="investment-insight-section" style={{ margin: '2.5rem 0 2rem 0', background: 'linear-gradient(90deg, #111 0%, #ffd700 100%)', borderRadius: 12, boxShadow: '0 4px 24px rgba(0,0,0,0.10)', padding: '2.2rem 1.5rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 18 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
         <span style={{ fontSize: 32, marginRight: 12, color: '#ffd700', filter: 'drop-shadow(0 2px 4px #0008)' }}>🏆</span>
         <h3 style={{ color: '#000', fontWeight: 900, fontSize: '1.5rem', margin: 0, letterSpacing: 1 }}>Investment Insight</h3>
       </div>
