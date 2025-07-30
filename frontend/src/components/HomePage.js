@@ -62,15 +62,6 @@ const HomePage = () => {
                 <p className="cta-note">Free to use • No registration required</p>
               </div>
             </div>
-            <div className="hero-image">
-              <div className="mockup-card">
-                <div className="mockup-header">Bo Nix #309 Orange Lazer</div>
-                <div className="mockup-content">
-                  <div className="mockup-price">$189.89</div>
-                  <div className="mockup-trend">↗️ +15% {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-                </div>
-              </div>
-            </div>
           </section>
 
           {/* Header Ad */}
