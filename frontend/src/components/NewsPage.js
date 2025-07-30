@@ -219,9 +219,13 @@ const NewsPage = () => {
 
   const renderCalendarDay = (day, month, year, isCurrentMonth = true) => {
     const releasesForDay = getReleasesForDate(day, month, year);
-    const isToday = new Date().getDate() === day && 
-                   new Date().getMonth() === month && 
-                   new Date().getFullYear() === year;
+    const today = new Date();
+    const isToday =
+      today.getDate() === day &&
+      today.getMonth() === currentMonth &&
+      today.getFullYear() === currentYear &&
+      month === currentMonth &&
+      year === currentYear;
     
     return (
       <div
@@ -241,7 +245,6 @@ const NewsPage = () => {
             if (releasesForDay.length === 1) {
               handleReleaseClick(releasesForDay[0]);
             } else {
-              // If multiple releases, show the first one or could show a list
               handleReleaseClick(releasesForDay[0]);
             }
           }
