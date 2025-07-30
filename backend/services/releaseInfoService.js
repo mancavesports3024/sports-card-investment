@@ -1,4 +1,5 @@
 const cacheService = require('./cacheService');
+const bleacherSeatsScraper = require('./bleacherSeatsScraperService');
 
 class ReleaseInfoService {
   constructor() {
@@ -17,8 +18,8 @@ class ReleaseInfoService {
 
     console.log('🔄 Loading comprehensive release data...');
     
-    // Use the comprehensive release data provided
-    const releases = this.getComprehensiveReleases();
+    // Use merged release data (manual + scraped)
+    const releases = await this.getMergedReleases();
     
     // Cache the results
     await cacheService.set(cacheKey, releases, this.cacheTimeout);
@@ -1220,6 +1221,75 @@ class ReleaseInfoService {
       console.error('❌ Error getting all releases:', error.message);
       return this.getComprehensiveReleases();
     }
+  }
+
+  async getMergedReleases() {
+    try {
+      console.log('🔄 Merging manual and scraped release data...');
+      
+      // Get existing manual releases
+      const manualReleases = this.getComprehensiveReleases();
+      
+      // Try to get scraped releases
+      let scrapedReleases = [];
+      try {
+        scrapedReleases = await bleacherSeatsScraper.getLatestReleases();
+        console.log(`✅ Successfully scraped ${scrapedReleases.length} releases from Bleacher Seats`);
+      } catch (scrapeError) {
+        console.warn('⚠️ Failed to scrape Bleacher Seats, using manual data only:', scrapeError.message);
+      }
+      
+      // Merge releases, avoiding duplicates based on title and date
+      const mergedReleases = [...manualReleases];
+      const existingTitles = new Set(manualReleases.map(r => `${r.title}-${r.releaseDate}`));
+      
+      scrapedReleases.forEach(scrapedRelease => {
+        const key = `${scrapedRelease.title}-${scrapedRelease.releaseDate}`;
+        if (!existingTitles.has(key)) {
+          // Add missing fields to match manual release format
+          const enhancedRelease = {
+            ...scrapedRelease,
+            sport: this.determineSport(scrapedRelease.title),
+            year: scrapedRelease.releaseDate.split('-')[0],
+            description: `${scrapedRelease.brand} ${scrapedRelease.title}`,
+            retailPrice: 'TBD',
+            hobbyPrice: 'TBD'
+          };
+          mergedReleases.push(enhancedRelease);
+          existingTitles.add(key);
+        }
+      });
+      
+      // Sort by release date
+      mergedReleases.sort((a, b) => {
+        const dateA = new Date(a.releaseDate || 0);
+        const dateB = new Date(b.releaseDate || 0);
+        return dateA - dateB;
+      });
+      
+      console.log(`✅ Merged ${mergedReleases.length} total releases (${manualReleases.length} manual + ${scrapedReleases.length} scraped)`);
+      return mergedReleases;
+      
+    } catch (error) {
+      console.error('❌ Error merging releases:', error.message);
+      return this.getComprehensiveReleases();
+    }
+  }
+
+  determineSport(title) {
+    const titleLower = title.toLowerCase();
+    
+    if (titleLower.includes('baseball')) return 'Baseball';
+    if (titleLower.includes('basketball')) return 'Basketball';
+    if (titleLower.includes('football')) return 'Football';
+    if (titleLower.includes('hockey')) return 'Hockey';
+    if (titleLower.includes('soccer')) return 'Soccer';
+    if (titleLower.includes('golf')) return 'Golf';
+    if (titleLower.includes('pokemon')) return 'Gaming';
+    if (titleLower.includes('yugioh')) return 'Gaming';
+    if (titleLower.includes('magic')) return 'Gaming';
+    
+    return 'Multi-Sport';
   }
 }
 

@@ -82,6 +82,33 @@ router.get('/releases/refresh', async (req, res) => {
   }
 });
 
+// GET /api/news/releases/scrape - Manually trigger scraping from Bleacher Seats
+router.get('/releases/scrape', async (req, res) => {
+  try {
+    console.log('🔍 Manual scraping of Bleacher Seats requested');
+    
+    const bleacherSeatsScraper = require('../services/bleacherSeatsScraperService');
+    const scrapedReleases = await bleacherSeatsScraper.scrapeReleaseCalendar();
+    
+    res.json({
+      success: true,
+      message: 'Successfully scraped Bleacher Seats Collectibles',
+      scrapedReleases,
+      count: scrapedReleases.length,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error scraping Bleacher Seats:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to scrape Bleacher Seats Collectibles',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // GET /api/news/releases/by-year/:year - Get releases for a specific year
 router.get('/releases/by-year/:year', async (req, res) => {
   try {
