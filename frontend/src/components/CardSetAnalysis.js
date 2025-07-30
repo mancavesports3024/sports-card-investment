@@ -311,7 +311,7 @@ const CardSetAnalysis = () => {
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem' }}>
       <Helmet>
-        <title>Card Set Analysis - Trading Card Tracker</title>
+        <title>Scorecard - Card Set Analysis</title>
         <meta name="description" content="Analyze specific card sets to find the most valuable and best-selling cards. Get insights on Topps, Bowman, and other popular card sets." />
       </Helmet>
 

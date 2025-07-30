@@ -1031,21 +1031,21 @@ const NewsPage = () => {
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem' }}>
       <Helmet>
-        <title>The National 2025 & Sports Card News - Trading Card Tracker</title>
+        <title>Scorecard - News & Releases</title>
         <meta name="description" content="The National 2025: Complete guide to the 45th National Sports Collectors Convention. Plus latest sports card releases, news, and industry updates. Track release dates for Topps, Panini, Bowman, and Upper Deck cards." />
         <meta name="keywords" content="The National 2025, National Sports Collectors Convention, sports cards, trading cards, card shows, Topps, Panini, Bowman, Upper Deck, card collecting, sports card news, card releases" />
         <meta name="author" content="ManCave Sports Cards LLC" />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="article" />
-        <meta property="og:title" content="The National 2025: Why Every Collector Should Be Watching" />
+        <meta property="og:title" content="Scorecard - News & Releases" />
         <meta property="og:description" content="Complete guide to the 45th National Sports Collectors Convention - July 30 to August 3, 2025. Tips for attendees, investment insights, and what makes this the Super Bowl of collecting." />
         <meta property="og:url" content="https://web-production-9efa.up.railway.app/news" />
-        <meta property="og:site_name" content="Trading Card Tracker" />
+        <meta property="og:site_name" content="Scorecard" />
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="The National 2025: Why Every Collector Should Be Watching" />
+        <meta name="twitter:title" content="Scorecard - News & Releases" />
         <meta name="twitter:description" content="Complete guide to the 45th National Sports Collectors Convention - July 30 to August 3, 2025. Tips for attendees, investment insights, and what makes this the Super Bowl of collecting." />
         
         {/* Article specific meta tags */}
@@ -1062,7 +1062,7 @@ const NewsPage = () => {
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Article",
-            "headline": "The National 2025: Why Every Collector Should Be Watching",
+            "headline": "Scorecard - News & Releases",
             "description": "Complete guide to the 45th National Sports Collectors Convention - July 30 to August 3, 2025. Tips for attendees, investment insights, and what makes this the Super Bowl of collecting.",
             "image": "https://web-production-9efa.up.railway.app/ManCave.jpg",
             "author": {
@@ -1071,7 +1071,7 @@ const NewsPage = () => {
             },
             "publisher": {
               "@type": "Organization",
-              "name": "Trading Card Tracker",
+              "name": "Scorecard",
               "logo": {
                 "@type": "ImageObject",
                 "url": "https://web-production-9efa.up.railway.app/ManCave.jpg"

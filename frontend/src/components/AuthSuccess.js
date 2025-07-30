@@ -23,6 +23,7 @@ const AuthSuccess = ({ onAuthSuccess }) => {
   return (
     <div className="auth-success-page">
       <Helmet>
+        <title>Scorecard - Authentication</title>
         <meta name="robots" content="noindex" />
         <link rel="canonical" href="https://www.mancavesportscardsllc.com/" />
       </Helmet>

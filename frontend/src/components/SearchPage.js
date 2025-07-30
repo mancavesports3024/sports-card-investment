@@ -795,7 +795,7 @@ const SearchPage = () => {
   return (
     <>
       <Helmet>
-        <title>Search - Scorecard</title>
+        <title>Scorecard - Search Cards</title>
         <meta name="description" content="Search for sports card prices, market data, and investment insights." />
         <link rel="canonical" href="https://www.mancavesportscardsllc.com/search" />
       </Helmet>
