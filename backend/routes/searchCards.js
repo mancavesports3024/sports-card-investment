@@ -1301,7 +1301,7 @@ router.post('/', async (req, res) => {
 
     // Categorize and sort the results
     const categorized = categorizeCards(allCards);
-    const sorted = sortByValue(categorized);
+    const sorted = sortByDate(categorized); // Sort by date for search page
 
     // Add EPN tracking to all eBay URLs in the results
     const addTrackingToCards = (cards) => {
