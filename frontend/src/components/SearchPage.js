@@ -985,8 +985,9 @@ const SearchPage = () => {
                     date: new Date(card.soldDate).toLocaleDateString('en-US'),
                     PSA10: card.price?.value || 0
                   }));
-                  // Merge by date
-                  const allDates = Array.from(new Set([...raw, ...psa9, ...psa10].map(d => d.date))).sort();
+                  // Merge by date - sort by actual date, not string
+                  const allDateObjects = Array.from(new Set([...raw, ...psa9, ...psa10].map(d => new Date(d.date)))).sort((a, b) => a - b);
+                  const allDates = allDateObjects.map(date => date.toLocaleDateString('en-US'));
                   const salesData = allDates.map(date => ({
                     date,
                     Raw: raw.find(d => d.date === date)?.Raw || null,
