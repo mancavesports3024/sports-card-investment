@@ -46,23 +46,7 @@ const HomePage = () => {
             <FeaturedEbayRotator />
           </div>
 
-          {/* Hero Section */}
-          <section className="hero-section">
-            <div className="hero-content">
-              <h1 className="hero-title">
-                Track <span className="highlight">Sports Card</span> Values Like a Pro
-              </h1>
-              <p className="hero-subtitle">
-                Get real-time pricing data, market trends, and auction insights for your sports card collection. 
-                Make informed buying and selling decisions with our comprehensive analytics platform.
-              </p>
-              <div className="hero-cta">
-                <a href="/search" className="cta-button large">Search Cards</a>
-                <a href="/card-set-analysis" className="cta-button" style={{ marginLeft: '1rem' }}>Card Set Analysis</a>
-                <p className="cta-note">Free to use • No registration required</p>
-              </div>
-            </div>
-          </section>
+
 
           {/* Header Ad */}
           <HeaderAd />
