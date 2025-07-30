@@ -167,6 +167,8 @@ const SearchPage = () => {
     }
     if (!combinedQuery) return;
 
+    console.log('🔍 Starting search with query:', combinedQuery);
+
     // Google Analytics 4 site search event
     if (window.gtag) {
       window.gtag('event', 'search', {
@@ -180,6 +182,7 @@ const SearchPage = () => {
     setLastSearchQuery(combinedQuery); // Store the latest search query
 
     try {
+      console.log('📡 Making API request to:', config.getSearchCardsUrl());
       const response = await fetch(config.getSearchCardsUrl(), {
         method: 'POST',
         headers: {
@@ -191,11 +194,22 @@ const SearchPage = () => {
         })
       });
 
+      console.log('📡 API Response status:', response.status);
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('📊 Search results received:', data);
+      console.log('📊 Results structure:', {
+        hasResults: !!data.results,
+        rawCount: data.results?.raw?.length || 0,
+        psa9Count: data.results?.psa9?.length || 0,
+        psa10Count: data.results?.psa10?.length || 0,
+        totalSources: data.sources?.total || 0
+      });
+      
       setResults(data);
 
       // Only save if logged in, not a duplicate, and at least one card is found
@@ -385,7 +399,13 @@ const SearchPage = () => {
 
   // Pass liveListingsReloadKey to renderCardSection to force re-render if needed (no hook inside)
   const renderCardSection = (title, cards, icon) => {
-    if (!cards || cards.length === 0) return null;
+    if (!cards || cards.length === 0) {
+      console.log(`🚫 No cards for section: ${title}`);
+      return null;
+    }
+    
+    console.log(`📋 Rendering section: ${title} with ${cards.length} cards`);
+    
     // Section key for live listings state
     const sectionKey = title.replace(/\s+\(.+\)/, '').replace(/\s/g, '').toLowerCase();
     // Grade for live listings
@@ -410,11 +430,14 @@ const SearchPage = () => {
     let displayCards = cards;
     if (title.toLowerCase().includes('raw')) {
       displayCards = filterRawCards(cards);
+      console.log(`🔍 Raw cards filtered: ${cards.length} → ${displayCards.length}`);
     }
 
     // Pagination logic
     const isExpanded = expandedSections[sectionKey];
     const visibleCards = isExpanded ? displayCards : displayCards.slice(0, 25);
+    
+    console.log(`👁️ Visible cards for ${title}: ${visibleCards.length} (expanded: ${isExpanded})`);
 
     return (
       <div className="card-section" ref={sectionRef}>
@@ -526,7 +549,13 @@ const SearchPage = () => {
           {visibleCards.map((card, index) => {
             // Skip cards with invalid price
             const priceValue = Number(card.price?.value);
-            if (isNaN(priceValue) || priceValue <= 0) return null;
+            if (isNaN(priceValue) || priceValue <= 0) {
+              console.log(`❌ Card filtered out due to invalid price: "${card.title}" - Price: ${card.price?.value}`);
+              return null;
+            }
+            
+            console.log(`✅ Rendering card: "${card.title}" - Price: $${priceValue}`);
+            
             return (
               <div key={`${card.id || index}-${card.title}`} className="card-item" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.7rem', minWidth: 170, maxWidth: 210, fontSize: '0.97em', marginBottom: 0 }}>
                 <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
