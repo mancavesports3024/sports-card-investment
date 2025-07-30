@@ -153,9 +153,7 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-        <p style={{marginTop: '2rem', color: '#666'}}>
-          © 224recard. All rights reserved.
-        </p>
+        
       </footer>
     </div>
   );
