@@ -28,7 +28,7 @@ class ReleaseInfoService {
   }
 
   getComprehensiveReleases() {
-    return [
+    const releases = [
       {
         title: '2025 Onyx RIPS Collection Baseball',
         brand: 'Onyx',
@@ -36,7 +36,6 @@ class ReleaseInfoService {
         releaseDate: '2025-07-29',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Onyx RIPS Collection featuring baseball cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -49,7 +48,6 @@ class ReleaseInfoService {
         releaseDate: '2025-07-30',
         year: '2024',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Pulse Lumin baseball card collection',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -61,7 +59,6 @@ class ReleaseInfoService {
         releaseDate: '2025-07-30',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Autographed baseball 8x10 photo collection',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -73,7 +70,6 @@ class ReleaseInfoService {
         releaseDate: '2025-07-30',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: '40th Anniversary Garbage Pail Kids collection',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -85,7 +81,6 @@ class ReleaseInfoService {
         releaseDate: '2025-07-30',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Upper Deck MVP hockey card series',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -97,7 +92,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-01',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Leaf Metal baseball cards in hobby and jumbo formats',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -109,7 +103,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-01',
         year: '2024',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini Mosaic basketball Fast Break edition',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -121,7 +114,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-01',
         year: '2024',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Topps Chrome Manchester United deluxe edition',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -133,7 +125,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-01',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Pokemon Scarlet & Violet Victini illustration cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -145,7 +136,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-04',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Signature edition football cards from Pro Athletes Direct',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -157,7 +147,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-06',
         year: '2024',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini Noir premium soccer card collection',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -169,7 +158,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-06',
         year: '2024',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini National Treasures premium football cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -181,7 +169,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-06',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Topps Archives signature series with active players',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -193,7 +180,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-06',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Topps Chrome baseball mega edition',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -205,7 +191,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-06',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Complete Topps baseball factory set',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -217,7 +202,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-06',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Upper Deck AEW wrestling cards in Metal Universe style',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -229,7 +213,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-06',
         year: '2024',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Upper Deck Professional Women\'s Hockey League cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -241,7 +224,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-08',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Leaf Glory of the Game football collection',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -253,7 +235,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-08',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Leaf National Lacrosse League premier edition',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -265,7 +246,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-08',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini Boys of Summer baseball collection',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -277,7 +257,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-08',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Topps UFC Midnight edition cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -289,7 +268,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-12',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Topps Finest premium baseball cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -301,7 +279,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-13',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini Prizm baseball card collection',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -313,7 +290,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-13',
         year: '2024',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Upper Deck SP Authentic hockey cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -325,7 +301,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-14',
         year: '2024',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Topps Finest basketball cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -337,7 +312,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-14',
         year: '2024',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Topps Finest basketball Breaker\'s Delight edition',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -349,7 +323,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-15',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Leaf Eclectic PBA bowling cards in hobby and jumbo formats',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -361,7 +334,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-15',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Leaf Major League Table Tennis premier edition',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -373,7 +345,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-15',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini Donruss football card collection',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -385,7 +356,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-15',
         year: '2024',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini National Treasures premium basketball cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -397,7 +367,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-15',
         year: '2024',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Topps Chrome NBL basketball cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -409,7 +378,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-20',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Foundation TV series trading cards from Rittenhouse',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -421,7 +389,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-20',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini Prizm collegiate draft football cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -433,7 +400,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-20',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini Prizm LIV Golf card collection',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -445,7 +411,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-20',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'The Boys TV series trading cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -457,7 +422,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-20',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Tristar Hidden Treasures football autographed helmet collection',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -469,7 +433,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-21',
         year: '2024',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini Immaculate premium football cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -481,20 +444,7 @@ class ReleaseInfoService {
         releaseDate: '2025-08-22',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Leaf Optichrome football cards in hobby and jumbo formats',
-        retailPrice: 'TBD',
-        hobbyPrice: 'TBD'
-      },
-      {
-        title: 'Pokemon 2025 Holiday Calendar',
-        brand: 'Pokemon',
-        sport: 'Gaming',
-        releaseDate: '2025-08-22',
-        year: '2025',
-        source: 'Comprehensive Release Data',
-        status: 'Upcoming',
-        description: 'Pokemon 2025 holiday calendar collection',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
       },
@@ -505,7 +455,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-22',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Pokemon Scarlet & Violet Black Bolt booster bundle',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -517,7 +466,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-22',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Pokemon Scarlet & Violet White Flare booster bundle',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -529,7 +477,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-27',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini Origins football card collection',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -541,7 +488,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-27',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini Prizm FIFA Club World Cup soccer cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -553,7 +499,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-27',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini Select racing card collection',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -565,7 +510,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-27',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Tristar Hidden Treasures football autographed photos',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -577,7 +521,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-27',
         year: '2024',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Upper Deck Clear Cut hockey cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -589,7 +532,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-27',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'James Bond 007 No Time To Die trading cards from Upper Deck',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -601,7 +543,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-28',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Pieces of the Past 1776 Freedom Fighters veterans edition',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -613,7 +554,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-29',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Skybox Metal Universe Batman trading cards from Upper Deck',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -625,7 +565,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-29',
         year: '2024',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini Donruss Optic Choice basketball cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -637,7 +576,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-29',
         year: '2025',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini Impeccable premium baseball cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -649,7 +587,6 @@ class ReleaseInfoService {
         releaseDate: '2025-08-29',
         year: '2024',
         source: 'Comprehensive Release Data',
-        status: 'Upcoming',
         description: 'Panini Silhouette premium basketball cards',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -661,7 +598,6 @@ class ReleaseInfoService {
         releaseDate: '2026-01-15',
         year: '2026',
         source: 'Comprehensive Release Data',
-        status: 'Announced',
         description: 'The flagship 2026 baseball card set featuring current MLB players and rookies',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -673,7 +609,6 @@ class ReleaseInfoService {
         releaseDate: '2026-02-05',
         year: '2026',
         source: 'Comprehensive Release Data',
-        status: 'Announced',
         description: 'Chrome prospect cards featuring future MLB stars',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -685,7 +620,6 @@ class ReleaseInfoService {
         releaseDate: '2026-01-22',
         year: '2026',
         source: 'Comprehensive Release Data',
-        status: 'Announced',
         description: 'Premium basketball cards with stunning Prizm technology',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -697,7 +631,6 @@ class ReleaseInfoService {
         releaseDate: '2026-02-12',
         year: '2026',
         source: 'Comprehensive Release Data',
-        status: 'Announced',
         description: 'Premier rookie cards for NHL prospects',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -709,7 +642,6 @@ class ReleaseInfoService {
         releaseDate: '2026-03-01',
         year: '2026',
         source: 'Comprehensive Release Data',
-        status: 'Announced',
         description: 'Chrome version of the flagship baseball set',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -721,7 +653,6 @@ class ReleaseInfoService {
         releaseDate: '2026-03-15',
         year: '2026',
         source: 'Comprehensive Release Data',
-        status: 'Announced',
         description: 'Select basketball cards with unique design',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -733,7 +664,6 @@ class ReleaseInfoService {
         releaseDate: '2026-04-02',
         year: '2026',
         source: 'Comprehensive Release Data',
-        status: 'Announced',
         description: 'Retro-style cards inspired by classic Topps designs',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -745,7 +675,6 @@ class ReleaseInfoService {
         releaseDate: '2026-05-07',
         year: '2026',
         source: 'Comprehensive Release Data',
-        status: 'Announced',
         description: 'Paper prospect cards featuring future stars',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -757,7 +686,6 @@ class ReleaseInfoService {
         releaseDate: '2026-06-11',
         year: '2026',
         source: 'Comprehensive Release Data',
-        status: 'Announced',
         description: 'Second series of the flagship baseball set',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
@@ -769,12 +697,17 @@ class ReleaseInfoService {
         releaseDate: '2026-07-08',
         year: '2026',
         source: 'Comprehensive Release Data',
-        status: 'Announced',
         description: 'Classic Donruss football cards with modern design',
         retailPrice: 'TBD',
         hobbyPrice: 'TBD'
       }
     ];
+
+    // Add dynamically determined status to each release
+    return releases.map(release => ({
+      ...release,
+      status: this.determineStatus(release.releaseDate)
+    }));
   }
 
   determineStatus(releaseDate) {
