@@ -57,53 +57,67 @@ const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items'
     }, interval);
   };
 
-  // Show loading state or return null if no items
+  // Always render a container with fixed dimensions to prevent layout shifts
+  const containerStyle = {
+    background: '#fff',
+    borderRadius: 10,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+    padding: '1.2em',
+    margin: '1.5em 0',
+    textAlign: 'center',
+    maxWidth: 350,
+    width: 350,
+    height: 480, // Fixed height to prevent jumping
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    position: 'relative',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    overflow: 'hidden' // Prevent content overflow
+  };
+
+  // Show loading state
   if (isLoading) {
     return (
-      <div className="featured-ebay-listing" style={{
-        background: '#fff',
-        borderRadius: 10,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-        padding: '1.2em',
-        margin: '1.5em 0',
-        textAlign: 'center',
-        maxWidth: 350,
-        width: 350,
-        height: 480, // Fixed height to prevent jumping
-        marginLeft: 'auto',
-        marginRight: 'auto',
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}>
-        <div style={{ color: '#666', fontSize: '1rem' }}>Loading featured items...</div>
+      <div className="featured-ebay-listing" style={containerStyle}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          height: '100%',
+          color: '#666', 
+          fontSize: '1rem' 
+        }}>
+          Loading featured items...
+        </div>
       </div>
     );
   }
 
-  if (!items.length) return null;
+  // Show empty state if no items
+  if (!items.length) {
+    return (
+      <div className="featured-ebay-listing" style={containerStyle}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          height: '100%',
+          color: '#666', 
+          fontSize: '1rem' 
+        }}>
+          No featured items available
+        </div>
+      </div>
+    );
+  }
   const item = items[current];
 
   return (
-    <div className="featured-ebay-listing" style={{
-      background: '#fff',
-      borderRadius: 10,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-      padding: '1.2em',
-      margin: '1.5em 0',
-      textAlign: 'center',
-      maxWidth: 350,
-      width: 350,
-      height: 480, // Fixed height to prevent jumping
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      position: 'relative',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between'
-    }}>
+    <div className="featured-ebay-listing" style={containerStyle}>
       {/* Content wrapper for proper spacing */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start' }}>
         {/* Fixed-size image container with CSS Grid centering */}

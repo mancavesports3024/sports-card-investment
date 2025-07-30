@@ -3581,3 +3581,33 @@
 .page-content {
   width: 100%;
 }
+
+/* Prevent layout shifts from dynamic content */
+.welcome-section {
+  min-height: 200px; /* Ensure minimum height for welcome sections */
+}
+
+.featured-ebay-listing {
+  min-height: 480px; /* Match the fixed height in the component */
+}
+
+/* Ensure stable layout for main content areas */
+.App-main {
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* Prevent layout shifts from ads */
+.header-ad,
+.in-content-ad,
+.footer-ad,
+.search-results-ad {
+  min-height: 90px; /* Match the fixed height in AdSense components */
+}
+
+.sidebar-ad {
+  min-height: 250px; /* Match the fixed height in AdSense components */
+}
+
+.mobile-ad {
+  min-height: 100px; /* Match the fixed height in AdSense components */
+}
