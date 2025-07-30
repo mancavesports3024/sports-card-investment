@@ -185,6 +185,118 @@ const NewsPage = () => {
     }
   };
 
+  // Calendar helper functions
+  const getDaysInMonth = (month, year) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (month, year) => {
+    return new Date(year, month, 1).getDay();
+  };
+
+  const getReleasesForDate = (day, month, year) => {
+    const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return releases.filter(release => {
+      if (!release.releaseDate) return false;
+      const releaseDate = new Date(release.releaseDate);
+      return releaseDate.getFullYear() === year && 
+             releaseDate.getMonth() === month && 
+             releaseDate.getDate() === day;
+    });
+  };
+
+  const renderCalendarDay = (day, month, year, isCurrentMonth = true) => {
+    const releasesForDay = getReleasesForDate(day, month, year);
+    const isToday = new Date().getDate() === day && 
+                   new Date().getMonth() === month && 
+                   new Date().getFullYear() === year;
+    
+    return (
+      <div
+        key={day}
+        style={{
+          minHeight: '120px',
+          padding: '8px',
+          border: '1px solid #374151',
+          backgroundColor: isToday ? '#ffd700' : (isCurrentMonth ? '#1f2937' : '#111827'),
+          color: isToday ? '#000' : (isCurrentMonth ? '#fff' : '#6b7280'),
+          position: 'relative',
+          cursor: releasesForDay.length > 0 ? 'pointer' : 'default',
+          transition: 'all 0.2s ease'
+        }}
+        onClick={() => releasesForDay.length > 0 && console.log(`Releases for ${month + 1}/${day}/${year}:`, releasesForDay)}
+      >
+        <div style={{
+          fontSize: '0.9rem',
+          fontWeight: isToday ? 700 : 500,
+          marginBottom: '4px'
+        }}>
+          {day}
+        </div>
+        
+        {releasesForDay.map((release, index) => (
+          <div
+            key={index}
+            style={{
+              fontSize: '0.7rem',
+              padding: '2px 4px',
+              marginBottom: '2px',
+              borderRadius: '3px',
+              backgroundColor: getStatusColor(release.status),
+              color: '#fff',
+              fontWeight: 600,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              border: '1px solid rgba(255,255,255,0.2)'
+            }}
+            title={`${release.title} - ${release.brand}`}
+          >
+            {release.title.length > 15 ? release.title.substring(0, 15) + '...' : release.title}
+          </div>
+        ))}
+        
+        {releasesForDay.length > 2 && (
+          <div style={{
+            fontSize: '0.6rem',
+            color: isToday ? '#000' : '#9ca3af',
+            textAlign: 'center',
+            marginTop: '2px'
+          }}>
+            +{releasesForDay.length - 2} more
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderCalendar = () => {
+    const daysInMonth = getDaysInMonth(currentMonth, currentYear);
+    const firstDayOfMonth = getFirstDayOfMonth(currentMonth, currentYear);
+    const daysInPrevMonth = getDaysInMonth(currentMonth - 1, currentYear);
+    
+    const calendarDays = [];
+    
+    // Add days from previous month
+    for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+      const day = daysInPrevMonth - i;
+      calendarDays.push(renderCalendarDay(day, currentMonth - 1, currentYear, false));
+    }
+    
+    // Add days from current month
+    for (let day = 1; day <= daysInMonth; day++) {
+      calendarDays.push(renderCalendarDay(day, currentMonth, currentYear, true));
+    }
+    
+    // Add days from next month to fill the grid
+    const remainingDays = 42 - calendarDays.length; // 6 rows * 7 days
+    for (let day = 1; day <= remainingDays; day++) {
+      calendarDays.push(renderCalendarDay(day, currentMonth + 1, currentYear, false));
+    }
+    
+    return calendarDays;
+  };
+
   const renderReleaseCard = (release, index) => (
     <div key={index} style={{
       background: '#fff',
@@ -335,6 +447,7 @@ const NewsPage = () => {
         </div>
       )}
 
+      {/* Calendar Navigation */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <button
@@ -371,38 +484,158 @@ const NewsPage = () => {
         </div>
       </div>
 
-      {!isLoading && !error && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-          {(() => {
-            // Filter releases by the selected year
-            const filteredReleases = releases.filter(release => {
-              if (!release.releaseDate) return false;
-              const releaseYear = new Date(release.releaseDate).getFullYear();
-              return releaseYear === currentYear;
-            });
+      {/* Month Navigation */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <button
+          onClick={() => setCurrentMonth(prev => prev === 0 ? 11 : prev - 1)}
+          style={{
+            background: '#000',
+            color: '#ffd700',
+            border: 'none',
+            padding: '0.5rem 1rem',
+            borderRadius: 6,
+            cursor: 'pointer',
+            fontWeight: 600
+          }}
+        >
+          ← {months[currentMonth === 0 ? 11 : currentMonth - 1]}
+        </button>
+        <h3 style={{ margin: 0, color: '#ffd700', fontSize: '1.5rem', fontWeight: 700 }}>
+          {months[currentMonth]} {currentYear}
+        </h3>
+        <button
+          onClick={() => setCurrentMonth(prev => prev === 11 ? 0 : prev + 1)}
+          style={{
+            background: '#000',
+            color: '#ffd700',
+            border: 'none',
+            padding: '0.5rem 1rem',
+            borderRadius: 6,
+            cursor: 'pointer',
+            fontWeight: 600
+          }}
+        >
+          {months[currentMonth === 11 ? 0 : currentMonth + 1]} →
+        </button>
+      </div>
 
-            if (filteredReleases.length > 0) {
-              return filteredReleases.map((release, index) => renderReleaseCard(release, index));
-            } else {
-              return (
-                <div style={{
-                  background: '#1f2937',
-                  borderRadius: 12,
-                  padding: '2rem',
+      {!isLoading && !error && (
+        <div>
+          {/* Calendar Grid */}
+          <div style={{
+            background: '#1f2937',
+            borderRadius: 12,
+            padding: '1.5rem',
+            border: '2px solid #374151',
+            marginBottom: '2rem'
+          }}>
+            {/* Calendar Header */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(7, 1fr)',
+              gap: '1px',
+              marginBottom: '1px'
+            }}>
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                <div key={day} style={{
+                  padding: '1rem',
                   textAlign: 'center',
-                  border: '2px solid #374151',
-                  gridColumn: '1 / -1'
+                  fontWeight: 700,
+                  color: '#ffd700',
+                  fontSize: '1rem',
+                  backgroundColor: '#374151',
+                  border: '1px solid #4b5563'
                 }}>
-                  <div style={{ color: '#ffd700', fontSize: '1.2rem', marginBottom: '1rem' }}>
-                    📭 No releases found for {currentYear}
-                  </div>
-                  <div style={{ color: '#d1d5db' }}>
-                    No release information is currently available for {currentYear}. Try selecting a different year.
-                  </div>
+                  {day}
                 </div>
-              );
-            }
-          })()}
+              ))}
+            </div>
+            
+            {/* Calendar Days */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(7, 1fr)',
+              gap: '1px'
+            }}>
+              {renderCalendar()}
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div style={{
+            background: '#1f2937',
+            borderRadius: 8,
+            padding: '1rem',
+            border: '2px solid #374151',
+            marginBottom: '2rem'
+          }}>
+            <h4 style={{ color: '#ffd700', margin: '0 0 1rem 0', fontSize: '1rem' }}>Legend</h4>
+            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{
+                  width: '12px',
+                  height: '12px',
+                  backgroundColor: '#28a745',
+                  borderRadius: '2px'
+                }}></div>
+                <span style={{ color: '#fff', fontSize: '0.9rem' }}>Released</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{
+                  width: '12px',
+                  height: '12px',
+                  backgroundColor: '#ffc107',
+                  borderRadius: '2px'
+                }}></div>
+                <span style={{ color: '#fff', fontSize: '0.9rem' }}>Upcoming</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{
+                  width: '12px',
+                  height: '12px',
+                  backgroundColor: '#ffd700',
+                  borderRadius: '2px'
+                }}></div>
+                <span style={{ color: '#fff', fontSize: '0.9rem' }}>Today</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Monthly Release List */}
+          <div style={{ marginTop: '2rem' }}>
+            <h3 style={{ color: '#ffd700', marginBottom: '1rem', fontSize: '1.3rem' }}>
+              {months[currentMonth]} {currentYear} Releases
+            </h3>
+            {(() => {
+              const monthlyReleases = releases.filter(release => {
+                if (!release.releaseDate) return false;
+                const releaseDate = new Date(release.releaseDate);
+                return releaseDate.getFullYear() === currentYear && 
+                       releaseDate.getMonth() === currentMonth;
+              });
+
+              if (monthlyReleases.length > 0) {
+                return monthlyReleases.map((release, index) => renderReleaseCard(release, index));
+              } else {
+                return (
+                  <div style={{
+                    background: '#1f2937',
+                    borderRadius: 12,
+                    padding: '2rem',
+                    textAlign: 'center',
+                    border: '2px solid #374151'
+                  }}>
+                    <div style={{ color: '#ffd700', fontSize: '1.2rem', marginBottom: '1rem' }}>
+                      📭 No releases found for {months[currentMonth]} {currentYear}
+                    </div>
+                    <div style={{ color: '#d1d5db' }}>
+                      No release information is currently available for this month. Try selecting a different month.
+                    </div>
+                  </div>
+                );
+              }
+            })()}
+          </div>
         </div>
       )}
     </div>
