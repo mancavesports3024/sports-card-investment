@@ -1,0 +1,5 @@
+[33m1dd6931[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Fix inconsistent spacing between header and page titles across all pages
+[33m0cb4c36[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Create standard PageLayout component for consistent page structure across all pages
+[33ma8bb872[m Reduce spacing between header and Home title
+[33mfe4b6c7[m Fix layout issues: move eBay items back into welcome box, reduce top spacing, and make search form narrower
+[33m72a48df[m Fix welcome section width: make welcome sections narrower with max-width 600px and center them

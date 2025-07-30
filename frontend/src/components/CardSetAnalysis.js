@@ -324,44 +324,42 @@ const CardSetAnalysis = () => {
         <div className="welcome-section" style={{
           background: 'linear-gradient(135deg, #000 0%, #333 100%)',
           color: '#ffd700',
-          padding: '2rem',
+          padding: '1rem',
           borderRadius: 12,
           marginBottom: '2rem',
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          border: '2px solid #ffd700'
+          border: '2px solid #ffd700',
+          maxWidth: '600px',
+          margin: '0 auto 2rem auto'
         }}>
           <h2 style={{ 
-            margin: '0 0 1rem 0', 
-            fontSize: '1.8rem', 
+            margin: '0 0 0.5rem 0', 
+            fontSize: '1.4rem', 
             fontWeight: 700,
             textAlign: 'center'
           }}>
             Welcome to ManCave Sports Cards LLC!
           </h2>
           <p style={{ 
-            fontSize: '1.1rem', 
-            lineHeight: '1.6', 
-            marginBottom: '1.5rem',
+            fontSize: '0.95rem', 
+            lineHeight: '1.4', 
+            marginBottom: '1rem',
             textAlign: 'center',
             color: '#fff'
           }}>
-            Your destination for all things trading cards—specializing in sports cards and Pokémon! We offer a diverse range of high-quality cards for collectors of all levels.
+            Your destination for all things trading cards—specializing in sports cards and Pokémon!
           </p>
           <h3 style={{ 
-          margin: '0 0 1rem 0', 
-          fontSize: '1.3rem', 
-          fontWeight: 600,
-          textAlign: 'center',
-          color: '#ffd700'
-        }}>
-          Featured Items from Our eBay Store
-        </h3>
-        
-        {/* Featured eBay Items Rotator */}
-        <div style={{ marginTop: '1.5rem' }}>
+            margin: '0 0 0.75rem 0', 
+            fontSize: '1.2rem', 
+            fontWeight: 600,
+            textAlign: 'center',
+            color: '#ffd700'
+          }}>
+            Featured Items from Our eBay Store
+          </h3>
           <FeaturedEbayRotator />
         </div>
-      </div>
 
       {/* Search Tips */}
       <div style={{
