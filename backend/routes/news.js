@@ -7,7 +7,8 @@ router.get('/releases', async (req, res) => {
   try {
     console.log('📰 Release information request received');
     
-    const releases = await releaseInfoService.getAllReleases();
+    // Force refresh to ensure we get the latest data including new releases
+    const releases = await releaseInfoService.refreshReleaseData();
     
     res.json({
       success: true,
@@ -59,11 +60,8 @@ router.get('/releases/refresh', async (req, res) => {
   try {
     console.log('🔄 Force refresh of release data requested');
     
-    // Clear cache and fetch fresh data
-    const cacheService = require('../services/cacheService');
-    await cacheService.delete('blowout_forums_releases');
-    
-    const releases = await releaseInfoService.getAllReleases();
+    // Use the new refresh method that clears the correct cache
+    const releases = await releaseInfoService.refreshReleaseData();
     
     res.json({
       success: true,

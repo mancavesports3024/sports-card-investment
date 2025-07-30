@@ -27,6 +27,18 @@ class ReleaseInfoService {
     return releases;
   }
 
+  async clearCache() {
+    const cacheKey = 'release_data';
+    await cacheService.delete(cacheKey);
+    console.log('🗑️ Cleared release data cache');
+  }
+
+  async refreshReleaseData() {
+    console.log('🔄 Forcing refresh of release data...');
+    await this.clearCache();
+    return await this.getReleaseData();
+  }
+
   getComprehensiveReleases() {
     const releases = [
       {
