@@ -45,7 +45,7 @@ class EbayApiService {
             console.log('🔄 Refreshing eBay access token...');
             
             const response = await axios.post('https://api.ebay.com/identity/v1/oauth2/token', 
-                `grant_type=refresh_token&refresh_token=${this.config.refreshToken}&scope=https://api.ebay.com/oauth/api_scope https://api.ebay.com/oauth/api_scope/sell.inventory https://api.ebay.com/oauth/api_scope/sell.marketing https://api.ebay.com/oauth/api_scope/sell.account https://api.ebay.com/oauth/api_scope/sell.fulfillment https://api.ebay.com/oauth/api_scope/sell.analytics https://api.ebay.com/oauth/api_scope/sell.marketplace.insights https://api.ebay.com/oauth/api_scope/sell.inventory.readonly https://api.ebay.com/oauth/api_scope/sell.marketing.readonly https://api.ebay.com/oauth/api_scope/sell.account.readonly https://api.ebay.com/oauth/api_scope/sell.fulfillment.readonly https://api.ebay.com/oauth/api_scope/sell.analytics.readonly https://api.ebay.com/oauth/api_scope/sell.marketplace.insights.readonly`,
+                `grant_type=refresh_token&refresh_token=${this.config.refreshToken}&scope=https://api.ebay.com/oauth/api_scope`,
                 {
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
