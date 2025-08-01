@@ -71,16 +71,16 @@ class EbayApiService {
             
             const accessToken = await this.getAccessToken();
             
-            // Use eBay Browse API to get item details
-            // Try different marketplaces if US fails
+            // First, try to find the item via search if direct lookup fails
             let response;
             let lastError;
             
+            // Try direct lookup first
             const marketplaces = ['EBAY-US', 'EBAY-GB', 'EBAY-CA', 'EBAY-AU'];
             
             for (const marketplace of marketplaces) {
                 try {
-                    console.log(`🔍 Trying marketplace: ${marketplace}`);
+                    console.log(`🔍 Trying direct lookup in ${marketplace} marketplace`);
                     response = await axios.get(`https://api.ebay.com/buy/browse/v1/item/${itemId}`, {
                         headers: {
                             'Authorization': `Bearer ${accessToken}`,
@@ -88,17 +88,62 @@ class EbayApiService {
                             'X-EBAY-C-ENDUSERCTX': 'contextualLocation=country=US,zip=10001'
                         }
                     });
-                    console.log(`✅ Found item in ${marketplace} marketplace`);
+                    console.log(`✅ Found item via direct lookup in ${marketplace} marketplace`);
                     break;
                 } catch (error) {
                     lastError = error;
-                    console.log(`❌ Not found in ${marketplace}: ${error.response?.status}`);
+                    console.log(`❌ Direct lookup failed in ${marketplace}: ${error.response?.status}`);
                     continue;
                 }
             }
             
+            // If direct lookup fails, try search
             if (!response) {
-                throw lastError;
+                console.log(`🔍 Direct lookup failed, trying search for item ID: ${itemId}`);
+                try {
+                    // Search for items that might match our target
+                    const searchResponse = await axios.get('https://api.ebay.com/buy/browse/v1/item_summary/search', {
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`,
+                            'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+                            'Accept': 'application/json'
+                        },
+                        params: {
+                            q: 'charizard 199/165',
+                            limit: 50
+                        }
+                    });
+                    
+                    // Look for our item ID in search results
+                    const searchResults = searchResponse.data.itemSummaries || [];
+                    const targetItem = searchResults.find(item => 
+                        item.itemId === itemId || 
+                        item.legacyItemId === itemId ||
+                        item.itemId.includes(itemId) ||
+                        item.legacyItemId === itemId
+                    );
+                    
+                    if (targetItem) {
+                        console.log(`✅ Found item via search: ${targetItem.itemId}`);
+                        // Get full item details using the found item ID
+                        response = await axios.get(`https://api.ebay.com/buy/browse/v1/item/${targetItem.itemId}`, {
+                            headers: {
+                                'Authorization': `Bearer ${accessToken}`,
+                                'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+                                'X-EBAY-C-ENDUSERCTX': 'contextualLocation=country=US,zip=10001'
+                            }
+                        });
+                    } else {
+                        console.log(`❌ Item not found in search results. Available IDs:`, 
+                            searchResults.slice(0, 3).map(item => `${item.itemId} (legacy: ${item.legacyItemId})`));
+                    }
+                } catch (searchError) {
+                    console.log(`❌ Search also failed:`, searchError.response?.status);
+                }
+            }
+            
+            if (!response) {
+                throw lastError || new Error('Item not found via direct lookup or search');
             }
 
             const item = response.data;
