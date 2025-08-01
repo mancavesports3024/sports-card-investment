@@ -95,32 +95,147 @@ class EbayBiddingService {
                     return element ? element.getAttribute(attribute) : null;
                 };
 
-                // Get current price
-                const priceElement = document.querySelector('[data-testid="x-price-primary"] span') || 
-                                   document.querySelector('.x-price-primary span') ||
-                                   document.querySelector('[data-testid="price"]');
+                // Get current price - try multiple selectors
+                const priceSelectors = [
+                    '[data-testid="x-price-primary"] span',
+                    '.x-price-primary span',
+                    '[data-testid="price"]',
+                    '.x-price-primary',
+                    '[data-testid="x-price"]',
+                    '.x-price',
+                    '.vi-price',
+                    '.vi-bin-price',
+                    '.vi-price-current'
+                ];
                 
-                const currentPrice = priceElement ? priceElement.textContent.trim() : null;
+                let currentPrice = null;
+                for (const selector of priceSelectors) {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        currentPrice = element.textContent.trim();
+                        break;
+                    }
+                }
 
-                // Get time remaining
-                const timeElement = document.querySelector('[data-testid="x-time-left"]') ||
-                                  document.querySelector('.x-time-left') ||
-                                  document.querySelector('[data-testid="time-left"]');
+                // Get time remaining - try multiple selectors and patterns
+                const timeSelectors = [
+                    '[data-testid="x-time-left"]',
+                    '.x-time-left',
+                    '[data-testid="time-left"]',
+                    '.x-time-left span',
+                    '.vi-time-left',
+                    '.vi-time-left span',
+                    '[data-testid="time-remaining"]',
+                    '.time-remaining',
+                    '.vi-countdown',
+                    '.vi-countdown span',
+                    '.vi-time-left-primary',
+                    '.vi-time-left-primary span'
+                ];
                 
-                const timeRemaining = timeElement ? timeElement.textContent.trim() : null;
+                let timeRemaining = null;
+                for (const selector of timeSelectors) {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        timeRemaining = element.textContent.trim();
+                        break;
+                    }
+                }
 
-                // Get item title
-                const titleElement = document.querySelector('h1.x-item-title__mainTitle span') ||
-                                   document.querySelector('[data-testid="item-title"]') ||
-                                   document.querySelector('h1');
-                
-                const title = titleElement ? titleElement.textContent.trim() : null;
+                // If still no time found, try looking for any element containing time patterns
+                if (!timeRemaining) {
+                    const timePatterns = ['d ', 'h ', 'm ', 's ', 'day', 'hour', 'minute', 'second'];
+                    const allElements = document.querySelectorAll('*');
+                    
+                    for (const element of allElements) {
+                        const text = element.textContent.trim();
+                        if (text && timePatterns.some(pattern => text.toLowerCase().includes(pattern))) {
+                            // Check if it looks like a time remaining string
+                            if (text.match(/\d+/) && (text.includes('left') || text.includes('remaining') || text.includes('ending'))) {
+                                timeRemaining = text;
+                                break;
+                            }
+                        }
+                    }
+                }
 
-                // Get current bid count
-                const bidElement = document.querySelector('[data-testid="bid-count"]') ||
-                                 document.querySelector('.bid-count');
+                // Check if this is a Buy It Now item (no auction time)
+                if (!timeRemaining) {
+                    const buyItNowSelectors = [
+                        '[data-testid="buy-it-now"]',
+                        '.vi-bin-price',
+                        '.vi-bin-price span',
+                        '.buy-it-now',
+                        '.vi-bin-price-primary'
+                    ];
+                    
+                    for (const selector of buyItNowSelectors) {
+                        const element = document.querySelector(selector);
+                        if (element) {
+                            timeRemaining = 'Buy It Now';
+                            break;
+                        }
+                    }
+                }
+
+                // Additional fallback: look for any text containing time-related words
+                if (!timeRemaining) {
+                    const timeKeywords = ['ending', 'left', 'remaining', 'auction', 'bid'];
+                    const allTextElements = document.querySelectorAll('span, div, p, h1, h2, h3, h4, h5, h6');
+                    
+                    for (const element of allTextElements) {
+                        const text = element.textContent.trim();
+                        if (text && timeKeywords.some(keyword => text.toLowerCase().includes(keyword))) {
+                            // Check if it contains numbers (likely a time)
+                            if (text.match(/\d+/)) {
+                                timeRemaining = text;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Get item title - try multiple selectors
+                const titleSelectors = [
+                    'h1.x-item-title__mainTitle span',
+                    '[data-testid="item-title"]',
+                    'h1.x-item-title__mainTitle',
+                    '.x-item-title__mainTitle',
+                    '.vi-title',
+                    '.vi-title h1',
+                    'h1.vi-title',
+                    '.item-title',
+                    'h1'
+                ];
                 
-                const bidCount = bidElement ? bidElement.textContent.trim() : null;
+                let title = null;
+                for (const selector of titleSelectors) {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        title = element.textContent.trim();
+                        break;
+                    }
+                }
+
+                // Get current bid count - try multiple selectors
+                const bidSelectors = [
+                    '[data-testid="bid-count"]',
+                    '.bid-count',
+                    '.vi-bid-count',
+                    '.vi-bid-count span',
+                    '[data-testid="bid-count"] span',
+                    '.vi-bid-count-primary',
+                    '.vi-bid-count-primary span'
+                ];
+                
+                let bidCount = null;
+                for (const selector of bidSelectors) {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        bidCount = element.textContent.trim();
+                        break;
+                    }
+                }
 
                 return {
                     title,
@@ -140,6 +255,11 @@ class EbayBiddingService {
                 timeRemaining: auctionInfo.timeRemaining || 'Not found',
                 bidCount: auctionInfo.bidCount || 'Not found'
             });
+
+            // If time remaining is still not found, let's get some debug info
+            if (!auctionInfo.timeRemaining) {
+                console.log(`🔍 Debug: Time remaining not found for item ${itemId}. This might be a Buy It Now item or the selectors need updating.`);
+            }
             
             return auctionInfo;
         } catch (error) {
@@ -160,6 +280,11 @@ class EbayBiddingService {
 
     async parseTimeRemaining(timeString) {
         if (!timeString) return null;
+        
+        // Handle Buy It Now items
+        if (timeString.toLowerCase().includes('buy it now')) {
+            return null; // No time remaining for Buy It Now items
+        }
         
         const timeStringLower = timeString.toLowerCase();
         let totalSeconds = 0;

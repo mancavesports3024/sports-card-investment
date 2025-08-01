@@ -84,6 +84,13 @@ const EbayBiddingTool = () => {
             return;
         }
 
+        // Check if this is a Buy It Now item
+        if (auctionInfo && auctionInfo.timeRemaining && 
+            auctionInfo.timeRemaining.toLowerCase().includes('buy it now')) {
+            setError('Cannot schedule bids on Buy It Now items. This tool is for auction items only.');
+            return;
+        }
+
         setLoading(true);
         setError('');
         setSuccess('');
@@ -158,6 +165,9 @@ const EbayBiddingTool = () => {
 
     const formatTimeRemaining = (timeString) => {
         if (!timeString) return 'Unknown';
+        if (timeString.toLowerCase().includes('buy it now')) {
+            return 'Buy It Now (No Auction)';
+        }
         return timeString;
     };
 
@@ -271,7 +281,9 @@ const EbayBiddingTool = () => {
                     <div className="button-group">
                         <button 
                             onClick={scheduleBid} 
-                            disabled={loading || !itemId || !maxBidAmount}
+                            disabled={loading || !itemId || !maxBidAmount || 
+                                (auctionInfo && auctionInfo.timeRemaining && 
+                                 auctionInfo.timeRemaining.toLowerCase().includes('buy it now'))}
                             className="btn btn-success"
                         >
                             {loading ? 'Scheduling...' : '🚀 Schedule Last-Second Bid'}
