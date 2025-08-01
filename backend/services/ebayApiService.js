@@ -158,18 +158,27 @@ class EbayApiService {
             // Extract auction information
             const auctionInfo = {
                 title: item.title,
-                currentPrice: this.formatPrice(item.price),
+                currentPrice: this.formatPrice(item.currentBidPrice || item.price),
                 timeRemaining: this.getTimeRemaining(item),
                 bidCount: this.getBidCount(item),
                 url: item.itemWebUrl,
                 itemType: item.itemType,
-                listingType: item.listingType,
-                condition: item.condition,
+                listingType: this.determineListingType(item),
+                condition: this.formatCondition(item),
                 seller: item.seller?.username,
-                location: item.itemLocation?.city + ', ' + item.itemLocation?.stateOrProvince,
+                location: this.formatLocation(item.itemLocation),
                 shippingCost: this.formatPrice(item.shippingOptions?.[0]?.shippingCost),
                 returnPolicy: item.returnTerms?.returnMethod,
-                itemId: item.itemId
+                itemId: item.itemId,
+                // Additional fields from API
+                shortDescription: item.shortDescription,
+                categoryPath: item.categoryPath,
+                imageUrl: item.image?.imageUrl,
+                additionalImages: item.additionalImages?.map(img => img.imageUrl) || [],
+                itemCreationDate: item.itemCreationDate,
+                itemEndDate: item.itemEndDate,
+                currentBidPrice: this.formatPrice(item.currentBidPrice),
+                price: this.formatPrice(item.price)
             };
 
             console.log(`📊 eBay API auction info extracted for ${itemId}:`, {
@@ -289,10 +298,75 @@ class EbayApiService {
     }
 
     getBidCount(item) {
-        if (item.listingType === 'AUCTION' && item.bidCount !== undefined) {
+        // Check for bid count in various possible fields
+        if (item.bidCount !== undefined) {
             return item.bidCount.toString();
         }
+        
+        // If we have currentBidPrice but no bidCount, it might be an auction with bids
+        if (item.currentBidPrice && item.currentBidPrice.value) {
+            // This indicates there are bids, but we don't have the exact count
+            return '1+'; // At least 1 bid
+        }
+        
+        // Check if it's an auction by looking at itemEndDate
+        if (item.itemEndDate) {
+            return '0'; // Auction with no bids yet
+        }
+        
         return 'N/A';
+    }
+
+    determineListingType(item) {
+        // If listingType is explicitly provided, use it
+        if (item.listingType) {
+            return item.listingType;
+        }
+        
+        // Determine by presence of itemEndDate (auction) vs fixed price
+        if (item.itemEndDate) {
+            return 'AUCTION';
+        }
+        
+        // Check buying options
+        if (item.buyingOptions && item.buyingOptions.includes('FIXED_PRICE')) {
+            return 'FIXED_PRICE';
+        }
+        
+        // Default to auction if we have an end date
+        return 'AUCTION';
+    }
+
+    formatCondition(item) {
+        // Use condition if available
+        if (item.condition) {
+            return item.condition;
+        }
+        
+        // Check condition descriptors for more detailed info
+        if (item.conditionDescriptors && item.conditionDescriptors.length > 0) {
+            const descriptors = item.conditionDescriptors
+                .map(desc => desc.values?.map(v => v.content).join(', '))
+                .filter(Boolean)
+                .join('; ');
+            
+            if (descriptors) {
+                return descriptors;
+            }
+        }
+        
+        return 'Unknown';
+    }
+
+    formatLocation(location) {
+        if (!location) return 'Unknown';
+        
+        const parts = [];
+        if (location.city) parts.push(location.city);
+        if (location.stateOrProvince) parts.push(location.stateOrProvince);
+        if (location.country) parts.push(location.country);
+        
+        return parts.length > 0 ? parts.join(', ') : 'Unknown';
     }
 
     async parseTimeRemaining(timeString) {
