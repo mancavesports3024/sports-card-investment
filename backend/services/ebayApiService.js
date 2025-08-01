@@ -71,17 +71,24 @@ class EbayApiService {
             
             const accessToken = await this.getAccessToken();
             
+            // Convert item ID to API format if needed
+            let apiItemId = itemId;
+            if (!itemId.includes('|')) {
+                apiItemId = `v1|${itemId}|0`;
+                console.log(`🔄 Converting item ID to API format: ${itemId} → ${apiItemId}`);
+            }
+            
             // First, try to find the item via search if direct lookup fails
             let response;
             let lastError;
             
-            // Try direct lookup first
+            // Try direct lookup first with API format
             const marketplaces = ['EBAY-US', 'EBAY-GB', 'EBAY-CA', 'EBAY-AU'];
             
             for (const marketplace of marketplaces) {
                 try {
-                    console.log(`🔍 Trying direct lookup in ${marketplace} marketplace`);
-                    response = await axios.get(`https://api.ebay.com/buy/browse/v1/item/${itemId}`, {
+                    console.log(`🔍 Trying direct lookup in ${marketplace} marketplace with API format: ${apiItemId}`);
+                    response = await axios.get(`https://api.ebay.com/buy/browse/v1/item/${apiItemId}`, {
                         headers: {
                             'Authorization': `Bearer ${accessToken}`,
                             'X-EBAY-C-MARKETPLACE-ID': marketplace,
