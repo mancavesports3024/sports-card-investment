@@ -40,8 +40,12 @@ class EbayBiddingService {
 
     async initializeBrowser() {
         if (!this.browser) {
+            // Use environment variable to determine headless mode
+            const isProduction = process.env.NODE_ENV === 'production';
+            const headlessMode = isProduction ? 'new' : false;
+            
             this.browser = await puppeteer.launch({
-                headless: false, // Set to true for production
+                headless: headlessMode,
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
@@ -49,8 +53,12 @@ class EbayBiddingService {
                     '--disable-accelerated-2d-canvas',
                     '--no-first-run',
                     '--no-zygote',
-                    '--disable-gpu'
-                ]
+                    '--disable-gpu',
+                    '--disable-web-security',
+                    '--disable-features=VizDisplayCompositor'
+                ],
+                // Use system Chrome in production if available
+                executablePath: isProduction ? process.env.CHROME_BIN || undefined : undefined
             });
         }
         return this.browser;
@@ -64,8 +72,16 @@ class EbayBiddingService {
             // Set user agent to avoid detection
             await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
             
+            // Set viewport for consistent rendering
+            await page.setViewport({ width: 1920, height: 1080 });
+            
             const url = `https://www.ebay.com/itm/${itemId}`;
-            await page.goto(url, { waitUntil: 'networkidle2' });
+            console.log(`🔍 Fetching auction info for item: ${itemId}`);
+            
+            await page.goto(url, { 
+                waitUntil: 'networkidle2',
+                timeout: 30000 // 30 second timeout
+            });
 
             // Extract auction information
             const auctionInfo = await page.evaluate(() => {
@@ -116,10 +132,29 @@ class EbayBiddingService {
             });
 
             await page.close();
+            
+            // Log the extracted information for debugging
+            console.log(`📊 Auction info extracted for ${itemId}:`, {
+                title: auctionInfo.title ? auctionInfo.title.substring(0, 50) + '...' : 'Not found',
+                currentPrice: auctionInfo.currentPrice || 'Not found',
+                timeRemaining: auctionInfo.timeRemaining || 'Not found',
+                bidCount: auctionInfo.bidCount || 'Not found'
+            });
+            
             return auctionInfo;
         } catch (error) {
-            console.error('Error getting auction info:', error);
-            throw error;
+            console.error(`❌ Error getting auction info for item ${itemId}:`, error.message);
+            
+            // Try to close the page if it exists
+            try {
+                if (page && !page.isClosed()) {
+                    await page.close();
+                }
+            } catch (closeError) {
+                console.error('Error closing page:', closeError.message);
+            }
+            
+            throw new Error(`Failed to fetch auction info: ${error.message}`);
         }
     }
 

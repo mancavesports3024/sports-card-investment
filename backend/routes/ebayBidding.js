@@ -6,11 +6,50 @@ const ebayBiddingService = require('../services/ebayBiddingService');
 router.get('/auction/:itemId', async (req, res) => {
     try {
         const { itemId } = req.params;
+        
+        // Validate item ID
+        if (!itemId || itemId.trim() === '') {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Valid item ID is required' 
+            });
+        }
+        
+        console.log(`🔍 API request for auction info: ${itemId}`);
         const auctionInfo = await ebayBiddingService.getAuctionInfo(itemId);
+        
+        // Check if we got meaningful data
+        if (!auctionInfo.title && !auctionInfo.currentPrice) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Auction information not found or item may not exist' 
+            });
+        }
+        
         res.json({ success: true, data: auctionInfo });
     } catch (error) {
-        console.error('Error getting auction info:', error);
-        res.status(500).json({ success: false, error: error.message });
+        console.error(`❌ API Error getting auction info for ${req.params.itemId}:`, error.message);
+        
+        // Provide more specific error messages
+        let statusCode = 500;
+        let errorMessage = error.message;
+        
+        if (error.message.includes('timeout')) {
+            statusCode = 408;
+            errorMessage = 'Request timeout - eBay may be slow to respond';
+        } else if (error.message.includes('net::ERR')) {
+            statusCode = 503;
+            errorMessage = 'Network error - unable to reach eBay';
+        } else if (error.message.includes('Failed to fetch auction info')) {
+            statusCode = 404;
+            errorMessage = 'Auction not found or no longer available';
+        }
+        
+        res.status(statusCode).json({ 
+            success: false, 
+            error: errorMessage,
+            itemId: req.params.itemId
+        });
     }
 });
 
@@ -121,8 +160,28 @@ router.get('/saved-items', async (req, res) => {
 });
 
 // Test endpoint to check if service is working
-router.get('/health', (req, res) => {
-    res.json({ success: true, message: 'eBay Bidding Service is running' });
+router.get('/health', async (req, res) => {
+    try {
+        // Check if browser can be initialized
+        const browser = await ebayBiddingService.initializeBrowser();
+        const isHealthy = browser && !browser.isConnected ? false : true;
+        
+        res.json({ 
+            status: isHealthy ? 'healthy' : 'degraded',
+            service: 'ebay-bidding',
+            timestamp: new Date().toISOString(),
+            environment: process.env.NODE_ENV || 'development',
+            browserStatus: browser ? 'connected' : 'disconnected'
+        });
+    } catch (error) {
+        console.error('Health check failed:', error);
+        res.status(503).json({ 
+            status: 'unhealthy',
+            service: 'ebay-bidding',
+            timestamp: new Date().toISOString(),
+            error: error.message
+        });
+    }
 });
 
 module.exports = router; 

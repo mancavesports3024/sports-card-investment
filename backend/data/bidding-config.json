@@ -1,0 +1,6 @@
+{
+  "maxBidAmount": 100,
+  "bidBuffer": 30,
+  "autoBidEnabled": false,
+  "savedItems": []
+}
