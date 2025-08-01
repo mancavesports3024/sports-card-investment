@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const ebayBiddingService = require('../services/ebayBiddingService');
 
-// Get auction information
+// Get auction information (legacy route)
 router.get('/auction/:itemId', async (req, res) => {
     try {
         const { itemId } = req.params;
@@ -48,6 +48,49 @@ router.get('/auction/:itemId', async (req, res) => {
         res.status(statusCode).json({ 
             success: false, 
             error: errorMessage,
+            itemId: req.params.itemId
+        });
+    }
+});
+
+// Get auction information (new route for frontend)
+router.get('/auction-info/:itemId', async (req, res) => {
+    try {
+        const { itemId } = req.params;
+        
+        // Validate item ID
+        if (!itemId || itemId.trim() === '') {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Valid item ID is required' 
+            });
+        }
+        
+        console.log(`🔍 API request for auction info: ${itemId}`);
+        const auctionInfo = await ebayBiddingService.getAuctionInfo(itemId);
+        
+        // Return the auction info directly (not wrapped in success/data)
+        res.json(auctionInfo);
+    } catch (error) {
+        console.error(`❌ API Error getting auction info for ${req.params.itemId}:`, error.message);
+        
+        // Provide more specific error messages
+        let statusCode = 500;
+        let errorMessage = error.message;
+        
+        if (error.message.includes('timeout')) {
+            statusCode = 408;
+            errorMessage = 'Request timeout - eBay may be slow to respond';
+        } else if (error.message.includes('net::ERR')) {
+            statusCode = 503;
+            errorMessage = 'Network error - unable to reach eBay';
+        } else if (error.message.includes('Failed to fetch auction info')) {
+            statusCode = 404;
+            errorMessage = 'Auction not found or no longer available';
+        }
+        
+        res.status(statusCode).json({ 
+            message: errorMessage,
             itemId: req.params.itemId
         });
     }
