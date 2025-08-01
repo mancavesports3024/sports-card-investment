@@ -12,32 +12,33 @@ Add these to your production environment:
 # Production environment
 NODE_ENV=production
 
-# Browser configuration (optional)
-CHROME_BIN=/usr/bin/google-chrome-stable
+# eBay API Configuration (Required)
+EBAY_CLIENT_ID=your_ebay_client_id_here
+EBAY_CLIENT_SECRET=your_ebay_client_secret_here
+EBAY_REFRESH_TOKEN=your_ebay_refresh_token_here
+
+# Alternative: Manual token (if not using OAuth)
+EBAY_AUTH_TOKEN=your_ebay_auth_token_here
 
 # Server configuration
 PORT=3001
 ```
 
-### 2. Browser Dependencies
-The tool requires Chrome/Chromium to be installed in the production environment.
+### 2. eBay API Setup
+The tool now uses the official eBay API instead of web scraping.
+
+#### eBay Developer Account Setup:
+1. **Create eBay Developer Account**: Go to [eBay Developer Portal](https://developer.ebay.com/)
+2. **Create Application**: Create a new application to get API credentials
+3. **Get Credentials**: Obtain Client ID, Client Secret, and Refresh Token
+4. **Set Permissions**: Ensure your app has the necessary scopes for browsing items
+
+#### Required API Scopes:
+- `https://api.ebay.com/oauth/api_scope`
+- `https://api.ebay.com/oauth/api_scope/buy.browse`
 
 #### For Railway Deployment:
-Railway automatically provides Chrome in the container, but you may need to ensure it's properly configured.
-
-#### For Other Platforms:
-Install Chrome/Chromium:
-```bash
-# Ubuntu/Debian
-sudo apt-get update
-sudo apt-get install -y google-chrome-stable
-
-# CentOS/RHEL
-sudo yum install -y google-chrome-stable
-
-# Alpine Linux
-apk add --no-cache chromium
-```
+Railway will automatically handle the environment variables and API calls.
 
 ### 3. File System Permissions
 Ensure the data directory is writable:
@@ -51,18 +52,19 @@ chmod 755 /app/data
 
 ## Production Optimizations
 
-### 1. Browser Configuration
-The tool automatically detects production environment and:
-- Uses headless mode (`headless: 'new'`)
-- Enables additional security flags
-- Uses system Chrome if available via `CHROME_BIN` environment variable
+### 1. API Configuration
+The tool uses the official eBay API for:
+- Reliable data retrieval without risk of blocking
+- Structured JSON responses
+- Official rate limits and quotas
+- Automatic token refresh
 
 ### 2. Error Handling
 Enhanced error handling includes:
 - Specific HTTP status codes for different error types
 - Detailed logging for debugging
-- Graceful fallbacks for network issues
-- Timeout handling (30 seconds)
+- Graceful fallbacks for API failures
+- Rate limit handling
 
 ### 3. Health Checks
 The tool provides a comprehensive health check endpoint:
@@ -72,7 +74,7 @@ GET /api/ebay-bidding/health
 
 Response includes:
 - Service status (healthy/degraded/unhealthy)
-- Browser connection status
+- API configuration status
 - Environment information
 - Timestamp
 

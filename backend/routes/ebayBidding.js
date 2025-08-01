@@ -162,16 +162,19 @@ router.get('/saved-items', async (req, res) => {
 // Test endpoint to check if service is working
 router.get('/health', async (req, res) => {
     try {
-        // Check if browser can be initialized
-        const browser = await ebayBiddingService.initializeBrowser();
-        const isHealthy = browser && !browser.isConnected ? false : true;
+        // Check if eBay API credentials are configured
+        const hasCredentials = ebayBiddingService.config && 
+            (ebayBiddingService.config.clientId || ebayBiddingService.config.authToken);
+        
+        const isHealthy = hasCredentials;
         
         res.json({ 
             status: isHealthy ? 'healthy' : 'degraded',
             service: 'ebay-bidding',
             timestamp: new Date().toISOString(),
             environment: process.env.NODE_ENV || 'development',
-            browserStatus: browser ? 'connected' : 'disconnected'
+            apiStatus: hasCredentials ? 'configured' : 'not_configured',
+            method: 'ebay_api'
         });
     } catch (error) {
         console.error('Health check failed:', error);
