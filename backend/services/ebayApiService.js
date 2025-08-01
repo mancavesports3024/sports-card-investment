@@ -225,9 +225,33 @@ class EbayApiService {
                 }
                 
                 return this.formatTimeLeft(timeLeft);
+            } else if (item.itemEndDate) {
+                // Handle itemEndDate field from API response
+                const endTime = new Date(item.itemEndDate);
+                const now = new Date();
+                const timeLeft = endTime - now;
+                
+                if (timeLeft <= 0) {
+                    return 'Auction ended';
+                }
+                
+                return this.formatTimeLeft(timeLeft);
             }
         } else if (item.listingType === 'FIXED_PRICE') {
             return 'Buy It Now';
+        }
+        
+        // If we have an itemEndDate but no listingType, assume it's an auction
+        if (item.itemEndDate) {
+            const endTime = new Date(item.itemEndDate);
+            const now = new Date();
+            const timeLeft = endTime - now;
+            
+            if (timeLeft <= 0) {
+                return 'Auction ended';
+            }
+            
+            return this.formatTimeLeft(timeLeft);
         }
         
         return 'Unknown';
