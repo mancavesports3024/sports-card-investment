@@ -72,13 +72,34 @@ class EbayApiService {
             const accessToken = await this.getAccessToken();
             
             // Use eBay Browse API to get item details
-            const response = await axios.get(`https://api.ebay.com/buy/browse/v1/item/${itemId}`, {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
-                    'X-EBAY-C-ENDUSERCTX': 'contextualLocation=country=US,zip=10001'
+            // Try different marketplaces if US fails
+            let response;
+            let lastError;
+            
+            const marketplaces = ['EBAY-US', 'EBAY-GB', 'EBAY-CA', 'EBAY-AU'];
+            
+            for (const marketplace of marketplaces) {
+                try {
+                    console.log(`🔍 Trying marketplace: ${marketplace}`);
+                    response = await axios.get(`https://api.ebay.com/buy/browse/v1/item/${itemId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`,
+                            'X-EBAY-C-MARKETPLACE-ID': marketplace,
+                            'X-EBAY-C-ENDUSERCTX': 'contextualLocation=country=US,zip=10001'
+                        }
+                    });
+                    console.log(`✅ Found item in ${marketplace} marketplace`);
+                    break;
+                } catch (error) {
+                    lastError = error;
+                    console.log(`❌ Not found in ${marketplace}: ${error.response?.status}`);
+                    continue;
                 }
-            });
+            }
+            
+            if (!response) {
+                throw lastError;
+            }
 
             const item = response.data;
             
