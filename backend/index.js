@@ -362,6 +362,7 @@ async function initializeServer() {
   app.use('/api/live-listings', require('./routes/liveListings'));
   app.use('/api/news', require('./routes/news'));
   app.use('/api/ebay-bidding', require('./routes/ebayBidding'));
+  app.use('/api/spreadsheet-manager', require('./routes/spreadsheetManager'));
   
   // Routes
   app.use('/api/auth', require('./routes/auth'));
