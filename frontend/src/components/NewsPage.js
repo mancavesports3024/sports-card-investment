@@ -245,14 +245,19 @@ const NewsPage = () => {
       <div
         key={`${month}-${day}-${year}`}
         style={{
-          minHeight: '120px',
-          padding: '8px',
+          minHeight: '140px', // Increased from 120px for better mobile experience
+          padding: '12px 8px', // Increased padding for better touch targets
           border: '1px solid #374151',
           backgroundColor: isToday ? '#ffd700' : (isCurrentMonth ? '#1f2937' : '#111827'),
           color: isToday ? '#000' : (isCurrentMonth ? '#fff' : '#6b7280'),
           position: 'relative',
           cursor: releasesForDay.length > 0 ? 'pointer' : 'default',
-          transition: 'all 0.2s ease'
+          transition: 'all 0.2s ease',
+          // Mobile-specific improvements
+          fontSize: 'clamp(0.8rem, 2.5vw, 1rem)', // Responsive font size
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-start'
         }}
         onClick={() => {
           if (releasesForDay.length > 0) {
@@ -265,9 +270,10 @@ const NewsPage = () => {
         }}
       >
         <div style={{
-          fontSize: '0.9rem',
+          fontSize: 'clamp(0.9rem, 3vw, 1.1rem)', // Responsive font size
           fontWeight: isToday ? 700 : 500,
-          marginBottom: '4px'
+          marginBottom: '6px',
+          textAlign: 'center'
         }}>
           {day}
         </div>
@@ -276,10 +282,10 @@ const NewsPage = () => {
           <div
             key={`${release.title}-${index}`}
             style={{
-              fontSize: '0.7rem',
-              padding: '2px 4px',
-              marginBottom: '2px',
-              borderRadius: '3px',
+              fontSize: 'clamp(0.6rem, 2vw, 0.8rem)', // Responsive font size
+              padding: '4px 6px', // Increased padding for better touch
+              marginBottom: '3px',
+              borderRadius: '4px',
               backgroundColor: getBrandColor(release.brand),
               color: '#fff',
               fontWeight: 600,
@@ -288,7 +294,13 @@ const NewsPage = () => {
               whiteSpace: 'nowrap',
               border: '1px solid rgba(255,255,255,0.2)',
               cursor: 'pointer',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              // Mobile improvements
+              minHeight: '20px', // Minimum touch target height
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center'
             }}
             title={`${release.title} - ${release.brand} (${release.status})`}
             onClick={(e) => {
@@ -304,16 +316,17 @@ const NewsPage = () => {
               e.target.style.boxShadow = 'none';
             }}
           >
-            {release.title.length > 15 ? release.title.substring(0, 15) + '...' : release.title}
+            {release.title.length > 12 ? release.title.substring(0, 12) + '...' : release.title}
           </div>
         ))}
         
         {releasesForDay.length > 2 && (
           <div style={{
-            fontSize: '0.6rem',
+            fontSize: 'clamp(0.5rem, 1.8vw, 0.7rem)', // Responsive font size
             color: isToday ? '#000' : '#9ca3af',
             textAlign: 'center',
-            marginTop: '2px'
+            marginTop: '4px',
+            fontWeight: 500
           }}>
             +{releasesForDay.length - 2} more
           </div>
@@ -650,23 +663,43 @@ const NewsPage = () => {
       )}
 
       {/* Calendar Navigation */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '1rem', 
+        marginBottom: '2rem',
+        alignItems: 'center'
+      }}>
+        <div style={{ 
+          display: 'flex', 
+          gap: '0.5rem', 
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          justifyContent: 'center'
+        }}>
           <button
             onClick={() => setCurrentYear(prev => prev - 1)}
             style={{
               background: '#000',
               color: '#ffd700',
               border: 'none',
-              padding: '0.5rem 1rem',
-              borderRadius: 6,
+              padding: '0.75rem 1rem',
+              borderRadius: 8,
               cursor: 'pointer',
-              fontWeight: 600
+              fontWeight: 600,
+              fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
+              minWidth: '60px'
             }}
           >
             ← {currentYear - 1}
           </button>
-          <h2 style={{ margin: 0, color: '#ffd700', fontSize: '1.8rem', fontWeight: 700 }}>
+          <h2 style={{ 
+            margin: 0, 
+            color: '#ffd700', 
+            fontSize: 'clamp(1.2rem, 4vw, 1.8rem)', 
+            fontWeight: 700,
+            textAlign: 'center'
+          }}>
             {currentYear} Releases
           </h2>
           <button
@@ -675,10 +708,12 @@ const NewsPage = () => {
               background: '#000',
               color: '#ffd700',
               border: 'none',
-              padding: '0.5rem 1rem',
-              borderRadius: 6,
+              padding: '0.75rem 1rem',
+              borderRadius: 8,
               cursor: 'pointer',
-              fontWeight: 600
+              fontWeight: 600,
+              fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
+              minWidth: '60px'
             }}
           >
             {currentYear + 1} →
@@ -687,22 +722,38 @@ const NewsPage = () => {
       </div>
 
       {/* Month Navigation */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: '1.5rem',
+        flexWrap: 'wrap',
+        gap: '0.5rem'
+      }}>
         <button
           onClick={() => setCurrentMonth(prev => prev === 0 ? 11 : prev - 1)}
           style={{
             background: '#000',
             color: '#ffd700',
             border: 'none',
-            padding: '0.5rem 1rem',
-            borderRadius: 6,
+            padding: '0.75rem 1rem',
+            borderRadius: 8,
             cursor: 'pointer',
-            fontWeight: 600
+            fontWeight: 600,
+            fontSize: 'clamp(0.7rem, 2.2vw, 0.9rem)',
+            minWidth: '50px'
           }}
         >
           ← {months[currentMonth === 0 ? 11 : currentMonth - 1]}
         </button>
-        <h3 style={{ margin: 0, color: '#ffd700', fontSize: '1.5rem', fontWeight: 700 }}>
+        <h3 style={{ 
+          margin: 0, 
+          color: '#ffd700', 
+          fontSize: 'clamp(1rem, 3.5vw, 1.5rem)', 
+          fontWeight: 700,
+          textAlign: 'center',
+          flex: '1'
+        }}>
           {months[currentMonth]} {currentYear}
         </h3>
         <button
@@ -711,10 +762,12 @@ const NewsPage = () => {
             background: '#000',
             color: '#ffd700',
             border: 'none',
-            padding: '0.5rem 1rem',
-            borderRadius: 6,
+            padding: '0.75rem 1rem',
+            borderRadius: 8,
             cursor: 'pointer',
-            fontWeight: 600
+            fontWeight: 600,
+            fontSize: 'clamp(0.7rem, 2.2vw, 0.9rem)',
+            minWidth: '50px'
           }}
         >
           {months[currentMonth === 11 ? 0 : currentMonth + 1]} →
@@ -727,24 +780,26 @@ const NewsPage = () => {
           <div style={{
             background: '#1f2937',
             borderRadius: 12,
-            padding: '1.5rem',
+            padding: 'clamp(0.5rem, 2vw, 1.5rem)',
             border: '2px solid #374151',
-            marginBottom: '2rem'
+            marginBottom: '2rem',
+            overflow: 'auto'
           }}>
             {/* Calendar Header */}
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(7, 1fr)',
               gap: '1px',
-              marginBottom: '1px'
+              marginBottom: '1px',
+              minWidth: '600px' // Ensure minimum width for readability
             }}>
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                 <div key={day} style={{
-                  padding: '1rem',
+                  padding: 'clamp(0.5rem, 2vw, 1rem)',
                   textAlign: 'center',
                   fontWeight: 700,
                   color: '#ffd700',
-                  fontSize: '1rem',
+                  fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
                   backgroundColor: '#374151',
                   border: '1px solid #4b5563'
                 }}>
@@ -757,7 +812,8 @@ const NewsPage = () => {
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(7, 1fr)',
-              gap: '1px'
+              gap: '1px',
+              minWidth: '600px' // Ensure minimum width for readability
             }}>
               {renderCalendar()}
             </div>
@@ -767,63 +823,123 @@ const NewsPage = () => {
           <div style={{
             background: '#1f2937',
             borderRadius: 8,
-            padding: '1rem',
+            padding: 'clamp(0.75rem, 2.5vw, 1rem)',
             border: '2px solid #374151',
             marginBottom: '2rem'
           }}>
-            <h4 style={{ color: '#ffd700', margin: '0 0 1rem 0', fontSize: '1rem' }}>Legend</h4>
-            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h4 style={{ 
+              color: '#ffd700', 
+              margin: '0 0 1rem 0', 
+              fontSize: 'clamp(0.9rem, 2.8vw, 1rem)',
+              textAlign: 'center'
+            }}>Legend</h4>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+              gap: '1rem',
+              justifyContent: 'center'
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem',
+                justifyContent: 'center'
+              }}>
                 <div style={{
-                  width: '12px',
-                  height: '12px',
+                  width: 'clamp(10px, 3vw, 12px)',
+                  height: 'clamp(10px, 3vw, 12px)',
                   backgroundColor: '#1e3a8a',
                   borderRadius: '2px'
                 }}></div>
-                <span style={{ color: '#fff', fontSize: '0.9rem' }}>Topps</span>
+                <span style={{ 
+                  color: '#fff', 
+                  fontSize: 'clamp(0.8rem, 2.2vw, 0.9rem)',
+                  fontWeight: 500
+                }}>Topps</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem',
+                justifyContent: 'center'
+              }}>
                 <div style={{
-                  width: '12px',
-                  height: '12px',
+                  width: 'clamp(10px, 3vw, 12px)',
+                  height: 'clamp(10px, 3vw, 12px)',
                   backgroundColor: '#dc2626',
                   borderRadius: '2px'
                 }}></div>
-                <span style={{ color: '#fff', fontSize: '0.9rem' }}>Panini</span>
+                <span style={{ 
+                  color: '#fff', 
+                  fontSize: 'clamp(0.8rem, 2.2vw, 0.9rem)',
+                  fontWeight: 500
+                }}>Panini</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem',
+                justifyContent: 'center'
+              }}>
                 <div style={{
-                  width: '12px',
-                  height: '12px',
+                  width: 'clamp(10px, 3vw, 12px)',
+                  height: 'clamp(10px, 3vw, 12px)',
                   backgroundColor: '#059669',
                   borderRadius: '2px'
                 }}></div>
-                <span style={{ color: '#fff', fontSize: '0.9rem' }}>Bowman</span>
+                <span style={{ 
+                  color: '#fff', 
+                  fontSize: 'clamp(0.8rem, 2.2vw, 0.9rem)',
+                  fontWeight: 500
+                }}>Bowman</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem',
+                justifyContent: 'center'
+              }}>
                 <div style={{
-                  width: '12px',
-                  height: '12px',
+                  width: 'clamp(10px, 3vw, 12px)',
+                  height: 'clamp(10px, 3vw, 12px)',
                   backgroundColor: '#7c3aed',
                   borderRadius: '2px'
                 }}></div>
-                <span style={{ color: '#fff', fontSize: '0.9rem' }}>Upper Deck</span>
+                <span style={{ 
+                  color: '#fff', 
+                  fontSize: 'clamp(0.8rem, 2.2vw, 0.9rem)',
+                  fontWeight: 500
+                }}>Upper Deck</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem',
+                justifyContent: 'center'
+              }}>
                 <div style={{
-                  width: '12px',
-                  height: '12px',
+                  width: 'clamp(10px, 3vw, 12px)',
+                  height: 'clamp(10px, 3vw, 12px)',
                   backgroundColor: '#ffd700',
                   borderRadius: '2px'
                 }}></div>
-                <span style={{ color: '#fff', fontSize: '0.9rem' }}>Today</span>
+                <span style={{ 
+                  color: '#fff', 
+                  fontSize: 'clamp(0.8rem, 2.2vw, 0.9rem)',
+                  fontWeight: 500
+                }}>Today</span>
               </div>
             </div>
           </div>
 
           {/* Monthly Release List */}
           <div style={{ marginTop: '2rem' }}>
-            <h3 style={{ color: '#ffd700', marginBottom: '1rem', fontSize: '1.3rem' }}>
+            <h3 style={{ 
+              color: '#ffd700', 
+              marginBottom: '1rem', 
+              fontSize: 'clamp(1rem, 3.5vw, 1.3rem)',
+              textAlign: 'center'
+            }}>
               {months[currentMonth]} {currentYear} Releases
             </h3>
             {(() => {
