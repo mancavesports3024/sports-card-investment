@@ -371,6 +371,146 @@ async function getEbayApiUsage() {
   }
 }
 
+// Add eBay Browse API search command generator
+async function createEbayBrowseApiCommand(url) {
+  try {
+    // Parse the eBay URL to extract search parameters
+    const urlObj = new URL(url);
+    const params = new URLSearchParams(urlObj.search);
+    
+    // Extract key parameters
+    const searchQuery = decodeURIComponent(params.get('_nkw') || '');
+    const isCompleted = params.get('LH_Complete') === '1';
+    const isSold = params.get('LH_Sold') === '1';
+    const sport = params.get('Sport');
+    // Handle the double-encoded year parameter
+    const yearParam = params.get('Year%2520Manufactured') || params.get('Year%20Manufactured');
+    const years = yearParam ? yearParam.split('|') : [];
+    const categoryId = params.get('_dcat');
+    const minPrice = params.get('_udlo');
+    const maxPrice = params.get('_udhi');
+    
+    console.log('\n=== EBAY URL PARAMETERS PARSED ===');
+    console.log(`Search Query: ${searchQuery}`);
+    console.log(`Completed Listings: ${isCompleted}`);
+    console.log(`Sold Items: ${isSold}`);
+    console.log(`Sport: ${sport}`);
+    console.log(`Years: ${years.join(', ')}`);
+    console.log(`Category ID: ${categoryId}`);
+    console.log(`Price Range: $${minPrice || '0'} - $${maxPrice || 'unlimited'}`);
+    console.log('=====================================\n');
+    
+    // Build filter string for Browse API
+    const filters = [];
+    
+    if (categoryId) {
+      filters.push(`categoryIds:{${categoryId}}`);
+    }
+    
+    if (minPrice) {
+      filters.push(`price:[${minPrice}..]`);
+    }
+    
+    if (maxPrice) {
+      filters.push(`price:[..${maxPrice}]`);
+    }
+    
+    if (sport) {
+      // Add sport-specific keywords to the query
+      const sportKeywords = {
+        'Baseball': 'baseball',
+        'Football': 'football', 
+        'Basketball': 'basketball',
+        'Soccer': 'soccer',
+        'Hockey': 'hockey'
+      };
+      if (sportKeywords[sport]) {
+        searchQuery = searchQuery + ` ${sportKeywords[sport]}`;
+      }
+    }
+    
+    // Add year filters if specified
+    if (years.length > 0) {
+      const yearFilters = years.map(year => `yearManufactured:${year}`).join(',');
+      filters.push(`yearManufactured:{${yearFilters}}`);
+    }
+    
+    const filterString = filters.join(',');
+    
+    // Create Browse API command (for active listings)
+    const browseApiCommand = {
+      endpoint: 'https://api.ebay.com/buy/browse/v1/item_summary/search',
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${process.env.EBAY_AUTH_TOKEN}`,
+        'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+        'Content-Type': 'application/json'
+      },
+      params: {
+        q: searchQuery,
+        limit: 50,
+        filter: filterString,
+        sort: 'newlyListed'
+      }
+    };
+    
+    // Create Marketplace Insights API command (for sold items)
+    const marketplaceInsightsCommand = {
+      endpoint: 'https://api.ebay.com/buy/marketplace_insights/v1_beta/item_sales/search',
+      method: 'GET', 
+      headers: {
+        'Authorization': `Bearer ${process.env.EBAY_AUTH_TOKEN}`,
+        'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+        'Content-Type': 'application/json'
+      },
+      params: {
+        q: searchQuery,
+        limit: 50,
+        fieldgroups: 'ASPECT_REFINEMENTS,MATCHING_ITEMS'
+      }
+    };
+    
+    // Create curl commands for easy testing
+    const browseApiCurl = `curl -X GET "${browseApiCommand.endpoint}?q=${encodeURIComponent(searchQuery)}&limit=50&filter=${encodeURIComponent(filterString)}&sort=newlyListed" \\
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \\
+  -H "X-EBAY-C-MARKETPLACE-ID: EBAY-US" \\
+  -H "Content-Type: application/json"`;
+    
+    const marketplaceInsightsCurl = `curl -X GET "${marketplaceInsightsCommand.endpoint}?q=${encodeURIComponent(searchQuery)}&limit=50&fieldgroups=ASPECT_REFINEMENTS,MATCHING_ITEMS" \\
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \\
+  -H "X-EBAY-C-MARKETPLACE-ID: EBAY-US" \\
+  -H "Content-Type: application/json"`;
+    
+    return {
+      originalUrl: url,
+      parsedParams: {
+        searchQuery,
+        isCompleted,
+        isSold,
+        sport,
+        years,
+        categoryId,
+        minPrice,
+        maxPrice
+      },
+      browseApiCommand,
+      marketplaceInsightsCommand,
+      curlCommands: {
+        browseApi: browseApiCurl,
+        marketplaceInsights: marketplaceInsightsCurl
+      },
+      recommendations: {
+        useBrowseApi: !isSold && !isCompleted, // Use Browse API for active listings
+        useMarketplaceInsights: isSold || isCompleted // Use Marketplace Insights for sold items
+      }
+    };
+    
+  } catch (error) {
+    console.error('Error parsing eBay URL:', error);
+    throw new Error('Invalid eBay URL format');
+  }
+}
+
 
 module.exports = {
   searchSoldItems,
@@ -378,7 +518,8 @@ module.exports = {
   logRateLimitStatus,
   getItemDetailsFromEbay, // Export the helper
   enrichItemsWithEbayDetails, // Export the enrichment function
-  getEbayApiUsage // Export the new usage function
+  getEbayApiUsage, // Export the new usage function
+  createEbayBrowseApiCommand // Export the new command generator
 }; 
 
 /**

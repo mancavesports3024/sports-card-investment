@@ -1,0 +1,66 @@
+EBAY BROWSE API COMMANDS FOR PSA 10 BASEBALL CARDS
+==================================================
+
+Original URL: https://www.ebay.com/sch/i.html?_nkw=PSA%2010&LH_Complete=1&LH_Sold=1&Sport=Baseball&Year%2520Manufactured=2024%7C2023%7C2022&_dcat=261328&rt=nc&_udlo=50
+
+PARSED PARAMETERS:
+- Search Query: PSA 10 baseball
+- Sold Items: true
+- Completed Listings: true
+- Sport: Baseball
+- Years: 2024, 2023, 2022
+- Category ID: 261328 (Sports Trading Cards)
+- Minimum Price: $50
+
+RECOMMENDATIONS:
+- Since this is a search for SOLD items, use the Marketplace Insights API
+- For active listings, use the Browse API
+
+BROWSE API COMMAND (for active listings):
+=========================================
+Endpoint: https://api.ebay.com/buy/browse/v1/item_summary/search
+Method: GET
+Headers:
+  Authorization: Bearer YOUR_TOKEN_HERE
+  X-EBAY-C-MARKETPLACE-ID: EBAY-US
+  Content-Type: application/json
+
+Parameters:
+  q: PSA 10 baseball
+  limit: 50
+  filter: categoryIds:{261328},price:[50..],yearManufactured:{yearManufactured:2024,yearManufactured:2023,yearManufactured:2022}
+  sort: newlyListed
+
+CURL Command:
+curl -X GET "https://api.ebay.com/buy/browse/v1/item_summary/search?q=PSA%2010%20baseball&limit=50&filter=categoryIds%3A%7B261328%7D%2Cprice%3A%5B50..%5D%2CyearManufactured%3A%7ByearManufactured%3A2024%2CyearManufactured%3A2023%2CyearManufactured%3A2022%7D&sort=newlyListed" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -H "X-EBAY-C-MARKETPLACE-ID: EBAY-US" \
+  -H "Content-Type: application/json"
+
+MARKETPLACE INSIGHTS API COMMAND (for sold items):
+==================================================
+Endpoint: https://api.ebay.com/buy/marketplace_insights/v1_beta/item_sales/search
+Method: GET
+Headers:
+  Authorization: Bearer YOUR_TOKEN_HERE
+  X-EBAY-C-MARKETPLACE-ID: EBAY-US
+  Content-Type: application/json
+
+Parameters:
+  q: PSA 10 baseball
+  limit: 50
+  fieldgroups: ASPECT_REFINEMENTS,MATCHING_ITEMS
+
+CURL Command:
+curl -X GET "https://api.ebay.com/buy/marketplace_insights/v1_beta/item_sales/search?q=PSA%2010%20baseball&limit=50&fieldgroups=ASPECT_REFINEMENTS%2CMATCHING_ITEMS" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -H "X-EBAY-C-MARKETPLACE-ID: EBAY-US" \
+  -H "Content-Type: application/json"
+
+NOTES:
+- Replace YOUR_TOKEN_HERE with your actual eBay API token
+- The Marketplace Insights API is recommended for sold items
+- The Browse API is for active listings only
+- Category ID 261328 is for Sports Trading Cards
+- Price filter is set to $50 minimum
+- Years filter includes 2024, 2023, and 2022 
