@@ -389,7 +389,7 @@ function createSummaryTitle(item) {
     // Common team name variations and abbreviations
     'Hawks', 'Celtics', 'Nets', 'Hornets', 'Bulls', 'Cavaliers', 'Cavs', 'Mavericks', 'Mavs',
     'Nuggets', 'Pistons', 'Warriors', 'Rockets', 'Pacers', 'Clippers', 'Lakers', 'Grizzlies',
-    'Heat', 'Bucks', 'Timberwolves', 'Wolves', 'Pelicans', 'Knicks', 'Thunder', 'Magic',
+    'Heat', 'Bucks', 'Timberwolves', 'Wolves', 'Pelicans', 'Knicks', 'Thunder',
     '76ers', 'Suns', 'Trail Blazers', 'Blazers', 'Kings', 'Spurs', 'Raptors', 'Jazz', 'Wizards',
     'Cardinals', 'Cards', 'Falcons', 'Ravens', 'Bills', 'Panthers', 'Bears', 'Bengals',
     'Browns', 'Cowboys', 'Broncos', 'Lions', 'Packers', 'Texans', 'Colts', 'Jaguars', 'Jags',
