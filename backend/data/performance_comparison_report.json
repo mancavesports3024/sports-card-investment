@@ -1,0 +1,91 @@
+{
+  "timestamp": "2025-08-07T20:52:36.421Z",
+  "testQueries": [
+    "mike trout 2011",
+    "patrick mahomes rookie",
+    "lebron james 2003",
+    "tom brady 2000",
+    "wayne gretzky 1979"
+  ],
+  "optimizedResults": [
+    {
+      "query": "mike trout 2011",
+      "searchTime": 2,
+      "matchingItems": 0,
+      "psa10Count": 0,
+      "psa9Count": 0,
+      "rawCount": 0
+    },
+    {
+      "query": "patrick mahomes rookie",
+      "searchTime": 2,
+      "matchingItems": 5,
+      "psa10Count": 5,
+      "psa9Count": 0,
+      "rawCount": 0
+    },
+    {
+      "query": "lebron james 2003",
+      "searchTime": 1,
+      "matchingItems": 11,
+      "psa10Count": 11,
+      "psa9Count": 0,
+      "rawCount": 0
+    },
+    {
+      "query": "tom brady 2000",
+      "searchTime": 1,
+      "matchingItems": 5,
+      "psa10Count": 4,
+      "psa9Count": 0,
+      "rawCount": 0
+    },
+    {
+      "query": "wayne gretzky 1979",
+      "searchTime": 0,
+      "matchingItems": 2,
+      "psa10Count": 0,
+      "psa9Count": 0,
+      "rawCount": 0
+    }
+  ],
+  "performanceMetrics": {
+    "optimized": {
+      "averageTime": 1.2,
+      "totalTime": 6
+    },
+    "estimatedOriginal": {
+      "averageTime": 2092,
+      "totalTime": 10460,
+      "individualTimes": [
+        2000,
+        2100,
+        2220,
+        2100,
+        2040
+      ]
+    },
+    "improvement": {
+      "speedImprovement": 1743.3333333333335,
+      "timeSavedPerQuery": 2090.8,
+      "totalTimeSaved": 10454,
+      "efficiencyGain": 99.94263862332696
+    }
+  },
+  "databaseStats": {
+    "totalItems": 9095,
+    "priceRanges": 91,
+    "indexedWords": 11654,
+    "dateRanges": 4
+  },
+  "optimizations": [
+    "Pre-indexed database with inverted text index",
+    "Pre-compiled regex patterns",
+    "Single-pass price calculations",
+    "Efficient data structures (Sets, Maps)",
+    "Reduced logging and debugging overhead",
+    "Optimized categorization algorithms",
+    "Memory-efficient processing",
+    "Batch processing capabilities"
+  ]
+}

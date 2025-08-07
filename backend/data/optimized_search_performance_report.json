@@ -1,0 +1,216 @@
+{
+  "timestamp": "2025-08-07T20:51:13.694Z",
+  "databaseStats": {
+    "totalItems": 9095,
+    "priceRanges": 91,
+    "indexedWords": 11654,
+    "dateRanges": 4
+  },
+  "loadTime": 442,
+  "individualResults": [
+    {
+      "query": "mike trout 2011",
+      "searchTime": 3,
+      "totalItems": 9095,
+      "matchingItems": 0,
+      "psa10Count": 0,
+      "psa9Count": 0,
+      "rawCount": 0
+    },
+    {
+      "query": "patrick mahomes rookie",
+      "searchTime": 3,
+      "totalItems": 9095,
+      "matchingItems": 5,
+      "psa10Count": 5,
+      "psa9Count": 0,
+      "rawCount": 0
+    },
+    {
+      "query": "lebron james 2003",
+      "searchTime": 2,
+      "totalItems": 9095,
+      "matchingItems": 11,
+      "psa10Count": 11,
+      "psa9Count": 0,
+      "rawCount": 0
+    },
+    {
+      "query": "tom brady 2000",
+      "searchTime": 1,
+      "totalItems": 9095,
+      "matchingItems": 5,
+      "psa10Count": 4,
+      "psa9Count": 0,
+      "rawCount": 0
+    },
+    {
+      "query": "wayne gretzky 1979",
+      "searchTime": 0,
+      "totalItems": 9095,
+      "matchingItems": 2,
+      "psa10Count": 0,
+      "psa9Count": 0,
+      "rawCount": 0
+    },
+    {
+      "query": "michael jordan 1986",
+      "searchTime": 1,
+      "totalItems": 9095,
+      "matchingItems": 0,
+      "psa10Count": 0,
+      "psa9Count": 0,
+      "rawCount": 0
+    },
+    {
+      "query": "ken griffey jr 1989",
+      "searchTime": 2,
+      "totalItems": 9095,
+      "matchingItems": 7,
+      "psa10Count": 5,
+      "psa9Count": 2,
+      "rawCount": 0
+    },
+    {
+      "query": "barry bonds 1986",
+      "searchTime": 1,
+      "totalItems": 9095,
+      "matchingItems": 4,
+      "psa10Count": 3,
+      "psa9Count": 0,
+      "rawCount": 0
+    },
+    {
+      "query": "cal ripken 1982",
+      "searchTime": 0,
+      "totalItems": 9095,
+      "matchingItems": 2,
+      "psa10Count": 1,
+      "psa9Count": 0,
+      "rawCount": 0
+    },
+    {
+      "query": "nolan ryan 1968",
+      "searchTime": 5,
+      "totalItems": 9095,
+      "matchingItems": 4,
+      "psa10Count": 1,
+      "psa9Count": 0,
+      "rawCount": 0
+    }
+  ],
+  "batchResults": {
+    "totalTime": 6,
+    "averageTimePerQuery": 0.6,
+    "speedup": 3
+  },
+  "sampleResult": {
+    "query": "mike trout 2011",
+    "performance": {
+      "searchTime": 0,
+      "totalItems": 9095,
+      "matchingItems": 0
+    },
+    "priceAnalysis": {
+      "raw": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "psa7": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "psa8": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "psa9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "psa10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "cgc9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "cgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag8": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "tag10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "sgc10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade9": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "aigrade10": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "otherGraded": {
+        "count": 0,
+        "avgPrice": 0,
+        "minPrice": 0,
+        "maxPrice": 0,
+        "trend": "neutral"
+      },
+      "comparisons": {}
+    }
+  }
+}

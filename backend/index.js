@@ -358,8 +358,9 @@ async function initializeServer() {
 
   // Routes
   app.use('/api/search-cards', require('./routes/searchCards').router);
-  app.use('/api/search-history', require('./routes/searchHistory'));
-  app.use('/api/live-listings', require('./routes/liveListings'));
+app.use('/api/optimized-search-cards', require('./routes/optimizedSearchCards'));
+app.use('/api/search-history', require('./routes/searchHistory'));
+app.use('/api/live-listings', require('./routes/liveListings'));
   app.use('/api/news', require('./routes/news'));
   app.use('/api/ebay-bidding', require('./routes/ebayBidding'));
   app.use('/api/spreadsheet-manager', require('./routes/spreadsheetManager'));
