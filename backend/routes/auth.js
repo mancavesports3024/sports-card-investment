@@ -40,11 +40,84 @@ router.get('/google/callback', passport.authenticate('google', { failureRedirect
     email: user.emails && user.emails[0] ? user.emails[0].value : undefined,
     provider: user.provider,
   };
-  const token = jwt.sign(payload, process.env.JWT_SECRET || 'dev_secret', { expiresIn: '7d' });
+  
+  // Generate access token (7 days) and refresh token (30 days)
+  const accessToken = jwt.sign(payload, process.env.JWT_SECRET || 'dev_secret', { expiresIn: '7d' });
+  const refreshToken = jwt.sign(payload, process.env.JWT_SECRET || 'dev_secret', { expiresIn: '30d' });
 
-  // Redirect to frontend with token as query param (or send as JSON for API clients)
+  // Redirect to frontend with both tokens as query params
   const redirectUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-  res.redirect(`${redirectUrl}/auth-success?token=${token}`);
+  res.redirect(`${redirectUrl}/auth-success?token=${accessToken}&refreshToken=${refreshToken}`);
+});
+
+// Token refresh endpoint
+router.post('/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    
+    if (!refreshToken) {
+      return res.status(400).json({
+        success: false,
+        error: 'Refresh token is required'
+      });
+    }
+
+    // Verify the refresh token
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET || 'dev_secret');
+    
+    // Generate new access token
+    const payload = {
+      id: decoded.id,
+      displayName: decoded.displayName,
+      email: decoded.email,
+      provider: decoded.provider,
+    };
+    
+    const newAccessToken = jwt.sign(payload, process.env.JWT_SECRET || 'dev_secret', { expiresIn: '7d' });
+    
+    res.json({
+      success: true,
+      accessToken: newAccessToken,
+      refreshToken: refreshToken, // Return the same refresh token (it's still valid for 30 days)
+      message: 'Token refreshed successfully'
+    });
+    
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    res.status(401).json({
+      success: false,
+      error: 'Invalid or expired refresh token'
+    });
+  }
+});
+
+// Token validation endpoint (for frontend to check token status)
+router.get('/validate', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'No token provided'
+      });
+    }
+
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev_secret');
+    
+    res.json({
+      success: true,
+      user: decoded,
+      message: 'Token is valid'
+    });
+    
+  } catch (error) {
+    console.error('Token validation error:', error);
+    res.status(401).json({
+      success: false,
+      error: 'Invalid or expired token'
+    });
+  }
 });
 
 module.exports = router; 
