@@ -60,10 +60,8 @@ const filesToRemove = [
     'add-price-comparisons-recent.js',
     'export-to-spreadsheet.js',
     
-    // Old sitemap scripts
-    'generate-sitemap.js',
-    'generate-sitemap-advanced.js',
-    'auto-update-sitemap.js',
+         // Old sitemap scripts (keep the new simple one)
+     'auto-update-sitemap.js',
     
     // Old OAuth and setup files
     'get-refresh-token.js',
@@ -172,18 +170,19 @@ const essentialFiles = [
     'EBAY_BIDDING_PRODUCTION_SETUP.md',
     'EBAY_BIDDING_TOOL_README.md',
     
-    // Essential database scripts (keep only the latest versions)
-    'comprehensive-duplicate-check.js',
-    'find-actual-low-price-items.js',
-    'remove-low-price-items.js',
-    'remove-duplicates.js',
-    'improved-api-good-buy-finder.js',
-    'api-good-buy-finder.js',
-    'good-buy-opportunities.js',
-    'database-updater.js',
-    'database-monitor.js',
-    'scheduled-updater.js',
-    'psa10-recent-database-builder.js',
+         // Essential database scripts (keep only the latest versions)
+     'comprehensive-duplicate-check.js',
+     'find-actual-low-price-items.js',
+     'remove-low-price-items.js',
+     'remove-duplicates.js',
+     'improved-api-good-buy-finder.js',
+     'api-good-buy-finder.js',
+     'good-buy-opportunities.js',
+     'database-updater.js',
+     'database-monitor.js',
+     'scheduled-updater.js',
+     'psa10-recent-database-builder.js',
+     'generate-sitemap.js',
     
     // Cleanup plan
     'cleanup-plan.md'
