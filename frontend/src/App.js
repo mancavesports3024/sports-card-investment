@@ -8,28 +8,55 @@ import CardSetAnalysis from './components/CardSetAnalysis';
 import NewsPage from './components/NewsPage';
 import EbayItemLookup from './pages/EbayItemLookup';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import tokenService from './services/tokenService';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const checkAuthStatus = () => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      try {
-        // Decode JWT token to get user info
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser(payload);
+  const checkAuthStatus = async () => {
+    try {
+      setIsLoading(true);
+      const token = tokenService.getAccessToken();
+      
+      if (!token) {
+        setUser(null);
+        setIsLoggedIn(false);
+        return;
+      }
+
+      // Check if token is expired and refresh if needed
+      if (tokenService.isTokenExpired(token)) {
+        try {
+          await tokenService.refreshToken();
+        } catch (error) {
+          console.error('Token refresh failed:', error);
+          tokenService.clearTokens();
+          setUser(null);
+          setIsLoggedIn(false);
+          return;
+        }
+      }
+
+      // Validate token with backend
+      const validation = await tokenService.validateToken();
+      if (validation.valid) {
+        setUser(validation.user);
         setIsLoggedIn(true);
-      } catch (error) {
-        console.error('Invalid token:', error);
-        localStorage.removeItem('authToken');
+      } else {
+        console.error('Token validation failed:', validation.error);
+        tokenService.clearTokens();
         setUser(null);
         setIsLoggedIn(false);
       }
-    } else {
+    } catch (error) {
+      console.error('Auth status check failed:', error);
+      tokenService.clearTokens();
       setUser(null);
       setIsLoggedIn(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -42,11 +69,26 @@ function App() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
+    tokenService.clearTokens();
     setUser(null);
     setIsLoggedIn(false);
     window.location.reload();
   };
+
+  if (isLoading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        background: '#000',
+        color: '#ffd700'
+      }}>
+        <div>Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <Router>
@@ -64,7 +106,7 @@ function App() {
               <a href="/search" className="header-nav-link">Search Cards</a>
               <a href="/card-set-analysis" className="header-nav-link">Card Set Analysis</a>
               <a href="/news" className="header-nav-link">News</a>
-                              <a href="/ebay-bidding" className="header-nav-link">eBay Item Lookup</a>
+              <a href="/ebay-bidding" className="header-nav-link">eBay Item Lookup</a>
             </div>
             <div className="header-social-group">
               <a href="https://x.com/Mancavesportsc1" target="_blank" rel="noopener noreferrer" className="header-social">𝕏</a>
@@ -90,7 +132,7 @@ function App() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/card-set-analysis" element={<CardSetAnalysis />} />
           <Route path="/news" element={<NewsPage />} />
-                          <Route path="/ebay-bidding" element={<EbayItemLookup />} />
+          <Route path="/ebay-bidding" element={<EbayItemLookup />} />
           <Route path="/auth-success" element={<AuthSuccess onAuthSuccess={checkAuthStatus} />} />
         </Routes>
       </div>

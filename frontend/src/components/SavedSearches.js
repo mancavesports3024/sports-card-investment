@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import config from '../config';
+import tokenService from '../services/tokenService';
 
 const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
   const [searches, setSearches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('authToken'));
+  const [isLoggedIn, setIsLoggedIn] = useState(!!tokenService.getAccessToken());
   const [open, setOpen] = useState(true);
 
   // Sync open state with forceOpen prop (counter: fold when it changes)
@@ -17,24 +18,26 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
   const refetchSavedSearches = async () => {
     setLoading(true);
     setError(null);
-    const token = localStorage.getItem('authToken');
+    
+    const token = tokenService.getAccessToken();
     setIsLoggedIn(!!token);
+    
     if (!token) {
       setError('You must be logged in to view saved searches.');
       setLoading(false);
       setOpen(false);
       return;
     }
+    
     try {
-      const res = await fetch(config.getSearchHistoryUrl(), {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
+      // Use the token service for automatic token refresh
+      const response = await tokenService.authenticatedFetch(config.getSearchHistoryUrl(), {
         cache: 'no-store'
       });
+      
       let text, data;
       try {
-        text = await res.text();
+        text = await response.text();
         data = JSON.parse(text);
         console.log('Loaded saved searches:', data);
       } catch (jsonErr) {
@@ -44,6 +47,7 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
         setOpen(false);
         return;
       }
+      
       if (!data.success) {
         setError(data.error || 'Failed to load saved searches.');
         setOpen(false);
@@ -52,7 +56,13 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
         setOpen((data.searches || []).length > 0);
       }
     } catch (err) {
-      setError('Failed to load saved searches: ' + (err.message || err.toString()));
+      console.error('Failed to load saved searches:', err);
+      if (err.message.includes('Authentication failed')) {
+        setError('Authentication failed. Please log in again.');
+        setIsLoggedIn(false);
+      } else {
+        setError('Failed to load saved searches: ' + (err.message || err.toString()));
+      }
       setOpen(false);
     }
     setLoading(false);
@@ -65,38 +75,42 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
   }, [refetchTrigger]);
 
   const handleDelete = async (searchId) => {
-    const token = localStorage.getItem('authToken');
-    if (!token) return;
     try {
-      const res = await fetch(config.getDeleteSearchUrl(searchId), {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await tokenService.authenticatedFetch(config.getDeleteSearchUrl(searchId), {
+        method: 'DELETE'
       });
-      if (res.ok) {
+      
+      if (response.ok) {
         await refetchSavedSearches();
+      } else {
+        console.error('Delete failed:', response.status);
       }
     } catch (err) {
       console.error('Delete error:', err);
+      if (err.message.includes('Authentication failed')) {
+        setError('Authentication failed. Please log in again.');
+        setIsLoggedIn(false);
+      }
     }
   };
 
   const handleClearAll = async () => {
-    const token = localStorage.getItem('authToken');
-    if (!token) return;
     try {
-      const res = await fetch(config.getClearHistoryUrl(), {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await tokenService.authenticatedFetch(config.getClearHistoryUrl(), {
+        method: 'DELETE'
       });
-      if (res.ok) {
+      
+      if (response.ok) {
         await refetchSavedSearches();
+      } else {
+        console.error('Clear all failed:', response.status);
       }
     } catch (err) {
       console.error('Clear all error:', err);
+      if (err.message.includes('Authentication failed')) {
+        setError('Authentication failed. Please log in again.');
+        setIsLoggedIn(false);
+      }
     }
   };
 

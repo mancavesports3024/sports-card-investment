@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
+import tokenService from '../services/tokenService';
 
 const AuthSuccess = ({ onAuthSuccess }) => {
   const navigate = useNavigate();
@@ -8,9 +9,13 @@ const AuthSuccess = ({ onAuthSuccess }) => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
+    const refreshToken = params.get('refreshToken');
     const next = params.get('next') || '/search';
+    
     if (token) {
-      localStorage.setItem('authToken', token);
+      // Store both tokens using the token service
+      tokenService.setTokens(token, refreshToken);
+      
       if (onAuthSuccess) {
         onAuthSuccess();
       }
@@ -21,13 +26,21 @@ const AuthSuccess = ({ onAuthSuccess }) => {
   }, [navigate, onAuthSuccess]);
 
   return (
-    <div className="auth-success-page">
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      height: '100vh',
+      background: '#000',
+      color: '#ffd700'
+    }}>
       <Helmet>
-        <title>Scorecard - Authentication</title>
-        <meta name="robots" content="noindex" />
-        <link rel="canonical" href="https://www.mancavesportscardsllc.com/" />
+        <title>Authentication Success - Scorecard</title>
       </Helmet>
-      <div>Logging you in...</div>
+      <div style={{ textAlign: 'center' }}>
+        <h2>Authentication Successful!</h2>
+        <p>Redirecting you to the application...</p>
+      </div>
     </div>
   );
 };
