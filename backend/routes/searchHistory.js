@@ -27,14 +27,38 @@ const requireUser = (req, res, next) => {
 };
 
 // GET /api/search-history - Get all saved searches for user
-router.get('/', requireUser, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
+    // Check if user is authenticated
+    const auth = req.headers.authorization;
+    if (!auth || !auth.startsWith('Bearer ')) {
+      return res.status(200).json({
+        success: false,
+        error: 'Authentication required',
+        searches: [],
+        count: 0
+      });
+    }
+    
+    const token = auth.split(' ')[1];
+    let user;
+    try {
+      user = jwt.verify(token, process.env.JWT_SECRET || 'dev_secret');
+    } catch (err) {
+      return res.status(200).json({
+        success: false,
+        error: 'Invalid or expired token',
+        searches: [],
+        count: 0
+      });
+    }
+    
     // Disable caching for this endpoint
     res.set('Cache-Control', 'no-store');
     res.removeHeader && res.removeHeader('ETag');
     res.removeHeader && res.removeHeader('Last-Modified');
     
-    const history = await searchHistoryService.getSearchHistoryForUser(req.user);
+    const history = await searchHistoryService.getSearchHistoryForUser(user);
     res.status(200).json({
       success: true,
       searches: history,
@@ -46,7 +70,9 @@ router.get('/', requireUser, async (req, res) => {
     res.status(200).json({
       success: false,
       error: 'Failed to load search history',
-      details: error.message
+      details: error.message,
+      searches: [],
+      count: 0
     });
   }
 });

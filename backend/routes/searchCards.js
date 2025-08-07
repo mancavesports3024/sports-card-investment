@@ -93,8 +93,8 @@ const categorizeCards = (cards) => {
         if (company === 'beckett') company = 'bgs';
         const grade = match[2].replace('.', '_');
         const key = `${company}${grade}`;
-        console.log(`Card ${index}: "${card.title}"`);
-        console.log(`  Matched company: ${company}, grade: ${grade} → bucket: gradingStats[${company}][${grade}]`);
+              // console.log(`Card ${index}: "${card.title}"`);
+      // console.log(`  Matched company: ${company}, grade: ${grade} → bucket: gradingStats[${company}][${grade}]`);
         if (!dynamicBuckets[key]) dynamicBuckets[key] = [];
         dynamicBuckets[key].push(card);
         if (!gradingStats[company]) gradingStats[company] = {};
@@ -293,22 +293,22 @@ const calculatePriceAnalysis = (raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8,
       const price = parseFloat(card.price?.value || 0);
       return price > 0 && price <= 1.5 * rawAvg;
     });
-    // Debug logging
-    console.log('--- RAW OUTLIER FILTERING ---');
-    console.log('Raw prices (all):', rawPrices);
-    console.log('Raw average (pre-filter):', rawAvg);
+    // Debug logging - commented out to reduce log rate
+    // console.log('--- RAW OUTLIER FILTERING ---');
+    // console.log('Raw prices (all):', rawPrices);
+    // console.log('Raw average (pre-filter):', rawAvg);
     const filteredPrices = filteredRaw.map(card => parseFloat(card.price?.value || 0));
-    console.log('Raw prices (filtered):', filteredPrices);
+    // console.log('Raw prices (filtered):', filteredPrices);
     const excluded = raw.filter(card => {
       const price = parseFloat(card.price?.value || 0);
       return price > 1.5 * rawAvg;
     });
     if (excluded.length > 0) {
-      console.log('Raw outliers excluded:', excluded.map(card => ({ title: card.title, price: card.price?.value })));
+      // console.log('Raw outliers excluded:', excluded.map(card => ({ title: card.title, price: card.price?.value })));
     } else {
-      console.log('No raw outliers excluded.');
+      // console.log('No raw outliers excluded.');
     }
-    console.log('--- END RAW OUTLIER FILTERING ---');
+    // console.log('--- END RAW OUTLIER FILTERING ---');
   }
   const analysis = {
     raw: { count: filteredRaw.length, avgPrice: 0, minPrice: 0, maxPrice: 0, trend: 'neutral' },
@@ -596,37 +596,38 @@ const calculatePriceAnalysis = (raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8,
   if (analysis.comparisons.rawToPsa9) {
     console.log(`Raw → PSA 9: ${analysis.comparisons.rawToPsa9.description}`);
   }
-  if (analysis.comparisons.rawToPsa10) {
-    console.log(`Raw → PSA 10: ${analysis.comparisons.rawToPsa10.description}`);
-  }
-  if (analysis.comparisons.psa9ToPsa10) {
-    console.log(`PSA 9 → PSA 10: ${analysis.comparisons.psa9ToPsa10.description}`);
-  }
-  if (analysis.comparisons.rawToCgc9) {
-    console.log(`Raw → CGC 9: ${analysis.comparisons.rawToCgc9.description}`);
-  }
-  if (analysis.comparisons.rawToCgc10) {
-    console.log(`Raw → CGC 10: ${analysis.comparisons.rawToCgc10.description}`);
-  }
-  if (analysis.comparisons.cgc9ToCgc10) {
-    console.log(`CGC 9 → CGC 10: ${analysis.comparisons.cgc9ToCgc10.description}`);
-  }
-  if (analysis.comparisons.rawToPsa7) {
-    console.log(`Raw → PSA 7: ${analysis.comparisons.rawToPsa7.description}`);
-  }
-  if (analysis.comparisons.rawToPsa8) {
-    console.log(`Raw → PSA 8: ${analysis.comparisons.rawToPsa8.description}`);
-  }
-  if (analysis.comparisons.rawToAigrade9) {
-    console.log(`Raw → AiGrade 9: ${analysis.comparisons.rawToAigrade9.description}`);
-  }
-  if (analysis.comparisons.rawToAigrade10) {
-    console.log(`Raw → AiGrade 10: ${analysis.comparisons.rawToAigrade10.description}`);
-  }
-  if (analysis.comparisons.rawToOtherGraded) {
-    console.log(`Raw → Other Graded: ${analysis.comparisons.rawToOtherGraded.description}`);
-  }
-  console.log('=== END PRICE ANALYSIS ===\n');
+  // Price analysis logging commented out to reduce log rate
+  // if (analysis.comparisons.rawToPsa10) {
+  //   console.log(`Raw → PSA 10: ${analysis.comparisons.rawToPsa10.description}`);
+  // }
+  // if (analysis.comparisons.psa9ToPsa10) {
+  //   console.log(`PSA 9 → PSA 10: ${analysis.comparisons.psa9ToPsa10.description}`);
+  // }
+  // if (analysis.comparisons.rawToCgc9) {
+  //   console.log(`Raw → CGC 9: ${analysis.comparisons.rawToCgc9.description}`);
+  // }
+  // if (analysis.comparisons.rawToCgc10) {
+  //   console.log(`Raw → CGC 10: ${analysis.comparisons.rawToCgc10.description}`);
+  // }
+  // if (analysis.comparisons.cgc9ToCgc10) {
+  //   console.log(`CGC 9 → CGC 10: ${analysis.comparisons.cgc9ToCgc10.description}`);
+  // }
+  // if (analysis.comparisons.rawToPsa7) {
+  //   console.log(`Raw → PSA 7: ${analysis.comparisons.rawToPsa7.description}`);
+  // }
+  // if (analysis.comparisons.rawToPsa8) {
+  //   console.log(`Raw → PSA 8: ${analysis.comparisons.rawToPsa8.description}`);
+  // }
+  // if (analysis.comparisons.rawToAigrade9) {
+  //   console.log(`Raw → AiGrade 9: ${analysis.comparisons.rawToAigrade9.description}`);
+  // }
+  // if (analysis.comparisons.rawToAigrade10) {
+  //   console.log(`Raw → AiGrade 10: ${analysis.comparisons.rawToAigrade10.description}`);
+  // }
+  // if (analysis.comparisons.rawToOtherGraded) {
+  //   console.log(`Raw → Other Graded: ${analysis.comparisons.rawToOtherGraded.description}`);
+  // }
+  // console.log('=== END PRICE ANALYSIS ===\n');
 
   return analysis;
 };
@@ -639,23 +640,23 @@ const fetchDataForEachCategory = async (searchQuery, targetPerCategory = 25) => 
   
   while (attempts < maxAttempts) {
     attempts++;
-    console.log(`🔄 Fetch attempt ${attempts}: Current totals - Raw: ${allCards.filter(card => {
-      const title = card.title?.toLowerCase() || '';
-      return !title.includes('psa 7') && !title.includes('psa7') && !title.includes('psa 8') && !title.includes('psa8') && 
-             !title.includes('psa 9') && !title.includes('psa9') && !title.includes('psa 10') && !title.includes('psa10');
-    }).length}, PSA 7: ${allCards.filter(card => {
-      const title = card.title?.toLowerCase() || '';
-      return title.includes('psa 7') || title.includes('psa7');
-    }).length}, PSA 8: ${allCards.filter(card => {
-      const title = card.title?.toLowerCase() || '';
-      return title.includes('psa 8') || title.includes('psa8');
-    }).length}, PSA 9: ${allCards.filter(card => {
-      const title = card.title?.toLowerCase() || '';
-      return title.includes('psa 9') || title.includes('psa9');
-    }).length}, PSA 10: ${allCards.filter(card => {
-      const title = card.title?.toLowerCase() || '';
-      return title.includes('psa 10') || title.includes('psa10');
-    }).length}`);
+    // console.log(`🔄 Fetch attempt ${attempts}: Current totals - Raw: ${allCards.filter(card => {
+    //   const title = card.title?.toLowerCase() || '';
+    //   return !title.includes('psa 7') && !title.includes('psa7') && !title.includes('psa 8') && !title.includes('psa8') && 
+    //          !title.includes('psa 9') && !title.includes('psa9') && !title.includes('psa 10') && !title.includes('psa10');
+    // }).length}, PSA 7: ${allCards.filter(card => {
+    //   const title = card.title?.toLowerCase() || '';
+    //   return title.includes('psa 7') || title.includes('psa7');
+    // }).length}, PSA 8: ${allCards.filter(card => {
+    //   const title = card.title?.toLowerCase() || '';
+    //   return title.includes('psa 8') || title.includes('psa8');
+    // }).length}, PSA 9: ${allCards.filter(card => {
+    //   const title = card.title?.toLowerCase() || '';
+    //   return title.includes('psa 9') || title.includes('psa9');
+    // }).length}, PSA 10: ${allCards.filter(card => {
+    //   const title = card.title?.toLowerCase() || '';
+    //   return title.includes('psa 10') || title.includes('psa10');
+    // }).length}`);
     
     // Calculate how many more we need to fetch
     const currentBatchSize = Math.max(50, targetPerCategory * 2); // Fetch more to ensure we get enough
@@ -672,15 +673,15 @@ const fetchDataForEachCategory = async (searchQuery, targetPerCategory = 25) => 
     // Add new cards to our collection
     if (ebayApiCards.status === 'fulfilled') {
       allCards = allCards.concat(ebayApiCards.value);
-      console.log(`✅ eBay API: ${ebayApiCards.value.length} sold items found`);
+      // console.log(`✅ eBay API: ${ebayApiCards.value.length} sold items found`);
     }
     
     if (ebayScrapedCards.status === 'fulfilled') {
       // Use scraped cards as-is (no enrichment)
       allCards = allCards.concat(ebayScrapedCards.value);
-      console.log(`✅ eBay Scraped: ${ebayScrapedCards.value.length} sold items found`);
+      // console.log(`✅ eBay Scraped: ${ebayScrapedCards.value.length} sold items found`);
     } else {
-      console.log('❌ eBay scraping failed:', ebayScrapedCards.reason);
+      // console.log('❌ eBay scraping failed:', ebayScrapedCards.reason);
     }
     
     // Remove duplicates based on title and price
@@ -706,17 +707,17 @@ const fetchDataForEachCategory = async (searchQuery, targetPerCategory = 25) => 
     const hasEnoughPsa9 = categorized.psa9.length >= targetPerCategory;
     const hasEnoughPsa10 = categorized.psa10.length >= targetPerCategory;
     
-    console.log(`📊 After attempt ${attempts}: Raw: ${categorized.raw.length}, PSA 7: ${categorized.psa7.length}, PSA 8: ${categorized.psa8.length}, PSA 9: ${categorized.psa9.length}, PSA 10: ${categorized.psa10.length}`);
+    // console.log(`📊 After attempt ${attempts}: Raw: ${categorized.raw.length}, PSA 7: ${categorized.psa7.length}, PSA 8: ${categorized.psa8.length}, PSA 9: ${categorized.psa9.length}, PSA 10: ${categorized.psa10.length}`);
     
     // If we have enough for all categories, break
     if (hasEnoughRaw && hasEnoughPsa7 && hasEnoughPsa8 && hasEnoughPsa9 && hasEnoughPsa10) {
-      console.log(`✅ Successfully collected enough data for all categories after ${attempts} attempts`);
+      // console.log(`✅ Successfully collected enough data for all categories after ${attempts} attempts`);
       break;
     }
     
     // If we've tried enough times, break
     if (attempts >= maxAttempts) {
-      console.log(`⚠️ Reached maximum attempts (${maxAttempts}). Using available data.`);
+      // console.log(`⚠️ Reached maximum attempts (${maxAttempts}). Using available data.`);
       break;
     }
     

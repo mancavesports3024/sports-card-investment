@@ -143,30 +143,30 @@ async function checkRateLimits() {
 }
 
 function logRateLimitStatus() {
-  console.log('\n📊 CURRENT PRODUCTION API STATUS:');
+  // console.log('\n📊 CURRENT PRODUCTION API STATUS:');
   
   if (rateLimitCache.marketplaceInsights?.success) {
     const insightsData = rateLimitCache.marketplaceInsights.data;
-    console.log('🔍 Marketplace Insights API (Production):');
-    console.log('   - Status: ✅ Working');
+    // console.log('🔍 Marketplace Insights API (Production):');
+    // console.log('   - Status: ✅ Working');
     if (insightsData.rateLimits) {
       const limits = insightsData.rateLimits;
-      console.log(`   - Usage: ${limits['X-Rate-Limit-Remaining']}/${limits['X-Rate-Limit-Limit']} calls`);
+      // console.log(`   - Usage: ${limits['X-Rate-Limit-Remaining']}/${limits['X-Rate-Limit-Limit']} calls`);
       if (limits['X-Rate-Limit-Reset']) {
-        console.log(`   - Reset: ${new Date(parseInt(limits['X-Rate-Limit-Reset']) * 1000).toISOString()}`);
+        // console.log(`   - Reset: ${new Date(parseInt(limits['X-Rate-Limit-Reset']) * 1000).toISOString()}`);
       }
     } else {
-      console.log('   - Note: Ready for sold item searches (Production)');
-      console.log('   - Production limits: ~5,000 calls/day');
+      // console.log('   - Note: Ready for sold item searches (Production)');
+      // console.log('   - Production limits: ~5,000 calls/day');
     }
   } else {
-    console.log('🔍 Marketplace Insights API (Production):');
-    console.log('   - Status: ❌ Not working');
+    // console.log('🔍 Marketplace Insights API (Production):');
+    // console.log('   - Status: ❌ Not working');
     if (rateLimitCache.marketplaceInsights?.error) {
-      console.log(`   - Error: ${rateLimitCache.marketplaceInsights.error}`);
+      // console.log(`   - Error: ${rateLimitCache.marketplaceInsights.error}`);
     }
     if (rateLimitCache.marketplaceInsights?.status) {
-      console.log(`   - HTTP Status: ${rateLimitCache.marketplaceInsights.status}`);
+      // console.log(`   - HTTP Status: ${rateLimitCache.marketplaceInsights.status}`);
     }
   }
   
@@ -174,13 +174,13 @@ function logRateLimitStatus() {
   
   // Summary
   const workingAPIs = [rateLimitCache.marketplaceInsights?.success].filter(Boolean).length;
-  console.log(`\n📈 Summary: ${workingAPIs} out of 1 Production API is working`);
+  // console.log(`\n📈 Summary: ${workingAPIs} out of 1 Production API is working`);
   
   // Rate limit recommendations
-  console.log('\n💡 PRODUCTION RATE LIMIT TIPS:');
-  console.log('   • Marketplace Insights API: ~5,000 calls/day (for sold items)');
-  console.log('   • Check your eBay Developer account dashboard for exact limits');
-  console.log('   • Limits reset daily at midnight UTC');
+  // console.log('\n💡 PRODUCTION RATE LIMIT TIPS:');
+  // console.log('   • Marketplace Insights API: ~5,000 calls/day (for sold items)');
+  // console.log('   • Check your eBay Developer account dashboard for exact limits');
+  // console.log('   • Limits reset daily at midnight UTC');
 }
 
 async function searchSoldItems({ keywords, numSales = 10, excludeGraded = false }) {
@@ -253,13 +253,13 @@ async function searchWithMarketplaceInsightsAPI(keywords, numSales, excludeGrade
     // Process and format the response for Marketplace Insights API
     const items = response.data.itemSales || [];
     
-    console.log(`\n=== EBAY MARKETPLACE INSIGHTS API DEBUG ===`);
-    console.log(`Total items returned: ${items.length}`);
-    if (items.length > 0) {
-      console.log(`Sample item data:`, JSON.stringify(items[0], null, 2));
-      console.log(`Sale types found:`, items.map(item => item.listingType || 'unknown').slice(0, 10));
-    }
-    console.log(`=== END EBAY DEBUG ===\n`);
+    // console.log(`\n=== EBAY MARKETPLACE INSIGHTS API DEBUG ===`);
+    // console.log(`Total items returned: ${items.length}`);
+    // if (items.length > 0) {
+    //   console.log(`Sample item data:`, JSON.stringify(items[0], null, 2));
+    //   console.log(`Sale types found:`, items.map(item => item.listingType || 'unknown').slice(0, 10));
+    // }
+    // console.log(`=== END EBAY DEBUG ===\n`);
     
     // Filter out graded cards if excludeGraded is true
     let filteredItems = items;
@@ -390,15 +390,15 @@ async function createEbayBrowseApiCommand(url) {
     const minPrice = params.get('_udlo');
     const maxPrice = params.get('_udhi');
     
-    console.log('\n=== EBAY URL PARAMETERS PARSED ===');
-    console.log(`Search Query: ${searchQuery}`);
-    console.log(`Completed Listings: ${isCompleted}`);
-    console.log(`Sold Items: ${isSold}`);
-    console.log(`Sport: ${sport}`);
-    console.log(`Years: ${years.join(', ')}`);
-    console.log(`Category ID: ${categoryId}`);
-    console.log(`Price Range: $${minPrice || '0'} - $${maxPrice || 'unlimited'}`);
-    console.log('=====================================\n');
+    // console.log('\n=== EBAY URL PARAMETERS PARSED ===');
+    // console.log(`Search Query: ${searchQuery}`);
+    // console.log(`Completed Listings: ${isCompleted}`);
+    // console.log(`Sold Items: ${isSold}`);
+    // console.log(`Sport: ${sport}`);
+    // console.log(`Years: ${years.join(', ')}`);
+    // console.log(`Category ID: ${categoryId}`);
+    // console.log(`Price Range: $${minPrice || '0'} - $${maxPrice || 'unlimited'}`);
+    // console.log('=====================================\n');
     
     // Build filter string for Browse API
     const filters = [];

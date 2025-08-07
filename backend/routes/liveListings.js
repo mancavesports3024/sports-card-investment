@@ -88,7 +88,7 @@ async function getLiveListings({ query, grade, saleType, forceRefresh = false })
       return { ...cachedResult, cached: true, cacheKey };
     }
   } else {
-    console.log(`🔄 Force refresh requested for live listings: ${query} (${grade})`);
+    // console.log(`🔄 Force refresh requested for live listings: ${query} (${grade})`);
   }
   const ebayQuery = buildEbayQuery(query, grade);
   try {
@@ -357,10 +357,10 @@ async function getLiveListings({ query, grade, saleType, forceRefresh = false })
       console.log(`   📊 Breakdown: ${auctionCount} auctions, ${fixedCount} fixed price`);
       
       // Log first few items to see their buying options
-      console.log('   🔍 Sample items:');
-      items.slice(0, 3).forEach((item, index) => {
-        console.log(`     ${index + 1}. "${item.title}" - Buying Options: ${item.buyingOptions?.join(', ') || 'None'}`);
-      });
+      // console.log('   🔍 Sample items:');
+      // items.slice(0, 3).forEach((item, index) => {
+      //   console.log(`     ${index + 1}. "${item.title}" - Buying Options: ${item.buyingOptions?.join(', ') || 'None'}`);
+      // });
 
       // Client-side filtering as fallback
       if (saleType === 'auction') {
@@ -376,7 +376,7 @@ async function getLiveListings({ query, grade, saleType, forceRefresh = false })
                  title.includes('time left');
         });
         if (auctionItems.length > 0) {
-          console.log(`   🎯 Client-side filtered to ${auctionItems.length} auction items`);
+          // console.log(`   🎯 Client-side filtered to ${auctionItems.length} auction items`);
           items = auctionItems;
         }
       } else if (saleType === 'fixed') {
@@ -389,12 +389,12 @@ async function getLiveListings({ query, grade, saleType, forceRefresh = false })
                  !title.includes('ending soon');
         });
         if (fixedItems.length > 0) {
-          console.log(`   🎯 Client-side filtered to ${fixedItems.length} fixed price items`);
+          // console.log(`   🎯 Client-side filtered to ${fixedItems.length} fixed price items`);
           items = fixedItems;
         }
       }
     } else {
-      console.log('   ❌ No items found in any approach');
+      // console.log('   ❌ No items found in any approach');
     }
 
     // For raw grade, filter out any items that contain PSA, BGS, SGC, CGC, or TAG in the title

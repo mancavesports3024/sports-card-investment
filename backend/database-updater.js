@@ -330,7 +330,11 @@ function createSummaryTitle(item) {
     'NFL Football', 'nfl football', 'Nfl Football',
     'STOCK PHOTO', 'stock photo', 'Stock Photo',
     'LEGEND', 'legend', 'Legend',
-    'Good as', 'good as', 'GOOD AS'
+    'Good as', 'good as', 'GOOD AS',
+    // Additional keywords to remove
+    'Slab', 'slab', 'SLAB',
+    'TCG', 'tcg', 'Tcg',
+    'ON-CARD', 'on-card', 'On-Card', 'ON CARD', 'on card', 'On Card'
   ];
   
   // Remove POP followed by numbers (like "POP 5", "Pop 1", "pop 10")
@@ -344,6 +348,9 @@ function createSummaryTitle(item) {
     const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
     cleanedTitle = cleanedTitle.replace(regex, '');
   });
+  
+  // Remove 8-digit PSA certificate numbers (like 50979626)
+  cleanedTitle = cleanedTitle.replace(/\b\d{8}\b/g, '');
   
   // Remove team names from all major sports leagues
   const teamNames = [

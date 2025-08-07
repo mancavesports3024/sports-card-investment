@@ -46,19 +46,8 @@ async function searchPSA9Prices(summaryTitle) {
 // Search for raw (ungraded) prices
 async function searchRawPrices(summaryTitle) {
   try {
-    // Remove any grading indicators and search for raw cards
-    let searchQuery = summaryTitle;
-    
-    // Remove common grading terms
-    searchQuery = searchQuery.replace(/\b(PSA|SGC|BGS|CGC|CSG|HGA|TAG)\s+\d+\b/gi, '');
-    searchQuery = searchQuery.replace(/\b(GEM|MINT|NM-MT|NM|EX-MT|EX|VG-EX|VG|GOOD|PR)\b/gi, '');
-    searchQuery = searchQuery.replace(/\b(AUTHENTIC|AUTH|ALTERED|MK|MC)\b/gi, '');
-    
-    // Clean up extra spaces
-    searchQuery = searchQuery.replace(/\s+/g, ' ').trim();
-    
-    // Add "raw" to the search
-    searchQuery = `${searchQuery} raw`;
+    // Use exclusion syntax to find raw (ungraded) cards - exclude all major grading companies
+    const searchQuery = `${summaryTitle} -(PSA, SGC, TAG, BGS, CGC, CSG, HGA, GMA, ISA, PGS, AGS, SGC, WCG, KSA, JSA, DNA, ACOA, BAS, CGA, DGS, EGS, FGS, GAI, GMA, GSC, HGA, ISA, JSA, KSA, MNT, NCS, NGC, PGS, PSA, SGC, TAG, TPG, WCG)`;
     
     console.log(`   🔍 Searching Raw: "${searchQuery}"`);
     
@@ -69,8 +58,8 @@ async function searchRawPrices(summaryTitle) {
       console.log(`   ✅ Raw found: ${results.length} sales, avg: $${avgPrice}`);
       return avgPrice;
     } else {
-      // Try alternative search without "raw"
-      const altQuery = summaryTitle.replace(/\b(PSA|SGC|BGS|CGC|CSG|HGA|TAG)\s+\d+\b/gi, '');
+      // Try alternative search with even broader exclusion including grade terms
+      const altQuery = `${summaryTitle} -(PSA, SGC, TAG, BGS, CGC, CSG, HGA, GMA, ISA, PGS, AGS, SGC, WCG, KSA, JSA, DNA, ACOA, BAS, CGA, DGS, EGS, FGS, GAI, GMA, GSC, HGA, ISA, JSA, KSA, MNT, NCS, NGC, PGS, PSA, SGC, TAG, TPG, WCG, GEM, MINT, NM, EX, VG, GOOD, PR, AUTH, ALTERED)`;
       console.log(`   🔍 Trying alt search: "${altQuery}"`);
       
       const altResults = await search130point(altQuery, 50);
