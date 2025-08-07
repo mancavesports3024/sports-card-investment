@@ -1,0 +1,92 @@
+{
+  "totalOpportunities": 9,
+  "averageMultiplier": 15.458563295840444,
+  "averageROI": 1445.8563295840443,
+  "averagePotentialProfit": 1274.602947646895,
+  "topOpportunities": [
+    {
+      "title": "2017 Panini Prizm Patrick Mahomes II RC Light Blue Prizm SP #269 52/199 PSA 10",
+      "multiplier": 92.15578716401536,
+      "roi": 9115.578716401536,
+      "rawPrice": 86.80952380952381,
+      "psa10Price": 8000,
+      "potentialProfit": 7913.190476190476
+    },
+    {
+      "title": "2020 Panini Prizm Premier League Color Blast Mohamed Salah #17 PSA 10 GEM MINT",
+      "multiplier": 15.058561070831008,
+      "roi": 1405.8561070831008,
+      "rawPrice": 89.65,
+      "psa10Price": 1350,
+      "potentialProfit": 1260.35
+    },
+    {
+      "title": "2020 Panini Obsidian Color Blast Black Lamar Jackson #CBB2 PSA 10 GEM MINT",
+      "multiplier": 10.596765197992191,
+      "roi": 959.6765197992191,
+      "rawPrice": 89.65,
+      "psa10Price": 950,
+      "potentialProfit": 860.35
+    },
+    {
+      "title": "2023 Panini Prizm Silver CJ Stroud ROOKIE #339 PSA 10 GEM MINT",
+      "multiplier": 4.796430563301729,
+      "roi": 379.6430563301729,
+      "rawPrice": 89.65,
+      "psa10Price": 430,
+      "potentialProfit": 340.35
+    },
+    {
+      "title": "2018 Baker Mayfield Panini Next Day Kickoff Rated Rookie Auto PSA 10 Autographs Personal Edition RC",
+      "multiplier": 4.184782608695652,
+      "roi": 318.47826086956525,
+      "rawPrice": 92,
+      "psa10Price": 385,
+      "potentialProfit": 293
+    },
+    {
+      "title": "2021 Pokemon Japanese 25th Anniversary Promo Holo Birthday Pikachu #7 PSA 10 GEM",
+      "multiplier": 3.6432306798373038,
+      "roi": 264.32306798373037,
+      "rawPrice": 90.57894736842105,
+      "psa10Price": 330,
+      "potentialProfit": 239.42105263157896
+    },
+    {
+      "title": "2020 Panini Prizm Hyper LeBron James #1 PSA 10 GEM MINT",
+      "multiplier": 2.9761904761904763,
+      "roi": 197.61904761904762,
+      "rawPrice": 168,
+      "psa10Price": 500,
+      "potentialProfit": 332
+    },
+    {
+      "title": "2018 Donruss Optic Luka Doncic ROOKIE #177 PSA 10 GEM MINT",
+      "multiplier": 2.926699481176001,
+      "roi": 192.6699481176001,
+      "rawPrice": 37.585,
+      "psa10Price": 110,
+      "potentialProfit": 72.41499999999999
+    },
+    {
+      "title": "2021 Panini Prizm Draft Picks Stained Glass Cade Cunningham ROOKIE #1 PSA 10 GEM",
+      "multiplier": 2.788622420524261,
+      "roi": 178.8622420524261,
+      "rawPrice": 89.65,
+      "psa10Price": 250,
+      "potentialProfit": 160.35
+    }
+  ],
+  "priceRanges": {
+    "under50": 1,
+    "under100": 8,
+    "under200": 9,
+    "over200": 0
+  },
+  "multiplierRanges": {
+    "2.3-3x": 3,
+    "3-5x": 3,
+    "5-10x": 0,
+    "10x+": 3
+  }
+}

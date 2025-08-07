@@ -1,0 +1,44 @@
+{
+  "totalRecords": 11334,
+  "duplicateAnalysis": {
+    "exactTitle": {
+      "duplicateGroups": 0,
+      "totalDuplicateEntries": 0,
+      "uniqueDuplicateRecords": 0,
+      "percentage": "0.00"
+    },
+    "normalizedTitle": {
+      "duplicateGroups": 6,
+      "totalDuplicateEntries": 12,
+      "uniqueDuplicateRecords": 12,
+      "percentage": "0.11"
+    },
+    "urlBased": {
+      "duplicateGroups": 0,
+      "totalDuplicateEntries": 0,
+      "uniqueDuplicateRecords": 0,
+      "percentage": "0.00"
+    },
+    "ebayIdBased": {
+      "duplicateGroups": 0,
+      "totalDuplicateEntries": 0,
+      "uniqueDuplicateRecords": 0,
+      "percentage": "0.00"
+    },
+    "similarTitle": {
+      "duplicateGroups": 0,
+      "totalDuplicateEntries": 0,
+      "uniqueDuplicateRecords": 0,
+      "percentage": "0.00"
+    },
+    "priceAndSeller": {
+      "duplicateGroups": 985,
+      "totalDuplicateEntries": 9463,
+      "uniqueDuplicateRecords": 9463,
+      "percentage": "83.49"
+    }
+  },
+  "recommendations": [
+    "Consider removing case-insensitive title duplicates"
+  ]
+}

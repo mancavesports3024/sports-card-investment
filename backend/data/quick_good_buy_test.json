@@ -1,0 +1,62 @@
+[
+  {
+    "title": "ANTHONY HERNANDEZ Fluffy Rookie Auto Purple 2023 Panini Select UFC /49 PSA 10",
+    "psa10Price": 200,
+    "rawPrice": 14.969999999999999,
+    "multiplier": 13.360053440213761,
+    "roi": 1236.005344021376,
+    "potentialProfit": 185.03,
+    "searchStrategy": "Parallel Only",
+    "validatedMatches": 2
+  },
+  {
+    "title": "2017 Panini Prizm Patrick Mahomes II RC Light Blue Prizm SP #269 52/199 PSA 10",
+    "psa10Price": 8000,
+    "rawPrice": 775.0165517241378,
+    "multiplier": 10.322360189860241,
+    "roi": 932.2360189860241,
+    "potentialProfit": 7224.983448275862,
+    "searchStrategy": "Player Parallel Number",
+    "validatedMatches": 29
+  },
+  {
+    "title": "1996 Topps Basketball Kobe Bryant ROOKIE #138 PSA 10 GEM MINT",
+    "psa10Price": 850,
+    "rawPrice": 105.86035714285713,
+    "multiplier": 8.029445799553995,
+    "roi": 702.9445799553996,
+    "potentialProfit": 744.1396428571429,
+    "searchStrategy": "Player Parallel Number",
+    "validatedMatches": 30
+  },
+  {
+    "title": "2023 Panini Prizm Silver CJ Stroud ROOKIE #339 PSA 10 GEM MINT",
+    "psa10Price": 430,
+    "rawPrice": 117.0476923076923,
+    "multiplier": 3.6737161709230954,
+    "roi": 267.3716170923095,
+    "potentialProfit": 312.9523076923077,
+    "searchStrategy": "Player Parallel Number",
+    "validatedMatches": 14
+  },
+  {
+    "title": "2018 Donruss Basketball Luka Doncic ROOKIE #177 PSA 10 GEM MINT",
+    "psa10Price": 120,
+    "rawPrice": 42.107600000000005,
+    "multiplier": 2.8498418337782248,
+    "roi": 184.9841833778225,
+    "potentialProfit": 77.8924,
+    "searchStrategy": "Player Parallel Number",
+    "validatedMatches": 26
+  },
+  {
+    "title": "2020 Panini Mosaic Green Anthony Edwards ROOKIE #261 PSA 10 GEM MINT",
+    "psa10Price": 65,
+    "rawPrice": 23.611818181818183,
+    "multiplier": 2.752858737920148,
+    "roi": 175.2858737920148,
+    "potentialProfit": 41.38818181818182,
+    "searchStrategy": "Player Parallel Number",
+    "validatedMatches": 22
+  }
+]

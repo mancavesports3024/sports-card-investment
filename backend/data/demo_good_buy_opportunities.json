@@ -1,0 +1,283 @@
+{
+  "metadata": {
+    "created": "2025-08-07T01:56:50.778Z",
+    "targetMultiplier": 2.3,
+    "minRawPrice": 10,
+    "minPsa10Price": 25,
+    "totalProcessed": 5,
+    "goodBuysFound": 5,
+    "note": "This is a demo using mock data"
+  },
+  "opportunities": [
+    {
+      "card": {
+        "title": "2017 Panini Prizm Patrick Mahomes II RC Light Blue Prizm SP #269 52/199 PSA 10",
+        "psa10Price": 8000,
+        "identifier": "patrick mahomes ii rc light blue sp #269 52/199",
+        "year": "2017",
+        "soldDate": "2024-01-15",
+        "itemUrl": "https://example.com/item1"
+      },
+      "raw": {
+        "avgPrice": 31.75,
+        "count": 12,
+        "minPrice": 2,
+        "maxPrice": 145,
+        "allPrices": [
+          2,
+          4,
+          4,
+          8,
+          13,
+          16,
+          18,
+          20,
+          25,
+          29,
+          97,
+          145
+        ]
+      },
+      "psa9": {
+        "avgPrice": 95.15384615384616,
+        "count": 13,
+        "minPrice": 2,
+        "maxPrice": 285,
+        "allPrices": [
+          2,
+          4,
+          4,
+          5,
+          13,
+          18,
+          25,
+          29,
+          97,
+          225,
+          250,
+          280,
+          285
+        ]
+      },
+      "multiplier": 251.96850393700788,
+      "potentialProfit": 7968.25,
+      "roi": 25096.850393700788
+    },
+    {
+      "card": {
+        "title": "2020 Panini Prizm Justin Herbert RC Silver Prizm #280 PSA 10",
+        "psa10Price": 1200,
+        "identifier": "justin herbert rc silver #280",
+        "year": "2020",
+        "soldDate": "2024-01-20",
+        "itemUrl": "https://example.com/item2"
+      },
+      "raw": {
+        "avgPrice": 31.75,
+        "count": 12,
+        "minPrice": 2,
+        "maxPrice": 145,
+        "allPrices": [
+          2,
+          4,
+          4,
+          8,
+          13,
+          16,
+          18,
+          20,
+          25,
+          29,
+          97,
+          145
+        ]
+      },
+      "psa9": {
+        "avgPrice": 101.42857142857143,
+        "count": 14,
+        "minPrice": 2,
+        "maxPrice": 285,
+        "allPrices": [
+          2,
+          4,
+          4,
+          13,
+          16,
+          20,
+          29,
+          50,
+          97,
+          145,
+          225,
+          250,
+          280,
+          285
+        ]
+      },
+      "multiplier": 37.79527559055118,
+      "potentialProfit": 1168.25,
+      "roi": 3679.5275590551178
+    },
+    {
+      "card": {
+        "title": "2018 Panini Prizm Josh Allen RC Blue Prizm #280 PSA 10",
+        "psa10Price": 950,
+        "identifier": "josh allen rc blue #280",
+        "year": "2018",
+        "soldDate": "2024-01-25",
+        "itemUrl": "https://example.com/item3"
+      },
+      "raw": {
+        "avgPrice": 31.75,
+        "count": 12,
+        "minPrice": 2,
+        "maxPrice": 145,
+        "allPrices": [
+          2,
+          4,
+          4,
+          8,
+          13,
+          16,
+          18,
+          20,
+          25,
+          29,
+          97,
+          145
+        ]
+      },
+      "psa9": {
+        "avgPrice": 117.76923076923077,
+        "count": 13,
+        "minPrice": 2,
+        "maxPrice": 285,
+        "allPrices": [
+          2,
+          4,
+          4,
+          13,
+          25,
+          29,
+          72,
+          97,
+          225,
+          245,
+          250,
+          280,
+          285
+        ]
+      },
+      "multiplier": 29.921259842519685,
+      "potentialProfit": 918.25,
+      "roi": 2892.1259842519685
+    },
+    {
+      "card": {
+        "title": "2021 Panini Prizm Trevor Lawrence RC Gold Prizm #280 PSA 10",
+        "psa10Price": 750,
+        "identifier": "trevor lawrence rc gold #280",
+        "year": "2021",
+        "soldDate": "2024-01-30",
+        "itemUrl": "https://example.com/item4"
+      },
+      "raw": {
+        "avgPrice": 31.75,
+        "count": 12,
+        "minPrice": 2,
+        "maxPrice": 145,
+        "allPrices": [
+          2,
+          4,
+          4,
+          8,
+          13,
+          16,
+          18,
+          20,
+          25,
+          29,
+          97,
+          145
+        ]
+      },
+      "psa9": {
+        "avgPrice": 98.07692307692308,
+        "count": 13,
+        "minPrice": 2,
+        "maxPrice": 285,
+        "allPrices": [
+          2,
+          4,
+          4,
+          13,
+          16,
+          20,
+          29,
+          50,
+          97,
+          225,
+          250,
+          280,
+          285
+        ]
+      },
+      "multiplier": 23.62204724409449,
+      "potentialProfit": 718.25,
+      "roi": 2262.2047244094488
+    },
+    {
+      "card": {
+        "title": "2019 Panini Prizm Kyler Murray RC Red Prizm #280 PSA 10",
+        "psa10Price": 600,
+        "identifier": "kyler murray rc red #280",
+        "year": "2019",
+        "soldDate": "2024-02-01",
+        "itemUrl": "https://example.com/item5"
+      },
+      "raw": {
+        "avgPrice": 31.75,
+        "count": 12,
+        "minPrice": 2,
+        "maxPrice": 145,
+        "allPrices": [
+          2,
+          4,
+          4,
+          8,
+          13,
+          16,
+          18,
+          20,
+          25,
+          29,
+          97,
+          145
+        ]
+      },
+      "psa9": {
+        "avgPrice": 101.83333333333333,
+        "count": 12,
+        "minPrice": 2,
+        "maxPrice": 285,
+        "allPrices": [
+          2,
+          4,
+          4,
+          8,
+          13,
+          25,
+          29,
+          97,
+          225,
+          250,
+          280,
+          285
+        ]
+      },
+      "multiplier": 18.89763779527559,
+      "potentialProfit": 568.25,
+      "roi": 1789.7637795275589
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "totalOriginalRecords": 11334,
+  "totalCleanedRecords": 11328,
+  "duplicatesRemoved": 6,
+  "duplicateIndices": [
+    4569,
+    5359,
+    6730,
+    7649,
+    7784,
+    10030
+  ],
+  "duplicatePercentage": "0.05"
+}
