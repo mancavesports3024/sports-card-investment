@@ -3,6 +3,13 @@ const fs = require('fs');
 const path = require('path');
 const OptimizedSearchEngine = require('./optimized-search-engine');
 const { search130point } = require('./services/130pointService');
+const { 
+    ultimateMultiSportFilter, 
+    detectSport, 
+    getSportExclusions, 
+    isBaseParallel, 
+    getPSAGrade 
+} = require('./ultimate-multi-sport-filtering-system');
 
 // Database files
 const DATABASE_FILE = path.join(__dirname, 'data', 'psa10_recent_90_days_database.json');
@@ -96,8 +103,18 @@ async function fastPriceComparison(searchEngine, card) {
                 psa10Price - analysis.psa9.avgPrice : 0;
             const psa9ToPsa10Percent = analysis.psa9.avgPrice > 0 ? (psa9ToPsa10Diff / analysis.psa9.avgPrice) * 100 : 0;
             
+            // Sport detection for fast search results
+            const detectedSport = detectSport(identifier);
+            const isBase = isBaseParallel(identifier);
+            
             return {
                 cardTitle: identifier,
+                sport: detectedSport,
+                filterInfo: {
+                    detectedSport: detectedSport,
+                    isBaseParallel: isBase,
+                    exclusionCount: getSportExclusions(identifier).length
+                },
                 raw: {
                     count: analysis.raw.count,
                     avgPrice: analysis.raw.avgPrice,
@@ -153,18 +170,9 @@ async function apiPriceComparison(card, limit = 20) {
         const psa9Query = `${cardTitle} PSA 9`;
         const psa9Results = await search130point(psa9Query, limit);
         
-        // Filter for raw cards (no PSA mentioned)
-        const rawCards = rawResults.filter(card => {
-            const title = card.title?.toLowerCase() || '';
-            return !title.includes('psa') && !title.includes('graded') && 
-                   !title.includes('gem mt') && !title.includes('gem mint');
-        });
-        
-        // Filter for PSA 9 cards
-        const psa9Cards = psa9Results.filter(card => {
-            const title = card.title?.toLowerCase() || '';
-            return title.includes('psa 9') || title.includes('psa9');
-        });
+        // Filter using ultimate multi-sport filtering system
+        const rawCards = rawResults.filter(card => ultimateMultiSportFilter(card, 'raw'));
+        const psa9Cards = psa9Results.filter(card => ultimateMultiSportFilter(card, 'psa9'));
         
         // Calculate averages
         const rawAvg = rawCards.length > 0 ? 
@@ -184,8 +192,19 @@ async function apiPriceComparison(card, limit = 20) {
         const psa9ToPsa10Diff = psa10Price > 0 && psa9Avg > 0 ? psa10Price - psa9Avg : 0;
         const psa9ToPsa10Percent = psa9Avg > 0 ? (psa9ToPsa10Diff / psa9Avg) * 100 : 0;
         
+        // Sport detection and filtering information
+        const detectedSport = detectSport(cardTitle);
+        const exclusions = getSportExclusions(cardTitle);
+        const isBase = isBaseParallel(cardTitle);
+        
         return {
             cardTitle: cardTitle,
+            sport: detectedSport,
+            filterInfo: {
+                detectedSport: detectedSport,
+                isBaseParallel: isBase,
+                exclusionCount: exclusions.length
+            },
             raw: {
                 count: rawCards.length,
                 avgPrice: rawAvg,
@@ -308,6 +327,9 @@ async function hybridBatchPriceComparisons(limit = 1000, forceApi = false) {
                         };
                         
                         console.log(`   📈 ${card.summaryTitle || card.title}`);
+                        if (priceData.sport) {
+                            console.log(`      🏈⚾🏀🏒⚽ Sport: ${priceData.sport.toUpperCase()}${priceData.filterInfo?.isBaseParallel ? ' (Base Parallel)' : ''}`);
+                        }
                         if (priceData.raw.avgPrice > 0) {
                             console.log(`      💰 Raw: $${priceData.raw.avgPrice.toFixed(2)} (${priceData.raw.count} cards) [${priceData.source}]`);
                         }
@@ -356,6 +378,9 @@ async function hybridBatchPriceComparisons(limit = 1000, forceApi = false) {
                         // Log results (only for first few in batch)
                         if (batchIndex < 3) {
                             console.log(`   📈 ${card.summaryTitle || card.title}`);
+                            if (priceData.sport) {
+                                console.log(`      🏈⚾🏀🏒⚽ Sport: ${priceData.sport.toUpperCase()}${priceData.filterInfo?.isBaseParallel ? ' (Base Parallel)' : ''}`);
+                            }
                             if (priceData.raw.avgPrice > 0) {
                                 console.log(`      💰 Raw: $${priceData.raw.avgPrice.toFixed(2)} (${priceData.raw.count} cards) [${priceData.source}]`);
                             }
