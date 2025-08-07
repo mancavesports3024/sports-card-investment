@@ -8,7 +8,6 @@
     "dev": "nodemon index.js",
     "build": "echo 'No build step required'",
     "sitemap": "node generate-sitemap.js",
-    "auto-sitemap": "node auto-update-sitemap.js",
     "postdeploy": "npm run sitemap"
   },
   "engines": {
