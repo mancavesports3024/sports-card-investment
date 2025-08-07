@@ -1,0 +1,419 @@
+{
+  "originalRecords": 11334,
+  "filteredRecords": 9095,
+  "removedRecords": 2239,
+  "removalPercentage": "19.75",
+  "removalBreakdown": {
+    "under30": 2173,
+    "zeroPrice": 66,
+    "noPriceData": 0
+  },
+  "remainingPriceStats": {
+    "min": 30,
+    "max": 500200,
+    "average": 369.84988015393014,
+    "median": 100.75
+  },
+  "sampleRemovedItems": [
+    {
+      "index": 46,
+      "title": "2020 Panini Mosaic Jonathan Taylor #216 RC Rookie PSA 10 GEM MINT Colts",
+      "price": 12,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:40:53.000Z"
+    },
+    {
+      "index": 50,
+      "title": "2023 Panini Mosaic Silver Prizm #202 Brandon Miller Hornets RC Rookie PSA 10",
+      "price": 22.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:40:01.000Z"
+    },
+    {
+      "index": 51,
+      "title": "FA/GRANT CROWN ZENITH POKEMON SWORD AND SHIELD CROWN ZENITH 2023 GG62 PSA 10",
+      "price": 26.15,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:40:00.000Z"
+    },
+    {
+      "index": 55,
+      "title": "Josh Allen RATED ROOKIE PSA 10 Chase – Football Card Lot SEE DESCRIPTION",
+      "price": 15,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:39:21.000Z"
+    },
+    {
+      "index": 58,
+      "title": "50979626 Zion Williamson 2019 Panini Mosaic 209 Mosaic Rookie RC PSA 10",
+      "price": 19.95,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:39:05.000Z"
+    },
+    {
+      "index": 59,
+      "title": "MAGNEZONE EX POKEMON SVI EN-SCARLET & VIOLET 2023 065 PSA 10",
+      "price": 25.19,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:39:00.000Z"
+    },
+    {
+      "index": 63,
+      "title": "2024 Topps Chrome - Pink Refractor #189 Masyn Winn (RC) PSA 10",
+      "price": 20.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:38:01.000Z"
+    },
+    {
+      "index": 66,
+      "title": "Kevin Durant 2017 Panini Donruss Optic #47 Warriors Holo Prizm Silver PSA 10 GEM",
+      "price": 25,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:37:54.000Z"
+    },
+    {
+      "index": 71,
+      "title": "2022 Bowman Chrome M/B (1st) - TREY SWEENEY - Mojo Refractor - PSA 10 Gem Mint",
+      "price": 9.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:36:17.000Z"
+    },
+    {
+      "index": 74,
+      "title": "2024 Topps Finest Masyn Winn Future So Bright Blue /99 PSA 10",
+      "price": 27,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:36:01.000Z"
+    },
+    {
+      "index": 85,
+      "title": "2023 Pokemon Cards CHN. Rhyperior V 124/115 SR RPA 10 (SAME AS PSA 10)",
+      "price": 15.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:33:20.000Z"
+    },
+    {
+      "index": 87,
+      "title": "2022 Bowman Chrome (1st) - TREY SWEENEY - ATOMIC Refractor - PSA 10 Gem Mint",
+      "price": 10.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:33:13.000Z"
+    },
+    {
+      "index": 91,
+      "title": "2024 Panini WNBA Prizm Nika Muhl RC Silver Rookie #75 Storm PSA 10",
+      "price": 20.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:32:01.000Z"
+    },
+    {
+      "index": 96,
+      "title": "2024 TOPPS FINEST ELLY DE LA CRUZ #64 \"ROOKIE\" PSA GEM MT 10",
+      "price": 26,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:31:14.000Z"
+    },
+    {
+      "index": 99,
+      "title": "WIMPOD-HOLO HIDDEN FATES POKEMON SUN & MOON HIDDEN FATES 2019 SV4 PSA 10",
+      "price": 28.4,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:31:00.000Z"
+    },
+    {
+      "index": 105,
+      "title": "Roony Bardghi 2022-23 Topps Chrome Ucc Wonderkids PSA 10",
+      "price": 25,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:28:48.000Z"
+    },
+    {
+      "index": 107,
+      "title": "Jordan Travis 2024 Panini Prizm 359 Silver Rookie RC PSA 10",
+      "price": 9.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:28:01.000Z"
+    },
+    {
+      "index": 108,
+      "title": "PHEROMOSA-HOLO HIDDEN FATES POKEMON SUN & MOON HIDDEN FATES 2019 SV5 PSA 10",
+      "price": 29.48,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:28:00.000Z"
+    },
+    {
+      "index": 125,
+      "title": "1992 Topps - All-Star Will Clark #386 Gold PSA 10",
+      "price": 29,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:25:58.000Z"
+    },
+    {
+      "index": 135,
+      "title": "POIPOLE-HOLO HIDDEN FATES POKEMON SUN & MOON HIDDEN FATES 2019 SV19 PSA 10",
+      "price": 27.92,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:25:00.000Z"
+    },
+    {
+      "index": 136,
+      "title": "Gary Sanchez, 6 Graded Cards, Including Psa 10, Details in Description",
+      "price": 8.51,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:24:57.000Z"
+    },
+    {
+      "index": 138,
+      "title": "2023 Select Mikal Bridges #34 Red Disco /49 PSA 10",
+      "price": 20,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:24:13.000Z"
+    },
+    {
+      "index": 162,
+      "title": "2023 Kakawow Phantom Disney 100 Marlin #80 Silver Holo Finding Nemo PSA 10",
+      "price": 15.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:20:52.000Z"
+    },
+    {
+      "index": 163,
+      "title": "AUSAR THOMPSON 2022 SKYBOX METAL UNIVERSE Z-FORCE ROOKIE RC PSA GEM MT 10 POP 5!",
+      "price": 8.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:20:48.000Z"
+    },
+    {
+      "index": 171,
+      "title": "2023 Kakawow Disney 100 Years #24 Olaf Silver Refractor PSA 10 GEM MINT Frozen",
+      "price": 15.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:18:55.000Z"
+    },
+    {
+      "index": 172,
+      "title": "2020 NBA Chronicles - Luka Doncic Blue Psa 10 #575 - Phoenix Basketball",
+      "price": 25.6,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:18:49.000Z"
+    },
+    {
+      "index": 186,
+      "title": "CJ Abrams 2019 Bowman Draft 1st Bowman Auto PSA/DNA 10 Washington Nationals",
+      "price": 16.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:16:18.000Z"
+    },
+    {
+      "index": 191,
+      "title": "2024 TOPPS NOW PAUL SKENES #491 \"ROOKIE\" PSA GEM MT 10",
+      "price": 22,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:15:51.000Z"
+    },
+    {
+      "index": 203,
+      "title": "READ AD FIRST CAREFULLY-2015 PANINI PRIZM GALE SAYERS #40 PSA 10 TRADING CARD",
+      "price": 14.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:12:08.000Z"
+    },
+    {
+      "index": 207,
+      "title": "1985 Topps WWF Brutus The Barber Beefcake #10 PSA 4",
+      "price": 4.99,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:11:05.000Z"
+    },
+    {
+      "index": 209,
+      "title": "1992 Leaf #255 George Brett PSA 10 (GEM MINT)",
+      "price": 21.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:10:42.000Z"
+    },
+    {
+      "index": 221,
+      "title": "2022 Topps Chrome Update CJ Abrams Aqua Refractor /250 PSA 10",
+      "price": 16.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:09:19.000Z"
+    },
+    {
+      "index": 227,
+      "title": "1986 Topps Set Break Tony Gwynn #10 PSA 9 MINT San Diego Padres New Slab",
+      "price": 24,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:08:25.000Z"
+    },
+    {
+      "index": 229,
+      "title": "2021 Donruss Optic Holo #203 TREY LANCE RC PSA 10 GEM MINT",
+      "price": 29.99,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:07:53.000Z"
+    },
+    {
+      "index": 236,
+      "title": "STEELIX #201 PSA 10 • 2020 P.M. Pokemon Chinese Sun & Moon Legendary Clash Set B",
+      "price": 9.89,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:05:22.000Z"
+    },
+    {
+      "index": 249,
+      "title": "2021 Topps Now UEFA ERLING HAALAND Fastest Player to Score 20 goals PSA 10 GEM",
+      "price": 11.51,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:02:06.000Z"
+    },
+    {
+      "index": 259,
+      "title": "Disney Lorcana Simba Future King Foil #188/204 PSA 10 GEM MT",
+      "price": 25.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:01:04.000Z"
+    },
+    {
+      "index": 262,
+      "title": "CONNOR  BEDARD PSA MAGAZINE DEC 2024 CAITLIN CLARK!AUTO GEM MT 10 CARD!HOCKEY!!!",
+      "price": 4.95,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:00:01.000Z"
+    },
+    {
+      "index": 263,
+      "title": "PSA 10 Durant ex 130/106 SAR sv8 Super Erectric Breaker Japanese Pokemon Card",
+      "price": 27,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:00:01.000Z"
+    },
+    {
+      "index": 264,
+      "title": "PSYDUCK PSA 10 2023 POKEMON JAPANESE SV2A-POKEMON 151 ART RARE #175",
+      "price": 27.88,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T16:00:01.000Z"
+    },
+    {
+      "index": 276,
+      "title": "2023 Phoenix Brandon Miller Fade To Black-Red Ice #8 PSA GEM MT 10",
+      "price": 27,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T15:57:18.000Z"
+    },
+    {
+      "index": 277,
+      "title": "2023 Mosaic Bilal Coulibaly Red Seismic #268 PSA GEM MT 10",
+      "price": 27,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T15:56:40.000Z"
+    },
+    {
+      "index": 301,
+      "title": "2020 Topps Chrome Mike Trout Sapphire Edition Psa 10",
+      "price": 27,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T15:51:20.000Z"
+    },
+    {
+      "index": 304,
+      "title": "2019 Panini Prizm #19 Karl Malone Utah Jazz 🔥 PSA 10 Population 6",
+      "price": 20,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T15:49:41.000Z"
+    },
+    {
+      "index": 307,
+      "title": "PSA 10 2025 POKEMON JTG EN-JOURNEY TOGETHER ULTRA RARE #177 SALAMENCE EX",
+      "price": 23,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T15:49:28.000Z"
+    },
+    {
+      "index": 308,
+      "title": "Anthony Richardson (RC) 🏆 PSA 10 🏆 2023 Panini Illusions Funkadelic - Colts",
+      "price": 15,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T15:49:26.000Z"
+    },
+    {
+      "index": 310,
+      "title": "Tyler Herro RC 2019-20 Panini Prizm #THR  Swatches 🔥orange ice Psa 10",
+      "price": 15,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T15:49:12.000Z"
+    },
+    {
+      "index": 317,
+      "title": "1992 TRAKS JEFF GORDON AUTO ON-CARD AUTOGRAPH NASCAR HOF PSA 10 AUTO LOW POP 5",
+      "price": 25,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T15:46:43.000Z"
+    },
+    {
+      "index": 340,
+      "title": "Tom Brady 2021 Mosaic Camo Pink #137 Psa 10",
+      "price": 27,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T15:41:57.000Z"
+    },
+    {
+      "index": 342,
+      "title": "2000 Collector's Edge Uncirculated Jamal Lewis RC /5000 PSA 10 Baltimore Ravens",
+      "price": 9.5,
+      "reason": "under_30",
+      "seller": "130point",
+      "soldDate": "2025-08-03T15:41:01.000Z"
+    }
+  ]
+}
