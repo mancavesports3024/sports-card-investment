@@ -1,4 +1,4 @@
-const Database = require('sqlite');
+const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
@@ -23,8 +23,18 @@ class SQLitePriceUpdater {
             }
             
             console.log(`🗄️ Connecting to database at: ${this.dbPath}`);
-            this.db = await Database.open(this.dbPath);
-            console.log('✅ Connected to SQLite database');
+            
+            return new Promise((resolve, reject) => {
+                this.db = new sqlite3.Database(this.dbPath, (err) => {
+                    if (err) {
+                        console.error('❌ Error connecting to database:', err);
+                        reject(err);
+                    } else {
+                        console.log('✅ Connected to SQLite database');
+                        resolve();
+                    }
+                });
+            });
         } catch (err) {
             console.error('❌ Error connecting to database:', err);
             throw err;
@@ -40,8 +50,16 @@ class SQLitePriceUpdater {
                 LIMIT ?
             `;
             
-            const rows = await this.db.all(query, limit);
-            return rows;
+            return new Promise((resolve, reject) => {
+                this.db.all(query, [limit], (err, rows) => {
+                    if (err) {
+                        console.error('❌ Error fetching cards:', err);
+                        reject(err);
+                    } else {
+                        resolve(rows);
+                    }
+                });
+            });
         } catch (err) {
             console.error('❌ Error fetching cards:', err);
             throw err;
@@ -63,15 +81,22 @@ class SQLitePriceUpdater {
             const priceComparisons = JSON.stringify(priceData);
             const now = new Date().toISOString();
             
-            const result = await this.db.run(query, 
-                priceData.raw?.avgPrice || null,
-                priceData.psa9?.avgPrice || null,
-                priceComparisons,
-                now,
-                cardId
-            );
-            
-            return result.changes;
+            return new Promise((resolve, reject) => {
+                this.db.run(query, [
+                    priceData.raw?.avgPrice || null,
+                    priceData.psa9?.avgPrice || null,
+                    priceComparisons,
+                    now,
+                    cardId
+                ], function(err) {
+                    if (err) {
+                        console.error('❌ Error updating card:', err);
+                        reject(err);
+                    } else {
+                        resolve(this.changes);
+                    }
+                });
+            });
         } catch (err) {
             console.error('❌ Error updating card:', err);
             throw err;
@@ -468,13 +493,18 @@ class SQLitePriceUpdater {
                 'SELECT COUNT(*) as count FROM cards WHERE rawAveragePrice IS NULL OR psa9AveragePrice IS NULL'
             ];
             
-            const results = await Promise.all(queries.map(async query => {
-                const row = await this.db.get(query);
-                return row.count;
-            }));
-            
-            const [total, withPrices, missingPrices] = results;
-            return { total, withPrices, missingPrices };
+            return new Promise((resolve, reject) => {
+                Promise.all(queries.map(query => {
+                    return new Promise((resolve, reject) => {
+                        this.db.get(query, (err, row) => {
+                            if (err) reject(err);
+                            else resolve(row.count);
+                        });
+                    });
+                })).then(([total, withPrices, missingPrices]) => {
+                    resolve({ total, withPrices, missingPrices });
+                }).catch(reject);
+            });
         } catch (err) {
             console.error('❌ Error getting database stats:', err);
             throw err;
