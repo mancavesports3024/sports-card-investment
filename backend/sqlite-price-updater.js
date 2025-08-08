@@ -1,4 +1,4 @@
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 const path = require('path');
 const axios = require('axios');
 const cheerio = require('cheerio');
@@ -13,21 +13,17 @@ class SQLitePriceUpdater {
     }
 
     async connect() {
-        return new Promise((resolve, reject) => {
-            this.db = new sqlite3.Database(this.dbPath, (err) => {
-                if (err) {
-                    console.error('❌ Error connecting to database:', err);
-                    reject(err);
-                } else {
-                    console.log('✅ Connected to SQLite database');
-                    resolve();
-                }
-            });
-        });
+        try {
+            this.db = new Database(this.dbPath);
+            console.log('✅ Connected to SQLite database');
+        } catch (err) {
+            console.error('❌ Error connecting to database:', err);
+            throw err;
+        }
     }
 
     async getCardsMissingPrices(limit = 100) {
-        return new Promise((resolve, reject) => {
+        try {
             const query = `
                 SELECT id, title, summaryTitle, sport, filterInfo
                 FROM cards 
@@ -35,19 +31,16 @@ class SQLitePriceUpdater {
                 LIMIT ?
             `;
             
-            this.db.all(query, [limit], (err, rows) => {
-                if (err) {
-                    console.error('❌ Error fetching cards:', err);
-                    reject(err);
-                } else {
-                    resolve(rows);
-                }
-            });
-        });
+            const rows = this.db.prepare(query).all(limit);
+            return rows;
+        } catch (err) {
+            console.error('❌ Error fetching cards:', err);
+            throw err;
+        }
     }
 
     async updateCardPrices(cardId, priceData) {
-        return new Promise((resolve, reject) => {
+        try {
             const query = `
                 UPDATE cards 
                 SET rawAveragePrice = ?, 
@@ -61,21 +54,20 @@ class SQLitePriceUpdater {
             const priceComparisons = JSON.stringify(priceData);
             const now = new Date().toISOString();
             
-            this.db.run(query, [
+            const stmt = this.db.prepare(query);
+            const result = stmt.run(
                 priceData.raw?.avgPrice || null,
                 priceData.psa9?.avgPrice || null,
                 priceComparisons,
                 now,
                 cardId
-            ], function(err) {
-                if (err) {
-                    console.error('❌ Error updating card:', err);
-                    reject(err);
-                } else {
-                    resolve(this.changes);
-                }
-            });
-        });
+            );
+            
+            return result.changes;
+        } catch (err) {
+            console.error('❌ Error updating card:', err);
+            throw err;
+        }
     }
 
     // Extract card identifier function (same as before)
@@ -461,24 +453,25 @@ class SQLitePriceUpdater {
     }
 
     async getDatabaseStats() {
-        return new Promise((resolve, reject) => {
+        try {
             const queries = [
                 'SELECT COUNT(*) as count FROM cards',
                 'SELECT COUNT(*) as count FROM cards WHERE rawAveragePrice IS NOT NULL AND psa9AveragePrice IS NOT NULL',
                 'SELECT COUNT(*) as count FROM cards WHERE rawAveragePrice IS NULL OR psa9AveragePrice IS NULL'
             ];
             
-            Promise.all(queries.map(query => {
-                return new Promise((resolve, reject) => {
-                    this.db.get(query, (err, row) => {
-                        if (err) reject(err);
-                        else resolve(row.count);
-                    });
-                });
-            })).then(([total, withPrices, missingPrices]) => {
-                resolve({ total, withPrices, missingPrices });
-            }).catch(reject);
-        });
+            const results = queries.map(query => {
+                const stmt = this.db.prepare(query);
+                const row = stmt.get();
+                return row.count;
+            });
+            
+            const [total, withPrices, missingPrices] = results;
+            return { total, withPrices, missingPrices };
+        } catch (err) {
+            console.error('❌ Error getting database stats:', err);
+            throw err;
+        }
     }
 }
 
