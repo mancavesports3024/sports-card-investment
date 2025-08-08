@@ -683,6 +683,78 @@ app.post('/api/create-database', async (req, res) => {
   }
 });
 
+// View price data endpoint
+app.get('/api/price-data', async (req, res) => {
+  try {
+    console.log('📊 Fetching price data from SQLite database...');
+    
+    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
+    const updater = new SQLitePriceUpdater();
+    await updater.connect();
+    
+    // Get all cards with their price data
+    const cards = await new Promise((resolve, reject) => {
+      updater.db.all(`
+        SELECT id, title, summaryTitle, sport, 
+               rawAveragePrice, psa9AveragePrice, priceComparisons,
+               lastUpdated, created_at
+        FROM cards 
+        ORDER BY created_at DESC
+        LIMIT 50
+      `, (err, rows) => {
+        if (err) {
+          console.error('❌ Error fetching price data:', err);
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+    
+    // Parse price comparisons JSON for each card
+    const cardsWithParsedData = cards.map(card => {
+      let parsedComparisons = null;
+      if (card.priceComparisons) {
+        try {
+          parsedComparisons = JSON.parse(card.priceComparisons);
+        } catch (e) {
+          console.log('⚠️ Error parsing price comparisons for card:', card.id);
+        }
+      }
+      
+      return {
+        id: card.id,
+        title: card.title,
+        summaryTitle: card.summaryTitle,
+        sport: card.sport,
+        rawAveragePrice: card.rawAveragePrice,
+        psa9AveragePrice: card.psa9AveragePrice,
+        priceComparisons: parsedComparisons,
+        lastUpdated: card.lastUpdated,
+        created_at: card.created_at
+      };
+    });
+    
+    updater.db.close();
+    
+    res.json({
+      success: true,
+      totalCards: cardsWithParsedData.length,
+      cards: cardsWithParsedData,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching price data:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch price data',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Add test data endpoint
 app.post('/api/add-test-data', async (req, res) => {
   try {
