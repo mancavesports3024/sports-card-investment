@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const Database = require('sqlite');
+const sqlite3 = require('sqlite3').verbose();
 
 async function createDatabase() {
     console.log('🗄️ Creating SQLite database...');
@@ -29,7 +29,17 @@ async function createDatabase() {
     const absolutePath = path.resolve(dbPath);
     console.log(`🗄️ Absolute database path: ${absolutePath}`);
     
-    const db = await Database.open(absolutePath);
+    return new Promise((resolve, reject) => {
+        const db = new sqlite3.Database(absolutePath, (err) => {
+            if (err) {
+                console.error('❌ Error opening database:', err);
+                reject(err);
+            } else {
+                console.log('✅ Database opened successfully');
+                resolve(db);
+            }
+        });
+    });
     
     // Create cards table
     await db.exec(`
@@ -71,71 +81,91 @@ async function migrateData() {
         console.log(`📊 Found ${items.length} cards to migrate`);
         
         // Create database
-        const db = await createDatabase();
-        
+            const db = await createDatabase();
+    
+    return new Promise((resolve, reject) => {
         // Begin transaction for faster inserts
-        await db.exec('BEGIN TRANSACTION');
-        
-        const stmt = db.prepare(`
-            INSERT INTO cards (
-                title, summaryTitle, psa10Price, psa10PriceDate,
-                rawAveragePrice, psa9AveragePrice, sport, filterInfo,
-                priceComparisons, lastUpdated
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
-        
-        let inserted = 0;
-        
-        for (const card of items) {
-            // Extract price comparison data
-            let rawPrice = null;
-            let psa9Price = null;
-            let priceComparisons = null;
+        db.serialize(() => {
+            db.run('BEGIN TRANSACTION');
             
-            if (card.priceComparisons) {
-                rawPrice = card.priceComparisons.raw?.avgPrice || null;
-                psa9Price = card.priceComparisons.psa9?.avgPrice || null;
-                priceComparisons = JSON.stringify(card.priceComparisons);
-            }
+            const stmt = db.prepare(`
+                INSERT INTO cards (
+                    title, summaryTitle, psa10Price, psa10PriceDate,
+                    rawAveragePrice, psa9AveragePrice, sport, filterInfo,
+                    priceComparisons, lastUpdated
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `);
             
-            await stmt.run([
-                card.title || '',
-                card.summaryTitle || '',
-                card.psa10Price || null,
-                card.psa10PriceDate || null,
-                rawPrice,
-                psa9Price,
-                card.sport || null,
-                card.filterInfo ? JSON.stringify(card.filterInfo) : null,
-                priceComparisons,
-                card.lastUpdated || null
-            ]);
+            let inserted = 0;
             
-            inserted++;
+            items.forEach((card) => {
+                // Extract price comparison data
+                let rawPrice = null;
+                let psa9Price = null;
+                let priceComparisons = null;
+                
+                if (card.priceComparisons) {
+                    rawPrice = card.priceComparisons.raw?.avgPrice || null;
+                    psa9Price = card.priceComparisons.psa9?.avgPrice || null;
+                    priceComparisons = JSON.stringify(card.priceComparisons);
+                }
+                
+                stmt.run([
+                    card.title || '',
+                    card.summaryTitle || '',
+                    card.psa10Price || null,
+                    card.psa10PriceDate || null,
+                    rawPrice,
+                    psa9Price,
+                    card.sport || null,
+                    card.filterInfo ? JSON.stringify(card.filterInfo) : null,
+                    priceComparisons,
+                    card.lastUpdated || null
+                ]);
+                
+                inserted++;
+                
+                if (inserted % 1000 === 0) {
+                    console.log(`📈 Migrated ${inserted}/${items.length} cards...`);
+                }
+            });
             
-            if (inserted % 1000 === 0) {
-                console.log(`📈 Migrated ${inserted}/${items.length} cards...`);
-            }
-        }
-        
-        stmt.finalize();
-        await db.exec('COMMIT');
-        
-        console.log(`✅ Successfully migrated ${inserted} cards to SQLite`);
-        
-        // Verify migration
-        const countRow = await db.get('SELECT COUNT(*) as count FROM cards');
-        console.log(`📊 Database now contains ${countRow.count} cards`);
-        
-        // Check missing prices
-        const missingRow = await db.get(`
-            SELECT COUNT(*) as count 
-            FROM cards 
-            WHERE rawAveragePrice IS NULL OR psa9AveragePrice IS NULL
-        `);
-        console.log(`🔄 ${missingRow.count} cards still missing price data`);
-        
-        await db.close();
+            stmt.finalize(() => {
+                db.run('COMMIT', (err) => {
+                    if (err) {
+                        console.error('❌ Error committing transaction:', err);
+                        reject(err);
+                    } else {
+                        console.log(`✅ Successfully migrated ${inserted} cards to SQLite`);
+                        
+                        // Verify migration
+                        db.get('SELECT COUNT(*) as count FROM cards', (err, row) => {
+                            if (err) {
+                                console.error('❌ Error verifying migration:', err);
+                            } else {
+                                console.log(`📊 Database now contains ${row.count} cards`);
+                                
+                                // Check missing prices
+                                db.get(`
+                                    SELECT COUNT(*) as count 
+                                    FROM cards 
+                                    WHERE rawAveragePrice IS NULL OR psa9AveragePrice IS NULL
+                                `, (err, row) => {
+                                    if (err) {
+                                        console.error('❌ Error checking missing prices:', err);
+                                    } else {
+                                        console.log(`🔄 ${row.count} cards still missing price data`);
+                                    }
+                                    db.close();
+                                    resolve();
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    });
         
     } catch (error) {
         console.error('❌ Error during migration:', error);

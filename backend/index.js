@@ -617,7 +617,7 @@ app.post('/api/create-database', async (req, res) => {
     // First try a simple test
     const fs = require('fs');
     const path = require('path');
-    const Database = require('sqlite');
+    const sqlite3 = require('sqlite3').verbose();
     
     const dataDir = path.join(__dirname, 'data');
     const dbPath = path.join(dataDir, 'test.db');
@@ -630,11 +630,25 @@ app.post('/api/create-database', async (req, res) => {
     }
     
     // Try to create a simple test database
-    const testDb = await Database.open(dbPath);
-    await testDb.exec('CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY)');
-    await testDb.close();
-    
-    console.log('✅ Test database created successfully');
+    await new Promise((resolve, reject) => {
+      const testDb = new sqlite3.Database(dbPath, (err) => {
+        if (err) {
+          console.error('❌ Error creating test database:', err);
+          reject(err);
+        } else {
+          testDb.run('CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY)', (err) => {
+            if (err) {
+              console.error('❌ Error creating test table:', err);
+              reject(err);
+            } else {
+              console.log('✅ Test database created successfully');
+              testDb.close();
+              resolve();
+            }
+          });
+        }
+      });
+    });
     
     // Now create the real database
     const { createDatabase } = require('./create-sqlite-database.js');
