@@ -651,12 +651,16 @@ app.post('/api/create-database', async (req, res) => {
     });
     
     // Now create the real database
-    const { createDatabase } = require('./create-sqlite-database.js');
+    const { createDatabase, migrateData } = require('./create-sqlite-database.js');
     await createDatabase();
+    
+    // Migrate data from JSON to SQLite
+    console.log('📦 Migrating data from JSON to SQLite...');
+    await migrateData();
     
     res.json({
       success: true,
-      message: 'SQLite database created successfully',
+      message: 'SQLite database created and populated successfully',
       timestamp: new Date().toISOString()
     });
     
