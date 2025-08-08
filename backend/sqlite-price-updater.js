@@ -1,4 +1,4 @@
-const Database = require('better-sqlite3');
+const Database = require('sqlite');
 const path = require('path');
 const axios = require('axios');
 const cheerio = require('cheerio');
@@ -14,7 +14,7 @@ class SQLitePriceUpdater {
 
     async connect() {
         try {
-            this.db = new Database(this.dbPath);
+            this.db = await Database.open(this.dbPath);
             console.log('✅ Connected to SQLite database');
         } catch (err) {
             console.error('❌ Error connecting to database:', err);
@@ -31,7 +31,7 @@ class SQLitePriceUpdater {
                 LIMIT ?
             `;
             
-            const rows = this.db.prepare(query).all(limit);
+            const rows = await this.db.all(query, limit);
             return rows;
         } catch (err) {
             console.error('❌ Error fetching cards:', err);
@@ -54,8 +54,7 @@ class SQLitePriceUpdater {
             const priceComparisons = JSON.stringify(priceData);
             const now = new Date().toISOString();
             
-            const stmt = this.db.prepare(query);
-            const result = stmt.run(
+            const result = await this.db.run(query, 
                 priceData.raw?.avgPrice || null,
                 priceData.psa9?.avgPrice || null,
                 priceComparisons,
@@ -460,11 +459,10 @@ class SQLitePriceUpdater {
                 'SELECT COUNT(*) as count FROM cards WHERE rawAveragePrice IS NULL OR psa9AveragePrice IS NULL'
             ];
             
-            const results = queries.map(query => {
-                const stmt = this.db.prepare(query);
-                const row = stmt.get();
+            const results = await Promise.all(queries.map(async query => {
+                const row = await this.db.get(query);
                 return row.count;
-            });
+            }));
             
             const [total, withPrices, missingPrices] = results;
             return { total, withPrices, missingPrices };
