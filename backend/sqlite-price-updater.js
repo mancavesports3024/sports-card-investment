@@ -112,100 +112,75 @@ class SQLitePriceUpdater {
         }
     }
 
-    // Extract card identifier function using summaryTitle and excluding expensive parallels
+    // Extract card identifier using the existing sophisticated search system
     extractCardIdentifier(card) {
         // Use the summaryTitle from our database (this is already cleaned)
-        let summaryTitle = card.summaryTitle || card.title || '';
-        
-        // Extract year and player name from summary title
+        const summaryTitle = card.summaryTitle || card.title || '';
         const yearMatch = summaryTitle.match(/\b(19|20)\d{2}\b/);
-        const year = yearMatch ? yearMatch[0] : '';
+        const year = yearMatch ? yearMatch[0] : null;
+        const searchStrategies = [];
+
+        // Strategy 1: Clean summary title (most specific)
+        searchStrategies.push(summaryTitle);
+
+        // Strategy 2: Player + Parallel + Card Number
+        const setNames = ['hoops', 'donruss', 'topps', 'fleer', 'score', 'prestige', 'absolute', 'immaculate', 'flawless', 'national treasures', 'playoff', 'optic', 'prizm', 'chrome', 'select', 'contenders'];
+        const parallelNames = ['light blue', 'silver', 'gold', 'red', 'blue', 'green', 'purple', 'orange', 'pink', 'yellow', 'black', 'white', 'rainbow', 'color blast', 'stained glass', 'hyper', 'refractor', 'teal', 'explosion', 'neon', 'fluorescent', 'holographic', 'holo', 'platinum', 'diamond', 'winter', 'checkerboard', 'lava', 'shimmer', 'xfractor', 'shock', 'fast break'];
         
-        // Extract player name (usually first capitalized words)
-        const playerMatch = summaryTitle.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
-        const playerName = playerMatch ? playerMatch[1].trim() : '';
+        // First, check for parallel names (these are the actual parallels)
+        let parallel = null;
+        for (const parallelName of parallelNames) {
+            if (summaryTitle.toLowerCase().includes(parallelName)) {
+                parallel = parallelName;
+                break;
+            }
+        }
         
-        // Extract card number
         const numberMatch = summaryTitle.match(/#(\d+)/);
         const cardNumber = numberMatch ? numberMatch[1] : null;
         
-        // Create sophisticated search strategies that exclude expensive parallels
-        const strategies = [];
-        
-        // Strategy 1: Use the summary title directly (most specific)
-        strategies.push(summaryTitle);
-        
-        // Strategy 2: Create base search with expensive parallel exclusions
-        if (year && playerName) {
-            // Define expensive parallels to exclude
-            const expensiveParallels = [
-                'Choice', 'rr', 'auto', 'Dragon', 'Checkerboard', 'Purple', 'Green', 'pink', 
-                'Holo', 'blue', 'shock', 'gold', 'red', 'orange', 'black', '249', 'fast',
-                'white sparkle', 'ssp', 'superfractor', '1/1', 'one of one', 'one-of-one',
-                'silver', 'bronze', 'platinum', 'diamond', 'emerald', 'ruby', 'sapphire',
-                'rainbow', 'atomic', 'galaxy', 'cosmic', 'aurora', 'nebula', 'fast break',
-                'velocity', 'prizms', 'concourse', 'premier', 'fotl', 'colossal', 'immortal',
-                'legendary', 'color blast', 'stained glass', 'hyper', 'refractor', 'xfractor',
-                'neon', 'fluorescent', 'holographic', 'winter', 'lava', 'shimmer'
-            ];
+        if (parallel && numberMatch && year) {
+            // Extract player name more flexibly - look for capitalized names before the parallel/card number
+            const beforeParallel = summaryTitle.substring(0, summaryTitle.toLowerCase().indexOf(parallel)).trim();
+            const playerMatch = beforeParallel.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
             
-            // Create exclusion string
-            const exclusions = expensiveParallels.map(parallel => `-${parallel}`).join(' ');
-            
-            // Create base search query
-            let baseQuery = `${playerName} ${year}`;
-            if (cardNumber) {
-                baseQuery += ` #${cardNumber}`;
-            }
-            
-            // Add exclusions
-            const searchWithExclusions = `${baseQuery} ${exclusions}`;
-            strategies.push(searchWithExclusions);
-        }
-        
-        // Strategy 3: Extract set name and create set-specific searches
-        if (year && playerName) {
-            // Common set names to try
-            const setNames = [
-                'Donruss', 'Optic', 'Prizm', 'Topps', 'Panini', 'Fleer', 'Upper Deck', 
-                'Score', 'Prestige', 'Contenders', 'Select', 'Chrome', 'Hoops', 'Heritage',
-                'Bowman', 'Allen & Ginter', 'Gypsy Queen', 'Stadium Club', 'Archives'
-            ];
-            
-            // Try to detect set from summary title
-            let detectedSet = null;
-            for (const set of setNames) {
-                if (summaryTitle.toLowerCase().includes(set.toLowerCase())) {
-                    detectedSet = set;
-                    break;
-                }
-            }
-            
-            if (detectedSet) {
-                // Create set-specific search with exclusions
-                const expensiveParallels = [
-                    'Choice', 'rr', 'auto', 'Dragon', 'Checkerboard', 'Purple', 'Green', 
-                    'pink', 'Holo', 'blue', 'shock', 'gold', 'red', 'orange', 'black', 
-                    '249', 'fast', 'white sparkle', 'ssp', 'superfractor', '1/1'
-                ];
-                const exclusions = expensiveParallels.map(parallel => `-${parallel}`).join(' ');
+            if (playerMatch) {
+                const player = playerMatch[1].trim();
+                // Remove "II", "III", "IV" etc. from player names
+                const simplifiedPlayer = player.replace(/\s+(II|III|IV|V|VI|VII|VIII|IX|X)\b/i, '').trim();
                 
-                let setQuery = `${playerName} ${detectedSet} ${year}`;
-                if (cardNumber) {
-                    setQuery += ` #${cardNumber}`;
-                }
-                setQuery += ` ${exclusions}`;
-                strategies.push(setQuery);
+                searchStrategies.push(`${simplifiedPlayer} ${parallel} #${cardNumber} ${year}`);
             }
         }
-        
-        // Strategy 4: Player + Year + Card Number (if we have card number)
-        if (playerName && year && cardNumber) {
-            strategies.push(`${playerName} ${year} #${cardNumber}`);
+
+        // Strategy 3: Simplified parallel search
+        if (parallel && year) {
+            // Extract player name more flexibly
+            const beforeParallel = summaryTitle.substring(0, summaryTitle.toLowerCase().indexOf(parallel)).trim();
+            const playerMatch = beforeParallel.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
+            
+            if (playerMatch) {
+                const player = playerMatch[1].trim();
+                const simplifiedPlayer = player.replace(/\s+(II|III|IV|V|VI|VII|VIII|IX|X)\b/i, '').trim();
+                
+                searchStrategies.push(`${simplifiedPlayer} ${parallel} ${year}`);
+            }
         }
-        
-        // Remove duplicates and limit to 6 strategies
-        const uniqueStrategies = [...new Set(strategies)].slice(0, 6);
+
+        // Strategy 4: Player + Year + Card Number (if we have card number)
+        if (year && cardNumber) {
+            // Extract player name from the beginning of the title
+            const playerMatch = summaryTitle.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
+            if (playerMatch) {
+                const player = playerMatch[1].trim();
+                const simplifiedPlayer = player.replace(/\s+(II|III|IV|V|VI|VII|VIII|IX|X)\b/i, '').trim();
+                
+                searchStrategies.push(`${simplifiedPlayer} ${year} #${cardNumber}`);
+            }
+        }
+
+        // Remove duplicates and limit to 4 strategies
+        const uniqueStrategies = [...new Set(searchStrategies)].slice(0, 4);
         
         return { 
             identifier: summaryTitle,
