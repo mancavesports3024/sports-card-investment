@@ -489,5 +489,63 @@ app.get('/api/debug-ebay-token', (req, res) => {
   res.json({ token: process.env.EBAY_AUTH_TOKEN });
 });
 
+// SQLite Price Updater endpoint for Railway testing
+app.post('/api/update-prices', async (req, res) => {
+  try {
+    const { batchSize = 5 } = req.body; // Default to 5 cards for testing
+    
+    console.log(`🚀 Starting SQLite price update with batch size: ${batchSize}`);
+    
+    // Import and run the SQLite price updater
+    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
+    const updater = new SQLitePriceUpdater();
+    
+    // Start the update process
+    await updater.processBatch(batchSize);
+    
+    res.json({
+      success: true,
+      message: `Price update completed for ${batchSize} cards`,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error in price update endpoint:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update prices',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// SQLite Database Status endpoint
+app.get('/api/database-status', async (req, res) => {
+  try {
+    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
+    const updater = new SQLitePriceUpdater();
+    
+    await updater.connect();
+    const stats = await updater.getDatabaseStats();
+    updater.db.close();
+    
+    res.json({
+      success: true,
+      stats,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error getting database status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get database status',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Initialize token refresh on startup
 initializeServer().catch(console.error);
