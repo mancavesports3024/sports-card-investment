@@ -614,6 +614,29 @@ app.post('/api/create-database', async (req, res) => {
   try {
     console.log('🗄️ Creating SQLite database on Railway...');
     
+    // First try a simple test
+    const fs = require('fs');
+    const path = require('path');
+    const Database = require('sqlite');
+    
+    const dataDir = path.join(__dirname, 'data');
+    const dbPath = path.join(dataDir, 'test.db');
+    
+    console.log(`📁 Testing with path: ${dbPath}`);
+    
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
+    // Try to create a simple test database
+    const testDb = await Database.open(dbPath);
+    await testDb.exec('CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY)');
+    await testDb.close();
+    
+    console.log('✅ Test database created successfully');
+    
+    // Now create the real database
     const { createDatabase } = require('./create-sqlite-database.js');
     await createDatabase();
     

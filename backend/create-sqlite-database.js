@@ -5,8 +5,13 @@ const Database = require('sqlite');
 async function createDatabase() {
     console.log('🗄️ Creating SQLite database...');
     
+    // Debug: Log current directory and paths
+    console.log(`📁 Current directory: ${__dirname}`);
+    
     // Ensure data directory exists
     const dataDir = path.join(__dirname, 'data');
+    console.log(`📁 Data directory path: ${dataDir}`);
+    
     if (!fs.existsSync(dataDir)) {
         console.log('📁 Creating data directory...');
         fs.mkdirSync(dataDir, { recursive: true });
@@ -15,7 +20,16 @@ async function createDatabase() {
     const dbPath = path.join(dataDir, 'scorecard.db');
     console.log(`🗄️ Database path: ${dbPath}`);
     
-    const db = await Database.open(dbPath);
+    // Check if path is valid
+    if (!dbPath || dbPath === 'null' || dbPath === 'undefined') {
+        throw new Error(`Invalid database path: ${dbPath}`);
+    }
+    
+    // Ensure the path is absolute
+    const absolutePath = path.resolve(dbPath);
+    console.log(`🗄️ Absolute database path: ${absolutePath}`);
+    
+    const db = await Database.open(absolutePath);
     
     // Create cards table
     await db.exec(`
