@@ -112,7 +112,7 @@ class SQLitePriceUpdater {
         }
     }
 
-    // Extract card identifier function with sophisticated search strategies
+    // Extract card identifier function with sophisticated search strategies using set database
     extractCardIdentifier(card) {
         let title = card.summaryTitle || card.title || '';
         
@@ -136,19 +136,9 @@ class SQLitePriceUpdater {
         // Remove extra spaces and clean up
         title = title.replace(/\s+/g, ' ').trim();
         
-        // Create sophisticated search strategies
-        const strategies = [];
-        
-        // Strategy 1: Full cleaned title (most specific)
-        strategies.push(title);
-        
-        // Strategy 2: Extract year, set, and player name
+        // Extract year and player name
         const yearMatch = title.match(/(\d{4})/);
         const year = yearMatch ? yearMatch[1] : '';
-        
-        // Extract set name (usually after year, before player)
-        const setMatch = title.match(/\d{4}\s+([A-Za-z\s]+?)(?=\s+[A-Z][a-z]+\s+[A-Z][a-z]+)/);
-        const set = setMatch ? setMatch[1].trim() : '';
         
         // Extract player name (usually last 2-3 words)
         const words = title.split(' ').filter(word => word.length > 2);
@@ -161,38 +151,138 @@ class SQLitePriceUpdater {
             playerName = words.slice(-2).join(' ');
         }
         
-        // Strategy 2: Year + Set + Player (e.g., "2020 Panini Obsidian Lamar Jackson")
-        if (year && set && playerName) {
-            strategies.push(`${year} ${set} ${playerName}`);
+        // Create sophisticated search strategies using set database
+        const strategies = [];
+        
+        // Strategy 1: Full cleaned title (most specific)
+        strategies.push(title);
+        
+        // Strategy 2: Use sophisticated set detection from our database
+        if (year && playerName) {
+            // Load set combinations for this year and sport
+            const detectedSport = this.detectSport(title);
+            const setNames = this.getSetNamesForYear(year, detectedSport);
+            
+            // Create multiple search strategies with different set names
+            for (const set of setNames.slice(0, 5)) { // Limit to top 5 sets
+                strategies.push(`${year} ${set} ${playerName}`);
+                strategies.push(`${set} ${playerName} ${year}`);
+                strategies.push(`${playerName} ${year} ${set}`);
+            }
         }
         
-        // Strategy 3: Set + Player + Year (e.g., "Panini Obsidian Lamar Jackson 2020")
-        if (set && playerName && year) {
-            strategies.push(`${set} ${playerName} ${year}`);
+        // Strategy 3: Player + Year + Common Sets (fallback)
+        if (year && playerName) {
+            const commonSets = [
+                'Topps', 'Panini', 'Donruss', 'Fleer', 'Upper Deck', 'Score', 'Prestige',
+                'Optic', 'Prizm', 'Chrome', 'Select', 'Contenders', 'Immaculate', 'Flawless',
+                'National Treasures', 'Playoff', 'Absolute', 'Hoops', 'Heritage', 'Bowman'
+            ];
+            
+            for (const set of commonSets.slice(0, 3)) {
+                strategies.push(`${year} ${set} ${playerName}`);
+            }
         }
         
-        // Strategy 4: Player + Year + Set (e.g., "Lamar Jackson 2020 Panini Obsidian")
-        if (playerName && year && set) {
-            strategies.push(`${playerName} ${year} ${set}`);
-        }
-        
-        // Strategy 5: Just player and year (broadest search)
+        // Strategy 4: Just player and year (broadest search)
         if (playerName && year) {
             strategies.push(`${playerName} ${year}`);
         }
         
-        // Strategy 6: Just player name (broadest possible)
+        // Strategy 5: Just player name (broadest possible)
         if (playerName && playerName.length > 5) {
             strategies.push(playerName);
         }
         
-        // Remove duplicates and limit to 5 strategies
-        const uniqueStrategies = [...new Set(strategies)].slice(0, 5);
+        // Remove duplicates and limit to 8 strategies
+        const uniqueStrategies = [...new Set(strategies)].slice(0, 8);
         
         return { 
             identifier: title,
             strategies: uniqueStrategies
         };
+    }
+    
+    // Helper method to detect sport from card title
+    detectSport(title) {
+        const titleLower = title.toLowerCase();
+        
+        if (titleLower.includes('basketball') || titleLower.includes('nba') || 
+            titleLower.includes('hoops') || titleLower.includes('prizm') ||
+            titleLower.includes('optic') || titleLower.includes('select')) {
+            return 'Basketball';
+        }
+        
+        if (titleLower.includes('football') || titleLower.includes('nfl') ||
+            titleLower.includes('donruss') || titleLower.includes('score') ||
+            titleLower.includes('prestige') || titleLower.includes('contenders')) {
+            return 'Football';
+        }
+        
+        if (titleLower.includes('baseball') || titleLower.includes('mlb') ||
+            titleLower.includes('topps') || titleLower.includes('bowman') ||
+            titleLower.includes('heritage') || titleLower.includes('allen ginter')) {
+            return 'Baseball';
+        }
+        
+        if (titleLower.includes('hockey') || titleLower.includes('nhl') ||
+            titleLower.includes('upper deck') || titleLower.includes('o-pee-chee')) {
+            return 'Hockey';
+        }
+        
+        if (titleLower.includes('soccer') || titleLower.includes('fifa') ||
+            titleLower.includes('panini') || titleLower.includes('adrenalyn')) {
+            return 'Soccer';
+        }
+        
+        // Default to Baseball (most common)
+        return 'Baseball';
+    }
+    
+    // Helper method to get set names for a specific year and sport
+    getSetNamesForYear(year, sport) {
+        try {
+            // Load the sport year set combinations database
+            const fs = require('fs');
+            const path = require('path');
+            const combinationsPath = path.join(__dirname, 'data', 'sportYearSetCombinations.json');
+            
+            if (fs.existsSync(combinationsPath)) {
+                const data = JSON.parse(fs.readFileSync(combinationsPath, 'utf8'));
+                const sportData = data.sports[sport];
+                
+                if (sportData && sportData.years) {
+                    const yearData = sportData.years.find(y => y.name === year);
+                    if (yearData && yearData.sets) {
+                        // Return set names, prioritizing popular ones
+                        const popularSets = [
+                            'Topps', 'Panini', 'Donruss', 'Fleer', 'Upper Deck', 'Score',
+                            'Prestige', 'Optic', 'Prizm', 'Chrome', 'Select', 'Contenders',
+                            'Immaculate', 'Flawless', 'National Treasures', 'Playoff',
+                            'Absolute', 'Hoops', 'Heritage', 'Bowman', 'Allen & Ginter',
+                            'Gypsy Queen', 'Stadium Club', 'Archives', 'Fire', 'Gallery'
+                        ];
+                        
+                        // Sort sets by popularity (popular sets first)
+                        return yearData.sets
+                            .map(set => set.name)
+                            .sort((a, b) => {
+                                const aPopular = popularSets.includes(a) ? 1 : 0;
+                                const bPopular = popularSets.includes(b) ? 1 : 0;
+                                return bPopular - aPopular;
+                            });
+                    }
+                }
+            }
+        } catch (error) {
+            console.log('⚠️ Could not load set database:', error.message);
+        }
+        
+        // Fallback to common sets
+        return [
+            'Topps', 'Panini', 'Donruss', 'Fleer', 'Upper Deck', 'Score',
+            'Prestige', 'Optic', 'Prizm', 'Chrome', 'Select', 'Contenders'
+        ];
     }
 
     async search130Point(cardTitle, isPSA9 = false, strategies = []) {
