@@ -130,8 +130,11 @@ function detectSport(cardTitle) {
         title.includes('lebron') || title.includes('james') || title.includes('curry') ||
         title.includes('durant') || title.includes('giannis') || title.includes('luka') ||
         title.includes('doncic') || title.includes('zion') || title.includes('morant') ||
+        title.includes('wembanyama') || title.includes('victor') || title.includes('tatum') ||
+        title.includes('booker') || title.includes('edwards') || title.includes('brunson') ||
         title.includes('lakers') || title.includes('warriors') || title.includes('celtics') ||
-        title.includes('bulls') || title.includes('knicks') || title.includes('heat')) {
+        title.includes('bulls') || title.includes('knicks') || title.includes('heat') ||
+        title.includes('spurs') || title.includes('suns') || title.includes('nuggets')) {
         return 'basketball';
     }
     
@@ -140,8 +143,11 @@ function detectSport(cardTitle) {
         title.includes('brady') || title.includes('mahomes') || title.includes('manning') ||
         title.includes('herbert') || title.includes('allen') || title.includes('rodgers') ||
         title.includes('burrow') || title.includes('lawrence') || title.includes('prescott') ||
-        title.includes('bo nix') || title.includes('broncos') || title.includes('denver') ||
-        title.includes('chiefs') || title.includes('patriots') || title.includes('cowboys')) {
+        title.includes('purdy') || title.includes('brock') || title.includes('bo nix') ||
+        title.includes('stroud') || title.includes('bryce young') || title.includes('richardson') ||
+        title.includes('broncos') || title.includes('denver') || title.includes('chiefs') ||
+        title.includes('patriots') || title.includes('cowboys') || title.includes('49ers') ||
+        title.includes('niners') || title.includes('texans') || title.includes('colts')) {
         return 'football';
     }
     
