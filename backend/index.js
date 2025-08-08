@@ -558,6 +558,57 @@ app.get('/api/database-status', async (req, res) => {
   }
 });
 
+// Test file system endpoint
+app.get('/api/test-fs', (req, res) => {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    
+    const currentDir = __dirname;
+    const dataDir = path.join(currentDir, 'data');
+    const dbPath = path.join(dataDir, 'scorecard.db');
+    
+    const info = {
+      currentDir,
+      dataDir,
+      dbPath,
+      dataDirExists: fs.existsSync(dataDir),
+      dbExists: fs.existsSync(dbPath),
+      canWriteDataDir: false,
+      canWriteCurrentDir: false
+    };
+    
+    // Test write permissions
+    try {
+      fs.accessSync(currentDir, fs.constants.W_OK);
+      info.canWriteCurrentDir = true;
+    } catch (e) {
+      info.canWriteCurrentDir = false;
+    }
+    
+    try {
+      fs.accessSync(dataDir, fs.constants.W_OK);
+      info.canWriteDataDir = true;
+    } catch (e) {
+      info.canWriteDataDir = false;
+    }
+    
+    res.json({
+      success: true,
+      fileSystemInfo: info,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check file system',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Create SQLite Database endpoint
 app.post('/api/create-database', async (req, res) => {
   try {

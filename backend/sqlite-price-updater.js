@@ -1,5 +1,6 @@
 const Database = require('sqlite');
 const path = require('path');
+const fs = require('fs');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const qs = require('qs'); // Add qs for proper form data formatting
@@ -14,6 +15,14 @@ class SQLitePriceUpdater {
 
     async connect() {
         try {
+            // Ensure data directory exists
+            const dataDir = path.dirname(this.dbPath);
+            if (!fs.existsSync(dataDir)) {
+                console.log('📁 Creating data directory...');
+                fs.mkdirSync(dataDir, { recursive: true });
+            }
+            
+            console.log(`🗄️ Connecting to database at: ${this.dbPath}`);
             this.db = await Database.open(this.dbPath);
             console.log('✅ Connected to SQLite database');
         } catch (err) {

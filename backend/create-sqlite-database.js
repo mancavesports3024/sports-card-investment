@@ -5,7 +5,16 @@ const Database = require('sqlite');
 async function createDatabase() {
     console.log('🗄️ Creating SQLite database...');
     
-    const dbPath = path.join(__dirname, 'data', 'scorecard.db');
+    // Ensure data directory exists
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) {
+        console.log('📁 Creating data directory...');
+        fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
+    const dbPath = path.join(dataDir, 'scorecard.db');
+    console.log(`🗄️ Database path: ${dbPath}`);
+    
     const db = await Database.open(dbPath);
     
     // Create cards table
