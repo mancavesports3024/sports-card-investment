@@ -538,9 +538,45 @@ app.get('/api/database-status', async (req, res) => {
     
   } catch (error) {
     console.error('❌ Error getting database status:', error);
+    
+    // Check if it's a database not found error
+    if (error.message.includes('filename cannot be null') || error.message.includes('no such file')) {
+      res.json({
+        success: false,
+        error: 'Database not found',
+        message: 'SQLite database has not been created yet. Use /api/create-database to initialize it.',
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get database status',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+});
+
+// Create SQLite Database endpoint
+app.post('/api/create-database', async (req, res) => {
+  try {
+    console.log('🗄️ Creating SQLite database on Railway...');
+    
+    const { createDatabase } = require('./create-sqlite-database.js');
+    await createDatabase();
+    
+    res.json({
+      success: true,
+      message: 'SQLite database created successfully',
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error creating database:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get database status',
+      error: 'Failed to create database',
       message: error.message,
       timestamp: new Date().toISOString()
     });

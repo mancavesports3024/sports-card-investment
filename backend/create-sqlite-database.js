@@ -120,9 +120,14 @@ async function migrateData() {
     }
 }
 
-// Run migration
-migrateData().then(() => {
-    console.log('🎉 Database migration completed successfully!');
-}).catch((error) => {
-    console.error('❌ Migration failed:', error);
-}); 
+// Export functions for use in other modules
+module.exports = { createDatabase, migrateData };
+
+// Run migration if called directly
+if (require.main === module) {
+    migrateData().then(() => {
+        console.log('🎉 Database migration completed successfully!');
+    }).catch((error) => {
+        console.error('❌ Migration failed:', error);
+    });
+} 
