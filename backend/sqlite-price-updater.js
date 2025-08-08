@@ -112,7 +112,7 @@ class SQLitePriceUpdater {
         }
     }
 
-    // Extract card identifier function (same as before)
+    // Extract card identifier function with sophisticated search strategies
     extractCardIdentifier(card) {
         let title = card.summaryTitle || card.title || '';
         
@@ -136,37 +136,58 @@ class SQLitePriceUpdater {
         // Remove extra spaces and clean up
         title = title.replace(/\s+/g, ' ').trim();
         
-        // Create multiple search strategies
+        // Create sophisticated search strategies
         const strategies = [];
         
-        // Strategy 1: Full cleaned title
+        // Strategy 1: Full cleaned title (most specific)
         strategies.push(title);
         
-        // Strategy 2: Extract year and player name for broader search
+        // Strategy 2: Extract year, set, and player name
         const yearMatch = title.match(/(\d{4})/);
         const year = yearMatch ? yearMatch[1] : '';
         
-        // Extract player name (usually first 2-3 words that aren't the year)
+        // Extract set name (usually after year, before player)
+        const setMatch = title.match(/\d{4}\s+([A-Za-z\s]+?)(?=\s+[A-Z][a-z]+\s+[A-Z][a-z]+)/);
+        const set = setMatch ? setMatch[1].trim() : '';
+        
+        // Extract player name (usually last 2-3 words)
         const words = title.split(' ').filter(word => word.length > 2);
         let playerName = '';
         
-        if (words.length >= 2) {
-            // Skip year if it's at the beginning
-            const startIndex = words[0] === year ? 1 : 0;
-            playerName = words.slice(startIndex, startIndex + 2).join(' ');
+        if (words.length >= 3) {
+            // Take last 2-3 words as player name
+            playerName = words.slice(-3).join(' ');
+        } else if (words.length >= 2) {
+            playerName = words.slice(-2).join(' ');
         }
         
-        if (year && playerName) {
-            strategies.push(`${year} ${playerName}`);
+        // Strategy 2: Year + Set + Player (e.g., "2020 Panini Obsidian Lamar Jackson")
+        if (year && set && playerName) {
+            strategies.push(`${year} ${set} ${playerName}`);
         }
         
-        // Strategy 3: Just player name and year (reversed order)
-        if (year && playerName) {
+        // Strategy 3: Set + Player + Year (e.g., "Panini Obsidian Lamar Jackson 2020")
+        if (set && playerName && year) {
+            strategies.push(`${set} ${playerName} ${year}`);
+        }
+        
+        // Strategy 4: Player + Year + Set (e.g., "Lamar Jackson 2020 Panini Obsidian")
+        if (playerName && year && set) {
+            strategies.push(`${playerName} ${year} ${set}`);
+        }
+        
+        // Strategy 5: Just player and year (broadest search)
+        if (playerName && year) {
             strategies.push(`${playerName} ${year}`);
         }
         
-        // Remove duplicates and limit to 3 strategies
-        const uniqueStrategies = [...new Set(strategies)].slice(0, 3);
+        // Strategy 6: Just player name (broadest possible)
+        if (playerName && playerName.length > 5) {
+            strategies.push(playerName);
+        }
+        
+        // Remove duplicates and limit to 5 strategies
+        const uniqueStrategies = [...new Set(strategies)].slice(0, 5);
         
         return { 
             identifier: title,
