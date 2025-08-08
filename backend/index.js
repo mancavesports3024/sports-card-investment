@@ -755,68 +755,148 @@ app.get('/api/price-data', async (req, res) => {
   }
 });
 
-// Add test data endpoint
-app.post('/api/add-test-data', async (req, res) => {
+// Add real card data endpoint
+app.post('/api/add-cards', async (req, res) => {
   try {
-    console.log('🧪 Adding test data to SQLite database...');
+    console.log('📦 Adding real card data to SQLite database...');
+    
+    const { cards } = req.body;
+    
+    if (!cards || !Array.isArray(cards) || cards.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid request',
+        message: 'Request body must contain a "cards" array with card data',
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    console.log(`📊 Processing ${cards.length} cards...`);
     
     const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
     const updater = new SQLitePriceUpdater();
     await updater.connect();
     
-    // Add some test cards
-    const testCards = [
-      {
-        title: '2023 Topps Chrome Update Shohei Ohtani #USC1',
-        summaryTitle: '2023 Topps Chrome Update Shohei Ohtani',
-        sport: 'Baseball',
-        filterInfo: JSON.stringify({ year: '2023', set: 'Topps Chrome Update', player: 'Shohei Ohtani' })
-      },
-      {
-        title: '2023 Panini Prizm Victor Wembanyama #1',
-        summaryTitle: '2023 Panini Prizm Victor Wembanyama',
-        sport: 'Basketball',
-        filterInfo: JSON.stringify({ year: '2023', set: 'Panini Prizm', player: 'Victor Wembanyama' })
-      },
-      {
-        title: '2023 Panini Donruss Elite Connor Bedard #1',
-        summaryTitle: '2023 Panini Donruss Elite Connor Bedard',
-        sport: 'Hockey',
-        filterInfo: JSON.stringify({ year: '2023', set: 'Panini Donruss Elite', player: 'Connor Bedard' })
-      }
-    ];
-    
     let inserted = 0;
-    for (const card of testCards) {
-      await new Promise((resolve, reject) => {
-        updater.db.run(`
-          INSERT INTO cards (title, summaryTitle, sport, filterInfo, created_at, updated_at)
-          VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        `, [card.title, card.summaryTitle, card.sport, card.filterInfo], function(err) {
-          if (err) {
-            console.error('❌ Error inserting test card:', err);
-            reject(err);
-          } else {
-            inserted++;
-            resolve();
+    let errors = 0;
+    
+    // Process cards in batches to avoid memory issues
+    const BATCH_SIZE = 100;
+    for (let i = 0; i < cards.length; i += BATCH_SIZE) {
+      const batch = cards.slice(i, i + BATCH_SIZE);
+      
+      for (const card of batch) {
+        try {
+          // Extract price comparison data if it exists
+          let rawPrice = null;
+          let psa9Price = null;
+          let priceComparisons = null;
+          
+          if (card.priceComparisons) {
+            rawPrice = card.priceComparisons.raw?.avgPrice || null;
+            psa9Price = card.priceComparisons.psa9?.avgPrice || null;
+            priceComparisons = JSON.stringify(card.priceComparisons);
           }
-        });
-      });
+          
+          await new Promise((resolve, reject) => {
+            updater.db.run(`
+              INSERT INTO cards (
+                title, summaryTitle, psa10Price, psa10PriceDate,
+                rawAveragePrice, psa9AveragePrice, sport, filterInfo,
+                priceComparisons, lastUpdated, created_at, updated_at
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            `, [
+              card.title || '',
+              card.summaryTitle || '',
+              card.psa10Price || null,
+              card.psa10PriceDate || null,
+              rawPrice,
+              psa9Price,
+              card.sport || null,
+              card.filterInfo ? JSON.stringify(card.filterInfo) : null,
+              priceComparisons,
+              card.lastUpdated || null
+            ], function(err) {
+              if (err) {
+                console.error('❌ Error inserting card:', err);
+                errors++;
+                reject(err);
+              } else {
+                inserted++;
+                resolve();
+              }
+            });
+          });
+        } catch (error) {
+          console.error('❌ Error processing card:', error.message);
+          errors++;
+        }
+      }
+      
+      // Log progress
+      if ((i + BATCH_SIZE) % 1000 === 0 || i + BATCH_SIZE >= cards.length) {
+        console.log(`📈 Progress: ${Math.min(i + BATCH_SIZE, cards.length)}/${cards.length} cards processed`);
+      }
     }
     
     updater.db.close();
     
     res.json({
       success: true,
-      message: `Added ${inserted} test cards to database`,
+      message: `Successfully added ${inserted} cards to database`,
+      stats: {
+        totalProcessed: cards.length,
+        inserted: inserted,
+        errors: errors
+      },
       timestamp: new Date().toISOString()
     });
     
   } catch (error) {
-    console.error('❌ Error adding test data:', error);
+    console.error('❌ Error adding cards:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to add test data',
+      error: 'Failed to add cards',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Clear database endpoint (for testing)
+app.delete('/api/clear-database', async (req, res) => {
+  try {
+    console.log('🗑️ Clearing SQLite database...');
+    
+    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
+    const updater = new SQLitePriceUpdater();
+    await updater.connect();
+    
+    await new Promise((resolve, reject) => {
+      updater.db.run('DELETE FROM cards', (err) => {
+        if (err) {
+          console.error('❌ Error clearing database:', err);
+          reject(err);
+        } else {
+          console.log('✅ Database cleared successfully');
+          resolve();
+        }
+      });
+    });
+    
+    updater.db.close();
+    
+    res.json({
+      success: true,
+      message: 'Database cleared successfully',
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error clearing database:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to clear database',
       message: error.message,
       timestamp: new Date().toISOString()
     });
