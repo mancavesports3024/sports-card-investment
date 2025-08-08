@@ -183,7 +183,14 @@ class SQLitePriceUpdater {
             
             for (let i = 0; i < searchQueries.length; i++) {
                 const baseQuery = searchQueries[i];
-                const query = isPSA9 ? `${baseQuery} PSA 9` : baseQuery;
+                let query;
+                
+                if (isPSA9) {
+                    query = `${baseQuery} PSA 9`;
+                } else {
+                    // For raw searches, try to exclude graded cards by adding negative terms
+                    query = `${baseQuery} -PSA -BGS -SGC -CGC -GRADED`;
+                }
                 console.log(`🔍 Searching 130point.com for: "${query}" (strategy ${i + 1}/${searchQueries.length})`);
                 
                 // Format query: replace spaces with + (same as working 130pointService)
@@ -336,6 +343,35 @@ class SQLitePriceUpdater {
                                 titleLower.includes('sealed') && (titleLower.includes('box') || titleLower.includes('case') || titleLower.includes('pack'))
                             );
 
+                            // For raw searches, filter out graded cards
+                            if (!isPSA9) {
+                                // Check for grading indicators that should be excluded from raw searches
+                                const gradingPatterns = [
+                                    /\bPSA\s*\d+/i,
+                                    /\bBGS\s*\d+\.?\d*\s*\/\s*\d+/i,
+                                    /\bSGC\s*\d+/i,
+                                    /\bCGC\s*\d+/i,
+                                    /\bGEM\s*MT/i,
+                                    /\bGEM\s*MINT/i,
+                                    /\bMINT\s*\d+/i,
+                                    /\bNEAR\s*MINT\s*\d+/i,
+                                    /\bEXCELLENT\s*\d+/i,
+                                    /\bGOOD\s*\d+/i,
+                                    /\bPOOR\s*\d+/i,
+                                    /\bGRADED\b/i,
+                                    /\bSLA\s*\d+/i,
+                                    /\bHGA\s*\d+/i,
+                                    /\bCSG\s*\d+/i
+                                ];
+                                
+                                const isGraded = gradingPatterns.some(pattern => pattern.test(titleLower));
+                                
+                                if (isGraded) {
+                                    console.log(`   🚫 Skipping graded card: ${title}`);
+                                    return; // Skip this item
+                                }
+                            }
+                            
                             // Skip sealed products
                             if (!isSealedProduct && !hasQuantityIndicators && !isHighValueSealed && !hasSpecificSealedTerms) {
                                 sales.push({
