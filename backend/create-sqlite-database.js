@@ -36,37 +36,63 @@ async function createDatabase() {
                 reject(err);
             } else {
                 console.log('✅ Database opened successfully');
-                resolve(db);
+                
+                // Create cards table
+                db.run(`
+                    CREATE TABLE IF NOT EXISTS cards (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        title TEXT NOT NULL,
+                        summaryTitle TEXT,
+                        psa10Price REAL,
+                        psa10PriceDate TEXT,
+                        rawAveragePrice REAL,
+                        psa9AveragePrice REAL,
+                        sport TEXT,
+                        filterInfo TEXT,
+                        priceComparisons TEXT,
+                        lastUpdated TEXT,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    )
+                `, (err) => {
+                    if (err) {
+                        console.error('❌ Error creating cards table:', err);
+                        reject(err);
+                    } else {
+                        console.log('✅ Cards table created successfully');
+                        
+                        // Create indexes for fast queries
+                        db.run('CREATE INDEX IF NOT EXISTS idx_missing_prices ON cards(rawAveragePrice, psa9AveragePrice)', (err) => {
+                            if (err) {
+                                console.error('❌ Error creating missing prices index:', err);
+                            } else {
+                                console.log('✅ Missing prices index created');
+                            }
+                        });
+                        
+                        db.run('CREATE INDEX IF NOT EXISTS idx_sport ON cards(sport)', (err) => {
+                            if (err) {
+                                console.error('❌ Error creating sport index:', err);
+                            } else {
+                                console.log('✅ Sport index created');
+                            }
+                        });
+                        
+                        db.run('CREATE INDEX IF NOT EXISTS idx_last_updated ON cards(lastUpdated)', (err) => {
+                            if (err) {
+                                console.error('❌ Error creating last updated index:', err);
+                            } else {
+                                console.log('✅ Last updated index created');
+                            }
+                        });
+                        
+                        console.log('✅ Database schema created successfully');
+                        resolve(db);
+                    }
+                });
             }
         });
     });
-    
-    // Create cards table
-    await db.exec(`
-        CREATE TABLE IF NOT EXISTS cards (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            summaryTitle TEXT,
-            psa10Price REAL,
-            psa10PriceDate TEXT,
-            rawAveragePrice REAL,
-            psa9AveragePrice REAL,
-            sport TEXT,
-            filterInfo TEXT,
-            priceComparisons TEXT,
-            lastUpdated TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `);
-    
-    // Create indexes for fast queries
-    await db.exec('CREATE INDEX IF NOT EXISTS idx_missing_prices ON cards(rawAveragePrice, psa9AveragePrice)');
-    await db.exec('CREATE INDEX IF NOT EXISTS idx_sport ON cards(sport)');
-    await db.exec('CREATE INDEX IF NOT EXISTS idx_last_updated ON cards(lastUpdated)');
-    
-    console.log('✅ Database schema created successfully');
-    return db;
 }
 
 async function migrateData() {
