@@ -161,12 +161,6 @@ class SQLitePriceUpdater {
             // Add exclusions
             const searchWithExclusions = `${baseQuery} ${exclusions}`;
             strategies.push(searchWithExclusions);
-            
-            // Also try without card number
-            if (cardNumber) {
-                const searchWithoutNumber = `${playerName} ${year} ${exclusions}`;
-                strategies.push(searchWithoutNumber);
-            }
         }
         
         // Strategy 3: Extract set name and create set-specific searches
@@ -205,14 +199,9 @@ class SQLitePriceUpdater {
             }
         }
         
-        // Strategy 4: Just player and year (broadest search)
-        if (playerName && year) {
-            strategies.push(`${playerName} ${year}`);
-        }
-        
-        // Strategy 5: Just player name (broadest possible)
-        if (playerName && playerName.length > 5) {
-            strategies.push(playerName);
+        // Strategy 4: Player + Year + Card Number (if we have card number)
+        if (playerName && year && cardNumber) {
+            strategies.push(`${playerName} ${year} #${cardNumber}`);
         }
         
         // Remove duplicates and limit to 6 strategies
