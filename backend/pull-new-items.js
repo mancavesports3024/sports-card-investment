@@ -67,37 +67,18 @@ class NewItemsPuller {
         ];
     }
 
-    // Check if card already exists in database (improved duplicate detection)
+    // Check if card already exists in database (exact title match only)
     async cardExists(title, price) {
         return new Promise((resolve, reject) => {
-            // First check for exact title match (regardless of price)
+            // Only check for exact title match - this is the most reliable duplicate detection
             const exactTitleQuery = `SELECT id FROM cards WHERE title = ? LIMIT 1`;
             
             this.db.get(exactTitleQuery, [title], (err, row) => {
                 if (err) {
                     reject(err);
-                } else if (row) {
-                    // Exact title match found - this is a duplicate
-                    resolve(true);
                 } else {
-                    // No exact title match, check for similar title with same price
-                    const similarQuery = `
-                        SELECT id FROM cards 
-                        WHERE (
-                            (rawAveragePrice IS NOT NULL AND ABS(rawAveragePrice - ?) < 0.01) OR
-                            (psa9AveragePrice IS NOT NULL AND ABS(psa9AveragePrice - ?) < 0.01) OR
-                            (psa10Price IS NOT NULL AND ABS(psa10Price - ?) < 0.01)
-                        )
-                        LIMIT 1
-                    `;
-                    
-                    this.db.get(similarQuery, [price, price, price], (err, row) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(!!row);
-                        }
-                    });
+                    // Return true only if exact title match found
+                    resolve(!!row);
                 }
             });
         });
