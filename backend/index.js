@@ -384,6 +384,135 @@ app.use('/api/live-listings', require('./routes/liveListings'));
   
   app.use('/api', require('./routes/imageAnalysis'));
 
+  // API endpoint to search and view all cards (admin only)
+  app.get('/api/admin/cards', async (req, res) => {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 50;
+      const search = req.query.search || '';
+      const sport = req.query.sport || '';
+      const minPrice = parseFloat(req.query.minPrice) || 0;
+      const maxPrice = parseFloat(req.query.maxPrice) || 999999;
+      const sortBy = req.query.sortBy || 'lastUpdated';
+      const sortOrder = req.query.sortOrder || 'DESC';
+      
+      const offset = (page - 1) * limit;
+      
+      const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+      const updater = new FastSQLitePriceUpdater();
+      
+      await updater.connect();
+      
+      // Build WHERE clause
+      let whereConditions = ['1=1']; // Always true base condition
+      let params = [];
+      
+      if (search) {
+        whereConditions.push('(title LIKE ? OR summaryTitle LIKE ?)');
+        params.push(`%${search}%`, `%${search}%`);
+      }
+      
+      if (sport && sport !== 'all') {
+        whereConditions.push('sport = ?');
+        params.push(sport);
+      }
+      
+      if (minPrice > 0) {
+        whereConditions.push('(psa10Price >= ? OR rawAveragePrice >= ? OR psa9AveragePrice >= ?)');
+        params.push(minPrice, minPrice, minPrice);
+      }
+      
+      if (maxPrice < 999999) {
+        whereConditions.push('(psa10Price <= ? OR rawAveragePrice <= ? OR psa9AveragePrice <= ?)');
+        params.push(maxPrice, maxPrice, maxPrice);
+      }
+      
+      const whereClause = whereConditions.join(' AND ');
+      
+      // Get total count
+      const countQuery = `SELECT COUNT(*) as total FROM cards WHERE ${whereClause}`;
+      const totalCount = await new Promise((resolve, reject) => {
+        updater.db.get(countQuery, params, (err, row) => {
+          if (err) reject(err);
+          else resolve(row.total);
+        });
+      });
+      
+      // Get cards with pagination
+      const cardsQuery = `
+        SELECT id, title, summaryTitle, sport, psa10Price, rawAveragePrice, 
+               psa9AveragePrice, lastUpdated, filterInfo
+        FROM cards 
+        WHERE ${whereClause}
+        ORDER BY ${sortBy} ${sortOrder}
+        LIMIT ? OFFSET ?
+      `;
+      
+      const cards = await new Promise((resolve, reject) => {
+        updater.db.all(cardsQuery, [...params, limit, offset], (err, rows) => {
+          if (err) {
+            reject(err);
+          } else {
+            const cardsWithSource = rows.map(card => {
+              let source = 'unknown';
+              let searchTerm = 'unknown';
+              
+              try {
+                if (card.filterInfo) {
+                  const parsed = JSON.parse(card.filterInfo);
+                  source = parsed.source || 'unknown';
+                  searchTerm = parsed.searchTerm || 'unknown';
+                }
+              } catch (e) {
+                // Keep defaults
+              }
+              
+              return {
+                ...card,
+                source,
+                searchTerm
+              };
+            });
+            
+            resolve(cardsWithSource);
+          }
+        });
+      });
+      
+      updater.db.close();
+      
+      res.json({
+        success: true,
+        cards: cards,
+        pagination: {
+          page: page,
+          limit: limit,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / limit),
+          hasNextPage: page < Math.ceil(totalCount / limit),
+          hasPrevPage: page > 1
+        },
+        filters: {
+          search,
+          sport,
+          minPrice,
+          maxPrice,
+          sortBy,
+          sortOrder
+        },
+        timestamp: getCentralTime()
+      });
+      
+    } catch (error) {
+      console.error('❌ Error fetching cards:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
   // API endpoint to view recently added cards
   app.get('/api/recent-cards', async (req, res) => {
     try {
