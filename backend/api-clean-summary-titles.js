@@ -137,6 +137,7 @@ function cleanSummaryTitle(title) {
         'MT 9', 'mt 9', 'MT9', 'mt9',
         'MT 8', 'mt 8', 'MT8', 'mt8',
         'MT', 'mt', 'MINT', 'Mint', 'mint',
+        'AUTO GRADE', 'auto grade', 'AUTO', 'auto',
         'GRADE', 'Grade', 'grade', 'GRADED', 'Graded', 'graded',
         'GEM MINT', 'Gem Mint', 'gem mint', 'GEM', 'Gem', 'gem',
         'BEAUTIFUL', 'Beautiful', 'beautiful',
@@ -171,9 +172,8 @@ function cleanSummaryTitle(title) {
     // Remove POP followed by numbers (like "POP 5", "Pop 1", "pop 10")
     cleaned = cleaned.replace(/\bPOP\s+\d+\b/gi, '');
     
-    // Replace "Autograph" and "AUTO" with "auto" (case insensitive)
+    // Replace "Autograph" with "auto" (case insensitive)
     cleaned = cleaned.replace(/\bAutograph\b/gi, 'auto');
-    cleaned = cleaned.replace(/\bAUTO\b/gi, 'auto');
     
     // Remove 8-digit PSA certificate numbers (like 50979626)
     cleaned = cleaned.replace(/\b\d{8}\b/g, '');

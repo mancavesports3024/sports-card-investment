@@ -7,20 +7,6 @@ const session = require('express-session');
 const fs = require('fs');
 const path = require('path');
 
-// Helper function to get Central Time timestamp
-function getCentralTime() {
-  return new Date().toLocaleString("en-US", {
-    timeZone: "America/Chicago",
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  }).replace(/(\d+)\/(\d+)\/(\d+),?\s*(\d+):(\d+):(\d+)/, '$3-$1-$2 $4:$5:$6 CT');
-}
-
 // Debug connect-redis structure - Railway deployment fix
 const connectRedis = require('connect-redis');
 // console.log('connect-redis structure:', Object.keys(connectRedis));
@@ -510,12 +496,12 @@ app.post('/api/update-prices', async (req, res) => {
     
     console.log(`🚀 Starting SQLite price update with batch size: ${batchSize}`);
     
-    // Import and run the Fast SQLite price updater
-    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-    const updater = new FastSQLitePriceUpdater();
+    // Import and run the SQLite price updater
+    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
+    const updater = new SQLitePriceUpdater();
     
-    // Start the fast update process
-    await updater.processBatchFast(batchSize);
+    // Start the update process
+    await updater.processBatch(batchSize);
     
     res.json({
       success: true,
@@ -611,21 +597,125 @@ app.post('/api/trigger-price-update', async (req, res) => {
       try {
         console.log('🚀 Manual price update triggered via API...');
         
-        // Use the fast SQLite price updater
-        const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+        // Use the same logic as update-prices.js
+        const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
         
         class AutomatedPriceUpdater {
           constructor() {
-            this.updater = new FastSQLitePriceUpdater();
+            this.updater = new SQLitePriceUpdater();
           }
           
           async updatePrices() {
             console.log('=====================================');
+            await this.updater.connect();
             
-            // Use fast batch processing for 200 cards
-            await this.updater.processBatchFast(200);
+            // Get 200 cards that need updates
+            const cardsToUpdate = await this.getCardsNeedingUpdates();
+            console.log(`📊 Found ${cardsToUpdate.length} cards that need price updates`);
             
-            console.log('🎉 Manual price update completed using fast processing!');
+            if (cardsToUpdate.length === 0) {
+              console.log('✅ All cards have recent price data!');
+              this.updater.db.close();
+              return;
+            }
+            
+            // Process cards
+            let processed = 0;
+            let updated = 0;
+            
+            for (const card of cardsToUpdate) {
+              processed++;
+              console.log(`\n🔄 Processing ${processed}/${cardsToUpdate.length}: ${card.title}`);
+              
+              try {
+                // Use summaryTitle for cleaner searches (removes grading info)
+                const searchTitle = card.summaryTitle || card.title;
+                const rawResults = await this.updater.search130Point(searchTitle, false);
+                const psa9Results = await this.updater.search130Point(searchTitle, true);
+                
+                let priceData = {};
+                
+                // Use the same logic as the actual price updater
+                const rawAvg = rawResults.length > 0 ? 
+                  rawResults.reduce((sum, sale) => sum + sale.price, 0) / rawResults.length : 0;
+                
+                const psa9Avg = psa9Results.length > 0 ? 
+                  psa9Results.reduce((sum, sale) => sum + sale.price, 0) / psa9Results.length : 0;
+                
+                const priceDataForUpdate = {
+                  raw: { avgPrice: rawAvg, count: rawResults.length, sales: rawResults },
+                  psa9: { avgPrice: psa9Avg, count: psa9Results.length, sales: psa9Results },
+                  source: '130point_api'
+                };
+                
+                // Log the prices we found
+                console.log(`   📈 ${card.summaryTitle || card.title}`);
+                if (rawAvg > 0) {
+                  console.log(`      💰 Raw: $${rawAvg.toFixed(2)} (${rawResults.length} cards)`);
+                }
+                if (psa9Avg > 0) {
+                  console.log(`      💰 PSA 9: $${psa9Avg.toFixed(2)} (${psa9Results.length} cards)`);
+                }
+                
+                if (rawAvg > 0 || psa9Avg > 0) {
+                  await this.updater.updateCardPrices(card.id, priceDataForUpdate);
+                  updated++;
+                  console.log(`      ✅ Updated database for card ${card.id}`);
+                } else {
+                  console.log(`      ⚠️ No valid prices found - skipping database update`);
+                }
+                
+                // Rate limiting
+                if (processed < cardsToUpdate.length) {
+                  const delay = 1500 + Math.random() * 1000;
+                  await new Promise(resolve => setTimeout(resolve, delay));
+                }
+                
+              } catch (error) {
+                console.error(`❌ Error updating ${card.title}:`, error.message);
+              }
+            }
+            
+            console.log(`\n🎉 Price update completed! Updated ${updated}/${processed} cards`);
+            this.updater.db.close();
+          }
+          
+          async getCardsNeedingUpdates() {
+            return new Promise((resolve, reject) => {
+              // Use the same logic as update-prices.js
+              const query = `
+                SELECT id, title, summaryTitle, sport, filterInfo, 
+                       rawAveragePrice, psa9AveragePrice, lastUpdated
+                FROM cards 
+                WHERE 
+                    -- Missing both prices
+                    (rawAveragePrice IS NULL AND psa9AveragePrice IS NULL) OR
+                    -- Missing raw price but has PSA 9
+                    (rawAveragePrice IS NULL AND psa9AveragePrice IS NOT NULL) OR
+                    -- Missing PSA 9 price but has raw
+                    (rawAveragePrice IS NOT NULL AND psa9AveragePrice IS NULL) OR
+                    -- Old data (older than 7 days)
+                    (lastUpdated IS NULL OR datetime(lastUpdated) < datetime('now', '-7 days'))
+                ORDER BY
+                    -- Priority: no prices first, then missing prices, then old data
+                    CASE 
+                        WHEN rawAveragePrice IS NULL AND psa9AveragePrice IS NULL THEN 1
+                        WHEN rawAveragePrice IS NULL OR psa9AveragePrice IS NULL THEN 2
+                        ELSE 3
+                    END,
+                    CASE WHEN lastUpdated IS NULL THEN 1 ELSE 0 END,
+                    lastUpdated ASC
+                LIMIT 200
+              `;
+              
+              this.updater.db.all(query, [], (err, rows) => {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve(rows);
+                }
+              });
+            });
           }
         }
         
@@ -667,8 +757,8 @@ app.get('/api/database-status', async (req, res) => {
     }
     
     // Regular database status check
-    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-    const updater = new FastSQLitePriceUpdater();
+    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
+    const updater = new SQLitePriceUpdater();
     
     await updater.connect();
     const stats = await updater.getDatabaseStats();
@@ -677,7 +767,7 @@ app.get('/api/database-status', async (req, res) => {
     res.json({
       success: true,
       stats,
-      timestamp: getCentralTime()
+      timestamp: new Date().toISOString()
     });
     
   } catch (error) {
@@ -832,8 +922,8 @@ app.get('/api/price-data', async (req, res) => {
   try {
     console.log('📊 Fetching price data from SQLite database...');
     
-    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-    const updater = new FastSQLitePriceUpdater();
+    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
+    const updater = new SQLitePriceUpdater();
     await updater.connect();
     
     // Get all cards with their price data
@@ -917,8 +1007,8 @@ app.post('/api/add-cards', async (req, res) => {
     
     console.log(`📊 Processing ${cards.length} cards...`);
     
-    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-    const updater = new FastSQLitePriceUpdater();
+    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
+    const updater = new SQLitePriceUpdater();
     await updater.connect();
     
     let inserted = 0;
@@ -1012,8 +1102,8 @@ app.get('/api/sample-summary-titles', async (req, res) => {
   try {
     console.log('🔍 Sampling summary titles from production database...');
     
-    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-    const updater = new FastSQLitePriceUpdater();
+    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
+    const updater = new SQLitePriceUpdater();
     await updater.connect();
     
     // Get various samples of summary titles
@@ -1103,158 +1193,13 @@ app.post('/api/clean-summary-titles', async (req, res) => {
   }
 });
 
-// API endpoint to debug pull-new-items process
-app.post('/api/debug-pull-new-items', async (req, res) => {
-  try {
-    console.log('🔍 Manual debug: pull-new-items process started...');
-    
-    const { testRailwayPull } = require('./test-railway-pull-debug.js');
-    
-    // Capture console output
-    const originalLog = console.log;
-    const logs = [];
-    console.log = (...args) => {
-      const message = args.join(' ');
-      logs.push(message);
-      originalLog(...args);
-    };
-    
-    await testRailwayPull();
-    
-    // Restore console.log
-    console.log = originalLog;
-    
-    console.log('✅ Manual debug pull-new-items completed');
-    
-    res.json({
-      success: true,
-      message: 'Debug pull-new-items completed successfully',
-      logs: logs,
-      timestamp: getCentralTime()
-    });
-    
-  } catch (error) {
-    console.error('❌ Manual debug pull-new-items failed:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      timestamp: getCentralTime()
-    });
-  }
-});
-
-// API endpoint to manually trigger pull-new-items job
-app.post('/api/trigger-pull-new-items', async (req, res) => {
-  try {
-    console.log('🚀 Manual trigger: pull-new-items job started...');
-    
-    const { NewItemsPuller } = require('./pull-new-items.js');
-    const puller = new NewItemsPuller();
-    
-    const result = await puller.pullNewItems();
-    
-    console.log('✅ Manual pull-new-items job completed:', result);
-    
-    res.json({
-      success: true,
-      message: 'Pull-new-items job completed successfully',
-      result: result,
-      timestamp: getCentralTime()
-    });
-    
-  } catch (error) {
-    console.error('❌ Manual pull-new-items job failed:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      timestamp: getCentralTime()
-    });
-  }
-});
-
-// API endpoint to cleanup database (remove duplicates, low-value cards, lots)
-app.post('/api/cleanup-database', async (req, res) => {
-  try {
-    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-    const updater = new FastSQLitePriceUpdater();
-    
-    await updater.connect();
-    
-    console.log('🧹 Starting database cleanup via API...');
-    
-    // Remove cards with PSA 10 price under $30
-    const lowPriceResult = await new Promise((resolve, reject) => {
-      updater.db.run('DELETE FROM cards WHERE psa10Price < 30 AND psa10Price IS NOT NULL', function(err) {
-        if (err) reject(err);
-        else resolve(this.changes);
-      });
-    });
-    console.log(`💰 Removed ${lowPriceResult} cards with PSA 10 price under $30`);
-    
-    // Remove cards with "lot" in title
-    const lotResult = await new Promise((resolve, reject) => {
-      updater.db.run(`DELETE FROM cards WHERE 
-                      title LIKE '%lot%' OR title LIKE '%Lot%' OR title LIKE '%LOT%' OR
-                      summaryTitle LIKE '%lot%' OR summaryTitle LIKE '%Lot%' OR summaryTitle LIKE '%LOT%'`, 
-                    function(err) {
-        if (err) reject(err);
-        else resolve(this.changes);
-      });
-    });
-    console.log(`📦 Removed ${lotResult} cards with "lot" in title`);
-    
-    // Remove exact duplicates (keep first occurrence)
-    const duplicateResult = await new Promise((resolve, reject) => {
-      updater.db.run(`DELETE FROM cards WHERE id NOT IN (
-                        SELECT MIN(id) FROM cards GROUP BY title
-                      )`, function(err) {
-        if (err) reject(err);
-        else resolve(this.changes);
-      });
-    });
-    console.log(`🗑️ Removed ${duplicateResult} duplicate cards`);
-    
-    // Get final stats
-    const finalStats = await new Promise((resolve, reject) => {
-      updater.db.get('SELECT COUNT(*) as total FROM cards', (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
-    
-    updater.db.close();
-    
-    console.log(`📊 Cleanup complete: ${finalStats.total} cards remaining`);
-    
-    res.json({
-      success: true,
-      message: 'Database cleanup completed successfully',
-      results: {
-        removedLowPrice: lowPriceResult,
-        removedLots: lotResult,
-        removedDuplicates: duplicateResult,
-        finalCount: finalStats.total,
-        totalRemoved: lowPriceResult + lotResult + duplicateResult
-      },
-      timestamp: getCentralTime()
-    });
-    
-  } catch (error) {
-    console.error('❌ Database cleanup error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-
 // Clear database endpoint (for testing)
 app.delete('/api/clear-database', async (req, res) => {
   try {
     console.log('🗑️ Clearing SQLite database...');
     
-    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-    const updater = new FastSQLitePriceUpdater();
+    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
+    const updater = new SQLitePriceUpdater();
     await updater.connect();
     
     await new Promise((resolve, reject) => {

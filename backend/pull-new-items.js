@@ -11,13 +11,20 @@ class NewItemsPuller {
 
     async connect() {
         return new Promise((resolve, reject) => {
-            this.db = new sqlite3.Database(this.dbPath, (err) => {
+            this.db = new sqlite3.Database(this.dbPath, sqlite3.OPEN_READWRITE, (err) => {
                 if (err) {
                     console.error('❌ Error connecting to database:', err);
                     reject(err);
                 } else {
                     console.log('✅ Connected to SQLite database for new items pull');
-                    resolve();
+                    
+                    // Set busy timeout to handle concurrent access
+                    this.db.run('PRAGMA busy_timeout = 30000', (pragmaErr) => {
+                        if (pragmaErr) {
+                            console.warn('⚠️ Could not set busy timeout:', pragmaErr.message);
+                        }
+                        resolve();
+                    });
                 }
             });
         });
@@ -67,17 +74,23 @@ class NewItemsPuller {
         ];
     }
 
-    // Check if card already exists in database (exact title match only)
+    // Check if card already exists in database
     async cardExists(title, price) {
         return new Promise((resolve, reject) => {
-            // Only check for exact title match - this is the most reliable duplicate detection
-            const exactTitleQuery = `SELECT id FROM cards WHERE title = ? LIMIT 1`;
+            const query = `
+                SELECT id FROM cards 
+                WHERE title = ? AND (
+                    (rawAveragePrice IS NOT NULL AND ABS(rawAveragePrice - ?) < 0.01) OR
+                    (psa9AveragePrice IS NOT NULL AND ABS(psa9AveragePrice - ?) < 0.01) OR
+                    (psa10Price IS NOT NULL AND ABS(psa10Price - ?) < 0.01)
+                )
+                LIMIT 1
+            `;
             
-            this.db.get(exactTitleQuery, [title], (err, row) => {
+            this.db.get(query, [title, price, price, price], (err, row) => {
                 if (err) {
                     reject(err);
                 } else {
-                    // Return true only if exact title match found
                     resolve(!!row);
                 }
             });
@@ -124,6 +137,9 @@ class NewItemsPuller {
                 psa10Price
             ], function(err) {
                 if (err) {
+                    if (err.code === 'SQLITE_BUSY') {
+                        console.warn('⚠️ Database busy, will retry. Error:', err.message);
+                    }
                     reject(err);
                 } else {
                     resolve(this.lastID);
@@ -217,21 +233,8 @@ class NewItemsPuller {
                                     continue;
                                 }
                                 
-                                // Check if card has "lot" in title (reject lot listings)
-                                if (title.includes('lot')) {
-                                    console.log(`   🚫 Skipping lot listing: ${item.title}`);
-                                    continue;
-                                }
-                                
-                                // Check PSA 10 price threshold ($30 minimum)
-                                const price = item.price?.value || item.price;
-                                if (price && price < 30) {
-                                    console.log(`   💸 Skipping low-value PSA 10 ($${price}): ${item.title}`);
-                                    continue;
-                                }
-                                
                                 // Check if this card already exists
-                                const exists = await this.cardExists(item.title, price);
+                                const exists = await this.cardExists(item.title, item.price?.value || item.price);
                                 
                                 if (!exists) {
                                     // Add search term for reference
@@ -294,7 +297,7 @@ class NewItemsPuller {
 
     // Update raw and PSA 9 prices for a newly added item
     async updateNewItemPrices(cardId, title) {
-        const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+        const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
         
         // Create a mock card object for the price updater
         const mockCard = {
@@ -304,36 +307,43 @@ class NewItemsPuller {
         };
         
         // Initialize the price updater
-        const priceUpdater = new FastSQLitePriceUpdater();
+        const priceUpdater = new SQLitePriceUpdater();
         
         try {
             // Connect to database
             await priceUpdater.connect();
             
-            // Use the searchCardPrices method which handles both raw and PSA 9 searches
-            console.log(`     🔍 Searching for raw and PSA 9 prices...`);
-            const priceResult = await priceUpdater.searchCardPrices(mockCard);
+            // Update raw price
+            console.log(`     🔍 Searching for raw prices...`);
+            const rawResults = await priceUpdater.search130Point(mockCard, false); // false = raw search
             
-            if (priceResult) {
-                // Update the database with the found prices
-                const updateData = {};
-                if (priceResult.rawAveragePrice) {
-                    updateData.rawAveragePrice = priceResult.rawAveragePrice;
-                    console.log(`     💰 Found raw price: $${priceResult.rawAveragePrice.toFixed(2)} (${priceResult.rawCount} sales)`);
-                }
-                if (priceResult.psa9AveragePrice) {
-                    updateData.psa9AveragePrice = priceResult.psa9AveragePrice;
-                    console.log(`     💎 Found PSA 9 price: $${priceResult.psa9AveragePrice.toFixed(2)} (${priceResult.psa9Count} sales)`);
-                }
-                
-                if (Object.keys(updateData).length > 0) {
-                    await priceUpdater.updateCardPrices(cardId, updateData);
-                    console.log(`     ✅ Updated prices in database`);
-                } else {
-                    console.log(`     ⚠️ No prices found to update`);
-                }
+            let priceData = {};
+            
+            if (rawResults && rawResults.length > 0) {
+                const rawAvg = rawResults.reduce((sum, item) => sum + item.price, 0) / rawResults.length;
+                priceData.rawAveragePrice = rawAvg;
+                console.log(`     💰 Found raw price: $${rawAvg.toFixed(2)}`);
+            }
+            
+            // Optimized delay between raw and PSA 9 searches for new items
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Update PSA 9 price
+            console.log(`     🔍 Searching for PSA 9 prices...`);
+            const psa9Results = await priceUpdater.search130Point(mockCard, true); // true = PSA 9 search
+            
+            if (psa9Results && psa9Results.length > 0) {
+                const psa9Avg = psa9Results.reduce((sum, item) => sum + item.price, 0) / psa9Results.length;
+                priceData.psa9AveragePrice = psa9Avg;
+                console.log(`     💎 Found PSA 9 price: $${psa9Avg.toFixed(2)}`);
+            }
+            
+            // Update the database with both prices at once
+            if (Object.keys(priceData).length > 0) {
+                await priceUpdater.updateCardPrices(cardId, priceData);
+                console.log(`     ✅ Updated prices in database`);
             } else {
-                console.log(`     ⚠️ No price data returned`);
+                console.log(`     ⚠️ No prices found to update`);
             }
             
             // Close the price updater connection

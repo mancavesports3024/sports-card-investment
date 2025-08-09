@@ -61,7 +61,8 @@ async function search130point(keywords, numSales = 10) {
     if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
       const extraDelay = randomDelay(2000, 5000); // 2-5 seconds random delay
       const totalDelay = (MIN_REQUEST_INTERVAL - timeSinceLastRequest) + extraDelay;
-          await delay(totalDelay);
+      console.log(`⏳ Rate limiting: waiting ${totalDelay}ms (base + random)`);
+      await delay(totalDelay);
     }
     lastRequestTime = Date.now();
 
@@ -79,7 +80,8 @@ async function search130point(keywords, numSales = 10) {
       mp: 'all',
       tk: 'dc848953a13185261a89'
     });
-
+    console.log("130point POST URL:", ONEPOINT_URL);
+    console.log("130point POST payload:", formData);
     // Make POST request to 130point
     const response = await axios.post(ONEPOINT_URL, formData, {
       headers: {
@@ -100,7 +102,8 @@ async function search130point(keywords, numSales = 10) {
       return [];
     }
 
-    // HTML response received successfully
+    // Log the first 500 characters of the HTML response for debugging
+    console.log('130point HTML response (first 500 chars):', response.data?.slice(0, 500));
 
     // Parse HTML response
     const $ = cheerio.load(response.data);
@@ -277,8 +280,19 @@ async function search130point(keywords, numSales = 10) {
           // Only filter out if it's clearly a sealed product
           const shouldFilter = isSealedProduct || hasQuantityIndicators || isHighValueSealed || hasSpecificSealedTerms;
           
+          // Debug specific problematic entry
+          if (titleLower.includes('jumbo hobby case') || titleLower.includes('2025 topps series one 1 baseball jumbo hobby case')) {
+            console.log(`[130POINT DEBUG] Found problematic entry: "${title}"`);
+            console.log(`[130POINT DEBUG] - isSealedProduct: ${isSealedProduct}`);
+            console.log(`[130POINT DEBUG] - hasQuantityIndicators: ${hasQuantityIndicators}`);
+            console.log(`[130POINT DEBUG] - isHighValueSealed: ${isHighValueSealed}`);
+            console.log(`[130POINT DEBUG] - hasSpecificSealedTerms: ${hasSpecificSealedTerms}`);
+            console.log(`[130POINT DEBUG] - shouldFilter: ${shouldFilter}`);
+          }
+          
           if (shouldFilter) {
-            return; // Skip sealed products silently
+            console.log(`[130POINT FILTERED] Sealed product removed: "${title}" - Price: $${priceInUSD.toFixed(2)}`);
+            return; // Skip this item
           }
 
           sales.push({
