@@ -1103,6 +1103,82 @@ app.post('/api/clean-summary-titles', async (req, res) => {
   }
 });
 
+// API endpoint to cleanup database (remove duplicates, low-value cards, lots)
+app.post('/api/cleanup-database', async (req, res) => {
+  try {
+    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+    const updater = new FastSQLitePriceUpdater();
+    
+    await updater.connect();
+    
+    console.log('🧹 Starting database cleanup via API...');
+    
+    // Remove cards with PSA 10 price under $30
+    const lowPriceResult = await new Promise((resolve, reject) => {
+      updater.db.run('DELETE FROM cards WHERE psa10Price < 30 AND psa10Price IS NOT NULL', function(err) {
+        if (err) reject(err);
+        else resolve(this.changes);
+      });
+    });
+    console.log(`💰 Removed ${lowPriceResult} cards with PSA 10 price under $30`);
+    
+    // Remove cards with "lot" in title
+    const lotResult = await new Promise((resolve, reject) => {
+      updater.db.run(`DELETE FROM cards WHERE 
+                      title LIKE '%lot%' OR title LIKE '%Lot%' OR title LIKE '%LOT%' OR
+                      summaryTitle LIKE '%lot%' OR summaryTitle LIKE '%Lot%' OR summaryTitle LIKE '%LOT%'`, 
+                    function(err) {
+        if (err) reject(err);
+        else resolve(this.changes);
+      });
+    });
+    console.log(`📦 Removed ${lotResult} cards with "lot" in title`);
+    
+    // Remove exact duplicates (keep first occurrence)
+    const duplicateResult = await new Promise((resolve, reject) => {
+      updater.db.run(`DELETE FROM cards WHERE id NOT IN (
+                        SELECT MIN(id) FROM cards GROUP BY title
+                      )`, function(err) {
+        if (err) reject(err);
+        else resolve(this.changes);
+      });
+    });
+    console.log(`🗑️ Removed ${duplicateResult} duplicate cards`);
+    
+    // Get final stats
+    const finalStats = await new Promise((resolve, reject) => {
+      updater.db.get('SELECT COUNT(*) as total FROM cards', (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+    
+    updater.db.close();
+    
+    console.log(`📊 Cleanup complete: ${finalStats.total} cards remaining`);
+    
+    res.json({
+      success: true,
+      message: 'Database cleanup completed successfully',
+      results: {
+        removedLowPrice: lowPriceResult,
+        removedLots: lotResult,
+        removedDuplicates: duplicateResult,
+        finalCount: finalStats.total,
+        totalRemoved: lowPriceResult + lotResult + duplicateResult
+      },
+      timestamp: getCentralTime()
+    });
+    
+  } catch (error) {
+    console.error('❌ Database cleanup error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Clear database endpoint (for testing)
 app.delete('/api/clear-database', async (req, res) => {
   try {
