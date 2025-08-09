@@ -119,6 +119,7 @@ function App() {
               <a href="/card-set-analysis" className="header-nav-link">Card Set Analysis</a>
               <a href="/news" className="header-nav-link">News</a>
               <a href="/ebay-bidding" className="header-nav-link">eBay Item Lookup</a>
+              {/* Admin-only card database link */}
               {isLoggedIn && isAdminUser() && (
                 <a href="/admin/cards" className="header-nav-link admin-link">🎯 Card Database</a>
               )}
