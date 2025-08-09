@@ -11,8 +11,8 @@
         "command": "node pull-new-items.js"
       },
       {
-        "name": "update-prices",
-        "schedule": "0 2 * * *",
+        "name": "update-existing-prices",
+        "schedule": "0 */8 * * *",
         "command": "node update-prices.js"
       }
     ]

@@ -236,6 +236,14 @@ class NewItemsPuller {
                                     if (cardId) {
                                         totalNewItems++;
                                         console.log(`   ✅ Added new PSA 10 item: ${item.title}`);
+                                        
+                                        // Immediately update raw and PSA 9 prices for the new item
+                                        try {
+                                            console.log(`   🔄 Updating raw/PSA 9 prices for new item...`);
+                                            await this.updateNewItemPrices(cardId, item.title);
+                                        } catch (priceError) {
+                                            console.error(`   ❌ Failed to update prices for new item: ${priceError.message}`);
+                                        }
                                     }
                                 } else {
                                     console.log(`   ⏭️  Skipped duplicate: ${item.title}`);
@@ -274,6 +282,62 @@ class NewItemsPuller {
         } catch (error) {
             console.error('❌ Error during new items pull:', error);
             if (this.db) this.db.close();
+            throw error;
+        }
+    }
+
+    // Update raw and PSA 9 prices for a newly added item
+    async updateNewItemPrices(cardId, title) {
+        const SQLitePriceUpdater = require('./sqlite-price-updater.js');
+        
+        // Create a mock card object for the price updater
+        const mockCard = {
+            id: cardId,
+            title: title,
+            summaryTitle: this.cleanSummaryTitle(title)
+        };
+        
+        // Initialize the price updater
+        const priceUpdater = new SQLitePriceUpdater();
+        
+        try {
+            // Connect to database
+            await priceUpdater.connectToDatabase();
+            
+            // Update raw price
+            console.log(`     🔍 Searching for raw prices...`);
+            const rawResults = await priceUpdater.search130Point(mockCard, false); // false = raw search
+            
+            if (rawResults && rawResults.length > 0) {
+                const rawAvg = rawResults.reduce((sum, item) => sum + item.price, 0) / rawResults.length;
+                await priceUpdater.updateCardPrice(cardId, 'rawAveragePrice', rawAvg);
+                console.log(`     💰 Updated raw price: $${rawAvg.toFixed(2)}`);
+            }
+            
+            // Add small delay between searches
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Update PSA 9 price
+            console.log(`     🔍 Searching for PSA 9 prices...`);
+            const psa9Results = await priceUpdater.search130Point(mockCard, true); // true = PSA 9 search
+            
+            if (psa9Results && psa9Results.length > 0) {
+                const psa9Avg = psa9Results.reduce((sum, item) => sum + item.price, 0) / psa9Results.length;
+                await priceUpdater.updateCardPrice(cardId, 'psa9AveragePrice', psa9Avg);
+                console.log(`     💎 Updated PSA 9 price: $${psa9Avg.toFixed(2)}`);
+            }
+            
+            // Close the price updater connection
+            if (priceUpdater.db) {
+                priceUpdater.db.close();
+            }
+            
+        } catch (error) {
+            console.error(`     ❌ Error updating prices: ${error.message}`);
+            // Close connection on error
+            if (priceUpdater.db) {
+                priceUpdater.db.close();
+            }
             throw error;
         }
     }
