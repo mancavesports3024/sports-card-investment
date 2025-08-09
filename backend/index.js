@@ -880,6 +880,76 @@ app.post('/api/add-cards', async (req, res) => {
   }
 });
 
+// Sample summary titles endpoint for inspection
+app.get('/api/sample-summary-titles', async (req, res) => {
+  try {
+    console.log('🔍 Sampling summary titles from production database...');
+    
+    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
+    const updater = new SQLitePriceUpdater();
+    await updater.connect();
+    
+    // Get various samples of summary titles
+    const samples = await new Promise((resolve, reject) => {
+      const queries = [
+        "SELECT id, summaryTitle FROM cards WHERE summaryTitle LIKE '%PSA%' LIMIT 10",
+        "SELECT id, summaryTitle FROM cards WHERE summaryTitle LIKE '%CERT%' LIMIT 10", 
+        "SELECT id, summaryTitle FROM cards WHERE summaryTitle LIKE '%GEM%' LIMIT 10",
+        "SELECT id, summaryTitle FROM cards WHERE summaryTitle LIKE '%MT%' LIMIT 10",
+        "SELECT id, summaryTitle FROM cards WHERE summaryTitle LIKE '%110664432%' LIMIT 5",
+        "SELECT id, summaryTitle FROM cards WHERE summaryTitle LIKE '%MOBLEY%' LIMIT 5",
+        "SELECT id, summaryTitle FROM cards ORDER BY RANDOM() LIMIT 20"
+      ];
+      
+      Promise.all(queries.map(query => {
+        return new Promise((resolveQuery, rejectQuery) => {
+          updater.db.all(query, (err, rows) => {
+            if (err) rejectQuery(err);
+            else resolveQuery(rows);
+          });
+        });
+      })).then(([psaCards, certCards, gemCards, mtCards, specificCard, mobleyCards, randomCards]) => {
+        resolve({
+          psaCards: psaCards || [],
+          certCards: certCards || [],
+          gemCards: gemCards || [],
+          mtCards: mtCards || [],
+          specificCard: specificCard || [],
+          mobleyCards: mobleyCards || [],
+          randomCards: randomCards || []
+        });
+      }).catch(reject);
+    });
+    
+    updater.db.close();
+    
+    res.json({
+      success: true,
+      message: 'Summary title samples retrieved',
+      samples: samples,
+      totalSamples: {
+        psa: samples.psaCards.length,
+        cert: samples.certCards.length,
+        gem: samples.gemCards.length,
+        mt: samples.mtCards.length,
+        specific: samples.specificCard.length,
+        mobley: samples.mobleyCards.length,
+        random: samples.randomCards.length
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error sampling summary titles:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to sample summary titles',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Clean summary titles endpoint
 app.post('/api/clean-summary-titles', async (req, res) => {
   try {
