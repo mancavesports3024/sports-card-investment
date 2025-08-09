@@ -581,8 +581,8 @@ app.post('/api/update-prices', async (req, res) => {
     console.log(`🚀 Starting SQLite price update with batch size: ${batchSize}`);
     
     // Import and run the SQLite price updater
-    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
-    const updater = new SQLitePriceUpdater();
+    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+    const updater = new FastSQLitePriceUpdater();
     
     // Start the update process
     await updater.processBatch(batchSize);
@@ -682,11 +682,11 @@ app.post('/api/trigger-price-update', async (req, res) => {
         console.log('🚀 Manual price update triggered via API...');
         
         // Use the same logic as update-prices.js
-        const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
+        const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
         
         class AutomatedPriceUpdater {
           constructor() {
-            this.updater = new SQLitePriceUpdater();
+            this.updater = new FastSQLitePriceUpdater();
           }
           
           async updatePrices() {
@@ -841,8 +841,8 @@ app.get('/api/database-status', async (req, res) => {
     }
     
     // Regular database status check
-    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
-    const updater = new SQLitePriceUpdater();
+    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+    const updater = new FastSQLitePriceUpdater();
     
     await updater.connect();
     const stats = await updater.getDatabaseStats();
@@ -1006,8 +1006,8 @@ app.get('/api/price-data', async (req, res) => {
   try {
     console.log('📊 Fetching price data from SQLite database...');
     
-    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
-    const updater = new SQLitePriceUpdater();
+    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+    const updater = new FastSQLitePriceUpdater();
     await updater.connect();
     
     // Get all cards with their price data
@@ -1091,8 +1091,8 @@ app.post('/api/add-cards', async (req, res) => {
     
     console.log(`📊 Processing ${cards.length} cards...`);
     
-    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
-    const updater = new SQLitePriceUpdater();
+    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+    const updater = new FastSQLitePriceUpdater();
     await updater.connect();
     
     let inserted = 0;
@@ -1186,8 +1186,8 @@ app.get('/api/sample-summary-titles', async (req, res) => {
   try {
     console.log('🔍 Sampling summary titles from production database...');
     
-    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
-    const updater = new SQLitePriceUpdater();
+    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+    const updater = new FastSQLitePriceUpdater();
     await updater.connect();
     
     // Get various samples of summary titles
@@ -1282,8 +1282,8 @@ app.delete('/api/clear-database', async (req, res) => {
   try {
     console.log('🗑️ Clearing SQLite database...');
     
-    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
-    const updater = new SQLitePriceUpdater();
+    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+    const updater = new FastSQLitePriceUpdater();
     await updater.connect();
     
     await new Promise((resolve, reject) => {
