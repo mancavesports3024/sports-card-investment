@@ -596,9 +596,99 @@ app.post('/api/trigger-price-update', async (req, res) => {
     setImmediate(async () => {
       try {
         console.log('🚀 Manual price update triggered via API...');
+        
+        // Use the same logic as update-prices.js
         const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
-        const priceUpdater = new SQLitePriceUpdater();
-        await priceUpdater.updatePrices(200); // Update 200 cards
+        
+        class AutomatedPriceUpdater {
+          constructor() {
+            this.updater = new SQLitePriceUpdater();
+          }
+          
+          async updatePrices() {
+            console.log('=====================================');
+            await this.updater.connect();
+            
+            // Get 200 cards that need updates
+            const cardsToUpdate = await this.getCardsNeedingUpdates();
+            console.log(`📊 Found ${cardsToUpdate.length} cards that need price updates`);
+            
+            if (cardsToUpdate.length === 0) {
+              console.log('✅ All cards have recent price data!');
+              this.updater.db.close();
+              return;
+            }
+            
+            // Process cards
+            let processed = 0;
+            let updated = 0;
+            
+            for (const card of cardsToUpdate) {
+              processed++;
+              console.log(`\n🔄 Processing ${processed}/${cardsToUpdate.length}: ${card.title}`);
+              
+              try {
+                const rawResults = await this.updater.search130Point(card, false);
+                const psa9Results = await this.updater.search130Point(card, true);
+                
+                let priceData = {};
+                
+                if (rawResults && rawResults.length > 0) {
+                  const rawAvg = rawResults.reduce((sum, item) => sum + item.price, 0) / rawResults.length;
+                  priceData.rawAveragePrice = rawAvg;
+                }
+                
+                if (psa9Results && psa9Results.length > 0) {
+                  const psa9Avg = psa9Results.reduce((sum, item) => sum + item.price, 0) / psa9Results.length;
+                  priceData.psa9AveragePrice = psa9Avg;
+                }
+                
+                if (Object.keys(priceData).length > 0) {
+                  await this.updater.updateCardPrices(card.id, priceData);
+                  updated++;
+                }
+                
+                // Rate limiting
+                if (processed < cardsToUpdate.length) {
+                  const delay = 1500 + Math.random() * 1000;
+                  await new Promise(resolve => setTimeout(resolve, delay));
+                }
+                
+              } catch (error) {
+                console.error(`❌ Error updating ${card.title}:`, error.message);
+              }
+            }
+            
+            console.log(`\n🎉 Price update completed! Updated ${updated}/${processed} cards`);
+            this.updater.db.close();
+          }
+          
+          async getCardsNeedingUpdates() {
+            return new Promise((resolve, reject) => {
+              const query = `
+                SELECT id, title, summaryTitle, sport, rawAveragePrice, psa9AveragePrice, psa10Price, updated_at
+                FROM cards 
+                WHERE (rawAveragePrice IS NULL OR psa9AveragePrice IS NULL)
+                AND psa10Price IS NOT NULL
+                ORDER BY 
+                  CASE WHEN updated_at IS NULL THEN 1 ELSE 0 END,
+                  updated_at ASC
+                LIMIT 200
+              `;
+              
+              this.updater.db.all(query, [], (err, rows) => {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve(rows);
+                }
+              });
+            });
+          }
+        }
+        
+        const automatedUpdater = new AutomatedPriceUpdater();
+        await automatedUpdater.updatePrices();
         console.log('✅ Manual price update completed');
       } catch (error) {
         console.error('❌ Manual price update failed:', error);
