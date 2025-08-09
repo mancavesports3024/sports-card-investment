@@ -635,19 +635,34 @@ app.post('/api/trigger-price-update', async (req, res) => {
                 
                 let priceData = {};
                 
-                if (rawResults && rawResults.length > 0) {
-                  const rawAvg = rawResults.reduce((sum, item) => sum + item.price, 0) / rawResults.length;
-                  priceData.rawAveragePrice = rawAvg;
+                // Use the same logic as the actual price updater
+                const rawAvg = rawResults.length > 0 ? 
+                  rawResults.reduce((sum, sale) => sum + sale.price, 0) / rawResults.length : 0;
+                
+                const psa9Avg = psa9Results.length > 0 ? 
+                  psa9Results.reduce((sum, sale) => sum + sale.price, 0) / psa9Results.length : 0;
+                
+                const priceDataForUpdate = {
+                  raw: { avgPrice: rawAvg, count: rawResults.length, sales: rawResults },
+                  psa9: { avgPrice: psa9Avg, count: psa9Results.length, sales: psa9Results },
+                  source: '130point_api'
+                };
+                
+                // Log the prices we found
+                console.log(`   📈 ${card.summaryTitle || card.title}`);
+                if (rawAvg > 0) {
+                  console.log(`      💰 Raw: $${rawAvg.toFixed(2)} (${rawResults.length} cards)`);
+                }
+                if (psa9Avg > 0) {
+                  console.log(`      💰 PSA 9: $${psa9Avg.toFixed(2)} (${psa9Results.length} cards)`);
                 }
                 
-                if (psa9Results && psa9Results.length > 0) {
-                  const psa9Avg = psa9Results.reduce((sum, item) => sum + item.price, 0) / psa9Results.length;
-                  priceData.psa9AveragePrice = psa9Avg;
-                }
-                
-                if (Object.keys(priceData).length > 0) {
-                  await this.updater.updateCardPrices(card.id, priceData);
+                if (rawAvg > 0 || psa9Avg > 0) {
+                  await this.updater.updateCardPrices(card.id, priceDataForUpdate);
                   updated++;
+                  console.log(`      ✅ Updated database for card ${card.id}`);
+                } else {
+                  console.log(`      ⚠️ No valid prices found - skipping database update`);
                 }
                 
                 // Rate limiting
