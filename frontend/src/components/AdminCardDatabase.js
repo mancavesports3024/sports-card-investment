@@ -28,16 +28,6 @@ const AdminCardDatabase = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Admin check after hooks
-  if (!isAdminUser()) {
-    return (
-      <div className="admin-only-message">
-        <h2>Access Denied</h2>
-        <p>This page is only available to administrators.</p>
-      </div>
-    );
-  }
-
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://web-production-9efa.up.railway.app';
 
   useEffect(() => {
@@ -142,6 +132,16 @@ const AdminCardDatabase = () => {
     
     return buttons;
   };
+
+  // Admin check in render return
+  if (!isAdminUser()) {
+    return (
+      <div className="admin-only-message">
+        <h2>Access Denied</h2>
+        <p>This page is only available to administrators.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-card-database">
