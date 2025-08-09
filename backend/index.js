@@ -628,8 +628,10 @@ app.post('/api/trigger-price-update', async (req, res) => {
               console.log(`\n🔄 Processing ${processed}/${cardsToUpdate.length}: ${card.title}`);
               
               try {
-                const rawResults = await this.updater.search130Point(card.title, false);
-                const psa9Results = await this.updater.search130Point(card.title, true);
+                // Use summaryTitle for cleaner searches (removes grading info)
+                const searchTitle = card.summaryTitle || card.title;
+                const rawResults = await this.updater.search130Point(searchTitle, false);
+                const psa9Results = await this.updater.search130Point(searchTitle, true);
                 
                 let priceData = {};
                 
