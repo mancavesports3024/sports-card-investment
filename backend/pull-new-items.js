@@ -288,7 +288,7 @@ class NewItemsPuller {
 
     // Update raw and PSA 9 prices for a newly added item
     async updateNewItemPrices(cardId, title) {
-        const SQLitePriceUpdater = require('./sqlite-price-updater.js');
+        const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
         
         // Create a mock card object for the price updater
         const mockCard = {
@@ -302,20 +302,22 @@ class NewItemsPuller {
         
         try {
             // Connect to database
-            await priceUpdater.connectToDatabase();
+            await priceUpdater.connect();
             
             // Update raw price
             console.log(`     🔍 Searching for raw prices...`);
             const rawResults = await priceUpdater.search130Point(mockCard, false); // false = raw search
             
+            let priceData = {};
+            
             if (rawResults && rawResults.length > 0) {
                 const rawAvg = rawResults.reduce((sum, item) => sum + item.price, 0) / rawResults.length;
-                await priceUpdater.updateCardPrice(cardId, 'rawAveragePrice', rawAvg);
-                console.log(`     💰 Updated raw price: $${rawAvg.toFixed(2)}`);
+                priceData.rawAveragePrice = rawAvg;
+                console.log(`     💰 Found raw price: $${rawAvg.toFixed(2)}`);
             }
             
-            // Add small delay between searches
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            // Optimized delay between raw and PSA 9 searches for new items
+            await new Promise(resolve => setTimeout(resolve, 1500));
             
             // Update PSA 9 price
             console.log(`     🔍 Searching for PSA 9 prices...`);
@@ -323,8 +325,16 @@ class NewItemsPuller {
             
             if (psa9Results && psa9Results.length > 0) {
                 const psa9Avg = psa9Results.reduce((sum, item) => sum + item.price, 0) / psa9Results.length;
-                await priceUpdater.updateCardPrice(cardId, 'psa9AveragePrice', psa9Avg);
-                console.log(`     💎 Updated PSA 9 price: $${psa9Avg.toFixed(2)}`);
+                priceData.psa9AveragePrice = psa9Avg;
+                console.log(`     💎 Found PSA 9 price: $${psa9Avg.toFixed(2)}`);
+            }
+            
+            // Update the database with both prices at once
+            if (Object.keys(priceData).length > 0) {
+                await priceUpdater.updateCardPrices(cardId, priceData);
+                console.log(`     ✅ Updated prices in database`);
+            } else {
+                console.log(`     ⚠️ No prices found to update`);
             }
             
             // Close the price updater connection

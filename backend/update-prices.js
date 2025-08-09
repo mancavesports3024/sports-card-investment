@@ -28,8 +28,8 @@ class AutomatedPriceUpdater {
             
             console.log(`📊 Found ${cardsToUpdate.length} cards needing price updates`);
             
-            // Update prices in smaller batches to avoid overwhelming 130point
-            const batchSize = 50; // Process 50 cards per run
+            // Update prices in larger batches for faster processing
+            const batchSize = 200; // Process 200 cards per run
             const cardsToProcess = cardsToUpdate.slice(0, batchSize);
             
             console.log(`🔄 Processing ${cardsToProcess.length} cards in this run...`);
@@ -47,8 +47,8 @@ class AutomatedPriceUpdater {
                         errors++;
                     }
                     
-                    // Rate limiting between cards (3-5 seconds)
-                    const delay = 3000 + Math.random() * 2000;
+                    // Optimized rate limiting between cards (1-2 seconds)
+                    const delay = 1000 + Math.random() * 1000;
                     await new Promise(resolve => setTimeout(resolve, delay));
                     
                 } catch (error) {

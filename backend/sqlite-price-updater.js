@@ -133,13 +133,13 @@ class SQLitePriceUpdater {
 
     async search130Point(cardTitle, isPSA9 = false, strategies = []) {
         try {
-            // Rate limiting with random delay
+            // Optimized rate limiting - reduced delays for faster processing
             const now = Date.now();
             const timeSinceLastRequest = now - this.lastRequestTime;
             if (timeSinceLastRequest < this.MIN_REQUEST_INTERVAL) {
-                const extraDelay = Math.random() * 3000 + 2000; // 2-5 seconds random delay
+                const extraDelay = Math.random() * 1000 + 500; // 0.5-1.5 seconds random delay
                 const totalDelay = (this.MIN_REQUEST_INTERVAL - timeSinceLastRequest) + extraDelay;
-                console.log(`⏳ Rate limiting: waiting ${Math.round(totalDelay)}ms (base + random)`);
+                console.log(`⏳ Rate limiting: waiting ${Math.round(totalDelay)}ms (optimized)`);
                 await new Promise(resolve => setTimeout(resolve, totalDelay));
             }
             this.lastRequestTime = Date.now();
@@ -375,9 +375,9 @@ class SQLitePriceUpdater {
                     return sales;
                 }
                 
-                // Small delay between strategies
+                // Reduced delay between strategies for faster processing
                 if (i < searchQueries.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 300));
                 }
             }
             
@@ -397,8 +397,8 @@ class SQLitePriceUpdater {
             // Search for raw prices using multiple strategies
             const rawSales = await this.search130Point(identifier, false, strategies);
             
-            // Rate limiting
-            await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+            // Optimized rate limiting between raw and PSA 9 searches
+            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
             
             // Search for PSA 9 prices using multiple strategies
             const psa9Sales = await this.search130Point(identifier, true, strategies);
@@ -466,10 +466,10 @@ class SQLitePriceUpdater {
                     
                     console.log(`📈 Progress: ${processed}/${cards.length} (${Math.round(processed/cards.length*100)}%)`);
                     
-                    // Rate limiting between cards
+                    // Optimized rate limiting between cards - faster processing
                     if (processed < cards.length) {
-                        const delay = 3000 + Math.random() * 2000;
-                        console.log(`⏳ Rate limiting: waiting ${Math.round(delay)}ms`);
+                        const delay = 1500 + Math.random() * 1000; // 1.5-2.5 seconds instead of 3-5
+                        console.log(`⏳ Rate limiting: waiting ${Math.round(delay)}ms (optimized)`);
                         await new Promise(resolve => setTimeout(resolve, delay));
                     }
                     
