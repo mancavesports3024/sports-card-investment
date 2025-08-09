@@ -112,7 +112,7 @@ class SQLitePriceUpdater {
         }
     }
 
-    // Extract card identifier using the ULTIMATE MULTI-SPORT FILTERING SYSTEM
+    // Extract card identifier using SMART SEARCH STRATEGIES
     extractCardIdentifier(card) {
         // Handle summaryTitle - ensure it's a string
         let summaryTitle = card.summaryTitle || card.title || '';
@@ -133,15 +133,60 @@ class SQLitePriceUpdater {
         // Ensure it's a string
         summaryTitle = String(summaryTitle || '').trim();
         
-        // Strategy 1 ONLY: Full summary title WITHOUT negative terms (testing)
-        const strategy1 = summaryTitle;
+        // Create SMART search strategies by removing overly specific details
+        let genericTitle = summaryTitle;
         
-        console.log(`🔍 Generated search strategy for "${summaryTitle}":`);
-        console.log(`   Strategy: "${strategy1}"`);
+        // Remove specific parallel details that make searches too narrow
+        genericTitle = genericTitle
+            // Remove specific numbering like "1/1", "9/10", "25/99", etc.
+            .replace(/\s+\d+\/\d+\s*$/g, '')
+            .replace(/\s+\d+\/\d+\s+/g, ' ')
+            // Remove specific certification details
+            .replace(/\s+Cert\s*$/gi, '')
+            .replace(/\s+#\w+\s*$/g, '')
+            // Remove specific engine/engine numbers
+            .replace(/\s+Engine\s+\d+\/\d+/gi, '')
+            .replace(/\s+Gold\s+Engine/gi, ' Gold')
+            // Remove PSA grades and cert numbers from end
+            .replace(/\s+\d+\/\d+\s*$/g, '')
+            // Remove trailing dashes and numbers
+            .replace(/\s+-\s*$/g, '')
+            .replace(/\s+\d+\s*$/g, '')
+            // Clean up multiple spaces
+            .replace(/\s+/g, ' ')
+            .trim();
+        
+        // Create multiple strategies from most specific to most generic
+        const strategies = [];
+        
+        // Strategy 1: Full cleaned title
+        if (genericTitle && genericTitle !== summaryTitle) {
+            strategies.push(genericTitle);
+        }
+        
+        // Strategy 2: Extract player name + year + brand if possible
+        const playerYearMatch = summaryTitle.match(/(\d{4})\s+.*?\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
+        if (playerYearMatch) {
+            const year = playerYearMatch[1];
+            const possiblePlayer = playerYearMatch[2];
+            if (possiblePlayer.length > 3) { // Avoid short words like "GM", "RC"
+                strategies.push(`${year} ${possiblePlayer}`);
+            }
+        }
+        
+        // Strategy 3: Fallback to original if no better strategy found
+        if (strategies.length === 0) {
+            strategies.push(summaryTitle);
+        }
+        
+        console.log(`🔍 Generated search strategies for "${summaryTitle}":`);
+        strategies.forEach((strategy, i) => {
+            console.log(`   Strategy ${i + 1}: "${strategy}"`);
+        });
         
         return { 
             identifier: summaryTitle,
-            strategies: [strategy1] // Only one strategy to minimize API calls
+            strategies: strategies.slice(0, 2) // Limit to 2 strategies to balance speed vs coverage
         };
     }
     
