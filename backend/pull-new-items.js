@@ -294,7 +294,7 @@ class NewItemsPuller {
         const mockCard = {
             id: cardId,
             title: title,
-            summaryTitle: this.cleanSummaryTitle(title)
+            summaryTitle: title // Use the original title for now to fix the [object Object] issue
         };
         
         // Initialize the price updater
