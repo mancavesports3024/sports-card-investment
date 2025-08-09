@@ -520,6 +520,69 @@ app.post('/api/update-prices', async (req, res) => {
   }
 });
 
+// Cron Job Status endpoint
+app.get('/api/cron-status', async (req, res) => {
+  try {
+    const sqlite3 = require('sqlite3').verbose();
+    const dbPath = path.join(__dirname, 'data', 'scorecard.db');
+    const db = new sqlite3.Database(dbPath);
+    
+    // Get the most recent cards (which would indicate pull-new-items ran)
+    const recentCards = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT id, title, created_at FROM cards 
+         WHERE created_at IS NOT NULL 
+         ORDER BY created_at DESC LIMIT 5`,
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        }
+      );
+    });
+    
+    // Get cards with recent price updates (which would indicate update-prices ran)
+    const recentPriceUpdates = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT id, title, rawAveragePrice, psa9AveragePrice, updated_at FROM cards 
+         WHERE (rawAveragePrice IS NOT NULL OR psa9AveragePrice IS NOT NULL)
+         AND updated_at IS NOT NULL 
+         ORDER BY updated_at DESC LIMIT 5`,
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        }
+      );
+    });
+    
+    db.close();
+    
+    res.json({
+      success: true,
+      cronJobStatus: {
+        pullNewItems: {
+          schedule: "Every 6 hours (0 */6 * * *)",
+          lastRun: recentCards.length > 0 ? recentCards[0].created_at : "No recent items",
+          recentItems: recentCards
+        },
+        updatePrices: {
+          schedule: "Every 8 hours (0 */8 * * *)", 
+          lastRun: recentPriceUpdates.length > 0 ? recentPriceUpdates[0].updated_at : "No recent updates",
+          recentUpdates: recentPriceUpdates
+        }
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Error checking cron status:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // SQLite Database Status endpoint (with optional cleanup)
 app.get('/api/database-status', async (req, res) => {
   try {
