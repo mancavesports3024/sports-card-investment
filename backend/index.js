@@ -1103,6 +1103,46 @@ app.post('/api/clean-summary-titles', async (req, res) => {
   }
 });
 
+// API endpoint to debug pull-new-items process
+app.post('/api/debug-pull-new-items', async (req, res) => {
+  try {
+    console.log('🔍 Manual debug: pull-new-items process started...');
+    
+    const { testRailwayPull } = require('./test-railway-pull-debug.js');
+    
+    // Capture console output
+    const originalLog = console.log;
+    const logs = [];
+    console.log = (...args) => {
+      const message = args.join(' ');
+      logs.push(message);
+      originalLog(...args);
+    };
+    
+    await testRailwayPull();
+    
+    // Restore console.log
+    console.log = originalLog;
+    
+    console.log('✅ Manual debug pull-new-items completed');
+    
+    res.json({
+      success: true,
+      message: 'Debug pull-new-items completed successfully',
+      logs: logs,
+      timestamp: getCentralTime()
+    });
+    
+  } catch (error) {
+    console.error('❌ Manual debug pull-new-items failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: getCentralTime()
+    });
+  }
+});
+
 // API endpoint to manually trigger pull-new-items job
 app.post('/api/trigger-pull-new-items', async (req, res) => {
   try {
