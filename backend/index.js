@@ -496,12 +496,12 @@ app.post('/api/update-prices', async (req, res) => {
     
     console.log(`🚀 Starting SQLite price update with batch size: ${batchSize}`);
     
-    // Import and run the SQLite price updater
-    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
-    const updater = new SQLitePriceUpdater();
+    // Import and run the Fast SQLite price updater
+    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+    const updater = new FastSQLitePriceUpdater();
     
-    // Start the update process
-    await updater.processBatch(batchSize);
+    // Start the fast update process
+    await updater.processBatchFast(batchSize);
     
     res.json({
       success: true,
@@ -597,125 +597,21 @@ app.post('/api/trigger-price-update', async (req, res) => {
       try {
         console.log('🚀 Manual price update triggered via API...');
         
-        // Use the same logic as update-prices.js
-        const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
+        // Use the fast SQLite price updater
+        const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
         
         class AutomatedPriceUpdater {
           constructor() {
-            this.updater = new SQLitePriceUpdater();
+            this.updater = new FastSQLitePriceUpdater();
           }
           
           async updatePrices() {
             console.log('=====================================');
-            await this.updater.connect();
             
-            // Get 200 cards that need updates
-            const cardsToUpdate = await this.getCardsNeedingUpdates();
-            console.log(`📊 Found ${cardsToUpdate.length} cards that need price updates`);
+            // Use fast batch processing for 200 cards
+            await this.updater.processBatchFast(200);
             
-            if (cardsToUpdate.length === 0) {
-              console.log('✅ All cards have recent price data!');
-              this.updater.db.close();
-              return;
-            }
-            
-            // Process cards
-            let processed = 0;
-            let updated = 0;
-            
-            for (const card of cardsToUpdate) {
-              processed++;
-              console.log(`\n🔄 Processing ${processed}/${cardsToUpdate.length}: ${card.title}`);
-              
-              try {
-                // Use summaryTitle for cleaner searches (removes grading info)
-                const searchTitle = card.summaryTitle || card.title;
-                const rawResults = await this.updater.search130Point(searchTitle, false);
-                const psa9Results = await this.updater.search130Point(searchTitle, true);
-                
-                let priceData = {};
-                
-                // Use the same logic as the actual price updater
-                const rawAvg = rawResults.length > 0 ? 
-                  rawResults.reduce((sum, sale) => sum + sale.price, 0) / rawResults.length : 0;
-                
-                const psa9Avg = psa9Results.length > 0 ? 
-                  psa9Results.reduce((sum, sale) => sum + sale.price, 0) / psa9Results.length : 0;
-                
-                const priceDataForUpdate = {
-                  raw: { avgPrice: rawAvg, count: rawResults.length, sales: rawResults },
-                  psa9: { avgPrice: psa9Avg, count: psa9Results.length, sales: psa9Results },
-                  source: '130point_api'
-                };
-                
-                // Log the prices we found
-                console.log(`   📈 ${card.summaryTitle || card.title}`);
-                if (rawAvg > 0) {
-                  console.log(`      💰 Raw: $${rawAvg.toFixed(2)} (${rawResults.length} cards)`);
-                }
-                if (psa9Avg > 0) {
-                  console.log(`      💰 PSA 9: $${psa9Avg.toFixed(2)} (${psa9Results.length} cards)`);
-                }
-                
-                if (rawAvg > 0 || psa9Avg > 0) {
-                  await this.updater.updateCardPrices(card.id, priceDataForUpdate);
-                  updated++;
-                  console.log(`      ✅ Updated database for card ${card.id}`);
-                } else {
-                  console.log(`      ⚠️ No valid prices found - skipping database update`);
-                }
-                
-                // Rate limiting
-                if (processed < cardsToUpdate.length) {
-                  const delay = 1500 + Math.random() * 1000;
-                  await new Promise(resolve => setTimeout(resolve, delay));
-                }
-                
-              } catch (error) {
-                console.error(`❌ Error updating ${card.title}:`, error.message);
-              }
-            }
-            
-            console.log(`\n🎉 Price update completed! Updated ${updated}/${processed} cards`);
-            this.updater.db.close();
-          }
-          
-          async getCardsNeedingUpdates() {
-            return new Promise((resolve, reject) => {
-              // Use the same logic as update-prices.js
-              const query = `
-                SELECT id, title, summaryTitle, sport, filterInfo, 
-                       rawAveragePrice, psa9AveragePrice, lastUpdated
-                FROM cards 
-                WHERE 
-                    -- Missing both prices
-                    (rawAveragePrice IS NULL AND psa9AveragePrice IS NULL) OR
-                    -- Missing raw price but has PSA 9
-                    (rawAveragePrice IS NULL AND psa9AveragePrice IS NOT NULL) OR
-                    -- Missing PSA 9 price but has raw
-                    (rawAveragePrice IS NOT NULL AND psa9AveragePrice IS NULL) OR
-                    -- Old data (older than 7 days)
-                    (lastUpdated IS NULL OR datetime(lastUpdated) < datetime('now', '-7 days'))
-                ORDER BY
-                    -- Priority: no prices first, then missing prices, then old data
-                    CASE 
-                        WHEN rawAveragePrice IS NULL AND psa9AveragePrice IS NULL THEN 1
-                        WHEN rawAveragePrice IS NULL OR psa9AveragePrice IS NULL THEN 2
-                        ELSE 3
-                    END,
-                    CASE WHEN lastUpdated IS NULL THEN 1 ELSE 0 END,
-                    lastUpdated ASC
-                LIMIT 200
-              `;
-              
-              this.updater.db.all(query, [], (err, rows) => {
-                if (err) {
-                  reject(err);
-                } else {
-                  resolve(rows);
-                }
-              });
-            });
+            console.log('🎉 Manual price update completed using fast processing!');
           }
         }
         
@@ -757,8 +653,8 @@ app.get('/api/database-status', async (req, res) => {
     }
     
     // Regular database status check
-    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
-    const updater = new SQLitePriceUpdater();
+    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+    const updater = new FastSQLitePriceUpdater();
     
     await updater.connect();
     const stats = await updater.getDatabaseStats();
@@ -922,8 +818,8 @@ app.get('/api/price-data', async (req, res) => {
   try {
     console.log('📊 Fetching price data from SQLite database...');
     
-    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
-    const updater = new SQLitePriceUpdater();
+    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+    const updater = new FastSQLitePriceUpdater();
     await updater.connect();
     
     // Get all cards with their price data
@@ -1007,8 +903,8 @@ app.post('/api/add-cards', async (req, res) => {
     
     console.log(`📊 Processing ${cards.length} cards...`);
     
-    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
-    const updater = new SQLitePriceUpdater();
+    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+    const updater = new FastSQLitePriceUpdater();
     await updater.connect();
     
     let inserted = 0;
@@ -1102,8 +998,8 @@ app.get('/api/sample-summary-titles', async (req, res) => {
   try {
     console.log('🔍 Sampling summary titles from production database...');
     
-    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
-    const updater = new SQLitePriceUpdater();
+    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+    const updater = new FastSQLitePriceUpdater();
     await updater.connect();
     
     // Get various samples of summary titles
@@ -1198,8 +1094,8 @@ app.delete('/api/clear-database', async (req, res) => {
   try {
     console.log('🗑️ Clearing SQLite database...');
     
-    const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
-    const updater = new SQLitePriceUpdater();
+    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+    const updater = new FastSQLitePriceUpdater();
     await updater.connect();
     
     await new Promise((resolve, reject) => {
