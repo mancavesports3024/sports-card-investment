@@ -1103,6 +1103,35 @@ app.post('/api/clean-summary-titles', async (req, res) => {
   }
 });
 
+// API endpoint to manually trigger pull-new-items job
+app.post('/api/trigger-pull-new-items', async (req, res) => {
+  try {
+    console.log('🚀 Manual trigger: pull-new-items job started...');
+    
+    const { NewItemsPuller } = require('./pull-new-items.js');
+    const puller = new NewItemsPuller();
+    
+    const result = await puller.pullNewItems();
+    
+    console.log('✅ Manual pull-new-items job completed:', result);
+    
+    res.json({
+      success: true,
+      message: 'Pull-new-items job completed successfully',
+      result: result,
+      timestamp: getCentralTime()
+    });
+    
+  } catch (error) {
+    console.error('❌ Manual pull-new-items job failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: getCentralTime()
+    });
+  }
+});
+
 // API endpoint to cleanup database (remove duplicates, low-value cards, lots)
 app.post('/api/cleanup-database', async (req, res) => {
   try {
