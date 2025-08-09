@@ -114,8 +114,24 @@ class SQLitePriceUpdater {
 
     // Extract card identifier using the ULTIMATE MULTI-SPORT FILTERING SYSTEM
     extractCardIdentifier(card) {
-        // Use the summaryTitle from our database (this is already cleaned)
-        const summaryTitle = card.summaryTitle || card.title || '';
+        // Handle summaryTitle - ensure it's a string
+        let summaryTitle = card.summaryTitle || card.title || '';
+        
+        // Fix [object Object] issue - if summaryTitle is an object, extract the string value
+        if (typeof summaryTitle === 'object') {
+            // If it's stored as JSON, try to extract the actual title
+            if (summaryTitle.title) {
+                summaryTitle = summaryTitle.title;
+            } else if (summaryTitle.summaryTitle) {
+                summaryTitle = summaryTitle.summaryTitle;
+            } else {
+                // Fallback to the original title
+                summaryTitle = card.title || '';
+            }
+        }
+        
+        // Ensure it's a string
+        summaryTitle = String(summaryTitle || '').trim();
         
         // Strategy 1 ONLY: Full summary title WITHOUT negative terms (testing)
         const strategy1 = summaryTitle;
