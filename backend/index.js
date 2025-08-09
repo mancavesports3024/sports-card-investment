@@ -863,6 +863,32 @@ app.post('/api/add-cards', async (req, res) => {
   }
 });
 
+// Clean summary titles endpoint
+app.post('/api/clean-summary-titles', async (req, res) => {
+  try {
+    console.log('🧹 Starting summary title cleanup...');
+    
+    const { cleanSummaryTitles } = require('./api-clean-summary-titles.js');
+    const result = await cleanSummaryTitles();
+    
+    res.json({
+      success: true,
+      message: 'Summary title cleanup completed successfully',
+      data: result,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error cleaning summary titles:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to clean summary titles',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Clear database endpoint (for testing)
 app.delete('/api/clear-database', async (req, res) => {
   try {
