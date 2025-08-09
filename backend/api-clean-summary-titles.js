@@ -115,21 +115,38 @@ function cleanSummaryTitle(title) {
     cleaned = cleaned.replace(/\s+(PSA|BGS|SGC|CGC|BECKETT)\s*(GEM\s*)?(MINT|MT|M)\s*\d*\s*$/gi, '');
     cleaned = cleaned.replace(/\s+(PSA|BGS|SGC|CGC)\s+\d+(\.\d+)?\s*$/gi, '');
     
-    // Remove grade-specific terms
+    // Remove grade-specific terms (enhanced)
     cleaned = cleaned.replace(/\s+(GEM\s+)?(MINT|MT)\s+\d+\s*$/gi, '');
+    cleaned = cleaned.replace(/\s+(GEM\s+)?(MINT|MT)\s*$/gi, '');
+    cleaned = cleaned.replace(/\s+GEM\s*$/gi, '');
     cleaned = cleaned.replace(/\s+PRISTINE\s*$/gi, '');
     cleaned = cleaned.replace(/\s+AUTHENTIC\s*$/gi, '');
     cleaned = cleaned.replace(/\s+AUTH\s*$/gi, '');
     
+    // Remove condition terms that shouldn't be in summary titles
+    cleaned = cleaned.replace(/\s+(NM-MT|NMMT|NM|VF|EX|VG|GOOD|FAIR|POOR)\s*\d*\s*$/gi, '');
+    cleaned = cleaned.replace(/\s+(NEAR\s+MINT|VERY\s+FINE|EXCELLENT|VERY\s+GOOD)\s*$/gi, '');
+    cleaned = cleaned.replace(/\s+(GRADED|UNGRADED)\s*$/gi, '');
+    
+    // Remove holder and slab terms
+    cleaned = cleaned.replace(/\s+(NEW\s+HOLDER|OLD\s+HOLDER|HOLDER)\s*$/gi, '');
+    cleaned = cleaned.replace(/\s+(SLAB|SLABBED)\s*$/gi, '');
+    
     // Remove population reports
     cleaned = cleaned.replace(/\s+POP\s+\d+/gi, '');
     cleaned = cleaned.replace(/\s+POPULATION\s+\d+/gi, '');
+    cleaned = cleaned.replace(/\s+POP-\d+/gi, '');
+    cleaned = cleaned.replace(/\s+NONE\s+HIGHER/gi, '');
     
-    // Remove authentication codes
+    // Remove authentication codes and DNA references
     cleaned = cleaned.replace(/\s+DNA\s+AUTH\s*$/gi, '');
     cleaned = cleaned.replace(/\s+JSA\s+AUTH\s*$/gi, '');
     cleaned = cleaned.replace(/\s+PSA\/DNA\s*$/gi, '');
     cleaned = cleaned.replace(/\s+MBA\s+AUTH\s*$/gi, '');
+    cleaned = cleaned.replace(/\s+\/DNA\s+CERTIFIED\s+AUTO\s*\d*\s*$/gi, '');
+    
+    // Remove grade numbers at the end (like "8", "9", "10")
+    cleaned = cleaned.replace(/\s+\d+(\.\d+)?\s*$/gi, '');
     
     // Remove serial numbers (8+ digits, often cert numbers)
     cleaned = cleaned.replace(/\s+#?\s*\d{8,}\s*$/gi, '');
