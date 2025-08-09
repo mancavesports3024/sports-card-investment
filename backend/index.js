@@ -3,6 +3,20 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
+
+// Helper function to get Central Time timestamp
+function getCentralTime() {
+  return new Date().toLocaleString("en-US", {
+    timeZone: "America/Chicago",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).replace(/(\d+)\/(\d+)\/(\d+),?\s*(\d+):(\d+):(\d+)/, '$3-$1-$2 $4:$5:$6 CT');
+}
 const session = require('express-session');
 const fs = require('fs');
 const path = require('path');
