@@ -370,6 +370,76 @@ app.use('/api/live-listings', require('./routes/liveListings'));
   
   app.use('/api', require('./routes/imageAnalysis'));
 
+  // API endpoint to view recently added cards
+  app.get('/api/recent-cards', async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit) || 50;
+      const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+      const updater = new FastSQLitePriceUpdater();
+      
+      await updater.connect();
+      
+      const recentCards = await new Promise((resolve, reject) => {
+        const query = `
+          SELECT id, title, summaryTitle, sport, psa10Price, lastUpdated, filterInfo
+          FROM cards 
+          WHERE lastUpdated IS NOT NULL
+          ORDER BY datetime(lastUpdated) DESC 
+          LIMIT ?
+        `;
+        
+        updater.db.all(query, [limit], (err, rows) => {
+          if (err) {
+            reject(err);
+          } else {
+            // Parse filterInfo to show source information
+            const cardsWithSource = rows.map(card => {
+              let source = 'unknown';
+              let searchTerm = 'unknown';
+              
+              try {
+                if (card.filterInfo) {
+                  const parsed = JSON.parse(card.filterInfo);
+                  source = parsed.source || 'unknown';
+                  searchTerm = parsed.searchTerm || 'unknown';
+                }
+              } catch (e) {
+                // Keep defaults if parsing fails
+              }
+              
+              return {
+                ...card,
+                source,
+                searchTerm,
+                price: card.psa10Price,
+                addedDate: card.lastUpdated
+              };
+            });
+            
+            resolve(cardsWithSource);
+          }
+        });
+      });
+      
+      updater.db.close();
+      
+      res.json({
+        success: true,
+        count: recentCards.length,
+        cards: recentCards,
+        timestamp: getCentralTime()
+      });
+      
+    } catch (error) {
+      console.error('❌ Error fetching recent cards:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
   // Start the server
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
