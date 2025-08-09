@@ -583,6 +583,38 @@ app.get('/api/cron-status', async (req, res) => {
   }
 });
 
+// Manual trigger for price updates
+app.post('/api/trigger-price-update', async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      message: "Price update job triggered - running in background",
+      timestamp: new Date().toISOString()
+    });
+    
+    // Run the price update in background
+    setImmediate(async () => {
+      try {
+        console.log('🚀 Manual price update triggered via API...');
+        const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
+        const priceUpdater = new SQLitePriceUpdater();
+        await priceUpdater.updatePrices(200); // Update 200 cards
+        console.log('✅ Manual price update completed');
+      } catch (error) {
+        console.error('❌ Manual price update failed:', error);
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error triggering price update:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // SQLite Database Status endpoint (with optional cleanup)
 app.get('/api/database-status', async (req, res) => {
   try {
