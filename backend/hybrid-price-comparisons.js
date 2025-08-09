@@ -60,20 +60,33 @@ function saveDatabase(data) {
 
 // Extract card identifier for searching
 function extractCardIdentifier(item) {
+    // Prioritize summaryTitle as it's cleaner
     let title = item.summaryTitle || item.title || '';
     
-    // Remove PSA 10 references
+    // Remove PSA 10 references and other grading info
     title = title.replace(/PSA\s*10/gi, '');
     title = title.replace(/GEM\s*MT/gi, '');
     title = title.replace(/GEM\s*MINT/gi, '');
     title = title.replace(/GRADED/gi, '');
+    title = title.replace(/BGS\s*\d+\.?\d*\s*\/\s*\d+/gi, ''); // Remove BGS grades like "BGS 9.5/10"
+    title = title.replace(/PSA\s*\d+/gi, ''); // Remove any PSA grade
+    title = title.replace(/SGC\s*\d+/gi, ''); // Remove SGC grades
+    title = title.replace(/CGC\s*\d+/gi, ''); // Remove CGC grades
+    
+    // Remove serial numbers and print runs (but keep card numbers)
+    title = title.replace(/\d+\/\d+/g, ''); // Remove "52/199" type patterns
+    // DON'T remove #\d+ - keep card numbers like "#269", "#177", etc.
+    
+    // Remove common card condition terms
+    title = title.replace(/\b(NM|NM-MT|MINT|NEAR MINT|EXCELLENT|GOOD|POOR)\b/gi, '');
+    title = title.replace(/\b(SP|SSP|VARIATION|PARALLEL|INSERT)\b/gi, '');
+    
+    // Remove extra spaces and clean up
+    title = title.replace(/\s+/g, ' ').trim();
     
     // Extract year if present
     const yearMatch = title.match(/(\d{4})/);
     const year = yearMatch ? yearMatch[1] : null;
-    
-    // Clean up extra spaces
-    title = title.replace(/\s+/g, ' ').trim();
     
     return { identifier: title, year };
 }

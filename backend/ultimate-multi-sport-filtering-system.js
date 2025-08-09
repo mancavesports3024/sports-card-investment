@@ -96,6 +96,13 @@ const ULTIMATE_SPORT_FILTERS = {
             'gold ice', 'gold lazer', 'gold holo',
             'black ice', 'black lazer', 'black holo',
             'white ice', 'white lazer', 'white holo'
+        ],
+        pokemon: [
+            // Pokemon specific base parallels (include these - they're reasonable)
+            'holo', 'reverse holo', 'cosmos holo', 'cracked ice holo',
+            'unlimited', 'first edition', '1st edition',
+            'shadowless', 'base set', 'jungle', 'fossil',
+            'promo', 'black star promo', 'staff promo'
         ]
     },
     
@@ -117,6 +124,16 @@ const ULTIMATE_SPORT_FILTERS = {
         soccer: [
             'champions league', 'world cup', 'europa league', 'premier league',
             'la liga', 'bundesliga', 'serie a'
+        ],
+        pokemon: [
+            // Pokemon expensive/premium parallels (exclude these)
+            'secret rare', 'ultra rare', 'rainbow rare', 'gold rare',
+            'full art', 'alternate art', 'special art rare', 'hyper rare',
+            'vmax', 'vstar', 'v-union', 'tag team gx', 'gx', 'ex',
+            'mega', 'break', 'prime', 'legend', 'lvl x', 'lv.x',
+            'crystal', 'gold star', 'shining', 'delta species',
+            'error', 'misprint', 'staff', 'worlds', 'championship',
+            'tournament', 'trophy', 'winner', 'finalist'
         ]
     }
 };
@@ -181,6 +198,24 @@ function detectSport(cardTitle) {
         return 'soccer';
     }
     
+    // Pokemon indicators
+    if (title.includes('pokemon') || title.includes('pikachu') || title.includes('charizard') ||
+        title.includes('blastoise') || title.includes('venusaur') || title.includes('mewtwo') ||
+        title.includes('mew') || title.includes('lugia') || title.includes('ho-oh') ||
+        title.includes('rayquaza') || title.includes('dialga') || title.includes('palkia') ||
+        title.includes('giratina') || title.includes('arceus') || title.includes('reshiram') ||
+        title.includes('zekrom') || title.includes('kyurem') || title.includes('xerneas') ||
+        title.includes('yveltal') || title.includes('zygarde') || title.includes('solgaleo') ||
+        title.includes('lunala') || title.includes('necrozma') || title.includes('zacian') ||
+        title.includes('zamazenta') || title.includes('eternatus') || title.includes('koraidon') ||
+        title.includes('miraidon') || title.includes('swsh') || title.includes('promo') ||
+        title.includes('black star') || title.includes('holo') || title.includes('reverse holo') ||
+        title.includes('secret rare') || title.includes('ultra rare') || title.includes('rainbow rare') ||
+        title.includes('full art') || title.includes('alternate art') || title.includes('vmax') ||
+        title.includes('gx') || title.includes('ex') || title.includes('v card') || title.includes(' v ')) {
+        return 'pokemon';
+    }
+    
     return 'unknown';
 }
 
@@ -212,20 +247,27 @@ function isBaseParallel(cardTitle) {
 function getPSAGrade(cardTitle) {
     const title = cardTitle.toLowerCase();
     
+    // First try to match "PSA Mint 9" format
+    const psaMintMatch = title.match(/psa\s+mint\s*(\d+)/i);
+    if (psaMintMatch) {
+        return parseInt(psaMintMatch[1]);
+    }
+    
+    // Then try "PSA 9" format
+    const psaMatch = title.match(/psa\s*(\d+)/i);
+    if (psaMatch) {
+        return parseInt(psaMatch[1]);
+    }
+    
+    // Check for specific grade mentions
     if (title.includes('psa 10') || title.includes('gem mint')) {
         return 10;
-    } else if (title.includes('psa 9') || title.includes('mint')) {
+    } else if (title.includes('psa 9') || title.includes('mint 9')) {
         return 9;
-    } else if (title.includes('psa 8')) {
+    } else if (title.includes('psa 8') || title.includes('mint 8')) {
         return 8;
-    } else if (title.includes('psa 7')) {
+    } else if (title.includes('psa 7') || title.includes('mint 7')) {
         return 7;
-    } else if (title.includes('psa')) {
-        // Generic PSA - try to extract number
-        const psaMatch = title.match(/psa\s*(\d+)/i);
-        if (psaMatch) {
-            return parseInt(psaMatch[1]);
-        }
     }
     
     return 0; // Raw card
@@ -256,24 +298,34 @@ function ultimateMultiSportFilter(card, cardType = 'raw') {
     
     // Price thresholds based on card type and sport
     const sport = detectSport(card.title);
-    let maxPrice = 500; // Default
+    let maxPrice = 10000; // Significantly increased default for all cards
     
     if (sport === 'basketball') {
-        maxPrice = 600;
+        maxPrice = 15000; // High for Jordan, Kobe, LeBron vintage
     } else if (sport === 'football') {
-        maxPrice = 500;
+        maxPrice = 12000; // High for Montana, Brady vintage
     } else if (sport === 'baseball') {
-        maxPrice = 400;
+        maxPrice = 25000; // Very high for Ruth, Mantle, Robinson vintage
     } else if (sport === 'hockey') {
-        maxPrice = 300;
+        maxPrice = 8000; // High for Gretzky, Orr vintage
     } else if (sport === 'soccer') {
-        maxPrice = 400;
+        maxPrice = 10000; // High for Pelé, Maradona vintage
+    } else if (sport === 'pokemon') {
+        maxPrice = 15000; // Very high for Charizard, Base Set
+    }
+    
+    // Check for vintage cards (pre-1980) - they command higher prices
+    const yearMatch = card.title.match(/\b(19[0-7]\d)\b/);
+    const isVintage = yearMatch && parseInt(yearMatch[1]) < 1980;
+    
+    if (isVintage) {
+        maxPrice *= 20; // 20x multiplier for vintage cards (pre-1980)
     }
     
     if (cardType === 'psa9') {
-        maxPrice *= 2;
+        maxPrice *= 20; // Now 200K-10M for vintage PSA 9
     } else if (cardType === 'psa10') {
-        maxPrice *= 4;
+        maxPrice *= 50; // Now 500K-25M for vintage PSA 10
     }
     
     const isReasonablePrice = price > 0 && price < maxPrice;

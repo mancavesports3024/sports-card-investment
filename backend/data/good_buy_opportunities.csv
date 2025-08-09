@@ -1,20 +1,39 @@
-PSA 10 Title,PSA 10 Price,Raw Price,PSA 9 Price,Multiplier,Potential Profit,ROI %,Search Strategy,Raw Cards Found,PSA 9 Cards Found,PSA 10 Sold Date,Timestamp
-"1982 Topps Traded Cal Ripken Jr. rc #98T",6000,105.17,378.35,57.05,5894.83,5605.05,Summary Title,20,139,N/A,2025-08-07T11:02:44.137Z
-"1996 Fleer Michael Jordan / Scottie Pippen Game Breakers",1500,34.79,154.66,43.12,1465.21,4211.58,Summary Title,44,10,N/A,2025-08-07T11:02:05.632Z
-"1995 Flair Basketball Michael Jordan #235",375,14.5,47.42,25.86,360.5,2486.21,Summary Title,4,20,N/A,2025-08-07T11:02:45.416Z
-"1996 Topps Basketball Kobe Bryant rc #138",850,49.04,456.99,17.33,800.96,1633.28,Summary Title,33,95,N/A,2025-08-07T11:01:41.204Z
-"Pikachu 1999 Pokemon Jungle 1st Edition #60 Duelist Stamp",600,39.04,122.36,15.37,560.96,1436.89,Summary Title,12,22,N/A,2025-08-07T11:02:20.097Z
-"1993 Stadium Club Murphy Derek Jeter rc #117",450,55.27,151.79,8.14,394.73,714.18,Summary Title,16,104,N/A,2025-08-07T11:01:43.143Z
-"2022 Pokemon SWSH Black Star Promo Ultra Premium Full Art Charizard V GEM",300,52.2,N/A,5.75,247.8,474.71,Summary Title,14,0,N/A,2025-08-07T11:02:51.721Z
-"2021 Panini Prizm Draft Picks Stained Glass Cade Cunningham rc # GEM",250,51.75,2726,4.83,198.25,383.09,Summary Title,7,3,N/A,2025-08-07T11:01:08.265Z
-"2024 Bowman Chrome Nick Kurtz PROSPECT AUTO #CPANK",1000,215,640.15,4.65,785,365.12,Summary Title,1,10,N/A,2025-08-07T11:01:49.484Z
-"2018 Hoops Luka Doncic rc #268",79,19.14,180.47,4.13,59.86,312.75,Summary Title,60,85,N/A,2025-08-07T11:03:33.759Z
-"2018 Hoops Class Of '18 Luka Doncic rc #",84,20.74,387.09,4.05,63.26,305.01,Player RC,135,92,N/A,2025-08-07T11:03:31.716Z
-"2020 Panini Mosaic Green Anthony Edwards rc #261",65,16.16,29,4.02,48.84,302.23,Summary Title,12,3,N/A,2025-08-07T11:03:18.004Z
-"2018 Donruss Basketball Luka Doncic rc #177",120,31.95,142.31,3.76,88.05,275.59,Summary Title,11,51,N/A,2025-08-07T11:03:10.495Z
-"2023 Panini Prizm Silver CJ Stroud rc #339",430,116.41,126.87,3.69,313.59,269.38,Summary Title,8,36,N/A,2025-08-07T11:01:30.827Z
-"2018 Donruss Optic Holo Luka Doncic rc #177",870,248.22,765.87,3.5,621.78,250.5,Summary Title,5,27,N/A,2025-08-07T11:02:33.531Z
-"2017 Panini Prizm Patrick Mahomes II RC Light Blue Prizm SP #269 52/199",8000,2416,3550,3.31,5584,231.13,Player Parallel Number,5,1,N/A,2025-08-07T11:00:53.570Z
-"2021 Pokemon Japanese 25th Anniversary Promo Holo Birthday Pikachu # GEM",330,101.26,N/A,3.26,228.74,225.89,Summary Title,1,0,N/A,2025-08-07T11:01:10.105Z
-"Blake Corum 2023 Bowman University Chrome Gold Shimmer Refractor /50",40,13.7,68.97,2.92,26.3,191.97,Player Year,64,3,N/A,2025-08-07T11:04:13.001Z
-"2022 Panini Mosaic Genesis Stephen Curry #92",245,100,N/A,2.45,145,145,Summary Title,1,0,N/A,2025-08-07T11:01:44.821Z
+Card Title,PSA 10 Price,Raw Price,PSA 9 Price,Multiplier,Potential Profit,ROI %,Search Strategy,Raw Cards Found,PSA 9 Cards Found,Database PSA 10 Price,Created Date
+"Yu-gi-Oh! Barrel Dragon Valuable Book Promo VB5-003 2002",2083.03,10.3,111.22,202.24,2072.73,20123.59,Player Year,64,127,76.375,8/8/2025
+"1982 Topps Traded Cal Ripken Jr. #98T",8242.17,118.34,484.98,69.65,8123.83,6864.82,Summary Title,42,46,648.2774999999999,8/8/2025
+"Pikachu 1999 Pokemon Jungle 1st Edition #60 Duelist Stamp",538.44,11.74,124.93,45.86,526.7,4486.37,Summary Title,3,24,141.11399999999998,8/8/2025
+"2024 Bowman’s Best Leo De Vries Gold Refractor /50 #TP-18 Top Prospect",798.6,17.85,139.89,44.74,780.75,4373.95,Parallel Only,86,9,76.375,8/8/2025
+"2020 Panini Prizm Hyper LeBron James #",446.23,10.44,108.94,42.74,435.79,4174.23,Summary Title,5,10,500,8/8/2025
+"2018 Donruss Optic Luka Doncic #177",1630,48.79,152.97,33.41,1581.21,3240.85,Summary Title,55,53,110,8/8/2025
+"1995 Flair Basketball Michael Jordan #235",328.38,14.5,47.42,22.65,313.88,2164.69,Summary Title,4,20,63.76736842105262,8/8/2025
+"1996 Topps Basketball Kobe Bryant #138",1059.6,48,159.53,22.08,1011.6,2107.5,Summary Title,27,56,194.39849999999998,8/8/2025
+"1993 Stadium Club Murphy Derek Jeter #117",764.73,60.07,148.8,12.73,704.66,1173.06,Summary Title,18,123,198.64575,8/8/2025
+"2018 Donruss Optic Holo Luka Doncic #177",4743.88,377.77,702,12.56,4366.11,1155.76,Summary Title,1,39,499.27424999999994,8/8/2025
+"2018 Donruss Basketball Luka Doncic #177",380.05,33.65,109.17,11.29,346.4,1029.42,Summary Title,15,61,77.69999999999999,8/8/2025
+"2018 Panini Chronicles - Rookies and Stars Shohei Ohtani # ()",200,18.99,36,10.53,181.01,953.19,Summary Title,9,1,54,8/8/2025
+"2018 Hoops Luka Doncic #268",191.3,20.44,52.65,9.36,170.86,835.91,Summary Title,69,54,89.50424999999998,8/8/2025
+"2021 Panini Prizm Draft Picks Stained Glass Cade Cunningham # GEM",331.25,43.91,51.3,7.54,287.34,654.38,Parallel Only,7,2,250,8/8/2025
+"2023 POKEMON MEW EN-151 ILLUSTRATION RARE #175 PSYDUCK",107.68,15.72,24.17,6.85,91.96,584.99,Summary Title,1,53,36.01449438202247,8/8/2025
+"2023 POKEMON MEW EN-151 ILLUSTRATION RARE #176 POLIWHIRL",101.45,14.97,22.58,6.78,86.48,577.69,Summary Title,2,65,33.34390909090909,8/8/2025
+"Ditto #201/091 Shiny Rare Paldean Fates PAF EN 2024",87,13.88,N/A,6.27,73.12,526.8,Summary Title,1,0,76.375,8/8/2025
+"Pokemon TCG Tapu Koko ex - 247/182 Paradox Rift Special Illustration Rare",88,15.26,N/A,5.77,72.74,476.67,Summary Title,18,0,76.375,8/8/2025
+"2018 Panini Threads Luka Doncic #141",378.47,74.17,147.87,5.1,304.3,410.27,Summary Title,5,7,221.80499999999995,8/8/2025
+"2023 Prizm CJ Stroud Silver #339",544.38,108.74,123.88,5.01,435.64,400.63,Summary Title,20,48,162.5,8/8/2025
+"2023 Panini Prizm Silver CJ Stroud #339",540.52,108.69,131.52,4.97,431.83,397.3,Summary Title,12,37,180.29763157894735,8/8/2025
+"Deoxys VSTAR Full Art GG46 Crown Zenith",91.04,19.38,23.72,4.7,71.66,369.76,Summary Title,5,35,38.076,8/8/2025
+"Paul Skenes Nucleus Refractor 2024 Topps Chrome Cosmic #30 Pirates SP",176.13,38.75,65.59,4.55,137.38,354.53,Player Parallel Number,1,2,76.375,8/8/2025
+"Lumineon V #156/172 Brilliant Stars SWSH Pokemon 2022",43,10.36,17.5,4.15,32.64,315.06,Summary Title,5,2,26.25,8/8/2025
+"Hop's Zacian Ex 186 - Journey Together - Pokemon",175.76,47.25,48.33,3.72,128.51,271.98,Summary Title,99,18,76.375,8/8/2025
+"2023 POKEMON SWORD & SHIELD CROWN ZENITH #GG38 FULL ART/SUICUNE V",110.14,32.99,31.39,3.34,77.15,233.86,Summary Title,1,52,44.97551474460242,8/8/2025
+"- Pikachu #054 - Dream League - Character Rare Full Art Japanese Pokemon",219,67,56,3.27,152,226.87,Summary Title,1,1,84,8/8/2025
+"Pokemon Mew EX Bubble Mew 232/091 Sir SV Paldean Fates",1045.3,321,N/A,3.26,724.3,225.64,Summary Title,5,0,76.375,8/8/2025
+"CHARMANDER SHINY RARE Holo 109/091 2024 Pokemon Paldean Fates #109",69.97,23.25,N/A,3.01,46.72,200.95,Summary Title,1,0,76.375,8/8/2025
+"2023 Donruss Optic Jazz Amen Thompson",134.49,57.75,N/A,2.33,76.74,132.88,Summary Title,1,0,76.375,8/8/2025
+
+SUMMARY STATISTICS:
+Total Cards Processed,100
+Good Buys Found,30
+Success Rate,30.00%
+Average Multiplier,20.68x
+Total Potential Profit,$23846.04
+Average ROI,1968.12%

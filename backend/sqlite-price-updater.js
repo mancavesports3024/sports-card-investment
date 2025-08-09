@@ -112,79 +112,20 @@ class SQLitePriceUpdater {
         }
     }
 
-    // Extract card identifier using the existing sophisticated search system
+    // Extract card identifier using the ULTIMATE MULTI-SPORT FILTERING SYSTEM
     extractCardIdentifier(card) {
         // Use the summaryTitle from our database (this is already cleaned)
         const summaryTitle = card.summaryTitle || card.title || '';
-        const yearMatch = summaryTitle.match(/\b(19|20)\d{2}\b/);
-        const year = yearMatch ? yearMatch[0] : null;
-        const searchStrategies = [];
-
-        // Strategy 1: Clean summary title (most specific)
-        searchStrategies.push(summaryTitle);
-
-        // Strategy 2: Player + Parallel + Card Number
-        const setNames = ['hoops', 'donruss', 'topps', 'fleer', 'score', 'prestige', 'absolute', 'immaculate', 'flawless', 'national treasures', 'playoff', 'optic', 'prizm', 'chrome', 'select', 'contenders'];
-        const parallelNames = ['light blue', 'silver', 'gold', 'red', 'blue', 'green', 'purple', 'orange', 'pink', 'yellow', 'black', 'white', 'rainbow', 'color blast', 'stained glass', 'hyper', 'refractor', 'teal', 'explosion', 'neon', 'fluorescent', 'holographic', 'holo', 'platinum', 'diamond', 'winter', 'checkerboard', 'lava', 'shimmer', 'xfractor', 'shock', 'fast break'];
         
-        // First, check for parallel names (these are the actual parallels)
-        let parallel = null;
-        for (const parallelName of parallelNames) {
-            if (summaryTitle.toLowerCase().includes(parallelName)) {
-                parallel = parallelName;
-                break;
-            }
-        }
+        // Strategy 1 ONLY: Full summary title WITHOUT negative terms (testing)
+        const strategy1 = summaryTitle;
         
-        const numberMatch = summaryTitle.match(/#(\d+)/);
-        const cardNumber = numberMatch ? numberMatch[1] : null;
-        
-        if (parallel && numberMatch && year) {
-            // Extract player name more flexibly - look for capitalized names before the parallel/card number
-            const beforeParallel = summaryTitle.substring(0, summaryTitle.toLowerCase().indexOf(parallel)).trim();
-            const playerMatch = beforeParallel.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
-            
-            if (playerMatch) {
-                const player = playerMatch[1].trim();
-                // Remove "II", "III", "IV" etc. from player names
-                const simplifiedPlayer = player.replace(/\s+(II|III|IV|V|VI|VII|VIII|IX|X)\b/i, '').trim();
-                
-                searchStrategies.push(`${simplifiedPlayer} ${parallel} #${cardNumber} ${year}`);
-            }
-        }
-
-        // Strategy 3: Simplified parallel search
-        if (parallel && year) {
-            // Extract player name more flexibly
-            const beforeParallel = summaryTitle.substring(0, summaryTitle.toLowerCase().indexOf(parallel)).trim();
-            const playerMatch = beforeParallel.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
-            
-            if (playerMatch) {
-                const player = playerMatch[1].trim();
-                const simplifiedPlayer = player.replace(/\s+(II|III|IV|V|VI|VII|VIII|IX|X)\b/i, '').trim();
-                
-                searchStrategies.push(`${simplifiedPlayer} ${parallel} ${year}`);
-            }
-        }
-
-        // Strategy 4: Player + Year + Card Number (if we have card number)
-        if (year && cardNumber) {
-            // Extract player name from the beginning of the title
-            const playerMatch = summaryTitle.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
-            if (playerMatch) {
-                const player = playerMatch[1].trim();
-                const simplifiedPlayer = player.replace(/\s+(II|III|IV|V|VI|VII|VIII|IX|X)\b/i, '').trim();
-                
-                searchStrategies.push(`${simplifiedPlayer} ${year} #${cardNumber}`);
-            }
-        }
-
-        // Remove duplicates and limit to 4 strategies
-        const uniqueStrategies = [...new Set(searchStrategies)].slice(0, 4);
+        console.log(`🔍 Generated search strategy for "${summaryTitle}":`);
+        console.log(`   Strategy: "${strategy1}"`);
         
         return { 
             identifier: summaryTitle,
-            strategies: uniqueStrategies
+            strategies: [strategy1] // Only one strategy to minimize API calls
         };
     }
     
@@ -258,7 +199,20 @@ class SQLitePriceUpdater {
                     return [];
                 }
 
-                // Log the first 500 characters of the HTML response for debugging
+                // Check for "no results found" response early - multiple variations
+                if (response.data && (
+                    response.data.includes('Whoops!<br>No results found') ||
+                    response.data.includes('No Exact Matches Found') ||
+                    response.data.includes('No exact matches found') ||
+                    response.data.includes('no exact matches found') ||
+                    response.data.includes('No results found') ||
+                    response.data.includes('no results found')
+                )) {
+                    console.log(`   🚫 No exact matches found for query: "${query}"`);
+                    return [];
+                }
+
+                // Log the first 500 characters of the HTML response for debugging (only if no exact match message)
                 console.log('130point HTML response (first 500 chars):', response.data?.slice(0, 500));
 
                 const $ = cheerio.load(response.data);
@@ -370,22 +324,33 @@ class SQLitePriceUpdater {
                                 titleLower.includes('sealed') && (titleLower.includes('box') || titleLower.includes('case') || titleLower.includes('pack'))
                             );
 
-                            // Use our sophisticated filtering system
+                            // Use a more lenient filtering approach when searching with summaryTitle only
+                            // Since we're not using negative terms, we need to be less aggressive
+                            
                             const cardData = {
                                 title: title,
                                 price: { value: priceInUSD.toString() },
-                                // Add other properties that the filter expects
-                                sport: detectSport(title),
-                                filterInfo: {
-                                    detectedSport: detectSport(title),
-                                    isBaseParallel: isBaseParallel(title),
-                                    exclusionCount: getSportExclusions(title).length
-                                }
+                                sport: detectSport(title)
                             };
                             
-                            // Apply the ultimate multi-sport filter
-                            const cardType = isPSA9 ? 'psa9' : 'raw';
-                            const shouldInclude = ultimateMultiSportFilter(cardData, cardType);
+                            // For PSA 9 searches, be more lenient - just check if it has PSA 9
+                            let shouldInclude = false;
+                            if (isPSA9) {
+                                const psaGrade = getPSAGrade(title);
+                                // Accept if it's PSA 9 and price is reasonable
+                                shouldInclude = (psaGrade === 9) && (priceInUSD > 0) && (priceInUSD < 500000);
+                            } else {
+                                // For raw searches, exclude any graded cards
+                                const psaGrade = getPSAGrade(title);
+                                const hasGrading = title.toLowerCase().includes('psa') || 
+                                                 title.toLowerCase().includes('bgs') || 
+                                                 title.toLowerCase().includes('cgc') ||
+                                                 title.toLowerCase().includes('sgc') ||
+                                                 title.toLowerCase().includes('graded');
+                                
+                                // Accept if no grading terms and reasonable price
+                                shouldInclude = !hasGrading && (priceInUSD > 0) && (priceInUSD < 100000);
+                            }
                             
                             if (shouldInclude) {
                                 sales.push({
@@ -394,6 +359,7 @@ class SQLitePriceUpdater {
                                     date
                                 });
                             } else {
+                                const cardType = isPSA9 ? 'psa9' : 'raw';
                                 console.log(`   🚫 Filtered out: ${title} (${cardType})`);
                             }
                         }

@@ -2,10 +2,11 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
+const sqlite3 = require('sqlite3').verbose();
 
 // Configuration
 const DATABASE_DIR = path.join(__dirname, 'data');
-const PSA10_DATABASE_FILE = path.join(DATABASE_DIR, 'psa10_recent_90_days_database.json');
+const SQLITE_DATABASE_FILE = path.join(DATABASE_DIR, 'scorecard.db');
 const GOOD_BUYS_FILE = path.join(DATABASE_DIR, 'improved_api_good_buy_opportunities.json');
 const CACHE_FILE = path.join(DATABASE_DIR, 'improved_api_good_buy_cache.json');
 
@@ -22,6 +23,7 @@ class ImprovedApiGoodBuyFinder {
   constructor() {
     this.goodBuys = [];
     this.cache = this.loadCache();
+    this.db = null;
     this.stats = {
       totalProcessed: 0,
       goodBuysFound: 0,
@@ -29,6 +31,66 @@ class ImprovedApiGoodBuyFinder {
       errors: 0,
       startTime: Date.now()
     };
+  }
+
+  // Connect to SQLite database
+  async connectToDatabase() {
+    return new Promise((resolve, reject) => {
+      this.db = new sqlite3.Database(SQLITE_DATABASE_FILE, (err) => {
+        if (err) {
+          console.error('❌ Error connecting to SQLite database:', err);
+          reject(err);
+        } else {
+          console.log('✅ Connected to SQLite database');
+          resolve();
+        }
+      });
+    });
+  }
+
+  // Load cards with any price data from SQLite database  
+  async loadPSA10Cards(limit = null) {
+    return new Promise((resolve, reject) => {
+      const query = limit ? 
+        'SELECT id, title, summaryTitle, sport, rawAveragePrice, psa9AveragePrice, psa10Price FROM cards WHERE rawAveragePrice IS NOT NULL OR psa9AveragePrice IS NOT NULL OR psa10Price IS NOT NULL LIMIT ?' :
+        'SELECT id, title, summaryTitle, sport, rawAveragePrice, psa9AveragePrice, psa10Price FROM cards WHERE rawAveragePrice IS NOT NULL OR psa9AveragePrice IS NOT NULL OR psa10Price IS NOT NULL';
+      
+      const params = limit ? [limit] : [];
+      
+      this.db.all(query, params, (err, rows) => {
+        if (err) {
+          console.error('❌ Error loading cards from database:', err);
+          reject(err);
+        } else {
+          // Convert to the format expected by the existing code
+          const cards = rows.map(row => {
+            // Use PSA 10 price if available, otherwise use PSA 9, otherwise use a target of 10x raw price
+            let targetPrice = row.psa10Price;
+            if (!targetPrice && row.psa9AveragePrice) {
+              targetPrice = row.psa9AveragePrice * 1.5; // Estimate PSA 10 as 1.5x PSA 9
+            } else if (!targetPrice && row.rawAveragePrice) {
+              targetPrice = row.rawAveragePrice * 8; // Estimate PSA 10 as 8x raw
+            }
+            
+            return {
+              id: row.id,
+              title: row.title,
+              summaryTitle: row.summaryTitle,
+              sport: row.sport,
+              rawAveragePrice: row.rawAveragePrice,
+              psa9AveragePrice: row.psa9AveragePrice,
+              psa10Price: row.psa10Price,
+              price: {
+                value: targetPrice || 100, // Default to $100 if no price data
+                currency: 'USD'
+              }
+            };
+          });
+          console.log(`📊 Loaded ${cards.length} cards with pricing data from SQLite database`);
+          resolve(cards);
+        }
+      });
+    });
   }
 
   // Load cache from file
@@ -508,11 +570,11 @@ class ImprovedApiGoodBuyFinder {
   }
 
   // Process all cards
-  async processCards(cards, maxCards = null) {
-    console.log(`🚀 Starting Improved API Good Buy Finder...`);
-    console.log(`📊 Processing ${maxCards || cards.length} cards...\n`);
+  async processCards(cards) {
+    console.log(`🚀 Starting Improved API Good Buy Finder with SQLite Database...`);
+    console.log(`📊 Processing ${cards.length} cards...\n`);
     
-    const cardsToProcess = maxCards ? cards.slice(0, maxCards) : cards;
+    const cardsToProcess = cards;
     
     for (let i = 0; i < cardsToProcess.length; i++) {
       const card = cardsToProcess[i];
@@ -564,8 +626,75 @@ class ImprovedApiGoodBuyFinder {
     try {
       fs.writeFileSync(GOOD_BUYS_FILE, JSON.stringify(results, null, 2));
       console.log(`💾 Saved ${this.goodBuys.length} opportunities to ${GOOD_BUYS_FILE}`);
+      
+      // Also create CSV file for easy spreadsheet viewing
+      this.exportToCSV();
     } catch (error) {
       console.log('❌ Error saving results:', error.message);
+    }
+  }
+
+  // Export results to CSV spreadsheet
+  exportToCSV() {
+    try {
+      const csvFile = path.join(DATABASE_DIR, 'good_buy_opportunities.csv');
+      
+      // CSV headers
+      const headers = [
+        'Card Title',
+        'PSA 10 Price',
+        'Raw Price', 
+        'PSA 9 Price',
+        'Multiplier',
+        'Potential Profit',
+        'ROI %',
+        'Search Strategy',
+        'Raw Cards Found',
+        'PSA 9 Cards Found',
+        'Database PSA 10 Price',
+        'Created Date'
+      ];
+      
+      // Create CSV content
+      let csvContent = headers.join(',') + '\n';
+      
+      // Sort opportunities by multiplier (highest first)
+      const sortedOpportunities = this.goodBuys.sort((a, b) => b.multiplier - a.multiplier);
+      
+      sortedOpportunities.forEach(opp => {
+        const row = [
+          `"${opp.title}"`,
+          opp.psa10Price,
+          opp.rawPrice,
+          opp.psa9Price || 'N/A',
+          opp.multiplier,
+          opp.potentialProfit,
+          opp.roi,
+          opp.searchStrategy,
+          opp.validatedMatches,
+          opp.psa9CardsFound,
+          opp.databasePsa10Price,
+          new Date(opp.timestamp).toLocaleDateString()
+        ];
+        csvContent += row.join(',') + '\n';
+      });
+      
+      // Add summary statistics at the bottom
+      csvContent += '\n';
+      csvContent += 'SUMMARY STATISTICS:\n';
+      csvContent += `Total Cards Processed,${this.stats.totalProcessed}\n`;
+      csvContent += `Good Buys Found,${this.stats.goodBuysFound}\n`;
+      csvContent += `Success Rate,${((this.stats.goodBuysFound / this.stats.totalProcessed) * 100).toFixed(2)}%\n`;
+      csvContent += `Average Multiplier,${(this.goodBuys.reduce((sum, opp) => sum + opp.multiplier, 0) / this.goodBuys.length).toFixed(2)}x\n`;
+      csvContent += `Total Potential Profit,$${this.goodBuys.reduce((sum, opp) => sum + opp.potentialProfit, 0).toFixed(2)}\n`;
+      csvContent += `Average ROI,${(this.goodBuys.reduce((sum, opp) => sum + opp.roi, 0) / this.goodBuys.length).toFixed(2)}%\n`;
+      
+      fs.writeFileSync(csvFile, csvContent);
+      console.log(`📊 CSV spreadsheet exported to: ${csvFile}`);
+      console.log(`📈 Summary: ${this.goodBuys.length} opportunities found from ${this.stats.totalProcessed} cards processed`);
+      
+    } catch (error) {
+      console.log('❌ Error creating CSV:', error.message);
     }
   }
 
@@ -593,23 +722,26 @@ class ImprovedApiGoodBuyFinder {
 // Main execution
 async function main() {
   try {
-    // Load PSA 10 database
-    console.log('📂 Loading PSA 10 database...');
-    const databaseData = JSON.parse(fs.readFileSync(PSA10_DATABASE_FILE, 'utf8'));
-    const cards = databaseData.items || [];
+    // Create finder and connect to database
+    const finder = new ImprovedApiGoodBuyFinder();
+    await finder.connectToDatabase();
+    
+    // Load cards with pricing data from SQLite database
+    console.log('📂 Loading cards with pricing data from SQLite database...');
+    const cards = await finder.loadPSA10Cards(100); // Process 100 cards for comprehensive analysis
     
     if (cards.length === 0) {
       console.log('❌ No cards found in database');
       return;
     }
     
-    console.log(`📊 Loaded ${cards.length} PSA 10 cards`);
+    // Process cards using the API-based approach
+    await finder.processCards(cards);
     
-    // Create finder and process cards
-    const finder = new ImprovedApiGoodBuyFinder();
-    
-    // Process first 50 cards for testing
-    await finder.processCards(cards, 50);
+    // Close database connection
+    if (finder.db) {
+      finder.db.close();
+    }
     
   } catch (error) {
     console.error('❌ Error:', error.message);
