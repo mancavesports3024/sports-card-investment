@@ -665,14 +665,29 @@ app.post('/api/trigger-price-update', async (req, res) => {
           
           async getCardsNeedingUpdates() {
             return new Promise((resolve, reject) => {
+              // Use the same logic as update-prices.js
               const query = `
-                SELECT id, title, summaryTitle, sport, rawAveragePrice, psa9AveragePrice, psa10Price, updated_at
+                SELECT id, title, summaryTitle, sport, filterInfo, 
+                       rawAveragePrice, psa9AveragePrice, lastUpdated
                 FROM cards 
-                WHERE (rawAveragePrice IS NULL OR psa9AveragePrice IS NULL)
-                AND psa10Price IS NOT NULL
-                ORDER BY 
-                  CASE WHEN updated_at IS NULL THEN 1 ELSE 0 END,
-                  updated_at ASC
+                WHERE 
+                    -- Missing both prices
+                    (rawAveragePrice IS NULL AND psa9AveragePrice IS NULL) OR
+                    -- Missing raw price but has PSA 9
+                    (rawAveragePrice IS NULL AND psa9AveragePrice IS NOT NULL) OR
+                    -- Missing PSA 9 price but has raw
+                    (rawAveragePrice IS NOT NULL AND psa9AveragePrice IS NULL) OR
+                    -- Old data (older than 7 days)
+                    (lastUpdated IS NULL OR datetime(lastUpdated) < datetime('now', '-7 days'))
+                ORDER BY
+                    -- Priority: no prices first, then missing prices, then old data
+                    CASE 
+                        WHEN rawAveragePrice IS NULL AND psa9AveragePrice IS NULL THEN 1
+                        WHEN rawAveragePrice IS NULL OR psa9AveragePrice IS NULL THEN 2
+                        ELSE 3
+                    END,
+                    CASE WHEN lastUpdated IS NULL THEN 1 ELSE 0 END,
+                    lastUpdated ASC
                 LIMIT 200
               `;
               
