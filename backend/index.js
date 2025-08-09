@@ -520,9 +520,26 @@ app.post('/api/update-prices', async (req, res) => {
   }
 });
 
-// SQLite Database Status endpoint
+// SQLite Database Status endpoint (with optional cleanup)
 app.get('/api/database-status', async (req, res) => {
   try {
+    // Check if cleanup was requested
+    const { cleanup } = req.query;
+    
+    if (cleanup === 'summary-titles') {
+      console.log('🧹 Starting summary title cleanup via database-status endpoint...');
+      const { cleanSummaryTitles } = require('./api-clean-summary-titles.js');
+      const cleanupResult = await cleanSummaryTitles();
+      
+      return res.json({
+        success: true,
+        message: 'Summary title cleanup completed',
+        cleanupResult,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    // Regular database status check
     const { SQLitePriceUpdater } = require('./sqlite-price-updater.js');
     const updater = new SQLitePriceUpdater();
     
