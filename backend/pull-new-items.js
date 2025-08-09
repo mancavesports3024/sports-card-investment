@@ -109,9 +109,9 @@ class NewItemsPuller {
             const query = `
                 INSERT INTO cards (
                     title, summaryTitle, sport, filterInfo, 
-                    rawAveragePrice, psa9AveragePrice, psa10Price,
-                    source, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                    rawAveragePrice, psa9AveragePrice, psa10AveragePrice,
+                    lastUpdated
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
             `;
             
             // Clean summary title (remove grading terms)
@@ -140,8 +140,7 @@ class NewItemsPuller {
                 JSON.stringify({ source: card.source || '130point', searchTerm: card.searchTerm }),
                 rawPrice,
                 psa9Price, 
-                psa10Price,
-                card.source || '130point'
+                psa10Price
             ], function(err) {
                 if (err) {
                     reject(err);
