@@ -1,4 +1,4 @@
-// API endpoint version for running on Railway
+// Fixed API endpoint version for running on Railway
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
@@ -8,7 +8,7 @@ async function cleanSummaryTitles() {
             ? path.join(__dirname, 'data', 'scorecard.db')
             : path.join(__dirname, 'data', 'scorecard.db');
         
-        console.log('🧹 Starting Summary Title Cleanup on Railway...');
+        console.log('🧹 Starting FIXED Summary Title Cleanup on Railway...');
         console.log(`Database path: ${dbPath}`);
         
         const db = new sqlite3.Database(dbPath, (err) => {
@@ -21,7 +21,7 @@ async function cleanSummaryTitles() {
             console.log('✅ Connected to SQLite database');
             
             // Get all cards with summaryTitle
-            db.all("SELECT id, summaryTitle FROM cards WHERE summaryTitle IS NOT NULL", (err, rows) => {
+            db.all("SELECT id, summaryTitle FROM cards WHERE summaryTitle IS NOT NULL", async (err, rows) => {
                 if (err) {
                     console.error('❌ Error fetching cards:', err);
                     reject(err);
@@ -32,74 +32,101 @@ async function cleanSummaryTitles() {
                 
                 let updated = 0;
                 let unchanged = 0;
+                let errors = 0;
                 const totalCards = rows.length;
                 
-                // Process each card
-                rows.forEach((card, index) => {
-                    const cleanedTitle = cleanSummaryTitle(card.summaryTitle);
+                try {
+                    // Process cards in batches to avoid overwhelming the database
+                    const batchSize = 50;
+                    const batches = [];
                     
-                    if (cleanedTitle !== card.summaryTitle) {
-                        // Update the cleaned title
-                        db.run("UPDATE cards SET summaryTitle = ? WHERE id = ?", 
-                            [cleanedTitle, card.id], 
-                            function(err) {
-                                if (err) {
-                                    console.error(`❌ Error updating card ${card.id}:`, err);
-                                } else {
-                                    updated++;
-                                }
-                                
-                                // Check if this is the last card
-                                if (index === totalCards - 1) {
-                                    unchanged = totalCards - updated;
-                                    
-                                    console.log('\n✅ Summary Title Cleanup Complete!');
-                                    console.log('=====================================');
-                                    console.log(`📊 Total cards processed: ${totalCards}`);
-                                    console.log(`🔄 Updated: ${updated}`);
-                                    console.log(`✓ Unchanged: ${unchanged}`);
-                                    
-                                    db.close();
-                                    resolve({
-                                        success: true,
-                                        totalProcessed: totalCards,
-                                        updated: updated,
-                                        unchanged: unchanged
-                                    });
-                                }
-                            }
-                        );
-                    } else {
-                        unchanged++;
-                        
-                        // Check if this is the last card
-                        if (index === totalCards - 1) {
-                            console.log('\n✅ Summary Title Cleanup Complete!');
-                            console.log('=====================================');
-                            console.log(`📊 Total cards processed: ${totalCards}`);
-                            console.log(`🔄 Updated: ${updated}`);
-                            console.log(`✓ Unchanged: ${unchanged}`);
-                            
-                            db.close();
-                            resolve({
-                                success: true,
-                                totalProcessed: totalCards,
-                                updated: updated,
-                                unchanged: unchanged
-                            });
-                        }
+                    for (let i = 0; i < rows.length; i += batchSize) {
+                        batches.push(rows.slice(i, i + batchSize));
                     }
-                });
+                    
+                    console.log(`📦 Processing ${totalCards} cards in ${batches.length} batches of ${batchSize}...`);
+                    
+                    // Process each batch sequentially to avoid database locking
+                    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+                        const batch = batches[batchIndex];
+                        
+                        // Process each card in the batch
+                        const batchPromises = batch.map(card => {
+                            return new Promise((resolveCard, rejectCard) => {
+                                const cleanedTitle = cleanSummaryTitle(card.summaryTitle);
+                                
+                                if (cleanedTitle !== card.summaryTitle) {
+                                    // Update the cleaned title
+                                    db.run("UPDATE cards SET summaryTitle = ? WHERE id = ?", 
+                                        [cleanedTitle, card.id], 
+                                        function(updateErr) {
+                                            if (updateErr) {
+                                                console.error(`❌ Error updating card ${card.id}:`, updateErr);
+                                                resolveCard({ type: 'error', card, cleanedTitle });
+                                            } else {
+                                                console.log(`✅ Updated card ${card.id}: "${card.summaryTitle}" → "${cleanedTitle}"`);
+                                                resolveCard({ type: 'updated', card, cleanedTitle });
+                                            }
+                                        }
+                                    );
+                                } else {
+                                    resolveCard({ type: 'unchanged', card, cleanedTitle });
+                                }
+                            });
+                        });
+                        
+                        // Wait for the entire batch to complete
+                        const batchResults = await Promise.all(batchPromises);
+                        
+                        // Count the results
+                        batchResults.forEach(result => {
+                            if (result.type === 'updated') {
+                                updated++;
+                            } else if (result.type === 'error') {
+                                errors++;
+                            } else {
+                                unchanged++;
+                            }
+                        });
+                        
+                        // Progress update
+                        const processed = (batchIndex + 1) * batchSize;
+                        const progressPercent = Math.round(Math.min(processed, totalCards) / totalCards * 100);
+                        console.log(`📈 Batch ${batchIndex + 1}/${batches.length} (${progressPercent}%) - Updated: ${updated}, Unchanged: ${unchanged}, Errors: ${errors}`);
+                    }
+                    
+                    console.log('\\n✅ Summary Title Cleanup Complete!');
+                    console.log('=====================================');
+                    console.log(`📊 Total cards processed: ${totalCards}`);
+                    console.log(`🔄 Updated: ${updated}`);
+                    console.log(`✓ Unchanged: ${unchanged}`);
+                    console.log(`❌ Errors: ${errors}`);
+                    
+                    db.close();
+                    resolve({
+                        success: true,
+                        totalProcessed: totalCards,
+                        updated: updated,
+                        unchanged: unchanged,
+                        errors: errors
+                    });
+                    
+                } catch (error) {
+                    console.error('❌ Error during batch processing:', error);
+                    db.close();
+                    reject(error);
+                }
             });
         });
     });
 }
 
-// Comprehensive cleaning function for summary titles
+// Enhanced comprehensive cleaning function for summary titles
 function cleanSummaryTitle(title) {
     if (!title) return '';
     
     let cleaned = title.trim();
+    const original = cleaned;
     
     // Remove PSA certification numbers and related info
     cleaned = cleaned.replace(/PSA\s+GEM\s+M[T]?(\s+\d+)?(\s+CERT\s*#?\s*\d+)?/gi, '');
@@ -154,6 +181,11 @@ function cleanSummaryTitle(title) {
     // Clean up multiple spaces
     cleaned = cleaned.replace(/\s+/g, ' ').trim();
     
+    // Debug logging for verification
+    if (cleaned !== original) {
+        console.log(`🧹 Cleaned: "${original}" → "${cleaned}"`);
+    }
+    
     return cleaned;
 }
 
@@ -169,4 +201,4 @@ if (require.main === module) {
         .catch(error => {
             console.error('Error:', error);
         });
-}
+}"
