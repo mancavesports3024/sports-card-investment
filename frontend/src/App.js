@@ -7,8 +7,20 @@ import SavedSearches from './components/SavedSearches';
 import CardSetAnalysis from './components/CardSetAnalysis';
 import NewsPage from './components/NewsPage';
 import EbayItemLookup from './pages/EbayItemLookup';
+import AdminCardDatabase from './components/AdminCardDatabase';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import tokenService from './services/tokenService';
+
+function isAdminUser() {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) return false;
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.email === 'mancavesportscardsllc@gmail.com';
+  } catch {
+    return false;
+  }
+}
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -107,6 +119,9 @@ function App() {
               <a href="/card-set-analysis" className="header-nav-link">Card Set Analysis</a>
               <a href="/news" className="header-nav-link">News</a>
               <a href="/ebay-bidding" className="header-nav-link">eBay Item Lookup</a>
+              {isLoggedIn && isAdminUser() && (
+                <a href="/admin/cards" className="header-nav-link admin-link">🎯 Card Database</a>
+              )}
             </div>
             <div className="header-social-group">
               <a href="https://x.com/Mancavesportsc1" target="_blank" rel="noopener noreferrer" className="header-social">𝕏</a>
@@ -133,6 +148,7 @@ function App() {
           <Route path="/card-set-analysis" element={<CardSetAnalysis />} />
           <Route path="/news" element={<NewsPage />} />
           <Route path="/ebay-bidding" element={<EbayItemLookup />} />
+          <Route path="/admin/cards" element={<AdminCardDatabase />} />
           <Route path="/auth-success" element={<AuthSuccess onAuthSuccess={checkAuthStatus} />} />
         </Routes>
       </div>

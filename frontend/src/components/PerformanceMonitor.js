@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 function isAdminUser() {
   try {
-    const token = localStorage.getItem('jwt');
+    const token = localStorage.getItem('authToken');
     if (!token) return false;
     const payload = JSON.parse(atob(token.split('.')[1]));
     return payload.email === 'mancavesportscardsllc@gmail.com';

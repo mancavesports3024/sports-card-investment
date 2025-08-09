@@ -8,6 +8,22 @@
   position: relative;
 }
 
+/* Admin navigation link styling */
+.admin-link {
+  background: #ffd700 !important;
+  color: #000 !important;
+  border-radius: 15px !important;
+  padding: 4px 12px !important;
+  font-weight: bold !important;
+  transition: all 0.3s ease !important;
+}
+
+.admin-link:hover {
+  background: #ffed4e !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4) !important;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;
