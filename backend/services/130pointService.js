@@ -295,6 +295,15 @@ async function search130point(keywords, numSales = 10) {
             return; // Skip this item
           }
 
+          // Extract eBay item ID if it's an eBay URL
+          let ebayItemId = null;
+          let finalUrl = titleUrl ? (titleUrl.startsWith('http') ? titleUrl : `https://130point.com${titleUrl}`) : null;
+          
+          if (finalUrl && finalUrl.includes('ebay.com')) {
+            const ebayItemMatch = finalUrl.match(/\/itm\/(\d+)|[\?&]item=(\d+)/);
+            ebayItemId = ebayItemMatch ? (ebayItemMatch[1] || ebayItemMatch[2]) : null;
+          }
+
           sales.push({
             id: `130point_${index}_${Date.now()}`,
             title: title,
@@ -305,7 +314,8 @@ async function search130point(keywords, numSales = 10) {
             soldDate: date || new Date().toISOString(),
             saleType: formattedSaleType,
             imageUrl: imgUrl || null,
-            itemWebUrl: titleUrl ? (titleUrl.startsWith('http') ? titleUrl : `https://130point.com${titleUrl}`) : null,
+            itemWebUrl: finalUrl,
+            ebayItemId: ebayItemId, // 🎯 NEW: Extracted eBay item ID
             seller: soldVia || '130point',
             source: '130point',
             platform: soldVia || '130point',
