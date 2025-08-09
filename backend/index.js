@@ -513,6 +513,172 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
+  // API endpoint to analyze database quality (admin only)
+  app.get('/api/admin/database-quality', async (req, res) => {
+    try {
+      const DatabaseQualityAnalyzer = require('./analyze-database-quality.js');
+      const analyzer = new DatabaseQualityAnalyzer();
+      
+      await analyzer.connect();
+      
+      // Get basic stats
+      const totalCards = await new Promise((resolve, reject) => {
+        analyzer.updater.db.get('SELECT COUNT(*) as count FROM cards', [], (err, row) => {
+          if (err) reject(err);
+          else resolve(row.count);
+        });
+      });
+      
+      // Missing price analysis
+      const missingPsa10 = await new Promise((resolve, reject) => {
+        analyzer.updater.db.get('SELECT COUNT(*) as count FROM cards WHERE psa10Price IS NULL OR psa10Price = 0', [], (err, row) => {
+          if (err) reject(err);
+          else resolve(row.count);
+        });
+      });
+      
+      const missingRaw = await new Promise((resolve, reject) => {
+        analyzer.updater.db.get('SELECT COUNT(*) as count FROM cards WHERE rawAveragePrice IS NULL OR rawAveragePrice = 0', [], (err, row) => {
+          if (err) reject(err);
+          else resolve(row.count);
+        });
+      });
+      
+      const missingPsa9 = await new Promise((resolve, reject) => {
+        analyzer.updater.db.get('SELECT COUNT(*) as count FROM cards WHERE psa9AveragePrice IS NULL OR psa9AveragePrice = 0', [], (err, row) => {
+          if (err) reject(err);
+          else resolve(row.count);
+        });
+      });
+      
+      // Complete vs incomplete data
+      const noPrices = await new Promise((resolve, reject) => {
+        analyzer.updater.db.get(`
+          SELECT COUNT(*) as count FROM cards 
+          WHERE (psa10Price IS NULL OR psa10Price = 0) 
+          AND (rawAveragePrice IS NULL OR rawAveragePrice = 0) 
+          AND (psa9AveragePrice IS NULL OR psa9AveragePrice = 0)
+        `, [], (err, row) => {
+          if (err) reject(err);
+          else resolve(row.count);
+        });
+      });
+      
+      const completePrices = await new Promise((resolve, reject) => {
+        analyzer.updater.db.get(`
+          SELECT COUNT(*) as count FROM cards 
+          WHERE psa10Price > 0 AND rawAveragePrice > 0 AND psa9AveragePrice > 0
+        `, [], (err, row) => {
+          if (err) reject(err);
+          else resolve(row.count);
+        });
+      });
+      
+      // Sport distribution
+      const sports = await new Promise((resolve, reject) => {
+        analyzer.updater.db.all(`
+          SELECT sport, COUNT(*) as count 
+          FROM cards 
+          GROUP BY sport 
+          ORDER BY count DESC
+        `, [], (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        });
+      });
+      
+      analyzer.updater.db.close();
+      
+      res.json({
+        success: true,
+        analysis: {
+          overview: {
+            totalCards,
+            completePrices,
+            noPrices,
+            dataQualityScore: Math.round((completePrices / totalCards) * 100)
+          },
+          missingPrices: {
+            psa10: { count: missingPsa10, percentage: Math.round((missingPsa10 / totalCards) * 100) },
+            raw: { count: missingRaw, percentage: Math.round((missingRaw / totalCards) * 100) },
+            psa9: { count: missingPsa9, percentage: Math.round((missingPsa9 / totalCards) * 100) }
+          },
+          sports: sports
+        },
+        recommendations: [
+          'Re-run price updates for cards with missing prices',
+          'Clean up summary titles for better search accuracy',
+          'Remove cards with "lot" in titles (bulk sales)',
+          'Fix sport detection for unknown/missing sports',
+          'Investigate price inconsistencies'
+        ],
+        timestamp: getCentralTime()
+      });
+      
+    } catch (error) {
+      console.error('❌ Error analyzing database quality:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
+  // API endpoint to analyze wrong sports (admin only)
+  app.get('/api/admin/analyze-sports', async (req, res) => {
+    try {
+      const SportFixer = require('./fix-wrong-sports.js');
+      const fixer = new SportFixer();
+      
+      await fixer.connect();
+      const analysis = await fixer.analyzeSportsForApi();
+      fixer.updater.db.close();
+      
+      res.json({
+        success: true,
+        analysis,
+        timestamp: getCentralTime()
+      });
+      
+    } catch (error) {
+      console.error('❌ Error analyzing sports:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
+  // API endpoint to fix wrong sports (admin only)
+  app.post('/api/admin/fix-sports', async (req, res) => {
+    try {
+      const { dryRun = true, minConfidence = 70 } = req.body;
+      const SportFixer = require('./fix-wrong-sports.js');
+      const fixer = new SportFixer();
+      
+      await fixer.connect();
+      const results = await fixer.fixWrongSports(dryRun, minConfidence);
+      fixer.updater.db.close();
+      
+      res.json({
+        success: true,
+        results,
+        message: dryRun ? 'Dry run completed - no changes made' : `Applied ${results.fixed} sport fixes`,
+        timestamp: getCentralTime()
+      });
+      
+    } catch (error) {
+      console.error('❌ Error fixing sports:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
   // API endpoint to view recently added cards
   app.get('/api/recent-cards', async (req, res) => {
     try {
