@@ -109,7 +109,7 @@ class NewItemsPuller {
             const query = `
                 INSERT INTO cards (
                     title, summaryTitle, sport, filterInfo, 
-                    rawAveragePrice, psa9AveragePrice, psa10AveragePrice,
+                    rawAveragePrice, psa9AveragePrice, psa10Price,
                     lastUpdated
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
             `;
