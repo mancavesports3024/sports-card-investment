@@ -394,24 +394,9 @@ class SQLitePriceUpdater {
                                 sport: detectSport(title)
                             };
                             
-                            // For PSA 9 searches, be more lenient - just check if it has PSA 9
-                            let shouldInclude = false;
-                            if (isPSA9) {
-                                const psaGrade = getPSAGrade(title);
-                                // Accept if it's PSA 9 and price is reasonable
-                                shouldInclude = (psaGrade === 9) && (priceInUSD > 0) && (priceInUSD < 500000);
-                            } else {
-                                // For raw searches, exclude any graded cards
-                                const psaGrade = getPSAGrade(title);
-                                const hasGrading = title.toLowerCase().includes('psa') || 
-                                                 title.toLowerCase().includes('bgs') || 
-                                                 title.toLowerCase().includes('cgc') ||
-                                                 title.toLowerCase().includes('sgc') ||
-                                                 title.toLowerCase().includes('graded');
-                                
-                                // Accept if no grading terms and reasonable price
-                                shouldInclude = !hasGrading && (priceInUSD > 0) && (priceInUSD < 100000);
-                            }
+                            // Use the sophisticated ultimateMultiSportFilter for accurate card type filtering
+                            const cardType = isPSA9 ? 'psa9' : 'raw';
+                            const shouldInclude = ultimateMultiSportFilter(cardData, cardType);
                             
                             if (shouldInclude) {
                                 sales.push({
