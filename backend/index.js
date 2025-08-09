@@ -7,6 +7,20 @@ const session = require('express-session');
 const fs = require('fs');
 const path = require('path');
 
+// Helper function to get Central Time timestamp
+function getCentralTime() {
+  return new Date().toLocaleString("en-US", {
+    timeZone: "America/Chicago",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).replace(/(\d+)\/(\d+)\/(\d+),?\s*(\d+):(\d+):(\d+)/, '$3-$1-$2 $4:$5:$6 CT');
+}
+
 // Debug connect-redis structure - Railway deployment fix
 const connectRedis = require('connect-redis');
 // console.log('connect-redis structure:', Object.keys(connectRedis));
@@ -663,7 +677,7 @@ app.get('/api/database-status', async (req, res) => {
     res.json({
       success: true,
       stats,
-      timestamp: new Date().toISOString()
+      timestamp: getCentralTime()
     });
     
   } catch (error) {

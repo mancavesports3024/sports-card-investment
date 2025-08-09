@@ -131,8 +131,6 @@ class FastSQLitePriceUpdater {
             // Try each strategy until we get good results
             for (let i = 0; i < strategies.length; i++) {
                 const strategy = strategies[i];
-                console.log(`🔍 Strategy ${i + 1}: "${strategy}"`);
-                
                 // Search for raw cards
                 const rawQuery = strategy;
                 const tempRawResults = await search130point(rawQuery, 20);
@@ -143,7 +141,7 @@ class FastSQLitePriceUpdater {
                 const tempPsa9Results = await search130point(psa9Query, 20);
                 const filteredPsa9 = tempPsa9Results.filter(card => ultimateMultiSportFilter(card, 'psa9'));
                 
-                console.log(`   ✅ Found ${filteredRaw.length} raw, ${filteredPsa9.length} PSA 9`);
+                console.log(`🔍 "${strategy}" → Found ${filteredRaw.length} raw, ${filteredPsa9.length} PSA 9`);
                 
                 if (filteredRaw.length > 0 || filteredPsa9.length > 0) {
                     rawResults = filteredRaw;
@@ -194,8 +192,7 @@ class FastSQLitePriceUpdater {
     }
 
     async processBatchFast(batchSize = 50) {
-        console.log('🚀 Fast SQLite Price Updater - Parallel Processing');
-        console.log('=================================================\n');
+        console.log('🚀 Fast SQLite Price Updater');
         
         try {
             await this.connect();
@@ -217,30 +214,29 @@ class FastSQLitePriceUpdater {
             
             for (let i = 0; i < cards.length; i += PARALLEL_BATCH_SIZE) {
                 const batch = cards.slice(i, i + PARALLEL_BATCH_SIZE);
-                console.log(`\n📦 Processing batch ${Math.floor(i/PARALLEL_BATCH_SIZE) + 1}/${Math.ceil(cards.length/PARALLEL_BATCH_SIZE)} (${batch.length} cards)...`);
+                console.log(`\n📦 Batch ${Math.floor(i/PARALLEL_BATCH_SIZE) + 1}/${Math.ceil(cards.length/PARALLEL_BATCH_SIZE)} (${batch.length} cards)`);
                 
                 // Process batch in parallel
                 const batchPromises = batch.map(async (card, batchIndex) => {
                     try {
-                        console.log(`🔄 [${i + batchIndex + 1}/${cards.length}] ${card.summaryTitle || card.title}`);
-                        
                         const priceData = await this.searchCardPrices(card);
                         
                         if (priceData && (priceData.raw.avgPrice > 0 || priceData.psa9.avgPrice > 0)) {
                             await this.updateCardPrices(card.id, priceData);
                             
-                            console.log(`   📈 Results:`);
+                            // Show search results and price updates
+                            let priceInfo = '';
                             if (priceData.raw.avgPrice > 0) {
-                                console.log(`      💰 Raw: $${priceData.raw.avgPrice.toFixed(2)} (${priceData.raw.count} cards)`);
+                                priceInfo += `Raw: $${priceData.raw.avgPrice.toFixed(2)} (${priceData.raw.count})`;
                             }
                             if (priceData.psa9.avgPrice > 0) {
-                                console.log(`      💰 PSA 9: $${priceData.psa9.avgPrice.toFixed(2)} (${priceData.psa9.count} cards)`);
+                                if (priceInfo) priceInfo += ', ';
+                                priceInfo += `PSA 9: $${priceData.psa9.avgPrice.toFixed(2)} (${priceData.psa9.count})`;
                             }
-                            console.log(`      ✅ Updated database for card ${card.id}`);
+                            console.log(`✅ ${card.summaryTitle || card.title} → ${priceInfo}`);
                             
                             return { success: true };
                         } else {
-                            console.log(`      ⚠️ No valid prices found - skipping database update`);
                             return { success: false };
                         }
                         
@@ -268,7 +264,6 @@ class FastSQLitePriceUpdater {
                 // Rate limiting between batches
                 if (i + PARALLEL_BATCH_SIZE < cards.length) {
                     const delay = 2000 + Math.random() * 1000; // 2-3 seconds between batches
-                    console.log(`⏳ Rate limiting: waiting ${Math.round(delay)}ms before next batch...`);
                     await new Promise(resolve => setTimeout(resolve, delay));
                 }
             }
