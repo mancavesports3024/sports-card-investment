@@ -141,10 +141,60 @@ class NewPricingDatabase {
             return 'Pokemon';
         }
         
-        // Baseball detection - check for baseball-specific terms and players first
-        if (titleLower.includes('bowman') || titleLower.includes('topps') || titleLower.includes('donruss') ||
-            titleLower.includes('upper deck') || titleLower.includes('fleer') || titleLower.includes('panini') ||
-            titleLower.includes('baseball') || titleLower.includes('mlb') || titleLower.includes('pitcher') || 
+        // Racing detection (F1) - check this first to avoid false matches
+        if (titleLower.includes('f1') || titleLower.includes('formula 1') || titleLower.includes('lando norris') ||
+            titleLower.includes('mclaren') || titleLower.includes('racing') || titleLower.includes('grand prix')) {
+            return 'Racing';
+        }
+        
+        // Football detection - check this before baseball to avoid false matches
+        if (titleLower.includes('bears') || titleLower.includes('packers') || titleLower.includes('cowboys') || 
+            titleLower.includes('patriots') || titleLower.includes('steelers') || titleLower.includes('49ers') ||
+            titleLower.includes('football') || titleLower.includes('nfl') || titleLower.includes('qb') || 
+            titleLower.includes('quarterback') || titleLower.includes('running back') || titleLower.includes('wide receiver') ||
+            titleLower.includes('tight end') || titleLower.includes('defensive') || titleLower.includes('linebacker') ||
+            // Football players from the list
+            titleLower.includes('caleb williams') || titleLower.includes('drake maye') || titleLower.includes('bo nix') ||
+            titleLower.includes('patrick mahomes') || titleLower.includes('josh allen') || titleLower.includes('joe burrow') ||
+            titleLower.includes('justin herbert') || titleLower.includes('lamar jackson') || titleLower.includes('jalen hurts') ||
+            titleLower.includes('dak prescott') || titleLower.includes('aaron rodgers') || titleLower.includes('tom brady') ||
+            titleLower.includes('christian mccaffrey') || titleLower.includes('saquon barkley') || titleLower.includes('derrick henry') ||
+            titleLower.includes('tyreek hill') || titleLower.includes('justin jefferson') || titleLower.includes('jamarr chase') ||
+            titleLower.includes('stefon diggs') || titleLower.includes('davante adams') || titleLower.includes('cooper kupp') ||
+            // Additional football players from the list
+            titleLower.includes('myles garrett') || titleLower.includes('blake corum') || titleLower.includes('marvin harrison') ||
+            titleLower.includes('jayden daniels') || titleLower.includes('michael penix') || titleLower.includes('jalen hurts') ||
+            titleLower.includes('bijan robinson') || titleLower.includes('rashee rice') || titleLower.includes('brock bowers') ||
+            titleLower.includes('justin herbert') || titleLower.includes('trevor lawrence') || titleLower.includes('saquon barkley') ||
+            titleLower.includes('jj mccarthy') || titleLower.includes('bryce young') || titleLower.includes('caleb williams') ||
+            titleLower.includes('rome odunze') || titleLower.includes('marv levy')) {
+            return 'Football';
+        }
+        
+        // Basketball detection - check this before baseball to avoid false matches
+        if (titleLower.includes('lakers') || titleLower.includes('celtics') || titleLower.includes('bulls') ||
+            titleLower.includes('warriors') || titleLower.includes('heat') || titleLower.includes('knicks') ||
+            titleLower.includes('basketball') || titleLower.includes('nba') || titleLower.includes('point guard') || 
+            titleLower.includes('shooting guard') || titleLower.includes('small forward') || titleLower.includes('power forward') ||
+            titleLower.includes('center') || titleLower.includes('forward') || titleLower.includes('guard') ||
+            // Basketball players from the list
+            titleLower.includes('shaquille o\'neal') || titleLower.includes('shaq') || titleLower.includes('victor wembanyama') ||
+            titleLower.includes('orlando magic') || titleLower.includes('magic team') || titleLower.includes('lebron james') ||
+            titleLower.includes('stephen curry') || titleLower.includes('kevin durant') || titleLower.includes('giannis') ||
+            titleLower.includes('nikola jokic') || titleLower.includes('joel embiid') || titleLower.includes('luka doncic') ||
+            titleLower.includes('ja morant') || titleLower.includes('zion williamson') || titleLower.includes('anthony edwards') ||
+            titleLower.includes('lamelo ball') || titleLower.includes('cade cunningham') || titleLower.includes('paolo banchero') ||
+            titleLower.includes('chet holmgren') || titleLower.includes('victor wembanyama') || titleLower.includes('scoot henderson') ||
+            // Additional basketball players from the list
+            titleLower.includes('domantas sabonis') || titleLower.includes('luka doni') || titleLower.includes('luka doncic') ||
+            titleLower.includes('caitlin clark') || titleLower.includes('brock purdy') || titleLower.includes('anthony edwards') ||
+            titleLower.includes('stephen curry') || titleLower.includes('rj barrett') || titleLower.includes('sabrina ionescu') ||
+            titleLower.includes('wnba') || titleLower.includes('stephon castle')) {
+            return 'Basketball';
+        }
+        
+        // Baseball detection - now more specific, only check for baseball-specific terms and players
+        if (titleLower.includes('baseball') || titleLower.includes('mlb') || titleLower.includes('pitcher') || 
             titleLower.includes('hitter') || titleLower.includes('outfielder') || titleLower.includes('infielder') ||
             titleLower.includes('catcher') || titleLower.includes('shortstop') || titleLower.includes('first base') ||
             titleLower.includes('second base') || titleLower.includes('third base') ||
@@ -171,51 +221,7 @@ class NewPricingDatabase {
             return 'Baseball';
         }
         
-        // Football detection
-        if (titleLower.includes('bears') || titleLower.includes('packers') || titleLower.includes('cowboys') || 
-            titleLower.includes('patriots') || titleLower.includes('steelers') || titleLower.includes('49ers') ||
-            titleLower.includes('football') || titleLower.includes('nfl') || titleLower.includes('qb') || 
-            titleLower.includes('quarterback') || titleLower.includes('running back') || titleLower.includes('wide receiver') ||
-            titleLower.includes('tight end') || titleLower.includes('defensive') || titleLower.includes('linebacker') ||
-            // Football players from the list
-            titleLower.includes('caleb williams') || titleLower.includes('drake maye') || titleLower.includes('bo nix') ||
-            titleLower.includes('patrick mahomes') || titleLower.includes('josh allen') || titleLower.includes('joe burrow') ||
-            titleLower.includes('justin herbert') || titleLower.includes('lamar jackson') || titleLower.includes('jalen hurts') ||
-            titleLower.includes('dak prescott') || titleLower.includes('aaron rodgers') || titleLower.includes('tom brady') ||
-            titleLower.includes('christian mccaffrey') || titleLower.includes('saquon barkley') || titleLower.includes('derrick henry') ||
-            titleLower.includes('tyreek hill') || titleLower.includes('justin jefferson') || titleLower.includes('jamarr chase') ||
-            titleLower.includes('stefon diggs') || titleLower.includes('davante adams') || titleLower.includes('cooper kupp') ||
-            // Additional football players from the list
-            titleLower.includes('myles garrett') || titleLower.includes('blake corum') || titleLower.includes('marvin harrison') ||
-            titleLower.includes('jayden daniels') || titleLower.includes('michael penix') || titleLower.includes('jalen hurts') ||
-            titleLower.includes('bijan robinson') || titleLower.includes('rashee rice') || titleLower.includes('brock bowers') ||
-            titleLower.includes('justin herbert') || titleLower.includes('trevor lawrence') || titleLower.includes('saquon barkley') ||
-            titleLower.includes('jj mccarthy') || titleLower.includes('bryce young') || titleLower.includes('caleb williams') ||
-            titleLower.includes('rome odunze') || titleLower.includes('marv levy')) {
-            return 'Football';
-        }
-        
-        // Basketball detection
-        if (titleLower.includes('lakers') || titleLower.includes('celtics') || titleLower.includes('bulls') ||
-            titleLower.includes('warriors') || titleLower.includes('heat') || titleLower.includes('knicks') ||
-            titleLower.includes('basketball') || titleLower.includes('nba') || titleLower.includes('point guard') || 
-            titleLower.includes('shooting guard') || titleLower.includes('small forward') || titleLower.includes('power forward') ||
-            titleLower.includes('center') || titleLower.includes('forward') || titleLower.includes('guard') ||
-            // Basketball players from the list
-            titleLower.includes('shaquille o\'neal') || titleLower.includes('shaq') || titleLower.includes('victor wembanyama') ||
-            titleLower.includes('orlando magic') || titleLower.includes('magic team') || titleLower.includes('lebron james') ||
-            titleLower.includes('stephen curry') || titleLower.includes('kevin durant') || titleLower.includes('giannis') ||
-            titleLower.includes('nikola jokic') || titleLower.includes('joel embiid') || titleLower.includes('luka doncic') ||
-            titleLower.includes('ja morant') || titleLower.includes('zion williamson') || titleLower.includes('anthony edwards') ||
-            titleLower.includes('lamelo ball') || titleLower.includes('cade cunningham') || titleLower.includes('paolo banchero') ||
-            titleLower.includes('chet holmgren') || titleLower.includes('victor wembanyama') || titleLower.includes('scoot henderson') ||
-            // Additional basketball players from the list
-            titleLower.includes('domantas sabonis') || titleLower.includes('luka doni') || titleLower.includes('luka doncic') ||
-            titleLower.includes('caitlin clark') || titleLower.includes('brock purdy') || titleLower.includes('anthony edwards') ||
-            titleLower.includes('stephen curry') || titleLower.includes('rj barrett') || titleLower.includes('sabrina ionescu') ||
-            titleLower.includes('wnba')) {
-            return 'Basketball';
-        }
+
         
         // Hockey detection
         if (titleLower.includes('blackhawks') || titleLower.includes('bruins') || titleLower.includes('rangers') ||
