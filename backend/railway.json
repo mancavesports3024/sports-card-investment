@@ -8,7 +8,7 @@
       {
         "name": "pull-new-items",
         "schedule": "0 */6 * * *",
-        "command": "node pull-new-items.js"
+        "command": "node fast-batch-pull-new-items.js"
       },
       {
         "name": "update-existing-prices",
