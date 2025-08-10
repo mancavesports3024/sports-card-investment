@@ -1813,5 +1813,43 @@ app.post('/api/trigger-fast-batch-pull', async (req, res) => {
   }
 });
 
+// Fix Railway database schema - add missing psa10_average_price column
+app.post('/api/fix-railway-database-schema', async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      message: "Railway database schema fix triggered - running in background",
+      timestamp: new Date().toISOString()
+    });
+    
+    // Run the schema fix in background
+    setImmediate(async () => {
+      try {
+        console.log('🔧 Fixing Railway database schema...');
+        
+        // Use the database fixer
+        const { RailwayDatabaseFixer } = require('./fix-railway-database-schema.js');
+        
+        const fixer = new RailwayDatabaseFixer();
+        await fixer.addMissingColumn();
+        await fixer.close();
+        
+        console.log('✅ Railway database schema fix completed!');
+        
+      } catch (error) {
+        console.error('❌ Error fixing Railway database schema:', error);
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error triggering Railway database schema fix:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Initialize token refresh on startup
 initializeServer().catch(console.error);
