@@ -198,22 +198,30 @@ class ImprovedPriceUpdater {
             const psa10Average = psa10Prices.length > 0 ? 
                 psa10Prices.reduce((sum, price) => sum + price, 0) / psa10Prices.length : null;
             
+            // Calculate multiplier (PSA 10 price / raw price)
+            let multiplier = null;
+            if (rawAverage && psa10Average && rawAverage > 0) {
+                multiplier = parseFloat((psa10Average / rawAverage).toFixed(2));
+            }
+            
             // Update database
             const updateQuery = `
                 UPDATE cards 
                 SET raw_average_price = ?, 
                     psa9_average_price = ?,
                     psa10_average_price = ?,
+                    multiplier = ?,
                     last_updated = CURRENT_TIMESTAMP
                 WHERE id = ?
             `;
             
-            await this.db.runQuery(updateQuery, [rawAverage, psa9Average, psa10Average, cardId]);
+            await this.db.runQuery(updateQuery, [rawAverage, psa9Average, psa10Average, multiplier, cardId]);
             
             return {
                 rawAverage,
                 psa9Average,
                 psa10Average,
+                multiplier,
                 rawCount: rawPrices.length,
                 psa9Count: psa9Prices.length,
                 psa10Count: psa10Prices.length

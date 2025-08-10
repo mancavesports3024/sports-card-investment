@@ -64,6 +64,7 @@ class NewPricingDatabase {
                 psa9_average_price DECIMAL(10,2),
                 psa10_price DECIMAL(10,2),
                 psa10_average_price DECIMAL(10,2),
+                multiplier DECIMAL(10,2),
                 ebay_item_id TEXT,
                 image_url TEXT,
                 search_term TEXT,
@@ -414,9 +415,9 @@ class NewPricingDatabase {
             const query = `
                 INSERT INTO cards (
                     title, summary_title, sport, year, brand, set_name, 
-                    card_type, condition, grade, psa10_price, psa10_average_price, search_term, 
+                    card_type, condition, grade, psa10_price, psa10_average_price, multiplier, search_term, 
                     source, ebay_item_id, image_url
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
             
             const params = [
@@ -431,6 +432,7 @@ class NewPricingDatabase {
                 'PSA 10',
                 cardData.price?.value || cardData.price,
                 null, // psa10_average_price will be calculated later
+                null, // multiplier will be calculated when raw prices are added
                 cardData.searchTerm || 'auto_search',
                 cardData.source || '130point_auto',
                 cardData.ebayItemId || null,
