@@ -11,6 +11,24 @@ class FastBatchItemsPuller {
 
     async connect() {
         await this.db.connect();
+        await this.fixDatabaseSchema();
+    }
+
+    // Fix database schema if needed
+    async fixDatabaseSchema() {
+        try {
+            // Check if psa10_average_price column exists
+            const columns = await this.db.allQuery("PRAGMA table_info(cards)");
+            const hasColumn = columns.some(col => col.name === 'psa10_average_price');
+            
+            if (!hasColumn) {
+                console.log('🔧 Adding missing psa10_average_price column...');
+                await this.db.runQuery("ALTER TABLE cards ADD COLUMN psa10_average_price DECIMAL(10,2)");
+                console.log('✅ Added psa10_average_price column');
+            }
+        } catch (error) {
+            console.log('⚠️ Schema fix not needed or already applied');
+        }
     }
 
     // Optimized search terms - focus on high-value, high-volume searches
