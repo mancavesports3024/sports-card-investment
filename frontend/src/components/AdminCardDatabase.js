@@ -94,7 +94,7 @@ const AdminCardDatabase = () => {
 
   const getPaginationButtons = () => {
     const buttons = [];
-    const { page, totalPages, hasPrevPage, hasNextPage } = pagination;
+    const { page = 1, totalPages = 1, hasPrevPage = false, hasNextPage = false } = pagination;
     
     // Previous button
     if (hasPrevPage) {
@@ -107,7 +107,7 @@ const AdminCardDatabase = () => {
     
     // Page numbers (show current and 2 pages on each side)
     const startPage = Math.max(1, page - 2);
-    const endPage = Math.min(totalPages, page + 2);
+    const endPage = Math.min(totalPages || 1, page + 2);
     
     for (let i = startPage; i <= endPage; i++) {
       buttons.push(
@@ -247,8 +247,8 @@ const AdminCardDatabase = () => {
           {/* Results Info */}
           <div className="results-info">
             <span>
-              Showing {cards.length} of {pagination.total} cards 
-              (Page {pagination.page} of {pagination.totalPages})
+              Showing {cards.length} of {pagination.total?.total || 0} cards 
+              (Page {pagination.page} of {pagination.totalPages || 1})
             </span>
           </div>
 
@@ -307,7 +307,7 @@ const AdminCardDatabase = () => {
           </div>
 
           {/* Pagination */}
-          {pagination.totalPages > 1 && (
+          {(pagination.totalPages || 0) > 1 && (
             <div className="pagination">
               {getPaginationButtons()}
             </div>

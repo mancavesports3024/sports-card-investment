@@ -447,15 +447,18 @@ app.use('/api/live-listings', require('./routes/liveListings'));
       
       await db.close();
       
+      const total = totalCount.total || 0;
+      const totalPages = Math.ceil(total / limit);
+      
       res.json({
         success: true,
         cards: cards,
         pagination: {
           page: page,
           limit: limit,
-          total: totalCount,
-          totalPages: Math.ceil(totalCount / limit),
-          hasNextPage: page < Math.ceil(totalCount / limit),
+          total: { total: total },
+          totalPages: totalPages,
+          hasNextPage: page < totalPages,
           hasPrevPage: page > 1
         },
         filters: {
