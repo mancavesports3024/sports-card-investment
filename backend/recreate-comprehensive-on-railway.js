@@ -29,8 +29,8 @@ class ComprehensiveDatabaseRecreator {
       // Create database and tables
       await this.createTables();
 
-      // Create minimal sport detection data instead of full JSON import
-      await this.createMinimalSportData();
+      // Create enhanced sport detection data
+      await this.createEnhancedSportData();
 
       // Verify file was created
       if (fs.existsSync(this.dbPath)) {
@@ -102,9 +102,9 @@ class ComprehensiveDatabaseRecreator {
     });
   }
 
-  createMinimalSportData() {
+  createEnhancedSportData() {
     return new Promise((resolve, reject) => {
-      console.log('📊 Inserting minimal sport data...');
+      console.log('📊 Inserting enhanced sport data...');
       
       const db = new sqlite3.Database(this.dbPath, (err) => {
         if (err) {
@@ -114,39 +114,44 @@ class ComprehensiveDatabaseRecreator {
         }
       });
 
-      // Create minimal sport detection data for common card types
-      const minimalData = [
-        // Baseball
-        { name: 'Topps Baseball', sport: 'Baseball', year: '1952', brand: 'Topps', setName: 'Topps', searchText: 'topps baseball', displayName: 'Topps Baseball' },
-        { name: 'Bowman Baseball', sport: 'Baseball', year: '1948', brand: 'Bowman', setName: 'Bowman', searchText: 'bowman baseball', displayName: 'Bowman Baseball' },
-        { name: 'Donruss Baseball', sport: 'Baseball', year: '1981', brand: 'Donruss', setName: 'Donruss', searchText: 'donruss baseball', displayName: 'Donruss Baseball' },
-        { name: 'Fleer Baseball', sport: 'Baseball', year: '1981', brand: 'Fleer', setName: 'Fleer', searchText: 'fleer baseball', displayName: 'Fleer Baseball' },
-        { name: 'Upper Deck Baseball', sport: 'Baseball', year: '1989', brand: 'Upper Deck', setName: 'Upper Deck', searchText: 'upper deck baseball', displayName: 'Upper Deck Baseball' },
-        { name: 'Panini Baseball', sport: 'Baseball', year: '2010', brand: 'Panini', setName: 'Panini', searchText: 'panini baseball', displayName: 'Panini Baseball' },
-
-        // Football
-        { name: 'Topps Football', sport: 'Football', year: '1955', brand: 'Topps', setName: 'Topps', searchText: 'topps football', displayName: 'Topps Football' },
-        { name: 'Bowman Football', sport: 'Football', year: '1950', brand: 'Bowman', setName: 'Bowman', searchText: 'bowman football', displayName: 'Bowman Football' },
-        { name: 'Donruss Football', sport: 'Football', year: '1984', brand: 'Donruss', setName: 'Donruss', searchText: 'donruss football', displayName: 'Donruss Football' },
-        { name: 'Fleer Football', sport: 'Football', year: '1984', brand: 'Fleer', setName: 'Fleer', searchText: 'fleer football', displayName: 'Fleer Football' },
-        { name: 'Upper Deck Football', sport: 'Football', year: '1990', brand: 'Upper Deck', setName: 'Upper Deck', searchText: 'upper deck football', displayName: 'Upper Deck Football' },
-        { name: 'Panini Football', sport: 'Football', year: '2010', brand: 'Panini', setName: 'Panini', searchText: 'panini football', displayName: 'Panini Football' },
-
-        // Basketball
-        { name: 'Topps Basketball', sport: 'Basketball', year: '1957', brand: 'Topps', setName: 'Topps', searchText: 'topps basketball', displayName: 'Topps Basketball' },
-        { name: 'Fleer Basketball', sport: 'Basketball', year: '1986', brand: 'Fleer', setName: 'Fleer', searchText: 'fleer basketball', displayName: 'Fleer Basketball' },
+      // Enhanced sport detection data with proper searchText formatting
+      const enhancedData = [
+        // Football - Panini Donruss
+        { name: 'Panini Donruss Football', sport: 'Football', year: '2010', brand: 'Panini', setName: 'Donruss', searchText: 'panini donruss football', displayName: 'Panini Donruss Football' },
+        { name: 'Panini Donruss Optic Football', sport: 'Football', year: '2016', brand: 'Panini', setName: 'Donruss Optic', searchText: 'panini donruss optic football', displayName: 'Panini Donruss Optic Football' },
+        { name: 'Panini Prizm Football', sport: 'Football', year: '2012', brand: 'Panini', setName: 'Prizm', searchText: 'panini prizm football', displayName: 'Panini Prizm Football' },
+        { name: 'Panini Select Football', sport: 'Football', year: '2013', brand: 'Panini', setName: 'Select', searchText: 'panini select football', displayName: 'Panini Select Football' },
+        { name: 'Panini Mosaic Football', sport: 'Football', year: '2020', brand: 'Panini', setName: 'Mosaic', searchText: 'panini mosaic football', displayName: 'Panini Mosaic Football' },
+        
+        // Basketball - Various brands
+        { name: 'Skybox Basketball', sport: 'Basketball', year: '1990', brand: 'Skybox', setName: 'Skybox', searchText: 'skybox basketball', displayName: 'Skybox Basketball' },
         { name: 'Upper Deck Basketball', sport: 'Basketball', year: '1990', brand: 'Upper Deck', setName: 'Upper Deck', searchText: 'upper deck basketball', displayName: 'Upper Deck Basketball' },
-        { name: 'Panini Basketball', sport: 'Basketball', year: '2009', brand: 'Panini', setName: 'Panini', searchText: 'panini basketball', displayName: 'Panini Basketball' },
-
-        // Hockey
-        { name: 'Topps Hockey', sport: 'Hockey', year: '1954', brand: 'Topps', setName: 'Topps', searchText: 'topps hockey', displayName: 'Topps Hockey' },
-        { name: 'O-Pee-Chee Hockey', sport: 'Hockey', year: '1933', brand: 'O-Pee-Chee', setName: 'O-Pee-Chee', searchText: 'o-pee-chee hockey', displayName: 'O-Pee-Chee Hockey' },
-        { name: 'Upper Deck Hockey', sport: 'Hockey', year: '1990', brand: 'Upper Deck', setName: 'Upper Deck', searchText: 'upper deck hockey', displayName: 'Upper Deck Hockey' },
-
+        { name: 'Topps Chrome Basketball', sport: 'Basketball', year: '1997', brand: 'Topps', setName: 'Chrome', searchText: 'topps chrome basketball', displayName: 'Topps Chrome Basketball' },
+        { name: 'Panini Prizm Basketball', sport: 'Basketball', year: '2012', brand: 'Panini', setName: 'Prizm', searchText: 'panini prizm basketball', displayName: 'Panini Prizm Basketball' },
+        { name: 'Panini Select Basketball', sport: 'Basketball', year: '2013', brand: 'Panini', setName: 'Select', searchText: 'panini select basketball', displayName: 'Panini Select Basketball' },
+        
+        // Baseball - Topps
+        { name: 'Topps Baseball', sport: 'Baseball', year: '1952', brand: 'Topps', setName: 'Topps', searchText: 'topps baseball', displayName: 'Topps Baseball' },
+        { name: 'Topps Chrome Baseball', sport: 'Baseball', year: '1997', brand: 'Topps', setName: 'Chrome', searchText: 'topps chrome baseball', displayName: 'Topps Chrome Baseball' },
+        { name: 'Topps Heritage Baseball', sport: 'Baseball', year: '2001', brand: 'Topps', setName: 'Heritage', searchText: 'topps heritage baseball', displayName: 'Topps Heritage Baseball' },
+        { name: 'Topps Stadium Club Baseball', sport: 'Baseball', year: '1991', brand: 'Topps', setName: 'Stadium Club', searchText: 'topps stadium club baseball', displayName: 'Topps Stadium Club Baseball' },
+        { name: 'Topps Allen & Ginter Baseball', sport: 'Baseball', year: '2006', brand: 'Topps', setName: 'Allen & Ginter', searchText: 'topps allen ginter baseball', displayName: 'Topps Allen & Ginter Baseball' },
+        
         // Pokemon
         { name: 'Pokemon Base Set', sport: 'Pokemon', year: '1999', brand: 'Wizards of the Coast', setName: 'Base Set', searchText: 'pokemon base set', displayName: 'Pokemon Base Set' },
         { name: 'Pokemon Jungle', sport: 'Pokemon', year: '1999', brand: 'Wizards of the Coast', setName: 'Jungle', searchText: 'pokemon jungle', displayName: 'Pokemon Jungle' },
-        { name: 'Pokemon Fossil', sport: 'Pokemon', year: '1999', brand: 'Wizards of the Coast', setName: 'Fossil', searchText: 'pokemon fossil', displayName: 'Pokemon Fossil' }
+        { name: 'Pokemon Fossil', sport: 'Pokemon', year: '1999', brand: 'Wizards of the Coast', setName: 'Fossil', searchText: 'pokemon fossil', displayName: 'Pokemon Fossil' },
+        { name: 'Pokemon Team Rocket', sport: 'Pokemon', year: '2000', brand: 'Wizards of the Coast', setName: 'Team Rocket', searchText: 'pokemon team rocket', displayName: 'Pokemon Team Rocket' },
+        { name: 'Pokemon Gym Heroes', sport: 'Pokemon', year: '2000', brand: 'Wizards of the Coast', setName: 'Gym Heroes', searchText: 'pokemon gym heroes', displayName: 'Pokemon Gym Heroes' },
+        
+        // Hockey
+        { name: 'Upper Deck Hockey', sport: 'Hockey', year: '1990', brand: 'Upper Deck', setName: 'Upper Deck', searchText: 'upper deck hockey', displayName: 'Upper Deck Hockey' },
+        { name: 'Topps Hockey', sport: 'Hockey', year: '1954', brand: 'Topps', setName: 'Topps', searchText: 'topps hockey', displayName: 'Topps Hockey' },
+        { name: 'O-Pee-Chee Hockey', sport: 'Hockey', year: '1933', brand: 'O-Pee-Chee', setName: 'O-Pee-Chee', searchText: 'o-pee-chee hockey', displayName: 'O-Pee-Chee Hockey' },
+        
+        // Soccer
+        { name: 'Topps Soccer', sport: 'Soccer', year: '1954', brand: 'Topps', setName: 'Topps', searchText: 'topps soccer', displayName: 'Topps Soccer' },
+        { name: 'Panini Soccer', sport: 'Soccer', year: '2010', brand: 'Panini', setName: 'Panini', searchText: 'panini soccer', displayName: 'Panini Soccer' }
       ];
 
       db.serialize(() => {
@@ -157,16 +162,16 @@ class ComprehensiveDatabaseRecreator {
         `);
 
         let completed = 0;
-        const total = minimalData.length;
+        const total = enhancedData.length;
 
-        minimalData.forEach((set, index) => {
+        enhancedData.forEach((set, index) => {
           stmt.run([
             set.name,
             set.sport,
             set.year,
             set.brand,
             set.setName,
-            'minimal',
+            'enhanced',
             set.searchText,
             set.displayName
           ], (err) => {
@@ -186,7 +191,7 @@ class ComprehensiveDatabaseRecreator {
                   db.close();
                   reject(err);
                 } else {
-                  console.log('✅ Minimal sport data inserted successfully');
+                  console.log('✅ Enhanced sport data inserted successfully');
                   db.close((err) => {
                     if (err) {
                       console.error('❌ Error closing database:', err);
