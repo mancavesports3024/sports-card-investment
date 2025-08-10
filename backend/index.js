@@ -1139,7 +1139,9 @@ app.get('/api/database-status', async (req, res) => {
     const NewPricingDatabase = require('./create-new-pricing-database.js');
     const db = new NewPricingDatabase();
     
+    // Force creation of new database and tables
     await db.connect();
+    await db.createTables();
     const stats = await db.getDatabaseStats();
     await db.close();
     
@@ -1168,6 +1170,56 @@ app.get('/api/database-status', async (req, res) => {
         timestamp: new Date().toISOString()
       });
     }
+  }
+});
+
+// Reset database endpoint - for starting fresh
+app.post('/api/reset-database', async (req, res) => {
+  try {
+    console.log('🔄 Resetting database to start fresh...');
+    
+    const fs = require('fs');
+    const path = require('path');
+    
+    // Delete old database files
+    const oldDbPath = path.join(__dirname, 'data', 'scorecard.db');
+    const newDbPath = path.join(__dirname, 'data', 'new-scorecard.db');
+    
+    if (fs.existsSync(oldDbPath)) {
+      fs.unlinkSync(oldDbPath);
+      console.log('🗑️ Deleted old database');
+    }
+    
+    if (fs.existsSync(newDbPath)) {
+      fs.unlinkSync(newDbPath);
+      console.log('🗑️ Deleted existing new database');
+    }
+    
+    // Create fresh new database
+    const NewPricingDatabase = require('./create-new-pricing-database.js');
+    const db = new NewPricingDatabase();
+    
+    await db.connect();
+    await db.createTables();
+    const stats = await db.getDatabaseStats();
+    await db.close();
+    
+    console.log('✅ Fresh database created');
+    
+    res.json({
+      success: true,
+      message: 'Database reset successfully',
+      stats,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error resetting database:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
   }
 });
 
