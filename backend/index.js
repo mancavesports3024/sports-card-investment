@@ -1895,5 +1895,35 @@ app.post('/api/update-sports', async (req, res) => {
     }
 });
 
+// POST /api/update-summary-titles - Update summary titles with new cleaning rules and WWE sport detection
+app.post('/api/update-summary-titles', async (req, res) => {
+    try {
+        console.log('🔄 Starting summary title update process...');
+        
+        const { SummaryTitleUpdater } = require('./update-summary-titles-v2.js');
+        const updater = new SummaryTitleUpdater();
+        
+        await updater.connect();
+        await updater.updateSummaryTitles();
+        await updater.close();
+        
+        console.log('✅ Summary title update completed successfully');
+        res.json({ 
+            success: true, 
+            message: 'Summary title update completed successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Summary title update failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Summary title update failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Initialize token refresh on startup
 initializeServer().catch(console.error);

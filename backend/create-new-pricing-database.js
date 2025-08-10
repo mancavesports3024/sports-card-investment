@@ -135,6 +135,11 @@ class NewPricingDatabase {
     detectSportFromKeywords(title) {
         const titleLower = title.toLowerCase();
         
+        // WWE/Wrestling detection
+        if (titleLower.includes('wwe') || titleLower.includes('wrestling') || titleLower.includes('wrestler')) {
+            return 'Wrestling';
+        }
+        
         // Pokemon detection
         if (titleLower.includes('pokemon') || titleLower.includes('pikachu') || titleLower.includes('charizard') || 
             titleLower.includes('moltres') || titleLower.includes('zapdos') || titleLower.includes('articuno') ||
@@ -358,6 +363,10 @@ class NewPricingDatabase {
             .replace(/\bRATED\b/gi, '') // Remove RATED
             .replace(/\bINSTER\b/gi, '') // Remove INSTER
             .replace(/\bMVP\b/gi, '') // Remove MVP
+            .replace(/\bBOX\s*SET\b/gi, '') // Remove BOX SET
+            .replace(/\bMAV\b/gi, '') // Remove MAV
+            .replace(/\bPITCHING\b/gi, '') // Remove PITCHING
+            .replace(/\bBATTING\b/gi, '') // Remove BATTING
             
             // Remove sport names (not part of the formula)
             .replace(/\bNBA\b/gi, '') // Remove NBA
