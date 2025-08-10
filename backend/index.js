@@ -398,10 +398,10 @@ app.use('/api/live-listings', require('./routes/liveListings'));
       
       const offset = (page - 1) * limit;
       
-      const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-      const updater = new FastSQLitePriceUpdater();
+      const NewPricingDatabase = require('./create-new-pricing-database.js');
+      const db = new NewPricingDatabase();
       
-      await updater.connect();
+      await db.connect();
       
       // Build WHERE clause
       let whereConditions = ['1=1']; // Always true base condition
@@ -431,55 +431,21 @@ app.use('/api/live-listings', require('./routes/liveListings'));
       
       // Get total count
       const countQuery = `SELECT COUNT(*) as total FROM cards WHERE ${whereClause}`;
-      const totalCount = await new Promise((resolve, reject) => {
-        updater.db.get(countQuery, params, (err, row) => {
-          if (err) reject(err);
-          else resolve(row.total);
-        });
-      });
+      const totalCount = await db.getQuery(countQuery, params);
       
       // Get cards with pagination
       const cardsQuery = `
-        SELECT id, title, summaryTitle, sport, psa10Price, rawAveragePrice, 
-               psa9AveragePrice, lastUpdated, filterInfo
+        SELECT id, title, summary_title as summaryTitle, sport, psa10_price as psa10Price, raw_average_price as rawAveragePrice, 
+               psa9_average_price as psa9AveragePrice, last_updated as lastUpdated, notes as filterInfo, source, search_term as searchTerm
         FROM cards 
         WHERE ${whereClause}
         ORDER BY ${sortBy} ${sortOrder}
         LIMIT ? OFFSET ?
       `;
       
-      const cards = await new Promise((resolve, reject) => {
-        updater.db.all(cardsQuery, [...params, limit, offset], (err, rows) => {
-          if (err) {
-            reject(err);
-          } else {
-            const cardsWithSource = rows.map(card => {
-              let source = 'unknown';
-              let searchTerm = 'unknown';
-              
-              try {
-                if (card.filterInfo) {
-                  const parsed = JSON.parse(card.filterInfo);
-                  source = parsed.source || 'unknown';
-                  searchTerm = parsed.searchTerm || 'unknown';
-                }
-              } catch (e) {
-                // Keep defaults
-              }
-              
-              return {
-                ...card,
-                source,
-                searchTerm
-              };
-            });
-            
-            resolve(cardsWithSource);
-          }
-        });
-      });
+      const cards = await db.allQuery(cardsQuery, [...params, limit, offset]);
       
-      updater.db.close();
+      await db.close();
       
       res.json({
         success: true,
