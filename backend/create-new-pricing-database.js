@@ -98,10 +98,13 @@ class NewPricingDatabase {
 
     // Enhanced sport detection using comprehensive database and keyword analysis
     async detectSportFromComprehensive(title) {
+        console.log(`🔍 Detecting sport for: "${title}"`);
+        
         // First try to find a match in the comprehensive database
         if (this.comprehensiveDb) {
             try {
                 const cleanTitle = this.cleanSummaryTitle(title).toLowerCase();
+                console.log(`🧹 Cleaned title: "${cleanTitle}"`);
                 
                 // Search for matching sets in comprehensive database
                 const query = `
@@ -109,31 +112,40 @@ class NewPricingDatabase {
                     FROM sets 
                     WHERE LOWER(searchText) LIKE ? 
                     OR LOWER(displayName) LIKE ?
+                    OR LOWER(name) LIKE ?
                     GROUP BY sport 
                     ORDER BY matches DESC 
                     LIMIT 1
                 `;
                 
-                const result = await this.getComprehensiveQuery(query, [`%${cleanTitle}%`, `%${cleanTitle}%`]);
+                const result = await this.getComprehensiveQuery(query, [`%${cleanTitle}%`, `%${cleanTitle}%`, `%${cleanTitle}%`]);
                 
                 if (result && result.sport) {
                     console.log(`🏈 Found sport match in comprehensive DB: ${result.sport} for "${cleanTitle}"`);
                     return result.sport;
+                } else {
+                    console.log(`❌ No comprehensive DB match found for "${cleanTitle}"`);
                 }
             } catch (error) {
                 console.warn('⚠️ Error querying comprehensive database:', error.message);
             }
+        } else {
+            console.log('ℹ️ No comprehensive database available');
         }
         
         // Fall back to keyword detection
-        return this.detectSportFromKeywords(title);
+        const keywordSport = this.detectSportFromKeywords(title);
+        console.log(`🔤 Keyword detection result: ${keywordSport}`);
+        return keywordSport;
     }
 
     detectSportFromKeywords(title) {
         const titleLower = title.toLowerCase();
         
         // Pokemon detection
-        if (titleLower.includes('pokemon') || titleLower.includes('pikachu') || titleLower.includes('charizard')) {
+        if (titleLower.includes('pokemon') || titleLower.includes('pikachu') || titleLower.includes('charizard') || 
+            titleLower.includes('moltres') || titleLower.includes('zapdos') || titleLower.includes('articuno') ||
+            titleLower.includes('gx') || titleLower.includes('sm210')) {
             return 'Pokemon';
         }
         
@@ -142,14 +154,17 @@ class NewPricingDatabase {
             titleLower.includes('patriots') || titleLower.includes('steelers') || titleLower.includes('49ers') ||
             titleLower.includes('football') || titleLower.includes('nfl') || titleLower.includes('qb') || 
             titleLower.includes('quarterback') || titleLower.includes('running back') || titleLower.includes('wide receiver') ||
-            titleLower.includes('tight end') || titleLower.includes('defensive') || titleLower.includes('linebacker')) {
+            titleLower.includes('tight end') || titleLower.includes('defensive') || titleLower.includes('linebacker') ||
+            titleLower.includes('caleb williams') || titleLower.includes('drake maye') || titleLower.includes('bo nix')) {
             return 'Football';
         }
         if (titleLower.includes('lakers') || titleLower.includes('celtics') || titleLower.includes('bulls') ||
             titleLower.includes('warriors') || titleLower.includes('heat') || titleLower.includes('knicks') ||
             titleLower.includes('basketball') || titleLower.includes('nba') || titleLower.includes('point guard') || 
             titleLower.includes('shooting guard') || titleLower.includes('small forward') || titleLower.includes('power forward') ||
-            titleLower.includes('center') || titleLower.includes('forward') || titleLower.includes('guard')) {
+            titleLower.includes('center') || titleLower.includes('forward') || titleLower.includes('guard') ||
+            titleLower.includes('shaquille o\'neal') || titleLower.includes('shaq') || titleLower.includes('victor wembanyama') ||
+            titleLower.includes('orlando magic') || titleLower.includes('magic team')) {
             return 'Basketball';
         }
         if (titleLower.includes('dodgers') || titleLower.includes('yankees') || titleLower.includes('red sox') ||
@@ -157,12 +172,14 @@ class NewPricingDatabase {
             titleLower.includes('baseball') || titleLower.includes('mlb') || titleLower.includes('pitcher') || 
             titleLower.includes('hitter') || titleLower.includes('outfielder') || titleLower.includes('infielder') ||
             titleLower.includes('catcher') || titleLower.includes('shortstop') || titleLower.includes('first base') ||
-            titleLower.includes('second base') || titleLower.includes('third base')) {
+            titleLower.includes('second base') || titleLower.includes('third base') ||
+            titleLower.includes('shohei ohtani') || titleLower.includes('gunnar henderson') || titleLower.includes('elly de la cruz')) {
             return 'Baseball';
         }
         if (titleLower.includes('blackhawks') || titleLower.includes('bruins') || titleLower.includes('rangers') ||
             titleLower.includes('hockey') || titleLower.includes('nhl') || titleLower.includes('goalie') ||
-            titleLower.includes('goaltender') || titleLower.includes('defenseman') || titleLower.includes('forward')) {
+            titleLower.includes('goaltender') || titleLower.includes('defenseman') || titleLower.includes('forward') ||
+            titleLower.includes('auston matthews')) {
             return 'Hockey';
         }
         if (titleLower.includes('soccer') || titleLower.includes('fifa') || titleLower.includes('premier league') ||
@@ -170,11 +187,12 @@ class NewPricingDatabase {
             return 'Soccer';
         }
         
-        // Card game detection
+        // Card game detection - be more specific to avoid false matches
         if (titleLower.includes('yugioh') || titleLower.includes('yu-gi-oh')) {
             return 'Yu-Gi-Oh';
         }
-        if (titleLower.includes('magic') || titleLower.includes('mtg')) {
+        if (titleLower.includes('magic the gathering') || titleLower.includes('mtg') || 
+            (titleLower.includes('magic') && !titleLower.includes('orlando magic'))) {
             return 'Magic';
         }
         
