@@ -1224,51 +1224,37 @@ app.post('/api/reset-database', async (req, res) => {
 });
 
 // Test file system endpoint
-app.get('/api/test-fs', (req, res) => {
+app.get('/api/test-fs', async (req, res) => {
   try {
     const fs = require('fs');
     const path = require('path');
     
-    const currentDir = __dirname;
-    const dataDir = path.join(currentDir, 'data');
-    const dbPath = path.join(dataDir, 'scorecard.db');
+    const dataDir = path.join(__dirname, 'data');
+    const files = fs.readdirSync(dataDir);
     
-    const info = {
-      currentDir,
-      dataDir,
-      dbPath,
-      dataDirExists: fs.existsSync(dataDir),
-      dbExists: fs.existsSync(dbPath),
-      canWriteDataDir: false,
-      canWriteCurrentDir: false
-    };
-    
-    // Test write permissions
-    try {
-      fs.accessSync(currentDir, fs.constants.W_OK);
-      info.canWriteCurrentDir = true;
-    } catch (e) {
-      info.canWriteCurrentDir = false;
-    }
-    
-    try {
-      fs.accessSync(dataDir, fs.constants.W_OK);
-      info.canWriteDataDir = true;
-    } catch (e) {
-      info.canWriteDataDir = false;
-    }
+    const fileStats = files.map(file => {
+      const filePath = path.join(dataDir, file);
+      const stats = fs.statSync(filePath);
+      return {
+        name: file,
+        size: stats.size,
+        isDirectory: stats.isDirectory(),
+        modified: stats.mtime
+      };
+    });
     
     res.json({
       success: true,
-      fileSystemInfo: info,
+      dataDir,
+      files: fileStats,
       timestamp: new Date().toISOString()
     });
     
   } catch (error) {
+    console.error('Error testing file system:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to check file system',
-      message: error.message,
+      error: error.message,
       timestamp: new Date().toISOString()
     });
   }
