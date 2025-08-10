@@ -1228,10 +1228,10 @@ app.get('/api/test-fs', async (req, res) => {
   try {
     const fs = require('fs');
     const path = require('path');
-    
+
     const dataDir = path.join(__dirname, 'data');
     const files = fs.readdirSync(dataDir);
-    
+
     const fileStats = files.map(file => {
       const filePath = path.join(dataDir, file);
       const stats = fs.statSync(filePath);
@@ -1242,16 +1242,54 @@ app.get('/api/test-fs', async (req, res) => {
         modified: stats.mtime
       };
     });
-    
+
     res.json({
       success: true,
       dataDir,
       files: fileStats,
       timestamp: new Date().toISOString()
     });
-    
+
   } catch (error) {
     console.error('Error testing file system:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Recreate comprehensive database on Railway
+app.post('/api/recreate-comprehensive-database', async (req, res) => {
+  try {
+    console.log('🔄 Manual comprehensive database recreation triggered via API...');
+
+    res.json({
+      success: true,
+      message: "Comprehensive database recreation triggered - running in background",
+      timestamp: new Date().toISOString()
+    });
+
+    // Run the recreation in background
+    setImmediate(async () => {
+      try {
+        const ComprehensiveDatabaseRecreator = require('./recreate-comprehensive-on-railway.js');
+        const recreator = new ComprehensiveDatabaseRecreator();
+        
+        console.log('📊 Starting comprehensive database recreation...');
+        const stats = await recreator.recreateDatabase();
+        
+        console.log('✅ Comprehensive database recreation completed!');
+        console.log('Final stats:', stats);
+
+      } catch (error) {
+        console.error('❌ Error in comprehensive database recreation:', error);
+      }
+    });
+
+  } catch (error) {
+    console.error('Error triggering comprehensive database recreation:', error);
     res.status(500).json({
       success: false,
       error: error.message,
