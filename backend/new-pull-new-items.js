@@ -266,4 +266,8 @@ if (require.main === module) {
     main();
 }
 
-module.exports = NewItemsPuller;
+module.exports = { NewItemsPuller, pullNewItems: async (db) => {
+    const puller = new NewItemsPuller();
+    await puller.connect();
+    return await puller.pullNewItems();
+}};
