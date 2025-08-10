@@ -11,7 +11,6 @@ class FastBatchItemsPuller {
 
     async connect() {
         await this.db.connect();
-        console.log('✅ Connected to new pricing database with fast batch processing');
     }
 
     // Optimized search terms - focus on high-value, high-volume searches
@@ -60,44 +59,8 @@ class FastBatchItemsPuller {
             const cardId = await this.db.addCard(cardData);
             return cardId;
         } catch (error) {
-            console.error(`   ❌ Error adding card: ${error.message}`);
             return null;
         }
-    }
-
-    // Batch check raw prices for multiple cards
-    async batchCheckRawPrices(titles) {
-        const { ImprovedPriceUpdater } = require('./improve-price-updating.js');
-        const priceUpdater = new ImprovedPriceUpdater();
-        await priceUpdater.connect();
-        
-        const results = [];
-        
-        // Process in smaller batches to avoid overwhelming the API
-        const checkBatchSize = 3;
-        for (let i = 0; i < titles.length; i += checkBatchSize) {
-            const batch = titles.slice(i, i + checkBatchSize);
-            const batchPromises = batch.map(async (title) => {
-                try {
-                    const result = await priceUpdater.checkRawPrices(title);
-                    return { title, hasRawPrices: result && result.rawAverage !== null };
-                } catch (error) {
-                    console.error(`   ❌ Error checking raw prices for ${title}: ${error.message}`);
-                    return { title, hasRawPrices: false };
-                }
-            });
-            
-            const batchResults = await Promise.all(batchPromises);
-            results.push(...batchResults);
-            
-            // Small delay between batches
-            if (i + checkBatchSize < titles.length) {
-                await new Promise(resolve => setTimeout(resolve, 500));
-            }
-        }
-        
-        await priceUpdater.db.close();
-        return results;
     }
 
     // Process a batch of cards
@@ -108,6 +71,12 @@ class FastBatchItemsPuller {
         for (const item of cards) {
             const title = item.title.toLowerCase();
             if (!title.includes('psa 10') && !title.includes('psa10')) {
+                continue;
+            }
+            
+            // Check PSA 10 price - only add if $30 or higher
+            const psa10Price = parseFloat(item.price?.value || item.price);
+            if (isNaN(psa10Price) || psa10Price < 30) {
                 continue;
             }
             
@@ -123,25 +92,74 @@ class FastBatchItemsPuller {
             return 0;
         }
         
-        console.log(`   🔍 Checking raw prices for ${validCards.length} cards...`);
+        // Batch check raw prices and get the actual price data
+        const { ImprovedPriceUpdater } = require('./improve-price-updating.js');
+        const priceUpdater = new ImprovedPriceUpdater();
+        await priceUpdater.connect();
         
-        // Batch check raw prices
-        const priceCheckResults = await this.batchCheckRawPrices(validCards.map(card => card.title));
+        const results = [];
         
-        // Add cards that have raw prices
-        let addedCount = 0;
-        for (let i = 0; i < validCards.length; i++) {
-            const card = validCards[i];
-            const hasRawPrices = priceCheckResults[i]?.hasRawPrices;
-            
-            if (hasRawPrices) {
-                const cardId = await this.addCard(card);
-                if (cardId) {
-                    addedCount++;
-                    console.log(`   ✅ Added: ${card.title}`);
+        // Process in smaller batches to avoid overwhelming the API
+        const checkBatchSize = 3;
+        for (let i = 0; i < validCards.length; i += checkBatchSize) {
+            const batch = validCards.slice(i, i + checkBatchSize);
+            const batchPromises = batch.map(async (card) => {
+                try {
+                    // Get raw, PSA 9, and PSA 10 prices
+                    const rawPrices = await priceUpdater.searchRawPrices(card.title);
+                    const psa9Prices = await priceUpdater.searchPSA9Prices(card.title);
+                    const psa10Prices = await priceUpdater.searchPSA10Prices(card.title);
+                    
+                    const rawAverage = rawPrices.length > 0 ? 
+                        rawPrices.reduce((sum, price) => sum + price, 0) / rawPrices.length : null;
+                    const psa9Average = psa9Prices.length > 0 ? 
+                        psa9Prices.reduce((sum, price) => sum + price, 0) / psa9Prices.length : null;
+                    const psa10Average = psa10Prices.length > 0 ? 
+                        psa10Prices.reduce((sum, price) => sum + price, 0) / psa10Prices.length : null;
+                    
+                    return { 
+                        card, 
+                        hasRawPrices: rawAverage !== null,
+                        rawAverage,
+                        psa9Average,
+                        psa10Average
+                    };
+                } catch (error) {
+                    return { card, hasRawPrices: false, rawAverage: null, psa9Average: null, psa10Average: null };
                 }
-            } else {
-                console.log(`   ⏭️  Skipped (no raw prices): ${card.title}`);
+            });
+            
+            const batchResults = await Promise.all(batchPromises);
+            results.push(...batchResults);
+            
+            // Small delay between batches
+            if (i + checkBatchSize < validCards.length) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+        
+        await priceUpdater.db.close();
+        
+        // Add cards that have raw prices and update them with the prices
+        let addedCount = 0;
+        for (const result of results) {
+            if (result.hasRawPrices) {
+                const cardId = await this.addCard(result.card);
+                if (cardId) {
+                    // Update the card with the found prices
+                    const updateQuery = `
+                        UPDATE cards 
+                        SET raw_average_price = ?, 
+                            psa9_average_price = ?,
+                            psa10_average_price = ?,
+                            last_updated = CURRENT_TIMESTAMP
+                        WHERE id = ?
+                    `;
+                    
+                    await this.db.runQuery(updateQuery, [result.rawAverage, result.psa9Average, result.psa10Average, cardId]);
+                    
+                    addedCount++;
+                }
             }
         }
         
@@ -151,9 +169,6 @@ class FastBatchItemsPuller {
     // Main function with batch processing
     async pullNewItems() {
         try {
-            console.log('🚀 Starting FAST BATCH items pull with comprehensive sport detection...');
-            console.log('================================================================');
-            
             await this.connect();
             
             const searchTerms = this.getSearchTerms();
@@ -164,18 +179,12 @@ class FastBatchItemsPuller {
             for (let i = 0; i < searchTerms.length; i += this.maxConcurrentSearches) {
                 const searchBatch = searchTerms.slice(i, i + this.maxConcurrentSearches);
                 
-                console.log(`\n🔍 Processing search batch ${Math.floor(i/this.maxConcurrentSearches) + 1}:`);
-                searchBatch.forEach(term => console.log(`   - "${term}"`));
-                
                 // Process searches in parallel
                 const searchPromises = searchBatch.map(async (searchTerm) => {
                     try {
-                        console.log(`\n🔍 Searching: "${searchTerm}"`);
-                        const results = await search130point(searchTerm, 15); // Increased limit
+                        const results = await search130point(searchTerm, 15);
                         
                         if (results && results.length > 0) {
-                            console.log(`   📦 Found ${results.length} items from 130point`);
-                            
                             // Process cards in batches
                             let batchAdded = 0;
                             for (let j = 0; j < results.length; j += this.batchSize) {
@@ -185,15 +194,12 @@ class FastBatchItemsPuller {
                             }
                             
                             totalNewItems += batchAdded;
-                            console.log(`   ✅ Added ${batchAdded} cards from "${searchTerm}"`);
-                        } else {
-                            console.log(`   🔍 No items found for "${searchTerm}"`);
                         }
                         
                         totalSearched++;
                         
                     } catch (searchError) {
-                        console.error(`❌ Error searching "${searchTerm}": ${searchError.message}`);
+                        // Silent error handling
                     }
                 });
                 
@@ -202,20 +208,12 @@ class FastBatchItemsPuller {
                 
                 // Reduced delay between search batches
                 if (i + this.maxConcurrentSearches < searchTerms.length) {
-                    console.log(`\n⏳ Waiting ${this.searchDelay}ms before next batch...`);
                     await new Promise(resolve => setTimeout(resolve, this.searchDelay));
                 }
             }
             
             // Get final stats
             const stats = await this.db.getDatabaseStats();
-            
-            console.log('\n✅ FAST BATCH Pull Complete!');
-            console.log('=============================');
-            console.log(`📊 Searches performed: ${totalSearched}`);
-            console.log(`🆕 New items added: ${totalNewItems}`);
-            console.log(`📈 Database totals: ${stats.total} cards, ${stats.withPrices} with prices`);
-            console.log(`⚡ Processing speed: ~${Math.round(totalNewItems / (totalSearched * 0.1))} cards per minute`);
             
             await this.db.close();
             
@@ -227,7 +225,6 @@ class FastBatchItemsPuller {
             };
             
         } catch (error) {
-            console.error('❌ Error in fast batch pull:', error);
             await this.db.close();
             throw error;
         }

@@ -61,12 +61,10 @@ async function search130point(keywords, numSales = 10) {
     if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
       const extraDelay = randomDelay(2000, 5000); // 2-5 seconds random delay
       const totalDelay = (MIN_REQUEST_INTERVAL - timeSinceLastRequest) + extraDelay;
-      console.log(`⏳ Rate limiting: waiting ${totalDelay}ms (base + random)`);
       await delay(totalDelay);
     }
     lastRequestTime = Date.now();
 
-    console.log(`🔍 Searching 130point.com for: "${keywords}"`);
     // Use the raw search string for the POST payload
     // Format query: replace spaces with +
     const formattedQuery = keywords.replace(/\s+/g, '+');
@@ -80,8 +78,7 @@ async function search130point(keywords, numSales = 10) {
       mp: 'all',
       tk: 'dc848953a13185261a89'
     });
-    console.log("130point POST URL:", ONEPOINT_URL);
-    console.log("130point POST payload:", formData);
+    
     // Make POST request to 130point
     const response = await axios.post(ONEPOINT_URL, formData, {
       headers: {
@@ -98,16 +95,15 @@ async function search130point(keywords, numSales = 10) {
     });
 
     if (!response || response.status !== 200) {
-      console.error(`❌ HTTP ${response?.status}: Failed to fetch 130point data`);
-      return [];
+      throw new Error(`HTTP ${response?.status || 'unknown'} error`);
     }
 
-    // Log the first 500 characters of the HTML response for debugging
-    console.log('130point HTML response (first 500 chars):', response.data?.slice(0, 500));
-
-    // Parse HTML response
+    // Parse the HTML response
     const $ = cheerio.load(response.data);
+    
+    // Extract sales data from the table
     const sales = [];
+    const saleRows = $('.salesTable tbody tr');
 
     // Parse currency conversion rates from the HTML
     let currencyRates = {};
@@ -177,7 +173,7 @@ async function search130point(keywords, numSales = 10) {
     ];
 
     // Extract sales data from the actual 130point table rows
-    $('#salesDataTable-1 tr#dRow').each((index, el) => {
+    saleRows.each((index, el) => {
       if (sales.length >= numSales) return false; // Stop if we have enough results
       const $el = $(el);
       try {
@@ -243,58 +239,14 @@ async function search130point(keywords, numSales = 10) {
         // Format sale type with green box styling
         const formattedSaleType = saleType ? `[${saleType}]` : '';
 
-        // Only push if we have a title and price
-        if (title && salePrice) {
-          // Filter out sealed products before adding to results
-          const titleLower = title.toLowerCase();
-          
-          // Check if title matches any sealed product pattern
-          const isSealedProduct = sealedProductPatterns.some(pattern => pattern.test(titleLower));
-          
-          // Check for quantity indicators that suggest sealed products
-          const hasQuantityIndicators = /\d+\s*(hobby\s+box|booster\s+box|blaster\s+box|retail\s+box|sealed\s+box|sealed\s+pack|sealed\s+case|lot\s+of|lots\s+of|bundle|complete\s+set|factory\s+set|hobby\s+case|jumbo\s+hobby\s+case)/i.test(titleLower);
-          
-          // Check for high-value items that are clearly sealed products
-          const isHighValueSealed = priceInUSD > 200 && (
-            titleLower.includes('hobby box') || 
-            titleLower.includes('hobby case') ||
-            titleLower.includes('jumbo hobby case') ||
-            titleLower.includes('booster box') || 
-            titleLower.includes('blaster box') || 
-            titleLower.includes('complete set') ||
-            titleLower.includes('factory set') ||
-            titleLower.includes('superbox') ||
-            titleLower.includes('mega box') ||
-            /\d+\s*(box|pack|case)/i.test(titleLower)
-          );
-          
-          // Additional specific checks for the problematic items
-          const hasSpecificSealedTerms = (
-            titleLower.includes('jumbo hobby case') ||
-            titleLower.includes('superbox') ||
-            titleLower.includes('mega box') ||
-            titleLower.includes('celebration mega box') ||
-            titleLower.includes('sealed') && (titleLower.includes('box') || titleLower.includes('case') || titleLower.includes('pack'))
-          );
-          
-          // Only filter out if it's clearly a sealed product
-          const shouldFilter = isSealedProduct || hasQuantityIndicators || isHighValueSealed || hasSpecificSealedTerms;
-          
-          // Debug specific problematic entry
-          if (titleLower.includes('jumbo hobby case') || titleLower.includes('2025 topps series one 1 baseball jumbo hobby case')) {
-            console.log(`[130POINT DEBUG] Found problematic entry: "${title}"`);
-            console.log(`[130POINT DEBUG] - isSealedProduct: ${isSealedProduct}`);
-            console.log(`[130POINT DEBUG] - hasQuantityIndicators: ${hasQuantityIndicators}`);
-            console.log(`[130POINT DEBUG] - isHighValueSealed: ${isHighValueSealed}`);
-            console.log(`[130POINT DEBUG] - hasSpecificSealedTerms: ${hasSpecificSealedTerms}`);
-            console.log(`[130POINT DEBUG] - shouldFilter: ${shouldFilter}`);
-          }
-          
-          if (shouldFilter) {
-            console.log(`[130POINT FILTERED] Sealed product removed: "${title}" - Price: $${priceInUSD.toFixed(2)}`);
-            return; // Skip this item
-          }
+        // Check if this is a sealed product that should be filtered out
+        const isSealedProduct = sealedProductPatterns.some(pattern => pattern.test(title.toLowerCase()));
+        if (isSealedProduct) {
+          return; // Skip this sale
+        }
 
+        // Only push if we have a title and price
+        if (title && priceInUSD) {
           // Extract eBay item ID if it's an eBay URL
           let ebayItemId = null;
           let finalUrl = titleUrl ? (titleUrl.startsWith('http') ? titleUrl : `https://130point.com${titleUrl}`) : null;
@@ -329,7 +281,6 @@ async function search130point(keywords, numSales = 10) {
       }
     });
 
-    console.log(`✅ Found ${sales.length} sales from 130point.com (after filtering sealed products)`);
     return sales;
   } catch (error) {
     console.error('❌ 130point search error:', error.message);
