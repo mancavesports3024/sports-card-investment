@@ -1,6 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
+const { ESPNSportDetectorV2Integrated } = require('./espn-sport-detector-v2-integrated.js');
 
 // FORCE RAILWAY REDEPLOY - Updated sport detection logic deployed
 class NewPricingDatabase {
@@ -10,6 +11,9 @@ class NewPricingDatabase {
         this.comprehensiveDbPath = path.join(__dirname, 'data', 'comprehensive-card-database.db');
         this.pricingDb = null;
         this.comprehensiveDb = null;
+        
+        // Initialize ESPN sport detector
+        this.espnDetector = new ESPNSportDetectorV2Integrated();
     }
 
     async connect() {
@@ -99,9 +103,23 @@ class NewPricingDatabase {
         }
     }
 
-    // Enhanced sport detection using comprehensive database and keyword analysis
+    // Enhanced sport detection using ESPN v2 API, comprehensive database, and keyword analysis
     async detectSportFromComprehensive(title) {
-        // First try to find a match in the comprehensive database
+        // First try ESPN v2 API for player-based sport detection
+        try {
+            const playerName = this.extractPlayerName(title);
+            if (playerName) {
+                const espnSport = await this.espnDetector.detectSportFromPlayer(playerName);
+                if (espnSport && espnSport !== 'Unknown') {
+                    console.log(`✅ ESPN v2 API detected sport for ${playerName}: ${espnSport}`);
+                    return espnSport;
+                }
+            }
+        } catch (error) {
+            console.log(`⚠️ ESPN v2 API failed for ${title}: ${error.message}`);
+        }
+        
+        // Second try to find a match in the comprehensive database
         if (this.comprehensiveDb) {
             try {
                 const cleanTitle = this.cleanSummaryTitle(title).toLowerCase();
@@ -495,6 +513,37 @@ class NewPricingDatabase {
         if (titleLower.includes('parallel')) return 'Parallel';
         
         return 'Base';
+    }
+
+    extractPlayerName(title) {
+        // Extract player name from card title
+        // This is a simple extraction - can be enhanced later
+        const titleLower = title.toLowerCase();
+        
+        // Remove common card terms to isolate player name
+        let playerName = title
+            .replace(/\d{4}/g, '') // Remove years
+            .replace(/topps|panini|donruss|bowman|chrome|prizm|optic|mosaic|select|heritage|stadium club|allen & ginter|gypsy queen|finest|fire|opening day|big league|immaculate|national treasures|flawless|obsidian/gi, '')
+            .replace(/rookie|rc|auto|autograph|jersey|patch|refractor|parallel|base|holo|numbered|limited|gold|silver|bronze|platinum|diamond|emerald|sapphire|ruby|amethyst|onyx|black|white|red|blue|green|yellow|orange|purple|pink|teal|aqua|cyan|lime|mint|peach|salmon|tan|brown|gray|grey|navy|maroon|burgundy|crimson|scarlet|cardinal|cardinals|eagles|falcons|ravens|bills|panthers|bears|bengals|browns|cowboys|broncos|lions|packers|texans|colts|jaguars|chiefs|raiders|chargers|rams|dolphins|vikings|patriots|saints|giants|jets|eagles|steelers|49ers|seahawks|buccaneers|titans|commanders|cardinals|falcons|ravens|bills|panthers|bears|bengals|browns|cowboys|broncos|lions|packers|texans|colts|jaguars|chiefs|raiders|chargers|rams|dolphins|vikings|patriots|saints|giants|jets|eagles|steelers|49ers|seahawks|buccaneers|titans|commanders/gi, '')
+            .replace(/psa|bgs|beckett|gem|mint|near mint|excellent|very good|good|fair|poor/gi, '')
+            .replace(/card|cards/gi, '') // Remove "card" and "cards"
+            .replace(/[#\d\/]+/g, '') // Remove card numbers and print runs
+            .replace(/\s+/g, ' ') // Normalize whitespace
+            .trim();
+        
+        // Split by spaces and look for potential player names (2-3 words)
+        const words = playerName.split(' ').filter(word => word.length > 0);
+        
+        // Look for patterns like "First Last" or "First Middle Last"
+        if (words.length >= 2 && words.length <= 4) {
+            // Check if it looks like a name (not all caps, reasonable length)
+            const potentialName = words.slice(0, Math.min(3, words.length)).join(' ');
+            if (potentialName.length >= 3 && potentialName.length <= 30) {
+                return potentialName;
+            }
+        }
+        
+        return null;
     }
 
     async runQuery(sql, params = []) {
