@@ -1895,6 +1895,36 @@ app.post('/api/update-sports', async (req, res) => {
     }
 });
 
+// POST /api/update-sports-espn-v2 - Update sports using ESPN v2 API for existing cards
+app.post('/api/update-sports-espn-v2', async (req, res) => {
+    try {
+        console.log('🔄 Starting ESPN v2 sport detection update process...');
+        
+        const { SportsUpdaterWithESPNV2 } = require('./update-sports-with-espn-v2.js');
+        const updater = new SportsUpdaterWithESPNV2();
+        
+        await updater.connect();
+        await updater.updateSportsForExistingCards();
+        await updater.close();
+        
+        console.log('✅ ESPN v2 sport detection update completed successfully');
+        res.json({ 
+            success: true, 
+            message: 'ESPN v2 sport detection update completed successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ ESPN v2 sport detection update failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'ESPN v2 sport detection update failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/update-summary-titles - Update summary titles with new cleaning rules and WWE sport detection
 app.post('/api/update-summary-titles', async (req, res) => {
     try {
