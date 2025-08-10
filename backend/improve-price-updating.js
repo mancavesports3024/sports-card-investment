@@ -30,10 +30,11 @@ class ImprovedPriceUpdater {
                     const rawPrices = results
                         .filter(item => {
                             const itemTitle = item.title.toLowerCase();
-                            // More permissive filtering - just exclude obvious graded cards
+                            // Exclude ALL graded cards from raw prices
                             return !itemTitle.includes('psa 10') && 
                                    !itemTitle.includes('psa10') &&
-                                   !itemTitle.includes('bgs 10') &&
+                                   !itemTitle.includes('bgs') &&  // Exclude ALL BGS grades
+                                   !itemTitle.includes('beckett') &&  // Also exclude "beckett" keyword
                                    !itemTitle.includes('sgc 10');
                         })
                         .map(item => {
