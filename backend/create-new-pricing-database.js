@@ -316,6 +316,15 @@ class NewPricingDatabase {
             .replace(/\bSP\b/gi, '') // Remove SP (Short Print)
             .replace(/\bHOF\b/gi, '') // Remove HOF (Hall of Fame)
             
+            // Remove additional terms that don't help search
+            .replace(/\bLA\b/gi, '') // Remove LA
+            .replace(/\bDUKE\b/gi, '') // Remove DUKE
+            .replace(/\bCARD\b/gi, '') // Remove CARD
+            .replace(/\bPATS\b/gi, '') // Remove PATS
+            .replace(/\bRATED\b/gi, '') // Remove RATED
+            .replace(/\bINSTER\b/gi, '') // Remove INSTER
+            .replace(/\bMVP\b/gi, '') // Remove MVP
+            
             // Remove sport names (not part of the formula)
             .replace(/\bNBA\b/gi, '') // Remove NBA
             .replace(/\bBASKETBALL\b/gi, '') // Remove BASKETBALL
