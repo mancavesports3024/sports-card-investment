@@ -2,6 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
+// FORCE RAILWAY REDEPLOY - Updated sport detection logic deployed
 class NewPricingDatabase {
     constructor() {
         // Use the new database for Railway deployment
