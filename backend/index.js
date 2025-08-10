@@ -872,7 +872,7 @@ app.post('/api/update-prices', async (req, res) => {
 app.get('/api/cron-status', async (req, res) => {
   try {
     const sqlite3 = require('sqlite3').verbose();
-    const dbPath = path.join(__dirname, 'data', 'scorecard.db');
+    const dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
     const db = new sqlite3.Database(dbPath);
     
     // Get the most recent cards (which would indicate pull-new-items ran)
@@ -891,10 +891,10 @@ app.get('/api/cron-status', async (req, res) => {
     // Get cards with recent price updates (which would indicate update-prices ran)
     const recentPriceUpdates = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT id, title, rawAveragePrice, psa9AveragePrice, updated_at FROM cards 
-         WHERE (rawAveragePrice IS NOT NULL OR psa9AveragePrice IS NOT NULL)
-         AND updated_at IS NOT NULL 
-         ORDER BY updated_at DESC LIMIT 5`,
+        `SELECT id, title, raw_average_price as rawAveragePrice, psa9_average_price as psa9AveragePrice, last_updated as updated_at FROM cards 
+         WHERE (raw_average_price IS NOT NULL OR psa9_average_price IS NOT NULL)
+         AND last_updated IS NOT NULL 
+         ORDER BY last_updated DESC LIMIT 5`,
         (err, rows) => {
           if (err) reject(err);
           else resolve(rows);
@@ -908,12 +908,12 @@ app.get('/api/cron-status', async (req, res) => {
       success: true,
       cronJobStatus: {
         pullNewItems: {
-          schedule: "Every 6 hours (0 */6 * * *)",
+          schedule: "Every 6 hours (0 */6 * * *) - Fast Batch Process",
           lastRun: recentCards.length > 0 ? recentCards[0].created_at : "No recent items",
           recentItems: recentCards
         },
         updatePrices: {
-          schedule: "Every 8 hours (0 */8 * * *)", 
+          schedule: "Daily at 2:00 AM (0 2 * * *)", 
           lastRun: recentPriceUpdates.length > 0 ? recentPriceUpdates[0].updated_at : "No recent updates",
           recentUpdates: recentPriceUpdates
         }
