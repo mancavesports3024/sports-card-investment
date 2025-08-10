@@ -1055,8 +1055,52 @@ app.post('/api/trigger-price-update', async (req, res) => {
               }
             }
             
-            console.log(`\n🎉 Price update completed! Updated ${updated}/${processed} cards`);
-            this.updater.db.close();
+                console.log(`\n🎉 Price update completed! Updated ${updated}/${processed} cards`);
+    this.updater.db.close();
+  }
+});
+
+// Manual trigger for pull new items
+app.post('/api/trigger-pull-new-items', async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      message: "Pull new items job triggered - running in background",
+      timestamp: new Date().toISOString()
+    });
+    
+    // Run the pull new items in background
+    setImmediate(async () => {
+      try {
+        console.log('🚀 Manual pull new items triggered via API...');
+        
+        // Use the new pricing database system
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const { pullNewItems } = require('./new-pull-new-items.js');
+        
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        console.log('📊 Starting pull new items process...');
+        await pullNewItems(db);
+        
+        console.log('✅ Pull new items completed!');
+        await db.close();
+        
+      } catch (error) {
+        console.error('❌ Error in pull new items:', error);
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error triggering pull new items:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
           }
           
           async getCardsNeedingUpdates() {
