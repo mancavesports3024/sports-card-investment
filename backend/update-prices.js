@@ -1,8 +1,8 @@
-const { SQLitePriceUpdater } = require('./sqlite-price-updater');
+const { ImprovedPriceUpdater } = require('./improve-price-updating.js');
 
 class AutomatedPriceUpdater {
     constructor() {
-        this.updater = new SQLitePriceUpdater();
+        this.updater = new ImprovedPriceUpdater();
     }
 
     async updatePrices() {
@@ -39,7 +39,7 @@ class AutomatedPriceUpdater {
             
             for (const card of cardsToProcess) {
                 try {
-                    const result = await this.updater.processCard(card);
+                    const result = await this.updater.updateCardPrices(card.id, card.title);
                     if (result) {
                         successful++;
                         console.log(`✅ Updated prices for: ${card.summaryTitle || card.title}`);
@@ -62,7 +62,7 @@ class AutomatedPriceUpdater {
             console.log(`📊 Cards processed: ${cardsToProcess.length}`);
             console.log(`✅ Successfully updated: ${successful}`);
             console.log(`❌ Errors: ${errors}`);
-            console.log(`⏳ Next update scheduled in 24 hours`);
+            console.log(`⏳ Next update scheduled in 24 hours (2:00 AM)`);
             
             this.updater.db.close();
             
@@ -101,8 +101,8 @@ class AutomatedPriceUpdater {
                     (rawAveragePrice IS NULL AND psa9AveragePrice IS NOT NULL) OR
                     -- Missing PSA 9 price but has raw
                     (rawAveragePrice IS NOT NULL AND psa9AveragePrice IS NULL) OR
-                    -- Old data (older than 7 days)
-                    (lastUpdated IS NULL OR datetime(lastUpdated) < datetime('now', '-7 days'))
+                    -- Old data (older than 10 days)
+                    (lastUpdated IS NULL OR datetime(lastUpdated) < datetime('now', '-10 days'))
                 ORDER BY 
                     -- Prioritize cards with no prices at all
                     CASE 
