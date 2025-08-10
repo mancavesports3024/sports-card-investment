@@ -145,17 +145,38 @@ class NewItemsPuller {
                                     item.searchTerm = searchTerm;
                                     item.source = '130point_auto';
                                     
-                                    const cardId = await this.addCard(item);
-                                    if (cardId) {
-                                        totalNewItems++;
-                                        console.log(`   ✅ Added new PSA 10 item: ${item.title}`);
+                                    // NEW RULE: Check for raw prices before adding the card
+                                    console.log(`   🔍 Checking for raw prices before adding: ${item.title}`);
+                                    
+                                    try {
+                                        // Use improved price updating logic to check for raw prices
+                                        const { ImprovedPriceUpdater } = require('./improve-price-updating.js');
+                                        const priceUpdater = new ImprovedPriceUpdater();
+                                        await priceUpdater.connect();
                                         
-                                        // Immediately update raw and PSA 9 prices for the new item
-                                        try {
-                                            await this.updateNewItemPrices(cardId, item.title);
-                                        } catch (priceError) {
-                                            console.error(`   ❌ Failed to update prices for new item: ${priceError.message}`);
+                                        const result = await priceUpdater.checkRawPrices(item.title);
+                                        await priceUpdater.db.close();
+                                        
+                                        // Only add the card if raw prices were found
+                                        if (result && result.rawAverage !== null) {
+                                            const cardId = await this.addCard(item);
+                                            if (cardId) {
+                                                totalNewItems++;
+                                                console.log(`   ✅ Added new PSA 10 item with raw prices: ${item.title}`);
+                                                
+                                                // Update the card with the found prices
+                                                try {
+                                                    await this.updateNewItemPrices(cardId, item.title);
+                                                } catch (priceError) {
+                                                    console.error(`   ❌ Failed to update prices for new item: ${priceError.message}`);
+                                                }
+                                            }
+                                        } else {
+                                            console.log(`   ⏭️  Skipping card - no raw prices found: ${item.title}`);
                                         }
+                                    } catch (priceError) {
+                                        console.error(`   ❌ Error checking raw prices: ${priceError.message}`);
+                                        console.log(`   ⏭️  Skipping card due to price check error: ${item.title}`);
                                     }
                                 } else {
                                     console.log(`   ⏭️  Skipped duplicate: ${item.title}`);

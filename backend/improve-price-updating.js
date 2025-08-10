@@ -105,6 +105,30 @@ class ImprovedPriceUpdater {
 
 
 
+    // Check if raw prices exist for a card (without updating database)
+    async checkRawPrices(title) {
+        try {
+            console.log(`   🔍 Checking raw prices for: ${title}`);
+            
+            // Search for raw prices only
+            const rawPrices = await this.searchRawPrices(title);
+            const rawAverage = rawPrices.length > 0 ? 
+                rawPrices.reduce((sum, price) => sum + price, 0) / rawPrices.length : null;
+            
+            if (rawAverage) {
+                console.log(`   ✅ Found raw prices: $${rawAverage.toFixed(2)}`);
+            } else {
+                console.log(`   ⚠️  No raw prices found`);
+            }
+            
+            return { rawAverage };
+            
+        } catch (error) {
+            console.error(`   ❌ Error checking raw prices: ${error.message}`);
+            return { rawAverage: null };
+        }
+    }
+
     // Update prices for a specific card
     async updateCardPrices(cardId, title) {
         try {

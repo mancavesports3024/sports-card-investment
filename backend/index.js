@@ -1305,6 +1305,44 @@ app.post('/api/update-missing-prices', async (req, res) => {
   }
 });
 
+// Enhance comprehensive database
+app.post('/api/enhance-comprehensive-database', async (req, res) => {
+  try {
+    console.log('🚀 Manual comprehensive database enhancement triggered via API...');
+
+    res.json({
+      success: true,
+      message: "Comprehensive database enhancement triggered - running in background",
+      timestamp: new Date().toISOString()
+    });
+
+    // Run the enhancement in background
+    setImmediate(async () => {
+      try {
+        const { EnhancedComprehensiveDatabase } = require('./enhance-comprehensive-database.js');
+        const enhancer = new EnhancedComprehensiveDatabase();
+        
+        console.log('🚀 Starting comprehensive database enhancement...');
+        const result = await enhancer.enhanceDatabase();
+        
+        console.log('✅ Comprehensive database enhancement completed!');
+        console.log('Final result:', result);
+
+      } catch (error) {
+        console.error('❌ Error in comprehensive database enhancement:', error);
+      }
+    });
+
+  } catch (error) {
+    console.error('Error triggering comprehensive database enhancement:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Create SQLite Database endpoint
 app.post('/api/create-database', async (req, res) => {
   try {
