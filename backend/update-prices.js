@@ -28,6 +28,17 @@ class AutomatedPriceUpdater {
             
             console.log(`📊 Found ${cardsToUpdate.length} cards needing price updates`);
             
+            // Log breakdown of why cards need updates
+            const missingBoth = cardsToUpdate.filter(card => !card.rawAveragePrice && !card.psa9AveragePrice).length;
+            const missingRaw = cardsToUpdate.filter(card => !card.rawAveragePrice && card.psa9AveragePrice).length;
+            const missingPSA9 = cardsToUpdate.filter(card => card.rawAveragePrice && !card.psa9AveragePrice).length;
+            const oldData = cardsToUpdate.filter(card => card.rawAveragePrice && card.psa9AveragePrice).length;
+            
+            console.log(`   📋 Missing both prices: ${missingBoth}`);
+            console.log(`   📋 Missing raw price only: ${missingRaw}`);
+            console.log(`   📋 Missing PSA 9 price only: ${missingPSA9}`);
+            console.log(`   📋 Old data (10+ days): ${oldData}`);
+            
             // Update prices in larger batches for faster processing
             const batchSize = 200; // Process 200 cards per run
             const cardsToProcess = cardsToUpdate.slice(0, batchSize);
@@ -88,11 +99,14 @@ class AutomatedPriceUpdater {
             // Priority order:
             // 1. Cards with no prices at all
             // 2. Cards with only raw or only PSA prices (missing the other)
-            // 3. Cards with old price data (older than 7 days)
+            // 3. Cards with old price data (older than 10 days)
+            
+            // Note: last_updated field is automatically updated whenever prices are modified
+            // This ensures we only update cards that haven't been updated recently
             
             const query = `
-                SELECT id, title, summaryTitle, sport, filterInfo, 
-                       rawAveragePrice, psa9AveragePrice, lastUpdated
+                SELECT id, title, summary_title as summaryTitle, sport, notes as filterInfo, 
+                       raw_average_price as rawAveragePrice, psa9_average_price as psa9AveragePrice, last_updated as lastUpdated
                 FROM cards 
                 WHERE 
                     -- Missing both prices
