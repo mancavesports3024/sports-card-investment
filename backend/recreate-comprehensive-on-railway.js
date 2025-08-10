@@ -11,12 +11,35 @@ class ComprehensiveDatabaseRecreator {
   async recreateDatabase() {
     try {
       console.log('🔄 Starting comprehensive database recreation on Railway...');
+      console.log(`📁 Database path: ${this.dbPath}`);
+
+      // Ensure data directory exists
+      const dataDir = path.dirname(this.dbPath);
+      if (!fs.existsSync(dataDir)) {
+        console.log(`📁 Creating data directory: ${dataDir}`);
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+
+      // Remove existing database file if it exists
+      if (fs.existsSync(this.dbPath)) {
+        console.log(`🗑️ Removing existing database file: ${this.dbPath}`);
+        fs.unlinkSync(this.dbPath);
+      }
 
       // Create database and tables
       await this.createTables();
 
       // Create minimal sport detection data instead of full JSON import
       await this.createMinimalSportData();
+
+      // Verify file was created
+      if (fs.existsSync(this.dbPath)) {
+        console.log(`✅ Database file created successfully: ${this.dbPath}`);
+        const stats = fs.statSync(this.dbPath);
+        console.log(`📊 File size: ${stats.size} bytes`);
+      } else {
+        throw new Error(`Database file was not created at ${this.dbPath}`);
+      }
 
       // Get final stats
       const stats = await this.getDatabaseStats();
@@ -34,7 +57,16 @@ class ComprehensiveDatabaseRecreator {
 
   createTables() {
     return new Promise((resolve, reject) => {
-      const db = new sqlite3.Database(this.dbPath);
+      console.log('📋 Creating database tables...');
+      
+      const db = new sqlite3.Database(this.dbPath, (err) => {
+        if (err) {
+          console.error('❌ Error opening database:', err);
+          reject(err);
+          return;
+        }
+        console.log('✅ Database opened successfully');
+      });
 
       db.serialize(() => {
         db.run(`CREATE TABLE IF NOT EXISTS sets (
@@ -51,21 +83,36 @@ class ComprehensiveDatabaseRecreator {
         )`, (err) => {
           if (err) {
             console.error('❌ Error creating tables:', err);
+            db.close();
             reject(err);
           } else {
             console.log('✅ Tables created successfully');
-            resolve();
+            db.close((err) => {
+              if (err) {
+                console.error('❌ Error closing database:', err);
+                reject(err);
+              } else {
+                console.log('✅ Database closed successfully');
+                resolve();
+              }
+            });
           }
         });
       });
-
-      db.close();
     });
   }
 
   createMinimalSportData() {
     return new Promise((resolve, reject) => {
-      const db = new sqlite3.Database(this.dbPath);
+      console.log('📊 Inserting minimal sport data...');
+      
+      const db = new sqlite3.Database(this.dbPath, (err) => {
+        if (err) {
+          console.error('❌ Error opening database for data insertion:', err);
+          reject(err);
+          return;
+        }
+      });
 
       // Create minimal sport detection data for common card types
       const minimalData = [
@@ -136,38 +183,55 @@ class ComprehensiveDatabaseRecreator {
               stmt.finalize((err) => {
                 if (err) {
                   console.error('❌ Error finalizing statement:', err);
+                  db.close();
                   reject(err);
                 } else {
                   console.log('✅ Minimal sport data inserted successfully');
-                  resolve();
+                  db.close((err) => {
+                    if (err) {
+                      console.error('❌ Error closing database:', err);
+                      reject(err);
+                    } else {
+                      console.log('✅ Database closed successfully after data insertion');
+                      resolve();
+                    }
+                  });
                 }
               });
             }
           });
         });
       });
-
-      db.close();
     });
   }
 
   getDatabaseStats() {
     return new Promise((resolve, reject) => {
-      const db = new sqlite3.Database(this.dbPath);
-
-      db.get('SELECT COUNT(*) as count FROM sets', (err, row) => {
+      const db = new sqlite3.Database(this.dbPath, (err) => {
         if (err) {
+          console.error('❌ Error opening database for stats:', err);
           reject(err);
-        } else {
-          const stats = fs.statSync(this.dbPath);
-          resolve({
-            count: row.count,
-            size: stats.size
-          });
+          return;
         }
       });
 
-      db.close();
+      db.get('SELECT COUNT(*) as count FROM sets', (err, row) => {
+        if (err) {
+          db.close();
+          reject(err);
+        } else {
+          const stats = fs.statSync(this.dbPath);
+          db.close((err) => {
+            if (err) {
+              console.error('❌ Error closing database for stats:', err);
+            }
+            resolve({
+              count: row.count,
+              size: stats.size
+            });
+          });
+        }
+      });
     });
   }
 }
