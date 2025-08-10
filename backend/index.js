@@ -1267,6 +1267,44 @@ app.post('/api/recreate-comprehensive-database', async (req, res) => {
   }
 });
 
+// Update missing raw/PSA 9 prices
+app.post('/api/update-missing-prices', async (req, res) => {
+  try {
+    console.log('💰 Manual price update triggered via API...');
+
+    res.json({
+      success: true,
+      message: "Price update triggered - running in background",
+      timestamp: new Date().toISOString()
+    });
+
+    // Run the update in background
+    setImmediate(async () => {
+      try {
+        const { ImprovedPriceUpdater } = require('./improve-price-updating.js');
+        const updater = new ImprovedPriceUpdater();
+        
+        console.log('💰 Starting comprehensive price update...');
+        const result = await updater.updateAllMissingPrices();
+        
+        console.log('✅ Price update completed!');
+        console.log('Final result:', result);
+
+      } catch (error) {
+        console.error('❌ Error in price update:', error);
+      }
+    });
+
+  } catch (error) {
+    console.error('Error triggering price update:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Create SQLite Database endpoint
 app.post('/api/create-database', async (req, res) => {
   try {

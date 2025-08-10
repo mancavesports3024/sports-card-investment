@@ -89,66 +89,19 @@ class NewItemsPuller {
         try {
             console.log(`   🔄 Updating raw/PSA 9 prices for: ${title}`);
             
-            // Clean the title for search
-            const cleanTitle = this.db.cleanSummaryTitle(title);
+            // Use improved price updating logic
+            const { ImprovedPriceUpdater } = require('./improve-price-updating.js');
+            const priceUpdater = new ImprovedPriceUpdater();
+            await priceUpdater.connect();
             
-            // Search for raw prices
-            const rawResults = await search130point(cleanTitle, 5);
-            let rawPrices = [];
+            const result = await priceUpdater.updateCardPrices(cardId, title);
+            await priceUpdater.db.close();
             
-            if (rawResults && rawResults.length > 0) {
-                rawPrices = rawResults
-                    .filter(item => {
-                        const itemTitle = item.title.toLowerCase();
-                        return !itemTitle.includes('psa') && 
-                               !itemTitle.includes('grade') && 
-                               !itemTitle.includes('mint') &&
-                               !itemTitle.includes('gem');
-                    })
-                    .map(item => item.price?.value || item.price)
-                    .filter(price => price && price > 0);
-            }
-            
-            // Search for PSA 9 prices
-            const psa9Results = await search130point(`${cleanTitle} PSA 9`, 5);
-            let psa9Prices = [];
-            
-            if (psa9Results && psa9Results.length > 0) {
-                psa9Prices = psa9Results
-                    .filter(item => {
-                        const itemTitle = item.title.toLowerCase();
-                        return itemTitle.includes('psa 9') || itemTitle.includes('psa9');
-                    })
-                    .map(item => item.price?.value || item.price)
-                    .filter(price => price && price > 0);
-            }
-            
-            // Calculate averages
-            const rawAverage = rawPrices.length > 0 ? 
-                rawPrices.reduce((sum, price) => sum + price, 0) / rawPrices.length : null;
-            
-            const psa9Average = psa9Prices.length > 0 ? 
-                psa9Prices.reduce((sum, price) => sum + price, 0) / psa9Prices.length : null;
-            
-            // Update database
-            if (rawAverage || psa9Average) {
-                const updateQuery = `
-                    UPDATE cards 
-                    SET raw_average_price = ?, 
-                        psa9_average_price = ?,
-                        last_updated = CURRENT_TIMESTAMP
-                    WHERE id = ?
-                `;
-                
-                await this.db.runQuery(updateQuery, [rawAverage, psa9Average, cardId]);
-                
-                console.log(`   💰 Updated prices - Raw: $${rawAverage?.toFixed(2) || 'N/A'}, PSA 9: $${psa9Average?.toFixed(2) || 'N/A'}`);
-            } else {
-                console.log(`   ⚠️  No raw/PSA 9 prices found`);
-            }
+            return result;
             
         } catch (error) {
             console.error(`   ❌ Error updating prices: ${error.message}`);
+            return { rawAverage: null, psa9Average: null };
         }
     }
 

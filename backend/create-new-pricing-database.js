@@ -212,8 +212,7 @@ class NewPricingDatabase {
             .replace(/refractor/gi, '') // Remove refractor
             .replace(/parallel/gi, '') // Remove parallel
             .replace(/numbered/gi, '') // Remove numbered
-            .replace(/\/\d+/g, '') // Remove numbered fractions
-            .replace(/\d{4}/g, '') // Remove years
+            // Keep card numbers (#123) and print runs (/25, /499) - these are important identifiers
             .replace(/\s+/g, ' ') // Normalize spaces
             .trim();
     }
@@ -273,8 +272,8 @@ class NewPricingDatabase {
             .replace(/\b(YANKEES|RED\s*SOX|BLUE\s*JAYS|ORIOLES|RAYS|WHITE\s*SOX|INDIANS|GUARDIANS|TIGERS|TWINS|ROYALS|ASTROS|RANGERS|ATHLETICS|MARINERS|ANGELS|DODGERS|GIANTS|PADRES|ROCKIES|DIAMONDBACKS|BRAVES|MARLINS|METS|PHILLIES|NATIONALS|PIRATES|REDS|BREWERS|CUBS|CARDINALS)\b/gi, '') // Remove MLB team names
             .replace(/\b(CHICAGO|BOSTON|NEW\s*YORK|LOS\s*ANGELES|MIAMI|DALLAS|HOUSTON|PHOENIX|DENVER|PORTLAND|SACRAMENTO|MINNEAPOLIS|OKLAHOMA\s*CITY|SALT\s*LAKE\s*CITY|MEMPHIS|NEW\s*ORLEANS|SAN\s*ANTONIO|ORLANDO|ATLANTA|CHARLOTTE|WASHINGTON|DETROIT|CLEVELAND|INDIANAPOLIS|MILWAUKEE|PHILADELPHIA|BROOKLYN|TORONTO)\b/gi, '') // Remove city names
             
-            // Remove special characters and emojis (but keep hyphens and periods)
-            .replace(/[^\w\s\-\.]/g, '')
+            // Remove special characters and emojis (but keep hyphens, periods, #, and /)
+            .replace(/[^\w\s\-\.#\/]/g, '')
             
             // Remove standalone hyphens but preserve year ranges (like 1994-95)
             .replace(/(?<!\d)\s*-\s*(?!\d)/g, ' ') // Replace " - " with space, but not between numbers
