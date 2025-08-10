@@ -1698,12 +1698,13 @@ app.delete('/api/clear-database', async (req, res) => {
   try {
     console.log('🗑️ Clearing SQLite database...');
     
-    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-    const updater = new FastSQLitePriceUpdater();
-    await updater.connect();
+    // Use the same database as the status endpoint
+    const NewPricingDatabase = require('./create-new-pricing-database.js');
+    const db = new NewPricingDatabase();
+    await db.connect();
     
     await new Promise((resolve, reject) => {
-      updater.db.run('DELETE FROM cards', (err) => {
+      db.pricingDb.run('DELETE FROM cards', (err) => {
         if (err) {
           console.error('❌ Error clearing database:', err);
           reject(err);
@@ -1714,7 +1715,20 @@ app.delete('/api/clear-database', async (req, res) => {
       });
     });
     
-    updater.db.close();
+    // Reset auto-increment counter
+    await new Promise((resolve, reject) => {
+      db.pricingDb.run('DELETE FROM sqlite_sequence WHERE name="cards"', (err) => {
+        if (err) {
+          console.error('❌ Error resetting sequence:', err);
+          reject(err);
+        } else {
+          console.log('✅ Auto-increment counter reset');
+          resolve();
+        }
+      });
+    });
+    
+    await db.close();
     
     res.json({
       success: true,
