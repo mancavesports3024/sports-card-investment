@@ -1775,5 +1775,43 @@ app.post('/api/trigger-pull-new-items', async (req, res) => {
   }
 });
 
+// Manual trigger for fast batch pull new items
+app.post('/api/trigger-fast-batch-pull', async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      message: "Fast batch pull new items job triggered - running in background",
+      timestamp: new Date().toISOString()
+    });
+    
+    // Run the fast batch pull in background
+    setImmediate(async () => {
+      try {
+        console.log('⚡ Manual FAST BATCH pull new items triggered via API...');
+        
+        // Use the fast batch system
+        const { pullNewItems } = require('./fast-batch-pull-new-items.js');
+        
+        console.log('⚡ Starting FAST BATCH new items pull...');
+        const result = await pullNewItems();
+        
+        console.log('✅ Fast batch new items pull completed!');
+        console.log('Final result:', result);
+        
+      } catch (error) {
+        console.error('❌ Error in fast batch new items pull:', error);
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error triggering fast batch pull new items:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Initialize token refresh on startup
 initializeServer().catch(console.error);
