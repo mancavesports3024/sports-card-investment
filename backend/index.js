@@ -1865,5 +1865,35 @@ app.post('/api/fix-railway-database-schema', async (req, res) => {
   }
 });
 
+// POST /api/update-sports - Update sports in database using enhanced detection
+app.post('/api/update-sports', async (req, res) => {
+    try {
+        console.log('🔄 Starting sport update process...');
+        
+        const { SportUpdater } = require('./update-sports-in-database.js');
+        const updater = new SportUpdater();
+        
+        await updater.connect();
+        await updater.updateSportsInDatabase();
+        await updater.close();
+        
+        console.log('✅ Sport update completed successfully');
+        res.json({ 
+            success: true, 
+            message: 'Sport update completed successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Sport update failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Sport update failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Initialize token refresh on startup
 initializeServer().catch(console.error);
