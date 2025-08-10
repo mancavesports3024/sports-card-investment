@@ -65,10 +65,11 @@ class SportsUpdaterWithESPNV2 {
     async processCard(card) {
         try {
             console.log(`\n🎯 Processing: ${card.title}`);
+            console.log(`   Summary title: ${card.summary_title}`);
             console.log(`   Current sport: ${card.sport}`);
             
-            // Use the new ESPN v2 sport detection
-            const newSport = await this.db.detectSportFromComprehensive(card.title);
+            // Use the new ESPN v2 sport detection with summary_title for better player extraction
+            const newSport = await this.db.detectSportFromComprehensive(card.summary_title);
             
             console.log(`   New sport: ${newSport}`);
             
