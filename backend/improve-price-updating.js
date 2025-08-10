@@ -76,9 +76,29 @@ class ImprovedPriceUpdater {
                     const psa9Prices = results
                         .filter(item => {
                             const itemTitle = item.title.toLowerCase();
-                            return itemTitle.includes('psa 9') || 
-                                   itemTitle.includes('psa9') ||
-                                   itemTitle.includes('psa 9.0');
+                            const cleanTitleLower = cleanTitle.toLowerCase();
+                            
+                            // Must be a PSA 9 card
+                            const isPSA9 = itemTitle.includes('psa 9') || 
+                                          itemTitle.includes('psa9') ||
+                                          itemTitle.includes('psa 9.0');
+                            
+                            if (!isPSA9) return false;
+                            
+                            // Must contain key elements from the original card title
+                            // Extract key parts: year, player name, product, card number
+                            const titleParts = cleanTitleLower.split(' ');
+                            const keyParts = titleParts.filter(part => 
+                                part.length > 2 && 
+                                !['panini', 'topps', 'bowman', 'donruss', 'optic', 'prizm', 'chrome', 'mosaic', 'select'].includes(part)
+                            );
+                            
+                            // Check if at least 2 key parts match
+                            const matchingParts = keyParts.filter(part => 
+                                itemTitle.includes(part)
+                            );
+                            
+                            return matchingParts.length >= 2;
                         })
                         .map(item => {
                             const priceValue = item.price?.value || item.price;

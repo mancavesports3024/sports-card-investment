@@ -1,0 +1,30 @@
+DATABASE EXPORT SUMMARY
+Generated: 8/10/2025, 10:05:15 AM
+=====================================
+
+📊 TOTAL CARDS: 134
+
+🏈 SPORTS BREAKDOWN:
+  Baseball: 41 (30.6%)
+  Unknown: 36 (26.9%)
+  Basketball: 28 (20.9%)
+  Football: 16 (11.9%)
+  Pokemon: 13 (9.7%)
+
+💰 PRICE AVAILABILITY:
+  PSA 10 prices: 132 (98.5%)
+  Raw prices: 10 (7.5%)
+  PSA 9 prices: 43 (32.1%)
+  No raw/PSA 9 prices: 83 (61.9%)
+
+📅 RECENT CARDS (Last 10):
+  1. 2023 Panini Donruss Optic - Bo Jackson #95 Holo Prizm PSA 10... (Baseball) - PSA 10: $39.99, Raw: $N/A, PSA 9: $N/A
+  2. 2023 PANINI DONRUSS OPTIC BLUE SCOPE PRIZM #213 BRYCE YOUNG ... (Baseball) - PSA 10: $76, Raw: $20.5, PSA 9: $N/A
+  3. 2023-24 Panini Prizm - Victor Wembanyama #136 Silver Prizm (... (Baseball) - PSA 10: $775, Raw: $N/A, PSA 9: $N/A
+  4. 1993 Donruss #721 Chipper Jones HOF RC Rated Rookie Braves �... (Baseball) - PSA 10: $75, Raw: $N/A, PSA 9: $26
+  5. 2023 Topps Chrome #30 Stephen Curry - Purple Geometric 001/1... (Baseball) - PSA 10: $160, Raw: $N/A, PSA 9: $N/A
+  6. PSA 10 2023 Topps Chrome Gunnar Henderson RC Magenta Speckle... (Baseball) - PSA 10: $115, Raw: $N/A, PSA 9: $N/A
+  7. 2023 Prizm GG Jackson II #179 Rookie RC PSA 10 GEM MINT Griz... (Baseball) - PSA 10: $10.5, Raw: $N/A, PSA 9: $N/A
+  8. 2024 Mosaic Brock Bowers Kaleidoscopic Rookie PSA 10... (Football) - PSA 10: $252.49, Raw: $N/A, PSA 9: $N/A
+  9. 2024 PANINI DONRUSS OPTIC PREVIEW-RED WAVE #327 CALEB WILLIA... (Baseball) - PSA 10: $105, Raw: $N/A, PSA 9: $N/A
+  10. 2024 PANINI DONRUSS OPTIC PREVIEW PINK PRIZM #308 MICHAEL PE... (Baseball) - PSA 10: $51, Raw: $N/A, PSA 9: $N/A

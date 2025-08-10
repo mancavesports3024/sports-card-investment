@@ -1,0 +1,35 @@
+UPDATED DATABASE EXPORT SUMMARY
+Generated: 8/10/2025, 11:44:31 AM
+=====================================
+
+📊 TOTAL CARDS: 134
+
+🏈 SPORTS BREAKDOWN:
+  Baseball: 41 (30.6%)
+  Unknown: 36 (26.9%)
+  Basketball: 28 (20.9%)
+  Football: 16 (11.9%)
+  Pokemon: 13 (9.7%)
+
+💰 PRICE AVAILABILITY:
+  PSA 10 prices: 132 (98.5%)
+  Raw prices: 44 (32.8%)
+  PSA 9 prices: 64 (47.8%)
+  No raw/PSA 9 prices: 54 (40.3%)
+
+📅 RECENT CARDS WITH PRICES (Last 15):
+  1. ✅ 2023 Panini Donruss Optic - Bo Jackson #95 Holo Pr... (Baseball) - PSA 10: $39.99, Raw: $10.97, PSA 9: $N/A
+  2. ✅ 2023 PANINI DONRUSS OPTIC BLUE SCOPE PRIZM #213 BR... (Baseball) - PSA 10: $76, Raw: $20.5, PSA 9: $N/A
+  3. ✅ 2023-24 Panini Prizm - Victor Wembanyama #136 Silv... (Baseball) - PSA 10: $775, Raw: $243, PSA 9: $304.81000000000006
+  4. ✅ 1993 Donruss #721 Chipper Jones HOF RC Rated Rooki... (Baseball) - PSA 10: $75, Raw: $2.682499999999999, PSA 9: $26
+  5. ✅ 2023 Topps Chrome #30 Stephen Curry - Purple Geome... (Baseball) - PSA 10: $160, Raw: $19.62222222222222, PSA 9: $N/A
+  6. ✅ PSA 10 2023 Topps Chrome Gunnar Henderson RC Magen... (Baseball) - PSA 10: $115, Raw: $71.12, PSA 9: $N/A
+  7. ✅ 2023 Prizm GG Jackson II #179 Rookie RC PSA 10 GEM... (Baseball) - PSA 10: $10.5, Raw: $15.170000000000002, PSA 9: $15.850999999999999
+  8. ✅ 2024 Mosaic Brock Bowers Kaleidoscopic Rookie PSA ... (Football) - PSA 10: $252.49, Raw: $86.46, PSA 9: $105.125
+  9. ✅ 2024 PANINI DONRUSS OPTIC PREVIEW-RED WAVE #327 CA... (Baseball) - PSA 10: $105, Raw: $26.482, PSA 9: $29.925
+  10. ✅ 2024 PANINI DONRUSS OPTIC PREVIEW PINK PRIZM #308 ... (Baseball) - PSA 10: $51, Raw: $10.15375, PSA 9: $21.11
+  11. ✅ 2021 PANINI MOSAIC CAMO PINK PRIZM #196 DERRICK HE... (Baseball) - PSA 10: $30, Raw: $1.655, PSA 9: $N/A
+  12. ✅ 2022 topps chrome cal raleigh psa 10... (Baseball) - PSA 10: $N/A, Raw: $38.05, PSA 9: $368.5544444444444
+  13. ✅ 2021 Topps - Chrome 70 Years of Topps Baseball Han... (Baseball) - PSA 10: $9.99, Raw: $1.745, PSA 9: $N/A
+  14. ✅ Bo Bichette Rookie Card Psa 10 Chrome... (Baseball) - PSA 10: $10.5, Raw: $8.283333333333333, PSA 9: $12.585
+  15. ✅ 2020 Panini Mosaic Football Justin Herbert RC Rook... (Baseball) - PSA 10: $40.3, Raw: $21.715, PSA 9: $26.251000000000005
