@@ -1925,5 +1925,36 @@ app.post('/api/update-summary-titles', async (req, res) => {
     }
 });
 
+// POST /api/add-multiplier-field - Add multiplier field to database and calculate values
+app.post('/api/add-multiplier-field', async (req, res) => {
+    try {
+        console.log('🔄 Starting multiplier field addition process...');
+        
+        const { MultiplierFieldAdder } = require('./add-multiplier-field.js');
+        const adder = new MultiplierFieldAdder();
+        
+        await adder.connect();
+        await adder.addMultiplierColumn();
+        await adder.calculateMultipliers();
+        await adder.close();
+        
+        console.log('✅ Multiplier field addition completed successfully');
+        res.json({ 
+            success: true, 
+            message: 'Multiplier field added and calculated successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Multiplier field addition failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Multiplier field addition failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Initialize token refresh on startup
 initializeServer().catch(console.error);
