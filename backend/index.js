@@ -1135,13 +1135,13 @@ app.get('/api/database-status', async (req, res) => {
       });
     }
     
-    // Regular database status check
-    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-    const updater = new FastSQLitePriceUpdater();
+    // Regular database status check - use new pricing database system
+    const NewPricingDatabase = require('./create-new-pricing-database.js');
+    const db = new NewPricingDatabase();
     
-    await updater.connect();
-    const stats = await updater.getDatabaseStats();
-    updater.db.close();
+    await db.connect();
+    const stats = await db.getDatabaseStats();
+    await db.close();
     
     res.json({
       success: true,

@@ -4,6 +4,7 @@ const fs = require('fs');
 
 class NewPricingDatabase {
     constructor() {
+        // Use the new database for Railway deployment
         this.pricingDbPath = path.join(__dirname, 'data', 'new-scorecard.db');
         this.comprehensiveDbPath = path.join(__dirname, 'data', 'comprehensive-card-database.db');
         this.pricingDb = null;
@@ -21,20 +22,23 @@ class NewPricingDatabase {
                     console.log('✅ Connected to new pricing database');
                     this.pricingDb.run('PRAGMA busy_timeout = 30000');
                     
-                    // Connect to comprehensive database if it exists
-                    if (fs.existsSync(this.comprehensiveDbPath)) {
-                        this.comprehensiveDb = new sqlite3.Database(this.comprehensiveDbPath, sqlite3.OPEN_READONLY, (err) => {
-                            if (err) {
-                                console.warn('⚠️ Warning: Could not connect to comprehensive database:', err.message);
-                            } else {
-                                console.log('✅ Connected to comprehensive database');
-                            }
+                    // Create tables if they don't exist
+                    this.createTables().then(() => {
+                        // Connect to comprehensive database if it exists
+                        if (fs.existsSync(this.comprehensiveDbPath)) {
+                            this.comprehensiveDb = new sqlite3.Database(this.comprehensiveDbPath, sqlite3.OPEN_READONLY, (err) => {
+                                if (err) {
+                                    console.warn('⚠️ Warning: Could not connect to comprehensive database:', err.message);
+                                } else {
+                                    console.log('✅ Connected to comprehensive database');
+                                }
+                                resolve();
+                            });
+                        } else {
+                            console.log('ℹ️ Comprehensive database not found, using keyword detection only');
                             resolve();
-                        });
-                    } else {
-                        console.log('ℹ️ Comprehensive database not found, using keyword detection only');
-                        resolve();
-                    }
+                        }
+                    }).catch(reject);
                 }
             });
         });
