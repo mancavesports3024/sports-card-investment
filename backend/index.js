@@ -583,11 +583,37 @@ app.use('/api/live-listings', require('./routes/liveListings'));
         ],
         timestamp: getCentralTime()
       });
-      
     } catch (error) {
-      console.error('❌ Error analyzing database quality:', error);
-      res.status(500).json({
-        success: false,
+      console.error('Database quality analysis error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
+  // API endpoint to update comprehensive database with card types
+  app.post('/api/admin/update-comprehensive-database', async (req, res) => {
+    try {
+      console.log('🔄 Starting comprehensive database update via API...');
+      
+      const { RailwayComprehensiveDatabaseUpdater } = require('./update-railway-comprehensive-db.js');
+      const updater = new RailwayComprehensiveDatabaseUpdater();
+      
+      await updater.connect();
+      await updater.updateCardTypes();
+      await updater.close();
+      
+      res.json({
+        success: true,
+        message: 'Comprehensive database updated successfully with card types',
+        timestamp: getCentralTime()
+      });
+    } catch (error) {
+      console.error('Comprehensive database update error:', error);
+      res.status(500).json({ 
+        success: false, 
         error: error.message,
         timestamp: getCentralTime()
       });
