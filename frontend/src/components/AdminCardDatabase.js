@@ -83,6 +83,11 @@ const AdminCardDatabase = () => {
     return `$${parseFloat(price).toFixed(2)}`;
   };
 
+  const formatMultiplier = (multiplier) => {
+    if (!multiplier || multiplier === 0) return 'N/A';
+    return parseFloat(multiplier).toFixed(2) + 'x';
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     try {
@@ -262,8 +267,8 @@ const AdminCardDatabase = () => {
                   <th>PSA 10</th>
                   <th>PSA 9</th>
                   <th>Raw</th>
+                  <th>Multiplier</th>
                   <th>Added</th>
-                  <th>Source</th>
                 </tr>
               </thead>
               <tbody>
@@ -289,16 +294,11 @@ const AdminCardDatabase = () => {
                     <td className="card-price raw">
                       {formatPrice(card.rawAveragePrice)}
                     </td>
+                    <td className="card-multiplier">
+                      {formatMultiplier(card.multiplier)}
+                    </td>
                     <td className="card-date">
                       {formatDate(card.lastUpdated)}
-                    </td>
-                    <td className="card-source">
-                      <div className="source-info">
-                        <div className="source-name">{card.source}</div>
-                        {card.searchTerm && card.searchTerm !== 'unknown' && (
-                          <div className="search-term">"{card.searchTerm}"</div>
-                        )}
-                      </div>
                     </td>
                   </tr>
                 ))}

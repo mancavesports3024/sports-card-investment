@@ -174,6 +174,7 @@
 .card-title {
   max-width: 400px;
   min-width: 300px;
+  text-align: center;
 }
 
 .title-main {
@@ -181,6 +182,7 @@
   font-weight: bold;
   margin-bottom: 4px;
   line-height: 1.3;
+  text-align: center;
 }
 
 .title-original {
@@ -220,30 +222,17 @@
 .card-price.psa9 { color: #c0c0c0; }
 .card-price.raw { color: #cd7f32; }
 
+.card-multiplier {
+  text-align: center;
+  font-weight: bold;
+  min-width: 80px;
+  color: #00ff88;
+}
+
 .card-date {
   color: #ccc;
   font-size: 0.9em;
   min-width: 90px;
-}
-
-.card-source {
-  min-width: 120px;
-}
-
-.source-info {
-  font-size: 0.85em;
-}
-
-.source-name {
-  color: #ffd700;
-  font-weight: bold;
-  margin-bottom: 2px;
-}
-
-.search-term {
-  color: #888;
-  font-style: italic;
-  font-size: 0.9em;
 }
 
 /* Pagination */
