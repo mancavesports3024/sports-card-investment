@@ -13,7 +13,8 @@ const {
 
 class FastSQLitePriceUpdater {
     constructor() {
-        this.dbPath = path.join(__dirname, 'data', 'scorecard.db');
+        // Use the Railway database path (same as other scripts)
+        this.dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
         this.db = null;
     }
 
