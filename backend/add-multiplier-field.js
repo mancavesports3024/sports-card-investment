@@ -3,7 +3,18 @@ const path = require('path');
 
 class MultiplierFieldAdder {
     constructor() {
-        this.dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
+        // Try data folder first, then root directory (for Railway)
+        const dataPath = path.join(__dirname, 'data', 'new-scorecard.db');
+        const rootPath = path.join(__dirname, 'new-scorecard.db');
+        
+        // Check if data folder exists, otherwise use root
+        const fs = require('fs');
+        if (fs.existsSync(dataPath)) {
+            this.dbPath = dataPath;
+        } else {
+            this.dbPath = rootPath;
+        }
+        
         this.db = null;
     }
 
