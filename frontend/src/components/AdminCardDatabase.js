@@ -177,11 +177,11 @@ const AdminCardDatabase = () => {
               className="filter-select"
             >
               <option value="all">All Sports</option>
-              <option value="basketball">Basketball</option>
-              <option value="football">Football</option>
-              <option value="baseball">Baseball</option>
-              <option value="pokemon">Pokemon</option>
-              <option value="unknown">Unknown</option>
+              <option value="Basketball">Basketball</option>
+              <option value="Football">Football</option>
+              <option value="Baseball">Baseball</option>
+              <option value="Pokemon">Pokemon</option>
+              <option value="Unknown">Unknown</option>
             </select>
           </div>
           
@@ -221,6 +221,7 @@ const AdminCardDatabase = () => {
               <option value="psa10Price">PSA 10 Price</option>
               <option value="rawAveragePrice">Raw Price</option>
               <option value="psa9AveragePrice">PSA 9 Price</option>
+              <option value="multiplier">Multiplier</option>
               <option value="sport">Sport</option>
             </select>
           </div>
