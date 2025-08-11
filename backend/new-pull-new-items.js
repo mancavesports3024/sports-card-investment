@@ -137,6 +137,13 @@ class NewItemsPuller {
                                     continue;
                                 }
                                 
+                                // NEW RULE: Check PSA 10 price - must be $30 or higher
+                                const psa10Price = parseFloat(item.price?.value || item.price || 0);
+                                if (psa10Price < 30) {
+                                    console.log(`   ⏭️  Skipping PSA 10 card with low value ($${psa10Price}): ${item.title}`);
+                                    continue;
+                                }
+                                
                                 // Check if this card already exists
                                 const exists = await this.cardExists(item.title, item.price?.value || item.price);
                                 

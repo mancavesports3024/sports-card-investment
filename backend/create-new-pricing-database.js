@@ -392,6 +392,13 @@ class NewPricingDatabase {
             .replace(/\bGRADED\b/gi, '') // Remove GRADED
             .replace(/\bPITCHING\b/gi, '') // Remove PITCHING
             .replace(/\bBATTING\b/gi, '') // Remove BATTING
+            .replace(/\bRPA\b/gi, '') // Remove RPA
+            .replace(/\bPATCH\b/gi, '') // Remove PATCH
+            .replace(/\bEDITION\b/gi, '') // Remove EDITION (but keep 1st Edition)
+            .replace(/\bDEBUT\b/gi, '') // Remove DEBUT
+            
+            // Preserve important terms that should not be removed
+            .replace(/1ST\s+EDITION/gi, '1ST_EDITION') // Temporarily protect 1st Edition
             
             // Remove sport names (not part of the formula)
             .replace(/\bNBA\b/gi, '') // Remove NBA
@@ -417,13 +424,17 @@ class NewPricingDatabase {
             // Remove special characters and emojis (but keep hyphens, #, and /)
             .replace(/[^\w\s\-#\/]/g, '')
             
-            // Remove standalone hyphens but preserve year ranges (like 1994-95)
-            .replace(/(?<!\d)\s*-\s*(?!\d)/g, ' ') // Replace " - " with space, but not between numbers
+            // Remove standalone hyphens but preserve year ranges (like 1994-95) and card numbers (like #TRC-BYG)
+            .replace(/(?<!\d)(?<!#\w*)\s*-\s*(?!\d)/g, ' ') // Replace " - " with space, but not between numbers or after #
             .replace(/^\s*-\s*/, '') // Remove leading hyphen
             .replace(/\s*-\s*$/, '') // Remove trailing hyphen
             
             // Normalize spaces
             .replace(/\s+/g, ' ')
+            
+            // Restore protected terms
+            .replace(/1ST_EDITION/gi, '1st Edition')
+            
             .trim();
     }
 
