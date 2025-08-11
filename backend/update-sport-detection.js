@@ -4,7 +4,8 @@ const { EnhancedSportDetector } = require('./enhanced-sport-detector');
 
 class SportDetectionUpdater {
     constructor() {
-        this.dbPath = path.join(__dirname, 'data', 'scorecard.db');
+        // Use the Railway database path (same as other scripts)
+        this.dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
         this.db = null;
         this.detector = new EnhancedSportDetector();
     }
