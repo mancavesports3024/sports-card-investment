@@ -408,7 +408,7 @@ app.use('/api/live-listings', require('./routes/liveListings'));
       let params = [];
       
       if (search) {
-        whereConditions.push('(title LIKE ? OR summaryTitle LIKE ?)');
+        whereConditions.push('(title LIKE ? OR summary_title LIKE ?)');
         params.push(`%${search}%`, `%${search}%`);
       }
       
@@ -418,12 +418,12 @@ app.use('/api/live-listings', require('./routes/liveListings'));
       }
       
       if (minPrice > 0) {
-        whereConditions.push('(psa10Price >= ? OR rawAveragePrice >= ? OR psa9AveragePrice >= ?)');
+        whereConditions.push('(psa10_price >= ? OR raw_average_price >= ? OR psa9_average_price >= ?)');
         params.push(minPrice, minPrice, minPrice);
       }
       
       if (maxPrice < 999999) {
-        whereConditions.push('(psa10Price <= ? OR rawAveragePrice <= ? OR psa9AveragePrice <= ?)');
+        whereConditions.push('(psa10_price <= ? OR raw_average_price <= ? OR psa9_average_price <= ?)');
         params.push(maxPrice, maxPrice, maxPrice);
       }
       
