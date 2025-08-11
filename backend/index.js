@@ -707,6 +707,35 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
+  // API endpoint to clean summary titles for all existing cards
+  app.post('/api/admin/clean-summary-titles', async (req, res) => {
+    try {
+      console.log('🔄 Starting summary title cleanup via API...');
+      
+      const { SummaryTitleCleaner } = require('./clean-summary-titles.js');
+      const cleaner = new SummaryTitleCleaner();
+      
+      await cleaner.connect();
+      const results = await cleaner.cleanAllSummaryTitles();
+      await cleaner.close();
+      
+      res.json({
+        success: true,
+        message: 'Summary title cleanup completed successfully',
+        results: results,
+        timestamp: getCentralTime()
+      });
+      
+    } catch (error) {
+      console.error('Summary title cleanup error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
   // API endpoint to check Railway database structure
   app.get('/api/admin/check-database-structure', async (req, res) => {
     try {
