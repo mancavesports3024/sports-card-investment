@@ -107,7 +107,9 @@ class NewPricingDatabase {
     async detectSportFromComprehensive(title) {
         // First try ESPN v2 API for player-based sport detection
         try {
-            const playerName = this.extractPlayerName(title);
+            // Use the cleaned summary title for better player name extraction
+            const summaryTitle = this.cleanSummaryTitle(title);
+            const playerName = this.extractPlayerName(summaryTitle);
             if (playerName) {
                 const espnSport = await this.espnDetector.detectSportFromPlayer(playerName);
                 if (espnSport && espnSport !== 'Unknown') {
