@@ -24,7 +24,15 @@ class SummaryTitleCleaner {
     }
 
     cleanSummaryTitle(title) {
-        return title
+        // First, check if the original title has autograph indicators
+        const originalTitleLower = title.toLowerCase();
+        const hasAutographIndicator = originalTitleLower.includes('autograph') || 
+                                     originalTitleLower.includes('autographs') || 
+                                     originalTitleLower.includes('auto') ||
+                                     originalTitleLower.includes('signed');
+        
+        // Do the normal cleaning
+        let cleanedTitle = title
             // Remove grading terms
             .replace(/PSA\s*\d+/gi, '') // Remove PSA grades
             .replace(/GEM\s*MT/gi, '') // Remove GEM MT
@@ -123,6 +131,27 @@ class SummaryTitleCleaner {
             .replace(/1ST_EDITION/gi, '1st Edition')
             
             .trim();
+        
+        // Check if the cleaned title has "auto" - if not but original had autograph indicators, add it
+        if (hasAutographIndicator && !cleanedTitle.toLowerCase().includes('auto')) {
+            // Find a good place to insert "auto" - typically after the set name or before the card number
+            const words = cleanedTitle.split(' ');
+            let insertIndex = words.length; // Default to end
+            
+            // Look for card number patterns to insert before them
+            for (let i = 0; i < words.length; i++) {
+                if (words[i].startsWith('#') || /^\d+$/.test(words[i])) {
+                    insertIndex = i;
+                    break;
+                }
+            }
+            
+            // Insert "auto" at the determined position
+            words.splice(insertIndex, 0, 'auto');
+            cleanedTitle = words.join(' ');
+        }
+        
+        return cleanedTitle;
     }
 
     async getAllCards() {
