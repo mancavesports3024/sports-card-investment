@@ -566,29 +566,29 @@ class NewPricingDatabase {
     }
 
     extractPlayerName(title) {
-        // Extract player name from card title
-        // This is a simple extraction - can be enhanced later
+        // Extract player name from card title for ESPN API calls
+        // Keep team names as they help with player identification
         const titleLower = title.toLowerCase();
         
-        // Remove common card terms to isolate player name
+        // Remove common card terms to isolate player name, but KEEP team names
         let playerName = title
             .replace(/\d{4}/g, '') // Remove years
             .replace(/topps|panini|donruss|bowman|chrome|prizm|optic|mosaic|select|heritage|stadium club|allen & ginter|gypsy queen|finest|fire|opening day|big league|immaculate|national treasures|flawless|obsidian/gi, '')
-            .replace(/rookie|rc|auto|autograph|jersey|patch|refractor|parallel|base|holo|numbered|limited|gold|silver|bronze|platinum|diamond|emerald|sapphire|ruby|amethyst|onyx|black|white|red|blue|green|yellow|orange|purple|pink|teal|aqua|cyan|lime|mint|peach|salmon|tan|brown|gray|grey|navy|maroon|burgundy|crimson|scarlet|cardinal|cardinals|eagles|falcons|ravens|bills|panthers|bears|bengals|browns|cowboys|broncos|lions|packers|texans|colts|jaguars|chiefs|raiders|chargers|rams|dolphins|vikings|patriots|saints|giants|jets|eagles|steelers|49ers|seahawks|buccaneers|titans|commanders|cardinals|falcons|ravens|bills|panthers|bears|bengals|browns|cowboys|broncos|lions|packers|texans|colts|jaguars|chiefs|raiders|chargers|rams|dolphins|vikings|patriots|saints|giants|jets|eagles|steelers|49ers|seahawks|buccaneers|titans|commanders/gi, '')
+            .replace(/rookie|rc|auto|autograph|jersey|patch|refractor|parallel|base|holo|numbered|limited|gold|silver|bronze|platinum|diamond|emerald|sapphire|ruby|amethyst|onyx|black|white|red|blue|green|yellow|orange|purple|pink|teal|aqua|cyan|lime|mint|peach|salmon|tan|brown|gray|grey|navy|maroon|burgundy|crimson|scarlet/gi, '')
             .replace(/psa|bgs|beckett|gem|mint|near mint|excellent|very good|good|fair|poor/gi, '')
             .replace(/card|cards/gi, '') // Remove "card" and "cards"
             .replace(/[#\d\/]+/g, '') // Remove card numbers and print runs
             .replace(/\s+/g, ' ') // Normalize whitespace
             .trim();
         
-        // Split by spaces and look for potential player names (2-3 words)
+        // Split by spaces and look for potential player names (2-4 words to include team names)
         const words = playerName.split(' ').filter(word => word.length > 0);
         
-        // Look for patterns like "First Last" or "First Middle Last"
-        if (words.length >= 2 && words.length <= 4) {
-            // Check if it looks like a name (not all caps, reasonable length)
-            const potentialName = words.slice(0, Math.min(3, words.length)).join(' ');
-            if (potentialName.length >= 3 && potentialName.length <= 30) {
+        // Look for patterns like "First Last Team" or "First Middle Last Team"
+        if (words.length >= 2 && words.length <= 5) {
+            // Check if it looks like a name with team (reasonable length)
+            const potentialName = words.slice(0, Math.min(4, words.length)).join(' ');
+            if (potentialName.length >= 3 && potentialName.length <= 40) {
                 return potentialName;
             }
         }
