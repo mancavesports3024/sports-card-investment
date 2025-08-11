@@ -366,8 +366,7 @@ class NewPricingDatabase {
             .replace(/\bRC\b/gi, '') // Remove RC (Rookie Card)
             .replace(/\bROOKIE\b/gi, '') // Remove ROOKIE
             .replace(/\bAUTOGRAPHS\b/gi, 'auto') // Change AUTOGRAPHS to auto
-            .replace(/\bAUTOGRAPH\b/gi, '') // Remove AUTOGRAPH
-            .replace(/\bAUTO\b/gi, '') // Remove AUTO (but keep the "auto" from AUTOGRAPHS)
+            .replace(/\bAUTOGRAPH\b/gi, 'auto') // Change AUTOGRAPH to auto
             .replace(/\bREFRACTOR\b/gi, '') // Remove REFRACTOR
             .replace(/\bPARALLEL\b/gi, '') // Remove PARALLEL
             .replace(/\bNUMBERED\b/gi, '') // Remove NUMBERED
