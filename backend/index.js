@@ -620,6 +620,33 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
+  // API endpoint to run sport detection over Railway database
+  app.post('/api/admin/update-sport-detection', async (req, res) => {
+    try {
+      console.log('🔄 Starting sport detection update via API...');
+      
+      const { SportDetectionUpdater } = require('./update-sport-detection.js');
+      const updater = new SportDetectionUpdater();
+      
+      await updater.connect();
+      await updater.updateSportDetection();
+      await updater.close();
+      
+      res.json({
+        success: true,
+        message: 'Sport detection update completed successfully',
+        timestamp: getCentralTime()
+      });
+    } catch (error) {
+      console.error('Sport detection update error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
   // API endpoint to analyze wrong sports (admin only)
   app.get('/api/admin/analyze-sports', async (req, res) => {
     try {
