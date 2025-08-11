@@ -442,7 +442,7 @@ const SearchPage = () => {
     return (
       <div className="card-section" ref={sectionRef}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-          <h3 style={{ margin: 0 }}>{icon} {title} ({cards.length})</h3>
+          <h3 style={{ margin: 0, textAlign: 'right', flex: 1 }}>{icon} {title} ({cards.length})</h3>
           <button
             className="live-listings-btn"
             style={{ fontSize: '0.95em', padding: '0.3em 0.8em', background: '#ffd700', color: '#000', border: '1px solid #aaa', borderRadius: 5, textDecoration: 'none', marginLeft: 8, cursor: 'pointer' }}

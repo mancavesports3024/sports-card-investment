@@ -65,6 +65,31 @@ class EnhancedSportDetector {
     detectFromKeywords(title) {
         const titleLower = title.toLowerCase();
         
+        // Card type/set detection - these are card types, not player names
+        const cardTypes = [
+            'draft', 'concourse', 'purple shock', 'sunday', 'preview', 'bowman u', 'chrome update', 
+            'lazer', 'portals', 'disco', 'composite', 'bowman chrome', 'prizm', 'select', 'optic',
+            'finest', 'contenders', 'national treasures', 'flawless', 'immaculate', 'panini one',
+            'topps chrome', 'topps finest', 'topps heritage', 'topps stadium club', 'topps allen & ginter',
+            'donruss optic', 'donruss elite', 'donruss rated rookie', 'panini mosaic', 'panini absolute',
+            'panini contenders', 'panini prizm', 'panini select', 'panini optic', 'panini donruss',
+            'upper deck', 'fleer', 'score', 'pinnacle', 'leaf', 'skybox', 'hoops', 'sp', 'spx',
+            'exquisite', 'ultimate', 'reflections', 'echelon', 'titanium', 'vanguard', 'momentum',
+            'gridiron gear', 'threads', 'certified', 'limited', 'elite', 'prestige', 'score',
+            'topps chrome sapphire', 'topps chrome black', 'topps chrome platinum', 'topps chrome gold',
+            'panini prizm silver', 'panini prizm gold', 'panini prizm black', 'panini prizm white',
+            'donruss optic silver', 'donruss optic gold', 'donruss optic black', 'donruss optic white'
+        ];
+        
+        // Check if title contains only card type keywords (no player names)
+        const hasOnlyCardTypes = cardTypes.some(type => titleLower.includes(type)) && 
+            !this.hasPlayerNameIndicators(titleLower);
+        
+        if (hasOnlyCardTypes) {
+            // For card types, we need to look deeper into the title for sport indicators
+            return this.detectSportFromCardType(titleLower);
+        }
+        
         // Pokemon detection
         if (titleLower.includes('pokemon') || titleLower.includes('pikachu') || titleLower.includes('charizard') || 
             titleLower.includes('moltres') || titleLower.includes('zapdos') || titleLower.includes('articuno') ||
@@ -120,6 +145,57 @@ class EnhancedSportDetector {
         }
         
         return 'Unknown';
+    }
+
+    // New method to detect sport from card type titles
+    detectSportFromCardType(titleLower) {
+        // Look for sport-specific keywords within card type titles
+        if (this.hasFootballIndicators(titleLower)) {
+            return 'Football';
+        }
+        
+        if (this.hasBasketballIndicators(titleLower)) {
+            return 'Basketball';
+        }
+        
+        if (this.hasBaseballIndicators(titleLower)) {
+            return 'Baseball';
+        }
+        
+        // Check for sport-specific card brands/sets
+        const footballSets = ['gridiron', 'threads', 'certified', 'limited', 'elite', 'prestige', 'score'];
+        const basketballSets = ['hoops', 'sp', 'spx', 'exquisite', 'ultimate', 'reflections', 'echelon'];
+        const baseballSets = ['topps', 'bowman', 'heritage', 'stadium club', 'allen & ginter'];
+        
+        if (footballSets.some(set => titleLower.includes(set))) {
+            return 'Football';
+        }
+        
+        if (basketballSets.some(set => titleLower.includes(set))) {
+            return 'Basketball';
+        }
+        
+        if (baseballSets.some(set => titleLower.includes(set))) {
+            return 'Baseball';
+        }
+        
+        return 'Unknown';
+    }
+
+    // New method to check if title has player name indicators
+    hasPlayerNameIndicators(titleLower) {
+        // Common player name patterns
+        const playerPatterns = [
+            // First Last pattern
+            /\b[a-z]+\s+[a-z]+\b/,
+            // First M. Last pattern  
+            /\b[a-z]+\s+[a-z]\.\s+[a-z]+\b/,
+            // First Middle Last pattern
+            /\b[a-z]+\s+[a-z]+\s+[a-z]+\b/
+        ];
+        
+        // Check if title contains player name patterns
+        return playerPatterns.some(pattern => pattern.test(titleLower));
     }
 
     hasFootballIndicators(titleLower) {
