@@ -384,6 +384,11 @@ class NewPricingDatabase {
             .replace(/\bMVP\b/gi, '') // Remove MVP
             .replace(/\bBOX\s*SET\b/gi, '') // Remove BOX SET
             .replace(/\bMAV\b/gi, '') // Remove MAV
+            .replace(/\bNEW\s*ENGLAND\b/gi, '') // Remove NEW ENGLAND
+            .replace(/\bCOLOR\s*MATCH\b/gi, '') // Remove COLOR MATCH
+            .replace(/\b76ERS\b/gi, '') // Remove 76ERS
+            .replace(/\bERS\b/gi, '') // Remove ERS
+            .replace(/\bGRADED\b/gi, '') // Remove GRADED
             .replace(/\bPITCHING\b/gi, '') // Remove PITCHING
             .replace(/\bBATTING\b/gi, '') // Remove BATTING
             

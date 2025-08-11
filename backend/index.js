@@ -647,6 +647,66 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
+  // API endpoint to remove duplicate Lamelo Ball card
+  app.post('/api/admin/remove-duplicate-card', async (req, res) => {
+    try {
+      console.log('🔄 Starting duplicate card removal via API...');
+      
+      const { DuplicateCardRemover } = require('./remove-duplicate-card.js');
+      const remover = new DuplicateCardRemover();
+      
+      await remover.connect();
+      
+      // Find and remove duplicates
+      const duplicates = await remover.findDuplicateCards();
+      
+      if (duplicates.length === 0) {
+        await remover.close();
+        return res.json({
+          success: true,
+          message: 'No duplicate Lamelo Ball cards found',
+          timestamp: getCentralTime()
+        });
+      }
+      
+      console.log(`📊 Found ${duplicates.length} Lamelo Ball cards`);
+      
+      if (duplicates.length > 1) {
+        // Keep the oldest one and remove the rest
+        const cardsToRemove = duplicates.slice(1);
+        
+        for (const card of cardsToRemove) {
+          await remover.removeDuplicateCard(card.id);
+          console.log(`✅ Removed duplicate card ID ${card.id}`);
+        }
+        
+        await remover.close();
+        
+        res.json({
+          success: true,
+          message: `Removed ${cardsToRemove.length} duplicate Lamelo Ball card(s)`,
+          removedCount: cardsToRemove.length,
+          timestamp: getCentralTime()
+        });
+      } else {
+        await remover.close();
+        res.json({
+          success: true,
+          message: 'Only one Lamelo Ball card found - no duplicates to remove',
+          timestamp: getCentralTime()
+        });
+      }
+      
+    } catch (error) {
+      console.error('Duplicate removal error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
   // API endpoint to check Railway database structure
   app.get('/api/admin/check-database-structure', async (req, res) => {
     try {
