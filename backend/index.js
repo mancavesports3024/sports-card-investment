@@ -647,6 +647,99 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
+  // API endpoint to check Railway database structure
+  app.get('/api/admin/check-database-structure', async (req, res) => {
+    try {
+      console.log('🔍 Checking Railway database structure...');
+      
+      const sqlite3 = require('sqlite3').verbose();
+      const path = require('path');
+      
+      // Try different possible database paths
+      const possiblePaths = [
+        path.join(__dirname, 'scorecard.db'),
+        path.join(__dirname, 'data', 'scorecard.db'),
+        path.join(__dirname, 'new-scorecard.db'),
+        path.join(__dirname, 'data', 'new-scorecard.db')
+      ];
+      
+      let dbPath = null;
+      let db = null;
+      
+      for (const testPath of possiblePaths) {
+        try {
+          db = new sqlite3.Database(testPath, sqlite3.OPEN_READONLY);
+          console.log(`✅ Found database at: ${testPath}`);
+          dbPath = testPath;
+          break;
+        } catch (err) {
+          console.log(`❌ No database at: ${testPath}`);
+        }
+      }
+      
+      if (!db) {
+        return res.status(404).json({
+          success: false,
+          error: 'No database found in any expected location',
+          timestamp: getCentralTime()
+        });
+      }
+      
+      // Get list of tables
+      const tables = await new Promise((resolve, reject) => {
+        db.all("SELECT name FROM sqlite_master WHERE type='table'", [], (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        });
+      });
+      
+      // Get sample data from each table
+      const tableInfo = {};
+      for (const table of tables) {
+        try {
+          const sampleData = await new Promise((resolve, reject) => {
+            db.all(`SELECT * FROM ${table.name} LIMIT 3`, [], (err, rows) => {
+              if (err) reject(err);
+              else resolve(rows);
+            });
+          });
+          
+          const count = await new Promise((resolve, reject) => {
+            db.get(`SELECT COUNT(*) as count FROM ${table.name}`, [], (err, row) => {
+              if (err) reject(err);
+              else resolve(row.count);
+            });
+          });
+          
+          tableInfo[table.name] = {
+            count: count,
+            sampleData: sampleData,
+            columns: sampleData.length > 0 ? Object.keys(sampleData[0]) : []
+          };
+        } catch (err) {
+          tableInfo[table.name] = { error: err.message };
+        }
+      }
+      
+      db.close();
+      
+      res.json({
+        success: true,
+        databasePath: dbPath,
+        tables: tableInfo,
+        timestamp: getCentralTime()
+      });
+      
+    } catch (error) {
+      console.error('Database structure check error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
   // API endpoint to analyze wrong sports (admin only)
   app.get('/api/admin/analyze-sports', async (req, res) => {
     try {
