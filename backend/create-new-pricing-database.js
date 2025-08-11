@@ -567,10 +567,10 @@ class NewPricingDatabase {
 
     extractPlayerName(title) {
         // Extract player name from card title for ESPN API calls
-        // Keep team names as they help with player identification
+        // Remove team names as ESPN API expects just player name
         const titleLower = title.toLowerCase();
         
-        // Remove common card terms to isolate player name, but KEEP team names
+        // Remove common card terms to isolate player name, INCLUDING team names
         let playerName = title
             .replace(/\d{4}/g, '') // Remove years
             .replace(/topps|panini|donruss|bowman|chrome|prizm|optic|mosaic|select|heritage|stadium club|allen & ginter|gypsy queen|finest|fire|opening day|big league|immaculate|national treasures|flawless|obsidian/gi, '')
@@ -578,17 +578,19 @@ class NewPricingDatabase {
             .replace(/psa|bgs|beckett|gem|mint|near mint|excellent|very good|good|fair|poor/gi, '')
             .replace(/card|cards/gi, '') // Remove "card" and "cards"
             .replace(/[#\d\/]+/g, '') // Remove card numbers and print runs
+            // Remove team names - ESPN API expects just player name
+            .replace(/\b(cardinals|eagles|falcons|ravens|bills|panthers|bears|bengals|browns|cowboys|broncos|lions|packers|texans|colts|jaguars|chiefs|raiders|chargers|rams|dolphins|vikings|patriots|saints|giants|jets|steelers|49ers|seahawks|buccaneers|titans|commanders|yankees|red sox|blue jays|orioles|rays|white sox|indians|guardians|tigers|twins|royals|astros|rangers|athletics|mariners|angels|dodgers|giants|padres|rockies|diamondbacks|braves|marlins|mets|phillies|nationals|pirates|reds|brewers|cubs|cardinals|lakers|warriors|celtics|heat|knicks|nets|raptors|76ers|hawks|hornets|wizards|magic|pacers|bucks|cavaliers|pistons|rockets|mavericks|spurs|grizzlies|pelicans|thunder|jazz|nuggets|timberwolves|trail blazers|kings|suns|clippers|bulls)\b/gi, '')
             .replace(/\s+/g, ' ') // Normalize whitespace
             .trim();
         
-        // Split by spaces and look for potential player names (2-4 words to include team names)
+        // Split by spaces and look for potential player names (2-3 words)
         const words = playerName.split(' ').filter(word => word.length > 0);
         
-        // Look for patterns like "First Last Team" or "First Middle Last Team"
-        if (words.length >= 2 && words.length <= 5) {
-            // Check if it looks like a name with team (reasonable length)
-            const potentialName = words.slice(0, Math.min(4, words.length)).join(' ');
-            if (potentialName.length >= 3 && potentialName.length <= 40) {
+        // Look for patterns like "First Last" or "First Middle Last"
+        if (words.length >= 2 && words.length <= 3) {
+            // Check if it looks like a name (reasonable length)
+            const potentialName = words.slice(0, Math.min(3, words.length)).join(' ');
+            if (potentialName.length >= 3 && potentialName.length <= 30) {
                 return potentialName;
             }
         }
