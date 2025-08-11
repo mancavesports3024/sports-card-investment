@@ -51,9 +51,9 @@ class SummaryTitleCleaner {
             // Remove common card terms that don't help search
             .replace(/\bRC\b/gi, '') // Remove RC (Rookie Card)
             .replace(/\bROOKIE\b/gi, '') // Remove ROOKIE
-            .replace(/\bAUTO\b/gi, '') // Remove AUTO
-            .replace(/\bAUTOGRAPH\b/gi, '') // Remove AUTOGRAPH
             .replace(/\bAUTOGRAPHS\b/gi, 'auto') // Change AUTOGRAPHS to auto
+            .replace(/\bAUTOGRAPH\b/gi, '') // Remove AUTOGRAPH
+            .replace(/\bAUTO\b/gi, '') // Remove AUTO (but keep the "auto" from AUTOGRAPHS)
             .replace(/\bREFRACTOR\b/gi, '') // Remove REFRACTOR
             .replace(/\bPARALLEL\b/gi, '') // Remove PARALLEL
             .replace(/\bNUMBERED\b/gi, '') // Remove NUMBERED
@@ -80,6 +80,8 @@ class SummaryTitleCleaner {
             .replace(/\bBATTING\b/gi, '') // Remove BATTING
             .replace(/\bRPA\b/gi, '') // Remove RPA
             .replace(/\bPATCH\b/gi, '') // Remove PATCH
+            .replace(/\bDUAL\b/gi, '') // Remove DUAL
+            .replace(/\bSWATCH\b/gi, '') // Remove SWATCH
             .replace(/\bEDITION\b/gi, '') // Remove EDITION (but keep 1st Edition)
             .replace(/\bDEBUT\b/gi, '') // Remove DEBUT
             
