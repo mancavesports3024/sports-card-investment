@@ -161,6 +161,10 @@
   z-index: 10;
 }
 
+.cards-table th:first-child {
+  text-align: center;
+}
+
 .cards-table td {
   padding: 12px 10px;
   border-bottom: 1px solid #333;
