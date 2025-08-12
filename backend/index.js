@@ -1341,6 +1341,7 @@ app.use('/api/live-listings', require('./routes/liveListings'));
       setImmediate(async () => {
         try {
           const { StandardizedSummaryTitleGeneratorFinal } = require('./generate-standardized-summary-titles-final.js');
+const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standardized-summary-titles-database-driven.js');
           const generator = new StandardizedSummaryTitleGeneratorFinal();
           
           console.log('🔄 Starting Railway standardized summary title generation...');
@@ -1356,6 +1357,44 @@ app.use('/api/live-listings', require('./routes/liveListings'));
 
     } catch (error) {
       console.error('Error triggering Railway standardized summary title generation:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
+  // API endpoint to generate database-driven standardized summary titles (admin only)
+  app.post('/api/admin/generate-database-driven-titles', async (req, res) => {
+    try {
+      console.log('🔄 Running Railway database-driven standardized summary title generation...');
+      
+      res.json({
+        success: true,
+        message: "Database-driven standardized summary title generation triggered - running in background",
+        timestamp: getCentralTime()
+      });
+
+      // Run the database-driven standardized title generation in background
+      setImmediate(async () => {
+        try {
+          const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standardized-summary-titles-database-driven.js');
+          const generator = new DatabaseDrivenStandardizedTitleGenerator();
+          
+          console.log('🔄 Starting Railway database-driven standardized summary title generation...');
+          await generator.connect();
+          await generator.generateAllStandardizedTitles();
+          
+          console.log('✅ Railway database-driven standardized summary title generation completed!');
+
+        } catch (error) {
+          console.error('❌ Error in Railway database-driven standardized summary title generation:', error);
+        }
+      });
+
+    } catch (error) {
+      console.error('Error triggering Railway database-driven standardized summary title generation:', error);
       res.status(500).json({
         success: false,
         error: error.message,

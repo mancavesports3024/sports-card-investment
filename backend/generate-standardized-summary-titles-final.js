@@ -55,7 +55,7 @@ class StandardizedSummaryTitleGeneratorFinal {
     // Extract product/brand from title
     extractProduct(title) {
         const products = [
-            'Bowman Chrome', 'Bowman Draft', 'Bowman Sterling', 'Bowman Platinum', 'Bowman University',
+            'Bowman Chrome Prospects', 'Bowman Chrome', 'Bowman Draft', 'Bowman Sterling', 'Bowman Platinum', 'Bowman University',
             'Topps Chrome', 'Topps Finest', 'Topps Heritage', 'Topps Archives', 'Topps Update',
             'Panini Prizm', 'Panini Select', 'Panini Contenders', 'Panini Donruss', 'Panini Optic',
             'Upper Deck SP', 'Upper Deck SPx', 'Upper Deck Exquisite', 'Upper Deck',
@@ -71,9 +71,23 @@ class StandardizedSummaryTitleGeneratorFinal {
         ];
 
         const titleLower = title.toLowerCase();
-        for (const product of products) {
-            if (titleLower.includes(product.toLowerCase())) {
-                return product;
+        // Sort by length (longest first) to match more specific products first
+        const sortedProducts = products.sort((a, b) => b.length - a.length);
+        
+        for (const product of sortedProducts) {
+            const productLower = product.toLowerCase();
+            // Handle exact matches, hyphenated versions, and variations with hyphens
+            const variations = [
+                productLower,
+                productLower.replace(/\s+/g, ' - '),
+                productLower.replace(/\s+/g, ' - ').replace('bowman - chrome', 'bowman - chrome'),
+                productLower.replace('bowman chrome', 'bowman - chrome')
+            ];
+            
+            for (const variation of variations) {
+                if (titleLower.includes(variation)) {
+                    return product;
+                }
             }
         }
         return null;
@@ -129,8 +143,8 @@ class StandardizedSummaryTitleGeneratorFinal {
     // Extract color/numbering from title
     extractColorNumbering(title) {
         const patterns = [
-            // Colors
-            /\b(Red|Blue|Green|Yellow|Orange|Purple|Pink|Gold|Silver|Bronze|Black|White|Rainbow|Prism|Holo|Holographic|Refractor|Sapphire|Emerald|Ruby|Diamond|Platinum|Titanium|Carbon|Chrome|Finest|Prizm|Select|Optic|Contenders|National|Treasures|Flawless|Immaculate|Limited|Certified|Elite|Absolute|Spectra|Phoenix|Playbook|Momentum|Totally|Crown|Royale|Threads|Prestige|Rookies|Stars|Score|Leaf|Playoff|Press|Pass|Sage|Hit|Game|Pacific|Skybox|Metal|Stadium|Club|Gallery|Heritage|Gypsy|Queen|Allen|Ginter|Archives|Big|League|Fire|Opening|Day|Update|Series|Draft|Sterling|Platinum|SP|SPx|Exquisite)\b/gi,
+            // Colors and card types
+            /\b(Red|Blue|Green|Yellow|Orange|Purple|Pink|Gold|Silver|Bronze|Black|White|Rainbow|Prism|Holo|Holographic|Refractor|Sapphire|Emerald|Ruby|Diamond|Platinum|Titanium|Carbon|Chrome|Finest|Prizm|Select|Optic|Contenders|National|Treasures|Flawless|Immaculate|Limited|Certified|Elite|Absolute|Spectra|Phoenix|Playbook|Momentum|Totally|Crown|Royale|Threads|Prestige|Rookies|Stars|Score|Leaf|Playoff|Press|Pass|Sage|Hit|Game|Pacific|Skybox|Metal|Stadium|Club|Gallery|Heritage|Gypsy|Queen|Allen|Ginter|Archives|Big|League|Fire|Opening|Day|Update|Series|Draft|Sterling|Platinum|SP|SPx|Exquisite|Lunar Glow|Wave)\b/gi,
             // Card numbers with # symbol (including alphanumeric)
             /#[A-Z0-9-]+/g,
             // Print run numbers (like /150, /5)
