@@ -1125,6 +1125,43 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
+  // API endpoint to run database analysis (admin only)
+  app.post('/api/admin/run-database-analysis', async (req, res) => {
+    try {
+      console.log('🔍 Running Railway database analysis...');
+      
+      res.json({
+        success: true,
+        message: "Database analysis triggered - running in background",
+        timestamp: getCentralTime()
+      });
+
+      // Run the database analysis in background
+      setImmediate(async () => {
+        try {
+          const DatabaseOptimizationAnalyzer = require('./database-optimization-analysis.js');
+          const analyzer = new DatabaseOptimizationAnalyzer();
+          
+          console.log('🔍 Starting Railway database analysis...');
+          await analyzer.runFullAnalysis();
+          
+          console.log('✅ Railway database analysis completed!');
+
+        } catch (error) {
+          console.error('❌ Error in Railway database analysis:', error);
+        }
+      });
+
+    } catch (error) {
+      console.error('Error triggering Railway database analysis:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
   // API endpoint to view recently added cards
   app.get('/api/recent-cards', async (req, res) => {
     try {
