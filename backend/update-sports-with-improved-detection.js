@@ -276,7 +276,7 @@ class SportsUpdaterWithImprovedDetection {
             titleLower.includes('paolo banchero') || titleLower.includes('chet holmgren') || titleLower.includes('victor wembanyama') ||
             titleLower.includes('scoot henderson') || titleLower.includes('domantas sabonis') || titleLower.includes('caitlin clark') ||
             titleLower.includes('brock purdy') || titleLower.includes('rj barrett') || titleLower.includes('sabrina ionescu') ||
-            titleLower.includes('stephon castle')) {
+            titleLower.includes('stephon castle') || titleLower.includes('cooper flagg')) {
             return 'Basketball';
         }
         

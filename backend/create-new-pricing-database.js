@@ -282,7 +282,7 @@ class NewPricingDatabase {
             'lebron james', 'stephen curry', 'kevin durant', 'giannis', 'nikola jokic', 'joel embiid',
             'luka doncic', 'ja morant', 'zion williamson', 'anthony edwards', 'lamelo ball', 'cade cunningham',
             'paolo banchero', 'chet holmgren', 'victor wembanyama', 'scoot henderson', 'domantas sabonis',
-            'caitlin clark', 'brock purdy', 'rj barrett', 'sabrina ionescu', 'stephon castle'
+            'caitlin clark', 'brock purdy', 'rj barrett', 'sabrina ionescu', 'stephon castle', 'cooper flagg'
         ];
         
         // Sport terms
