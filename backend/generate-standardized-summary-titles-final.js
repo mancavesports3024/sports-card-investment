@@ -100,6 +100,8 @@ class StandardizedSummaryTitleGeneratorFinal {
 
         // Look for player name patterns
         const patterns = [
+            // Handle names with periods like "J.J. MCCARTHY"
+            /\b([A-Z]\.[A-Z]\.)\s+([A-Z]+)\b/g,
             // Handle three-part names like "Shai Gilgeous-Alexander" first
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)-([A-Z][a-z]+)\b/g,
             // First Last pattern (most common)
