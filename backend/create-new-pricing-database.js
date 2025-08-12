@@ -206,6 +206,16 @@ class NewPricingDatabase {
             return 'Soccer';
         }
         
+        // Golf detection
+        if (titleLower.includes('golf') || titleLower.includes('liv golf') || titleLower.includes('pga') || 
+            titleLower.includes('tiger woods') || titleLower.includes('rory mcilroy') || titleLower.includes('brooks koepka') ||
+            titleLower.includes('jon rahm') || titleLower.includes('scottie scheffler') || titleLower.includes('jordan spieth') ||
+            titleLower.includes('justin thomas') || titleLower.includes('collin morikawa') || titleLower.includes('viktor hovland') ||
+            titleLower.includes('masters') || titleLower.includes('us open') || titleLower.includes('pga championship') ||
+            titleLower.includes('open championship') || titleLower.includes('ryder cup') || titleLower.includes('presidents cup')) {
+            return 'Golf';
+        }
+        
         // Card game detection - be more specific to avoid false matches
         if (titleLower.includes('yugioh') || titleLower.includes('yu-gi-oh')) {
             return 'Yu-Gi-Oh';
@@ -427,6 +437,7 @@ class NewPricingDatabase {
             .replace(/\b(LAKERS|WARRIORS|CELTICS|HEAT|KNICKS|NETS|RAPTORS|76ERS|HAWKS|HORNETS|WIZARDS|MAGIC|PACERS|BUCKS|CAVALIERS|PISTONS|ROCKETS|MAVERICKS|SPURS|GRIZZLIES|PELICANS|THUNDER|JAZZ|NUGGETS|TIMBERWOLVES|TRAIL\s*BLAZERS|KINGS|SUNS|CLIPPERS|BULLS)\b/gi, '') // Remove NBA team names
             .replace(/\b(COWBOYS|EAGLES|GIANTS|REDSKINS|COMMANDERS|BEARS|PACKERS|VIKINGS|LIONS|FALCONS|PANTHERS|SAINTS|BUCCANEERS|RAMS|49ERS|SEAHAWKS|CARDINALS|JETS|PATRIOTS|BILLS|DOLPHINS|BENGALS|BROWNS|STEELERS|RAVENS|TEXANS|COLTS|JAGUARS|TITANS|BRONCOS|CHARGERS|RAIDERS|CHIEFS)\b/gi, '') // Remove NFL team names
             .replace(/\b(YANKEES|RED\s*SOX|BLUE\s*JAYS|ORIOLES|RAYS|WHITE\s*SOX|INDIANS|GUARDIANS|TIGERS|TWINS|ROYALS|ASTROS|RANGERS|ATHLETICS|MARINERS|ANGELS|DODGERS|GIANTS|PADRES|ROCKIES|DIAMONDBACKS|BRAVES|MARLINS|METS|PHILLIES|NATIONALS|PIRATES|REDS|BREWERS|CUBS|CARDINALS)\b/gi, '') // Remove MLB team names
+            .replace(/\b(RED\s*WINGS|BLACKHAWKS|BRUINS|RANGERS|MAPLE\s*LEAFS|CANADIENS|SENATORS|SABRES|PANTHERS|LIGHTNING|CAPITALS|FLYERS|DEVILS|ISLANDERS|PENGUINS|BLUE\s*JACKETS|HURRICANES|PREDATORS|BLUES|WILD|AVALANCHE|STARS|OILERS|FLAMES|CANUCKS|SHARKS|DUCKS|GOLDEN\s*KNIGHTS|KINGS|COYOTES|JETS|KRAKEN)\b/gi, '') // Remove NHL team names
             .replace(/\b(CHICAGO|BOSTON|NEW\s*YORK|LOS\s*ANGELES|MIAMI|DALLAS|HOUSTON|PHOENIX|DENVER|PORTLAND|SACRAMENTO|MINNEAPOLIS|OKLAHOMA\s*CITY|SALT\s*LAKE\s*CITY|MEMPHIS|NEW\s*ORLEANS|SAN\s*ANTONIO|ORLANDO|ATLANTA|CHARLOTTE|WASHINGTON|DETROIT|CLEVELAND|INDIANAPOLIS|MILWAUKEE|PHILADELPHIA|BROOKLYN|TORONTO)\b/gi, '') // Remove city names
             
             // Remove periods (but keep hyphens, #, and /)
@@ -569,7 +580,7 @@ class NewPricingDatabase {
 
     async extractPlayerName(title) {
         // Extract player name from card title for ESPN API calls
-        // Use comprehensive database to identify card-related terms
+        // Use intelligent filtering to identify card-related terms vs player names
         const titleLower = title.toLowerCase();
         
         // First, remove basic card terms that we know are not player names
@@ -577,14 +588,17 @@ class NewPricingDatabase {
             .replace(/\d{4}/g, '') // Remove years
             .replace(/psa|bgs|beckett|gem|mint|near mint|excellent|very good|good|fair|poor/gi, '') // Remove grading terms
             .replace(/card|cards/gi, '') // Remove "card" and "cards"
-            .replace(/[#\d\/]+/g, '') // Remove card numbers and print runs
+            .replace(/#[A-Z0-9\-]+/g, '') // Remove card numbers like #123, #TF1, #BC-72, #CPA-BA
+            .replace(/\d+\/\d+/g, '') // Remove print runs like 123/456
+            .replace(/\b\d{1,2}(?:st|nd|rd|th)\b/gi, '') // Remove ordinal numbers like 1st, 2nd, 3rd
+            .replace(/\b\d+\b/g, '') // Remove standalone numbers
             .replace(/\s+/g, ' ') // Normalize whitespace
             .trim();
         
         // Split into words
         const words = playerName.split(' ').filter(word => word.length > 0);
         
-        // Filter out words that are in the comprehensive database (card sets/terms)
+        // Filter out words that are clearly card-related terms
         const filteredWords = [];
         
         console.log(`🔍 Processing words from title: "${title}"`);
@@ -594,29 +608,68 @@ class NewPricingDatabase {
             // Skip if word is too short (likely not a player name)
             if (word.length < 2) continue;
             
-            // Check if this word is in the comprehensive database
+            // Define clearly card-related terms that should always be filtered
+            const cardTerms = [
+                // Card brands and companies
+                'topps', 'panini', 'donruss', 'bowman', 'upper', 'deck', 'fleer', 'score', 'leaf',
+                // Card set types
+                'chrome', 'prizm', 'optic', 'mosaic', 'select', 'heritage', 'stadium', 'club', 'allen', 'ginter', 'gypsy', 'queen', 'finest', 'fire', 'opening', 'day', 'big', 'league', 'immaculate', 'national', 'treasures', 'flawless', 'obsidian', 'chronicles', 'contenders', 'international',
+                // Parallel and insert types
+                'refractor', 'parallel', 'numbered', 'limited', 'gold', 'silver', 'bronze', 'platinum', 'diamond', 'emerald', 'sapphire', 'ruby', 'amethyst', 'onyx', 'black', 'white', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'teal', 'aqua', 'cyan', 'lime', 'mint', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet',
+                // Card features
+                'rookie', 'rc', 'auto', 'autograph', 'jersey', 'patch', 'base', 'holo', 'ssp', 'sp', 'hof',
+                // Other card terms
+                'victory', 'crown', 'portrait', 'police', 'instant', 'impact', 'update', 'field', 'level', 'courtside', 'elephant', 'disco', 'ice', 'lazer', 'shock', 'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua', 'sapphire', 'woo', 'draft', 'red/white/blue', 'tf1'
+            ];
+            
+            // Check if word is a clearly card-related term
+            if (cardTerms.includes(word.toLowerCase())) {
+                console.log(`🔍 Filtered out card term: "${word}" (known card term)`);
+                continue;
+            }
+            
+            // Check comprehensive database for card-related terms (but be more selective)
             if (this.comprehensiveDb) {
                 try {
                     const query = `
-                        SELECT COUNT(*) as count 
+                        SELECT name, displayName, sport, year, brand 
                         FROM sets 
                         WHERE LOWER(name) LIKE ? 
                         OR LOWER(displayName) LIKE ? 
                         OR LOWER(searchText) LIKE ?
                         OR LOWER(setName) LIKE ?
+                        LIMIT 3
                     `;
                     
-                    const result = await this.getComprehensiveQuery(query, [
+                    const results = await this.getComprehensiveQuery(query, [
                         `%${word.toLowerCase()}%`,
                         `%${word.toLowerCase()}%`,
                         `%${word.toLowerCase()}%`,
                         `%${word.toLowerCase()}%`
                     ]);
                     
-                    // If word is found in comprehensive database, skip it (it's a card term)
-                    if (result && result.count > 0) {
-                        console.log(`🔍 Filtered out card term: "${word}" (found ${result.count} matches in database)`);
-                        continue;
+                    // Only filter out if the database entries are clearly card-related (not player names)
+                    if (results && results.length > 0) {
+                        let shouldFilter = false;
+                        
+                        for (const result of results) {
+                            const entryText = `${result.name} ${result.displayName} ${result.searchText} ${result.setName}`.toLowerCase();
+                            
+                            // Check if this looks like a card set/term rather than a player name
+                            const cardIndicators = ['edition', 'collection', 'series', 'set', 'cards', 'card', 'prizm', 'chrome', 'topps', 'panini', 'donruss', 'bowman', 'upper', 'deck', 'fleer', 'score', 'leaf', 'victory', 'crown', 'portrait', 'police', 'instant', 'impact', 'update', 'field', 'level', 'courtside', 'elephant', 'disco', 'ice', 'lazer', 'shock', 'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua', 'sapphire'];
+                            
+                            if (cardIndicators.some(indicator => entryText.includes(indicator))) {
+                                shouldFilter = true;
+                                break;
+                            }
+                        }
+                        
+                        if (shouldFilter) {
+                            console.log(`🔍 Filtered out card term: "${word}" (found card-related entries in database)`);
+                            continue;
+                        } else {
+                            console.log(`🔍 Keeping "${word}" (appears to be a player name, not a card term)`);
+                        }
                     }
                 } catch (error) {
                     // If database query fails, keep the word (safer to include than exclude)
@@ -628,6 +681,7 @@ class NewPricingDatabase {
             const teamNames = ['cardinals', 'eagles', 'falcons', 'ravens', 'bills', 'panthers', 'bears', 'bengals', 'browns', 'cowboys', 'broncos', 'lions', 'packers', 'texans', 'colts', 'jaguars', 'chiefs', 'raiders', 'chargers', 'rams', 'dolphins', 'vikings', 'patriots', 'saints', 'giants', 'jets', 'steelers', '49ers', 'seahawks', 'buccaneers', 'titans', 'commanders', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'athletics', 'mariners', 'angels', 'dodgers', 'giants', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls'];
             
             if (teamNames.includes(word.toLowerCase())) {
+                console.log(`🔍 Filtered out team name: "${word}"`);
                 continue;
             }
             
