@@ -1,0 +1,20 @@
+{
+  "build": {
+    "builder": "nixpacks"
+  },
+  "deploy": {
+    "startCommand": "cd backend && node index.js",
+    "cronJobs": [
+      {
+        "name": "pull-new-items",
+        "schedule": "0 */6 * * *",
+        "command": "cd backend && node fast-batch-pull-new-items.js"
+      },
+      {
+        "name": "update-existing-prices",
+        "schedule": "0 2 * * *",
+        "command": "cd backend && node update-prices.js"
+      }
+    ]
+  }
+}
