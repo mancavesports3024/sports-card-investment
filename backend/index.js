@@ -1326,6 +1326,44 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
+  // API endpoint to generate standardized summary titles (admin only)
+  app.post('/api/admin/generate-standardized-titles', async (req, res) => {
+    try {
+      console.log('🔄 Running Railway standardized summary title generation...');
+      
+      res.json({
+        success: true,
+        message: "Standardized summary title generation triggered - running in background",
+        timestamp: getCentralTime()
+      });
+
+      // Run the standardized title generation in background
+      setImmediate(async () => {
+        try {
+          const { StandardizedSummaryTitleGeneratorFinal } = require('./generate-standardized-summary-titles-final.js');
+          const generator = new StandardizedSummaryTitleGeneratorFinal();
+          
+          console.log('🔄 Starting Railway standardized summary title generation...');
+          await generator.connect();
+          await generator.generateAllStandardizedTitles();
+          
+          console.log('✅ Railway standardized summary title generation completed!');
+
+        } catch (error) {
+          console.error('❌ Error in Railway standardized summary title generation:', error);
+        }
+      });
+
+    } catch (error) {
+      console.error('Error triggering Railway standardized summary title generation:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
   // API endpoint to view recently added cards
   app.get('/api/recent-cards', async (req, res) => {
     try {
