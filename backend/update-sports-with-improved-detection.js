@@ -1,12 +1,12 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const { ESPNSportDetector } = require('./espn-sport-detector.js');
+const { ESPNSportDetectorV2Integrated } = require('./espn-sport-detector-v2-integrated.js');
 
 class SportsUpdaterWithImprovedDetection {
     constructor() {
         this.pricingDb = null;
         this.comprehensiveDb = null;
-        this.espnDetector = new ESPNSportDetector();
+        this.espnDetector = new ESPNSportDetectorV2Integrated();
     }
 
     async connect() {
