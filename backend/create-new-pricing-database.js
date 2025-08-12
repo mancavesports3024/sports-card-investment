@@ -587,6 +587,9 @@ class NewPricingDatabase {
         // Filter out words that are in the comprehensive database (card sets/terms)
         const filteredWords = [];
         
+        console.log(`🔍 Processing words from title: "${title}"`);
+        console.log(`🔍 Words to process: [${words.join(', ')}]`);
+        
         for (const word of words) {
             // Skip if word is too short (likely not a player name)
             if (word.length < 2) continue;
@@ -612,6 +615,7 @@ class NewPricingDatabase {
                     
                     // If word is found in comprehensive database, skip it (it's a card term)
                     if (result && result.count > 0) {
+                        console.log(`🔍 Filtered out card term: "${word}" (found ${result.count} matches in database)`);
                         continue;
                     }
                 } catch (error) {
@@ -636,10 +640,12 @@ class NewPricingDatabase {
             // Check if it looks like a name (reasonable length)
             const potentialName = filteredWords.slice(0, Math.min(3, filteredWords.length)).join(' ');
             if (potentialName.length >= 3 && potentialName.length <= 30) {
+                console.log(`✅ Extracted player name: "${potentialName}" from filtered words: [${filteredWords.join(', ')}]`);
                 return potentialName;
             }
         }
         
+        console.log(`❌ No valid player name found. Filtered words: [${filteredWords.join(', ')}]`);
         return null;
     }
 
