@@ -5,7 +5,7 @@ const path = require('path');
 async function checkRailwayDatabase() {
     return new Promise((resolve, reject) => {
         // Use Railway database path
-        const dbPath = path.join(__dirname, 'new-scorecard.db');
+        const dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
         
         console.log('🔍 Checking Railway database structure...');
         console.log(`Database path: ${dbPath}`);

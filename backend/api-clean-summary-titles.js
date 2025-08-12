@@ -5,7 +5,7 @@ const path = require('path');
 async function cleanSummaryTitles() {
     return new Promise(async (resolve, reject) => {
         const dbPath = process.env.NODE_ENV === 'production' 
-            ? path.join(__dirname, 'new-scorecard.db')
+            ? path.join(__dirname, 'data', 'new-scorecard.db')
             : path.join(__dirname, 'data', 'new-scorecard.db');
         
         console.log('🧹 Starting FIXED Summary Title Cleanup on Railway...');
