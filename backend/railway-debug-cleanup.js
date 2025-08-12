@@ -101,5 +101,10 @@ async function railwayDebugCleanup() {
     });
 }
 
-// Run the debug
-railwayDebugCleanup().catch(console.error);
+// Export the function for use in API endpoint
+module.exports = { railwayDebugCleanup };
+
+// Run the debug if called directly
+if (require.main === module) {
+  railwayDebugCleanup().catch(console.error);
+}

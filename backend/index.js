@@ -981,6 +981,42 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
+  // API endpoint to run Railway debug script (admin only)
+  app.post('/api/admin/run-railway-debug', async (req, res) => {
+    try {
+      console.log('🔍 Running Railway debug script...');
+      
+      res.json({
+        success: true,
+        message: "Railway debug script triggered - running in background",
+        timestamp: getCentralTime()
+      });
+
+      // Run the debug script in background
+      setImmediate(async () => {
+        try {
+          const { railwayDebugCleanup } = require('./railway-debug-cleanup.js');
+          
+          console.log('🔍 Starting Railway debug script...');
+          await railwayDebugCleanup();
+          
+          console.log('✅ Railway debug script completed!');
+
+        } catch (error) {
+          console.error('❌ Error in Railway debug script:', error);
+        }
+      });
+
+    } catch (error) {
+      console.error('Error triggering Railway debug script:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
   // API endpoint to view recently added cards
   app.get('/api/recent-cards', async (req, res) => {
     try {
