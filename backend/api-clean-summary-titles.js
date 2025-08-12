@@ -224,7 +224,7 @@ function cleanSummaryTitle(title) {
         'Nuggets', 'Pistons', 'Warriors', 'Rockets', 'Pacers', 'Clippers', 'Lakers', 'Grizzlies',
         'Heat', 'Bucks', 'Timberwolves', 'Wolves', 'Pelicans', 'Knicks', 'Thunder',
         '76ers', 'Suns', 'Trail Blazers', 'Blazers', 'Kings', 'Spurs', 'Raptors', 'Jazz', 'Wizards',
-        'Cardinals', 'Cards', 'Falcons', 'Ravens', 'Bills', 'Panthers', 'Bears', 'Bengals',
+        'Cardinals', 'Cards', 'Falcons', 'Ravens', 'Bills', 'Buffalo', 'Panthers', 'Bears', 'Bengals',
         'Browns', 'Cowboys', 'Broncos', 'Lions', 'Packers', 'Texans', 'Colts', 'Jaguars', 'Jags',
         'Chiefs', 'Raiders', 'Chargers', 'Rams', 'Dolphins', 'Vikings', 'Patriots', 'Pats',
         'Saints', 'Giants', 'Jets', 'Eagles', 'Steelers', '49ers', 'Seahawks', 'Buccaneers', 'Bucs',
