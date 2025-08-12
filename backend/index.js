@@ -2221,5 +2221,35 @@ app.post('/api/add-multiplier-field', async (req, res) => {
     }
 });
 
+// POST /api/update-sports-improved-detection - Update sports using improved detection for existing cards
+app.post('/api/update-sports-improved-detection', async (req, res) => {
+    try {
+        console.log('🔄 Starting improved sport detection update process...');
+        
+        const { SportsUpdaterWithImprovedDetection } = require('./update-sports-with-improved-detection.js');
+        const updater = new SportsUpdaterWithImprovedDetection();
+        
+        await updater.connect();
+        await updater.updateSportsForExistingCards();
+        await updater.close();
+        
+        console.log('✅ Improved sport detection update completed successfully');
+        res.json({ 
+            success: true, 
+            message: 'Improved sport detection update completed successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Improved sport detection update failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Improved sport detection update failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Initialize token refresh on startup
 initializeServer().catch(console.error);
