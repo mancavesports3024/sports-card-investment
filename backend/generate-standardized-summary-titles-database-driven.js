@@ -253,6 +253,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
         const productPatterns = [
             // Most specific patterns first (longest first)
             { pattern: 'bowman chrome prospects', product: 'Bowman Chrome Prospects' },
+            { pattern: 'bowman u chrome', product: 'Bowman U Chrome' },
             { pattern: 'panini donruss optic', product: 'Panini Donruss Optic' },
             { pattern: 'panini donruss', product: 'Panini Donruss' },
             { pattern: 'bowman chrome', product: 'Bowman Chrome' },
@@ -413,7 +414,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
 
         // Add specific product names that might interfere with player extraction
         const productTerms = [
-            'bowman chrome prospects', 'bowman chrome', 'bowman draft', 'bowman sterling', 'bowman platinum', 'bowman university',
+            'bowman chrome prospects', 'bowman u chrome', 'bowman chrome', 'bowman draft', 'bowman sterling', 'bowman platinum', 'bowman university',
             'panini donruss optic', 'panini donruss', 'panini prizm', 'panini select', 'panini contenders', 'panini optic',
             'topps chrome', 'topps finest', 'topps heritage', 'topps archives', 'topps update',
             'upper deck sp', 'upper deck spx', 'upper deck exquisite', 'upper deck',
