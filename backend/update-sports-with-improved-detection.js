@@ -192,30 +192,29 @@ class SportsUpdaterWithImprovedDetection {
                 try {
                     console.log(`🔍 Processing card ${card.id}: "${card.title}"`);
                     
-                    // First try ESPN API with improved player name extraction
-                    const playerName = await this.extractPlayerName(card.title);
-                    let detectedSport = null;
-                    
-                    if (playerName) {
-                        console.log(`👤 Extracted player name: "${playerName}"`);
-                        
-                        try {
-                            detectedSport = await this.espnDetector.detectSportFromPlayer(playerName);
-                            if (detectedSport && detectedSport !== 'Unknown') {
-                                console.log(`✅ ESPN API detected sport: ${detectedSport}`);
-                                espnSuccessCount++;
-                            }
-                        } catch (error) {
-                            console.log(`⚠️ ESPN API failed for "${playerName}": ${error.message}`);
-                        }
+                    // First try keyword detection (more reliable for known players)
+                    let detectedSport = this.detectSportFromKeywords(card.title);
+                    if (detectedSport && detectedSport !== 'Unknown') {
+                        console.log(`🔍 Keyword detection found sport: ${detectedSport}`);
+                        keywordSuccessCount++;
                     }
                     
-                    // If ESPN didn't work, try keyword detection
+                    // If keyword detection didn't work, try ESPN API with improved player name extraction
                     if (!detectedSport || detectedSport === 'Unknown') {
-                        detectedSport = this.detectSportFromKeywords(card.title);
-                        if (detectedSport && detectedSport !== 'Unknown') {
-                            console.log(`🔍 Keyword detection found sport: ${detectedSport}`);
-                            keywordSuccessCount++;
+                        const playerName = await this.extractPlayerName(card.title);
+                        
+                        if (playerName) {
+                            console.log(`👤 Extracted player name: "${playerName}"`);
+                            
+                            try {
+                                detectedSport = await this.espnDetector.detectSportFromPlayer(playerName);
+                                if (detectedSport && detectedSport !== 'Unknown') {
+                                    console.log(`✅ ESPN API detected sport: ${detectedSport}`);
+                                    espnSuccessCount++;
+                                }
+                            } catch (error) {
+                                console.log(`⚠️ ESPN API failed for "${playerName}": ${error.message}`);
+                            }
                         }
                     }
                     
