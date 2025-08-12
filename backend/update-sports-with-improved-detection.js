@@ -175,11 +175,10 @@ class SportsUpdaterWithImprovedDetection {
         console.log('🔄 Starting improved sport detection update for existing cards...');
         
         try {
-            // Get all cards with Unknown sport or missing sport
+            // Get all cards to re-evaluate sport detection
             const cards = await this.runPricingQuery(`
                 SELECT id, title, summary_title, sport 
                 FROM cards 
-                WHERE sport = 'Unknown' OR sport IS NULL OR sport = ''
                 LIMIT 1000
             `);
             
@@ -220,14 +219,16 @@ class SportsUpdaterWithImprovedDetection {
                         }
                     }
                     
-                    // Update the card if we found a sport
-                    if (detectedSport && detectedSport !== 'Unknown') {
+                    // Update the card if we found a sport and it's different from current
+                    if (detectedSport && detectedSport !== 'Unknown' && detectedSport !== card.sport) {
                         await this.runPricingQuery(
                             'UPDATE cards SET sport = ? WHERE id = ?',
                             [detectedSport, card.id]
                         );
                         updatedCount++;
-                        console.log(`✅ Updated card ${card.id} sport to: ${detectedSport}`);
+                        console.log(`✅ Updated card ${card.id} sport from "${card.sport}" to: ${detectedSport}`);
+                    } else if (detectedSport && detectedSport !== 'Unknown') {
+                        console.log(`ℹ️ Card ${card.id} already has correct sport: ${detectedSport}`);
                     }
                     
                 } catch (error) {
