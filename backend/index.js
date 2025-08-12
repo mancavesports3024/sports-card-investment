@@ -1136,24 +1136,188 @@ app.use('/api/live-listings', require('./routes/liveListings'));
         timestamp: getCentralTime()
       });
 
-      // Run the database analysis in background
+                // Run the database analysis in background
+          setImmediate(async () => {
+            try {
+              const DatabaseOptimizationAnalyzer = require('./database-optimization-analysis.js');
+              const analyzer = new DatabaseOptimizationAnalyzer();
+              
+              console.log('🔍 Starting Railway database analysis...');
+              await analyzer.connect();
+              await analyzer.analyzeDatabase();
+              analyzer.db.close();
+              
+              console.log('✅ Railway database analysis completed!');
+
+            } catch (error) {
+              console.error('❌ Error in Railway database analysis:', error);
+            }
+          });
+
+    } catch (error) {
+      console.error('Error triggering Railway database analysis:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
+  // API endpoint to run price anomaly fixes (admin only)
+  app.post('/api/admin/fix-price-anomalies', async (req, res) => {
+    try {
+      console.log('🔧 Running Railway price anomaly fixes...');
+      
+      res.json({
+        success: true,
+        message: "Price anomaly fixes triggered - running in background",
+        timestamp: getCentralTime()
+      });
+
+      // Run the price anomaly fixes in background
       setImmediate(async () => {
         try {
-          const DatabaseOptimizationAnalyzer = require('./database-optimization-analysis.js');
-          const analyzer = new DatabaseOptimizationAnalyzer();
+          const PriceAnomalyFixer = require('./fix-price-anomalies.js');
+          const fixer = new PriceAnomalyFixer();
           
-          console.log('🔍 Starting Railway database analysis...');
-          await analyzer.runFullAnalysis();
+          console.log('🔧 Starting Railway price anomaly fixes...');
+          await fixer.connect();
+          await fixer.findPriceAnomalies();
+          await fixer.fixPriceAnomalies();
+          await fixer.calculateMissingMultipliers();
+          fixer.db.close();
           
-          console.log('✅ Railway database analysis completed!');
+          console.log('✅ Railway price anomaly fixes completed!');
 
         } catch (error) {
-          console.error('❌ Error in Railway database analysis:', error);
+          console.error('❌ Error in Railway price anomaly fixes:', error);
         }
       });
 
     } catch (error) {
-      console.error('Error triggering Railway database analysis:', error);
+      console.error('Error triggering Railway price anomaly fixes:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
+  // API endpoint to run duplicate fixes (admin only)
+  app.post('/api/admin/fix-duplicates', async (req, res) => {
+    try {
+      console.log('🔧 Running Railway duplicate fixes...');
+      
+      res.json({
+        success: true,
+        message: "Duplicate fixes triggered - running in background",
+        timestamp: getCentralTime()
+      });
+
+      // Run the duplicate fixes in background
+      setImmediate(async () => {
+        try {
+          const DuplicateFixer = require('./fix-duplicates.js');
+          const fixer = new DuplicateFixer();
+          
+          console.log('🔧 Starting Railway duplicate fixes...');
+          await fixer.connect();
+          await fixer.findDuplicates();
+          await fixer.mergeDuplicates();
+          fixer.db.close();
+          
+          console.log('✅ Railway duplicate fixes completed!');
+
+        } catch (error) {
+          console.error('❌ Error in Railway duplicate fixes:', error);
+        }
+      });
+
+    } catch (error) {
+      console.error('Error triggering Railway duplicate fixes:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
+  // API endpoint to add performance indexes (admin only)
+  app.post('/api/admin/add-indexes', async (req, res) => {
+    try {
+      console.log('🔧 Adding Railway performance indexes...');
+      
+      res.json({
+        success: true,
+        message: "Performance indexes triggered - running in background",
+        timestamp: getCentralTime()
+      });
+
+      // Run the index addition in background
+      setImmediate(async () => {
+        try {
+          const PerformanceIndexer = require('./add-performance-indexes.js');
+          const indexer = new PerformanceIndexer();
+          
+          console.log('🔧 Starting Railway performance index addition...');
+          await indexer.connect();
+          await indexer.addPerformanceIndexes();
+          await indexer.optimizeDatabase();
+          indexer.db.close();
+          
+          console.log('✅ Railway performance indexes completed!');
+
+        } catch (error) {
+          console.error('❌ Error in Railway performance indexes:', error);
+        }
+      });
+
+    } catch (error) {
+      console.error('Error triggering Railway performance indexes:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
+  // API endpoint to run data validation (admin only)
+  app.post('/api/admin/run-validation', async (req, res) => {
+    try {
+      console.log('🔧 Running Railway data validation...');
+      
+      res.json({
+        success: true,
+        message: "Data validation triggered - running in background",
+        timestamp: getCentralTime()
+      });
+
+      // Run the data validation in background
+      setImmediate(async () => {
+        try {
+          const DataValidationSystem = require('./data-validation-system.js');
+          const validator = new DataValidationSystem();
+          
+          console.log('🔧 Starting Railway data validation...');
+          await validator.connect();
+          await validator.validateExistingData();
+          await validator.addDatabaseConstraints();
+          await validator.createDataQualityReport();
+          validator.db.close();
+          
+          console.log('✅ Railway data validation completed!');
+
+        } catch (error) {
+          console.error('❌ Error in Railway data validation:', error);
+        }
+      });
+
+    } catch (error) {
+      console.error('Error triggering Railway data validation:', error);
       res.status(500).json({
         success: false,
         error: error.message,
