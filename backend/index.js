@@ -883,6 +883,104 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
+  // API endpoint to recalculate multipliers (admin only)
+  app.post('/api/admin/recalculate-multipliers', async (req, res) => {
+    try {
+      console.log('🔄 Starting multiplier recalculation process...');
+      
+      const sqlite3 = require('sqlite3').verbose();
+      const path = require('path');
+      
+      // Connect to database
+      const dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
+      const db = new sqlite3.Database(dbPath);
+      
+      // Get all cards with valid prices
+      const cards = await new Promise((resolve, reject) => {
+        db.all(`
+          SELECT id, title, psa10_price, raw_average_price, multiplier 
+          FROM cards 
+          WHERE psa10_price IS NOT NULL 
+          AND raw_average_price IS NOT NULL 
+          AND psa10_price > 0 
+          AND raw_average_price > 0
+        `, (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        });
+      });
+      
+      console.log(`📊 Found ${cards.length} cards with valid prices for multiplier calculation`);
+      
+      let updatedCount = 0;
+      let errorCount = 0;
+      const results = [];
+      
+      for (const card of cards) {
+        try {
+          const correctMultiplier = (card.psa10_price / card.raw_average_price).toFixed(2);
+          const currentMultiplier = card.multiplier;
+          
+          // Check if multiplier needs fixing
+          if (currentMultiplier !== correctMultiplier) {
+            await new Promise((resolve, reject) => {
+              db.run(`
+                UPDATE cards 
+                SET multiplier = ? 
+                WHERE id = ?
+              `, [correctMultiplier, card.id], function(err) {
+                if (err) reject(err);
+                else resolve();
+              });
+            });
+            
+            updatedCount++;
+            results.push({
+              id: card.id,
+              title: card.title,
+              oldMultiplier: currentMultiplier,
+              newMultiplier: correctMultiplier,
+              psa10Price: card.psa10_price,
+              rawPrice: card.raw_average_price
+            });
+            
+            if (updatedCount % 10 === 0) {
+              console.log(`✅ Updated ${updatedCount} multipliers...`);
+            }
+          }
+        } catch (error) {
+          console.error(`❌ Error updating card ${card.id}:`, error.message);
+          errorCount++;
+        }
+      }
+      
+      db.close();
+      
+      console.log(`✅ Multiplier recalculation completed!`);
+      console.log(`📊 Results: ${updatedCount} cards updated, ${errorCount} errors`);
+      
+      res.json({
+        success: true,
+        message: `Recalculated multipliers for ${updatedCount} cards`,
+        results: {
+          totalCards: cards.length,
+          updatedCount,
+          errorCount,
+          details: results.slice(0, 10) // Show first 10 results
+        },
+        timestamp: getCentralTime()
+      });
+      
+    } catch (error) {
+      console.error('❌ Error recalculating multipliers:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
   // API endpoint to view recently added cards
   app.get('/api/recent-cards', async (req, res) => {
     try {
