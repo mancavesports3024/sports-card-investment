@@ -177,7 +177,7 @@ class SportsUpdaterWithImprovedDetection {
         try {
             // Get all cards with Unknown sport or missing sport
             const cards = await this.runPricingQuery(`
-                SELECT id, title, summaryTitle, sport 
+                SELECT id, title, summary_title, sport 
                 FROM cards 
                 WHERE sport = 'Unknown' OR sport IS NULL OR sport = ''
                 LIMIT 1000
