@@ -129,13 +129,13 @@ class StandardizedSummaryTitleGeneratorFinal {
         const patterns = [
             // Colors
             /\b(Red|Blue|Green|Yellow|Orange|Purple|Pink|Gold|Silver|Bronze|Black|White|Rainbow|Prism|Holo|Holographic|Refractor|Sapphire|Emerald|Ruby|Diamond|Platinum|Titanium|Carbon|Chrome|Finest|Prizm|Select|Optic|Contenders|National|Treasures|Flawless|Immaculate|Limited|Certified|Elite|Absolute|Spectra|Phoenix|Playbook|Momentum|Totally|Crown|Royale|Threads|Prestige|Rookies|Stars|Score|Leaf|Playoff|Press|Pass|Sage|Hit|Game|Pacific|Skybox|Metal|Stadium|Club|Gallery|Heritage|Gypsy|Queen|Allen|Ginter|Archives|Big|League|Fire|Opening|Day|Update|Series|Draft|Sterling|Platinum|SP|SPx|Exquisite)\b/gi,
-            // Card numbers (various formats)
-            /\b#(\d+)\b/g,
+            // Card numbers with # symbol
+            /#\d+/g,
+            // Numbered cards (like /150)
             /\b(\d+)\/(\d+)\b/g,
+            // Special card numbers
             /\bBCP-(\d+)\b/gi,
             /\b(\d+)TF(\d+)\b/gi,
-            // Look for card numbers that are not years or PSA grades
-            /\b(?!19|20|PSA|GEM|MT)(\d{1,4})\b/g,
             // Special editions
             /\b(1st Edition|First Edition|Limited Edition|Special Edition|Anniversary|Century|Millennium|Legacy|Legendary|Iconic|Epic|Rare|Ultra Rare|Secret Rare|Common|Uncommon|Rare|Mythic|Legendary)\b/gi
         ];
@@ -144,6 +144,11 @@ class StandardizedSummaryTitleGeneratorFinal {
         for (const pattern of patterns) {
             const matches = [...title.matchAll(pattern)];
             for (const match of matches) {
+                // Skip PSA grades and year fragments
+                const value = match[0];
+                if (value === '10' || value === '23' || value === '2022' || value === '2023' || value === '2024') {
+                    continue;
+                }
                 found.push(match[0]);
             }
         }
