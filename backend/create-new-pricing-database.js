@@ -109,7 +109,7 @@ class NewPricingDatabase {
         try {
             // Use the cleaned summary title for better player name extraction
             const summaryTitle = this.cleanSummaryTitle(title);
-            const playerName = this.extractPlayerName(summaryTitle);
+            const playerName = await this.extractPlayerName(summaryTitle);
             if (playerName) {
                 const espnSport = await this.espnDetector.detectSportFromPlayer(playerName);
                 if (espnSport && espnSport !== 'Unknown') {
@@ -567,31 +567,74 @@ class NewPricingDatabase {
         return 'Base';
     }
 
-    extractPlayerName(title) {
+    async extractPlayerName(title) {
         // Extract player name from card title for ESPN API calls
-        // Remove team names as ESPN API expects just player name
+        // Use comprehensive database to identify card-related terms
         const titleLower = title.toLowerCase();
         
-        // Remove common card terms to isolate player name, INCLUDING team names
+        // First, remove basic card terms that we know are not player names
         let playerName = title
             .replace(/\d{4}/g, '') // Remove years
-            .replace(/topps|panini|donruss|bowman|chrome|prizm|optic|mosaic|select|heritage|stadium club|allen & ginter|gypsy queen|finest|fire|opening day|big league|immaculate|national treasures|flawless|obsidian/gi, '')
-            .replace(/rookie|rc|auto|autograph|jersey|patch|refractor|parallel|base|holo|numbered|limited|gold|silver|bronze|platinum|diamond|emerald|sapphire|ruby|amethyst|onyx|black|white|red|blue|green|yellow|orange|purple|pink|teal|aqua|cyan|lime|mint|peach|salmon|tan|brown|gray|grey|navy|maroon|burgundy|crimson|scarlet/gi, '')
-            .replace(/psa|bgs|beckett|gem|mint|near mint|excellent|very good|good|fair|poor/gi, '')
+            .replace(/psa|bgs|beckett|gem|mint|near mint|excellent|very good|good|fair|poor/gi, '') // Remove grading terms
             .replace(/card|cards/gi, '') // Remove "card" and "cards"
             .replace(/[#\d\/]+/g, '') // Remove card numbers and print runs
-            // Remove team names - ESPN API expects just player name
-            .replace(/\b(cardinals|eagles|falcons|ravens|bills|panthers|bears|bengals|browns|cowboys|broncos|lions|packers|texans|colts|jaguars|chiefs|raiders|chargers|rams|dolphins|vikings|patriots|saints|giants|jets|steelers|49ers|seahawks|buccaneers|titans|commanders|yankees|red sox|blue jays|orioles|rays|white sox|indians|guardians|tigers|twins|royals|astros|rangers|athletics|mariners|angels|dodgers|giants|padres|rockies|diamondbacks|braves|marlins|mets|phillies|nationals|pirates|reds|brewers|cubs|cardinals|lakers|warriors|celtics|heat|knicks|nets|raptors|76ers|hawks|hornets|wizards|magic|pacers|bucks|cavaliers|pistons|rockets|mavericks|spurs|grizzlies|pelicans|thunder|jazz|nuggets|timberwolves|trail blazers|kings|suns|clippers|bulls)\b/gi, '')
             .replace(/\s+/g, ' ') // Normalize whitespace
             .trim();
         
-        // Split by spaces and look for potential player names (2-3 words)
+        // Split into words
         const words = playerName.split(' ').filter(word => word.length > 0);
         
+        // Filter out words that are in the comprehensive database (card sets/terms)
+        const filteredWords = [];
+        
+        for (const word of words) {
+            // Skip if word is too short (likely not a player name)
+            if (word.length < 2) continue;
+            
+            // Check if this word is in the comprehensive database
+            if (this.comprehensiveDb) {
+                try {
+                    const query = `
+                        SELECT COUNT(*) as count 
+                        FROM sets 
+                        WHERE LOWER(name) LIKE ? 
+                        OR LOWER(displayName) LIKE ? 
+                        OR LOWER(searchText) LIKE ?
+                        OR LOWER(setName) LIKE ?
+                    `;
+                    
+                    const result = await this.getComprehensiveQuery(query, [
+                        `%${word.toLowerCase()}%`,
+                        `%${word.toLowerCase()}%`,
+                        `%${word.toLowerCase()}%`,
+                        `%${word.toLowerCase()}%`
+                    ]);
+                    
+                    // If word is found in comprehensive database, skip it (it's a card term)
+                    if (result && result.count > 0) {
+                        continue;
+                    }
+                } catch (error) {
+                    // If database query fails, keep the word (safer to include than exclude)
+                    console.log(`⚠️ Database query failed for word "${word}": ${error.message}`);
+                }
+            }
+            
+            // Also filter out common team names
+            const teamNames = ['cardinals', 'eagles', 'falcons', 'ravens', 'bills', 'panthers', 'bears', 'bengals', 'browns', 'cowboys', 'broncos', 'lions', 'packers', 'texans', 'colts', 'jaguars', 'chiefs', 'raiders', 'chargers', 'rams', 'dolphins', 'vikings', 'patriots', 'saints', 'giants', 'jets', 'steelers', '49ers', 'seahawks', 'buccaneers', 'titans', 'commanders', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'athletics', 'mariners', 'angels', 'dodgers', 'giants', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls'];
+            
+            if (teamNames.includes(word.toLowerCase())) {
+                continue;
+            }
+            
+            // Keep the word if it passes all filters
+            filteredWords.push(word);
+        }
+        
         // Look for patterns like "First Last" or "First Middle Last"
-        if (words.length >= 2 && words.length <= 3) {
+        if (filteredWords.length >= 2 && filteredWords.length <= 3) {
             // Check if it looks like a name (reasonable length)
-            const potentialName = words.slice(0, Math.min(3, words.length)).join(' ');
+            const potentialName = filteredWords.slice(0, Math.min(3, filteredWords.length)).join(' ');
             if (potentialName.length >= 3 && potentialName.length <= 30) {
                 return potentialName;
             }
