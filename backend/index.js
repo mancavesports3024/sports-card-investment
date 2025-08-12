@@ -1053,6 +1053,42 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
+  // API endpoint to check Railway files (admin only)
+  app.post('/api/admin/check-railway-files', async (req, res) => {
+    try {
+      console.log('🔍 Checking Railway files...');
+      
+      res.json({
+        success: true,
+        message: "Railway files check triggered - running in background",
+        timestamp: getCentralTime()
+      });
+
+      // Run the files check in background
+      setImmediate(async () => {
+        try {
+          const { checkRailwayFiles } = require('./check-railway-files.js');
+          
+          console.log('🔍 Starting Railway files check...');
+          await checkRailwayFiles();
+          
+          console.log('✅ Railway files check completed!');
+
+        } catch (error) {
+          console.error('❌ Error in Railway files check:', error);
+        }
+      });
+
+    } catch (error) {
+      console.error('Error triggering Railway files check:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
   // API endpoint to view recently added cards
   app.get('/api/recent-cards', async (req, res) => {
     try {
