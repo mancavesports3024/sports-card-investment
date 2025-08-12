@@ -249,25 +249,147 @@ class DatabaseDrivenStandardizedTitleGenerator {
     extractProduct(title) {
         const titleLower = title.toLowerCase();
         
-        // Sort by length (longest first) to match more specific products first
-        const sortedSets = Array.from(this.cardSets).sort((a, b) => b.length - a.length);
+        // Define specific product patterns with priority
+        const productPatterns = [
+            // Most specific patterns first (longest first)
+            { pattern: 'bowman chrome prospects', product: 'Bowman Chrome Prospects' },
+            { pattern: 'panini donruss optic', product: 'Panini Donruss Optic' },
+            { pattern: 'panini donruss', product: 'Panini Donruss' },
+            { pattern: 'bowman chrome', product: 'Bowman Chrome' },
+            { pattern: 'bowman draft', product: 'Bowman Draft' },
+            { pattern: 'bowman sterling', product: 'Bowman Sterling' },
+            { pattern: 'bowman platinum', product: 'Bowman Platinum' },
+            { pattern: 'bowman university', product: 'Bowman University' },
+            { pattern: 'topps chrome', product: 'Topps Chrome' },
+            { pattern: 'topps finest', product: 'Topps Finest' },
+            { pattern: 'topps heritage', product: 'Topps Heritage' },
+            { pattern: 'topps archives', product: 'Topps Archives' },
+            { pattern: 'topps update', product: 'Topps Update' },
+            { pattern: 'panini prizm', product: 'Panini Prizm' },
+            { pattern: 'panini select', product: 'Panini Select' },
+            { pattern: 'panini contenders', product: 'Panini Contenders' },
+            { pattern: 'panini donruss', product: 'Panini Donruss' },
+            { pattern: 'panini optic', product: 'Panini Optic' },
+            { pattern: 'upper deck sp', product: 'Upper Deck SP' },
+            { pattern: 'upper deck spx', product: 'Upper Deck SPx' },
+            { pattern: 'upper deck exquisite', product: 'Upper Deck Exquisite' },
+            { pattern: 'upper deck', product: 'Upper Deck' },
+            { pattern: 'stadium club', product: 'Stadium Club' },
+            { pattern: 'national treasures', product: 'National Treasures' },
+            { pattern: 'flawless', product: 'Flawless' },
+            { pattern: 'immaculate', product: 'Immaculate' },
+            { pattern: 'limited', product: 'Limited' },
+            { pattern: 'certified', product: 'Certified' },
+            { pattern: 'elite', product: 'Elite' },
+            { pattern: 'absolute', product: 'Absolute' },
+            { pattern: 'spectra', product: 'Spectra' },
+            { pattern: 'phoenix', product: 'Phoenix' },
+            { pattern: 'playbook', product: 'Playbook' },
+            { pattern: 'momentum', product: 'Momentum' },
+            { pattern: 'totally certified', product: 'Totally Certified' },
+            { pattern: 'crown royale', product: 'Crown Royale' },
+            { pattern: 'threads', product: 'Threads' },
+            { pattern: 'prestige', product: 'Prestige' },
+            { pattern: 'rookies & stars', product: 'Rookies & Stars' },
+            { pattern: 'score', product: 'Score' },
+            { pattern: 'leaf', product: 'Leaf' },
+            { pattern: 'playoff', product: 'Playoff' },
+            { pattern: 'press pass', product: 'Press Pass' },
+            { pattern: 'sage', product: 'Sage' },
+            { pattern: 'hit', product: 'Hit' },
+            { pattern: 'pacific', product: 'Pacific' },
+            { pattern: 'skybox', product: 'Skybox' },
+            { pattern: 'metal', product: 'Metal' },
+            { pattern: 'gallery', product: 'Gallery' },
+            { pattern: 'heritage', product: 'Heritage' },
+            { pattern: 'gypsy queen', product: 'Gypsy Queen' },
+            { pattern: 'allen & ginter', product: 'Allen & Ginter' },
+            { pattern: 'archives', product: 'Archives' },
+            { pattern: 'big league', product: 'Big League' },
+            { pattern: 'fire', product: 'Fire' },
+            { pattern: 'opening day', product: 'Opening Day' },
+            { pattern: 'series 1', product: 'Series 1' },
+            { pattern: 'series 2', product: 'Series 2' },
+            { pattern: 'chrome update', product: 'Chrome Update' },
+            { pattern: 'chrome refractor', product: 'Chrome Refractor' },
+            { pattern: 'chrome sapphire', product: 'Chrome Sapphire' },
+            { pattern: 'chrome black', product: 'Chrome Black' },
+            { pattern: 'bowman', product: 'Bowman' },
+            { pattern: 'topps', product: 'Topps' },
+            { pattern: 'panini', product: 'Panini' },
+            { pattern: 'fleer', product: 'Fleer' },
+            { pattern: 'donruss', product: 'Donruss' }
+        ];
         
-        for (const product of sortedSets) {
-            const productLower = product.toLowerCase();
-            // Handle exact matches, hyphenated versions, and variations with hyphens
-            const variations = [
-                productLower,
-                productLower.replace(/\s+/g, ' - '),
-                productLower.replace(/\s+/g, ' - ').replace('bowman - chrome', 'bowman - chrome'),
-                productLower.replace('bowman chrome', 'bowman - chrome')
-            ];
-            
-            for (const variation of variations) {
-                if (titleLower.includes(variation)) {
-                    return product;
+        // Check for mixed hyphenated patterns FIRST (some words hyphenated, others not)
+        // This handles cases like "bowman - chrome prospects" where only some words are hyphenated
+        // Sort by length (longest first) to match more specific products first
+        const sortedPatterns = productPatterns.sort((a, b) => b.pattern.length - a.pattern.length);
+        
+        for (const { pattern, product } of sortedPatterns) {
+            const words = pattern.split(' ');
+            if (words.length >= 2) {
+                // Try different combinations of hyphenation
+                const variations = [];
+                
+                // Original pattern
+                variations.push(pattern);
+                
+                // All hyphenated
+                variations.push(words.join(' - '));
+                
+                // First two words hyphenated, rest not
+                if (words.length >= 3) {
+                    variations.push(`${words[0]} - ${words[1]} ${words.slice(2).join(' ')}`);
+                }
+                
+                // First word hyphenated, rest not
+                if (words.length >= 2) {
+                    variations.push(`${words[0]} - ${words.slice(1).join(' ')}`);
+                }
+                
+                // Check each variation
+                for (const variation of variations) {
+                    if (titleLower.includes(variation.toLowerCase())) {
+                        return product;
+                    }
                 }
             }
         }
+        
+        // Check for hyphenated versions (most specific/longest first)
+        const hyphenatedPatterns = productPatterns.map(({ pattern, product }) => ({
+            pattern: pattern.replace(/\s+/g, ' - '),
+            product
+        })).sort((a, b) => b.pattern.length - a.pattern.length);
+        
+        for (const { pattern, product } of hyphenatedPatterns) {
+            if (titleLower.includes(pattern)) {
+                return product;
+            }
+        }
+        
+        // Then check for regular patterns (most specific first)
+        for (const { pattern, product } of productPatterns) {
+            if (titleLower.includes(pattern)) {
+                return product;
+            }
+        }
+        
+        // Fallback: check for partial matches in specific order
+        if (titleLower.includes('bowman') && titleLower.includes('chrome') && titleLower.includes('prospects')) {
+            return 'Bowman Chrome Prospects';
+        }
+        if (titleLower.includes('bowman') && titleLower.includes('chrome')) {
+            return 'Bowman Chrome';
+        }
+        if (titleLower.includes('panini') && titleLower.includes('donruss') && titleLower.includes('optic')) {
+            return 'Panini Donruss Optic';
+        }
+        if (titleLower.includes('panini') && titleLower.includes('donruss')) {
+            return 'Panini Donruss';
+        }
+        
         return null;
     }
 
@@ -289,9 +411,52 @@ class DatabaseDrivenStandardizedTitleGenerator {
         removeTerms.push(...Array.from(this.cardTypes));
         removeTerms.push(...Array.from(this.brands));
 
+        // Add specific product names that might interfere with player extraction
+        const productTerms = [
+            'bowman chrome prospects', 'bowman chrome', 'bowman draft', 'bowman sterling', 'bowman platinum', 'bowman university',
+            'panini donruss optic', 'panini donruss', 'panini prizm', 'panini select', 'panini contenders', 'panini optic',
+            'topps chrome', 'topps finest', 'topps heritage', 'topps archives', 'topps update',
+            'upper deck sp', 'upper deck spx', 'upper deck exquisite', 'upper deck',
+            'stadium club', 'national treasures', 'flawless', 'immaculate', 'limited', 'certified', 'elite', 'absolute',
+            'spectra', 'phoenix', 'playbook', 'momentum', 'totally certified', 'crown royale', 'threads', 'prestige',
+            'rookies & stars', 'score', 'leaf', 'playoff', 'press pass', 'sage', 'hit', 'pacific', 'skybox', 'metal',
+            'gallery', 'heritage', 'gypsy queen', 'allen & ginter', 'archives', 'big league', 'fire', 'opening day',
+            'series 1', 'series 2', 'chrome update', 'chrome refractor', 'chrome sapphire', 'chrome black',
+            'bowman', 'topps', 'panini', 'fleer', 'donruss'
+        ];
+        
+        removeTerms.push(...productTerms);
+
+        // Sort terms by length (longest first) to remove more specific terms before general ones
+        removeTerms.sort((a, b) => b.length - a.length);
+
         removeTerms.forEach(term => {
-            const regex = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+            // Handle both word boundaries and hyphenated versions
+            const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`\\b${escapedTerm}\\b`, 'gi');
             cleanTitle = cleanTitle.replace(regex, '');
+            
+            // Also handle hyphenated versions (e.g., "bowman - chrome prospects")
+            const hyphenatedRegex = new RegExp(`\\b${escapedTerm.replace(/\s+/g, '\\s*-\\s*')}\\b`, 'gi');
+            cleanTitle = cleanTitle.replace(hyphenatedRegex, '');
+            
+            // Also handle mixed versions where some words are hyphenated and others aren't
+            const words = term.split(' ');
+            if (words.length >= 2) {
+                // Try different combinations of hyphenation
+                const variations = [
+                    term,
+                    words.join(' - '),
+                    `${words[0]} - ${words.slice(1).join(' ')}`,
+                    `${words[0]} ${words[1]} - ${words.slice(2).join(' ')}`
+                ];
+                
+                for (const variation of variations) {
+                    const escapedVariation = variation.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const variationRegex = new RegExp(`\\b${escapedVariation}\\b`, 'gi');
+                    cleanTitle = cleanTitle.replace(variationRegex, '');
+                }
+            }
         });
 
         // Look for player name patterns
@@ -324,9 +489,13 @@ class DatabaseDrivenStandardizedTitleGenerator {
 
     // Extract color/numbering from title using learned data
     extractColorNumbering(title) {
+        // First, extract the product to avoid duplicating product terms
+        const product = this.extractProduct(title);
+        const productLower = product ? product.toLowerCase() : '';
+        
         const patterns = [
-            // Learned card types
-            new RegExp(`\\b(${Array.from(this.cardTypes).join('|')})\\b`, 'gi'),
+            // Comprehensive card types and colors (but exclude product terms)
+            /\b(Red|Blue|Green|Yellow|Orange|Purple|Pink|Gold|Silver|Bronze|Black|White|Rainbow|Prism|Holo|Holographic|Refractor|Sapphire|Emerald|Ruby|Diamond|Platinum|Titanium|Carbon|Finest|Prizm|Select|Optic|Contenders|National|Treasures|Flawless|Immaculate|Limited|Certified|Elite|Absolute|Spectra|Phoenix|Playbook|Momentum|Totally|Crown|Royale|Threads|Prestige|Rookies|Stars|Score|Leaf|Playoff|Press|Pass|Sage|Hit|Game|Pacific|Skybox|Metal|Stadium|Club|Gallery|Heritage|Gypsy|Queen|Allen|Ginter|Archives|Big|League|Fire|Opening|Day|Update|Series|Draft|Sterling|Platinum|SP|SPx|Exquisite|Lunar Glow|Wave|Holo|Holographic)\b/gi,
             // Card numbers with # symbol (including alphanumeric)
             /#[A-Z0-9-]+/g,
             // Print run numbers (like /150, /5)
@@ -344,11 +513,30 @@ class DatabaseDrivenStandardizedTitleGenerator {
                 if (value === '10' || value === '23' || value === '2022' || value === '2023' || value === '2024') {
                     continue;
                 }
+                
+                // Skip if this term is part of the product name
+                const valueLower = value.toLowerCase();
+                if (productLower && productLower.includes(valueLower)) {
+                    continue;
+                }
+                
                 found.push(match[0]);
             }
         }
 
         return found.length > 0 ? found.join(' ') : null;
+    }
+
+    // Check if title contains autograph-related terms
+    hasAutograph(title) {
+        const titleLower = title.toLowerCase();
+        const autoTerms = [
+            'auto', 'autograph', 'signed', 'signature', 'rookie auto', 'rookie autograph',
+            'on-card auto', 'on-card autograph', 'sticker auto', 'sticker autograph',
+            'patch auto', 'patch autograph', 'jersey auto', 'jersey autograph'
+        ];
+        
+        return autoTerms.some(term => titleLower.includes(term));
     }
 
     // Generate standardized summary title
@@ -357,6 +545,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
         const product = this.extractProduct(title);
         const player = this.extractPlayer(title);
         const colorNumbering = this.extractColorNumbering(title);
+        const hasAuto = this.hasAutograph(title);
 
         const parts = [];
         
@@ -364,6 +553,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
         if (product) parts.push(product);
         if (player) parts.push(player);
         if (colorNumbering) parts.push(colorNumbering);
+        if (hasAuto) parts.push('auto');
 
         const standardizedTitle = parts.join(' ').trim();
         
