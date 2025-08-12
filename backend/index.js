@@ -1089,6 +1089,42 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
+  // API endpoint to run manual update test (admin only)
+  app.post('/api/admin/manual-update-test', async (req, res) => {
+    try {
+      console.log('🔧 Running manual update test...');
+      
+      res.json({
+        success: true,
+        message: "Manual update test triggered - running in background",
+        timestamp: getCentralTime()
+      });
+
+      // Run the manual update test in background
+      setImmediate(async () => {
+        try {
+          const { manualUpdateTest } = require('./manual-update-test.js');
+          
+          console.log('🔧 Starting manual update test...');
+          await manualUpdateTest();
+          
+          console.log('✅ Manual update test completed!');
+
+        } catch (error) {
+          console.error('❌ Error in manual update test:', error);
+        }
+      });
+
+    } catch (error) {
+      console.error('Error triggering manual update test:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
   // API endpoint to view recently added cards
   app.get('/api/recent-cards', async (req, res) => {
     try {
