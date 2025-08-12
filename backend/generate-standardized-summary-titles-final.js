@@ -156,7 +156,7 @@ class StandardizedSummaryTitleGeneratorFinal {
 
         const parts = [];
         
-        if (year) parts.push(`(${year})`);
+        if (year) parts.push(year);
         if (product) parts.push(product);
         if (player) parts.push(player);
         if (colorNumbering) parts.push(colorNumbering);
