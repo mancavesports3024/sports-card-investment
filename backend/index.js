@@ -1017,6 +1017,42 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
+  // API endpoint to check Railway database structure (admin only)
+  app.post('/api/admin/check-railway-database', async (req, res) => {
+    try {
+      console.log('🔍 Checking Railway database structure...');
+      
+      res.json({
+        success: true,
+        message: "Railway database check triggered - running in background",
+        timestamp: getCentralTime()
+      });
+
+      // Run the database check in background
+      setImmediate(async () => {
+        try {
+          const { checkRailwayDatabase } = require('./check-railway-database.js');
+          
+          console.log('🔍 Starting Railway database check...');
+          await checkRailwayDatabase();
+          
+          console.log('✅ Railway database check completed!');
+
+        } catch (error) {
+          console.error('❌ Error in Railway database check:', error);
+        }
+      });
+
+    } catch (error) {
+      console.error('Error triggering Railway database check:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: getCentralTime()
+      });
+    }
+  });
+
   // API endpoint to view recently added cards
   app.get('/api/recent-cards', async (req, res) => {
     try {
