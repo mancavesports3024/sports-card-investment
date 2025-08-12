@@ -20,8 +20,8 @@ async function cleanSummaryTitles() {
             
             console.log('✅ Connected to SQLite database');
             
-            // Get all cards with summaryTitle
-            db.all("SELECT id, summaryTitle FROM cards WHERE summaryTitle IS NOT NULL", async (err, rows) => {
+            // Get all cards with summary_title
+            db.all("SELECT id, summary_title FROM cards WHERE summary_title IS NOT NULL", async (err, rows) => {
                 if (err) {
                     console.error('❌ Error fetching cards:', err);
                     reject(err);
@@ -53,18 +53,18 @@ async function cleanSummaryTitles() {
                         // Process each card in the batch
                         const batchPromises = batch.map(card => {
                             return new Promise((resolveCard, rejectCard) => {
-                                const cleanedTitle = cleanSummaryTitle(card.summaryTitle);
+                                const cleanedTitle = cleanSummaryTitle(card.summary_title);
                                 
-                                if (cleanedTitle !== card.summaryTitle) {
+                                if (cleanedTitle !== card.summary_title) {
                                     // Update the cleaned title
-                                    db.run("UPDATE cards SET summaryTitle = ? WHERE id = ?", 
-                                        [cleanedTitle, card.id], 
+                                    db.run("UPDATE cards SET summary_title = ? WHERE id = ?", 
+                                        [cleanedTitle, card.id],
                                         function(updateErr) {
                                             if (updateErr) {
                                                 console.error(`❌ Error updating card ${card.id}:`, updateErr);
                                                 resolveCard({ type: 'error', card, cleanedTitle });
                                             } else {
-                                                console.log(`✅ Updated card ${card.id}: "${card.summaryTitle}" → "${cleanedTitle}"`);
+                                                console.log(`✅ Updated card ${card.id}: "${card.summary_title}" → "${cleanedTitle}"`);
                                                 resolveCard({ type: 'updated', card, cleanedTitle });
                                             }
                                         }

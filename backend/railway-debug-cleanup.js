@@ -47,8 +47,8 @@ async function railwayDebugCleanup() {
             
             console.log('✅ Connected to Railway SQLite database');
             
-            // Get all cards with summaryTitle
-            db.all("SELECT id, summaryTitle FROM cards WHERE summaryTitle IS NOT NULL", async (err, rows) => {
+            // Get all cards with summary_title
+            db.all("SELECT id, summary_title FROM cards WHERE summary_title IS NOT NULL", async (err, rows) => {
                 if (err) {
                     console.error('❌ Error fetching cards:', err);
                     reject(err);
@@ -59,14 +59,14 @@ async function railwayDebugCleanup() {
                 
                 // Look for cards with Buffalo or Bucs
                 const targetCards = rows.filter(card => 
-                    card.summaryTitle && 
-                    (card.summaryTitle.toLowerCase().includes('buffalo') || 
-                     card.summaryTitle.toLowerCase().includes('bucs'))
+                    card.summary_title && 
+                    (card.summary_title.toLowerCase().includes('buffalo') || 
+                     card.summary_title.toLowerCase().includes('bucs'))
                 );
                 
                 console.log(`🎯 Found ${targetCards.length} cards with Buffalo or Bucs:`);
                 targetCards.forEach(card => {
-                    console.log(`   ID ${card.id}: "${card.summaryTitle}"`);
+                    console.log(`   ID ${card.id}: "${card.summary_title}"`);
                 });
                 
                 if (targetCards.length === 0) {
@@ -79,11 +79,11 @@ async function railwayDebugCleanup() {
                 // Test each card
                 let wouldUpdate = 0;
                 targetCards.forEach(card => {
-                    const cleanedTitle = cleanSummaryTitle(card.summaryTitle);
-                    const wouldChange = cleanedTitle !== card.summaryTitle;
+                    const cleanedTitle = cleanSummaryTitle(card.summary_title);
+                    const wouldChange = cleanedTitle !== card.summary_title;
                     
                     console.log(`\n🧪 Card ID ${card.id}:`);
-                    console.log(`   Original: "${card.summaryTitle}"`);
+                    console.log(`   Original: "${card.summary_title}"`);
                     console.log(`   Cleaned:  "${cleanedTitle}"`);
                     console.log(`   Would update: ${wouldChange ? 'YES' : 'NO'}`);
                     
