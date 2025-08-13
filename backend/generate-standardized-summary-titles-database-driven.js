@@ -579,8 +579,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
             /\b(Red|Blue|Green|Yellow|Orange|Purple|Pink|Gold|Silver|Bronze|Black|White|Rainbow|Prism|Holo|Holographic|Refractor|Sapphire|Emerald|Ruby|Diamond|Platinum|Titanium|Carbon|Prizm|Select|Optic|Contenders|National|Treasures|Flawless|Immaculate|Limited|Certified|Elite|Absolute|Spectra|Phoenix|Playbook|Momentum|Totally|Crown|Royale|Threads|Prestige|Rookies|Stars|Score|Leaf|Playoff|Press|Pass|Sage|Game|Pacific|Skybox|Metal|Stadium|Club|Gallery|Heritage|Gypsy|Queen|Allen|Ginter|Archives|Big|League|Fire|Opening|Day|Update|Series|Draft|Sterling|Platinum|SP|SPx|Exquisite|Lunar Glow|Wave|Holo|Holographic|Pulsar|Fuchsia|Pattern|Plate|Checkerboard|X-Fractor|Cracked|Ice|Atomic|Disco|Fast|Break|Huddle|Flash|Shock|Mojo|Mega|Scope|Shimmer|Multi|Carved|Time|Lenticular|Synthesis|Outburst|Electric|Ellipse|Wheel|Blast|Die|Cut|Landmarks|Stained|Glass|Lava|Lamp|Dazzle|Velocity|Hyper|Dragon|Laser|Liberty|Marvels|Fire|Voltage|Career|Stat|Line|Alligator|Kaleidoscope|Prismatic|Butterfly|Chameleon|Clown|Fish|Deer|Elephant|Giraffe|Leopard|Parrot|Peacock|Snake|Tiger|Zebra|Eyes|Anniversary|Border|Flip|Stock|Magenta|Mini|Parallels|Bordered|Superfractor|Scale|Vintage|Stars|Independence|Father|Mother|Memorial|Camo|Choice|Fusion|Nebula|Reactive|Fluorescent|Swirl|Vinyl|Premium|Set|Cyan|Yellow|Magenta)\b/gi,
             // Bowman Draft card numbers (BDP, BDC, etc.)
             /\b(BD[A-Z]?\d+)\b/g,
-            // Card numbers with # symbol (including alphanumeric)
-            /#[A-Z0-9-]+/g,
+            // Card numbers with # symbol (including alphanumeric) - but exclude SSP
+            /#(?!SSP)[A-Z0-9-]+/g,
             // Print run numbers (like /150, /5)
             /\/(\d+)\b/g,
             // Standalone card numbers (but exclude PSA grades and POP numbers)
@@ -610,8 +610,9 @@ class DatabaseDrivenStandardizedTitleGenerator {
                     }
                 }
                 
-                // Skip year fragments
-                if (value === '23' || value === '2022' || value === '2023' || value === '2024' || value === '2025') {
+                // Skip year fragments and parts of year ranges
+                if (value === '23' || value === '24' || value === '25' || value === '2022' || value === '2023' || value === '2024' || value === '2025') {
+                    // Always skip these numbers as they're likely year fragments
                     continue;
                 }
                 
@@ -645,6 +646,11 @@ class DatabaseDrivenStandardizedTitleGenerator {
                 
                 // Skip terms that should be excluded from summary titles
                 if (['SP', 'sp', 'SSP', 'ssp'].includes(value)) {
+                    continue;
+                }
+                
+                // Skip SSP completely (it's not a card number, it's a designation)
+                if (value === 'SSP' || value === 'ssp') {
                     continue;
                 }
                 
