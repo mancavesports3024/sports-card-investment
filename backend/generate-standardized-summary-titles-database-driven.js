@@ -252,12 +252,14 @@ class DatabaseDrivenStandardizedTitleGenerator {
         // Define specific product patterns with priority
         const productPatterns = [
             // Most specific patterns first (longest first)
+            { pattern: 'bowman chrome draft 1st', product: 'Bowman Chrome Draft 1st' },
             { pattern: 'bowman chrome prospects', product: 'Bowman Chrome Prospects' },
             { pattern: 'bowman chrome sapphire', product: 'Bowman Chrome Sapphire' },
             { pattern: 'bowman university chrome', product: 'Bowman University Chrome' },
             { pattern: 'bowman u chrome', product: 'Bowman University Chrome' },
             { pattern: 'panini donruss optic', product: 'Panini Donruss Optic' },
             { pattern: 'panini donruss', product: 'Panini Donruss' },
+            { pattern: 'bowman chrome draft', product: 'Bowman Chrome Draft' },
             { pattern: 'bowman chrome', product: 'Bowman Chrome' },
             { pattern: 'bowman draft', product: 'Bowman Draft' },
             { pattern: 'bowman sterling', product: 'Bowman Sterling' },
@@ -418,7 +420,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
 
         // Add specific product names that might interfere with player extraction
         const productTerms = [
-            'bowman chrome prospects', 'bowman chrome sapphire', 'bowman university chrome', 'bowman u chrome', 'bowman chrome', 'bowman draft', 'bowman sterling', 'bowman platinum', 'bowman university', 'bowman u',
+            'bowman chrome draft 1st', 'bowman chrome prospects', 'bowman chrome sapphire', 'bowman university chrome', 'bowman u chrome', 'bowman chrome draft', 'bowman chrome', 'bowman draft', 'bowman sterling', 'bowman platinum', 'bowman university', 'bowman u',
             'panini donruss optic', 'panini donruss', 'panini prizm', 'panini select', 'panini contenders', 'panini optic',
             'topps chrome', 'topps finest', 'topps heritage', 'topps archives', 'topps update',
             'upper deck sp', 'upper deck spx', 'upper deck exquisite', 'upper deck',
@@ -493,6 +495,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
         const patterns = [
             // Handle names with periods like "J.J. MCCARTHY"
             /\b([A-Z]\.[A-Z]\.)\s+([A-Z]+)\b/g,
+            // Handle initials like "CJ Kayfus"
+            /\b([A-Z]{2,3})\s+([A-Z][a-z]+)\b/g,
             // Handle three-part names like "Shai Gilgeous-Alexander" first
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)-([A-Z][a-z]+)\b/g,
             // Handle all-caps names like "PAUL SKENES"
@@ -540,6 +544,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
 
         const found = [];
         const usedWords = new Set(); // Track words that have been used in multi-word patterns
+        const foundTerms = new Set(); // Track exact terms that have been found to prevent exact duplicates
         
         for (const pattern of patterns) {
             const matches = [...title.matchAll(pattern)];
@@ -556,10 +561,16 @@ class DatabaseDrivenStandardizedTitleGenerator {
                     continue;
                 }
                 
+                // Skip if we've already found this exact term
+                if (foundTerms.has(value)) {
+                    continue;
+                }
+                
                 // Check if this is a multi-word pattern (contains space)
                 if (value.includes(' ')) {
                     // Add the full multi-word term
                     found.push(match[0]);
+                    foundTerms.add(value);
                     // Mark individual words as used to prevent duplication
                     const words = value.split(' ');
                     words.forEach(word => usedWords.add(word.toLowerCase()));
@@ -567,6 +578,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
                     // For single words, check if they were already used in a multi-word pattern
                     if (!usedWords.has(value.toLowerCase())) {
                         found.push(match[0]);
+                        foundTerms.add(value);
                     }
                 }
             }
