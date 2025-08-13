@@ -500,7 +500,7 @@ const SearchPage = () => {
                           {/* Row 1: NEW LISTING and title */}
                           <div className="live-listing-badge-title-row" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
                             {isNewListing(item.listingDate) && <span className="live-listing-badge">NEW LISTING</span>}
-                            <span style={{ fontWeight: 700, fontSize: '1.15rem', color: '#222' }}>{item.title}</span>
+                            <span style={{ fontWeight: 700, fontSize: '1.15rem', color: '#222', wordWrap: 'break-word', overflowWrap: 'break-word', lineHeight: '1.2' }}>{item.title}</span>
                           </div>
                           {/* Row 2: Condition (left, fully left-aligned, no extra margin/gap) */}
                           <div style={{ color: '#666', fontSize: '0.95rem', marginBottom: 2, textAlign: 'left' }}>{item.condition}</div>
