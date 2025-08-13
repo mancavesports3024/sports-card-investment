@@ -2432,10 +2432,75 @@ app.get('/api/sample-summary-titles', async (req, res) => {
 // Clean summary titles endpoint
 app.post('/api/clean-summary-titles', async (req, res) => {
   try {
-    console.log('🧹 Starting summary title cleanup...');
+    console.log('🧹 Starting summary title cleanup with new standardized logic...');
     
-    const { cleanSummaryTitles } = require('./api-clean-summary-titles.js');
-    const result = await cleanSummaryTitles();
+    // Use the new standardized title generation logic
+    const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standardized-summary-titles-database-driven.js');
+    const NewPricingDatabase = require('./create-new-pricing-database.js');
+    
+    const db = new NewPricingDatabase();
+    await db.connect();
+    
+    const generator = new DatabaseDrivenStandardizedTitleGenerator();
+    await generator.connect();
+    await generator.learnFromDatabase();
+    
+    // Get all cards
+    const cards = await new Promise((resolve, reject) => {
+      db.pricingDb.all('SELECT * FROM cards', (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+    
+    let totalProcessed = 0;
+    let updated = 0;
+    let unchanged = 0;
+    let errors = 0;
+    
+    for (const card of cards) {
+      try {
+        totalProcessed++;
+        
+        // Generate new standardized title
+        const newTitle = generator.generateStandardizedTitle(card.title);
+        
+        // Check if title changed
+        if (newTitle !== card.summary_title) {
+          // Update the card
+          await new Promise((resolve, reject) => {
+            db.pricingDb.run(
+              'UPDATE cards SET summary_title = ? WHERE id = ?',
+              [newTitle, card.id],
+              (err) => {
+                if (err) reject(err);
+                else resolve();
+              }
+            );
+          });
+          
+          console.log(`✅ Updated card ${card.id}: "${card.summary_title}" → "${newTitle}"`);
+          updated++;
+        } else {
+          unchanged++;
+        }
+        
+      } catch (error) {
+        console.error(`❌ Error processing card ${card.id}:`, error);
+        errors++;
+      }
+    }
+    
+    await db.close();
+    await generator.db.close();
+    
+    const result = {
+      success: true,
+      totalProcessed,
+      updated,
+      unchanged,
+      errors
+    };
     
     res.json({
       success: true,
