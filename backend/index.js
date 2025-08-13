@@ -2902,5 +2902,47 @@ app.post('/api/cleanup-low-value-cards', async (req, res) => {
     }
 });
 
+// Add new endpoint for standardizing individual card titles
+app.post('/api/standardize-title', async (req, res) => {
+  try {
+    const { title } = req.body;
+    
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        error: 'Title is required',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Use the standardized title generator
+    const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standardized-summary-titles-database-driven.js');
+    
+    const generator = new DatabaseDrivenStandardizedTitleGenerator();
+    await generator.connect();
+    await generator.learnFromDatabase();
+    
+    const standardizedTitle = generator.generateStandardizedTitle(title);
+    
+    await generator.db.close();
+    
+    res.json({
+      success: true,
+      originalTitle: title,
+      standardizedTitle: standardizedTitle,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error standardizing title:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to standardize title',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Initialize token refresh on startup
 initializeServer().catch(console.error);
