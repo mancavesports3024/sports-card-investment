@@ -291,7 +291,7 @@ function createSummaryTitle(item) {
     'PSA AUTH', 'psa auth', 'PSA AUTH',
     'Rare', 'rare', 'RARE',
     'Football Card', 'football card', 'FOOTBALL CARD',
-    'PROSPECT', 'Prospect', 'prospect',
+
     'RPA', 'rpa', 'Rpa',
     'team usa', 'Team USA', 'TEAM USA',
     'PLAYER WORN PATCH', 'Player Worn Patch', 'player worn patch',
