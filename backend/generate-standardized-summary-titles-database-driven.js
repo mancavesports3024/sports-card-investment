@@ -609,6 +609,23 @@ class DatabaseDrivenStandardizedTitleGenerator {
                     continue;
                 }
                 
+                // Skip "Chrome" if it appears in multi-word patterns that contain "Chrome" and the product already has "Chrome"
+                if (value.includes(' ') && value.toLowerCase().includes('chrome') && productLower && productLower.includes('chrome')) {
+                    // Extract the non-Chrome part of the pattern
+                    const nonChromeParts = value.split(' ').filter(word => word.toLowerCase() !== 'chrome');
+                    if (nonChromeParts.length > 0) {
+                        // Add only the non-Chrome parts
+                        const nonChromeValue = nonChromeParts.join(' ');
+                        if (!foundTerms.has(nonChromeValue)) {
+                            found.push(nonChromeValue);
+                            foundTerms.add(nonChromeValue);
+                            // Mark individual words as used
+                            nonChromeParts.forEach(word => usedWords.add(word.toLowerCase()));
+                        }
+                    }
+                    continue;
+                }
+                
                 // Skip terms that should be excluded from summary titles
                 if (['SP', 'sp', 'SSP', 'ssp'].includes(value)) {
                     continue;
