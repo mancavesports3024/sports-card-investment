@@ -2,6 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 const { ESPNSportDetectorV2Integrated } = require('./espn-sport-detector-v2-integrated.js');
+const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standardized-summary-titles-database-driven.js');
 
 // FORCE RAILWAY REDEPLOY - Updated sport detection logic deployed
 class NewPricingDatabase {
@@ -14,6 +15,10 @@ class NewPricingDatabase {
         
         // Initialize ESPN sport detector
         this.espnDetector = new ESPNSportDetectorV2Integrated();
+        
+        // Initialize database-driven standardized title generator
+        this.titleGenerator = new DatabaseDrivenStandardizedTitleGenerator();
+        this.titleGeneratorInitialized = false;
     }
 
     async connect() {
@@ -100,6 +105,24 @@ class NewPricingDatabase {
         } catch (error) {
             console.error('❌ Error creating tables:', error);
             throw error;
+        }
+    }
+
+    // Initialize the database-driven standardized title generator
+    async initializeTitleGenerator() {
+        if (this.titleGeneratorInitialized) {
+            return;
+        }
+        
+        try {
+            console.log('🧠 Initializing database-driven standardized title generator...');
+            await this.titleGenerator.connect();
+            await this.titleGenerator.learnFromDatabase();
+            this.titleGeneratorInitialized = true;
+            console.log('✅ Title generator initialized successfully');
+        } catch (error) {
+            console.error('❌ Error initializing title generator:', error);
+            // Don't throw - fall back to simple cleaning if needed
         }
     }
 
@@ -483,6 +506,19 @@ class NewPricingDatabase {
 
     async addCard(cardData) {
         try {
+            // Initialize title generator if not already done
+            await this.initializeTitleGenerator();
+            
+            // Generate standardized summary title using database-driven approach
+            let summaryTitle;
+            try {
+                summaryTitle = this.titleGenerator.generateStandardizedTitle(cardData.title);
+                console.log(`🎯 Generated standardized title: "${cardData.title}" → "${summaryTitle}"`);
+            } catch (titleError) {
+                console.warn(`⚠️ Standardized title generation failed, falling back to simple cleaning: ${titleError.message}`);
+                summaryTitle = this.cleanSummaryTitle(cardData.title);
+            }
+            
             // Detect sport using comprehensive database
             const sport = await this.detectSportFromComprehensive(cardData.title);
             
@@ -503,7 +539,7 @@ class NewPricingDatabase {
             
             const params = [
                 cardData.title,
-                this.cleanSummaryTitle(cardData.title),
+                summaryTitle,
                 sport,
                 year,
                 brandInfo.brand,
@@ -810,6 +846,10 @@ class NewPricingDatabase {
         if (this.comprehensiveDb) {
             this.comprehensiveDb.close();
             console.log('✅ Comprehensive database connection closed');
+        }
+        if (this.titleGenerator && this.titleGenerator.db) {
+            this.titleGenerator.db.close();
+            console.log('✅ Title generator database connection closed');
         }
     }
 }
