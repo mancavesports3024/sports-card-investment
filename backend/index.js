@@ -2801,5 +2801,34 @@ app.post('/api/update-sports-standardized-titles', async (req, res) => {
     }
 });
 
+// POST /api/cleanup-low-value-cards - Remove low-value and unknown sport cards
+app.post('/api/cleanup-low-value-cards', async (req, res) => {
+    try {
+        console.log('🧹 Starting low-value card cleanup...');
+        
+        const { LowValueCardCleanup } = require('./cleanup-low-value-cards.js');
+        const cleanup = new LowValueCardCleanup();
+        
+        const result = await cleanup.cleanupLowValueCards();
+        
+        console.log('✅ Low-value card cleanup completed successfully');
+        res.json({ 
+            success: true, 
+            message: 'Low-value card cleanup completed successfully',
+            results: result,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Low-value card cleanup failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Low-value card cleanup failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Initialize token refresh on startup
 initializeServer().catch(console.error);
