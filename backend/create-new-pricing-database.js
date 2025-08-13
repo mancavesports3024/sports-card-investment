@@ -640,6 +640,9 @@ class NewPricingDatabase {
         if (titleLower.includes('topps')) return { brand: 'Topps', setName: 'Base' };
         
         // Panini brands
+        if (titleLower.includes('panini prizm wnba')) return { brand: 'Panini', setName: 'Prizm WNBA' };
+        if (titleLower.includes('panini instant wnba')) return { brand: 'Panini', setName: 'Instant WNBA' };
+        if (titleLower.includes('prizm monopoly wnba')) return { brand: 'Panini', setName: 'Prizm Monopoly WNBA' };
         if (titleLower.includes('panini prizm')) return { brand: 'Panini', setName: 'Prizm' };
         if (titleLower.includes('panini select')) return { brand: 'Panini', setName: 'Select' };
         if (titleLower.includes('panini mosaic')) return { brand: 'Panini', setName: 'Mosaic' };

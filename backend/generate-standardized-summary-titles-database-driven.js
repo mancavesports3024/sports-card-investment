@@ -288,6 +288,9 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'topps heritage', product: 'Topps Heritage' },
             { pattern: 'topps archives', product: 'Topps Archives' },
             { pattern: 'topps update', product: 'Topps Update' },
+            { pattern: 'panini prizm wnba', product: 'Panini Prizm WNBA' },
+            { pattern: 'panini instant wnba', product: 'Panini Instant WNBA' },
+            { pattern: 'prizm monopoly wnba', product: 'Prizm Monopoly WNBA' },
             { pattern: 'panini prizm', product: 'Panini Prizm' },
             { pattern: 'panini select', product: 'Panini Select' },
             { pattern: 'panini contenders', product: 'Panini Contenders' },
@@ -464,7 +467,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
         // Add specific product names that might interfere with player extraction
         const productTerms = [
             'bowman draft chrome 1st', 'bowman chrome draft 1st', 'bowman chrome sapphire', 'bowman university chrome', 'bowman u chrome', 'bowman chrome draft', 'bowman chrome', 'bowman draft', 'bowman sterling', 'bowman platinum', 'bowman university', 'bowman u',
-            'panini donruss optic', 'panini donruss', 'panini prizm', 'panini select', 'panini contenders', 'panini optic',
+            'panini donruss optic', 'panini donruss', 'panini prizm', 'panini select', 'panini contenders', 'panini optic', 'panini prizm wnba', 'panini instant wnba', 'prizm monopoly wnba',
             'topps chrome', 'topps finest', 'topps heritage', 'topps archives', 'topps update',
             'upper deck sp', 'upper deck spx', 'upper deck exquisite', 'upper deck',
             'stadium club', 'national treasures', 'flawless', 'immaculate', 'limited', 'certified', 'elite', 'absolute',
@@ -473,7 +476,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
             'gallery', 'heritage', 'gypsy queen', 'allen & ginter', 'archives', 'big league', 'fire', 'opening day',
             'series 1', 'series 2', 'chrome update', 'chrome refractor', 'chrome sapphire', 'chrome black',
             'bowman', 'topps', 'panini', 'fleer', 'donruss', 'flair', 'chronicles', 'chronicles wwe', 'rated rookie', 'rated rookies', 'optic', 'kings', 'rookie kings',
-            'rookies', 'rookie', 'nscc uefa', 'nscc', 'uefa'
+            'rookies', 'rookie', 'nscc uefa', 'nscc', 'uefa', 'wnba'
         ];
         
         // Add card set prefixes that should be removed but preserve player names
