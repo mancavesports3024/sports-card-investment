@@ -59,15 +59,11 @@ class FastBatchItemsPuller {
     async cardExists(title, price) {
         const query = `
             SELECT id FROM cards 
-            WHERE title = ? AND (
-                (raw_average_price IS NOT NULL AND ABS(raw_average_price - ?) < 0.01) OR
-                (psa9_average_price IS NOT NULL AND ABS(psa9_average_price - ?) < 0.01) OR
-                (psa10_price IS NOT NULL AND ABS(psa10_price - ?) < 0.01)
-            )
+            WHERE title = ?
             LIMIT 1
         `;
         
-        const row = await this.db.getQuery(query, [title, price, price, price]);
+        const row = await this.db.getQuery(query, [title]);
         return !!row;
     }
 
@@ -77,6 +73,18 @@ class FastBatchItemsPuller {
             const cardId = await this.db.addCard(cardData);
             return cardId;
         } catch (error) {
+            // Handle specific constraint errors
+            if (error.code === 'SQLITE_CONSTRAINT') {
+                if (error.message.includes('Card with this title already exists')) {
+                    console.log(`⚠️ Skipping duplicate card: "${cardData.title}"`);
+                } else if (error.message.includes('Valid year')) {
+                    console.log(`⚠️ Skipping card with invalid year: "${cardData.title}"`);
+                } else {
+                    console.log(`⚠️ Database constraint error for card: "${cardData.title}" - ${error.message}`);
+                }
+            } else {
+                console.log(`❌ Error adding card: "${cardData.title}" - ${error.message}`);
+            }
             return null;
         }
     }
