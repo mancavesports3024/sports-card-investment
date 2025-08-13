@@ -662,6 +662,16 @@ class DatabaseDrivenStandardizedTitleGenerator {
                     continue;
                 }
                 
+                // Skip "Chrome Prospects" if it's part of a Bowman product
+                if (valueLower === 'chrome prospects' && (productLower.includes('chrome prospects') || title.toLowerCase().includes('bowman chrome prospects'))) {
+                    continue;
+                }
+                
+                // Skip "Prospects" if it's part of a Bowman product
+                if (valueLower === 'prospects' && (productLower.includes('prospects') || title.toLowerCase().includes('bowman chrome prospects') || title.toLowerCase().includes('bowman prospects'))) {
+                    continue;
+                }
+                
                 // Skip "Chrome" if it's part of a Chrome product or if we have a Chrome product
                 if (valueLower === 'chrome' && (productLower.includes('chrome') || title.toLowerCase().includes('bowman chrome') || title.toLowerCase().includes('topps chrome'))) {
                     continue;
