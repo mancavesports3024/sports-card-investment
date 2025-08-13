@@ -241,6 +241,13 @@ class DatabaseDrivenStandardizedTitleGenerator {
 
     // Extract year from title
     extractYear(title) {
+        // First try to match year ranges like "1994-95"
+        const yearRangeMatch = title.match(/\b(19[0-9]{2}-[0-9]{2}|20[0-9]{2}-[0-9]{2})\b/);
+        if (yearRangeMatch) {
+            return yearRangeMatch[1];
+        }
+        
+        // Then try single years
         const yearMatch = title.match(/\b(19[0-9]{2}|20[0-9]{2})\b/);
         return yearMatch ? yearMatch[1] : null;
     }
@@ -252,6 +259,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
         // Define specific product patterns with priority
         const productPatterns = [
             // Most specific patterns first (longest first)
+            { pattern: 'bowman draft chrome 1st', product: 'Bowman Chrome Draft 1st' },
             { pattern: 'bowman chrome draft 1st', product: 'Bowman Chrome Draft 1st' },
             { pattern: 'bowman chrome prospects', product: 'Bowman Chrome Prospects' },
             { pattern: 'bowman chrome sapphire', product: 'Bowman Chrome Sapphire' },
@@ -296,7 +304,10 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'crown royale', product: 'Crown Royale' },
             { pattern: 'threads', product: 'Threads' },
             { pattern: 'prestige', product: 'Prestige' },
+            { pattern: 'chronicles wwe', product: 'Chronicles WWE' },
+            { pattern: 'chronicles', product: 'Chronicles' },
             { pattern: 'rookies & stars', product: 'Rookies & Stars' },
+            { pattern: 'flair', product: 'Flair' },
             { pattern: 'score', product: 'Score' },
             { pattern: 'leaf', product: 'Leaf' },
             { pattern: 'playoff', product: 'Playoff' },
@@ -420,7 +431,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
 
         // Add specific product names that might interfere with player extraction
         const productTerms = [
-            'bowman chrome draft 1st', 'bowman chrome prospects', 'bowman chrome sapphire', 'bowman university chrome', 'bowman u chrome', 'bowman chrome draft', 'bowman chrome', 'bowman draft', 'bowman sterling', 'bowman platinum', 'bowman university', 'bowman u',
+            'bowman draft chrome 1st', 'bowman chrome draft 1st', 'bowman chrome prospects', 'bowman chrome sapphire', 'bowman university chrome', 'bowman u chrome', 'bowman chrome draft', 'bowman chrome', 'bowman draft', 'bowman sterling', 'bowman platinum', 'bowman university', 'bowman u',
             'panini donruss optic', 'panini donruss', 'panini prizm', 'panini select', 'panini contenders', 'panini optic',
             'topps chrome', 'topps finest', 'topps heritage', 'topps archives', 'topps update',
             'upper deck sp', 'upper deck spx', 'upper deck exquisite', 'upper deck',
@@ -429,7 +440,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
             'rookies & stars', 'score', 'leaf', 'playoff', 'press pass', 'sage', 'pacific', 'skybox', 'metal',
             'gallery', 'heritage', 'gypsy queen', 'allen & ginter', 'archives', 'big league', 'fire', 'opening day',
             'series 1', 'series 2', 'chrome update', 'chrome refractor', 'chrome sapphire', 'chrome black',
-            'bowman', 'topps', 'panini', 'fleer', 'donruss', 'rated rookie', 'rated rookies', 'optic', 'kings', 'rookie kings',
+            'bowman', 'topps', 'panini', 'fleer', 'donruss', 'flair', 'chronicles', 'chronicles wwe', 'rated rookie', 'rated rookies', 'optic', 'kings', 'rookie kings',
             'rookies', 'rookie'
         ];
         
@@ -494,12 +505,18 @@ class DatabaseDrivenStandardizedTitleGenerator {
 
         // Look for player name patterns
         const patterns = [
+            // Handle quoted nicknames like "Hacksaw" Jim Duggan
+            /"([^"]+)"\s+([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
             // Handle names with periods like "J.J. MCCARTHY"
             /\b([A-Z]\.[A-Z]\.)\s+([A-Z]+)\b/g,
             // Handle initials like "CJ Kayfus"
             /\b([A-Z]{2,3})\s+([A-Z][a-z]+)\b/g,
             // Handle three-part names like "Shai Gilgeous-Alexander" first
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)-([A-Z][a-z]+)\b/g,
+            // Handle all-caps names with apostrophes like "SHAQUILLE O'NEAL"
+            /\b([A-Z]+'[A-Z]+)\s+([A-Z]+)\b/g,
+            // Handle all-caps names with apostrophes in second part like "SHAQUILLE O'NEAL"
+            /\b([A-Z]+)\s+([A-Z]+'[A-Z]+)\b/g,
             // Handle all-caps names like "PAUL SKENES"
             /\b([A-Z]+)\s+([A-Z]+)\b/g,
             // First Last pattern (most common)
@@ -535,6 +552,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
             /\b(Green Pulsar|Blue Pulsar|Red Pulsar|Purple Pulsar|Orange Pulsar|Pink Pulsar|Gold Pulsar|Silver Pulsar|Black Pulsar|White Pulsar|Sky Blue|Neon Green|Purple Pattern|Pink Pattern|Blue Pattern|Green Pattern|Yellow Pattern|Black Pattern|Red Pattern|Printing Plate|Checkerboard|X-Fractor|Cracked Ice|Atomic|Disco|Fast Break|No Huddle|Flash|Shock|Mojo|Mega|Scope|Shimmer|Wave|Multi Wave|Carved in Time|Lenticular|Synthesis|Outburst|Electric Ice|Ellipse|Color Wheel|Color Blast|Die-cut|National Landmarks|Stained Glass|Lava Lamp|Dazzle|Blue Velocity|Hyper Pink|Red Dragon|Laser|Liberty|Diamond Marvels|On Fire|Voltage|Career Stat Line|Alligator Crystal|Alligator Kaleidoscope|Alligator Mojo|Alligator Prismatic|Butterfly Crystal|Butterfly Kaleidoscope|Butterfly Mojo|Butterfly Prismatic|Chameleon Crystal|Chameleon Kaleidoscope|Chameleon Mojo|Chameleon Prismatic|Clown Fish Crystal|Clown Fish Kaleidoscope|Clown Fish Mojo|Clown Fish Prismatic|Deer Crystal|Deer Kaleidoscope|Deer Mojo|Deer Prismatic|Dragon Crystal|Dragon Kaleidoscope|Dragon Mojo|Dragon Prismatic|Elephant Crystal|Elephant Kaleidoscope|Elephant Mojo|Elephant Prismatic|Giraffe Crystal|Giraffe Kaleidoscope|Giraffe Mojo|Giraffe Prismatic|Leopard Crystal|Leopard Kaleidoscope|Leopard Mojo|Leopard Prismatic|Parrot Crystal|Parrot Kaleidoscope|Parrot Mojo|Parrot Prismatic|Peacock Crystal|Peacock Kaleidoscope|Peacock Mojo|Peacock Prismatic|Snake Crystal|Snake Kaleidoscope|Snake Mojo|Snake Prismatic|Tiger Crystal|Tiger Kaleidoscope|Tiger Mojo|Tiger Prismatic|Zebra Crystal|Zebra Kaleidoscope|Zebra Mojo|Zebra Prismatic|Tiger Eyes|Snake Eyes|100th Anniversary|Black Border|Flip Stock|Magenta|Mini Parallels|Chrome Refractor|Purple Refractor|Black Bordered Refractor|Gold Bordered Refractor|Superfractor|Zebra Prizm|Dragon Scale|Red Dragon|Peacock Prizm|Tiger Prizm|Giraffe Prizm|Elephant Prizm|Blue Ice|Silver Laser|Silver Mojo|Silver Scope|Teal Wave|Premium Set Checkerboard|Blue Laser|Blue Mojo|Green Flash|Blue Flash|Purple Flash|Purple Cracked Ice|Pink Flash|Gold Cracked Ice|Gold Flash|Gold Laser|Gold Mojo|Black Flash|Black Laser|Black Mojo|Gold Vinyl Premium Set|Vintage Stock|Red Stars|Independence Day|Father's Day Powder Blue|Mother's Day Hot Pink|Memorial Day Camo|Camo Pink Mosaic|Choice Peacock Mosaic|Fast Break Silver Mosaic|Genesis Mosaic|Green Mosaic|Reactive Blue Mosaic|Reactive Orange Mosaic|Red Mosaic|Blue Mosaic|Choice Red Fusion Mosaic|Fast Break Blue Mosaic|Fast Break Purple Mosaic|Purple Mosaic|Orange Fluorescent Mosaic|White Mosaic|Fast Break Pink Mosaic|Blue Fluorescent Mosaic|Pink Swirl Mosaic|Fast Break Gold Mosaic|Gold Mosaic|Green Swirl Mosaic|Pink Fluorescent Mosaic|Choice Black Gold Mosaic|Black Mosaic|Choice Nebula Mosaic|Fast Break Black Mosaic|Black Pulsar Prizm|Blue Prizm|Blue Cracked Ice Prizm|Blue Pulsar Prizm|Blue Wave Prizm|Flash Prizm|Gold Pulsar Prizm|Green Prizm|Green Cracked Ice Prizm|Green Pulsar Prizm|Green Shimmer Prizm|Pulsar Prizm|Purple Disco Prizm|Red Prizm|Red Cracked Ice Prizm|Red Flash Prizm|Red Pulsar Prizm|Red Wave Prizm|Silver Prizm|Silver Laser Prizm|Silver Mojo Prizm|Silver Scope Prizm|Teal Prizm|Teal Wave Prizm|Premium Set Checkerboard Prizm|Blue Laser Prizm|Blue Mojo Prizm|Green Flash Prizm|Blue Flash Prizm|Purple Flash Prizm|Purple Cracked Ice Prizm|Pink Flash Prizm|Gold Cracked Ice Prizm|Gold Flash Prizm|Gold Laser Prizm|Gold Mojo Prizm|Black Flash Prizm|Black Laser Prizm|Black Mojo Prizm|Gold Vinyl Premium Set Prizm)\b/gi,
             // Comprehensive card types and colors (but exclude product terms) - expanded from Sundo Cards guide
             /\b(Red|Blue|Green|Yellow|Orange|Purple|Pink|Gold|Silver|Bronze|Black|White|Rainbow|Prism|Holo|Holographic|Refractor|Sapphire|Emerald|Ruby|Diamond|Platinum|Titanium|Carbon|Finest|Prizm|Select|Optic|Contenders|National|Treasures|Flawless|Immaculate|Limited|Certified|Elite|Absolute|Spectra|Phoenix|Playbook|Momentum|Totally|Crown|Royale|Threads|Prestige|Rookies|Stars|Score|Leaf|Playoff|Press|Pass|Sage|Game|Pacific|Skybox|Metal|Stadium|Club|Gallery|Heritage|Gypsy|Queen|Allen|Ginter|Archives|Big|League|Fire|Opening|Day|Update|Series|Draft|Sterling|Platinum|SP|SPx|Exquisite|Lunar Glow|Wave|Holo|Holographic|Pulsar|Fuchsia|Pattern|Plate|Checkerboard|X-Fractor|Cracked|Ice|Atomic|Disco|Fast|Break|Huddle|Flash|Shock|Mojo|Mega|Scope|Shimmer|Multi|Carved|Time|Lenticular|Synthesis|Outburst|Electric|Ellipse|Wheel|Blast|Die|Cut|Landmarks|Stained|Glass|Lava|Lamp|Dazzle|Velocity|Hyper|Dragon|Laser|Liberty|Marvels|Fire|Voltage|Career|Stat|Line|Alligator|Kaleidoscope|Prismatic|Butterfly|Chameleon|Clown|Fish|Deer|Elephant|Giraffe|Leopard|Parrot|Peacock|Snake|Tiger|Zebra|Eyes|Anniversary|Border|Flip|Stock|Magenta|Mini|Parallels|Bordered|Superfractor|Scale|Vintage|Stars|Independence|Father|Mother|Memorial|Camo|Choice|Fusion|Nebula|Reactive|Fluorescent|Swirl|Vinyl|Premium|Set|Cyan|Yellow|Magenta)\b/gi,
+            // Bowman Draft card numbers (BDP, BDC, etc.)
+            /\b(BD[A-Z]?\d+)\b/g,
             // Card numbers with # symbol (including alphanumeric)
             /#[A-Z0-9-]+/g,
             // Print run numbers (like /150, /5)
