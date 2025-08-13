@@ -262,6 +262,21 @@ class FastBatchItemsPuller {
                 }
             }
             
+            // Calculate multipliers for new cards
+            if (totalNewItems > 0) {
+                console.log('🧮 Calculating multipliers for new cards...');
+                try {
+                    const { MultiplierFieldAdder } = require('./add-multiplier-field.js');
+                    const adder = new MultiplierFieldAdder();
+                    await adder.connect();
+                    await adder.calculateMultipliers();
+                    await adder.close();
+                    console.log('✅ Multiplier calculation completed');
+                } catch (multiplierError) {
+                    console.log(`⚠️ Error calculating multipliers: ${multiplierError.message}`);
+                }
+            }
+            
             // Get final stats
             const stats = await this.db.getDatabaseStats();
             

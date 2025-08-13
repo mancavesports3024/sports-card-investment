@@ -270,6 +270,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'bowman university chrome', product: 'Bowman University Chrome' },
             { pattern: 'bowman u chrome', product: 'Bowman University Chrome' },
             { pattern: 'panini donruss optic', product: 'Panini Donruss Optic' },
+            { pattern: 'donruss optic', product: 'Donruss Optic' },
             { pattern: 'panini donruss', product: 'Panini Donruss' },
             { pattern: 'bowman chrome draft', product: 'Bowman Chrome Draft' },
             { pattern: 'bowman chrome', product: 'Bowman Chrome' },
@@ -284,6 +285,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'nscc', product: 'NSCC' },
             { pattern: 'uefa', product: 'UEFA' },
             { pattern: 'topps chrome', product: 'Topps Chrome' },
+            { pattern: 'topps basketball', product: 'Topps' },
             { pattern: 'topps finest', product: 'Topps Finest' },
             { pattern: 'topps heritage', product: 'Topps Heritage' },
             { pattern: 'topps archives', product: 'Topps Archives' },
@@ -291,6 +293,9 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'panini prizm wnba', product: 'Panini Prizm WNBA' },
             { pattern: 'panini instant wnba', product: 'Panini Instant WNBA' },
             { pattern: 'prizm monopoly wnba', product: 'Prizm Monopoly WNBA' },
+            { pattern: 'one and one', product: 'One and One' },
+            { pattern: 'road to uefa euro', product: 'Road To UEFA Euro' },
+            { pattern: 'usa basketball', product: 'USA Basketball' },
             { pattern: 'panini prizm', product: 'Panini Prizm' },
             { pattern: 'panini select', product: 'Panini Select' },
             { pattern: 'panini contenders', product: 'Panini Contenders' },
@@ -331,6 +336,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'pacific', product: 'Pacific' },
 
             { pattern: 'skybox', product: 'Skybox' },
+            { pattern: 'downtown', product: 'Downtown' },
             { pattern: 'metal', product: 'Metal' },
             { pattern: 'gallery', product: 'Gallery' },
             { pattern: 'heritage', product: 'Heritage' },
@@ -505,7 +511,9 @@ class DatabaseDrivenStandardizedTitleGenerator {
             // Mosaic patterns
             'camo pink mosaic', 'choice peacock mosaic', 'fast break silver mosaic', 'genesis mosaic', 'green mosaic', 'reactive blue mosaic', 'reactive orange mosaic', 'red mosaic', 'blue mosaic', 'choice red fusion mosaic', 'fast break blue mosaic', 'fast break purple mosaic', 'purple mosaic', 'orange fluorescent mosaic', 'white mosaic', 'fast break pink mosaic', 'blue fluorescent mosaic', 'pink swirl mosaic', 'fast break gold mosaic', 'gold mosaic', 'green swirl mosaic', 'pink fluorescent mosaic', 'choice black gold mosaic', 'black mosaic', 'choice nebula mosaic', 'fast break black mosaic',
             // NBA Hoops Prizm patterns
-            'black pulsar prizm', 'blue prizm', 'blue cracked ice prizm', 'blue pulsar prizm', 'blue wave prizm', 'flash prizm', 'gold pulsar prizm', 'green prizm', 'green cracked ice prizm', 'green pulsar prizm', 'green shimmer prizm', 'pulsar prizm', 'purple disco prizm', 'red prizm', 'red cracked ice prizm', 'red flash prizm', 'red pulsar prizm', 'red wave prizm', 'silver prizm', 'silver laser prizm', 'silver mojo prizm', 'silver scope prizm', 'teal prizm', 'teal wave prizm', 'premium set checkerboard prizm', 'blue laser prizm', 'blue mojo prizm', 'green flash prizm', 'blue flash prizm', 'purple flash prizm', 'purple cracked ice prizm', 'pink flash prizm', 'gold cracked ice prizm', 'gold flash prizm', 'gold laser prizm', 'gold mojo prizm', 'black flash prizm', 'black laser prizm', 'black mojo prizm', 'gold vinyl premium set prizm'
+            'black pulsar prizm', 'blue prizm', 'blue cracked ice prizm', 'blue pulsar prizm', 'blue wave prizm', 'flash prizm', 'gold pulsar prizm', 'green prizm', 'green cracked ice prizm', 'green pulsar prizm', 'green shimmer prizm', 'pulsar prizm', 'purple disco prizm', 'red prizm', 'red cracked ice prizm', 'red flash prizm', 'red pulsar prizm', 'red wave prizm', 'silver prizm', 'silver laser prizm', 'silver mojo prizm', 'silver scope prizm', 'teal prizm', 'teal wave prizm', 'premium set checkerboard prizm', 'blue laser prizm', 'blue mojo prizm', 'green flash prizm', 'blue flash prizm', 'purple flash prizm', 'purple cracked ice prizm', 'pink flash prizm', 'gold cracked ice prizm', 'gold flash prizm', 'gold laser prizm', 'gold mojo prizm', 'black flash prizm', 'black laser prizm', 'black mojo prizm', 'gold vinyl premium set prizm',
+            // Additional terms that are being incorrectly included in player names
+            'chrome', 'refractor', 'draft', 'helmet', 'heroes', 'sapphire', 'optic', 'hit', 'basketball', 'one and one', 'downtown', 'road to uefa euro', 'usa basketball', 'downtown', 'skybox'
         ];
         
         removeTerms.push(...productTerms);
@@ -529,7 +537,9 @@ class DatabaseDrivenStandardizedTitleGenerator {
             // Stadium names (excluding card products like "Stadium Club")
             'Jack Murphy Stadium', 'Petco Park', 'Fenway Park', 'Wrigley Field', 'Yankee Stadium', 'Dodger Stadium', 'Oracle Park', 'Coors Field', 'Minute Maid Park', 'Globe Life Field', 'Truist Park', 'LoanDepot Park', 'Citi Field', 'Citizens Bank Park', 'Nationals Park', 'Guaranteed Rate Field', 'Progressive Field', 'Comerica Park', 'Kauffman Stadium', 'Target Field', 'Angel Stadium', 'RingCentral Coliseum', 'T-Mobile Park', 'Rogers Centre', 'Camden Yards', 'Tropicana Field',
             // Cities and locations
-            'Buffalo', 'Miami', 'New England', 'New York', 'Baltimore', 'Cincinnati', 'Cleveland', 'Pittsburgh', 'Houston', 'Indianapolis', 'Jacksonville', 'Tennessee', 'Denver', 'Kansas City', 'Las Vegas', 'Los Angeles', 'Dallas', 'Philadelphia', 'Washington', 'Chicago', 'Detroit', 'Green Bay', 'Minnesota', 'Atlanta', 'Carolina', 'New Orleans', 'Tampa Bay', 'Arizona', 'San Francisco', 'Seattle', 'Boston', 'Toronto', 'Oakland', 'Texas', 'Colorado', 'San Diego', 'St. Louis', 'Milwaukee', 'Sacramento', 'Utah', 'Anaheim', 'Calgary', 'Columbus', 'Edmonton', 'Florida', 'Montreal', 'Nashville', 'New Jersey', 'Ottawa', 'Vancouver', 'Vegas', 'Winnipeg'
+            'Buffalo', 'Miami', 'New England', 'New York', 'Baltimore', 'Cincinnati', 'Cleveland', 'Pittsburgh', 'Houston', 'Indianapolis', 'Jacksonville', 'Tennessee', 'Denver', 'Kansas City', 'Las Vegas', 'Los Angeles', 'Dallas', 'Philadelphia', 'Washington', 'Chicago', 'Detroit', 'Green Bay', 'Minnesota', 'Atlanta', 'Carolina', 'New Orleans', 'Tampa Bay', 'Arizona', 'San Francisco', 'Seattle', 'Boston', 'Toronto', 'Oakland', 'Texas', 'Colorado', 'San Diego', 'St. Louis', 'Milwaukee', 'Sacramento', 'Utah', 'Anaheim', 'Calgary', 'Columbus', 'Edmonton', 'Florida', 'Montreal', 'Nashville', 'New Jersey', 'Ottawa', 'Vancouver', 'Vegas', 'Winnipeg',
+            // Additional terms that should be filtered out
+            'Downtown', 'Lakers'
         ];
         
         removeTerms.push(...teamAndStadiumTerms);
@@ -576,6 +586,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
             /\b([A-Z]{2,3})\s+([A-Z][a-z]+)\b/g,
             // Handle three-part names like "Shai Gilgeous-Alexander" first
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)-([A-Z][a-z]+)\b/g,
+            // Handle names with apostrophes in first part like "De'Von Achane"
+            /\b([A-Z][a-z]+'[A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
             // Handle all-caps names with apostrophes like "SHAQUILLE O'NEAL"
             /\b([A-Z]+'[A-Z]+)\s+([A-Z]+)\b/g,
             // Handle all-caps names with apostrophes in second part like "SHAQUILLE O'NEAL"
@@ -587,7 +599,6 @@ class DatabaseDrivenStandardizedTitleGenerator {
             // First Last pattern (most common)
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
             // Handle special cases like "LeBron James", "De'Aaron Fox"
-            /\b([A-Z][a-z]+'[A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]+'[A-Z][a-z]+)\b/g
         ];
 
@@ -616,13 +627,15 @@ class DatabaseDrivenStandardizedTitleGenerator {
             // Multi-word card types (check these first) - from Sundo Cards guide
             /\b(Green Pulsar|Blue Pulsar|Red Pulsar|Purple Pulsar|Orange Pulsar|Pink Pulsar|Gold Pulsar|Silver Pulsar|Black Pulsar|White Pulsar|Sky Blue|Neon Green|Purple Pattern|Pink Pattern|Blue Pattern|Green Pattern|Yellow Pattern|Black Pattern|Red Pattern|Printing Plate|Checkerboard|X-Fractor|Cracked Ice|Atomic|Disco|Fast Break|No Huddle|Flash|Shock|Mojo|Mega|Scope|Shimmer|Wave|Multi Wave|Carved in Time|Lenticular|Synthesis|Outburst|Electric Ice|Ellipse|Color Wheel|Color Blast|Die-cut|National Landmarks|Stained Glass|Lava Lamp|Dazzle|Blue Velocity|Hyper Pink|Red Dragon|Laser|Liberty|Diamond Marvels|On Fire|Voltage|Career Stat Line|Alligator Crystal|Alligator Kaleidoscope|Alligator Mojo|Alligator Prismatic|Butterfly Crystal|Butterfly Kaleidoscope|Butterfly Mojo|Butterfly Prismatic|Chameleon Crystal|Chameleon Kaleidoscope|Chameleon Mojo|Chameleon Prismatic|Clown Fish Crystal|Clown Fish Kaleidoscope|Clown Fish Mojo|Clown Fish Prismatic|Deer Crystal|Deer Kaleidoscope|Deer Mojo|Deer Prismatic|Dragon Crystal|Dragon Kaleidoscope|Dragon Mojo|Dragon Prismatic|Elephant Crystal|Elephant Kaleidoscope|Elephant Mojo|Elephant Prismatic|Giraffe Crystal|Giraffe Kaleidoscope|Giraffe Mojo|Giraffe Prismatic|Leopard Crystal|Leopard Kaleidoscope|Leopard Mojo|Leopard Prismatic|Parrot Crystal|Parrot Kaleidoscope|Parrot Mojo|Parrot Prismatic|Peacock Crystal|Peacock Kaleidoscope|Peacock Mojo|Peacock Prismatic|Snake Crystal|Snake Kaleidoscope|Snake Mojo|Snake Prismatic|Tiger Crystal|Tiger Kaleidoscope|Tiger Mojo|Tiger Prismatic|Zebra Crystal|Zebra Kaleidoscope|Zebra Mojo|Zebra Prismatic|Tiger Eyes|Snake Eyes|100th Anniversary|Black Border|Flip Stock|Magenta|Mini Parallels|Chrome Refractor|Purple Refractor|Black Bordered Refractor|Gold Bordered Refractor|Superfractor|Zebra Prizm|Dragon Scale|Red Dragon|Peacock Prizm|Tiger Prizm|Giraffe Prizm|Elephant Prizm|Blue Ice|Silver Laser|Silver Mojo|Silver Scope|Teal Wave|Premium Set Checkerboard|Blue Laser|Blue Mojo|Green Flash|Blue Flash|Purple Flash|Purple Cracked Ice|Pink Flash|Gold Cracked Ice|Gold Flash|Gold Laser|Gold Mojo|Black Flash|Black Laser|Black Mojo|Gold Vinyl Premium Set|Vintage Stock|Red Stars|Independence Day|Father's Day Powder Blue|Mother's Day Hot Pink|Memorial Day Camo|Camo Pink Mosaic|Choice Peacock Mosaic|Fast Break Silver Mosaic|Genesis Mosaic|Green Mosaic|Reactive Blue Mosaic|Reactive Orange Mosaic|Red Mosaic|Blue Mosaic|Choice Red Fusion Mosaic|Fast Break Blue Mosaic|Fast Break Purple Mosaic|Purple Mosaic|Orange Fluorescent Mosaic|White Mosaic|Fast Break Pink Mosaic|Blue Fluorescent Mosaic|Pink Swirl Mosaic|Fast Break Gold Mosaic|Gold Mosaic|Green Swirl Mosaic|Pink Fluorescent Mosaic|Choice Black Gold Mosaic|Black Mosaic|Choice Nebula Mosaic|Fast Break Black Mosaic|Black Pulsar Prizm|Blue Prizm|Blue Cracked Ice Prizm|Blue Pulsar Prizm|Blue Wave Prizm|Flash Prizm|Gold Pulsar Prizm|Green Prizm|Green Cracked Ice Prizm|Green Pulsar Prizm|Green Shimmer Prizm|Pulsar Prizm|Purple Disco Prizm|Red Prizm|Red Cracked Ice Prizm|Red Flash Prizm|Red Pulsar Prizm|Red Wave Prizm|Silver Prizm|Silver Laser Prizm|Silver Mojo Prizm|Silver Scope Prizm|Teal Prizm|Teal Wave Prizm|Premium Set Checkerboard Prizm|Blue Laser Prizm|Blue Mojo Prizm|Green Flash Prizm|Blue Flash Prizm|Purple Flash Prizm|Purple Cracked Ice Prizm|Pink Flash Prizm|Gold Cracked Ice Prizm|Gold Flash Prizm|Gold Laser Prizm|Gold Mojo Prizm|Black Flash Prizm|Black Laser Prizm|Black Mojo Prizm|Gold Vinyl Premium Set Prizm|Helmet Heroes)\b/gi,
             // Comprehensive card types and colors (but exclude product terms) - expanded from Sundo Cards guide
-            /\b(Red|Blue|Green|Yellow|Orange|Purple|Pink|Gold|Silver|Bronze|Black|White|Rainbow|Prism|Holo|Holographic|Refractor|Sapphire|Emerald|Ruby|Diamond|Platinum|Titanium|Carbon|Prizm|Select|Optic|Contenders|National|Treasures|Flawless|Immaculate|Limited|Certified|Elite|Absolute|Spectra|Phoenix|Playbook|Momentum|Totally|Crown|Royale|Threads|Prestige|Rookies|Stars|Score|Leaf|Playoff|Press|Pass|Sage|Game|Pacific|Skybox|Metal|Stadium|Club|Gallery|Heritage|Gypsy|Queen|Allen|Ginter|Archives|Big|League|Fire|Opening|Day|Update|Series|Draft|Sterling|Platinum|SP|SPx|Exquisite|Lunar Glow|Wave|Holo|Holographic|Pulsar|Fuchsia|Pattern|Plate|Checkerboard|X-Fractor|Cracked|Ice|Atomic|Disco|Fast|Break|Huddle|Flash|Shock|Mojo|Mega|Scope|Shimmer|Multi|Carved|Time|Lenticular|Synthesis|Outburst|Electric|Ellipse|Wheel|Blast|Die|Cut|Landmarks|Stained|Glass|Lava|Lamp|Dazzle|Velocity|Hyper|Dragon|Laser|Liberty|Marvels|Fire|Voltage|Career|Stat|Line|Alligator|Kaleidoscope|Prismatic|Butterfly|Chameleon|Clown|Fish|Deer|Elephant|Giraffe|Leopard|Parrot|Peacock|Snake|Tiger|Zebra|Eyes|Anniversary|Border|Flip|Stock|Magenta|Mini|Parallels|Bordered|Superfractor|Scale|Vintage|Stars|Independence|Father|Mother|Memorial|Camo|Choice|Fusion|Nebula|Reactive|Fluorescent|Swirl|Vinyl|Premium|Set|Cyan|Yellow|Magenta)\b/gi,
-            // Bowman Draft card numbers (BDP, BDC, etc.)
+            /\b(Red|Blue|Green|Yellow|Orange|Purple|Pink|Gold|Silver|Bronze|Black|White|Rainbow|Prism|Holo|Holographic|Refractor|Sapphire|Emerald|Ruby|Diamond|Platinum|Titanium|Carbon|Prizm|Select|Optic|Contenders|National|Treasures|Flawless|Immaculate|Limited|Certified|Elite|Absolute|Spectra|Phoenix|Playbook|Momentum|Totally|Crown|Royale|Threads|Prestige|Rookies|Stars|Score|Leaf|Playoff|Press|Pass|Sage|Game|Pacific|Skybox|Metal|Stadium|Club|Gallery|Heritage|Gypsy|Queen|Allen|Ginter|Archives|Big|League|Fire|Opening|Day|Update|Series|Draft|Sterling|Platinum|SP|SPx|Exquisite|Lunar Glow|Wave|Holo|Holographic|Pulsar|Fuchsia|Pattern|Plate|Checkerboard|X-Fractor|Cracked|Ice|Atomic|Disco|Fast|Break|Huddle|Flash|Shock|Mojo|Mega|Scope|Shimmer|Multi|Carved|Time|Lenticular|Synthesis|Outburst|Electric|Ellipse|Wheel|Blast|Die|Cut|Landmarks|Stained|Glass|Lava|Lamp|Dazzle|Velocity|Hyper|Dragon|Laser|Liberty|Marvels|Fire|Voltage|Career|Stat|Line|Alligator|Kaleidoscope|Prismatic|Butterfly|Chameleon|Clown|Fish|Deer|Elephant|Giraffe|Leopard|Parrot|Peacock|Snake|Tiger|Zebra|Eyes|Anniversary|Border|Flip|Stock|Magenta|Mini|Parallels|Bordered|Superfractor|Scale|Vintage|Stars|Independence|Father|Mother|Memorial|Camo|Choice|Fusion|Nebula|Reactive|Fluorescent|Swirl|Vinyl|Premium|Set|Cyan|Yellow|Magenta|Downtown)\b/gi,
+            // Bowman Draft card numbers (BDP, BDC, CDA, etc.)
             /\b(BD[A-Z]?\d+)\b/g,
-            // Card numbers with # symbol (including alphanumeric) - but exclude SSP and numbers with letters
-            /#(?!SSP)(?!\d+[A-Za-z])[A-Z0-9-]+/g,
-            // Card numbers with # symbol followed by letters (like #17hh) - check this after the general pattern
+            // Card numbers with # symbol followed by letters and hyphens (like #BDC-168, #CDA-LK, #17hh) - check this first
+            /#[A-Za-z]+[-\dA-Za-z]+/g,
+            // Card numbers with # symbol followed by letters (like #17hh)
             /#\d+[A-Za-z]+/g,
+            // Card numbers with # symbol followed by pure numbers (like #168, #123)
+            /#(?!SSP)\d+/g,
             // Print run numbers (like /150, /5)
             /\/(\d+)\b/g,
             // Standalone card numbers (but exclude PSA grades and POP numbers)
@@ -672,7 +685,19 @@ class DatabaseDrivenStandardizedTitleGenerator {
                 // Skip if this number appears right after a / (print run)
                 const beforeNumber = title.substring(0, title.indexOf(value));
                 if (beforeNumber.endsWith('/') || beforeNumber.endsWith('/ ')) {
-                    continue;
+                    // But don't skip if it's a card number with letters (like #CDA-LK)
+                    if (!value.startsWith('#') || !value.match(/^#[A-Za-z]/)) {
+                        continue;
+                    }
+                }
+                
+                // Skip standalone numbers that are part of card numbers (like "168" in "#BDC-168")
+                if (value.match(/^\d+$/)) {
+                    // Check if this number appears in any card number pattern
+                    const cardNumberPattern = new RegExp(`#[A-Za-z0-9-]*${value}[A-Za-z0-9-]*`, 'g');
+                    if (cardNumberPattern.test(title)) {
+                        continue;
+                    }
                 }
                 
                 // Skip if this term is part of the product name
@@ -718,6 +743,23 @@ class DatabaseDrivenStandardizedTitleGenerator {
                     continue;
                 }
                 
+                // Skip "Draft" if it appears in multi-word patterns and the product already has "Draft"
+                if (value.includes(' ') && value.toLowerCase().includes('draft') && productLower && productLower.includes('draft')) {
+                    // Extract the non-Draft part of the pattern
+                    const nonDraftParts = value.split(' ').filter(word => word.toLowerCase() !== 'draft');
+                    if (nonDraftParts.length > 0) {
+                        // Add only the non-Draft parts
+                        const nonDraftValue = nonDraftParts.join(' ');
+                        if (!foundTerms.has(nonDraftValue)) {
+                            found.push(nonDraftValue);
+                            foundTerms.add(nonDraftValue);
+                            // Mark individual words as used
+                            nonDraftParts.forEach(word => usedWords.add(word.toLowerCase()));
+                        }
+                    }
+                    continue;
+                }
+                
                 // Skip terms that should be excluded from summary titles
                 if (['SP', 'sp', 'SSP', 'ssp'].includes(value)) {
                     continue;
@@ -744,6 +786,20 @@ class DatabaseDrivenStandardizedTitleGenerator {
                 // Skip if we've already found this exact term
                 if (foundTerms.has(value)) {
                     continue;
+                }
+                
+                // Skip if this is a subset of an already found term (e.g., skip #168 if #BDC-168 is already found)
+                if (value.startsWith('#')) {
+                    let skipThis = false;
+                    for (const foundTerm of foundTerms) {
+                        if (foundTerm.startsWith('#') && foundTerm.length > value.length && foundTerm.includes(value.substring(1))) {
+                            skipThis = true;
+                            break;
+                        }
+                    }
+                    if (skipThis) {
+                        continue;
+                    }
                 }
                 
                 // Skip if we've already found this number with # formatting
