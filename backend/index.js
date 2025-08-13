@@ -2771,5 +2771,35 @@ app.post('/api/update-sports-improved-detection', async (req, res) => {
     }
 });
 
+// POST /api/update-sports-standardized-titles - Update sports using standardized title player extraction
+app.post('/api/update-sports-standardized-titles', async (req, res) => {
+    try {
+        console.log('🔄 Starting sport detection update using standardized title player extraction...');
+        
+        const { SportsUpdaterWithStandardizedTitles } = require('./update-sports-with-standardized-titles.js');
+        const updater = new SportsUpdaterWithStandardizedTitles();
+        
+        await updater.connect();
+        const result = await updater.updateSportsWithStandardizedTitles();
+        
+        console.log('✅ Sport detection update with standardized titles completed successfully');
+        res.json({ 
+            success: true, 
+            message: 'Sport detection update with standardized titles completed successfully',
+            results: result,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Sport detection update with standardized titles failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Sport detection update with standardized titles failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Initialize token refresh on startup
 initializeServer().catch(console.error);
