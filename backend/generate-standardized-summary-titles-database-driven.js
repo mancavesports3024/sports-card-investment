@@ -291,6 +291,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'upper deck spx', product: 'Upper Deck SPx' },
             { pattern: 'upper deck exquisite', product: 'Upper Deck Exquisite' },
             { pattern: 'upper deck', product: 'Upper Deck' },
+            { pattern: 'topps stadium club chrome', product: 'Topps Stadium Club Chrome' },
+            { pattern: 'stadium club chrome', product: 'Stadium Club Chrome' },
             { pattern: 'stadium club', product: 'Stadium Club' },
             { pattern: 'national treasures', product: 'National Treasures' },
             { pattern: 'flawless', product: 'Flawless' },
@@ -581,6 +583,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
             /#[A-Z0-9-]+/g,
             // Print run numbers (like /150, /5)
             /\/(\d+)\b/g,
+            // Standalone card numbers (but exclude PSA grades and POP numbers)
+            /\b(\d{1,3})\b/g,
             // Special editions
             /\b(1st Edition|First Edition|Limited Edition|Special Edition|Anniversary|Century|Millennium|Legacy|Legendary|Iconic|Epic|Rare|Ultra Rare|Secret Rare|Common|Uncommon|Rare|Mythic|Legendary)\b/gi
         ];
@@ -592,9 +596,22 @@ class DatabaseDrivenStandardizedTitleGenerator {
         for (const pattern of patterns) {
             const matches = [...title.matchAll(pattern)];
             for (const match of matches) {
-                // Skip PSA grades and year fragments
+                // Skip PSA grades, year fragments, and POP numbers
                 const value = match[0];
-                if (value === '10' || value === '23' || value === '2022' || value === '2023' || value === '2024') {
+                const titleLower = title.toLowerCase();
+                
+                // Skip PSA grades (10, 9, 8, etc.)
+                if (value === '10' || value === '9' || value === '8' || value === '7' || value === '6' || value === '5' || value === '4' || value === '3' || value === '2' || value === '1') {
+                    // Check if it's near PSA or POP keywords
+                    const beforePSA = titleLower.includes('psa ' + value) || titleLower.includes('psa' + value);
+                    const beforePOP = titleLower.includes('pop ' + value) || titleLower.includes('pop' + value);
+                    if (beforePSA || beforePOP) {
+                        continue;
+                    }
+                }
+                
+                // Skip year fragments
+                if (value === '23' || value === '2022' || value === '2023' || value === '2024' || value === '2025') {
                     continue;
                 }
                 
@@ -636,6 +653,16 @@ class DatabaseDrivenStandardizedTitleGenerator {
                     continue;
                 }
                 
+                // Skip if we've already found this number with # formatting
+                if (value.match(/^\d{1,3}$/) && foundTerms.has('#' + value)) {
+                    continue;
+                }
+                
+                // Skip if we've already found this number without # formatting
+                if (value.startsWith('#') && foundTerms.has(value.substring(1))) {
+                    continue;
+                }
+                
                 // Check if this is a multi-word pattern (contains space)
                 if (value.includes(' ')) {
                     // Add the full multi-word term
@@ -647,8 +674,14 @@ class DatabaseDrivenStandardizedTitleGenerator {
                 } else {
                     // For single words, check if they were already used in a multi-word pattern
                     if (!usedWords.has(value.toLowerCase())) {
-                        found.push(match[0]);
-                        foundTerms.add(value);
+                        // Add # formatting to standalone card numbers (1-3 digits)
+                        if (/^\d{1,3}$/.test(value) && !value.startsWith('#')) {
+                            found.push('#' + value);
+                            foundTerms.add('#' + value);
+                        } else {
+                            found.push(match[0]);
+                            foundTerms.add(value);
+                        }
                     }
                 }
             }
