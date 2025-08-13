@@ -559,7 +559,7 @@ const SearchPage = () => {
             return (
               <div key={`${card.id || index}-${card.title}`} className="card-item" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 1.2rem', minWidth: 300, maxWidth: 340, fontSize: '0.97em', marginBottom: 0 }}>
                                   <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', width: '100%', overflow: 'visible' }}>
-                  <div style={{ fontWeight: 600, fontSize: '0.85em', marginBottom: 2, color: '#000000', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: '1.2', minHeight: '2.4em', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', overflow: 'visible', width: '100%', borderBottom: '1px solid #ffd700', paddingBottom: '0.5rem', textOverflow: 'clip', wordWrap: 'break-word', overflowWrap: 'break-word' }}>{card.standardizedTitle || card.title}</div>
+                  <div className="custom-card-title">{card.standardizedTitle || card.title}</div>
                   {/* Always show listed price if present, directly below title */}
                   {card.listPrice && (
                     <div className="card-list-price" style={{ fontSize: '0.93em', color: '#b00', textDecoration: 'line-through', fontWeight: 500 }}>

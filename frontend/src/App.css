@@ -3655,3 +3655,27 @@
 .mobile-ad {
   min-height: 100px; /* Match the fixed height in AdSense components */
 }
+
+/* Custom card title styles to fix text wrapping and alignment */
+.custom-card-title {
+  font-weight: 600 !important;
+  font-size: 0.85em !important;
+  margin-bottom: 2px !important;
+  color: #000000 !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  line-height: 1.2 !important;
+  min-height: 2.4em !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  overflow: visible !important;
+  width: 100% !important;
+  border-bottom: 1px solid #ffd700 !important;
+  padding-bottom: 0.5rem !important;
+  text-overflow: clip !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
