@@ -123,6 +123,9 @@ class SportsUpdaterWithStandardizedTitles {
         console.log('🔄 Starting sport detection update using standardized title player extraction...\n');
 
         try {
+            // Connect to database first
+            await this.connect();
+            
             // Initialize title generator
             await this.initializeTitleGenerator();
 
