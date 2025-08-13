@@ -563,21 +563,21 @@ const SearchPage = () => {
                   {/* Price row - listed price on left, sold price on right */}
                   <div style={{ display: 'flex', justifyContent: card.listPrice ? 'space-between' : 'flex-start', alignItems: 'center', width: '100%' }}>
                     {card.listPrice && (
-                      <div className="card-list-price" style={{ fontSize: '0.93em', color: '#b00', textDecoration: 'line-through', fontWeight: 500 }}>
+                      <div className="custom-card-list-price">
                         ${Number(card.listPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </div>
                     )}
-                    <div className="card-price" style={{ fontSize: '0.98em', color: '#222', fontWeight: 'bold' }}>{formatPrice(card.price)}</div>
+                    <div className="custom-card-price">{formatPrice(card.price)}</div>
                   </div>
                   {/* Sale type (auction/fixed/etc.) */}
                   {card.saleType && (
-                    <div className="card-sale-type" style={{ fontSize: '0.85em', color: '#28a745', fontWeight: 600, backgroundColor: '#d4edda', padding: '1px 4px', borderRadius: 3, border: '1px solid #c3e6cb', alignSelf: 'flex-start' }}>{card.saleType}</div>
+                    <div className="custom-card-sale-type">{card.saleType}</div>
                   )}
                   {/* Bid count below sale type, above sold date/time */}
                   {card.numBids && (
                     <div className="card-bids" style={{ fontSize: '0.85em', color: '#856404', backgroundColor: '#fff3cd', padding: '1px 4px', borderRadius: 3, border: '1px solid #ffeaa7', alignSelf: 'flex-start' }}>Bids: {card.numBids}</div>
                   )}
-                  <div className="card-date" style={{ fontSize: '0.93em', color: '#888' }}>Sold: {formatDate(card.soldDate)}</div>
+                  <div className="custom-card-date">Sold: {formatDate(card.soldDate)}</div>
                   {card.seller && card.seller !== '130point' && (
                     <div className="card-seller" style={{ fontSize: '0.85em', color: '#666' }}>Via: {card.seller}</div>
                   )}
@@ -587,7 +587,7 @@ const SearchPage = () => {
                     const match = card.itemWebUrl.match(/\/itm\/(\d{6,})|\/(\d{6,})(?:\?.*)?$/);
                     const itemNum = match ? (match[1] || match[2]) : null;
                     return itemNum ? (
-                      <div className="card-item-number" style={{ fontSize: '0.85em', color: '#aaa', marginTop: 2 }}>
+                      <div className="custom-card-item-number">
                         Item: {itemNum}
                       </div>
                     ) : null;

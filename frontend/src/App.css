@@ -3679,3 +3679,53 @@
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
+
+/* Custom card price styles to fix alignment */
+.custom-card-price {
+  font-size: 0.98em !important;
+  font-weight: bold !important;
+  color: #222 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-shadow: none !important;
+}
+
+/* Custom card list price styles */
+.custom-card-list-price {
+  font-size: 0.93em !important;
+  color: #b00 !important;
+  text-decoration: line-through !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Custom card sale type styles */
+.custom-card-sale-type {
+  font-size: 0.85em !important;
+  color: #28a745 !important;
+  font-weight: 600 !important;
+  background-color: #d4edda !important;
+  padding: 1px 4px !important;
+  border-radius: 3px !important;
+  border: 1px solid #c3e6cb !important;
+  align-self: flex-start !important;
+  margin: 0 !important;
+}
+
+/* Custom card date styles */
+.custom-card-date {
+  font-size: 0.93em !important;
+  color: #888 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Custom card item number styles */
+.custom-card-item-number {
+  font-size: 0.85em !important;
+  color: #aaa !important;
+  margin-top: 2px !important;
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+}
