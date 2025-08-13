@@ -429,7 +429,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
             'rookies & stars', 'score', 'leaf', 'playoff', 'press pass', 'sage', 'pacific', 'skybox', 'metal',
             'gallery', 'heritage', 'gypsy queen', 'allen & ginter', 'archives', 'big league', 'fire', 'opening day',
             'series 1', 'series 2', 'chrome update', 'chrome refractor', 'chrome sapphire', 'chrome black',
-            'bowman', 'topps', 'panini', 'fleer', 'donruss', 'rated rookie', 'optic', 'kings', 'rookie kings'
+            'bowman', 'topps', 'panini', 'fleer', 'donruss', 'rated rookie', 'rated rookies', 'optic', 'kings', 'rookie kings',
+            'rookies', 'rookie'
         ];
         
         // Add card type terms that might interfere with player extraction - expanded from Sundo Cards guide

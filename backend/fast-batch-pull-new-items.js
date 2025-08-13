@@ -92,9 +92,9 @@ class FastBatchItemsPuller {
                 continue;
             }
             
-            // Check PSA 10 price - only add if $30 or higher
+            // Check PSA 10 price - only add if $15 or higher (lowered from $30)
             const psa10Price = parseFloat(item.price?.value || item.price);
-            if (isNaN(psa10Price) || psa10Price < 30) {
+            if (isNaN(psa10Price) || psa10Price < 15) {
                 continue;
             }
             
