@@ -261,6 +261,9 @@ class DatabaseDrivenStandardizedTitleGenerator {
             // Most specific patterns first (longest first)
             { pattern: 'bowman draft chrome 1st', product: 'Bowman Chrome Draft 1st' },
             { pattern: 'bowman chrome draft 1st', product: 'Bowman Chrome Draft 1st' },
+            { pattern: 'bowman draft chrome', product: 'Bowman Chrome Draft' },
+            { pattern: 'bowman chrome draft', product: 'Bowman Chrome Draft' },
+            { pattern: 'bowman draft draft chrome', product: 'Bowman Chrome Draft' },
             { pattern: 'bowman chrome prospects', product: 'Bowman Chrome Prospects' },
             { pattern: 'bowman chrome sapphire', product: 'Bowman Chrome Sapphire' },
             { pattern: 'bowman university chrome', product: 'Bowman University Chrome' },
@@ -367,6 +370,10 @@ class DatabaseDrivenStandardizedTitleGenerator {
                 // Check each variation
                 for (const variation of variations) {
                     if (titleLower.includes(variation.toLowerCase())) {
+                        // Special case: if we matched "Bowman" or "Bowman Draft" but the title also contains "Chrome", it should be "Bowman Chrome Draft"
+                        if ((product === 'Bowman' || product === 'Bowman Draft') && titleLower.includes('chrome')) {
+                            return 'Bowman Chrome Draft';
+                        }
                         return product;
                     }
                 }
@@ -388,6 +395,10 @@ class DatabaseDrivenStandardizedTitleGenerator {
         // Then check for regular patterns (most specific first)
         for (const { pattern, product } of productPatterns) {
             if (titleLower.includes(pattern)) {
+                // Special case: if we matched "Bowman" or "Bowman Draft" but the title also contains "Chrome", it should be "Bowman Chrome Draft"
+                if ((product === 'Bowman' || product === 'Bowman Draft') && titleLower.includes('chrome')) {
+                    return 'Bowman Chrome Draft';
+                }
                 return product;
             }
         }
@@ -396,8 +407,21 @@ class DatabaseDrivenStandardizedTitleGenerator {
         if (titleLower.includes('bowman') && titleLower.includes('chrome') && titleLower.includes('prospects')) {
             return 'Bowman Chrome Prospects';
         }
+        if (titleLower.includes('bowman') && titleLower.includes('chrome') && titleLower.includes('draft')) {
+            return 'Bowman Chrome Draft';
+        }
         if (titleLower.includes('bowman') && titleLower.includes('chrome')) {
             return 'Bowman Chrome';
+        }
+        
+        // Special case: if we have "Bowman Draft" but also "Chrome" in the title, it should be "Bowman Chrome Draft"
+        if (titleLower.includes('bowman') && titleLower.includes('draft') && titleLower.includes('chrome')) {
+            return 'Bowman Chrome Draft';
+        }
+        
+        // Special case: if we have "Bowman" and "Draft" and "Chrome" anywhere in the title, it should be "Bowman Chrome Draft"
+        if (titleLower.includes('bowman') && titleLower.includes('draft') && titleLower.includes('chrome')) {
+            return 'Bowman Chrome Draft';
         }
         if (titleLower.includes('panini') && titleLower.includes('donruss') && titleLower.includes('optic')) {
             return 'Panini Donruss Optic';
@@ -577,6 +601,11 @@ class DatabaseDrivenStandardizedTitleGenerator {
                 // Skip if this term is part of the product name
                 const valueLower = value.toLowerCase();
                 if (productLower && productLower.includes(valueLower)) {
+                    continue;
+                }
+                
+                // Skip "Chrome" if it's part of a Chrome product or if we have a Chrome product
+                if (valueLower === 'chrome' && (productLower.includes('chrome') || title.toLowerCase().includes('bowman chrome') || title.toLowerCase().includes('topps chrome'))) {
                     continue;
                 }
                 
