@@ -101,8 +101,14 @@ class FastBatchItemsPuller {
             }
             
             // Check PSA 10 price - only add if $40 or higher
-            const psa10Price = parseFloat(item.price?.value || item.price);
-            if (isNaN(psa10Price) || psa10Price < 40) {
+            let psa10Price;
+            try {
+                psa10Price = parseFloat(item.price?.value || item.price);
+                if (isNaN(psa10Price) || psa10Price < 40) {
+                    continue;
+                }
+            } catch (priceError) {
+                console.log(`⚠️ Invalid price format for card: "${item.title}" - ${item.price?.value || item.price}`);
                 continue;
             }
             
@@ -121,7 +127,13 @@ class FastBatchItemsPuller {
         // Batch check raw prices and get the actual price data
         const { ImprovedPriceUpdater } = require('./improve-price-updating.js');
         const priceUpdater = new ImprovedPriceUpdater();
-        await priceUpdater.connect();
+        
+        try {
+            await priceUpdater.connect();
+        } catch (connectionError) {
+            console.error('❌ Failed to connect to price updater:', connectionError.message);
+            return 0;
+        }
         
         const results = [];
         
@@ -164,7 +176,11 @@ class FastBatchItemsPuller {
             }
         }
         
-        await priceUpdater.db.close();
+        try {
+            await priceUpdater.db.close();
+        } catch (closeError) {
+            console.log(`⚠️ Error closing price updater connection: ${closeError.message}`);
+        }
         
         // Add cards that have raw prices and update them with the prices
         let addedCount = 0;
@@ -195,7 +211,15 @@ class FastBatchItemsPuller {
     // Main function with batch processing
     async pullNewItems() {
         try {
-            await this.connect();
+            // Ensure database connection
+            if (!this.db) {
+                await this.connect();
+            }
+            
+            // Validate database connection
+            if (!this.db.pricingDb) {
+                throw new Error('Database connection failed');
+            }
             
             const searchTerms = this.getSearchTerms();
             let totalNewItems = 0;
@@ -241,7 +265,11 @@ class FastBatchItemsPuller {
             // Get final stats
             const stats = await this.db.getDatabaseStats();
             
-            await this.db.close();
+            try {
+                await this.db.close();
+            } catch (closeError) {
+                console.log(`⚠️ Error closing database connection: ${closeError.message}`);
+            }
             
             return {
                 success: true,
@@ -251,7 +279,11 @@ class FastBatchItemsPuller {
             };
             
         } catch (error) {
-            await this.db.close();
+            try {
+                await this.db.close();
+            } catch (closeError) {
+                console.log(`⚠️ Error closing database connection: ${closeError.message}`);
+            }
             throw error;
         }
     }

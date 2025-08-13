@@ -130,9 +130,8 @@ class NewPricingDatabase {
     async detectSportFromComprehensive(title) {
         // First try ESPN v2 API for player-based sport detection
         try {
-            // Use the cleaned summary title for better player name extraction
-            const summaryTitle = this.cleanSummaryTitle(title);
-            const playerName = await this.extractPlayerName(summaryTitle);
+            // Use the title generator's player extraction for better results
+            const playerName = this.titleGenerator.extractPlayer(title);
             if (playerName) {
                 const espnSport = await this.espnDetector.detectSportFromPlayer(playerName);
                 if (espnSport && espnSport !== 'Unknown') {
@@ -506,6 +505,19 @@ class NewPricingDatabase {
 
     async addCard(cardData) {
         try {
+            // Ensure database is connected
+            if (!this.pricingDb) {
+                await this.connect();
+            }
+            
+            // Validate required data
+            if (!cardData.title || cardData.title.trim() === '') {
+                throw new Error('Card title is required');
+            }
+            
+            // Truncate title if too long (SQLite TEXT limit is ~1GB, but let's be reasonable)
+            const title = cardData.title.length > 1000 ? cardData.title.substring(0, 1000) : cardData.title;
+            
             // Initialize title generator if not already done
             await this.initializeTitleGenerator();
             
@@ -520,7 +532,31 @@ class NewPricingDatabase {
             }
             
             // Detect sport using comprehensive database
-            const sport = await this.detectSportFromComprehensive(cardData.title);
+            let sport = await this.detectSportFromComprehensive(cardData.title);
+            
+            // If sport detection fails, try using the title generator's player extraction
+            if (!sport || sport === 'Unknown') {
+                try {
+                    const playerName = this.titleGenerator.extractPlayer(cardData.title);
+                    if (playerName) {
+                        console.log(`🎯 Using title generator player extraction for sport detection: "${playerName}"`);
+                        // Try ESPN API with the extracted player name
+                        const espnSport = await this.espnDetector.detectSportFromPlayer(playerName);
+                        if (espnSport && espnSport !== 'Unknown') {
+                            sport = espnSport;
+                            console.log(`✅ ESPN API detected sport for ${playerName}: ${sport}`);
+                        }
+                    }
+                } catch (playerError) {
+                    console.log(`⚠️ Title generator player extraction failed: ${playerError.message}`);
+                }
+            }
+            
+            // Ensure sport is not null or empty
+            if (!sport || sport.trim() === '') {
+                sport = 'Unknown';
+                console.log(`⚠️ Sport detection failed for "${cardData.title}", using "Unknown"`);
+            }
             
             // Extract year from title - try multiple patterns
             let year = null;
@@ -548,6 +584,10 @@ class NewPricingDatabase {
             // Extract brand and set info
             const brandInfo = this.extractBrandAndSet(cardData.title);
             
+            // Ensure brand and set are not null
+            const brand = brandInfo.brand || 'Unknown';
+            const setName = brandInfo.setName || 'Unknown';
+            
             const query = `
                 INSERT INTO cards (
                     title, summary_title, sport, year, brand, set_name, 
@@ -557,13 +597,13 @@ class NewPricingDatabase {
             `;
             
             const params = [
-                cardData.title,
+                title, // Use truncated title
                 summaryTitle,
                 sport,
                 year,
-                brandInfo.brand,
-                brandInfo.setName,
-                this.detectCardType(cardData.title),
+                brand,
+                setName,
+                this.detectCardType(cardData.title) || 'Base',
                 'Raw',
                 'PSA 10',
                 cardData.price?.value || cardData.price,

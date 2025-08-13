@@ -278,6 +278,11 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'bowman platinum', product: 'Bowman Platinum' },
             { pattern: 'bowman university', product: 'Bowman University' },
             { pattern: 'bowman u', product: 'Bowman University' },
+            { pattern: 'nscc uefa topps chrome', product: 'NSCC UEFA Topps Chrome' },
+            { pattern: 'nscc uefa', product: 'NSCC UEFA' },
+            { pattern: 'uefa topps chrome', product: 'UEFA Topps Chrome' },
+            { pattern: 'nscc', product: 'NSCC' },
+            { pattern: 'uefa', product: 'UEFA' },
             { pattern: 'topps chrome', product: 'Topps Chrome' },
             { pattern: 'topps finest', product: 'Topps Finest' },
             { pattern: 'topps heritage', product: 'Topps Heritage' },
@@ -468,7 +473,12 @@ class DatabaseDrivenStandardizedTitleGenerator {
             'gallery', 'heritage', 'gypsy queen', 'allen & ginter', 'archives', 'big league', 'fire', 'opening day',
             'series 1', 'series 2', 'chrome update', 'chrome refractor', 'chrome sapphire', 'chrome black',
             'bowman', 'topps', 'panini', 'fleer', 'donruss', 'flair', 'chronicles', 'chronicles wwe', 'rated rookie', 'rated rookies', 'optic', 'kings', 'rookie kings',
-            'rookies', 'rookie'
+            'rookies', 'rookie', 'nscc uefa', 'nscc', 'uefa'
+        ];
+        
+        // Add card set prefixes that should be removed but preserve player names
+        const cardSetPrefixes = [
+            'wnba', 'nba', 'nfl', 'mlb', 'nhl', 'usa', 'euro', 'downtown', 'uptowns', 'negative', 'pulsar'
         ];
         
         // Add card type terms that might interfere with player extraction - expanded from Sundo Cards guide
@@ -651,6 +661,17 @@ class DatabaseDrivenStandardizedTitleGenerator {
                     continue;
                 }
                 
+                // Skip if this number is part of a print run (like /5, /150)
+                if (value.match(/^\d+$/) && title.includes('/' + value)) {
+                    continue;
+                }
+                
+                // Skip if this number appears right after a / (print run)
+                const beforeNumber = title.substring(0, title.indexOf(value));
+                if (beforeNumber.endsWith('/') || beforeNumber.endsWith('/ ')) {
+                    continue;
+                }
+                
                 // Skip if this term is part of the product name
                 const valueLower = value.toLowerCase();
                 if (productLower && productLower.includes(valueLower)) {
@@ -702,6 +723,19 @@ class DatabaseDrivenStandardizedTitleGenerator {
                 // Skip SSP completely (it's not a card number, it's a designation)
                 if (value === 'SSP' || value === 'ssp') {
                     continue;
+                }
+                
+                // Skip print runs (like /5, /150) - these are not card numbers
+                if (value.startsWith('/') || (value.match(/^\d+$/) && title.includes('/' + value))) {
+                    continue;
+                }
+                
+                // Skip card numbers that are actually print runs (like #5 when there's /5 in the title)
+                if (value.startsWith('#') && value.match(/^#\d+$/)) {
+                    const numberPart = value.substring(1);
+                    if (title.includes('/' + numberPart)) {
+                        continue;
+                    }
                 }
                 
                 // Skip if we've already found this exact term
