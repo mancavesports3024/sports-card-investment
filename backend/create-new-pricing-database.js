@@ -522,9 +522,28 @@ class NewPricingDatabase {
             // Detect sport using comprehensive database
             const sport = await this.detectSportFromComprehensive(cardData.title);
             
-            // Extract year from title
+            // Extract year from title - try multiple patterns
+            let year = null;
+            
+            // Try to extract year from title
             const yearMatch = cardData.title.match(/(19|20)\d{2}/);
-            const year = yearMatch ? parseInt(yearMatch[0]) : null;
+            if (yearMatch) {
+                year = parseInt(yearMatch[0]);
+            }
+            
+            // If no year found, try to extract from search term or use a default
+            if (!year && cardData.searchTerm) {
+                const searchYearMatch = cardData.searchTerm.match(/(19|20)\d{2}/);
+                if (searchYearMatch) {
+                    year = parseInt(searchYearMatch[0]);
+                }
+            }
+            
+            // If still no year, use current year as fallback for modern cards
+            if (!year) {
+                year = new Date().getFullYear();
+                console.log(`⚠️ No year found in title "${cardData.title}", using current year ${year} as fallback`);
+            }
             
             // Extract brand and set info
             const brandInfo = this.extractBrandAndSet(cardData.title);
