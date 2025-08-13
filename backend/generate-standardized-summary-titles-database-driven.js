@@ -680,8 +680,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
         const parts = [];
         
         if (year) parts.push(year);
-        if (product) parts.push(product);
         if (player) parts.push(player);
+        if (product) parts.push(product);
         if (colorNumbering) parts.push(colorNumbering);
         if (hasAuto) parts.push('auto');
 
