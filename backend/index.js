@@ -17,6 +17,13 @@ function getCentralTime() {
     hour12: false
   }).replace(/(\d+)\/(\d+)\/(\d+),?\s*(\d+):(\d+):(\d+)/, '$3-$1-$2 $4:$5:$6 CT');
 }
+
+// Helper function to get Central Time ISO string (for database compatibility)
+function getCentralTimeISO() {
+  const now = new Date();
+  const centralTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Chicago" }));
+  return centralTime.toISOString();
+}
 const session = require('express-session');
 const fs = require('fs');
 const path = require('path');
@@ -1551,7 +1558,7 @@ function scheduleNextTokenRefresh() {
   tokenRefreshTimer = setTimeout(refreshEbayToken, TOKEN_REFRESH_INTERVAL);
   
   const nextRefresh = new Date(Date.now() + TOKEN_REFRESH_INTERVAL);
-  console.log(`⏰ Next token refresh scheduled for: ${nextRefresh.toISOString()}`);
+  console.log(`⏰ Next token refresh scheduled for: ${getCentralTime()}`);
 }
 
 // Manual token refresh endpoint (for testing)
@@ -1561,7 +1568,7 @@ app.post('/api/refresh-token', async (req, res) => {
     res.json({ 
       success: true, 
       message: 'Token refresh initiated',
-      timestamp: new Date().toISOString()
+      timestamp: getCentralTime()
     });
   } catch (error) {
     res.status(500).json({ 
@@ -1582,8 +1589,8 @@ app.get('/api/token-status', (req, res) => {
     tokenLength,
     hasRefreshCredentials,
     maskedToken: hasToken ? `${process.env.EBAY_AUTH_TOKEN.substring(0, 10)}...${process.env.EBAY_AUTH_TOKEN.substring(tokenLength - 10)}` : null,
-    nextRefresh: tokenRefreshTimer ? new Date(Date.now() + TOKEN_REFRESH_INTERVAL).toISOString() : null,
-    timestamp: new Date().toISOString()
+    nextRefresh: tokenRefreshTimer ? getCentralTime() : null,
+    timestamp: getCentralTime()
   });
 });
 
@@ -1609,7 +1616,7 @@ app.post('/api/update-prices', async (req, res) => {
     res.json({
       success: true,
       message: `Price update completed for ${batchSize} cards`,
-      timestamp: new Date().toISOString()
+      timestamp: getCentralTime()
     });
     
   } catch (error) {
@@ -1618,7 +1625,7 @@ app.post('/api/update-prices', async (req, res) => {
       success: false,
       error: 'Failed to update prices',
       message: error.message,
-      timestamp: new Date().toISOString()
+      timestamp: getCentralTime()
     });
   }
 });
