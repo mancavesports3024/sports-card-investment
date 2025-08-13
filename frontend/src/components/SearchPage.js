@@ -545,7 +545,7 @@ const SearchPage = () => {
             )}
           </div>
         )}
-        <div className="cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '0.7rem', gridAutoFlow: 'row' }}>
+        <div className="cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '0.7rem', gridAutoFlow: 'row' }}>
           {visibleCards.map((card, index) => {
             // Skip cards with invalid price
             const priceValue = Number(card.price?.value);
@@ -557,7 +557,7 @@ const SearchPage = () => {
             console.log(`✅ Rendering card: "${card.title}" - Price: $${priceValue}`);
             
             return (
-              <div key={`${card.id || index}-${card.title}`} className="card-item" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 1.2rem', minWidth: 300, maxWidth: 340, fontSize: '0.97em', marginBottom: 0 }}>
+              <div key={`${card.id || index}-${card.title}`} className="card-item" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 1rem', minWidth: 220, maxWidth: 260, fontSize: '0.97em', marginBottom: 0 }}>
                                   <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', width: '100%', overflow: 'visible' }}>
                   <div className="custom-card-title">{card.standardizedTitle || card.title}</div>
                   {/* Always show listed price if present, directly below title */}
