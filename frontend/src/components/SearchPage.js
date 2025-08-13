@@ -560,14 +560,15 @@ const SearchPage = () => {
               <div key={`${card.id || index}-${card.title}`} className="card-item" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 1rem', minWidth: 220, maxWidth: 260, fontSize: '0.97em', marginBottom: 0 }}>
                                   <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', width: '100%', overflow: 'visible' }}>
                   <div className="custom-card-title">{card.standardizedTitle || card.title}</div>
-                  {/* Always show listed price if present, directly below title */}
-                  {card.listPrice && (
-                    <div className="card-list-price" style={{ fontSize: '0.93em', color: '#b00', textDecoration: 'line-through', fontWeight: 500 }}>
-                      ${Number(card.listPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </div>
-                  )}
-                  {/* Sold price */}
-                  <div className="card-price" style={{ fontSize: '0.98em', color: '#222' }}>{formatPrice(card.price)}</div>
+                  {/* Price row - listed price on left, sold price on right */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                    {card.listPrice && (
+                      <div className="card-list-price" style={{ fontSize: '0.93em', color: '#b00', textDecoration: 'line-through', fontWeight: 500 }}>
+                        ${Number(card.listPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    )}
+                    <div className="card-price" style={{ fontSize: '0.98em', color: '#222', fontWeight: 'bold' }}>{formatPrice(card.price)}</div>
+                  </div>
                   {/* Sale type (auction/fixed/etc.) */}
                   {card.saleType && (
                     <div className="card-sale-type" style={{ fontSize: '0.85em', color: '#28a745', fontWeight: 600, backgroundColor: '#d4edda', padding: '1px 4px', borderRadius: 3, border: '1px solid #c3e6cb', alignSelf: 'flex-start' }}>{card.saleType}</div>
