@@ -53,7 +53,9 @@ const ULTIMATE_SPORT_FILTERS = {
             'orange refractor', 'gold refractor', 'silver refractor', 'black refractor', 'white refractor',
             // Panini Select parallels
             'starcade', 'silver prizm', 'gold prizm', 'blue prizm', 'red prizm', 'green prizm',
-            'purple prizm', 'orange prizm', 'black prizm', 'white prizm'
+            'purple prizm', 'orange prizm', 'black prizm', 'white prizm',
+            // Panini Prizm Draft parallels
+            'blue /149', 'red /199', 'green /299', 'purple /399', 'orange /499'
         ],
         baseball: [
             // Baseball specific base parallels
@@ -155,6 +157,7 @@ function detectSport(cardTitle) {
         title.includes('doncic') || title.includes('zion') || title.includes('morant') ||
         title.includes('wembanyama') || title.includes('victor') || title.includes('tatum') ||
         title.includes('booker') || title.includes('edwards') || title.includes('brunson') ||
+        title.includes('malone') || title.includes('karl malone') ||
         title.includes('lakers') || title.includes('warriors') || title.includes('celtics') ||
         title.includes('bulls') || title.includes('knicks') || title.includes('heat') ||
         title.includes('spurs') || title.includes('suns') || title.includes('nuggets')) {
