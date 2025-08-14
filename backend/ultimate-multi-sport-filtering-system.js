@@ -397,7 +397,11 @@ function ultimateMultiSportFilter(card, cardType = 'raw') {
     }
     
     const finalResult = hasMeaningfulContent && isReasonablePrice;
-    console.log(`   ✅ RESULT: ${finalResult} (meaningful: ${hasMeaningfulContent}, reasonable price: ${isReasonablePrice})`);
+    if (!finalResult) {
+        console.log(`   ❌ REJECTED: meaningful: ${hasMeaningfulContent}, reasonable price: ${isReasonablePrice}`);
+    } else {
+        console.log(`   ✅ ACCEPTED`);
+    }
     
     return finalResult;
 }
