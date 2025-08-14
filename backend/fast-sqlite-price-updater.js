@@ -104,19 +104,51 @@ class FastSQLitePriceUpdater {
             for (let i = 0; i < strategies.length; i++) {
                 const strategy = strategies[i];
                 
+                console.log(`\n🔍 DEBUG: Testing strategy "${strategy}"`);
+                
                 // Search for raw cards
                 const rawQuery = strategy;
+                console.log(`🔍 DEBUG: Raw search query: "${rawQuery}"`);
                 const tempRawResults = await search130point(rawQuery, 20);
+                console.log(`🔍 DEBUG: Raw search found ${tempRawResults.length} results before filtering`);
+                
+                // Debug filtering for raw results
+                if (tempRawResults.length > 0) {
+                    console.log(`🔍 DEBUG: First raw result: "${tempRawResults[0].title}"`);
+                    const firstRawFiltered = ultimateMultiSportFilter(tempRawResults[0], 'raw');
+                    console.log(`🔍 DEBUG: First raw result filtered: ${firstRawFiltered}`);
+                }
+                
                 const filteredRaw = tempRawResults.filter(card => ultimateMultiSportFilter(card, 'raw'));
                 
                 // Search for PSA 9 cards
                 const psa9Query = `${strategy} PSA 9`;
+                console.log(`🔍 DEBUG: PSA 9 search query: "${psa9Query}"`);
                 const tempPsa9Results = await search130point(psa9Query, 20);
+                console.log(`🔍 DEBUG: PSA 9 search found ${tempPsa9Results.length} results before filtering`);
+                
+                // Debug filtering for PSA 9 results
+                if (tempPsa9Results.length > 0) {
+                    console.log(`🔍 DEBUG: First PSA 9 result: "${tempPsa9Results[0].title}"`);
+                    const firstPsa9Filtered = ultimateMultiSportFilter(tempPsa9Results[0], 'psa9');
+                    console.log(`🔍 DEBUG: First PSA 9 result filtered: ${firstPsa9Filtered}`);
+                }
+                
                 const filteredPsa9 = tempPsa9Results.filter(card => ultimateMultiSportFilter(card, 'psa9'));
                 
                 // Search for PSA 10 cards
                 const psa10Query = `${strategy} PSA 10`;
+                console.log(`🔍 DEBUG: PSA 10 search query: "${psa10Query}"`);
                 const tempPsa10Results = await search130point(psa10Query, 20);
+                console.log(`🔍 DEBUG: PSA 10 search found ${tempPsa10Results.length} results before filtering`);
+                
+                // Debug filtering for PSA 10 results
+                if (tempPsa10Results.length > 0) {
+                    console.log(`🔍 DEBUG: First PSA 10 result: "${tempPsa10Results[0].title}"`);
+                    const firstPsa10Filtered = ultimateMultiSportFilter(tempPsa10Results[0], 'psa10');
+                    console.log(`🔍 DEBUG: First PSA 10 result filtered: ${firstPsa10Filtered}`);
+                }
+                
                 const filteredPsa10 = tempPsa10Results.filter(card => ultimateMultiSportFilter(card, 'psa10'));
                 
                 console.log(`🔍 "${strategy}" → Found ${filteredRaw.length} raw, ${filteredPsa9.length} PSA 9, ${filteredPsa10.length} PSA 10`);

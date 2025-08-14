@@ -329,6 +329,15 @@ function ultimateMultiSportFilter(card, cardType = 'raw') {
     );
     const hasMeaningfulContent = meaningfulWords.length >= 3;
     
+    // DEBUG LOGGING
+    console.log(`🔍 DEBUG FILTER: "${card.title}" (${cardType})`);
+    console.log(`   PSA Grade: ${psaGrade}`);
+    console.log(`   Sport: ${detectSport(card.title)}`);
+    console.log(`   Has Expensive Parallel: ${hasExpensiveParallel}`);
+    console.log(`   Is Base Parallel: ${isBaseParallelCard}`);
+    console.log(`   Has Meaningful Content: ${hasMeaningfulContent} (${meaningfulWords.length} words)`);
+    console.log(`   Price: $${price}`);
+    
     // Price thresholds based on card type and sport
     const sport = detectSport(card.title);
     let maxPrice = 10000; // Significantly increased default for all cards
@@ -383,10 +392,14 @@ function ultimateMultiSportFilter(card, cardType = 'raw') {
     
     // Include base parallels, exclude expensive ones
     if (hasExpensiveParallel && !isBaseParallelCard) {
+        console.log(`   ❌ REJECTED: Has expensive parallel but not base parallel`);
         return false;
     }
     
-    return hasMeaningfulContent && isReasonablePrice;
+    const finalResult = hasMeaningfulContent && isReasonablePrice;
+    console.log(`   ✅ RESULT: ${finalResult} (meaningful: ${hasMeaningfulContent}, reasonable price: ${isReasonablePrice})`);
+    
+    return finalResult;
 }
 
 // Test the ultimate multi-sport filtering system
