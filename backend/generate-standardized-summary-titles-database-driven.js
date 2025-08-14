@@ -583,6 +583,9 @@ class DatabaseDrivenStandardizedTitleGenerator {
             }
         });
 
+        // Normalize spaces after filtering to ensure proper pattern matching
+        cleanTitle = cleanTitle.replace(/\s+/g, ' ').trim();
+
         // Look for player name patterns
         const patterns = [
             // Handle quoted nicknames like "Hacksaw" Jim Duggan
@@ -597,6 +600,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)-([A-Z][a-z]+)\b/g,
             // Handle names with apostrophes in first part like "De'Von Achane"
             /\b([A-Z][a-z]+'[A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
+            // Handle names with internal capitals like "McConkey", "O'Neal"
+            /\b([A-Z][a-z]+)\s+([A-Z][a-z]*[A-Z][a-z]*)\b/g,
             // Handle all-caps names with apostrophes like "SHAQUILLE O'NEAL"
             /\b([A-Z]+'[A-Z]+)\s+([A-Z]+)\b/g,
             // Handle all-caps names with apostrophes in second part like "SHAQUILLE O'NEAL"
