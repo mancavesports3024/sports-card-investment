@@ -50,7 +50,10 @@ const ULTIMATE_SPORT_FILTERS = {
             'velocity', 'holo', 'hyper',
             // Topps Chrome refractors
             'pink refractor', 'blue refractor', 'green refractor', 'red refractor', 'purple refractor',
-            'orange refractor', 'gold refractor', 'silver refractor', 'black refractor', 'white refractor'
+            'orange refractor', 'gold refractor', 'silver refractor', 'black refractor', 'white refractor',
+            // Panini Select parallels
+            'starcade', 'silver prizm', 'gold prizm', 'blue prizm', 'red prizm', 'green prizm',
+            'purple prizm', 'orange prizm', 'black prizm', 'white prizm'
         ],
         baseball: [
             // Baseball specific base parallels
@@ -165,6 +168,7 @@ function detectSport(cardTitle) {
         title.includes('burrow') || title.includes('lawrence') || title.includes('prescott') ||
         title.includes('purdy') || title.includes('brock') || title.includes('bo nix') ||
         title.includes('stroud') || title.includes('bryce young') || title.includes('richardson') ||
+        title.includes('worthy') || title.includes('xavier worthy') ||
         title.includes('broncos') || title.includes('denver') || title.includes('chiefs') ||
         title.includes('patriots') || title.includes('cowboys') || title.includes('49ers') ||
         title.includes('niners') || title.includes('texans') || title.includes('colts')) {
