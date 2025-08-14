@@ -60,9 +60,9 @@ const ULTIMATE_SPORT_FILTERS = {
             'blue /149', 'red /199', 'green /299', 'purple /399', 'orange /499',
             // Additional football parallels
             'electricity', 'silver prizm', 'genesis', 'pink /5', 'license to dominate',
-            // Panini Donruss Optic parallels
-            'purple shock', 'blue shock', 'green shock', 'red shock', 'orange shock',
-            'silver shock', 'gold shock', 'black shock', 'white shock',
+                         // Panini Donruss Optic parallels
+             'purple shock', 'blue shock', 'green shock', 'red shock', 'orange shock',
+             'silver shock', 'gold shock', 'black shock', 'white shock', 'red wave prizm',
             // Panini Contenders parallels
             'season ticket', 'game ticket', 'crown jewels', 'emerald', 'bronze',
             'silver mojo', 'purple pulsar', 'supernatural', 'touchdown tandems',
@@ -198,7 +198,7 @@ function detectSport(cardTitle) {
         title.includes('worthy') || title.includes('xavier worthy') || title.includes('burrow') ||
         title.includes('joe burrow') ||         title.includes('ceedee') || title.includes('lamb') ||
         title.includes('ceedee lamb') || title.includes('vick') || title.includes('michael vick') ||
-        title.includes('young') || title.includes('marvin harrison') || title.includes('harrison jr') ||
+        title.includes('young') || title.includes('marvin harrison') || title.includes('harrison jr') || title.includes('spencer rattler') || title.includes('rattler') ||
         title.includes('broncos') || title.includes('denver') || title.includes('chiefs') ||
         title.includes('patriots') || title.includes('cowboys') || title.includes('49ers') ||
         title.includes('niners') || title.includes('texans') || title.includes('colts')) {
