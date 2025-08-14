@@ -295,6 +295,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'prizm monopoly wnba', product: 'Prizm Monopoly WNBA' },
             { pattern: 'prizm dp', product: 'Prizm DP' },
             { pattern: 'light it up', product: 'Light It Up' },
+            { pattern: 'skybox e-x2001', product: 'Skybox E-X2001' },
+            { pattern: 'bowman chrome prospects', product: 'Bowman Chrome Prospects' },
             { pattern: 'one and one', product: 'One and One' },
             { pattern: 'road to uefa euro', product: 'Road To UEFA Euro' },
             { pattern: 'usa basketball', product: 'USA Basketball' },
@@ -616,6 +618,10 @@ class DatabaseDrivenStandardizedTitleGenerator {
                 if (!skipWords.some(word => fullName.toLowerCase().includes(word.toLowerCase())) && fullName.length > 3) {
                     // Format player name with proper case
                     return fullName.split(' ').map(word => {
+                        // Handle quoted nicknames - preserve original case
+                        if (word.startsWith('"') && word.endsWith('"')) {
+                            return word;
+                        }
                         // Handle special cases like "O'Neal", "De'Von", etc.
                         if (word.includes("'")) {
                             return word.split("'").map(part => 
@@ -632,6 +638,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
                         if (word.length === 2 && word.toUpperCase() === word) {
                             return word.toUpperCase();
                         }
+                        // Handle names that should be properly cased (like "McCarthy")
                         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
                     }).join(' ');
                 }
@@ -653,14 +660,14 @@ class DatabaseDrivenStandardizedTitleGenerator {
             /\b(Green Pulsar|Blue Pulsar|Red Pulsar|Purple Pulsar|Orange Pulsar|Pink Pulsar|Gold Pulsar|Silver Pulsar|Black Pulsar|White Pulsar|Sky Blue|Neon Green|Purple Pattern|Pink Pattern|Blue Pattern|Green Pattern|Yellow Pattern|Black Pattern|Red Pattern|Printing Plate|Checkerboard|X-Fractor|Cracked Ice|Atomic|Disco|Fast Break|No Huddle|Flash|Shock|Mojo|Mega|Scope|Shimmer|Wave|Multi Wave|Carved in Time|Lenticular|Synthesis|Outburst|Electric Ice|Ellipse|Color Wheel|Color Blast|Die-cut|National Landmarks|Stained Glass|Lava Lamp|Dazzle|Blue Velocity|Hyper Pink|Red Dragon|Laser|Liberty|Diamond Marvels|On Fire|Voltage|Career Stat Line|Alligator Crystal|Alligator Kaleidoscope|Alligator Mojo|Alligator Prismatic|Butterfly Crystal|Butterfly Kaleidoscope|Butterfly Mojo|Butterfly Prismatic|Chameleon Crystal|Chameleon Kaleidoscope|Chameleon Mojo|Chameleon Prismatic|Clown Fish Crystal|Clown Fish Kaleidoscope|Clown Fish Mojo|Clown Fish Prismatic|Deer Crystal|Deer Kaleidoscope|Deer Mojo|Deer Prismatic|Dragon Crystal|Dragon Kaleidoscope|Dragon Mojo|Dragon Prismatic|Elephant Crystal|Elephant Kaleidoscope|Elephant Mojo|Elephant Prismatic|Giraffe Crystal|Giraffe Kaleidoscope|Giraffe Mojo|Giraffe Prismatic|Leopard Crystal|Leopard Kaleidoscope|Leopard Mojo|Leopard Prismatic|Parrot Crystal|Parrot Kaleidoscope|Parrot Mojo|Parrot Prismatic|Peacock Crystal|Peacock Kaleidoscope|Peacock Mojo|Peacock Prismatic|Snake Crystal|Snake Kaleidoscope|Snake Mojo|Snake Prismatic|Tiger Crystal|Tiger Kaleidoscope|Tiger Mojo|Tiger Prismatic|Zebra Crystal|Zebra Kaleidoscope|Zebra Mojo|Zebra Prismatic|Tiger Eyes|Snake Eyes|100th Anniversary|Black Border|Flip Stock|Magenta|Mini Parallels|Chrome Refractor|Purple Refractor|Black Bordered Refractor|Gold Bordered Refractor|Superfractor|Zebra Prizm|Dragon Scale|Red Dragon|Peacock Prizm|Tiger Prizm|Giraffe Prizm|Elephant Prizm|Blue Ice|Silver Laser|Silver Mojo|Silver Scope|Teal Wave|Premium Set Checkerboard|Blue Laser|Blue Mojo|Green Flash|Blue Flash|Purple Flash|Purple Cracked Ice|Pink Flash|Gold Cracked Ice|Gold Flash|Gold Laser|Gold Mojo|Black Flash|Black Laser|Black Mojo|Gold Vinyl Premium Set|Vintage Stock|Red Stars|Independence Day|Father's Day Powder Blue|Mother's Day Hot Pink|Memorial Day Camo|Camo Pink Mosaic|Choice Peacock Mosaic|Fast Break Silver Mosaic|Genesis Mosaic|Green Mosaic|Reactive Blue Mosaic|Reactive Orange Mosaic|Red Mosaic|Blue Mosaic|Choice Red Fusion Mosaic|Fast Break Blue Mosaic|Fast Break Purple Mosaic|Purple Mosaic|Orange Fluorescent Mosaic|White Mosaic|Fast Break Pink Mosaic|Blue Fluorescent Mosaic|Pink Swirl Mosaic|Fast Break Gold Mosaic|Gold Mosaic|Green Swirl Mosaic|Pink Fluorescent Mosaic|Choice Black Gold Mosaic|Black Mosaic|Choice Nebula Mosaic|Fast Break Black Mosaic|Black Pulsar Prizm|Blue Prizm|Blue Cracked Ice Prizm|Blue Pulsar Prizm|Blue Wave Prizm|Flash Prizm|Gold Pulsar Prizm|Green Prizm|Green Cracked Ice Prizm|Green Pulsar Prizm|Green Shimmer Prizm|Pulsar Prizm|Purple Disco Prizm|Red Prizm|Red Cracked Ice Prizm|Red Flash Prizm|Red Pulsar Prizm|Red Wave Prizm|Silver Prizm|Silver Laser Prizm|Silver Mojo Prizm|Silver Scope Prizm|Teal Prizm|Teal Wave Prizm|Premium Set Checkerboard Prizm|Blue Laser Prizm|Blue Mojo Prizm|Green Flash Prizm|Blue Flash Prizm|Purple Flash Prizm|Purple Cracked Ice Prizm|Pink Flash Prizm|Gold Cracked Ice Prizm|Gold Flash Prizm|Gold Laser Prizm|Gold Mojo Prizm|Black Flash Prizm|Black Laser Prizm|Black Mojo Prizm|Gold Vinyl Premium Set Prizm|Helmet Heroes|Light It Up)\b/gi,
             // Comprehensive card types and colors (but exclude product terms) - expanded from Sundo Cards guide
             /\b(Red|Blue|Green|Yellow|Orange|Purple|Pink|Gold|Silver|Bronze|Black|White|Rainbow|Prism|Holo|Holographic|Refractor|Sapphire|Emerald|Ruby|Diamond|Platinum|Titanium|Carbon|Prizm|Select|Optic|Contenders|National|Treasures|Flawless|Immaculate|Limited|Certified|Elite|Absolute|Spectra|Phoenix|Playbook|Momentum|Totally|Crown|Royale|Threads|Prestige|Rookies|Stars|Score|Leaf|Playoff|Press|Pass|Sage|Game|Pacific|Skybox|Metal|Stadium|Club|Gallery|Heritage|Gypsy|Queen|Allen|Ginter|Archives|Big|League|Fire|Opening|Day|Update|Series|Draft|Sterling|Platinum|SP|SPx|Exquisite|Lunar Glow|Wave|Holo|Holographic|Pulsar|Fuchsia|Pattern|Plate|Checkerboard|X-Fractor|Cracked|Ice|Atomic|Disco|Fast|Break|Huddle|Flash|Shock|Mojo|Mega|Scope|Shimmer|Multi|Carved|Time|Lenticular|Synthesis|Outburst|Electric|Ellipse|Wheel|Blast|Die|Cut|Landmarks|Stained|Glass|Lava|Lamp|Dazzle|Velocity|Hyper|Dragon|Laser|Liberty|Marvels|Fire|Voltage|Career|Stat|Line|Alligator|Kaleidoscope|Prismatic|Butterfly|Chameleon|Clown|Fish|Deer|Elephant|Giraffe|Leopard|Parrot|Peacock|Snake|Tiger|Zebra|Eyes|Anniversary|Border|Flip|Stock|Magenta|Mini|Parallels|Bordered|Superfractor|Scale|Vintage|Stars|Independence|Father|Mother|Memorial|Camo|Choice|Fusion|Nebula|Reactive|Fluorescent|Swirl|Vinyl|Premium|Set|Cyan|Yellow|Magenta|Downtown)\b/gi,
-            // Bowman Draft card numbers (BDP, BDC, CDA, etc.)
-            /\b(BD[A-Z]?\d+)\b/g,
             // Card numbers with # symbol followed by letters and hyphens (like #BDC-168, #CDA-LK, #17hh) - check this first
             /#[A-Za-z]+[-\dA-Za-z]+/g,
             // Card numbers with # symbol followed by letters (like #17hh)
             /#\d+[A-Za-z]+/g,
             // Card numbers with # symbol followed by pure numbers (like #168, #123)
             /#(?!SSP)\d+/g,
+            // Bowman Draft card numbers (BDP, BDC, CDA, etc.)
+            /\b(BD[A-Z]?\d+)\b/g,
             // Print run numbers (like /150, /5) - capture the full pattern including slash
             /\/\d+\b/g,
             // Standalone card numbers (but exclude PSA grades and POP numbers)
@@ -951,7 +958,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
         if (player) parts.push(player);
         if (product) parts.push(product);
         if (colorNumbering) parts.push(colorNumbering);
-        if (hasAuto) parts.push('auto');
+        if (hasAuto) parts.push('Auto');
 
         const standardizedTitle = parts.join(' ').trim();
         
