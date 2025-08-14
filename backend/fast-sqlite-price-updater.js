@@ -106,23 +106,23 @@ class FastSQLitePriceUpdater {
             strategies.push(playerPreservedTitle);
         }
         
-        // Strategy 3: Simple player + year + key terms (like your working search)
-        const playerYearMatch = summaryTitle.match(/(\d{4})\s+(.*?)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
-        if (playerYearMatch) {
-            const year = playerYearMatch[1];
-            const middlePart = playerYearMatch[2];
-            const possiblePlayer = playerYearMatch[3];
+        // Strategy 3: Create a simple search with just year + player name
+        // For "2024 Leo DE VRIES Bowman Wave Silver Refractor #TP-18"
+        // Create "2024 Leo DE VRIES" (just the basic info that works)
+        const yearPlayerMatch = summaryTitle.match(/^(\d{4})\s+([A-Z][a-z]+(?:\s+[A-Z]+)*?)(?=\s+[A-Z][a-z]|$)/);
+        if (yearPlayerMatch) {
+            const year = yearPlayerMatch[1];
+            const player = yearPlayerMatch[2];
+            const simpleSearch = `${year} ${player}`;
             
-            // Create a simple search like "2024 Leo DE Bowman Wave Silver Refractor"
-            const simpleSearch = `${year} ${possiblePlayer} ${middlePart.trim()}`;
-            if (simpleSearch.length > 10) {
+            if (simpleSearch !== summaryTitle && simpleSearch.length > 5) {
                 strategies.push(simpleSearch);
             }
         }
 
         return {
             identifier: summaryTitle,
-            strategies: strategies.slice(0, 2)
+            strategies: strategies.slice(0, 3)
         };
     }
 
@@ -138,14 +138,20 @@ class FastSQLitePriceUpdater {
             for (let i = 0; i < strategies.length; i++) {
                 const strategy = strategies[i];
                 
-                // Search for the card (without adding PSA grade to query)
-                const searchQuery = strategy;
-                const tempResults = await search130point(searchQuery, 20);
+                // Search for raw cards
+                const rawQuery = strategy;
+                const tempRawResults = await search130point(rawQuery, 20);
+                const filteredRaw = tempRawResults.filter(card => ultimateMultiSportFilter(card, 'raw'));
                 
-                // Filter results by grade
-                const filteredRaw = tempResults.filter(card => ultimateMultiSportFilter(card, 'raw'));
-                const filteredPsa9 = tempResults.filter(card => ultimateMultiSportFilter(card, 'psa9'));
-                const filteredPsa10 = tempResults.filter(card => ultimateMultiSportFilter(card, 'psa10'));
+                // Search for PSA 9 cards
+                const psa9Query = `${strategy} PSA 9`;
+                const tempPsa9Results = await search130point(psa9Query, 20);
+                const filteredPsa9 = tempPsa9Results.filter(card => ultimateMultiSportFilter(card, 'psa9'));
+                
+                // Search for PSA 10 cards
+                const psa10Query = `${strategy} PSA 10`;
+                const tempPsa10Results = await search130point(psa10Query, 20);
+                const filteredPsa10 = tempPsa10Results.filter(card => ultimateMultiSportFilter(card, 'psa10'));
                 
                 console.log(`🔍 "${strategy}" → Found ${filteredRaw.length} raw, ${filteredPsa9.length} PSA 9, ${filteredPsa10.length} PSA 10`);
                 
