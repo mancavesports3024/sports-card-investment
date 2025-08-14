@@ -305,7 +305,9 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'panini contenders', product: 'Panini Contenders' },
             { pattern: 'panini donruss', product: 'Panini Donruss' },
             { pattern: 'panini optic', product: 'Panini Optic' },
+            { pattern: 'panini mosaic storm chasers', product: 'Panini Mosaic Storm Chasers' },
             { pattern: 'panini mosaic', product: 'Panini Mosaic' },
+            { pattern: 'storm chasers', product: 'Storm Chasers' },
             { pattern: 'upper deck sp', product: 'Upper Deck SP' },
             { pattern: 'upper deck spx', product: 'Upper Deck SPx' },
             { pattern: 'upper deck exquisite', product: 'Upper Deck Exquisite' },
@@ -487,7 +489,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
             'gallery', 'heritage', 'gypsy queen', 'allen & ginter', 'archives', 'big league', 'fire', 'opening day',
             'series 1', 'series 2', 'chrome update', 'chrome refractor', 'chrome sapphire', 'chrome black',
             'bowman', 'topps', 'panini', 'fleer', 'donruss', 'flair', 'chronicles', 'chronicles wwe', 'rated rookie', 'rated rookies', 'optic', 'kings', 'rookie kings',
-            'rookies', 'rookie', 'nscc uefa', 'nscc', 'uefa', 'wnba'
+            'rookies', 'rookie', 'nscc uefa', 'nscc', 'uefa', 'wnba', 'storm chasers'
         ];
         
         // Add card set prefixes that should be removed but preserve player names
