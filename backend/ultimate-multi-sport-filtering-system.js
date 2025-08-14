@@ -187,6 +187,7 @@ function detectSport(cardTitle) {
         title.includes('o\'neal') || title.includes('oneal') || title.includes('gilgeous') ||
         title.includes('alexander') || title.includes('avdija') || title.includes('deni') ||
         title.includes('brink') || title.includes('cameron brink') ||
+        title.includes('maxey') || title.includes('tyrese maxey') ||
         title.includes('lakers') || title.includes('warriors') || title.includes('celtics') ||
         title.includes('bulls') || title.includes('knicks') || title.includes('heat') ||
         title.includes('spurs') || title.includes('suns') || title.includes('nuggets')) {
@@ -204,6 +205,8 @@ function detectSport(cardTitle) {
         title.includes('joe burrow') ||         title.includes('ceedee') || title.includes('lamb') ||
         title.includes('ceedee lamb') || title.includes('vick') || title.includes('michael vick') ||
         title.includes('young') || title.includes('marvin harrison') || title.includes('harrison jr') || title.includes('spencer rattler') || title.includes('rattler') ||
+        title.includes('mccarthy') || title.includes('j.j. mccarthy') || title.includes('jj mccarthy') ||
+        title.includes('chase') || title.includes('ja\'marr chase') || title.includes('jamarr chase') ||
         title.includes('broncos') || title.includes('denver') || title.includes('chiefs') ||
         title.includes('patriots') || title.includes('cowboys') || title.includes('49ers') ||
         title.includes('niners') || title.includes('texans') || title.includes('colts')) {
@@ -219,6 +222,8 @@ function detectSport(cardTitle) {
         title.includes('carlos correa') || title.includes('santana') || title.includes('johan santana') ||
         title.includes('schwarber') || title.includes('kyle schwarber') || title.includes('dominguez') ||
         title.includes('jasson dominguez') || title.includes('leo de vries') || title.includes('leo de') ||
+        title.includes('guerrero') || title.includes('vladi guerrero') || title.includes('neto') ||
+        title.includes('zach neto') || title.includes('o\'hoppe') || title.includes('logan o\'hoppe') ||
         title.includes('yankees') || title.includes('dodgers') || title.includes('red sox') ||
         title.includes('cubs') || title.includes('giants') || title.includes('braves') ||
         title.includes('topps') || title.includes('bowman') || title.includes('heritage')) {
@@ -249,6 +254,14 @@ function detectSport(cardTitle) {
     if (title.includes('wwe') || title.includes('wrestling') || title.includes('duggan') ||
         title.includes('jim duggan') || title.includes('hacksaw') || title.includes('chronicles wwe')) {
         return 'wrestling';
+    }
+    
+    // MMA/UFC indicators
+    if (title.includes('ufc') || title.includes('mma') || title.includes('mixed martial arts') ||
+        title.includes('shevchenko') || title.includes('valentina shevchenko') ||
+        title.includes('mcgregor') || title.includes('khabib') || title.includes('jones') ||
+        title.includes('adesanya') || title.includes('usman') || title.includes('volkanovski')) {
+        return 'mma';
     }
     
     // Pokemon indicators
