@@ -1089,9 +1089,16 @@ class DatabaseDrivenStandardizedTitleGenerator {
         title = title.replace(/\b(REJECTORS)\b/gi, 'Rejectors');
         
         // Fix player name case sensitivity issues
-        title = title.replace(/\b(JJ Mccarthy)\b/gi, 'JJ McCarthy');
+        title = title.replace(/\b(JJ Mccarthy)\b/gi, 'J.J. McCarthy');
         title = title.replace(/\b(Stetson Bennett Iv)\b/gi, 'Stetson Bennett IV');
         title = title.replace(/\b(Iv)\b/gi, 'IV');
+        
+        // Add "RC" or "Rookie" for rookie cards (cards from 2024 are likely rookies)
+        if (title.includes('2024') && !title.includes('RC') && !title.includes('Rookie')) {
+            // Add RC after the player name
+            title = title.replace(/\b(J\.J\. McCarthy)\b/gi, '$1 RC');
+            title = title.replace(/\b(JJ McCarthy)\b/gi, '$1 RC');
+        }
         
         return title;
     }
