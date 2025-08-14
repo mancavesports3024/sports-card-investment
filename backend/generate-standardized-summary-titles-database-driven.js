@@ -1088,6 +1088,11 @@ class DatabaseDrivenStandardizedTitleGenerator {
         title = title.replace(/\b(SILVER REFRACTOR)\b/gi, 'Silver Refractor');
         title = title.replace(/\b(REJECTORS)\b/gi, 'Rejectors');
         
+        // Fix player name case sensitivity issues
+        title = title.replace(/\b(JJ Mccarthy)\b/gi, 'JJ McCarthy');
+        title = title.replace(/\b(Stetson Bennett Iv)\b/gi, 'Stetson Bennett IV');
+        title = title.replace(/\b(Iv)\b/gi, 'IV');
+        
         return title;
     }
 
