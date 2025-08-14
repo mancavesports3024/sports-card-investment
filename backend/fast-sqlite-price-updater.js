@@ -449,7 +449,7 @@ class FastSQLitePriceUpdater {
     }
 
     async cleanupNAPSA10Cards() {
-        console.log('🧹 Cleaning up cards with N/A PSA 10 prices...');
+        console.log('🧹 Cleaning up ALL cards with N/A PSA 10 prices...');
         
         try {
             const cards = await this.getNAPSA10Cards();
@@ -484,7 +484,7 @@ class FastSQLitePriceUpdater {
     async getNAPSA10Cards() {
         return new Promise((resolve, reject) => {
             this.db.all(`
-                SELECT id, title, psa10_price
+                SELECT id, title, psa10_price, raw_average_price, psa9_average_price
                 FROM cards 
                 WHERE psa10_price IS NULL OR psa10_price = 'N/A'
             `, (err, rows) => {
