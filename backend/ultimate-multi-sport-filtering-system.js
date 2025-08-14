@@ -57,7 +57,7 @@ const ULTIMATE_SPORT_FILTERS = {
             // Panini Prizm Draft parallels
             'blue /149', 'red /199', 'green /299', 'purple /399', 'orange /499',
             // Additional football parallels
-            'electricity', 'silver prizm', 'genesis', 'pink /5'
+            'electricity', 'silver prizm', 'genesis', 'pink /5', 'license to dominate'
         ],
         baseball: [
             // Baseball specific base parallels
