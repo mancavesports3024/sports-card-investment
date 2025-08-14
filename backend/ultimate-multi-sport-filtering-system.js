@@ -198,7 +198,7 @@ function detectSport(cardTitle) {
         title.includes('rodriguez') || title.includes('julio rodriguez') || title.includes('correa') ||
         title.includes('carlos correa') || title.includes('santana') || title.includes('johan santana') ||
         title.includes('schwarber') || title.includes('kyle schwarber') || title.includes('dominguez') ||
-        title.includes('jasson dominguez') ||
+        title.includes('jasson dominguez') || title.includes('leo de vries') || title.includes('leo de') ||
         title.includes('yankees') || title.includes('dodgers') || title.includes('red sox') ||
         title.includes('cubs') || title.includes('giants') || title.includes('braves') ||
         title.includes('topps') || title.includes('bowman') || title.includes('heritage')) {

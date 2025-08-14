@@ -520,7 +520,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
             // NBA Hoops Prizm patterns
             'black pulsar prizm', 'blue prizm', 'blue cracked ice prizm', 'blue pulsar prizm', 'blue wave prizm', 'flash prizm', 'gold pulsar prizm', 'green prizm', 'green cracked ice prizm', 'green pulsar prizm', 'green shimmer prizm', 'pulsar prizm', 'purple disco prizm', 'red prizm', 'red cracked ice prizm', 'red flash prizm', 'red pulsar prizm', 'red wave prizm', 'silver prizm', 'silver laser prizm', 'silver mojo prizm', 'silver scope prizm', 'teal prizm', 'teal wave prizm', 'premium set checkerboard prizm', 'blue laser prizm', 'blue mojo prizm', 'green flash prizm', 'blue flash prizm', 'purple flash prizm', 'purple cracked ice prizm', 'pink flash prizm', 'gold cracked ice prizm', 'gold flash prizm', 'gold laser prizm', 'gold mojo prizm', 'black flash prizm', 'black laser prizm', 'black mojo prizm', 'gold vinyl premium set prizm',
                     // Additional terms that are being incorrectly included in player names
-        'chrome', 'refractor', 'draft', 'helmet', 'heroes', 'sapphire', 'optic', 'hit', 'basketball', 'one and one', 'downtown', 'road to uefa euro', 'usa basketball', 'downtown', 'skybox', 'dp', 'light it up', 'disco', 'orange', 'prizm', 'mosaic', 'prospect', 'prospects', 'starcade', 'rejectors', 'treasured'
+        'chrome', 'refractor', 'draft', 'helmet', 'heroes', 'sapphire', 'optic', 'hit', 'basketball', 'one and one', 'downtown', 'road to uefa euro', 'usa basketball', 'downtown', 'skybox', 'light it up', 'disco', 'orange', 'prizm', 'mosaic', 'prospect', 'prospects', 'starcade', 'rejectors', 'treasured'
         ];
         
         removeTerms.push(...productTerms);
@@ -606,6 +606,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
             /\b([A-Z]+'[A-Z]+)\s+([A-Z]+)\b/g,
             // Handle all-caps names with apostrophes in second part like "SHAQUILLE O'NEAL"
             /\b([A-Z]+)\s+([A-Z]+'[A-Z]+)\b/g,
+            // Handle three-part all-caps names like "LEO DE VRIES" (check this before two-part)
+            /\b([A-Z]+)\s+([A-Z]+)\s+([A-Z]+)\b/g,
             // Handle all-caps names like "PAUL SKENES"
             /\b([A-Z]+)\s+([A-Z]+)\b/g,
             // Handle three-part names like "Josue De Paula"

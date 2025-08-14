@@ -1,12 +1,12 @@
 const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standardized-summary-titles-database-driven');
 const { detectSport, getPSAGrade, isBaseParallel } = require('./ultimate-multi-sport-filtering-system');
 
-async function debugBryceYoungIssue() {
-    console.log('🔍 Debugging Bryce Young Player Extraction Issue...\n');
+async function debugLeoDeVriesFix() {
+    console.log('🔍 Debugging Leo DE VRIES Player Extraction...\n');
     
     const generator = new DatabaseDrivenStandardizedTitleGenerator();
     
-    const testCard = "2023 Panini National Treasures Treasured Rookies Bryce Young #TRC-BYG /99 PSA 10";
+    const testCard = "LEO DE VRIES 2024 Bowman's Best Prospect #TP-18 Silver Wave Refractor PSA 10 GEM";
     
     console.log(`🔍 Testing: ${testCard}`);
     
@@ -30,7 +30,7 @@ async function debugBryceYoungIssue() {
     const standardizedTitle = generator.generateStandardizedTitle(testCard);
     console.log(`  Standardized title: "${standardizedTitle}"`);
     
-    console.log('\n✅ Expected: "2023 National Treasures Bryce Young Treasured Rookies #TRC-BYG /99"');
+    console.log('\n✅ Expected: "2024 Leo DE VRIES Bowman\'s Best Silver Wave Refractor #TP-18"');
 }
 
-debugBryceYoungIssue().catch(console.error);
+debugLeoDeVriesFix().catch(console.error);
