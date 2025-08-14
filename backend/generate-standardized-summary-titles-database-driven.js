@@ -130,7 +130,6 @@ class DatabaseDrivenStandardizedTitleGenerator {
                     END as card_set
                 FROM cards 
                 WHERE title IS NOT NULL AND title != ''
-                AND card_set IS NOT NULL
                 ORDER BY card_set
             `);
 
@@ -185,7 +184,6 @@ class DatabaseDrivenStandardizedTitleGenerator {
                     END as card_type
                 FROM cards 
                 WHERE title IS NOT NULL AND title != ''
-                AND card_type IS NOT NULL
                 ORDER BY card_type
             `);
 
