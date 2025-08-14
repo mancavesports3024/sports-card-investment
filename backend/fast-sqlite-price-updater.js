@@ -40,21 +40,17 @@ class FastSQLitePriceUpdater {
                 FROM cards 
                 WHERE 
                     -- Missing all prices
-                    (raw_average_price IS NULL AND psa9_average_price IS NULL AND psa10_price IS NULL) OR
+                    (raw_average_price IS NULL AND psa9_average_price IS NULL) OR
                     -- Missing any combination of prices
-                    (raw_average_price IS NULL AND psa9_average_price IS NOT NULL AND psa10_price IS NOT NULL) OR
-                    (raw_average_price IS NOT NULL AND psa9_average_price IS NULL AND psa10_price IS NOT NULL) OR
-                    (raw_average_price IS NOT NULL AND psa9_average_price IS NOT NULL AND psa10_price IS NULL) OR
-                    (raw_average_price IS NULL AND psa9_average_price IS NULL AND psa10_price IS NOT NULL) OR
-                    (raw_average_price IS NULL AND psa9_average_price IS NOT NULL AND psa10_price IS NULL) OR
-                    (raw_average_price IS NOT NULL AND psa9_average_price IS NULL AND psa10_price IS NULL) OR
+                    (raw_average_price IS NULL AND psa9_average_price IS NOT NULL) OR
+                    (raw_average_price IS NOT NULL AND psa9_average_price IS NULL) OR
                     -- Old data (older than 7 days)
                     (last_updated IS NULL OR datetime(last_updated) < datetime('now', '-7 days'))
                 ORDER BY
                     -- Priority: no prices first, then missing prices, then old data
                     CASE 
-                        WHEN raw_average_price IS NULL AND psa9_average_price IS NULL AND psa10_price IS NULL THEN 1
-                        WHEN raw_average_price IS NULL OR psa9_average_price IS NULL OR psa10_price IS NULL THEN 2
+                        WHEN raw_average_price IS NULL AND psa9_average_price IS NULL THEN 1
+                        WHEN raw_average_price IS NULL OR psa9_average_price IS NULL THEN 2
                         ELSE 3
                     END,
                     CASE WHEN last_updated IS NULL THEN 1 ELSE 0 END,
@@ -141,25 +137,16 @@ class FastSQLitePriceUpdater {
                     return ultimateMultiSportFilter(cardWithSport, 'psa9');
                 });
                 
-                // Search for PSA 10 cards
+                // Skip PSA 10 searches for now - focus on raw and PSA 9 only
                 const psa10Query = `${strategy} PSA 10`;
-                const tempPsa10Results = await search130point(psa10Query, 20);
+                console.log(`🔍 DEBUG: Skipping PSA 10 search for now - "${psa10Query}"`);
                 
-                // Debug filtering for PSA 10 results
-                if (tempPsa10Results.length > 0) {
-                    const cardWithSport = { ...tempPsa10Results[0], sport: card.sport };
-                    const firstPsa10Filtered = ultimateMultiSportFilter(cardWithSport, 'psa10');
-                    console.log(`🔍 DEBUG: PSA 10 query "${psa10Query}" → First result "${tempPsa10Results[0].title}" → Filtered: ${firstPsa10Filtered}`);
-                }
-                
-                const filteredPsa10 = tempPsa10Results.filter(resultCard => {
-                    const cardWithSport = { ...resultCard, sport: card.sport };
-                    return ultimateMultiSportFilter(cardWithSport, 'psa10');
-                });
+                const tempPsa10Results = [];
+                const filteredPsa10 = [];
                 
                 console.log(`🔍 "${strategy}" → Found ${filteredRaw.length} raw, ${filteredPsa9.length} PSA 9, ${filteredPsa10.length} PSA 10`);
                 
-                if (filteredRaw.length > 0 || filteredPsa9.length > 0 || filteredPsa10.length > 0) {
+                if (filteredRaw.length > 0 || filteredPsa9.length > 0) {
                     rawResults = filteredRaw;
                     psa9Results = filteredPsa9;
                     psa10Results = filteredPsa10;
@@ -167,13 +154,12 @@ class FastSQLitePriceUpdater {
                 }
             }
             
-            // Calculate averages
+            // Calculate averages (skip PSA 10 for now)
             const rawAvg = rawResults.length > 0 ? 
                 rawResults.reduce((sum, sale) => sum + parseFloat(sale.price?.value || 0), 0) / rawResults.length : 0;
             const psa9Avg = psa9Results.length > 0 ? 
                 psa9Results.reduce((sum, sale) => sum + parseFloat(sale.price?.value || 0), 0) / psa9Results.length : 0;
-            const psa10Avg = psa10Results.length > 0 ? 
-                psa10Results.reduce((sum, sale) => sum + parseFloat(sale.price?.value || 0), 0) / psa10Results.length : 0;
+            const psa10Avg = 0; // Skip PSA 10 for now
 
             return {
                 raw: { avgPrice: rawAvg, count: rawResults.length, sales: rawResults },
@@ -192,13 +178,10 @@ class FastSQLitePriceUpdater {
         return new Promise((resolve, reject) => {
             const rawPrice = priceData.raw.avgPrice > 0 ? priceData.raw.avgPrice : null;
             const psa9Price = priceData.psa9.avgPrice > 0 ? priceData.psa9.avgPrice : null;
-            const psa10Price = priceData.psa10.avgPrice > 0 ? priceData.psa10.avgPrice : null;
+            const psa10Price = null; // Skip PSA 10 for now
             
-            // Calculate multiplier if we have both raw and PSA 10 prices
+            // Skip multiplier calculation for now (since no PSA 10)
             let multiplier = null;
-            if (rawPrice && psa10Price && rawPrice > 0) {
-                multiplier = (psa10Price / rawPrice).toFixed(2);
-            }
             
             const query = `
                 UPDATE cards 
@@ -232,6 +215,10 @@ class FastSQLitePriceUpdater {
         try {
             await this.connect();
             
+            // First, clean up existing cards with N/A PSA 10 prices
+            console.log('🧹 Cleaning up cards with N/A PSA 10 prices...');
+            await this.cleanupNAPSA10Cards();
+            
             const cards = await this.getCardsNeedingUpdates(batchSize);
             console.log(`📊 Found ${cards.length} cards needing price updates`);
             
@@ -259,11 +246,12 @@ class FastSQLitePriceUpdater {
                         
                                                  if (priceData && (priceData.raw.avgPrice > 0 || priceData.psa9.avgPrice > 0 || priceData.psa10.avgPrice > 0)) {
                              // Check if PSA 10 price is below $40 - if so, remove the card
-                             if (priceData.psa10.avgPrice > 0 && priceData.psa10.avgPrice < 40) {
-                                 console.log(`🗑️ ${card.summaryTitle || card.title} → PSA 10: $${priceData.psa10.avgPrice.toFixed(2)} (below $40) - REMOVING`);
-                                 await this.removeCard(card.id);
-                                 return { removed: true };
-                             }
+                                                     // Remove cards with N/A PSA 10 price (existing cards)
+                        if (card.psa10Price === null || card.psa10Price === 'N/A') {
+                            console.log(`🗑️ ${card.summaryTitle || card.title} → PSA 10: N/A - REMOVING`);
+                            await this.removeCard(card.id);
+                            return { removed: true };
+                        }
                              
                              await this.updateCardPrices(card.id, priceData);
                              
@@ -281,11 +269,7 @@ class FastSQLitePriceUpdater {
                                  priceInfo += `PSA 10: $${priceData.psa10.avgPrice.toFixed(2)} (${priceData.psa10.count})`;
                              }
                              
-                             // Add multiplier info if calculated
-                             if (priceData.raw.avgPrice > 0 && priceData.psa10.avgPrice > 0) {
-                                 const multiplier = (priceData.psa10.avgPrice / priceData.raw.avgPrice).toFixed(2);
-                                 priceInfo += `, Multiplier: ${multiplier}x`;
-                             }
+                                                           // Skip multiplier info for now (since no PSA 10)
                              
                              console.log(`✅ ${card.summaryTitle || card.title} → ${priceInfo}`);
                              
@@ -450,19 +434,65 @@ class FastSQLitePriceUpdater {
          }
      }
 
-     async getLowValueCards() {
-         return new Promise((resolve, reject) => {
-             this.db.all(`
-                 SELECT id, title, psa10_price
-                 FROM cards 
-                 WHERE psa10_price IS NOT NULL 
-                 AND psa10_price < 40
-             `, (err, rows) => {
-                 if (err) reject(err);
-                 else resolve(rows);
-             });
-         });
-     }
+         async getLowValueCards() {
+        return new Promise((resolve, reject) => {
+            this.db.all(`
+                SELECT id, title, psa10_price
+                FROM cards 
+                WHERE psa10_price IS NOT NULL 
+                AND psa10_price < 40
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+    }
+
+    async cleanupNAPSA10Cards() {
+        console.log('🧹 Cleaning up cards with N/A PSA 10 prices...');
+        
+        try {
+            const cards = await this.getNAPSA10Cards();
+            console.log(`📊 Found ${cards.length} cards with N/A PSA 10 prices`);
+            
+            if (cards.length === 0) {
+                console.log('✅ No cards with N/A PSA 10 prices found!');
+                return;
+            }
+            
+            let removedCount = 0;
+            
+            for (const card of cards) {
+                console.log(`🗑️ Removing: ${card.title} (PSA 10: N/A)`);
+                await this.removeCard(card.id);
+                removedCount++;
+                
+                if (removedCount % 10 === 0) {
+                    console.log(`✅ Removed ${removedCount} cards with N/A PSA 10 prices...`);
+                }
+            }
+            
+            console.log(`✅ N/A PSA 10 cleanup complete!`);
+            console.log(`📊 Total cards removed: ${removedCount}`);
+            
+        } catch (error) {
+            console.error('❌ Error cleaning up N/A PSA 10 cards:', error);
+            throw error;
+        }
+    }
+
+    async getNAPSA10Cards() {
+        return new Promise((resolve, reject) => {
+            this.db.all(`
+                SELECT id, title, psa10_price
+                FROM cards 
+                WHERE psa10_price IS NULL OR psa10_price = 'N/A'
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+    }
 
     async getCardsNeedingMultiplierUpdate() {
         return new Promise((resolve, reject) => {
