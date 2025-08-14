@@ -32,7 +32,7 @@ const ULTIMATE_SPORT_FILTERS = {
             'black ice', 'black lazer', 'black holo',
             'white ice', 'white lazer', 'white holo',
             // Basketball specific
-            'velocity', 'holo', 'hyper', 'genesis', 'revolution'
+            'velocity', 'holo', 'hyper', 'genesis', 'revolution', 'flair', 'pink millionaire', 'chronicles', 'silver', 'millionaire'
         ],
         football: [
             // Color variants (Ice/Lazer/Holo)
@@ -55,7 +55,9 @@ const ULTIMATE_SPORT_FILTERS = {
             'starcade', 'silver prizm', 'gold prizm', 'blue prizm', 'red prizm', 'green prizm',
             'purple prizm', 'orange prizm', 'black prizm', 'white prizm',
             // Panini Prizm Draft parallels
-            'blue /149', 'red /199', 'green /299', 'purple /399', 'orange /499'
+            'blue /149', 'red /199', 'green /299', 'purple /399', 'orange /499',
+            // Additional football parallels
+            'electricity', 'silver prizm', 'genesis', 'national treasures', 'pink /5'
         ],
         baseball: [
             // Baseball specific base parallels
@@ -111,6 +113,10 @@ const ULTIMATE_SPORT_FILTERS = {
             'unlimited', 'first edition', '1st edition',
             'shadowless', 'base set', 'jungle', 'fossil',
             'promo', 'black star promo', 'staff promo'
+        ],
+        wrestling: [
+            // Wrestling specific base parallels
+            'chronicles', 'optic', 'blue /49', 'red /99', 'green /199'
         ]
     },
     
@@ -121,7 +127,7 @@ const ULTIMATE_SPORT_FILTERS = {
         ],
         football: [
             'playoff', 'championship', 'super bowl', 'pro bowl', 'mvp',
-            'national treasures', 'flawless', 'immaculate'
+            'flawless', 'immaculate'
         ],
         baseball: [
             'playoff', 'championship', 'world series', 'all star', 'mvp'
@@ -157,7 +163,10 @@ function detectSport(cardTitle) {
         title.includes('doncic') || title.includes('zion') || title.includes('morant') ||
         title.includes('wembanyama') || title.includes('victor') || title.includes('tatum') ||
         title.includes('booker') || title.includes('edwards') || title.includes('brunson') ||
-        title.includes('malone') || title.includes('karl malone') ||
+        title.includes('malone') || title.includes('karl malone') || title.includes('shaquille') ||
+        title.includes('o\'neal') || title.includes('oneal') || title.includes('gilgeous') ||
+        title.includes('alexander') || title.includes('avdija') || title.includes('deni') ||
+        title.includes('brink') || title.includes('cameron brink') ||
         title.includes('lakers') || title.includes('warriors') || title.includes('celtics') ||
         title.includes('bulls') || title.includes('knicks') || title.includes('heat') ||
         title.includes('spurs') || title.includes('suns') || title.includes('nuggets')) {
@@ -171,7 +180,10 @@ function detectSport(cardTitle) {
         title.includes('burrow') || title.includes('lawrence') || title.includes('prescott') ||
         title.includes('purdy') || title.includes('brock') || title.includes('bo nix') ||
         title.includes('stroud') || title.includes('bryce young') || title.includes('richardson') ||
-        title.includes('worthy') || title.includes('xavier worthy') ||
+        title.includes('worthy') || title.includes('xavier worthy') || title.includes('burrow') ||
+        title.includes('joe burrow') ||         title.includes('ceedee') || title.includes('lamb') ||
+        title.includes('ceedee lamb') || title.includes('vick') || title.includes('michael vick') ||
+        title.includes('young') ||
         title.includes('broncos') || title.includes('denver') || title.includes('chiefs') ||
         title.includes('patriots') || title.includes('cowboys') || title.includes('49ers') ||
         title.includes('niners') || title.includes('texans') || title.includes('colts')) {
@@ -182,6 +194,11 @@ function detectSport(cardTitle) {
     if (title.includes('baseball') || title.includes('mlb') || 
         title.includes('trout') || title.includes('ohtani') || title.includes('judge') ||
         title.includes('acuna') || title.includes('tatis') || title.includes('bichette') ||
+        title.includes('jeter') || title.includes('derek jeter') || title.includes('julio') ||
+        title.includes('rodriguez') || title.includes('julio rodriguez') || title.includes('correa') ||
+        title.includes('carlos correa') || title.includes('santana') || title.includes('johan santana') ||
+        title.includes('schwarber') || title.includes('kyle schwarber') || title.includes('dominguez') ||
+        title.includes('jasson dominguez') ||
         title.includes('yankees') || title.includes('dodgers') || title.includes('red sox') ||
         title.includes('cubs') || title.includes('giants') || title.includes('braves') ||
         title.includes('topps') || title.includes('bowman') || title.includes('heritage')) {
@@ -206,6 +223,12 @@ function detectSport(cardTitle) {
         title.includes('chelsea') || title.includes('arsenal') || title.includes('liverpool') ||
         title.includes('champions league') || title.includes('world cup') || title.includes('uefa')) {
         return 'soccer';
+    }
+    
+    // Wrestling/Sports Entertainment indicators
+    if (title.includes('wwe') || title.includes('wrestling') || title.includes('duggan') ||
+        title.includes('jim duggan') || title.includes('hacksaw') || title.includes('chronicles wwe')) {
+        return 'wrestling';
     }
     
     // Pokemon indicators
