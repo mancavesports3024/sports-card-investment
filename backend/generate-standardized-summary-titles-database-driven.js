@@ -54,17 +54,16 @@ class DatabaseDrivenStandardizedTitleGenerator {
         console.log('🧠 Learning from existing database data...\n');
 
         try {
-            // Extract card sets from existing titles
+            // Extract card sets from existing titles - simplified to avoid SQL syntax issues
             const cardSetsQuery = await this.runQuery(`
                 SELECT DISTINCT 
                     CASE 
-                        WHEN title LIKE '%Bowman Chrome Prospects%' THEN 'Bowman Chrome Prospects'
                         WHEN title LIKE '%Bowman Chrome%' THEN 'Bowman Chrome'
                         WHEN title LIKE '%Bowman Draft%' THEN 'Bowman Draft'
                         WHEN title LIKE '%Bowman Sterling%' THEN 'Bowman Sterling'
                         WHEN title LIKE '%Bowman Platinum%' THEN 'Bowman Platinum'
                         WHEN title LIKE '%Bowman University%' THEN 'Bowman University'
-                        WHEN title LIKE '%Bowman\'s Best%' THEN 'Bowman\'s Best'
+                        WHEN title LIKE '%Bowman''s Best%' THEN 'Bowman''s Best'
                         WHEN title LIKE '%Fleer Tradition%' THEN 'Fleer Tradition'
                         WHEN title LIKE '%Topps Chrome Sapphire%' THEN 'Topps Chrome Sapphire'
                         WHEN title LIKE '%Topps Chrome%' THEN 'Topps Chrome'
@@ -77,9 +76,6 @@ class DatabaseDrivenStandardizedTitleGenerator {
                         WHEN title LIKE '%Panini Contenders%' THEN 'Panini Contenders'
                         WHEN title LIKE '%Panini Donruss%' THEN 'Panini Donruss'
                         WHEN title LIKE '%Panini Optic%' THEN 'Panini Optic'
-                        WHEN title LIKE '%Upper Deck SP%' THEN 'Upper Deck SP'
-                        WHEN title LIKE '%Upper Deck SPx%' THEN 'Upper Deck SPx'
-                        WHEN title LIKE '%Upper Deck Exquisite%' THEN 'Upper Deck Exquisite'
                         WHEN title LIKE '%Upper Deck%' THEN 'Upper Deck'
                         WHEN title LIKE '%Stadium Club%' THEN 'Stadium Club'
                         WHEN title LIKE '%National Treasures%' THEN 'National Treasures'
