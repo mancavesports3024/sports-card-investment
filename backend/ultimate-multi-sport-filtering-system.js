@@ -198,7 +198,7 @@ function detectSport(cardTitle) {
         title.includes('worthy') || title.includes('xavier worthy') || title.includes('burrow') ||
         title.includes('joe burrow') ||         title.includes('ceedee') || title.includes('lamb') ||
         title.includes('ceedee lamb') || title.includes('vick') || title.includes('michael vick') ||
-        title.includes('young') ||
+        title.includes('young') || title.includes('marvin harrison') || title.includes('harrison jr') ||
         title.includes('broncos') || title.includes('denver') || title.includes('chiefs') ||
         title.includes('patriots') || title.includes('cowboys') || title.includes('49ers') ||
         title.includes('niners') || title.includes('texans') || title.includes('colts')) {
