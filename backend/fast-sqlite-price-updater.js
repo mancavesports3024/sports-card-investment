@@ -85,38 +85,44 @@ class FastSQLitePriceUpdater {
         }
         summaryTitle = String(summaryTitle || '').trim();
 
-        // Create smart search strategies (similar to sqlite-price-updater.js)
-        let genericTitle = summaryTitle;
-        genericTitle = genericTitle
-            .replace(/\s+\d+\/\d+\s*$/g, '')
-            .replace(/\s+\d+\/\d+\s+/g, ' ')
-            .replace(/\s+Cert\s*$/gi, '')
-            .replace(/\s+#\w+\s*$/g, '')
-            .replace(/\s+Engine\s+\d+\/\d+/gi, '')
-            .replace(/\s+Gold\s+Engine/gi, ' Gold')
-            .replace(/\s+\d+\/\d+\s*$/g, '')
-            .replace(/\s+-\s*$/g, '')
-            .replace(/\s+\d+\s*$/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-
+        // Create smart search strategies that preserve player names
         const strategies = [];
-        if (genericTitle && genericTitle !== summaryTitle) {
-            strategies.push(genericTitle);
+        
+        // Strategy 1: Use the full summary title (most specific)
+        strategies.push(summaryTitle);
+        
+        // Strategy 2: Remove only card numbers and print runs, but keep player names
+        let playerPreservedTitle = summaryTitle
+            .replace(/\s+#[A-Z0-9-]+\s*$/g, '')  // Remove card numbers like #TP-18
+            .replace(/\s+\d+\/\d+\s*$/g, '')     // Remove print runs like /99
+            .replace(/\s+Cert\s*$/gi, '')        // Remove Cert
+            .replace(/\s+Engine\s+\d+\/\d+/gi, '') // Remove Engine
+            .replace(/\s+Gold\s+Engine/gi, ' Gold') // Fix Gold Engine
+            .replace(/\s+-\s*$/g, '')            // Remove trailing dash
+            .replace(/\s+/g, ' ')                // Normalize spaces
+            .trim();
+            
+        if (playerPreservedTitle && playerPreservedTitle !== summaryTitle) {
+            strategies.push(playerPreservedTitle);
         }
         
-        // Try to extract player name + year
-        const playerYearMatch = summaryTitle.match(/(\d{4})\s+.*?\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
+        // Strategy 3: Extract year + player name + key card terms
+        const playerYearMatch = summaryTitle.match(/(\d{4})\s+(.*?)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
         if (playerYearMatch) {
             const year = playerYearMatch[1];
-            const possiblePlayer = playerYearMatch[2];
-            if (possiblePlayer.length > 3) {
-                strategies.push(`${year} ${possiblePlayer}`);
+            const middlePart = playerYearMatch[2];
+            const possiblePlayer = playerYearMatch[3];
+            
+            // Keep the player name and important card terms
+            const keyTerms = middlePart.split(' ').filter(term => 
+                term.length > 2 && 
+                !term.match(/^[A-Z0-9-]+$/) && // Not just card numbers
+                !term.match(/^\d+\/\d+$/)       // Not print runs
+            ).join(' ');
+            
+            if (possiblePlayer.length > 3 && keyTerms.length > 3) {
+                strategies.push(`${year} ${possiblePlayer} ${keyTerms}`);
             }
-        }
-        
-        if (strategies.length === 0) {
-            strategies.push(summaryTitle);
         }
 
         return {
