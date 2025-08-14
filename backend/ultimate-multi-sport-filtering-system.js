@@ -32,7 +32,7 @@ const ULTIMATE_SPORT_FILTERS = {
             'black ice', 'black lazer', 'black holo',
             'white ice', 'white lazer', 'white holo',
             // Basketball specific
-            'velocity', 'holo', 'hyper', 'genesis', 'revolution', 'flair', 'pink millionaire', 'chronicles', 'silver', 'millionaire', 'national treasures'
+            'velocity', 'holo', 'hyper', 'genesis', 'revolution', 'flair', 'pink millionaire', 'chronicles', 'silver', 'millionaire', 'national treasures', 'rejectors'
         ],
         football: [
             // Color variants (Ice/Lazer/Holo)
