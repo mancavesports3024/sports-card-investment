@@ -636,8 +636,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
             /#\d+[A-Za-z]+/g,
             // Card numbers with # symbol followed by pure numbers (like #168, #123)
             /#(?!SSP)\d+/g,
-            // Print run numbers (like /150, /5)
-            /\/(\d+)\b/g,
+            // Print run numbers (like /150, /5) - capture the full pattern including slash
+            /\/\d+\b/g,
             // Standalone card numbers (but exclude PSA grades and POP numbers)
             /\b(\d{1,3})\b/g,
             // Special editions
@@ -771,9 +771,10 @@ class DatabaseDrivenStandardizedTitleGenerator {
                 }
                 
                 // Skip print runs (like /5, /150) - these are not card numbers
-                if (value.startsWith('/') || (value.match(/^\d+$/) && title.includes('/' + value))) {
-                    continue;
-                }
+                // REMOVED: Print runs are important information and should be included
+                // if (value.startsWith('/') || (value.match(/^\d+$/) && title.includes('/' + value))) {
+                //     continue;
+                // }
                 
                 // Skip card numbers that are actually print runs (like #5 when there's /5 in the title)
                 if (value.startsWith('#') && value.match(/^#\d+$/)) {
