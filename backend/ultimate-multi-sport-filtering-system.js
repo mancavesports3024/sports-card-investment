@@ -32,7 +32,9 @@ const ULTIMATE_SPORT_FILTERS = {
             'black ice', 'black lazer', 'black holo',
             'white ice', 'white lazer', 'white holo',
             // Basketball specific
-            'velocity', 'holo', 'hyper', 'genesis', 'revolution', 'flair', 'pink millionaire', 'chronicles', 'silver', 'millionaire', 'national treasures', 'rejectors'
+            'velocity', 'holo', 'hyper', 'genesis', 'revolution', 'flair', 'pink millionaire', 'chronicles', 'silver', 'millionaire', 'national treasures', 'rejectors',
+            // Panini Hoops parallels
+            'gold', 'silver', 'bronze', 'copper', 'green', 'blue', 'red', 'purple', 'orange', 'pink'
         ],
         football: [
             // Color variants (Ice/Lazer/Holo)
@@ -57,7 +59,18 @@ const ULTIMATE_SPORT_FILTERS = {
             // Panini Prizm Draft parallels
             'blue /149', 'red /199', 'green /299', 'purple /399', 'orange /499',
             // Additional football parallels
-            'electricity', 'silver prizm', 'genesis', 'pink /5', 'license to dominate'
+            'electricity', 'silver prizm', 'genesis', 'pink /5', 'license to dominate',
+            // Panini Donruss Optic parallels
+            'purple shock', 'blue shock', 'green shock', 'red shock', 'orange shock',
+            'silver shock', 'gold shock', 'black shock', 'white shock',
+            // Panini Contenders parallels
+            'season ticket', 'game ticket', 'crown jewels', 'emerald', 'bronze',
+            'silver mojo', 'purple pulsar', 'supernatural', 'touchdown tandems',
+            // Panini Select additional parallels
+            'concourse', 'premier', 'club level', 'suite level', 'light blue prizm',
+            'red prizm', 'blue prizm', 'silver disco prizm',
+            // LIV Golf parallels
+            'color blast', 'smash'
         ],
         baseball: [
             // Baseball specific base parallels
@@ -73,7 +86,9 @@ const ULTIMATE_SPORT_FILTERS = {
             'silver ice', 'silver lazer', 'silver holo',
             'gold ice', 'gold lazer', 'gold holo',
             'black ice', 'black lazer', 'black holo',
-            'white ice', 'white lazer', 'white holo'
+            'white ice', 'white lazer', 'white holo',
+            // Topps parallels
+            'red diamond', 'diamond', 'insert'
         ],
         hockey: [
             // Hockey specific base parallels
