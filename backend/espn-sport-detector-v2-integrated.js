@@ -140,6 +140,7 @@ class ESPNSportDetectorV2Integrated {
             'premier-league': 'Soccer',
             'eng.1': 'Soccer',
             'eng.5': 'Soccer',
+            'esp.1': 'Soccer',
             
             // Golf
             'pga': 'Golf',
