@@ -35,27 +35,30 @@ class FastSQLitePriceUpdater {
     async getCardsNeedingUpdates(limit = 50) {
         return new Promise((resolve, reject) => {
             const query = `
-                SELECT id, title, summaryTitle, sport, filterInfo, 
-                       rawAveragePrice, psa9AveragePrice, lastUpdated
+                SELECT id, title, summary_title as summaryTitle, sport, notes as filterInfo, 
+                       raw_average_price as rawAveragePrice, psa9_average_price as psa9AveragePrice, psa10_price as psa10Price, last_updated as lastUpdated
                 FROM cards 
                 WHERE 
-                    -- Missing both prices
-                    (rawAveragePrice IS NULL AND psa9AveragePrice IS NULL) OR
-                    -- Missing raw price but has PSA 9
-                    (rawAveragePrice IS NULL AND psa9AveragePrice IS NOT NULL) OR
-                    -- Missing PSA 9 price but has raw
-                    (rawAveragePrice IS NOT NULL AND psa9AveragePrice IS NULL) OR
+                    -- Missing all prices
+                    (raw_average_price IS NULL AND psa9_average_price IS NULL AND psa10_price IS NULL) OR
+                    -- Missing any combination of prices
+                    (raw_average_price IS NULL AND psa9_average_price IS NOT NULL AND psa10_price IS NOT NULL) OR
+                    (raw_average_price IS NOT NULL AND psa9_average_price IS NULL AND psa10_price IS NOT NULL) OR
+                    (raw_average_price IS NOT NULL AND psa9_average_price IS NOT NULL AND psa10_price IS NULL) OR
+                    (raw_average_price IS NULL AND psa9_average_price IS NULL AND psa10_price IS NOT NULL) OR
+                    (raw_average_price IS NULL AND psa9_average_price IS NOT NULL AND psa10_price IS NULL) OR
+                    (raw_average_price IS NOT NULL AND psa9_average_price IS NULL AND psa10_price IS NULL) OR
                     -- Old data (older than 7 days)
-                    (lastUpdated IS NULL OR datetime(lastUpdated) < datetime('now', '-7 days'))
+                    (last_updated IS NULL OR datetime(last_updated) < datetime('now', '-7 days'))
                 ORDER BY
                     -- Priority: no prices first, then missing prices, then old data
                     CASE 
-                        WHEN rawAveragePrice IS NULL AND psa9AveragePrice IS NULL THEN 1
-                        WHEN rawAveragePrice IS NULL OR psa9AveragePrice IS NULL THEN 2
+                        WHEN raw_average_price IS NULL AND psa9_average_price IS NULL AND psa10_price IS NULL THEN 1
+                        WHEN raw_average_price IS NULL OR psa9_average_price IS NULL OR psa10_price IS NULL THEN 2
                         ELSE 3
                     END,
-                    CASE WHEN lastUpdated IS NULL THEN 1 ELSE 0 END,
-                    lastUpdated ASC
+                    CASE WHEN last_updated IS NULL THEN 1 ELSE 0 END,
+                    last_updated ASC
                 LIMIT ?
             `;
             
@@ -128,6 +131,7 @@ class FastSQLitePriceUpdater {
         try {
             let rawResults = [];
             let psa9Results = [];
+            let psa10Results = [];
             
             // Try each strategy until we get good results
             for (let i = 0; i < strategies.length; i++) {
@@ -142,11 +146,17 @@ class FastSQLitePriceUpdater {
                 const tempPsa9Results = await search130point(psa9Query, 20);
                 const filteredPsa9 = tempPsa9Results.filter(card => ultimateMultiSportFilter(card, 'psa9'));
                 
-                console.log(`🔍 "${strategy}" → Found ${filteredRaw.length} raw, ${filteredPsa9.length} PSA 9`);
+                // Search for PSA 10 cards
+                const psa10Query = `${strategy} PSA 10`;
+                const tempPsa10Results = await search130point(psa10Query, 20);
+                const filteredPsa10 = tempPsa10Results.filter(card => ultimateMultiSportFilter(card, 'psa10'));
                 
-                if (filteredRaw.length > 0 || filteredPsa9.length > 0) {
+                console.log(`🔍 "${strategy}" → Found ${filteredRaw.length} raw, ${filteredPsa9.length} PSA 9, ${filteredPsa10.length} PSA 10`);
+                
+                if (filteredRaw.length > 0 || filteredPsa9.length > 0 || filteredPsa10.length > 0) {
                     rawResults = filteredRaw;
                     psa9Results = filteredPsa9;
+                    psa10Results = filteredPsa10;
                     break; // Use first strategy that gets results
                 }
             }
@@ -156,10 +166,13 @@ class FastSQLitePriceUpdater {
                 rawResults.reduce((sum, sale) => sum + parseFloat(sale.price?.value || 0), 0) / rawResults.length : 0;
             const psa9Avg = psa9Results.length > 0 ? 
                 psa9Results.reduce((sum, sale) => sum + parseFloat(sale.price?.value || 0), 0) / psa9Results.length : 0;
+            const psa10Avg = psa10Results.length > 0 ? 
+                psa10Results.reduce((sum, sale) => sum + parseFloat(sale.price?.value || 0), 0) / psa10Results.length : 0;
 
             return {
                 raw: { avgPrice: rawAvg, count: rawResults.length, sales: rawResults },
                 psa9: { avgPrice: psa9Avg, count: psa9Results.length, sales: psa9Results },
+                psa10: { avgPrice: psa10Avg, count: psa10Results.length, sales: psa10Results },
                 source: '130point_fast'
             };
             
@@ -173,16 +186,18 @@ class FastSQLitePriceUpdater {
         return new Promise((resolve, reject) => {
             const query = `
                 UPDATE cards 
-                SET rawAveragePrice = ?, 
-                    psa9AveragePrice = ?, 
-                    lastUpdated = datetime('now')
+                SET raw_average_price = ?, 
+                    psa9_average_price = ?, 
+                    psa10_price = ?, 
+                    last_updated = datetime('now')
                 WHERE id = ?
             `;
             
             const rawPrice = priceData.raw.avgPrice > 0 ? priceData.raw.avgPrice : null;
             const psa9Price = priceData.psa9.avgPrice > 0 ? priceData.psa9.avgPrice : null;
+            const psa10Price = priceData.psa10.avgPrice > 0 ? priceData.psa10.avgPrice : null;
             
-            this.db.run(query, [rawPrice, psa9Price, cardId], function(err) {
+            this.db.run(query, [rawPrice, psa9Price, psa10Price, cardId], function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -222,7 +237,7 @@ class FastSQLitePriceUpdater {
                     try {
                         const priceData = await this.searchCardPrices(card);
                         
-                        if (priceData && (priceData.raw.avgPrice > 0 || priceData.psa9.avgPrice > 0)) {
+                        if (priceData && (priceData.raw.avgPrice > 0 || priceData.psa9.avgPrice > 0 || priceData.psa10.avgPrice > 0)) {
                             await this.updateCardPrices(card.id, priceData);
                             
                             // Show search results and price updates
@@ -233,6 +248,10 @@ class FastSQLitePriceUpdater {
                             if (priceData.psa9.avgPrice > 0) {
                                 if (priceInfo) priceInfo += ', ';
                                 priceInfo += `PSA 9: $${priceData.psa9.avgPrice.toFixed(2)} (${priceData.psa9.count})`;
+                            }
+                            if (priceData.psa10.avgPrice > 0) {
+                                if (priceInfo) priceInfo += ', ';
+                                priceInfo += `PSA 10: $${priceData.psa10.avgPrice.toFixed(2)} (${priceData.psa10.count})`;
                             }
                             console.log(`✅ ${card.summaryTitle || card.title} → ${priceInfo}`);
                             
@@ -289,8 +308,8 @@ class FastSQLitePriceUpdater {
         try {
             const queries = [
                 'SELECT COUNT(*) as count FROM cards',
-                'SELECT COUNT(*) as count FROM cards WHERE rawAveragePrice IS NOT NULL AND psa9AveragePrice IS NOT NULL',
-                'SELECT COUNT(*) as count FROM cards WHERE rawAveragePrice IS NULL OR psa9AveragePrice IS NULL'
+                'SELECT COUNT(*) as count FROM cards WHERE raw_average_price IS NOT NULL AND psa9_average_price IS NOT NULL AND psa10_price IS NOT NULL',
+                'SELECT COUNT(*) as count FROM cards WHERE raw_average_price IS NULL OR psa9_average_price IS NULL OR psa10_price IS NULL'
             ];
             
             return new Promise((resolve, reject) => {
