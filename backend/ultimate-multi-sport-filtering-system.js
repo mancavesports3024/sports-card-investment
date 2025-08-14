@@ -288,7 +288,15 @@ function isBaseParallel(cardTitle) {
         return false;
     }
     
-    return ULTIMATE_SPORT_FILTERS.sportBase[sport].some(parallel => title.includes(parallel));
+    const isBase = ULTIMATE_SPORT_FILTERS.sportBase[sport].some(parallel => title.includes(parallel));
+    
+    // Debug logging for rejected cards
+    if (!isBase && (title.includes('purple shock') || title.includes('blue prizm') || title.includes('concourse'))) {
+        console.log(`   🔍 DEBUG isBaseParallel: sport=${sport}, title="${title}"`);
+        console.log(`   🔍 DEBUG isBaseParallel: available parallels for ${sport}:`, ULTIMATE_SPORT_FILTERS.sportBase[sport].slice(0, 10));
+    }
+    
+    return isBase;
 }
 
 // Check PSA grade specifically
@@ -408,6 +416,9 @@ function ultimateMultiSportFilter(card, cardType = 'raw') {
     // Include base parallels, exclude expensive ones
     if (hasExpensiveParallel && !isBaseParallelCard) {
         console.log(`   ❌ REJECTED: Has expensive parallel but not base parallel ${card.title}`);
+        console.log(`   🔍 DEBUG: hasExpensiveParallel=${hasExpensiveParallel}, isBaseParallelCard=${isBaseParallelCard}`);
+        console.log(`   🔍 DEBUG: Sport detected: ${detectSport(card.title)}`);
+        console.log(`   🔍 DEBUG: Title: "${card.title}"`);
         return false;
     }
     
