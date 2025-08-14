@@ -85,10 +85,10 @@ class FastSQLitePriceUpdater {
         }
         summaryTitle = String(summaryTitle || '').trim();
 
-        // Create smart search strategies that preserve player names
+        // Create smart search strategies that work with 130point.com
         const strategies = [];
         
-        // Strategy 1: Use the full summary title (most specific)
+        // Strategy 1: Use the full summary title (most specific) - this is what works!
         strategies.push(summaryTitle);
         
         // Strategy 2: Remove only card numbers and print runs, but keep player names
@@ -106,22 +106,17 @@ class FastSQLitePriceUpdater {
             strategies.push(playerPreservedTitle);
         }
         
-        // Strategy 3: Extract year + player name + key card terms
+        // Strategy 3: Simple player + year + key terms (like your working search)
         const playerYearMatch = summaryTitle.match(/(\d{4})\s+(.*?)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
         if (playerYearMatch) {
             const year = playerYearMatch[1];
             const middlePart = playerYearMatch[2];
             const possiblePlayer = playerYearMatch[3];
             
-            // Keep the player name and important card terms
-            const keyTerms = middlePart.split(' ').filter(term => 
-                term.length > 2 && 
-                !term.match(/^[A-Z0-9-]+$/) && // Not just card numbers
-                !term.match(/^\d+\/\d+$/)       // Not print runs
-            ).join(' ');
-            
-            if (possiblePlayer.length > 3 && keyTerms.length > 3) {
-                strategies.push(`${year} ${possiblePlayer} ${keyTerms}`);
+            // Create a simple search like "2024 Leo DE Bowman Wave Silver Refractor"
+            const simpleSearch = `${year} ${possiblePlayer} ${middlePart.trim()}`;
+            if (simpleSearch.length > 10) {
+                strategies.push(simpleSearch);
             }
         }
 
@@ -142,20 +137,15 @@ class FastSQLitePriceUpdater {
             // Try each strategy until we get good results
             for (let i = 0; i < strategies.length; i++) {
                 const strategy = strategies[i];
-                // Search for raw cards
-                const rawQuery = strategy;
-                const tempRawResults = await search130point(rawQuery, 20);
-                const filteredRaw = tempRawResults.filter(card => ultimateMultiSportFilter(card, 'raw'));
                 
-                // Search for PSA 9 cards
-                const psa9Query = `${strategy} PSA 9`;
-                const tempPsa9Results = await search130point(psa9Query, 20);
-                const filteredPsa9 = tempPsa9Results.filter(card => ultimateMultiSportFilter(card, 'psa9'));
+                // Search for the card (without adding PSA grade to query)
+                const searchQuery = strategy;
+                const tempResults = await search130point(searchQuery, 20);
                 
-                // Search for PSA 10 cards
-                const psa10Query = `${strategy} PSA 10`;
-                const tempPsa10Results = await search130point(psa10Query, 20);
-                const filteredPsa10 = tempPsa10Results.filter(card => ultimateMultiSportFilter(card, 'psa10'));
+                // Filter results by grade
+                const filteredRaw = tempResults.filter(card => ultimateMultiSportFilter(card, 'raw'));
+                const filteredPsa9 = tempResults.filter(card => ultimateMultiSportFilter(card, 'psa9'));
+                const filteredPsa10 = tempResults.filter(card => ultimateMultiSportFilter(card, 'psa10'));
                 
                 console.log(`🔍 "${strategy}" → Found ${filteredRaw.length} raw, ${filteredPsa9.length} PSA 9, ${filteredPsa10.length} PSA 10`);
                 
