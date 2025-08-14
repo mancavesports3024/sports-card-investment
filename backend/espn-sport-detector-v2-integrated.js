@@ -117,6 +117,7 @@ class ESPNSportDetectorV2Integrated {
             // Basketball
             'nba': 'Basketball',
             'college-basketball': 'Basketball',
+            'womens-college-basketball': 'Basketball',
             'wnba': 'Basketball',
             'g-league': 'Basketball',
             
@@ -137,6 +138,7 @@ class ESPNSportDetectorV2Integrated {
             'soccer': 'Soccer',
             'mls': 'Soccer',
             'premier-league': 'Soccer',
+            'eng.1': 'Soccer',
             'eng.5': 'Soccer',
             
             // Golf
