@@ -293,6 +293,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'panini prizm wnba', product: 'Panini Prizm WNBA' },
             { pattern: 'panini instant wnba', product: 'Panini Instant WNBA' },
             { pattern: 'prizm monopoly wnba', product: 'Prizm Monopoly WNBA' },
+            { pattern: 'prizm dp', product: 'Prizm DP' },
+            { pattern: 'light it up', product: 'Light It Up' },
             { pattern: 'one and one', product: 'One and One' },
             { pattern: 'road to uefa euro', product: 'Road To UEFA Euro' },
             { pattern: 'usa basketball', product: 'USA Basketball' },
@@ -513,7 +515,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
             // NBA Hoops Prizm patterns
             'black pulsar prizm', 'blue prizm', 'blue cracked ice prizm', 'blue pulsar prizm', 'blue wave prizm', 'flash prizm', 'gold pulsar prizm', 'green prizm', 'green cracked ice prizm', 'green pulsar prizm', 'green shimmer prizm', 'pulsar prizm', 'purple disco prizm', 'red prizm', 'red cracked ice prizm', 'red flash prizm', 'red pulsar prizm', 'red wave prizm', 'silver prizm', 'silver laser prizm', 'silver mojo prizm', 'silver scope prizm', 'teal prizm', 'teal wave prizm', 'premium set checkerboard prizm', 'blue laser prizm', 'blue mojo prizm', 'green flash prizm', 'blue flash prizm', 'purple flash prizm', 'purple cracked ice prizm', 'pink flash prizm', 'gold cracked ice prizm', 'gold flash prizm', 'gold laser prizm', 'gold mojo prizm', 'black flash prizm', 'black laser prizm', 'black mojo prizm', 'gold vinyl premium set prizm',
             // Additional terms that are being incorrectly included in player names
-            'chrome', 'refractor', 'draft', 'helmet', 'heroes', 'sapphire', 'optic', 'hit', 'basketball', 'one and one', 'downtown', 'road to uefa euro', 'usa basketball', 'downtown', 'skybox'
+            'chrome', 'refractor', 'draft', 'helmet', 'heroes', 'sapphire', 'optic', 'hit', 'basketball', 'one and one', 'downtown', 'road to uefa euro', 'usa basketball', 'downtown', 'skybox', 'dp', 'light it up', 'disco', 'orange', 'prizm'
         ];
         
         removeTerms.push(...productTerms);
@@ -582,8 +584,10 @@ class DatabaseDrivenStandardizedTitleGenerator {
             /"([^"]+)"\s+([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
             // Handle names with periods like "J.J. MCCARTHY"
             /\b([A-Z]\.[A-Z]\.)\s+([A-Z]+)\b/g,
-            // Handle initials like "CJ Kayfus"
+            // Handle initials like "CJ Kayfus" and "JJ McCarthy"
             /\b([A-Z]{2,3})\s+([A-Z][a-z]+)\b/g,
+            // Handle specific initials like "JJ McCarthy"
+            /\bJJ\s+McCarthy\b/g,
             // Handle three-part names like "Shai Gilgeous-Alexander" first
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)-([A-Z][a-z]+)\b/g,
             // Handle names with apostrophes in first part like "De'Von Achane"
@@ -610,7 +614,26 @@ class DatabaseDrivenStandardizedTitleGenerator {
                 const skipWords = Array.from(this.cardSets).concat(Array.from(this.cardTypes));
                 
                 if (!skipWords.some(word => fullName.toLowerCase().includes(word.toLowerCase())) && fullName.length > 3) {
-                    return fullName;
+                    // Format player name with proper case
+                    return fullName.split(' ').map(word => {
+                        // Handle special cases like "O'Neal", "De'Von", etc.
+                        if (word.includes("'")) {
+                            return word.split("'").map(part => 
+                                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+                            ).join("'");
+                        }
+                        // Handle hyphenated names like "Smith-Njigba"
+                        if (word.includes("-")) {
+                            return word.split("-").map(part => 
+                                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+                            ).join("-");
+                        }
+                        // Handle initials like "JJ", "CJ", etc.
+                        if (word.length === 2 && word.toUpperCase() === word) {
+                            return word.toUpperCase();
+                        }
+                        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                    }).join(' ');
                 }
             }
         }
@@ -619,13 +642,15 @@ class DatabaseDrivenStandardizedTitleGenerator {
 
     // Extract color/numbering from title using learned data
     extractColorNumbering(title) {
-        // First, extract the product to avoid duplicating product terms
+        // First, extract the product and player to avoid duplicating terms
         const product = this.extractProduct(title);
         const productLower = product ? product.toLowerCase() : '';
+        const player = this.extractPlayer(title);
+        const playerLower = player ? player.toLowerCase() : '';
         
         const patterns = [
             // Multi-word card types (check these first) - from Sundo Cards guide
-            /\b(Green Pulsar|Blue Pulsar|Red Pulsar|Purple Pulsar|Orange Pulsar|Pink Pulsar|Gold Pulsar|Silver Pulsar|Black Pulsar|White Pulsar|Sky Blue|Neon Green|Purple Pattern|Pink Pattern|Blue Pattern|Green Pattern|Yellow Pattern|Black Pattern|Red Pattern|Printing Plate|Checkerboard|X-Fractor|Cracked Ice|Atomic|Disco|Fast Break|No Huddle|Flash|Shock|Mojo|Mega|Scope|Shimmer|Wave|Multi Wave|Carved in Time|Lenticular|Synthesis|Outburst|Electric Ice|Ellipse|Color Wheel|Color Blast|Die-cut|National Landmarks|Stained Glass|Lava Lamp|Dazzle|Blue Velocity|Hyper Pink|Red Dragon|Laser|Liberty|Diamond Marvels|On Fire|Voltage|Career Stat Line|Alligator Crystal|Alligator Kaleidoscope|Alligator Mojo|Alligator Prismatic|Butterfly Crystal|Butterfly Kaleidoscope|Butterfly Mojo|Butterfly Prismatic|Chameleon Crystal|Chameleon Kaleidoscope|Chameleon Mojo|Chameleon Prismatic|Clown Fish Crystal|Clown Fish Kaleidoscope|Clown Fish Mojo|Clown Fish Prismatic|Deer Crystal|Deer Kaleidoscope|Deer Mojo|Deer Prismatic|Dragon Crystal|Dragon Kaleidoscope|Dragon Mojo|Dragon Prismatic|Elephant Crystal|Elephant Kaleidoscope|Elephant Mojo|Elephant Prismatic|Giraffe Crystal|Giraffe Kaleidoscope|Giraffe Mojo|Giraffe Prismatic|Leopard Crystal|Leopard Kaleidoscope|Leopard Mojo|Leopard Prismatic|Parrot Crystal|Parrot Kaleidoscope|Parrot Mojo|Parrot Prismatic|Peacock Crystal|Peacock Kaleidoscope|Peacock Mojo|Peacock Prismatic|Snake Crystal|Snake Kaleidoscope|Snake Mojo|Snake Prismatic|Tiger Crystal|Tiger Kaleidoscope|Tiger Mojo|Tiger Prismatic|Zebra Crystal|Zebra Kaleidoscope|Zebra Mojo|Zebra Prismatic|Tiger Eyes|Snake Eyes|100th Anniversary|Black Border|Flip Stock|Magenta|Mini Parallels|Chrome Refractor|Purple Refractor|Black Bordered Refractor|Gold Bordered Refractor|Superfractor|Zebra Prizm|Dragon Scale|Red Dragon|Peacock Prizm|Tiger Prizm|Giraffe Prizm|Elephant Prizm|Blue Ice|Silver Laser|Silver Mojo|Silver Scope|Teal Wave|Premium Set Checkerboard|Blue Laser|Blue Mojo|Green Flash|Blue Flash|Purple Flash|Purple Cracked Ice|Pink Flash|Gold Cracked Ice|Gold Flash|Gold Laser|Gold Mojo|Black Flash|Black Laser|Black Mojo|Gold Vinyl Premium Set|Vintage Stock|Red Stars|Independence Day|Father's Day Powder Blue|Mother's Day Hot Pink|Memorial Day Camo|Camo Pink Mosaic|Choice Peacock Mosaic|Fast Break Silver Mosaic|Genesis Mosaic|Green Mosaic|Reactive Blue Mosaic|Reactive Orange Mosaic|Red Mosaic|Blue Mosaic|Choice Red Fusion Mosaic|Fast Break Blue Mosaic|Fast Break Purple Mosaic|Purple Mosaic|Orange Fluorescent Mosaic|White Mosaic|Fast Break Pink Mosaic|Blue Fluorescent Mosaic|Pink Swirl Mosaic|Fast Break Gold Mosaic|Gold Mosaic|Green Swirl Mosaic|Pink Fluorescent Mosaic|Choice Black Gold Mosaic|Black Mosaic|Choice Nebula Mosaic|Fast Break Black Mosaic|Black Pulsar Prizm|Blue Prizm|Blue Cracked Ice Prizm|Blue Pulsar Prizm|Blue Wave Prizm|Flash Prizm|Gold Pulsar Prizm|Green Prizm|Green Cracked Ice Prizm|Green Pulsar Prizm|Green Shimmer Prizm|Pulsar Prizm|Purple Disco Prizm|Red Prizm|Red Cracked Ice Prizm|Red Flash Prizm|Red Pulsar Prizm|Red Wave Prizm|Silver Prizm|Silver Laser Prizm|Silver Mojo Prizm|Silver Scope Prizm|Teal Prizm|Teal Wave Prizm|Premium Set Checkerboard Prizm|Blue Laser Prizm|Blue Mojo Prizm|Green Flash Prizm|Blue Flash Prizm|Purple Flash Prizm|Purple Cracked Ice Prizm|Pink Flash Prizm|Gold Cracked Ice Prizm|Gold Flash Prizm|Gold Laser Prizm|Gold Mojo Prizm|Black Flash Prizm|Black Laser Prizm|Black Mojo Prizm|Gold Vinyl Premium Set Prizm|Helmet Heroes)\b/gi,
+            /\b(Green Pulsar|Blue Pulsar|Red Pulsar|Purple Pulsar|Orange Pulsar|Pink Pulsar|Gold Pulsar|Silver Pulsar|Black Pulsar|White Pulsar|Sky Blue|Neon Green|Purple Pattern|Pink Pattern|Blue Pattern|Green Pattern|Yellow Pattern|Black Pattern|Red Pattern|Printing Plate|Checkerboard|X-Fractor|Cracked Ice|Atomic|Disco|Fast Break|No Huddle|Flash|Shock|Mojo|Mega|Scope|Shimmer|Wave|Multi Wave|Carved in Time|Lenticular|Synthesis|Outburst|Electric Ice|Ellipse|Color Wheel|Color Blast|Die-cut|National Landmarks|Stained Glass|Lava Lamp|Dazzle|Blue Velocity|Hyper Pink|Red Dragon|Laser|Liberty|Diamond Marvels|On Fire|Voltage|Career Stat Line|Alligator Crystal|Alligator Kaleidoscope|Alligator Mojo|Alligator Prismatic|Butterfly Crystal|Butterfly Kaleidoscope|Butterfly Mojo|Butterfly Prismatic|Chameleon Crystal|Chameleon Kaleidoscope|Chameleon Mojo|Chameleon Prismatic|Clown Fish Crystal|Clown Fish Kaleidoscope|Clown Fish Mojo|Clown Fish Prismatic|Deer Crystal|Deer Kaleidoscope|Deer Mojo|Deer Prismatic|Dragon Crystal|Dragon Kaleidoscope|Dragon Mojo|Dragon Prismatic|Elephant Crystal|Elephant Kaleidoscope|Elephant Mojo|Elephant Prismatic|Giraffe Crystal|Giraffe Kaleidoscope|Giraffe Mojo|Giraffe Prismatic|Leopard Crystal|Leopard Kaleidoscope|Leopard Mojo|Leopard Prismatic|Parrot Crystal|Parrot Kaleidoscope|Parrot Mojo|Parrot Prismatic|Peacock Crystal|Peacock Kaleidoscope|Peacock Mojo|Peacock Prismatic|Snake Crystal|Snake Kaleidoscope|Snake Mojo|Snake Prismatic|Tiger Crystal|Tiger Kaleidoscope|Tiger Mojo|Tiger Prismatic|Zebra Crystal|Zebra Kaleidoscope|Zebra Mojo|Zebra Prismatic|Tiger Eyes|Snake Eyes|100th Anniversary|Black Border|Flip Stock|Magenta|Mini Parallels|Chrome Refractor|Purple Refractor|Black Bordered Refractor|Gold Bordered Refractor|Superfractor|Zebra Prizm|Dragon Scale|Red Dragon|Peacock Prizm|Tiger Prizm|Giraffe Prizm|Elephant Prizm|Blue Ice|Silver Laser|Silver Mojo|Silver Scope|Teal Wave|Premium Set Checkerboard|Blue Laser|Blue Mojo|Green Flash|Blue Flash|Purple Flash|Purple Cracked Ice|Pink Flash|Gold Cracked Ice|Gold Flash|Gold Laser|Gold Mojo|Black Flash|Black Laser|Black Mojo|Gold Vinyl Premium Set|Vintage Stock|Red Stars|Independence Day|Father's Day Powder Blue|Mother's Day Hot Pink|Memorial Day Camo|Camo Pink Mosaic|Choice Peacock Mosaic|Fast Break Silver Mosaic|Genesis Mosaic|Green Mosaic|Reactive Blue Mosaic|Reactive Orange Mosaic|Red Mosaic|Blue Mosaic|Choice Red Fusion Mosaic|Fast Break Blue Mosaic|Fast Break Purple Mosaic|Purple Mosaic|Orange Fluorescent Mosaic|White Mosaic|Fast Break Pink Mosaic|Blue Fluorescent Mosaic|Pink Swirl Mosaic|Fast Break Gold Mosaic|Gold Mosaic|Green Swirl Mosaic|Pink Fluorescent Mosaic|Choice Black Gold Mosaic|Black Mosaic|Choice Nebula Mosaic|Fast Break Black Mosaic|Black Pulsar Prizm|Blue Prizm|Blue Cracked Ice Prizm|Blue Pulsar Prizm|Blue Wave Prizm|Flash Prizm|Gold Pulsar Prizm|Green Prizm|Green Cracked Ice Prizm|Green Pulsar Prizm|Green Shimmer Prizm|Pulsar Prizm|Purple Disco Prizm|Red Prizm|Red Cracked Ice Prizm|Red Flash Prizm|Red Pulsar Prizm|Red Wave Prizm|Silver Prizm|Silver Laser Prizm|Silver Mojo Prizm|Silver Scope Prizm|Teal Prizm|Teal Wave Prizm|Premium Set Checkerboard Prizm|Blue Laser Prizm|Blue Mojo Prizm|Green Flash Prizm|Blue Flash Prizm|Purple Flash Prizm|Purple Cracked Ice Prizm|Pink Flash Prizm|Gold Cracked Ice Prizm|Gold Flash Prizm|Gold Laser Prizm|Gold Mojo Prizm|Black Flash Prizm|Black Laser Prizm|Black Mojo Prizm|Gold Vinyl Premium Set Prizm|Helmet Heroes|Light It Up)\b/gi,
             // Comprehensive card types and colors (but exclude product terms) - expanded from Sundo Cards guide
             /\b(Red|Blue|Green|Yellow|Orange|Purple|Pink|Gold|Silver|Bronze|Black|White|Rainbow|Prism|Holo|Holographic|Refractor|Sapphire|Emerald|Ruby|Diamond|Platinum|Titanium|Carbon|Prizm|Select|Optic|Contenders|National|Treasures|Flawless|Immaculate|Limited|Certified|Elite|Absolute|Spectra|Phoenix|Playbook|Momentum|Totally|Crown|Royale|Threads|Prestige|Rookies|Stars|Score|Leaf|Playoff|Press|Pass|Sage|Game|Pacific|Skybox|Metal|Stadium|Club|Gallery|Heritage|Gypsy|Queen|Allen|Ginter|Archives|Big|League|Fire|Opening|Day|Update|Series|Draft|Sterling|Platinum|SP|SPx|Exquisite|Lunar Glow|Wave|Holo|Holographic|Pulsar|Fuchsia|Pattern|Plate|Checkerboard|X-Fractor|Cracked|Ice|Atomic|Disco|Fast|Break|Huddle|Flash|Shock|Mojo|Mega|Scope|Shimmer|Multi|Carved|Time|Lenticular|Synthesis|Outburst|Electric|Ellipse|Wheel|Blast|Die|Cut|Landmarks|Stained|Glass|Lava|Lamp|Dazzle|Velocity|Hyper|Dragon|Laser|Liberty|Marvels|Fire|Voltage|Career|Stat|Line|Alligator|Kaleidoscope|Prismatic|Butterfly|Chameleon|Clown|Fish|Deer|Elephant|Giraffe|Leopard|Parrot|Peacock|Snake|Tiger|Zebra|Eyes|Anniversary|Border|Flip|Stock|Magenta|Mini|Parallels|Bordered|Superfractor|Scale|Vintage|Stars|Independence|Father|Mother|Memorial|Camo|Choice|Fusion|Nebula|Reactive|Fluorescent|Swirl|Vinyl|Premium|Set|Cyan|Yellow|Magenta|Downtown)\b/gi,
             // Bowman Draft card numbers (BDP, BDC, CDA, etc.)
@@ -706,6 +731,16 @@ class DatabaseDrivenStandardizedTitleGenerator {
                     continue;
                 }
                 
+                // Skip if this term is part of the player name
+                if (player && player.toLowerCase().includes(valueLower)) {
+                    continue;
+                }
+                
+                // Skip "Prizm" if it's part of the product name (to avoid duplication)
+                if (valueLower === 'prizm' && productLower && productLower.includes('prizm')) {
+                    continue;
+                }
+                
                 // Skip "Edition" if it's part of a product name that contains "Edition"
                 if (valueLower === 'edition' && (productLower.includes('edition') || title.toLowerCase().includes('bowman sapphire edition'))) {
                     continue;
@@ -738,6 +773,23 @@ class DatabaseDrivenStandardizedTitleGenerator {
                             foundTerms.add(nonChromeValue);
                             // Mark individual words as used
                             nonChromeParts.forEach(word => usedWords.add(word.toLowerCase()));
+                        }
+                    }
+                    continue;
+                }
+                
+                // Skip "Prizm" if it appears in multi-word patterns that contain "Prizm" and the product already has "Prizm"
+                if (value.includes(' ') && value.toLowerCase().includes('prizm') && productLower && productLower.includes('prizm')) {
+                    // Extract the non-Prizm part of the pattern
+                    const nonPrizmParts = value.split(' ').filter(word => word.toLowerCase() !== 'prizm');
+                    if (nonPrizmParts.length > 0) {
+                        // Add only the non-Prizm parts
+                        const nonPrizmValue = nonPrizmParts.join(' ');
+                        if (!foundTerms.has(nonPrizmValue)) {
+                            found.push(nonPrizmValue);
+                            foundTerms.add(nonPrizmValue);
+                            // Mark individual words as used
+                            nonPrizmParts.forEach(word => usedWords.add(word.toLowerCase()));
                         }
                     }
                     continue;
