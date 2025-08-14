@@ -234,9 +234,10 @@ class FastSQLitePriceUpdater {
                 return;
             }
             
-            let processed = 0;
-            let updated = 0;
-            let errors = 0;
+                         let processed = 0;
+             let updated = 0;
+             let removed = 0;
+             let errors = 0;
             
             // Process cards in smaller parallel batches for speed
             const PARALLEL_BATCH_SIZE = 10; // Process 10 cards simultaneously
@@ -250,35 +251,42 @@ class FastSQLitePriceUpdater {
                     try {
                         const priceData = await this.searchCardPrices(card);
                         
-                        if (priceData && (priceData.raw.avgPrice > 0 || priceData.psa9.avgPrice > 0 || priceData.psa10.avgPrice > 0)) {
-                            await this.updateCardPrices(card.id, priceData);
-                            
-                            // Show search results and price updates
-                            let priceInfo = '';
-                            if (priceData.raw.avgPrice > 0) {
-                                priceInfo += `Raw: $${priceData.raw.avgPrice.toFixed(2)} (${priceData.raw.count})`;
-                            }
-                            if (priceData.psa9.avgPrice > 0) {
-                                if (priceInfo) priceInfo += ', ';
-                                priceInfo += `PSA 9: $${priceData.psa9.avgPrice.toFixed(2)} (${priceData.psa9.count})`;
-                            }
-                            if (priceData.psa10.avgPrice > 0) {
-                                if (priceInfo) priceInfo += ', ';
-                                priceInfo += `PSA 10: $${priceData.psa10.avgPrice.toFixed(2)} (${priceData.psa10.count})`;
-                            }
-                            
-                            // Add multiplier info if calculated
-                            if (priceData.raw.avgPrice > 0 && priceData.psa10.avgPrice > 0) {
-                                const multiplier = (priceData.psa10.avgPrice / priceData.raw.avgPrice).toFixed(2);
-                                priceInfo += `, Multiplier: ${multiplier}x`;
-                            }
-                            
-                            console.log(`✅ ${card.summaryTitle || card.title} → ${priceInfo}`);
-                            
-                            return { success: true };
-                        } else {
-                            return { success: false };
-                        }
+                                                 if (priceData && (priceData.raw.avgPrice > 0 || priceData.psa9.avgPrice > 0 || priceData.psa10.avgPrice > 0)) {
+                             // Check if PSA 10 price is below $40 - if so, remove the card
+                             if (priceData.psa10.avgPrice > 0 && priceData.psa10.avgPrice < 40) {
+                                 console.log(`🗑️ ${card.summaryTitle || card.title} → PSA 10: $${priceData.psa10.avgPrice.toFixed(2)} (below $40) - REMOVING`);
+                                 await this.removeCard(card.id);
+                                 return { removed: true };
+                             }
+                             
+                             await this.updateCardPrices(card.id, priceData);
+                             
+                             // Show search results and price updates
+                             let priceInfo = '';
+                             if (priceData.raw.avgPrice > 0) {
+                                 priceInfo += `Raw: $${priceData.raw.avgPrice.toFixed(2)} (${priceData.raw.count})`;
+                             }
+                             if (priceData.psa9.avgPrice > 0) {
+                                 if (priceInfo) priceInfo += ', ';
+                                 priceInfo += `PSA 9: $${priceData.psa9.avgPrice.toFixed(2)} (${priceData.psa9.count})`;
+                             }
+                             if (priceData.psa10.avgPrice > 0) {
+                                 if (priceInfo) priceInfo += ', ';
+                                 priceInfo += `PSA 10: $${priceData.psa10.avgPrice.toFixed(2)} (${priceData.psa10.count})`;
+                             }
+                             
+                             // Add multiplier info if calculated
+                             if (priceData.raw.avgPrice > 0 && priceData.psa10.avgPrice > 0) {
+                                 const multiplier = (priceData.psa10.avgPrice / priceData.raw.avgPrice).toFixed(2);
+                                 priceInfo += `, Multiplier: ${multiplier}x`;
+                             }
+                             
+                             console.log(`✅ ${card.summaryTitle || card.title} → ${priceInfo}`);
+                             
+                             return { success: true };
+                         } else {
+                             return { success: false };
+                         }
                         
                     } catch (error) {
                         console.error(`❌ Error processing card ${card.id}:`, error.message);
@@ -289,17 +297,19 @@ class FastSQLitePriceUpdater {
                 // Wait for batch to complete
                 const batchResults = await Promise.all(batchPromises);
                 
-                // Count results
-                batchResults.forEach(result => {
-                    processed++;
-                    if (result.success) {
-                        updated++;
-                    } else if (result.error) {
-                        errors++;
-                    }
-                });
-                
-                console.log(`📈 Batch complete: ${updated}/${processed} updated, ${errors} errors`);
+                                 // Count results
+                 batchResults.forEach(result => {
+                     processed++;
+                     if (result.success) {
+                         updated++;
+                     } else if (result.removed) {
+                         removed++;
+                     } else if (result.error) {
+                         errors++;
+                     }
+                 });
+                 
+                 console.log(`📈 Batch complete: ${updated}/${processed} updated, ${removed} removed, ${errors} errors`);
                 
                 // Rate limiting between batches
                 if (i + PARALLEL_BATCH_SIZE < cards.length) {
@@ -308,16 +318,21 @@ class FastSQLitePriceUpdater {
                 }
             }
             
-            console.log('\n🎉 FAST SQLITE PRICE UPDATE COMPLETE!');
-            console.log('=====================================');
-            console.log(`📊 Cards processed: ${processed}`);
-            console.log(`✅ Successfully updated: ${updated}`);
-            console.log(`❌ Errors: ${errors}`);
-            console.log(`📈 Success rate: ${((updated/processed)*100).toFixed(1)}%`);
+                         console.log('\n🎉 FAST SQLITE PRICE UPDATE COMPLETE!');
+             console.log('=====================================');
+             console.log(`📊 Cards processed: ${processed}`);
+             console.log(`✅ Successfully updated: ${updated}`);
+             console.log(`🗑️ Cards removed (PSA 10 < $40): ${removed}`);
+             console.log(`❌ Errors: ${errors}`);
+             console.log(`📈 Success rate: ${((updated/processed)*100).toFixed(1)}%`);
             
-            // Recalculate multipliers for all cards that need it
-            console.log('\n🧮 Recalculating multipliers...');
-            await this.recalculateAllMultipliers();
+                         // Clean up low-value cards
+             console.log('\n🧹 Cleaning up low-value cards...');
+             await this.cleanupLowValueCards();
+             
+             // Recalculate multipliers for all cards that need it
+             console.log('\n🧮 Recalculating multipliers...');
+             await this.recalculateAllMultipliers();
             
         } catch (error) {
             console.error('❌ Error during fast batch processing:', error);
@@ -355,46 +370,93 @@ class FastSQLitePriceUpdater {
         }
     }
 
-    async recalculateAllMultipliers() {
-        console.log('🧮 Recalculating multipliers for all cards with raw and PSA 10 prices...');
-        
-        try {
-            const cards = await this.getCardsNeedingMultiplierUpdate();
-            console.log(`📊 Found ${cards.length} cards needing multiplier updates`);
-            
-            if (cards.length === 0) {
-                console.log('✅ All cards have up-to-date multipliers!');
-                return;
-            }
-            
-            let updatedCount = 0;
-            
-            for (const card of cards) {
-                if (card.raw_average_price && card.psa10_price && card.raw_average_price > 0) {
-                    const multiplier = (card.psa10_price / card.raw_average_price).toFixed(2);
-                    
-                    await this.runQuery(`
-                        UPDATE cards 
-                        SET multiplier = ? 
-                        WHERE id = ?
-                    `, [multiplier, card.id]);
-                    
-                    updatedCount++;
-                    
-                    if (updatedCount % 10 === 0) {
-                        console.log(`✅ Updated ${updatedCount} multipliers...`);
-                    }
-                }
-            }
-            
-            console.log(`✅ Multiplier recalculation complete!`);
-            console.log(`📊 Total multipliers updated: ${updatedCount}`);
-            
-        } catch (error) {
-            console.error('❌ Error recalculating multipliers:', error);
-            throw error;
-        }
-    }
+         async recalculateAllMultipliers() {
+         console.log('🧮 Recalculating multipliers for all cards with raw and PSA 10 prices...');
+         
+         try {
+             const cards = await this.getCardsNeedingMultiplierUpdate();
+             console.log(`📊 Found ${cards.length} cards needing multiplier updates`);
+             
+             if (cards.length === 0) {
+                 console.log('✅ All cards have up-to-date multipliers!');
+                 return;
+             }
+             
+             let updatedCount = 0;
+             
+             for (const card of cards) {
+                 if (card.raw_average_price && card.psa10_price && card.raw_average_price > 0) {
+                     const multiplier = (card.psa10_price / card.raw_average_price).toFixed(2);
+                     
+                     await this.runQuery(`
+                         UPDATE cards 
+                         SET multiplier = ? 
+                         WHERE id = ?
+                     `, [multiplier, card.id]);
+                     
+                     updatedCount++;
+                     
+                     if (updatedCount % 10 === 0) {
+                         console.log(`✅ Updated ${updatedCount} multipliers...`);
+                     }
+                 }
+             }
+             
+             console.log(`✅ Multiplier recalculation complete!`);
+             console.log(`📊 Total multipliers updated: ${updatedCount}`);
+             
+         } catch (error) {
+             console.error('❌ Error recalculating multipliers:', error);
+             throw error;
+         }
+     }
+
+     async cleanupLowValueCards() {
+         console.log('🧹 Cleaning up cards with PSA 10 prices below $40...');
+         
+         try {
+             const cards = await this.getLowValueCards();
+             console.log(`📊 Found ${cards.length} cards with PSA 10 prices below $40`);
+             
+             if (cards.length === 0) {
+                 console.log('✅ No low-value cards found!');
+                 return;
+             }
+             
+             let removedCount = 0;
+             
+             for (const card of cards) {
+                 console.log(`🗑️ Removing: ${card.title} (PSA 10: $${card.psa10_price})`);
+                 await this.removeCard(card.id);
+                 removedCount++;
+                 
+                 if (removedCount % 10 === 0) {
+                     console.log(`✅ Removed ${removedCount} low-value cards...`);
+                 }
+             }
+             
+             console.log(`✅ Low-value card cleanup complete!`);
+             console.log(`📊 Total cards removed: ${removedCount}`);
+             
+         } catch (error) {
+             console.error('❌ Error cleaning up low-value cards:', error);
+             throw error;
+         }
+     }
+
+     async getLowValueCards() {
+         return new Promise((resolve, reject) => {
+             this.db.all(`
+                 SELECT id, title, psa10_price
+                 FROM cards 
+                 WHERE psa10_price IS NOT NULL 
+                 AND psa10_price < 40
+             `, (err, rows) => {
+                 if (err) reject(err);
+                 else resolve(rows);
+             });
+         });
+     }
 
     async getCardsNeedingMultiplierUpdate() {
         return new Promise((resolve, reject) => {
@@ -411,14 +473,26 @@ class FastSQLitePriceUpdater {
         });
     }
 
-    async runQuery(sql, params = []) {
-        return new Promise((resolve, reject) => {
-            this.db.run(sql, params, function(err) {
-                if (err) reject(err);
-                else resolve(this);
-            });
-        });
-    }
+         async removeCard(cardId) {
+         return new Promise((resolve, reject) => {
+             this.db.run('DELETE FROM cards WHERE id = ?', [cardId], function(err) {
+                 if (err) {
+                     reject(err);
+                 } else {
+                     resolve(this.changes);
+                 }
+             });
+         });
+     }
+
+     async runQuery(sql, params = []) {
+         return new Promise((resolve, reject) => {
+             this.db.run(sql, params, function(err) {
+                 if (err) reject(err);
+                 else resolve(this);
+             });
+         });
+     }
 }
 
 // Command line execution
