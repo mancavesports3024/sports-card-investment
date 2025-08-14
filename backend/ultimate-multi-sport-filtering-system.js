@@ -33,6 +33,7 @@ const ULTIMATE_SPORT_FILTERS = {
             'white ice', 'white lazer', 'white holo',
             // Basketball specific
             'velocity', 'holo', 'hyper', 'genesis', 'revolution', 'flair', 'pink millionaire', 'chronicles', 'silver', 'millionaire', 'national treasures', 'rejectors',
+            'elephant prizm', 'photon prizm', 'red wave prizm', 'concourse',
             // Panini Hoops parallels
             'gold', 'silver', 'bronze', 'copper', 'green', 'blue', 'red', 'purple', 'orange', 'pink'
         ],
@@ -53,6 +54,7 @@ const ULTIMATE_SPORT_FILTERS = {
             // Topps Chrome refractors
             'pink refractor', 'blue refractor', 'green refractor', 'red refractor', 'purple refractor',
             'orange refractor', 'gold refractor', 'silver refractor', 'black refractor', 'white refractor',
+            'pink speckle refractor',
             // Panini Select parallels
             'starcade', 'silver prizm', 'gold prizm', 'blue prizm', 'red prizm', 'green prizm',
             'purple prizm', 'orange prizm', 'black prizm', 'white prizm',
@@ -60,9 +62,12 @@ const ULTIMATE_SPORT_FILTERS = {
             'blue /149', 'red /199', 'green /299', 'purple /399', 'orange /499',
             // Additional football parallels
             'electricity', 'silver prizm', 'genesis', 'pink /5', 'license to dominate',
-                         // Panini Donruss Optic parallels
-             'purple shock', 'blue shock', 'green shock', 'red shock', 'orange shock',
-             'silver shock', 'gold shock', 'black shock', 'white shock', 'red wave prizm',
+            'black white checker', 'red white blue', 'red sparkle prizm', 'mosaic green',
+            'silver prizm', 'purple shock', 'blue pulsar prizm', 'uptown', 'blue auto',
+            'white sparkle',
+            // Panini Donruss Optic parallels
+            'purple shock', 'blue shock', 'green shock', 'red shock', 'orange shock',
+            'silver shock', 'gold shock', 'black shock', 'white shock', 'red wave prizm',
             // Panini Contenders parallels
             'season ticket', 'game ticket', 'crown jewels', 'emerald', 'bronze',
             'silver mojo', 'purple pulsar', 'supernatural', 'touchdown tandems',
@@ -88,7 +93,7 @@ const ULTIMATE_SPORT_FILTERS = {
             'black ice', 'black lazer', 'black holo',
             'white ice', 'white lazer', 'white holo',
             // Topps parallels
-            'red diamond', 'diamond', 'insert'
+            'red diamond', 'diamond', 'insert', 'mega futures mojo'
         ],
         hockey: [
             // Hockey specific base parallels
