@@ -492,6 +492,12 @@ class DatabaseDrivenStandardizedTitleGenerator {
             'rookies', 'rookie', 'nscc uefa', 'nscc', 'uefa', 'wnba', 'storm chasers'
         ];
         
+        // Add sport terms that should be removed from player names
+        const sportTerms = [
+            'football', 'basketball', 'baseball', 'hockey', 'soccer', 'mma', 'ufc', 'wrestling', 'pokemon',
+            'nfl', 'nba', 'mlb', 'nhl', 'wnba', 'usa basketball', 'usa football', 'usa baseball'
+        ];
+        
         // Add card set prefixes that should be removed but preserve player names
         const cardSetPrefixes = [
             'wnba', 'nba', 'nfl', 'mlb', 'nhl', 'usa', 'euro', 'downtown', 'uptowns', 'negative', 'pulsar'
@@ -525,6 +531,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
         
         removeTerms.push(...productTerms);
         removeTerms.push(...cardTypeTerms);
+        removeTerms.push(...sportTerms);
 
         // Add team names and stadium names to prevent them from being extracted as player names
         const teamAndStadiumTerms = [
