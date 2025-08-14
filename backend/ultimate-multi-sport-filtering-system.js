@@ -392,15 +392,15 @@ function ultimateMultiSportFilter(card, cardType = 'raw') {
     
     // Include base parallels, exclude expensive ones
     if (hasExpensiveParallel && !isBaseParallelCard) {
-        console.log(`   ❌ REJECTED: Has expensive parallel but not base parallel`);
+        console.log(`   ❌ REJECTED: Has expensive parallel but not base parallel ${card.title}`);
         return false;
     }
     
     const finalResult = hasMeaningfulContent && isReasonablePrice;
     if (!finalResult) {
-        console.log(`   ❌ REJECTED: meaningful: ${hasMeaningfulContent}, reasonable price: ${isReasonablePrice}`);
+        console.log(`   ❌ REJECTED: meaningful: ${hasMeaningfulContent}, reasonable price: ${isReasonablePrice} ${card.title}`);
     } else {
-        console.log(`   ✅ ACCEPTED`);
+        console.log(`   ✅ ACCEPTED ${card.title}`);
     }
     
     return finalResult;
