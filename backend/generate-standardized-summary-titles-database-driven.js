@@ -305,6 +305,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'panini contenders', product: 'Panini Contenders' },
             { pattern: 'panini donruss', product: 'Panini Donruss' },
             { pattern: 'panini optic', product: 'Panini Optic' },
+            { pattern: 'panini mosaic', product: 'Panini Mosaic' },
             { pattern: 'upper deck sp', product: 'Upper Deck SP' },
             { pattern: 'upper deck spx', product: 'Upper Deck SPx' },
             { pattern: 'upper deck exquisite', product: 'Upper Deck Exquisite' },
@@ -517,7 +518,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
             // NBA Hoops Prizm patterns
             'black pulsar prizm', 'blue prizm', 'blue cracked ice prizm', 'blue pulsar prizm', 'blue wave prizm', 'flash prizm', 'gold pulsar prizm', 'green prizm', 'green cracked ice prizm', 'green pulsar prizm', 'green shimmer prizm', 'pulsar prizm', 'purple disco prizm', 'red prizm', 'red cracked ice prizm', 'red flash prizm', 'red pulsar prizm', 'red wave prizm', 'silver prizm', 'silver laser prizm', 'silver mojo prizm', 'silver scope prizm', 'teal prizm', 'teal wave prizm', 'premium set checkerboard prizm', 'blue laser prizm', 'blue mojo prizm', 'green flash prizm', 'blue flash prizm', 'purple flash prizm', 'purple cracked ice prizm', 'pink flash prizm', 'gold cracked ice prizm', 'gold flash prizm', 'gold laser prizm', 'gold mojo prizm', 'black flash prizm', 'black laser prizm', 'black mojo prizm', 'gold vinyl premium set prizm',
             // Additional terms that are being incorrectly included in player names
-            'chrome', 'refractor', 'draft', 'helmet', 'heroes', 'sapphire', 'optic', 'hit', 'basketball', 'one and one', 'downtown', 'road to uefa euro', 'usa basketball', 'downtown', 'skybox', 'dp', 'light it up', 'disco', 'orange', 'prizm'
+            'chrome', 'refractor', 'draft', 'helmet', 'heroes', 'sapphire', 'optic', 'hit', 'basketball', 'one and one', 'downtown', 'road to uefa euro', 'usa basketball', 'downtown', 'skybox', 'dp', 'light it up', 'disco', 'orange', 'prizm', 'mosaic'
         ];
         
         removeTerms.push(...productTerms);
@@ -817,6 +818,23 @@ class DatabaseDrivenStandardizedTitleGenerator {
                             foundTerms.add(nonPrizmValue);
                             // Mark individual words as used
                             nonPrizmParts.forEach(word => usedWords.add(word.toLowerCase()));
+                        }
+                    }
+                    continue;
+                }
+                
+                // Skip "Mosaic" if it appears in multi-word patterns that contain "Mosaic" and the product already has "Mosaic"
+                if (value.includes(' ') && value.toLowerCase().includes('mosaic') && productLower && productLower.includes('mosaic')) {
+                    // Extract the non-Mosaic part of the pattern
+                    const nonMosaicParts = value.split(' ').filter(word => word.toLowerCase() !== 'mosaic');
+                    if (nonMosaicParts.length > 0) {
+                        // Add only the non-Mosaic parts
+                        const nonMosaicValue = nonMosaicParts.join(' ');
+                        if (!foundTerms.has(nonMosaicValue)) {
+                            found.push(nonMosaicValue);
+                            foundTerms.add(nonMosaicValue);
+                            // Mark individual words as used
+                            nonMosaicParts.forEach(word => usedWords.add(word.toLowerCase()));
                         }
                     }
                     continue;
