@@ -47,7 +47,10 @@ const ULTIMATE_SPORT_FILTERS = {
             'black ice', 'black lazer', 'black holo',
             'white ice', 'white lazer', 'white holo',
             // Football specific
-            'velocity', 'holo', 'hyper'
+            'velocity', 'holo', 'hyper',
+            // Topps Chrome refractors
+            'pink refractor', 'blue refractor', 'green refractor', 'red refractor', 'purple refractor',
+            'orange refractor', 'gold refractor', 'silver refractor', 'black refractor', 'white refractor'
         ],
         baseball: [
             // Baseball specific base parallels
