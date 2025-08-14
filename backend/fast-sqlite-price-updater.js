@@ -85,44 +85,10 @@ class FastSQLitePriceUpdater {
         }
         summaryTitle = String(summaryTitle || '').trim();
 
-        // Create smart search strategies that work with 130point.com
-        const strategies = [];
-        
-        // Strategy 1: Use the full summary title (most specific) - this is what works!
-        strategies.push(summaryTitle);
-        
-        // Strategy 2: Remove only card numbers and print runs, but keep player names
-        let playerPreservedTitle = summaryTitle
-            .replace(/\s+#[A-Z0-9-]+\s*$/g, '')  // Remove card numbers like #TP-18
-            .replace(/\s+\d+\/\d+\s*$/g, '')     // Remove print runs like /99
-            .replace(/\s+Cert\s*$/gi, '')        // Remove Cert
-            .replace(/\s+Engine\s+\d+\/\d+/gi, '') // Remove Engine
-            .replace(/\s+Gold\s+Engine/gi, ' Gold') // Fix Gold Engine
-            .replace(/\s+-\s*$/g, '')            // Remove trailing dash
-            .replace(/\s+/g, ' ')                // Normalize spaces
-            .trim();
-            
-        if (playerPreservedTitle && playerPreservedTitle !== summaryTitle) {
-            strategies.push(playerPreservedTitle);
-        }
-        
-        // Strategy 3: Create a simple search with just year + player name
-        // For "2024 Leo DE VRIES Bowman Wave Silver Refractor #TP-18"
-        // Create "2024 Leo DE VRIES" (just the basic info that works)
-        const yearPlayerMatch = summaryTitle.match(/^(\d{4})\s+([A-Z][a-z]+(?:\s+[A-Z]+)*?)(?=\s+[A-Z][a-z]|$)/);
-        if (yearPlayerMatch) {
-            const year = yearPlayerMatch[1];
-            const player = yearPlayerMatch[2];
-            const simpleSearch = `${year} ${player}`;
-            
-            if (simpleSearch !== summaryTitle && simpleSearch.length > 5) {
-                strategies.push(simpleSearch);
-            }
-        }
-
+        // Use the full summary title - this is what works on 130point.com
         return {
             identifier: summaryTitle,
-            strategies: strategies.slice(0, 3)
+            strategies: [summaryTitle]
         };
     }
 
