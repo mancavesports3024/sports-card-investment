@@ -1611,7 +1611,7 @@ app.post('/api/update-prices', async (req, res) => {
     const updater = new FastSQLitePriceUpdater();
     
     // Start the update process
-    await updater.processBatchFast(batchSize);
+    await updater.processBatch(batchSize);
     
     res.json({
       success: true,

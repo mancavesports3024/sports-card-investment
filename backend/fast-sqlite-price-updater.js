@@ -207,6 +207,12 @@ class FastSQLitePriceUpdater {
         });
     }
 
+    // Backward compatibility method
+    async processBatch(batchSize = 50) {
+        console.log('🔄 Using processBatch (calling processBatchFast for backward compatibility)');
+        return this.processBatchFast(batchSize);
+    }
+
     async processBatchFast(batchSize = 50) {
         console.log('🚀 Fast SQLite Price Updater');
         
