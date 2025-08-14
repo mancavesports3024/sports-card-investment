@@ -138,7 +138,7 @@ async function runRegressionTests() {
             }
         },
         {
-            title: "2024 Keon Coleman Panini Donruss Optic Blue Prizm #263",
+            title: "2024 Keon Coleman Panini Donruss Optic Blue Prizm #263 /199",
             expected: {
                 year: "2024",
                 product: "Panini Donruss Optic",

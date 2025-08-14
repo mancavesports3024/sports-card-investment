@@ -705,8 +705,20 @@ class DatabaseDrivenStandardizedTitleGenerator {
                     if (yearMatch && yearMatch[0].includes(value)) {
                         continue; // Skip if it's part of a year range
                     }
-                    // Always skip these numbers as they're likely year fragments
-                    continue;
+                    
+                    // Check if this number appears near a year (like "2021 32" or "32 2021")
+                    const yearPattern = /\b(19[0-9]{2}|20[0-9]{2})\b/;
+                    const yearMatches = title.match(yearPattern);
+                    if (yearMatches) {
+                        const yearIndex = title.indexOf(yearMatches[0]);
+                        const numberIndex = title.indexOf(value);
+                        const distance = Math.abs(yearIndex - numberIndex);
+                        if (distance <= 10) { // If the number is close to a year, it's likely a year fragment
+                            continue;
+                        }
+                    }
+                    
+                    // If it's not near a year, don't skip it - it might be a card number
                 }
                 
                 // Skip if this number is part of a print run (like /5, /150)
@@ -723,13 +735,21 @@ class DatabaseDrivenStandardizedTitleGenerator {
                     }
                 }
                 
-                // Skip standalone numbers that are part of card numbers (like "168" in "#BDC-168")
+                // Handle standalone numbers that are likely card numbers
                 if (value.match(/^\d+$/)) {
                     // Check if this number appears in any card number pattern
                     const cardNumberPattern = new RegExp(`#[A-Za-z0-9-]*${value}[A-Za-z0-9-]*`, 'g');
                     if (cardNumberPattern.test(title)) {
                         continue;
                     }
+                    
+                    // If it's a standalone number that's not a PSA grade and not part of a card number,
+                    // it's likely a card number, so add the # prefix
+                    if (!foundTerms.has('#' + value)) {
+                        found.push('#' + value);
+                        foundTerms.add('#' + value);
+                    }
+                    continue;
                 }
                 
                 // Skip if this term is part of the product name
