@@ -497,7 +497,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
             'wnba', 'nba', 'nfl', 'mlb', 'nhl', 'usa', 'euro', 'downtown', 'uptowns', 'negative', 'pulsar'
         ];
         
-        // Add card type terms that might interfere with player extraction - expanded from Sundo Cards guide
+        // Add card type terms that might interfere with player extraction - expanded from Sundo Cards guide (updated)
         const cardTypeTerms = [
             // Original terms
             'sky blue', 'neon green', 'purple pattern', 'pink pattern', 'blue pattern', 'green pattern', 'yellow pattern', 'black pattern', 'red pattern', 'printing plate', 'fuchsia',
