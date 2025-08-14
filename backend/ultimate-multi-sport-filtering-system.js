@@ -32,7 +32,7 @@ const ULTIMATE_SPORT_FILTERS = {
             'black ice', 'black lazer', 'black holo',
             'white ice', 'white lazer', 'white holo',
             // Basketball specific
-            'velocity', 'holo', 'hyper', 'genesis', 'revolution', 'flair', 'pink millionaire', 'chronicles', 'silver', 'millionaire'
+            'velocity', 'holo', 'hyper', 'genesis', 'revolution', 'flair', 'pink millionaire', 'chronicles', 'silver', 'millionaire', 'national treasures'
         ],
         football: [
             // Color variants (Ice/Lazer/Holo)
@@ -47,7 +47,7 @@ const ULTIMATE_SPORT_FILTERS = {
             'black ice', 'black lazer', 'black holo',
             'white ice', 'white lazer', 'white holo',
             // Football specific
-            'velocity', 'holo', 'hyper',
+            'velocity', 'holo', 'hyper', 'national treasures',
             // Topps Chrome refractors
             'pink refractor', 'blue refractor', 'green refractor', 'red refractor', 'purple refractor',
             'orange refractor', 'gold refractor', 'silver refractor', 'black refractor', 'white refractor',
@@ -57,12 +57,12 @@ const ULTIMATE_SPORT_FILTERS = {
             // Panini Prizm Draft parallels
             'blue /149', 'red /199', 'green /299', 'purple /399', 'orange /499',
             // Additional football parallels
-            'electricity', 'silver prizm', 'genesis', 'national treasures', 'pink /5'
+            'electricity', 'silver prizm', 'genesis', 'pink /5'
         ],
         baseball: [
             // Baseball specific base parallels
             'refractor', 'x-fractor', 'atomic', 'superfractor', 'chrome',
-            'bowman', 'heritage', 'mini', 'allen ginter', 'gypsy queen',
+            'bowman', 'heritage', 'mini', 'allen ginter', 'gypsy queen', 'national treasures',
             // Color variants (Ice/Lazer/Holo)
             'orange ice', 'orange lazer', 'orange holo',
             'blue ice', 'blue lazer', 'blue holo',
