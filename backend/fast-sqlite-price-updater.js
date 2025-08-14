@@ -114,11 +114,16 @@ class FastSQLitePriceUpdater {
                 
                 // Debug filtering for raw results
                 if (tempRawResults.length > 0) {
-                    const firstRawFiltered = ultimateMultiSportFilter(tempRawResults[0], 'raw');
+                    // Add database sport to the card object for filtering
+                    const cardWithSport = { ...tempRawResults[0], sport: card.sport };
+                    const firstRawFiltered = ultimateMultiSportFilter(cardWithSport, 'raw');
                     console.log(`🔍 DEBUG: Raw query "${rawQuery}" → First result "${tempRawResults[0].title}" → Filtered: ${firstRawFiltered}`);
                 }
                 
-                const filteredRaw = tempRawResults.filter(card => ultimateMultiSportFilter(card, 'raw'));
+                const filteredRaw = tempRawResults.filter(resultCard => {
+                    const cardWithSport = { ...resultCard, sport: card.sport };
+                    return ultimateMultiSportFilter(cardWithSport, 'raw');
+                });
                 
                 // Search for PSA 9 cards
                 const psa9Query = `${strategy} PSA 9`;
@@ -126,11 +131,15 @@ class FastSQLitePriceUpdater {
                 
                 // Debug filtering for PSA 9 results
                 if (tempPsa9Results.length > 0) {
-                    const firstPsa9Filtered = ultimateMultiSportFilter(tempPsa9Results[0], 'psa9');
+                    const cardWithSport = { ...tempPsa9Results[0], sport: card.sport };
+                    const firstPsa9Filtered = ultimateMultiSportFilter(cardWithSport, 'psa9');
                     console.log(`🔍 DEBUG: PSA 9 query "${psa9Query}" → First result "${tempPsa9Results[0].title}" → Filtered: ${firstPsa9Filtered}`);
                 }
                 
-                const filteredPsa9 = tempPsa9Results.filter(card => ultimateMultiSportFilter(card, 'psa9'));
+                const filteredPsa9 = tempPsa9Results.filter(resultCard => {
+                    const cardWithSport = { ...resultCard, sport: card.sport };
+                    return ultimateMultiSportFilter(cardWithSport, 'psa9');
+                });
                 
                 // Search for PSA 10 cards
                 const psa10Query = `${strategy} PSA 10`;
@@ -138,11 +147,15 @@ class FastSQLitePriceUpdater {
                 
                 // Debug filtering for PSA 10 results
                 if (tempPsa10Results.length > 0) {
-                    const firstPsa10Filtered = ultimateMultiSportFilter(tempPsa10Results[0], 'psa10');
+                    const cardWithSport = { ...tempPsa10Results[0], sport: card.sport };
+                    const firstPsa10Filtered = ultimateMultiSportFilter(cardWithSport, 'psa10');
                     console.log(`🔍 DEBUG: PSA 10 query "${psa10Query}" → First result "${tempPsa10Results[0].title}" → Filtered: ${firstPsa10Filtered}`);
                 }
                 
-                const filteredPsa10 = tempPsa10Results.filter(card => ultimateMultiSportFilter(card, 'psa10'));
+                const filteredPsa10 = tempPsa10Results.filter(resultCard => {
+                    const cardWithSport = { ...resultCard, sport: card.sport };
+                    return ultimateMultiSportFilter(cardWithSport, 'psa10');
+                });
                 
                 console.log(`🔍 "${strategy}" → Found ${filteredRaw.length} raw, ${filteredPsa9.length} PSA 9, ${filteredPsa10.length} PSA 10`);
                 

@@ -268,8 +268,9 @@ function detectSport(cardTitle) {
 }
 
 // Get comprehensive exclusions for a sport
-function getSportExclusions(cardTitle) {
-    const sport = detectSport(cardTitle);
+function getSportExclusions(cardTitle, databaseSport = null) {
+    const detectedSport = detectSport(cardTitle);
+    const sport = databaseSport?.toLowerCase() || detectedSport;
     const exclusions = [...ULTIMATE_SPORT_FILTERS.universal, ...ULTIMATE_SPORT_FILTERS.universalPremium];
     
     if (sport !== 'unknown' && ULTIMATE_SPORT_FILTERS.sportPremium[sport]) {
@@ -280,8 +281,9 @@ function getSportExclusions(cardTitle) {
 }
 
 // Check if card is a base parallel for its sport
-function isBaseParallel(cardTitle) {
-    const sport = detectSport(cardTitle);
+function isBaseParallel(cardTitle, databaseSport = null) {
+    const detectedSport = detectSport(cardTitle);
+    const sport = databaseSport?.toLowerCase() || detectedSport;
     const title = cardTitle.toLowerCase();
     
     if (sport === 'unknown') {
@@ -337,12 +339,17 @@ function ultimateMultiSportFilter(card, cardType = 'raw') {
     // Get PSA grade
     const psaGrade = getPSAGrade(card.title);
     
+    // Use database sport if available, otherwise detect from title
+    const databaseSport = card.sport?.toLowerCase();
+    const detectedSport = detectSport(card.title);
+    const sport = databaseSport || detectedSport;
+    
     // Get sport-specific exclusions
-    const exclusions = getSportExclusions(card.title);
+    const exclusions = getSportExclusions(card.title, databaseSport);
     const hasExpensiveParallel = exclusions.some(term => title.includes(term));
     
     // Check if it's a base parallel (should include)
-    const isBaseParallelCard = isBaseParallel(card.title);
+    const isBaseParallelCard = isBaseParallel(card.title, databaseSport);
     
     // Must contain meaningful card terms
     const words = card.title?.split(' ') || [];
@@ -355,14 +362,15 @@ function ultimateMultiSportFilter(card, cardType = 'raw') {
     // DEBUG LOGGING
     console.log(`🔍 DEBUG FILTER: "${card.title}" (${cardType})`);
     console.log(`   PSA Grade: ${psaGrade}`);
-    console.log(`   Sport: ${detectSport(card.title)}`);
+    console.log(`   Database Sport: ${databaseSport || 'N/A'}`);
+    console.log(`   Detected Sport: ${detectedSport}`);
+    console.log(`   Final Sport: ${sport}`);
     console.log(`   Has Expensive Parallel: ${hasExpensiveParallel}`);
     console.log(`   Is Base Parallel: ${isBaseParallelCard}`);
     console.log(`   Has Meaningful Content: ${hasMeaningfulContent} (${meaningfulWords.length} words)`);
     console.log(`   Price: $${price}`);
     
     // Price thresholds based on card type and sport
-    const sport = detectSport(card.title);
     let maxPrice = 10000; // Significantly increased default for all cards
     
     if (sport === 'basketball') {
@@ -417,7 +425,9 @@ function ultimateMultiSportFilter(card, cardType = 'raw') {
     if (hasExpensiveParallel && !isBaseParallelCard) {
         console.log(`   ❌ REJECTED: Has expensive parallel but not base parallel ${card.title}`);
         console.log(`   🔍 DEBUG: hasExpensiveParallel=${hasExpensiveParallel}, isBaseParallelCard=${isBaseParallelCard}`);
-        console.log(`   🔍 DEBUG: Sport detected: ${detectSport(card.title)}`);
+        console.log(`   🔍 DEBUG: Database Sport: ${databaseSport || 'N/A'}`);
+        console.log(`   🔍 DEBUG: Detected Sport: ${detectedSport}`);
+        console.log(`   🔍 DEBUG: Final Sport: ${sport}`);
         console.log(`   🔍 DEBUG: Title: "${card.title}"`);
         return false;
     }
