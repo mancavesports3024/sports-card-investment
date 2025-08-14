@@ -184,20 +184,27 @@ class FastSQLitePriceUpdater {
 
     async updateCardPrices(cardId, priceData) {
         return new Promise((resolve, reject) => {
+            const rawPrice = priceData.raw.avgPrice > 0 ? priceData.raw.avgPrice : null;
+            const psa9Price = priceData.psa9.avgPrice > 0 ? priceData.psa9.avgPrice : null;
+            const psa10Price = priceData.psa10.avgPrice > 0 ? priceData.psa10.avgPrice : null;
+            
+            // Calculate multiplier if we have both raw and PSA 10 prices
+            let multiplier = null;
+            if (rawPrice && psa10Price && rawPrice > 0) {
+                multiplier = (psa10Price / rawPrice).toFixed(2);
+            }
+            
             const query = `
                 UPDATE cards 
                 SET raw_average_price = ?, 
                     psa9_average_price = ?, 
                     psa10_price = ?, 
+                    multiplier = ?,
                     last_updated = datetime('now')
                 WHERE id = ?
             `;
             
-            const rawPrice = priceData.raw.avgPrice > 0 ? priceData.raw.avgPrice : null;
-            const psa9Price = priceData.psa9.avgPrice > 0 ? priceData.psa9.avgPrice : null;
-            const psa10Price = priceData.psa10.avgPrice > 0 ? priceData.psa10.avgPrice : null;
-            
-            this.db.run(query, [rawPrice, psa9Price, psa10Price, cardId], function(err) {
+            this.db.run(query, [rawPrice, psa9Price, psa10Price, multiplier, cardId], function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -259,6 +266,13 @@ class FastSQLitePriceUpdater {
                                 if (priceInfo) priceInfo += ', ';
                                 priceInfo += `PSA 10: $${priceData.psa10.avgPrice.toFixed(2)} (${priceData.psa10.count})`;
                             }
+                            
+                            // Add multiplier info if calculated
+                            if (priceData.raw.avgPrice > 0 && priceData.psa10.avgPrice > 0) {
+                                const multiplier = (priceData.psa10.avgPrice / priceData.raw.avgPrice).toFixed(2);
+                                priceInfo += `, Multiplier: ${multiplier}x`;
+                            }
+                            
                             console.log(`✅ ${card.summaryTitle || card.title} → ${priceInfo}`);
                             
                             return { success: true };
@@ -301,6 +315,10 @@ class FastSQLitePriceUpdater {
             console.log(`❌ Errors: ${errors}`);
             console.log(`📈 Success rate: ${((updated/processed)*100).toFixed(1)}%`);
             
+            // Recalculate multipliers for all cards that need it
+            console.log('\n🧮 Recalculating multipliers...');
+            await this.recalculateAllMultipliers();
+            
         } catch (error) {
             console.error('❌ Error during fast batch processing:', error);
         } finally {
@@ -315,7 +333,8 @@ class FastSQLitePriceUpdater {
             const queries = [
                 'SELECT COUNT(*) as count FROM cards',
                 'SELECT COUNT(*) as count FROM cards WHERE raw_average_price IS NOT NULL AND psa9_average_price IS NOT NULL AND psa10_price IS NOT NULL',
-                'SELECT COUNT(*) as count FROM cards WHERE raw_average_price IS NULL OR psa9_average_price IS NULL OR psa10_price IS NULL'
+                'SELECT COUNT(*) as count FROM cards WHERE raw_average_price IS NULL OR psa9_average_price IS NULL OR psa10_price IS NULL',
+                'SELECT COUNT(*) as count FROM cards WHERE raw_average_price IS NOT NULL AND psa10_price IS NOT NULL AND multiplier IS NULL'
             ];
             
             return new Promise((resolve, reject) => {
@@ -326,14 +345,79 @@ class FastSQLitePriceUpdater {
                             else resolve(row.count);
                         });
                     });
-                })).then(([total, withPrices, missingPrices]) => {
-                    resolve({ total, withPrices, missingPrices });
+                })).then(([total, withPrices, missingPrices, missingMultipliers]) => {
+                    resolve({ total, withPrices, missingPrices, missingMultipliers });
                 }).catch(reject);
             });
         } catch (err) {
             console.error('❌ Error getting database stats:', err);
             throw err;
         }
+    }
+
+    async recalculateAllMultipliers() {
+        console.log('🧮 Recalculating multipliers for all cards with raw and PSA 10 prices...');
+        
+        try {
+            const cards = await this.getCardsNeedingMultiplierUpdate();
+            console.log(`📊 Found ${cards.length} cards needing multiplier updates`);
+            
+            if (cards.length === 0) {
+                console.log('✅ All cards have up-to-date multipliers!');
+                return;
+            }
+            
+            let updatedCount = 0;
+            
+            for (const card of cards) {
+                if (card.raw_average_price && card.psa10_price && card.raw_average_price > 0) {
+                    const multiplier = (card.psa10_price / card.raw_average_price).toFixed(2);
+                    
+                    await this.runQuery(`
+                        UPDATE cards 
+                        SET multiplier = ? 
+                        WHERE id = ?
+                    `, [multiplier, card.id]);
+                    
+                    updatedCount++;
+                    
+                    if (updatedCount % 10 === 0) {
+                        console.log(`✅ Updated ${updatedCount} multipliers...`);
+                    }
+                }
+            }
+            
+            console.log(`✅ Multiplier recalculation complete!`);
+            console.log(`📊 Total multipliers updated: ${updatedCount}`);
+            
+        } catch (error) {
+            console.error('❌ Error recalculating multipliers:', error);
+            throw error;
+        }
+    }
+
+    async getCardsNeedingMultiplierUpdate() {
+        return new Promise((resolve, reject) => {
+            this.db.all(`
+                SELECT id, raw_average_price, psa10_price, multiplier
+                FROM cards 
+                WHERE raw_average_price IS NOT NULL 
+                AND psa10_price IS NOT NULL
+                AND (multiplier IS NULL OR multiplier = '')
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+    }
+
+    async runQuery(sql, params = []) {
+        return new Promise((resolve, reject) => {
+            this.db.run(sql, params, function(err) {
+                if (err) reject(err);
+                else resolve(this);
+            });
+        });
     }
 }
 
