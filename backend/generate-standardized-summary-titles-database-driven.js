@@ -659,6 +659,18 @@ class DatabaseDrivenStandardizedTitleGenerator {
         // Normalize spaces after filtering to ensure proper pattern matching
         cleanTitle = cleanTitle.replace(/\s+/g, ' ').trim();
 
+        // Additional period preservation for cases that might have been missed
+        cleanTitle = cleanTitle.replace(/\b([A-Z])([A-Z])\s+([A-Z][a-z]+)\b/g, (match, first, second, last) => {
+            // Check if this looks like it should have periods (common initials)
+            if ((first === 'J' && second === 'J') || 
+                (first === 'C' && second === 'J') || 
+                (first === 'T' && second === 'J') ||
+                (first === 'M' && second === 'J')) {
+                return `${first}.${second}. ${last}`;
+            }
+            return match;
+        });
+
         // Debug: Log the cleaned title to see what we're working with
         console.log(`🔍 Cleaned title after filtering: "${cleanTitle}"`);
 
@@ -676,8 +688,10 @@ class DatabaseDrivenStandardizedTitleGenerator {
             /\b([A-Z]\.[A-Z]\.)\s+([A-Z][a-z]*[A-Z][a-z]*)\b/g,
             // Handle names surrounded by hyphens like "- Ja'marr Chase -"
             /-?\s*([A-Z][a-z]+'?[a-z]*)\s+([A-Z][a-z]+)\s*-?/g,
-            // Handle names with apostrophes in first name like "Ja'marr Chase" (with optional hyphens)
-            /-?\s*([A-Z][a-z]+'[a-z]+)\s+([A-Z][a-z]+)\s*-?/g,
+                    // Handle names with apostrophes in first name like "Ja'marr Chase" (with optional hyphens)
+        /-?\s*([A-Z][a-z]+'[a-z]+)\s+([A-Z][a-z]+)\s*-?/g,
+        // Handle names with apostrophes in first name with trailing hyphen like "Ja'marr Chase-"
+        /-?\s*([A-Z][a-z]+'[a-z]+)\s+([A-Z][a-z]+)\s*-/g,
             // Handle names with apostrophes in last name like "Logan O'Hoppe"
             /\b([A-Z][a-z]+)\s+([A-Z]'[A-Z][a-z]+)\b/g,
             // Handle names with apostrophes in both parts like "De'Von Achane"

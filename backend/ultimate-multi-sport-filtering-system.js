@@ -222,8 +222,8 @@ function detectSport(cardTitle) {
         title.includes('carlos correa') || title.includes('santana') || title.includes('johan santana') ||
         title.includes('schwarber') || title.includes('kyle schwarber') || title.includes('dominguez') ||
         title.includes('jasson dominguez') || title.includes('leo de vries') || title.includes('leo de') ||
-        title.includes('guerrero') || title.includes('vladi guerrero') || title.includes('neto') ||
-        title.includes('zach neto') || title.includes('o\'hoppe') || title.includes('logan o\'hoppe') ||
+        title.includes('guerrero') || title.includes('vladi guerrero') || title.includes('vladi') ||
+        title.includes('neto') || title.includes('zach neto') || title.includes('o\'hoppe') || title.includes('logan o\'hoppe') ||
         title.includes('yankees') || title.includes('dodgers') || title.includes('red sox') ||
         title.includes('cubs') || title.includes('giants') || title.includes('braves') ||
         title.includes('topps') || title.includes('bowman') || title.includes('heritage')) {
