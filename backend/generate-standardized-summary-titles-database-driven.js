@@ -367,6 +367,9 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'panini contenders', product: 'Panini Contenders' },
             { pattern: 'panini donruss', product: 'Panini Donruss' },
             { pattern: 'panini optic', product: 'Panini Optic' },
+            { pattern: 'panini xr', product: 'Panini XR' },
+            { pattern: 'topps chrome ucc', product: 'Topps Chrome UCC' },
+            { pattern: 'ucc', product: 'Topps Chrome UCC' },
             { pattern: 'panini mosaic storm chasers', product: 'Panini Mosaic Storm Chasers' },
             { pattern: 'panini mosaic', product: 'Panini Mosaic' },
             { pattern: 'storm chasers', product: 'Storm Chasers' },
@@ -1210,6 +1213,21 @@ class DatabaseDrivenStandardizedTitleGenerator {
         title = title.replace(/\b(JJ Mccarthy)\b/gi, 'J.J. McCarthy');
         title = title.replace(/\b(Stetson Bennett Iv)\b/gi, 'Stetson Bennett IV');
         title = title.replace(/\b(Iv)\b/gi, 'IV');
+        
+        // Remove "Autographs" from titles (it's redundant with "Auto")
+        title = title.replace(/\b(Autographs)\s+/gi, '');
+        
+        // Fix "WHITE SPARKLE" -> "White Sparkle" and ensure proper product order
+        title = title.replace(/\b(WHITE SPARKLE)\b/gi, 'White Sparkle');
+        
+        // Fix "PRIZM WHITE SPARKLE" -> "Panini Prizm White Sparkle"
+        title = title.replace(/\b(PRIZM WHITE SPARKLE)\b/gi, 'Panini Prizm White Sparkle');
+        
+        // Fix "UCC Endrick Pulsar" -> "Topps Chrome UCC Endrick Pulsar"
+        title = title.replace(/\b(UCC Endrick Pulsar)\b/gi, 'Topps Chrome UCC Endrick Pulsar');
+        
+        // Fix "XR CHRISTIAN WATSON" -> "Panini XR Christian Watson"
+        title = title.replace(/\b(XR CHRISTIAN WATSON)\b/gi, 'Panini XR Christian Watson');
         
         // Add "RC" or "Rookie" for rookie cards (cards from 2024 are likely rookies)
         if (title.includes('2024') && !title.includes('RC') && !title.includes('Rookie')) {
