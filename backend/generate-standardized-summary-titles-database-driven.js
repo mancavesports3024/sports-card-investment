@@ -747,6 +747,13 @@ class DatabaseDrivenStandardizedTitleGenerator {
         result = result.replace(/\bXAVIER WORTHY\b/gi, 'Xavier Worthy');
         result = result.replace(/\bJORDAN LOVE\b/gi, 'Jordan Love');
         result = result.replace(/\bLAZARO MONTES\b/gi, 'Lazaro Montes');
+        
+        // Fix specific problematic player names that are still showing up
+        result = result.replace(/\b('S BEST TRISTON CASAS TP)\b/gi, 'Triston Casas');
+        result = result.replace(/\b(BRYCE HARPER &)\b/gi, 'Bryce Harper');
+        result = result.replace(/\b(' COLLECTION FRANCISCO LINDOR METS)\b/gi, 'Francisco Lindor');
+        result = result.replace(/\b(Shai Gilgeous-Alexander SIGNATURES RS SGA)\b/gi, 'Shai Gilgeous-Alexander');
+        result = result.replace(/\b(Shai Gilgeous-Alexander Velocity,)\b/gi, 'Shai Gilgeous-Alexander');
         result = result.replace(/\bJACKSON HOLLIDAY\b/gi, 'Jackson Holliday');
         result = result.replace(/\bTJ WATT\b/gi, 'T.J. Watt');
         result = result.replace(/\bANTHONY DAVIS\b/gi, 'Anthony Davis');
@@ -1817,6 +1824,19 @@ class DatabaseDrivenStandardizedTitleGenerator {
         
         // Fix "Leo Leo DE VRIES" duplication
         title = title.replace(/\b(Leo Leo)\b/gi, 'Leo');
+        
+        // Fix "LeBron James One and One" duplication
+        title = title.replace(/\b(LeBron James One)\s+(and)\s+(One)\b/gi, 'LeBron James One and One');
+        
+        // Fix remaining ALL CAPS player names
+        title = title.replace(/\b('S BEST TRISTON CASAS TP)\b/gi, 'Triston Casas');
+        title = title.replace(/\b(BRYCE HARPER &)\b/gi, 'Bryce Harper');
+        title = title.replace(/\b(' COLLECTION FRANCISCO LINDOR METS)\b/gi, 'Francisco Lindor');
+        
+        // Fix missing player names in summaries
+        title = title.replace(/\b(John Elway Paxson)\b/gi, 'John Paxson');
+        title = title.replace(/\b(Shai Gilgeous-AlexanderAlexander)\b/gi, 'Shai Gilgeous-Alexander');
+        title = title.replace(/\b(Shai Gilgeous-Alexander Velocity,)\b/gi, 'Shai Gilgeous-Alexander');
         
         // Fix "Von Achane" to "De'Von Achane"
         title = title.replace(/\b(Von Achane)\b/gi, 'De\'Von Achane');
