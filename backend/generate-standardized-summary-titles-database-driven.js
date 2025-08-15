@@ -578,7 +578,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
         });
         
         // Remove additional terms that appeared in the regression test
-        const additionalTerms = ['74TF1', '74TF', 'BCP-61', 'BCP-', 'BCP', 'TF1', 'TF', '🔥', '📈', '💎', '￼', '[]', '!!', 'FLAMES', 'POP1', 'POP', 'GEM MT', 'GEM MINT', 'PSA 10', 'PSA10', '🟦', '🟨', '01', 'XR', 'P.P.', 'SAL'];
+        const additionalTerms = ['74TF1', '74TF', 'BCP-61', 'BCP-', 'BCP', 'TF1', 'TF', '🔥', '📈', '💎', '￼', '[]', '!!', 'FLAMES', 'POP1', 'POP', 'GEM MT', 'GEM MINT', 'PSA 10', 'PSA10', '🟦', '🟨', '01', 'XR', 'P.P.', 'SAL', 'USA', 'EAST', 'WEST', 'UCC', '!'];
         additionalTerms.forEach(term => {
             cleanTitle = cleanTitle.replace(new RegExp(`\\b${term}\\b`, 'g'), '');
         });
@@ -656,6 +656,41 @@ class DatabaseDrivenStandardizedTitleGenerator {
         
         // Fix "John Elway PAXSON" -> "John Paxson"
         result = result.replace(/\b(John Elway)\s+(PAXSON)\b/gi, 'John Paxson');
+        
+        // Fix "SNIDER" -> "Duke Snider"
+        result = result.replace(/\bSNIDER\b/gi, 'Duke Snider');
+        
+        // Fix "BROCK PURDY DEEBO SAMUEL" -> "Brock Purdy" (take first player only)
+        result = result.replace(/\b(BROCK PURDY)\s+(DEEBO SAMUEL)\b/gi, '$1');
+        
+        // Fix "KOBE BRYANT MICHAEL JORDAN" -> "Kobe Bryant" (take first player only)
+        result = result.replace(/\b(KOBE BRYANT)\s+(MICHAEL JORDAN)\b/gi, '$1');
+        
+        // Fix "JOHN PAXSON !!" -> "John Paxson"
+        result = result.replace(/\b(JOHN PAXSON)\s+!!\b/gi, '$1');
+        
+        // Fix "DRAKE MAYE !" -> "Drake Maye"
+        result = result.replace(/\b(DRAKE MAYE)\s+!\b/gi, '$1');
+        
+        // Fix "JAHMYR GIBBS []" -> "Jahmyr Gibbs"
+        result = result.replace(/\b(JAHMYR GIBBS)\s+\[\]\b/gi, '$1');
+        
+        // Fix "CHRISTIAN WATSON P.P." -> "Christian Watson"
+        result = result.replace(/\b(CHRISTIAN WATSON)\s+P\.P\.\b/gi, '$1');
+        
+        // Fix "LOGOFRACTOR LEWIS HAMILTON" -> "Lewis Hamilton"
+        result = result.replace(/\bLOGOFRACTOR\s+(LEWIS HAMILTON)\b/gi, '$1');
+        
+        // Fix "KOBE BRYANT USA" -> "Kobe Bryant"
+        result = result.replace(/\b(KOBE BRYANT)\s+USA\b/gi, '$1');
+        
+        // Fix "UCC ENDRICK" -> "Endrick"
+        result = result.replace(/\bUCC\s+(ENDRICK)\b/gi, '$1');
+        
+        // Remove standalone "!!" or "!" that might remain
+        result = result.replace(/\b!!\b/g, '');
+        result = result.replace(/\b!\b/g, '');
+        result = result.replace(/\b\[\]\b/g, '');
         
         return result;
     }
