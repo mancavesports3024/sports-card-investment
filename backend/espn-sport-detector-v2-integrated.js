@@ -29,6 +29,7 @@ class ESPNSportDetectorV2Integrated {
             const response = await axios.get(this.baseUrl, {
                 params: {
                     limit: 100,
+                    type: 'player',
                     query: playerName
                 },
                 headers: {
