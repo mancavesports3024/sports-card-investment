@@ -691,6 +691,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
 
         // Look for player name patterns
         const patterns = [
+            // Handle single names first (like "Endrick")
+            /\b([A-Z][a-z]+)\b/g,
             // Handle quoted nicknames like "Hacksaw" Jim Duggan
             /"([^"]+)"\s+([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
             // Handle names with periods in card context like "#7 J.J. McCarthy"
@@ -744,7 +746,14 @@ class DatabaseDrivenStandardizedTitleGenerator {
                 // Additional validation - skip if it looks like a product name or is too short
                 const skipWords = Array.from(this.cardSets).concat(Array.from(this.cardTypes));
                 
-                if (!skipWords.some(word => fullName.toLowerCase().includes(word.toLowerCase())) && fullName.length > 3) {
+                // Less aggressive validation - only skip if the entire name matches a skip word exactly
+                const shouldSkip = skipWords.some(word => 
+                    fullName.toLowerCase() === word.toLowerCase() || 
+                    fullName.toLowerCase() === word.toLowerCase() + 's' ||
+                    fullName.toLowerCase() === word.toLowerCase() + 'es'
+                );
+                
+                if (!shouldSkip && fullName.length >= 3) {
                     // Format player name with proper case
                     return fullName.split(' ').map(word => {
                         // Handle quoted nicknames - preserve original case
