@@ -82,6 +82,7 @@ class SportsUpdaterWithStandardizedTitles {
             cleanedTitle = cleanedTitle.replace(/\b(PRIZM WHITE SPARKLE)\b/gi, 'Panini Prizm White Sparkle');
             cleanedTitle = cleanedTitle.replace(/\b(UCC Endrick Pulsar)\b/gi, 'Topps Chrome UCC Endrick Pulsar');
             cleanedTitle = cleanedTitle.replace(/\b(XR CHRISTIAN WATSON)\b/gi, 'Panini XR Christian Watson');
+            cleanedTitle = cleanedTitle.replace(/\b(Cosmic)\b/gi, '');
             
             // Use our advanced player extraction from the standardized title generator
             const player = this.titleGenerator.extractPlayer(cleanedTitle);
