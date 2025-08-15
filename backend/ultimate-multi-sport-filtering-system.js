@@ -184,10 +184,11 @@ function detectSport(cardTitle) {
         title.includes('wembanyama') || title.includes('victor') || title.includes('tatum') ||
         title.includes('booker') || title.includes('edwards') || title.includes('brunson') ||
         title.includes('malone') || title.includes('karl malone') || title.includes('shaquille') ||
-        title.includes('o\'neal') || title.includes('oneal') || title.includes('gilgeous') ||
+        title.includes('o\'neal') || title.includes('oneal') ||         title.includes('gilgeous') ||
         title.includes('alexander') || title.includes('avdija') || title.includes('deni') ||
         title.includes('brink') || title.includes('cameron brink') ||
         title.includes('maxey') || title.includes('tyrese maxey') ||
+        title.includes('shai gilgeous-alexander') || title.includes('deni avdija') ||
         title.includes('lakers') || title.includes('warriors') || title.includes('celtics') ||
         title.includes('bulls') || title.includes('knicks') || title.includes('heat') ||
         title.includes('spurs') || title.includes('suns') || title.includes('nuggets')) {
@@ -207,6 +208,9 @@ function detectSport(cardTitle) {
         title.includes('young') || title.includes('marvin harrison') || title.includes('harrison jr') || title.includes('spencer rattler') || title.includes('rattler') ||
         title.includes('mccarthy') || title.includes('j.j. mccarthy') || title.includes('jj mccarthy') ||
         title.includes('chase') || title.includes('ja\'marr chase') || title.includes('jamarr chase') ||
+        title.includes('jared mccarron') || title.includes('ladd mcconkey') ||
+        title.includes('tyreek hill') || title.includes('john elway') ||
+        title.includes('jayden daniels') || title.includes('de\'von achane') ||
         title.includes('broncos') || title.includes('denver') || title.includes('chiefs') ||
         title.includes('patriots') || title.includes('cowboys') || title.includes('49ers') ||
         title.includes('niners') || title.includes('texans') || title.includes('colts')) {
@@ -224,6 +228,8 @@ function detectSport(cardTitle) {
         title.includes('jasson dominguez') || title.includes('leo de vries') || title.includes('leo de') ||
         title.includes('guerrero') || title.includes('vladi guerrero') || title.includes('vladi') || title.includes('vladimir guerrero') ||
         title.includes('neto') || title.includes('zach neto') || title.includes('o\'hoppe') || title.includes('logan o\'hoppe') ||
+        title.includes('pete crow-armstrong') || title.includes('paul skenes') ||
+        title.includes('elly de la cruz') || title.includes('brooks koepka') ||
         title.includes('yankees') || title.includes('dodgers') || title.includes('red sox') ||
         title.includes('cubs') || title.includes('giants') || title.includes('braves') ||
         title.includes('topps') || title.includes('bowman') || title.includes('heritage')) {
@@ -280,6 +286,17 @@ function detectSport(cardTitle) {
         title.includes('full art') || title.includes('alternate art') || title.includes('vmax') ||
         title.includes('gx') || title.includes('ex') || title.includes('v card') || title.includes(' v ')) {
         return 'pokemon';
+    }
+    
+    // Golf indicators
+    if (title.includes('golf') || title.includes('pga') || title.includes('liv golf') ||
+        title.includes('koepka') || title.includes('brooks koepka') ||
+        title.includes('woods') || title.includes('tiger woods') ||
+        title.includes('mcilroy') || title.includes('rory mcilroy') ||
+        title.includes('spieth') || title.includes('jordan spieth') ||
+        title.includes('masters') || title.includes('us open') || title.includes('pga championship') ||
+        title.includes('open championship') || title.includes('ryder cup')) {
+        return 'golf';
     }
     
     return 'unknown';

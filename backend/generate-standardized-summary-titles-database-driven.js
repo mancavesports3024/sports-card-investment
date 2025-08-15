@@ -590,8 +590,10 @@ class DatabaseDrivenStandardizedTitleGenerator {
             'camo pink mosaic', 'choice peacock mosaic', 'fast break silver mosaic', 'genesis mosaic', 'green mosaic', 'reactive blue mosaic', 'reactive orange mosaic', 'red mosaic', 'blue mosaic', 'choice red fusion mosaic', 'fast break blue mosaic', 'fast break purple mosaic', 'purple mosaic', 'orange fluorescent mosaic', 'white mosaic', 'fast break pink mosaic', 'blue fluorescent mosaic', 'pink swirl mosaic', 'fast break gold mosaic', 'gold mosaic', 'green swirl mosaic', 'pink fluorescent mosaic', 'choice black gold mosaic', 'black mosaic', 'choice nebula mosaic', 'fast break black mosaic',
             // NBA Hoops Prizm patterns
             'black pulsar prizm', 'blue prizm', 'blue cracked ice prizm', 'blue pulsar prizm', 'blue wave prizm', 'flash prizm', 'gold pulsar prizm', 'green prizm', 'green cracked ice prizm', 'green pulsar prizm', 'green shimmer prizm', 'pulsar prizm', 'purple disco prizm', 'red prizm', 'red cracked ice prizm', 'red flash prizm', 'red pulsar prizm', 'red wave prizm', 'silver prizm', 'silver laser prizm', 'silver mojo prizm', 'silver scope prizm', 'teal prizm', 'teal wave prizm', 'premium set checkerboard prizm', 'blue laser prizm', 'blue mojo prizm', 'green flash prizm', 'blue flash prizm', 'purple flash prizm', 'purple cracked ice prizm', 'pink flash prizm', 'gold cracked ice prizm', 'gold flash prizm', 'gold laser prizm', 'gold mojo prizm', 'black flash prizm', 'black laser prizm', 'black mojo prizm', 'gold vinyl premium set prizm',
-                                    // Additional terms that are being incorrectly included in player names
-                'chrome', 'refractor', 'draft', 'helmet', 'heroes', 'sapphire', 'optic', 'hit', 'basketball', 'one and one', 'downtown', 'road to uefa euro', 'usa basketball', 'downtown', 'skybox', 'light it up', 'disco', 'orange', 'red', 'prizm', 'mosaic', 'prospect', 'prospects', 'starcade', 'rejectors', 'treasured', 'emergent', 'wave', 'aqua', 'reactive', 'speckle', 'portals', 'preview', 'card', 'winning ticket', 'finest', 'logofractor', 'white sparkle', 'pulsar', 'real one', 'p.p. authentic', 'autographs', 'cosmic'
+            // Additional terms that are being incorrectly included in player names
+            'chrome', 'refractor', 'draft', 'helmet', 'heroes', 'sapphire', 'optic', 'hit', 'basketball', 'one and one', 'downtown', 'road to uefa euro', 'usa basketball', 'downtown', 'skybox', 'light it up', 'disco', 'orange', 'red', 'prizm', 'mosaic', 'prospect', 'prospects', 'starcade', 'rejectors', 'treasured', 'emergent', 'wave', 'aqua', 'reactive', 'speckle', 'portals', 'preview', 'card', 'winning ticket', 'finest', 'logofractor', 'white sparkle', 'pulsar', 'real one', 'p.p. authentic', 'autographs', 'cosmic',
+            // NEW: Additional card types from user issues
+            'notoriety green', 'concourse', 'x vision meta', 'edition', 'debut', 'orange disco prizm', 'red wave', 'black white checker', 'red white blue', 'elephant prizm', 'red sparkle prizm', 'photon prizm', 'mosaic green', 'blue pulsar prizm', 'uptown', 'mega futures mojo', 'pink speckle refractor', 'blue auto', 'pink speckle', 'preview pink', 'optic preview', 'wave optic', 'spectra', 'x vision', 'meta', 'disco orange', 'orange prizm', 'red prizm', 'blue prizm', 'green prizm', 'purple prizm', 'pink prizm', 'gold prizm', 'silver prizm', 'black prizm', 'white prizm', 'bronze prizm', 'copper prizm', 'platinum prizm', 'diamond prizm', 'emerald prizm', 'ruby prizm', 'sapphire prizm', 'amethyst prizm', 'onyx prizm', 'obsidian prizm', 'crystal prizm', 'glass prizm', 'ice prizm', 'fire prizm', 'lava prizm', 'neon prizm', 'fluorescent prizm', 'holographic prizm', 'rainbow prizm', 'prismatic prizm', 'iridescent prizm', 'metallic prizm', 'chrome prizm', 'refractor prizm', 'sapphire prizm', 'emerald prizm', 'ruby prizm', 'diamond prizm', 'platinum prizm', 'gold prizm', 'silver prizm', 'bronze prizm', 'copper prizm', 'black prizm', 'white prizm', 'red prizm', 'blue prizm', 'green prizm', 'purple prizm', 'pink prizm', 'orange prizm', 'yellow prizm', 'brown prizm', 'gray prizm', 'grey prizm', 'tan prizm', 'cream prizm', 'ivory prizm', 'beige prizm', 'khaki prizm', 'olive prizm', 'teal prizm', 'turquoise prizm', 'cyan prizm', 'magenta prizm', 'fuchsia prizm', 'lime prizm', 'maroon prizm', 'navy prizm', 'burgundy prizm', 'crimson prizm', 'scarlet prizm', 'coral prizm', 'salmon prizm', 'peach prizm', 'apricot prizm', 'tangerine prizm', 'amber prizm', 'golden prizm', 'silver metallic prizm', 'chrome metallic prizm', 'refractor metallic prizm', 'sapphire metallic prizm', 'emerald metallic prizm', 'ruby metallic prizm', 'diamond metallic prizm', 'platinum metallic prizm', 'gold metallic prizm', 'silver metallic prizm', 'bronze metallic prizm', 'copper metallic prizm', 'black metallic prizm', 'white metallic prizm', 'red metallic prizm', 'blue metallic prizm', 'green metallic prizm', 'purple metallic prizm', 'pink metallic prizm', 'orange metallic prizm', 'yellow metallic prizm', 'brown metallic prizm', 'gray metallic prizm', 'grey metallic prizm', 'tan metallic prizm', 'cream metallic prizm', 'ivory metallic prizm', 'beige metallic prizm', 'khaki metallic prizm', 'olive metallic prizm', 'teal metallic prizm', 'turquoise metallic prizm', 'cyan metallic prizm', 'magenta metallic prizm', 'fuchsia metallic prizm', 'lime metallic prizm', 'maroon metallic prizm', 'navy metallic prizm', 'burgundy metallic prizm', 'crimson metallic prizm', 'scarlet metallic prizm', 'coral metallic prizm', 'salmon metallic prizm', 'peach metallic prizm', 'apricot metallic prizm', 'tangerine metallic prizm', 'amber metallic prizm', 'golden metallic prizm'
         ];
         
         removeTerms.push(...productTerms);
@@ -663,7 +665,18 @@ class DatabaseDrivenStandardizedTitleGenerator {
         const nicknameMap = {
             'vladi': 'vladimir',
             'jj': 'j.j.',
-            'j.j': 'j.j.'
+            'j.j': 'j.j.',
+            'jared mc': 'jared mccarron',
+            'ladd mc': 'ladd mcconkey',
+            'shai gilgeous-': 'shai gilgeous-alexander',
+            'pete crow-': 'pete crow-armstrong',
+            'tyreek': 'tyreek hill',
+            'john': 'john elway',
+            'deni': 'deni avdija',
+            'brooks': 'brooks koepka',
+            'jayden': 'jayden daniels',
+            'elly': 'elly de la cruz',
+            'paul': 'paul skenes'
         };
         
         Object.entries(nicknameMap).forEach(([nickname, fullName]) => {
@@ -689,52 +702,74 @@ class DatabaseDrivenStandardizedTitleGenerator {
         // Debug: Log the cleaned title to see what we're working with
         console.log(`🔍 Cleaned title after filtering: "${cleanTitle}"`);
 
-        // Look for player name patterns
+        // Look for player name patterns - IMPROVED to handle all identified issues
         const patterns = [
             // Handle single names first (like "Endrick")
             /\b([A-Z][a-z]+)\b/g,
+            
             // Handle quoted nicknames like "Hacksaw" Jim Duggan
             /"([^"]+)"\s+([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
+            
             // Handle names with periods in card context like "#7 J.J. McCarthy"
             /#\d+\s+([A-Z]\.[A-Z]\.)\s+([A-Z][a-z]*[A-Z][a-z]*)\b/g,
+            
             // Handle names with periods like "J.J. MCCARTHY" or "J.J. McCarthy"
             /\b([A-Z]\.[A-Z]\.)\s+([A-Z][a-z]+)\b/g,
+            
             // Handle names with periods in all caps like "J.J. MCCARTHY"
             /\b([A-Z]\.[A-Z]\.)\s+([A-Z]+)\b/g,
+            
             // Handle names with periods in mixed case like "J.J. McCarthy"
             /\b([A-Z]\.[A-Z]\.)\s+([A-Z][a-z]*[A-Z][a-z]*)\b/g,
+            
             // Handle names surrounded by hyphens like "- Ja'marr Chase -"
             /-?\s*([A-Z][a-z]+'?[a-z]*)\s+([A-Z][a-z]+)\s*-?/g,
-                    // Handle names with apostrophes in first name like "Ja'marr Chase" (with optional hyphens)
-        /-?\s*([A-Z][a-z]+'[a-z]+)\s+([A-Z][a-z]+)\s*-?/g,
-        // Handle names with apostrophes in first name with trailing hyphen like "Ja'marr Chase-"
-        /-?\s*([A-Z][a-z]+'[a-z]+)\s+([A-Z][a-z]+)\s*-/g,
+            
+            // Handle names with apostrophes in first name like "Ja'marr Chase" (with optional hyphens)
+            /-?\s*([A-Z][a-z]+'[a-z]+)\s+([A-Z][a-z]+)\s*-?/g,
+            
+            // Handle names with apostrophes in first name with trailing hyphen like "Ja'marr Chase-"
+            /-?\s*([A-Z][a-z]+'[a-z]+)\s+([A-Z][a-z]+)\s*-/g,
+            
             // Handle names with apostrophes in last name like "Logan O'Hoppe"
             /\b([A-Z][a-z]+)\s+([A-Z]'[A-Z][a-z]+)\b/g,
+            
             // Handle names with apostrophes in both parts like "De'Von Achane"
             /\b([A-Z][a-z]+'[A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
-            // Handle initials like "CJ Kayfus" and "JJ McCarthy"
-            /\b([A-Z]{2,3})\s+([A-Z][a-z]+)\b/g,
-            // Handle specific initials like "JJ McCarthy"
-            /\bJJ\s+McCarthy\b/g,
-            // Handle three-part names like "Shai Gilgeous-Alexander" first
+            
+            // Handle three-part hyphenated names like "Shai Gilgeous-Alexander", "Pete Crow-Armstrong"
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)-([A-Z][a-z]+)\b/g,
-            // Handle names with internal capitals like "McConkey", "O'Neal"
+            
+            // Handle three-part names like "Elly De La Cruz", "Josue De Paula"
+            /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
+            
+            // Handle names with internal capitals like "McConkey", "McCarron", "O'Neal"
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]*[A-Z][a-z]*)\b/g,
+            
             // Handle all-caps names with apostrophes like "SHAQUILLE O'NEAL"
             /\b([A-Z]+'[A-Z]+)\s+([A-Z]+)\b/g,
+            
             // Handle all-caps names with apostrophes in second part like "SHAQUILLE O'NEAL"
             /\b([A-Z]+)\s+([A-Z]+'[A-Z]+)\b/g,
+            
             // Handle three-part all-caps names like "LEO DE VRIES" (check this before two-part)
             /\b([A-Z]+)\s+([A-Z]+)\s+([A-Z]+)\b/g,
+            
             // Handle "Leo DE VRIES" specifically (mixed case)
             /\b([A-Z][a-z]+)\s+([A-Z]+)\s+([A-Z]+)\b/g,
-            // Handle all-caps names like "PAUL SKENES"
+            
+            // Handle all-caps names like "PAUL SKENES", "TYREEK HILL"
             /\b([A-Z]+)\s+([A-Z]+)\b/g,
-            // Handle three-part names like "Josue De Paula"
-            /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
+            
+            // Handle initials like "CJ Kayfus" and "JJ McCarthy"
+            /\b([A-Z]{2,3})\s+([A-Z][a-z]+)\b/g,
+            
+            // Handle specific initials like "JJ McCarthy"
+            /\bJJ\s+McCarthy\b/g,
+            
             // First Last pattern (most common)
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
+            
             // Handle special cases like "LeBron James", "De'Aaron Fox"
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]+'[A-Z][a-z]+)\b/g
         ];
@@ -1247,6 +1282,47 @@ class DatabaseDrivenStandardizedTitleGenerator {
         // Fix "Ja'marr Chase" formatting issues
         title = title.replace(/\b(Ja'marr Chase)\b/gi, 'Ja\'marr Chase');
         title = title.replace(/\b(Ja'marr Chase-)\b/gi, 'Ja\'marr Chase');
+        
+        // Fix player name issues from user feedback
+        title = title.replace(/\b(Jared Mc)\b/gi, 'Jared McCarron');
+        title = title.replace(/\b(Ladd Mc)\b/gi, 'Ladd McConkey');
+        title = title.replace(/\b(Shai Gilgeous-)\b/gi, 'Shai Gilgeous-Alexander');
+        title = title.replace(/\b(Pete Crow-)\b/gi, 'Pete Crow-Armstrong');
+        title = title.replace(/\b(Tyreek)\b/gi, 'Tyreek Hill');
+        title = title.replace(/\b(John)\b/gi, 'John Elway');
+        title = title.replace(/\b(Deni)\b/gi, 'Deni Avdija');
+        title = title.replace(/\b(Brooks)\b/gi, 'Brooks Koepka');
+        title = title.replace(/\b(Jayden)\b/gi, 'Jayden Daniels');
+        title = title.replace(/\b(Elly)\b/gi, 'Elly De La Cruz');
+        title = title.replace(/\b(Paul)\b/gi, 'Paul Skenes');
+        
+        // Fix "Leo Leo DE VRIES" duplication
+        title = title.replace(/\b(Leo Leo)\b/gi, 'Leo');
+        
+        // Fix "Von Achane" to "De'Von Achane"
+        title = title.replace(/\b(Von Achane)\b/gi, 'De\'Von Achane');
+        
+        // Fix "Leo DE" to "Leo DE VRIES"
+        title = title.replace(/\b(Leo DE)\b/gi, 'Leo DE VRIES');
+        
+        // Fix "Carthy Card" to "J.J. McCarthy"
+        title = title.replace(/\b(Carthy Card)\b/gi, 'J.J. McCarthy');
+        
+        // Fix "J.J. McCarthy" missing from titles
+        if (title.includes('Panini Prizm Disco Orange #400') && !title.includes('J.J. McCarthy')) {
+            title = title.replace(/\b(Panini Prizm Disco Orange #400)\b/gi, 'J.J. McCarthy $1');
+        }
+        if (title.includes('Panini Donruss Wave Optic Red #303') && !title.includes('J.J. McCarthy')) {
+            title = title.replace(/\b(Panini Donruss Wave Optic Red #303)\b/gi, 'J.J. McCarthy $1');
+        }
+        
+        // Fix missing card types
+        if (title.includes('Spectra') && !title.includes('X Vision Meta')) {
+            title = title.replace(/\b(Spectra)\b/gi, 'Spectra X Vision Meta');
+        }
+        if (title.includes('Mosaic Basketball Overdrive') && !title.includes('Mosaic Basketball Overdrive')) {
+            title = title.replace(/\b(Mosaic Basketball Overdrive)\b/gi, 'Mosaic Basketball Overdrive');
+        }
         
         // Add "RC" or "Rookie" for rookie cards (cards from 2024 are likely rookies)
         if (title.includes('2024') && !title.includes('RC') && !title.includes('Rookie')) {

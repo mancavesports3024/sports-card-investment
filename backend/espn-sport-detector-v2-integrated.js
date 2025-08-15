@@ -31,7 +31,24 @@ class ESPNSportDetectorV2Integrated {
                 'vladimir guerrero': 'Baseball',
                 'ja\'marr chase': 'Football',
                 'ja\'marr': 'Football',
-                'valentina shevchenko': 'MMA'
+                'valentina shevchenko': 'MMA',
+                'j.j. mccarthy': 'Football',
+                'jj mccarthy': 'Football',
+                'jared mccarron': 'Football',
+                'ladd mcconkey': 'Football',
+                'shai gilgeous-alexander': 'Basketball',
+                'pete crow-armstrong': 'Baseball',
+                'tyreek hill': 'Football',
+                'john elway': 'Football',
+                'deni avdija': 'Basketball',
+                'brooks koepka': 'Golf',
+                'jayden daniels': 'Football',
+                'elly de la cruz': 'Baseball',
+                'paul skenes': 'Baseball',
+                'leo de vries': 'Baseball',
+                'de\'von achane': 'Football',
+                'julio rodriguez': 'Baseball',
+                'caitlin clark': 'Basketball'
             };
             
             const playerNameLower = playerName.toLowerCase().trim();
