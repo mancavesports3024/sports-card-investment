@@ -65,6 +65,72 @@ class DatabaseDrivenStandardizedTitleGenerator {
         console.log('🧠 Learning from existing database data...\n');
 
         try {
+            // Check if we're using comprehensive database (has 'sets' table) or new-scorecard (has 'cards' table)
+            const tableCheck = await this.runQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='sets'");
+            const isComprehensiveDb = tableCheck.length > 0;
+            
+            if (isComprehensiveDb) {
+                console.log('📚 Learning from comprehensive database (sets table)...');
+                await this.learnFromComprehensiveDatabase();
+            } else {
+                console.log('📚 Learning from new-scorecard database (cards table)...');
+                await this.learnFromNewScorecardDatabase();
+            }
+        } catch (error) {
+            console.error('❌ Error learning from database:', error);
+        }
+    }
+
+    async learnFromComprehensiveDatabase() {
+        try {
+            // Extract card sets from comprehensive database
+            const cardSetsQuery = await this.runQuery(`
+                SELECT DISTINCT name, brand, setName 
+                FROM sets 
+                WHERE name IS NOT NULL AND name != ''
+                ORDER BY name
+            `);
+            
+            console.log(`📚 Learned ${cardSetsQuery.length} card sets from comprehensive database`);
+            
+            // Add card sets to our learning
+            cardSetsQuery.forEach(row => {
+                if (row.name) this.cardSets.add(row.name);
+                if (row.brand) this.brands.add(row.brand);
+                if (row.setName) this.cardSets.add(row.setName);
+            });
+            
+            // Extract brands
+            const brandsQuery = await this.runQuery(`
+                SELECT DISTINCT brand 
+                FROM sets 
+                WHERE brand IS NOT NULL AND brand != '' AND brand != 'Unknown'
+                ORDER BY brand
+            `);
+            
+            console.log(`🏷️ Learned ${brandsQuery.length} brands from comprehensive database`);
+            
+            brandsQuery.forEach(row => {
+                if (row.brand) this.brands.add(row.brand);
+            });
+            
+            // Extract years
+            const yearsQuery = await this.runQuery(`
+                SELECT DISTINCT year 
+                FROM sets 
+                WHERE year IS NOT NULL AND year != '' AND year != 'Unknown'
+                ORDER BY year
+            `);
+            
+            console.log(`📅 Found ${yearsQuery.length} years in comprehensive database`);
+            
+        } catch (error) {
+            console.error('❌ Error learning from comprehensive database:', error);
+        }
+    }
+
+    async learnFromNewScorecardDatabase() {
+        try {
             // Extract card sets from existing titles - simplified to avoid SQL syntax issues
             const cardSetsQuery = await this.runQuery(`
                 SELECT DISTINCT 
@@ -194,56 +260,21 @@ class DatabaseDrivenStandardizedTitleGenerator {
                 ORDER BY card_type
             `);
 
-            // Extract brands from existing data
-            const brandsQuery = await this.runQuery(`
-                SELECT DISTINCT brand 
-                FROM cards 
-                WHERE brand IS NOT NULL AND brand != ''
-                ORDER BY brand
-            `);
+            console.log(`📚 Learned ${cardSetsQuery.length} card sets from new-scorecard database`);
+            console.log(`🎨 Learned ${cardTypesQuery.length} card types from new-scorecard database`);
 
-            // Extract years from existing data
-            const yearsQuery = await this.runQuery(`
-                SELECT DISTINCT year 
-                FROM cards 
-                WHERE year IS NOT NULL
-                ORDER BY year DESC
-            `);
-
-            // Populate our learning sets
+            // Add card sets to our learning
             cardSetsQuery.forEach(row => {
                 if (row.card_set) this.cardSets.add(row.card_set);
             });
 
+            // Add card types to our learning
             cardTypesQuery.forEach(row => {
                 if (row.card_type) this.cardTypes.add(row.card_type);
             });
 
-            brandsQuery.forEach(row => {
-                if (row.brand) this.brands.add(row.brand);
-            });
-
-            console.log(`📚 Learned ${this.cardSets.size} card sets from database`);
-            console.log(`🎨 Learned ${this.cardTypes.size} card types from database`);
-            console.log(`🏷️ Learned ${this.brands.size} brands from database`);
-            console.log(`📅 Found ${yearsQuery.length} years in database\n`);
-
-            // Show some examples of what we learned
-            console.log('📋 Examples of learned card sets:');
-            Array.from(this.cardSets).slice(0, 10).forEach(set => {
-                console.log(`   • ${set}`);
-            });
-            console.log('');
-
-            console.log('📋 Examples of learned card types:');
-            Array.from(this.cardTypes).slice(0, 10).forEach(type => {
-                console.log(`   • ${type}`);
-            });
-            console.log('');
-
         } catch (error) {
-            console.error('❌ Error learning from database:', error);
-            throw error;
+            console.error('❌ Error learning from new-scorecard database:', error);
         }
     }
 
