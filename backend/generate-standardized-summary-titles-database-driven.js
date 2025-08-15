@@ -656,6 +656,18 @@ class DatabaseDrivenStandardizedTitleGenerator {
         // This needs to be done after other filtering to avoid conflicts
         cleanTitle = cleanTitle.replace(/\b([A-Z])\.([A-Z])\.\s+([A-Z][a-z]+)\b/g, '$1.$2. $3');
 
+        // Handle common nicknames
+        const nicknameMap = {
+            'vladi': 'vladimir',
+            'jj': 'j.j.',
+            'j.j': 'j.j.'
+        };
+        
+        Object.entries(nicknameMap).forEach(([nickname, fullName]) => {
+            const regex = new RegExp(`\\b${nickname}\\b`, 'gi');
+            cleanTitle = cleanTitle.replace(regex, fullName);
+        });
+
         // Normalize spaces after filtering to ensure proper pattern matching
         cleanTitle = cleanTitle.replace(/\s+/g, ' ').trim();
 
