@@ -3071,6 +3071,72 @@ app.post('/api/standardize-title', async (req, res) => {
   }
 });
 
+// Endpoint to fix specific problematic player names
+app.post('/api/admin/fix-specific-player-names', async (req, res) => {
+    try {
+        console.log('🔧 Fixing specific problematic player names...');
+        const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standardized-summary-titles-database-driven.js');
+        const generator = new DatabaseDrivenStandardizedTitleGenerator();
+        await generator.connect();
+        await generator.ensurePlayerNameColumn();
+        
+        // Define the specific fixes
+        const fixes = [
+            {
+                id: 309,
+                correctPlayerName: "Triston Casas"
+            },
+            {
+                id: 407,
+                correctPlayerName: "Bryce Harper"
+            },
+            {
+                id: 169,
+                correctPlayerName: "Francisco Lindor"
+            },
+            {
+                id: 31,
+                correctPlayerName: "Xavier Worthy"
+            },
+            {
+                id: 231,
+                correctPlayerName: "Shai Gilgeous-Alexander"
+            }
+        ];
+        
+        let updatedCount = 0;
+        for (const fix of fixes) {
+            try {
+                await generator.runUpdate(
+                    'UPDATE cards SET player_name = ? WHERE id = ?',
+                    [fix.correctPlayerName, fix.id]
+                );
+                updatedCount++;
+                console.log(`✅ Fixed player name for card ${fix.id}: "${fix.correctPlayerName}"`);
+            } catch (error) {
+                console.error(`❌ Error updating card ${fix.id}:`, error.message);
+            }
+        }
+        
+        await generator.close();
+        console.log(`✅ Specific player name fixes completed! Updated ${updatedCount} cards`);
+        res.json({
+            success: true,
+            message: `Specific player names fixed successfully`,
+            cardsUpdated: updatedCount,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('❌ Specific player name fixes failed:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Specific player name fixes failed',
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Initialize token refresh on startup
 initializeServer().catch(console.error);
 
