@@ -597,16 +597,22 @@ class DatabaseDrivenStandardizedTitleGenerator {
         const patterns = [
             // Handle quoted nicknames like "Hacksaw" Jim Duggan
             /"([^"]+)"\s+([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
-            // Handle names with periods like "J.J. MCCARTHY"
+            // Handle names with periods like "J.J. MCCARTHY" or "J.J. McCarthy"
+            /\b([A-Z]\.[A-Z]\.)\s+([A-Z][a-z]+)\b/g,
+            // Handle names with periods in all caps like "J.J. MCCARTHY"
             /\b([A-Z]\.[A-Z]\.)\s+([A-Z]+)\b/g,
+            // Handle names with apostrophes in first name like "Ja'marr Chase"
+            /\b([A-Z][a-z]+'[a-z]+)\s+([A-Z][a-z]+)\b/g,
+            // Handle names with apostrophes in last name like "Logan O'Hoppe"
+            /\b([A-Z][a-z]+)\s+([A-Z]'[A-Z][a-z]+)\b/g,
+            // Handle names with apostrophes in both parts like "De'Von Achane"
+            /\b([A-Z][a-z]+'[A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
             // Handle initials like "CJ Kayfus" and "JJ McCarthy"
             /\b([A-Z]{2,3})\s+([A-Z][a-z]+)\b/g,
             // Handle specific initials like "JJ McCarthy"
             /\bJJ\s+McCarthy\b/g,
             // Handle three-part names like "Shai Gilgeous-Alexander" first
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)-([A-Z][a-z]+)\b/g,
-            // Handle names with apostrophes in first part like "De'Von Achane"
-            /\b([A-Z][a-z]+'[A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
             // Handle names with internal capitals like "McConkey", "O'Neal"
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]*[A-Z][a-z]*)\b/g,
             // Handle all-caps names with apostrophes like "SHAQUILLE O'NEAL"
@@ -641,7 +647,11 @@ class DatabaseDrivenStandardizedTitleGenerator {
                         if (word.startsWith('"') && word.endsWith('"')) {
                             return word;
                         }
-                        // Handle special cases like "O'Neal", "De'Von", etc.
+                        // Handle initials with periods like "J.J."
+                        if (word.match(/^[A-Z]\.[A-Z]\.$/)) {
+                            return word;
+                        }
+                        // Handle special cases like "O'Neal", "De'Von", "Ja'marr", etc.
                         if (word.includes("'")) {
                             return word.split("'").map(part => 
                                 part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
