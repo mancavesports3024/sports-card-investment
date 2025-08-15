@@ -588,7 +588,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
             // NBA Hoops Prizm patterns
             'black pulsar prizm', 'blue prizm', 'blue cracked ice prizm', 'blue pulsar prizm', 'blue wave prizm', 'flash prizm', 'gold pulsar prizm', 'green prizm', 'green cracked ice prizm', 'green pulsar prizm', 'green shimmer prizm', 'pulsar prizm', 'purple disco prizm', 'red prizm', 'red cracked ice prizm', 'red flash prizm', 'red pulsar prizm', 'red wave prizm', 'silver prizm', 'silver laser prizm', 'silver mojo prizm', 'silver scope prizm', 'teal prizm', 'teal wave prizm', 'premium set checkerboard prizm', 'blue laser prizm', 'blue mojo prizm', 'green flash prizm', 'blue flash prizm', 'purple flash prizm', 'purple cracked ice prizm', 'pink flash prizm', 'gold cracked ice prizm', 'gold flash prizm', 'gold laser prizm', 'gold mojo prizm', 'black flash prizm', 'black laser prizm', 'black mojo prizm', 'gold vinyl premium set prizm',
                                     // Additional terms that are being incorrectly included in player names
-                'chrome', 'refractor', 'draft', 'helmet', 'heroes', 'sapphire', 'optic', 'hit', 'basketball', 'one and one', 'downtown', 'road to uefa euro', 'usa basketball', 'downtown', 'skybox', 'light it up', 'disco', 'orange', 'prizm', 'mosaic', 'prospect', 'prospects', 'starcade', 'rejectors', 'treasured', 'emergent', 'wave', 'aqua', 'reactive', 'speckle', 'portals', 'preview'
+                'chrome', 'refractor', 'draft', 'helmet', 'heroes', 'sapphire', 'optic', 'hit', 'basketball', 'one and one', 'downtown', 'road to uefa euro', 'usa basketball', 'downtown', 'skybox', 'light it up', 'disco', 'orange', 'prizm', 'mosaic', 'prospect', 'prospects', 'starcade', 'rejectors', 'treasured', 'emergent', 'wave', 'aqua', 'reactive', 'speckle', 'portals', 'preview', 'card'
         ];
         
         removeTerms.push(...productTerms);
@@ -651,6 +651,10 @@ class DatabaseDrivenStandardizedTitleGenerator {
                 }
             }
         });
+
+        // Special handling: Preserve periods in names like "J.J. McCarthy"
+        // This needs to be done after other filtering to avoid conflicts
+        cleanTitle = cleanTitle.replace(/\b([A-Z])\.([A-Z])\.\s+([A-Z][a-z]+)\b/g, '$1.$2. $3');
 
         // Normalize spaces after filtering to ensure proper pattern matching
         cleanTitle = cleanTitle.replace(/\s+/g, ' ').trim();
