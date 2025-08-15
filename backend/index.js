@@ -2852,8 +2852,8 @@ app.post('/api/admin/update-prices', async (req, res) => {
     try {
         console.log('🔄 Starting price updates on Railway...');
         
-        const { SQLitePriceUpdater } = require('./fast-sqlite-price-updater.js');
-        const updater = new SQLitePriceUpdater();
+        const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+        const updater = new FastSQLitePriceUpdater();
         
         await updater.connect();
         await updater.processBatchFast(50); // Process 50 cards
@@ -2882,8 +2882,9 @@ app.post('/api/admin/generate-good-buys', async (req, res) => {
     try {
         console.log('🔄 Generating good buy opportunities on Railway...');
         
-        const { goodBuyOpportunities } = require('./good-buy-opportunities.js');
-        await goodBuyOpportunities();
+        const GoodBuyAnalyzer = require('./good-buy-opportunities.js');
+        const analyzer = new GoodBuyAnalyzer();
+        await analyzer.analyzeDatabase();
         
         console.log('✅ Good buy opportunities generated successfully');
         res.json({ 
@@ -2897,6 +2898,36 @@ app.post('/api/admin/generate-good-buys', async (req, res) => {
         res.status(500).json({ 
             success: false, 
             error: 'Good buy opportunities generation failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// POST /api/admin/update-summary-titles - Update summary titles on Railway
+app.post('/api/admin/update-summary-titles', async (req, res) => {
+    try {
+        console.log('🔄 Starting summary titles update on Railway...');
+        
+        const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standardized-summary-titles-database-driven.js');
+        const generator = new DatabaseDrivenStandardizedTitleGenerator();
+        
+        await generator.connect();
+        await generator.generateAllStandardizedTitles();
+        await generator.close();
+        
+        console.log('✅ Summary titles updated successfully');
+        res.json({ 
+            success: true, 
+            message: 'Summary titles updated successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Summary titles update failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Summary titles update failed', 
             details: error.message,
             timestamp: new Date().toISOString()
         });
