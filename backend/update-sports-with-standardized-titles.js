@@ -69,8 +69,22 @@ class SportsUpdaterWithStandardizedTitles {
 
     async extractPlayerNameFromTitle(title) {
         try {
+            // Apply title fixes before player extraction
+            let cleanedTitle = title;
+            
+            // Apply the same fixes that are in fixProductOrder
+            cleanedTitle = cleanedTitle.replace(/\b(Ucc Endrick)\b/gi, 'Endrick');
+            cleanedTitle = cleanedTitle.replace(/\b(Vladi Guerrero)\b/gi, 'Vladimir Guerrero');
+            cleanedTitle = cleanedTitle.replace(/\b(Ja'marr Chase)\b/gi, 'Ja\'marr Chase');
+            cleanedTitle = cleanedTitle.replace(/\b(Ja'marr Chase-)\b/gi, 'Ja\'marr Chase');
+            cleanedTitle = cleanedTitle.replace(/\b(Autographs)\s+/gi, '');
+            cleanedTitle = cleanedTitle.replace(/\b(WHITE SPARKLE)\b/gi, 'White Sparkle');
+            cleanedTitle = cleanedTitle.replace(/\b(PRIZM WHITE SPARKLE)\b/gi, 'Panini Prizm White Sparkle');
+            cleanedTitle = cleanedTitle.replace(/\b(UCC Endrick Pulsar)\b/gi, 'Topps Chrome UCC Endrick Pulsar');
+            cleanedTitle = cleanedTitle.replace(/\b(XR CHRISTIAN WATSON)\b/gi, 'Panini XR Christian Watson');
+            
             // Use our advanced player extraction from the standardized title generator
-            const player = this.titleGenerator.extractPlayer(title);
+            const player = this.titleGenerator.extractPlayer(cleanedTitle);
             return player;
         } catch (error) {
             console.warn(`⚠️ Player extraction failed for "${title}": ${error.message}`);
