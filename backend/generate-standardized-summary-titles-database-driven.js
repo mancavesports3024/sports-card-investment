@@ -1608,16 +1608,6 @@ class DatabaseDrivenStandardizedTitleGenerator {
         title = title.replace(/\b(Shai Gilgeous-Alexander)\s+(Alexander)\b/gi, '$1');
         title = title.replace(/\b(Shai Gilgeous-Alexander)\s+(Gilgeous-Alexander)\b/gi, '$1');
         
-        // Fix general word duplications (any word that appears twice in a row)
-        const words = title.split(' ');
-        const deduplicatedWords = [];
-        for (let i = 0; i < words.length; i++) {
-            if (i === 0 || words[i].toLowerCase() !== words[i-1].toLowerCase()) {
-                deduplicatedWords.push(words[i]);
-            }
-        }
-        title = deduplicatedWords.join(' ');
-        
         // Fix "P.P." -> "RPA" for rookie patch autos
         title = title.replace(/\b(P\.P\.)\b/gi, 'RPA');
         
@@ -1732,6 +1722,16 @@ class DatabaseDrivenStandardizedTitleGenerator {
         title = title.replace(/\b(Shai Gilgeous-Alexander SIGNATURES RS SGA)\b/gi, 'Shai Gilgeous-Alexander');
         title = title.replace(/\b(Shai Gilgeous-Alexander Velocity,)\b/gi, 'Shai Gilgeous-Alexander');
         title = title.replace(/\b(LUIS GIL)\b/gi, 'Luis Gil');
+        
+        // Fix specific problematic player names that are still showing up
+        title = title.replace(/\b(John Elway Paxson)\b/gi, 'John Paxson');
+        title = title.replace(/\b(Shai Gilgeous-AlexanderAlexander)\b/gi, 'Shai Gilgeous-Alexander');
+        title = title.replace(/\b(Elly De La Cruz De La Cruz)\b/gi, 'Elly De La Cruz');
+        title = title.replace(/\b(Duke Duke)\b/gi, 'Duke');
+        title = title.replace(/\b(John Elway Elway)\b/gi, 'John Elway');
+        title = title.replace(/\b(Deni Avdija Avdija)\b/gi, 'Deni Avdija');
+        title = title.replace(/\b(Brooks Koepka Koepka)\b/gi, 'Brooks Koepka');
+        title = title.replace(/\b(Tyreek Hill Hill)\b/gi, 'Tyreek Hill');
         
         // Fix "JOSH ADAMCZEWSKI" -> "Josh Adamczewski" (proper case)
         title = title.replace(/\b(JOSH ADAMCZEWSKI)\b/gi, 'Josh Adamczewski');
@@ -1849,6 +1849,16 @@ class DatabaseDrivenStandardizedTitleGenerator {
             title = title.replace(/\b(J\.J\. McCarthy)\b/gi, '$1 RC');
             title = title.replace(/\b(JJ McCarthy)\b/gi, '$1 RC');
         }
+        
+        // Fix general word duplications (any word that appears twice in a row) - do this LAST
+        const words = title.split(' ');
+        const deduplicatedWords = [];
+        for (let i = 0; i < words.length; i++) {
+            if (i === 0 || words[i].toLowerCase() !== words[i-1].toLowerCase()) {
+                deduplicatedWords.push(words[i]);
+            }
+        }
+        title = deduplicatedWords.join(' ');
         
         return title;
     }
