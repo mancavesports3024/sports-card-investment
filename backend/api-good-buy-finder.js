@@ -1,28 +1,24 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios');
+const sqlite3 = require('sqlite3').verbose();
+const { search130point } = require('./services/130pointService');
 
 // Configuration
 const DATABASE_DIR = path.join(__dirname, 'data');
-const PSA10_DATABASE_FILE = path.join(DATABASE_DIR, 'psa10_recent_90_days_database.json');
+const DATABASE_FILE = path.join(DATABASE_DIR, 'new-scorecard.db');
 const GOOD_BUYS_FILE = path.join(DATABASE_DIR, 'api_good_buy_opportunities.json');
 const CACHE_FILE = path.join(DATABASE_DIR, 'api_good_buy_cache.json');
 
-// API Configuration
-const API_BASE_URL = 'https://web-production-9efa.up.railway.app';
-const SEARCH_ENDPOINT = '/api/search-cards';
-
 // Target multiplier for good buy opportunities
 const TARGET_MULTIPLIER = 2.3;
-const MIN_RAW_PRICE = 10;
-const MIN_PSA10_PRICE = 25;
-const MAX_CONCURRENT_SEARCHES = 3;
+const MIN_RAW_PRICE = 10; // Minimum raw card price to consider
+const MIN_PSA10_PRICE = 25; // Minimum PSA 10 price to consider
 
-class ApiGoodBuyFinder {
+class APIGoodBuyFinder {
   constructor() {
     this.goodBuys = [];
-    this.cache = this.loadCache();
+    this.db = null;
     this.stats = {
       totalProcessed: 0,
       goodBuysFound: 0,
@@ -30,6 +26,46 @@ class ApiGoodBuyFinder {
       errors: 0,
       startTime: Date.now()
     };
+  }
+
+  async connect() {
+    return new Promise((resolve, reject) => {
+      this.db = new sqlite3.Database(DATABASE_FILE, (err) => {
+        if (err) {
+          console.error('❌ Database connection failed:', err.message);
+          reject(err);
+        } else {
+          console.log('✅ Connected to SQLite database');
+          resolve();
+        }
+      });
+    });
+  }
+
+  async close() {
+    if (this.db) {
+      this.db.close();
+    }
+  }
+
+  // Get cards from SQLite database
+  async getCardsFromDatabase() {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT id, title, summary_title, sport, psa10_price, raw_average_price, psa9_average_price, multiplier
+        FROM cards 
+        WHERE psa10_price IS NOT NULL AND psa10_price > 0
+        ORDER BY psa10_price DESC
+      `;
+      
+      this.db.all(query, [], (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows || []);
+        }
+      });
+    });
   }
 
   // Load cache from file
@@ -438,23 +474,28 @@ class ApiGoodBuyFinder {
 // Main execution
 async function main() {
   try {
-    // Load PSA 10 database
-    console.log('📂 Loading PSA 10 database...');
-    const databaseData = JSON.parse(fs.readFileSync(PSA10_DATABASE_FILE, 'utf8'));
-    const cards = databaseData.items || [];
+    console.log('🚀 Starting API Good Buy Finder...');
+    
+    // Create finder and connect to database
+    const finder = new APIGoodBuyFinder();
+    await finder.connect();
+    
+    // Get cards from database
+    console.log('📂 Loading cards from database...');
+    const cards = await finder.getCardsFromDatabase();
     
     if (cards.length === 0) {
       console.log('❌ No cards found in database');
       return;
     }
     
-    console.log(`📊 Loaded ${cards.length} PSA 10 cards`);
-    
-    // Create finder and process cards
-    const finder = new ApiGoodBuyFinder();
+    console.log(`📊 Loaded ${cards.length} cards from database`);
     
     // Process first 100 cards for testing
-    await finder.processCards(cards, 100);
+    await finder.processCards(cards.slice(0, 100));
+    
+    // Close database connection
+    await finder.close();
     
   } catch (error) {
     console.error('❌ Error:', error.message);
@@ -466,4 +507,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = ApiGoodBuyFinder; 
+module.exports = APIGoodBuyFinder; 

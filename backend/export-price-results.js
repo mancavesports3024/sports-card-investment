@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 async function exportPriceResults() {
-    const dbPath = path.join(__dirname, 'data', 'scorecard.db');
+    const dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
     
     return new Promise((resolve, reject) => {
         const db = new sqlite3.Database(dbPath, (err) => {

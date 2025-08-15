@@ -1,11 +1,12 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
 const { search130point } = require('./services/130pointService');
 
 // Configuration
 const DATABASE_DIR = path.join(__dirname, 'data');
-const PSA10_DATABASE_FILE = path.join(DATABASE_DIR, 'psa10_recent_90_days_database.json');
+const DATABASE_FILE = path.join(DATABASE_DIR, 'new-scorecard.db');
 const GOOD_BUYS_FILE = path.join(DATABASE_DIR, 'good_buy_opportunities.json');
 const GOOD_BUYS_SUMMARY_FILE = path.join(DATABASE_DIR, 'good_buy_opportunities_summary.json');
 
@@ -21,6 +22,7 @@ const MAX_CONCURRENT_SEARCHES = 5; // Limit concurrent API calls
 class GoodBuyAnalyzer {
   constructor() {
     this.goodBuys = [];
+    this.db = null;
     this.stats = {
       totalProcessed: 0,
       goodBuysFound: 0,
@@ -28,6 +30,46 @@ class GoodBuyAnalyzer {
       errors: 0,
       startTime: Date.now()
     };
+  }
+
+  async connect() {
+    return new Promise((resolve, reject) => {
+      this.db = new sqlite3.Database(DATABASE_FILE, (err) => {
+        if (err) {
+          console.error('❌ Database connection failed:', err.message);
+          reject(err);
+        } else {
+          console.log('✅ Connected to SQLite database');
+          resolve();
+        }
+      });
+    });
+  }
+
+  async close() {
+    if (this.db) {
+      this.db.close();
+    }
+  }
+
+  // Get cards from SQLite database
+  async getCardsFromDatabase() {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT id, title, summary_title, sport, psa10_price, raw_average_price, psa9_average_price, multiplier
+        FROM cards 
+        WHERE psa10_price IS NOT NULL AND psa10_price > 0
+        ORDER BY psa10_price DESC
+      `;
+      
+      this.db.all(query, [], (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows || []);
+        }
+      });
+    });
   }
 
   // Extract card identifier from PSA 10 title
@@ -180,7 +222,7 @@ class GoodBuyAnalyzer {
     const batchPromises = [];
     
     for (const card of psa10Cards) {
-      const psa10Price = parseFloat(card.price?.value || 0);
+      const psa10Price = parseFloat(card.psa10_price || 0);
       
       // Skip if PSA 10 price is too low
       if (psa10Price < MIN_PSA10_PRICE) continue;
@@ -217,6 +259,53 @@ class GoodBuyAnalyzer {
   // Process a single card
   async processCard(psa10Card, identifier, year, psa10Price) {
     try {
+      // Use existing raw and PSA9 prices from database if available
+      const rawPrice = parseFloat(psa10Card.raw_average_price || 0);
+      const psa9Price = parseFloat(psa10Card.psa9_average_price || 0);
+      
+      // If we have raw price data, use it directly
+      if (rawPrice >= MIN_RAW_PRICE) {
+        const multiplier = psa10Price / rawPrice;
+        
+        if (multiplier >= TARGET_MULTIPLIER) {
+          const opportunity = {
+            card: {
+              title: psa10Card.title,
+              summaryTitle: psa10Card.summary_title,
+              sport: psa10Card.sport,
+              psa10Price,
+              identifier,
+              year,
+              id: psa10Card.id
+            },
+            raw: {
+              avgPrice: rawPrice,
+              minPrice: rawPrice,
+              maxPrice: rawPrice,
+              allPrices: [rawPrice]
+            },
+            psa9: psa9Price > 0 ? {
+              avgPrice: psa9Price,
+              minPrice: psa9Price,
+              maxPrice: psa9Price,
+              allPrices: [psa9Price]
+            } : null,
+            multiplier,
+            potentialProfit: psa10Price - rawPrice,
+            roi: ((psa10Price - rawPrice) / rawPrice) * 100
+          };
+          
+          this.goodBuys.push(opportunity);
+          this.stats.goodBuysFound++;
+          
+          console.log(`✅ Good buy found: ${identifier} (${year || 'N/A'}) - ${multiplier.toFixed(2)}x multiplier`);
+          console.log(`   Raw: $${rawPrice.toFixed(2)} | PSA 10: $${psa10Price.toFixed(2)} | Profit: $${opportunity.potentialProfit.toFixed(2)}`);
+          
+          return opportunity;
+        }
+      }
+      
+      // If no raw price data, try searching online
       const versions = await this.searchCardVersions(identifier, year);
       
       if (versions.raw && versions.raw.avgPrice >= MIN_RAW_PRICE) {
@@ -226,11 +315,12 @@ class GoodBuyAnalyzer {
           const opportunity = {
             card: {
               title: psa10Card.title,
+              summaryTitle: psa10Card.summary_title,
+              sport: psa10Card.sport,
               psa10Price,
               identifier,
               year,
-              soldDate: psa10Card.soldDate,
-              itemUrl: psa10Card.itemUrl
+              id: psa10Card.id
             },
             raw: versions.raw,
             psa9: versions.psa9,
@@ -242,7 +332,7 @@ class GoodBuyAnalyzer {
           this.goodBuys.push(opportunity);
           this.stats.goodBuysFound++;
           
-          console.log(`✅ Good buy found: ${identifier} (${year || 'N/A'}) - ${multiplier.toFixed(2)}x multiplier`);
+          console.log(`✅ Good buy found (online search): ${identifier} (${year || 'N/A'}) - ${multiplier.toFixed(2)}x multiplier`);
           console.log(`   Raw: $${versions.raw.avgPrice.toFixed(2)} | PSA 10: $${psa10Price.toFixed(2)} | Profit: $${opportunity.potentialProfit.toFixed(2)}`);
           
           return opportunity;
@@ -266,9 +356,11 @@ class GoodBuyAnalyzer {
     console.log(`💰 Min PSA 10 price: $${MIN_PSA10_PRICE}`);
     
     try {
-      // Load database
-      const database = JSON.parse(fs.readFileSync(PSA10_DATABASE_FILE, 'utf8'));
-      const items = database.items || [];
+      await this.connect();
+
+      // Get cards from SQLite database
+      const psa10Cards = await this.getCardsFromDatabase();
+      const items = psa10Cards || [];
       
       console.log(`📦 Total items to process: ${items.length}`);
       
@@ -292,6 +384,8 @@ class GoodBuyAnalyzer {
       
     } catch (error) {
       console.error('❌ Error loading database:', error.message);
+    } finally {
+      await this.close();
     }
   }
 

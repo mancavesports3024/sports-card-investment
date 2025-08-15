@@ -1,6 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const { EnhancedSportDetector } = require('./enhanced-sport-detector');
+// Use the sport detection from the main database class
+const NewPricingDatabase = require('./create-new-pricing-database.js');
 
 class SportDetectionUpdater {
     constructor() {

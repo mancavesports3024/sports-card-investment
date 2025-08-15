@@ -1,0 +1,19 @@
+{
+  "totalOpportunities": 0,
+  "averageMultiplier": null,
+  "averageROI": null,
+  "averagePotentialProfit": null,
+  "topOpportunities": [],
+  "priceRanges": {
+    "under50": 0,
+    "under100": 0,
+    "under200": 0,
+    "over200": 0
+  },
+  "multiplierRanges": {
+    "2.3-3x": 0,
+    "3-5x": 0,
+    "5-10x": 0,
+    "10x+": 0
+  }
+}

@@ -3,13 +3,8 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 const { search130point } = require('./services/130pointService');
-const { 
-    ultimateMultiSportFilter, 
-    detectSport, 
-    getSportExclusions, 
-    isBaseParallel, 
-    getPSAGrade 
-} = require('./ultimate-multi-sport-filtering-system');
+// Use the sport detection from the main database class
+const NewPricingDatabase = require('./create-new-pricing-database.js');
 
 class FastSQLitePriceUpdater {
     constructor() {

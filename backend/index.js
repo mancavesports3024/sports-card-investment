@@ -415,8 +415,8 @@ app.use('/api/live-listings', require('./routes/liveListings'));
       let params = [];
       
       if (search) {
-        whereConditions.push('(title LIKE ? OR summary_title LIKE ?)');
-        params.push(`%${search}%`, `%${search}%`);
+        whereConditions.push('(title LIKE ? OR summary_title LIKE ? OR player_name LIKE ?)');
+        params.push(`%${search}%`, `%${search}%`, `%${search}%`);
       }
       
       if (sport && sport !== 'all') {
@@ -443,7 +443,8 @@ app.use('/api/live-listings', require('./routes/liveListings'));
       // Get cards with pagination
       const cardsQuery = `
         SELECT id, title, summary_title as summaryTitle, sport, psa10_price as psa10Price, raw_average_price as rawAveragePrice, 
-               psa9_average_price as psa9AveragePrice, multiplier, last_updated as lastUpdated, notes as filterInfo, source, search_term as searchTerm
+               psa9_average_price as psa9AveragePrice, multiplier, last_updated as lastUpdated, notes as filterInfo, source, search_term as searchTerm,
+               player_name as playerName
         FROM cards 
         WHERE ${whereClause}
         ORDER BY ${sortBy} ${sortOrder}
@@ -753,10 +754,8 @@ app.use('/api/live-listings', require('./routes/liveListings'));
       
       // Try different possible database paths
       const possiblePaths = [
-        path.join(__dirname, 'scorecard.db'),
-        path.join(__dirname, 'data', 'scorecard.db'),
-        path.join(__dirname, 'new-scorecard.db'),
-        path.join(__dirname, 'data', 'new-scorecard.db')
+        path.join(__dirname, 'data', 'new-scorecard.db'),
+        path.join(__dirname, 'new-scorecard.db')
       ];
       
       let dbPath = null;
@@ -1809,18 +1808,12 @@ app.post('/api/reset-database', async (req, res) => {
     const fs = require('fs');
     const path = require('path');
     
-    // Delete old database files
-    const oldDbPath = path.join(__dirname, 'data', 'scorecard.db');
+    // Delete existing database file
     const newDbPath = path.join(__dirname, 'data', 'new-scorecard.db');
-    
-    if (fs.existsSync(oldDbPath)) {
-      fs.unlinkSync(oldDbPath);
-      console.log('🗑️ Deleted old database');
-    }
     
     if (fs.existsSync(newDbPath)) {
       fs.unlinkSync(newDbPath);
-      console.log('🗑️ Deleted existing new database');
+      console.log('🗑️ Deleted existing database');
     }
     
     // Create fresh new database
@@ -2043,27 +2036,17 @@ app.post('/api/create-database', async (req, res) => {
       });
     });
     
-    // Now create the real database
-    const { createDatabase, migrateData } = require('./create-sqlite-database.js');
-    await createDatabase();
+    // Create database using the new pricing database system
+    const NewPricingDatabase = require('./create-new-pricing-database.js');
+    const db = new NewPricingDatabase();
+    await db.connect();
+    await db.createTables();
     
-    // Try to migrate data from JSON to SQLite (optional)
-    try {
-      console.log('📦 Attempting to migrate data from JSON to SQLite...');
-      await migrateData();
-      res.json({
-        success: true,
-        message: 'SQLite database created and populated successfully',
-        timestamp: new Date().toISOString()
-      });
-    } catch (migrationError) {
-      console.log('⚠️ Migration failed, but database created successfully:', migrationError.message);
-      res.json({
-        success: true,
-        message: 'SQLite database created successfully (no data migration - JSON file not found)',
-        timestamp: new Date().toISOString()
-      });
-    }
+    res.json({
+      success: true,
+      message: 'SQLite database created successfully using new pricing database system',
+      timestamp: new Date().toISOString()
+    });
     
   } catch (error) {
     console.error('❌ Error creating database:', error);
@@ -2326,69 +2309,132 @@ app.get('/api/sample-summary-titles', async (req, res) => {
   }
 });
 
-// Clean summary titles endpoint
+// Clean summary titles endpoint (Railway compatible)
 app.post('/api/clean-summary-titles', async (req, res) => {
   try {
-    console.log('🧹 Starting summary title cleanup with new standardized logic...');
+    console.log('🧹 Starting Railway-compatible summary title cleanup...');
+    
+    const sqlite3 = require('sqlite3').verbose();
+    const path = require('path');
+    
+    // Use the Railway database path
+    const dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
+    
+    // Check if database exists and what tables it has
+    const db = new sqlite3.Database(dbPath, (err) => {
+      if (err) {
+        console.error('❌ Error connecting to Railway database:', err.message);
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to connect to Railway database',
+          message: err.message,
+          timestamp: new Date().toISOString()
+        });
+      }
+    });
+    
+    // Check what tables exist
+    const tables = await new Promise((resolve, reject) => {
+      db.all("SELECT name FROM sqlite_master WHERE type='table'", (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+    
+    console.log('📋 Available tables:', tables.map(t => t.name).join(', '));
+    
+    // Check if we have a cards table
+    if (!tables.some(t => t.name === 'cards')) {
+      db.close();
+      return res.json({
+        success: true,
+        message: 'No cards table found in Railway database - this is expected for the sets-based learning database',
+        data: {
+          totalProcessed: 0,
+          updated: 0,
+          unchanged: 0,
+          errors: 0
+        },
+        timestamp: new Date().toISOString()
+      });
+    }
     
     // Use the new standardized title generation logic
     const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standardized-summary-titles-database-driven.js');
-    const NewPricingDatabase = require('./create-new-pricing-database.js');
-    
-    const db = new NewPricingDatabase();
-    await db.connect();
     
     const generator = new DatabaseDrivenStandardizedTitleGenerator();
     await generator.connect();
     await generator.learnFromDatabase();
     
-    // Get all cards
+    // Get all cards with summary titles
     const cards = await new Promise((resolve, reject) => {
-      db.pricingDb.all('SELECT * FROM cards', (err, rows) => {
+      db.all('SELECT id, title, summary_title FROM cards WHERE summary_title IS NOT NULL', (err, rows) => {
         if (err) reject(err);
         else resolve(rows);
       });
     });
+    
+    console.log(`📊 Found ${cards.length} cards with summary titles to process`);
     
     let totalProcessed = 0;
     let updated = 0;
     let unchanged = 0;
     let errors = 0;
     
-    for (const card of cards) {
-      try {
-        totalProcessed++;
-        
-        // Generate new standardized title
-        const newTitle = generator.generateStandardizedTitle(card.title);
-        
-        // Check if title changed
-        if (newTitle !== card.summary_title) {
-          // Update the card
-          await new Promise((resolve, reject) => {
-            db.pricingDb.run(
-              'UPDATE cards SET summary_title = ? WHERE id = ?',
-              [newTitle, card.id],
-              (err) => {
-                if (err) reject(err);
-                else resolve();
-              }
-            );
-          });
-          
-          console.log(`✅ Updated card ${card.id}: "${card.summary_title}" → "${newTitle}"`);
-          updated++;
-        } else {
-          unchanged++;
-        }
-        
-      } catch (error) {
-        console.error(`❌ Error processing card ${card.id}:`, error);
-        errors++;
-      }
+    // Process cards in batches to avoid overwhelming the database
+    const batchSize = 50;
+    const batches = [];
+    
+    for (let i = 0; i < cards.length; i += batchSize) {
+      batches.push(cards.slice(i, i + batchSize));
     }
     
-    await db.close();
+    console.log(`📦 Processing ${cards.length} cards in ${batches.length} batches of ${batchSize}...`);
+    
+    // Process each batch sequentially
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
+      
+      for (const card of batch) {
+        try {
+          totalProcessed++;
+          
+          // Generate new standardized title
+          const newTitle = generator.generateStandardizedTitle(card.title);
+          
+          // Check if title changed
+          if (newTitle && newTitle !== card.summary_title) {
+            // Update the card
+            await new Promise((resolve, reject) => {
+              db.run(
+                'UPDATE cards SET summary_title = ? WHERE id = ?',
+                [newTitle, card.id],
+                (err) => {
+                  if (err) reject(err);
+                  else resolve();
+                }
+              );
+            });
+            
+            console.log(`✅ Updated card ${card.id}: "${card.summary_title}" → "${newTitle}"`);
+            updated++;
+          } else {
+            unchanged++;
+          }
+          
+        } catch (error) {
+          console.error(`❌ Error processing card ${card.id}:`, error);
+          errors++;
+        }
+      }
+      
+      // Progress update
+      const processed = (batchIndex + 1) * batchSize;
+      const progressPercent = Math.round(Math.min(processed, cards.length) / cards.length * 100);
+      console.log(`📈 Batch ${batchIndex + 1}/${batches.length} (${progressPercent}%) - Updated: ${updated}, Unchanged: ${unchanged}, Errors: ${errors}`);
+    }
+    
+    db.close();
     await generator.db.close();
     
     const result = {
@@ -2401,7 +2447,7 @@ app.post('/api/clean-summary-titles', async (req, res) => {
     
     res.json({
       success: true,
-      message: 'Summary title cleanup completed successfully',
+      message: 'Railway summary title cleanup completed successfully',
       data: result,
       timestamp: new Date().toISOString()
     });

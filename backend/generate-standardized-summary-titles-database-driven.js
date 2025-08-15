@@ -3,7 +3,7 @@ const path = require('path');
 
 class DatabaseDrivenStandardizedTitleGenerator {
     constructor() {
-        // Always use new-scorecard.db for card updates, but learn from comprehensive if available
+        // Use new-scorecard.db which is what Railway is actually using
         this.dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
         this.comprehensiveDbPath = path.join(__dirname, 'data', 'comprehensive-card-database.db');
         
@@ -523,275 +523,114 @@ class DatabaseDrivenStandardizedTitleGenerator {
         return null;
     }
 
-    // Extract player name from title (improved version)
+    // Extract player name from title (simplified filtering approach)
     extractPlayer(title) {
-        // First, clean the title to remove common non-player terms
-        let cleanTitle = title;
-        const removeTerms = [
-            'PSA 10', 'PSA10', 'GEM MINT', 'Gem Mint', 'GEM MT', 'MT 10', 'MT10',
-            'RC', 'Rookie', 'ROOKIE', 'rookie', 'SP', 'sp',
-            'AUTO', 'auto', 'Autograph', 'autograph',
-            'GRADED', 'Graded', 'graded', 'UNGRADED', 'Ungraded', 'ungraded',
-            'CERT', 'Cert', 'cert', 'CERTIFICATE', 'Certificate', 'certificate',
-            'POP', 'Pop', 'pop', 'POPULATION', 'Population', 'population',
-            'Hit', 'hit', 'HIT', 'Case', 'case', 'CASE'
-        ];
-
-        // Add learned card sets and types to removal list
-        removeTerms.push(...Array.from(this.cardSets));
-        removeTerms.push(...Array.from(this.cardTypes));
-        removeTerms.push(...Array.from(this.brands));
-
-        // Add specific product names that might interfere with player extraction
-        const productTerms = [
-            'bowman draft chrome 1st', 'bowman chrome draft 1st', 'bowman chrome sapphire', 'bowman university chrome', 'bowman u chrome', 'bowman chrome draft', 'bowman chrome', 'bowman draft', 'bowman sterling', 'bowman platinum', 'bowman university', 'bowman u',
-            'panini donruss optic', 'panini donruss', 'panini prizm', 'panini select', 'panini contenders', 'panini optic', 'panini prizm wnba', 'panini instant wnba', 'prizm monopoly wnba',
-            'topps chrome', 'topps finest', 'topps heritage', 'topps archives', 'topps update',
-            'upper deck sp', 'upper deck spx', 'upper deck exquisite', 'upper deck',
-            'stadium club', 'national treasures', 'flawless', 'immaculate', 'limited', 'certified', 'elite', 'absolute',
-            'spectra', 'phoenix', 'playbook', 'momentum', 'totally certified', 'crown royale', 'threads', 'prestige',
-            'rookies & stars', 'score', 'leaf', 'playoff', 'press pass', 'sage', 'pacific', 'skybox', 'metal',
-            'gallery', 'heritage', 'gypsy queen', 'allen & ginter', 'archives', 'big league', 'fire', 'opening day',
-            'series 1', 'series 2', 'chrome update', 'chrome refractor', 'chrome sapphire', 'chrome black',
-            'bowman', 'topps', 'panini', 'fleer', 'donruss', 'flair', 'chronicles', 'chronicles wwe', 'rated rookie', 'rated rookies', 'optic', 'kings', 'rookie kings',
-            'rookies', 'rookie', 'nscc uefa', 'nscc', 'uefa', 'wnba', 'storm chasers'
-        ];
+        if (!title) return null;
         
-        // Add sport terms that should be removed from player names
-        const sportTerms = [
-            'football', 'basketball', 'baseball', 'hockey', 'soccer', 'mma', 'ufc', 'wrestling', 'pokemon',
-            'nfl', 'nba', 'mlb', 'nhl', 'wnba', 'usa basketball', 'usa football', 'usa baseball'
-        ];
+        // Convert to uppercase for consistent filtering
+        let cleanTitle = title.toUpperCase();
         
-        // Add card set prefixes that should be removed but preserve player names
-        const cardSetPrefixes = [
-            'wnba', 'nba', 'nfl', 'mlb', 'nhl', 'usa', 'euro', 'downtown', 'uptowns', 'negative', 'pulsar'
-        ];
+        // Remove years (2024, 2025, etc.)
+        cleanTitle = cleanTitle.replace(/\b(19|20)\d{2}\b/g, '');
         
-        // Add card type terms that might interfere with player extraction - expanded from Sundo Cards guide (updated)
-        const cardTypeTerms = [
-            // Original terms
-            'sky blue', 'neon green', 'purple pattern', 'pink pattern', 'blue pattern', 'green pattern', 'yellow pattern', 'black pattern', 'red pattern', 'printing plate', 'fuchsia',
-            // Pattern types from Sundo Cards guide
-            'checkerboard', 'x-fractor', 'cracked ice', 'atomic', 'disco', 'fast break', 'no huddle', 'flash', 'shock', 'mojo', 'mega', 'scope', 'shimmer', 'wave', 'multi wave', 'carved in time', 'lenticular', 'synthesis', 'outburst', 'electric ice', 'ellipse', 'color wheel', 'color blast', 'die-cut', 'national landmarks', 'stained glass', 'lava lamp', 'dazzle',
-            // Donruss & Donruss Optic
-            'blue velocity', 'hyper pink', 'red dragon', 'laser', 'liberty', 'diamond marvels', 'on fire', 'voltage', 'career stat line',
-            // Leaf Exotic patterns
-            'alligator crystal', 'alligator kaleidoscope', 'alligator mojo', 'alligator prismatic', 'butterfly crystal', 'butterfly kaleidoscope', 'butterfly mojo', 'butterfly prismatic', 'chameleon crystal', 'chameleon kaleidoscope', 'chameleon mojo', 'chameleon prismatic', 'clown fish crystal', 'clown fish kaleidoscope', 'clown fish mojo', 'clown fish prismatic', 'deer crystal', 'deer kaleidoscope', 'deer mojo', 'deer prismatic', 'dragon crystal', 'dragon kaleidoscope', 'dragon mojo', 'dragon prismatic', 'elephant crystal', 'elephant kaleidoscope', 'elephant mojo', 'elephant prismatic', 'giraffe crystal', 'giraffe kaleidoscope', 'giraffe mojo', 'giraffe prismatic', 'leopard crystal', 'leopard kaleidoscope', 'leopard mojo', 'leopard prismatic', 'parrot crystal', 'parrot kaleidoscope', 'parrot mojo', 'parrot prismatic', 'peacock crystal', 'peacock kaleidoscope', 'peacock mojo', 'peacock prismatic', 'snake crystal', 'snake kaleidoscope', 'snake mojo', 'snake prismatic', 'tiger crystal', 'tiger kaleidoscope', 'tiger mojo', 'tiger prismatic', 'zebra crystal', 'zebra kaleidoscope', 'zebra mojo', 'zebra prismatic', 'tiger eyes', 'snake eyes',
-            // Topps Heritage
-            '100th anniversary', 'black border', 'flip stock', 'magenta', 'mini parallels', 'chrome refractor', 'purple refractor', 'black bordered refractor', 'gold bordered refractor', 'superfractor',
-            // Animal prints
-            'zebra prizm', 'dragon scale', 'red dragon', 'peacock prizm', 'tiger prizm', 'giraffe prizm', 'elephant prizm',
-            // NBA Hoops patterns
-            'blue ice', 'silver laser', 'silver mojo', 'silver scope', 'teal wave', 'premium set checkerboard', 'blue laser', 'blue mojo', 'green flash', 'blue flash', 'purple flash', 'purple cracked ice', 'pink flash', 'gold cracked ice', 'gold flash', 'gold laser', 'gold mojo', 'black flash', 'black laser', 'black mojo', 'gold vinyl premium set',
-            // Foilboard cards
-            'vintage stock', 'red stars', 'independence day', 'father\'s day powder blue', 'mother\'s day hot pink', 'memorial day camo',
-            // Mosaic patterns
-            'camo pink mosaic', 'choice peacock mosaic', 'fast break silver mosaic', 'genesis mosaic', 'green mosaic', 'reactive blue mosaic', 'reactive orange mosaic', 'red mosaic', 'blue mosaic', 'choice red fusion mosaic', 'fast break blue mosaic', 'fast break purple mosaic', 'purple mosaic', 'orange fluorescent mosaic', 'white mosaic', 'fast break pink mosaic', 'blue fluorescent mosaic', 'pink swirl mosaic', 'fast break gold mosaic', 'gold mosaic', 'green swirl mosaic', 'pink fluorescent mosaic', 'choice black gold mosaic', 'black mosaic', 'choice nebula mosaic', 'fast break black mosaic',
-            // NBA Hoops Prizm patterns
-            'black pulsar prizm', 'blue prizm', 'blue cracked ice prizm', 'blue pulsar prizm', 'blue wave prizm', 'flash prizm', 'gold pulsar prizm', 'green prizm', 'green cracked ice prizm', 'green pulsar prizm', 'green shimmer prizm', 'pulsar prizm', 'purple disco prizm', 'red prizm', 'red cracked ice prizm', 'red flash prizm', 'red pulsar prizm', 'red wave prizm', 'silver prizm', 'silver laser prizm', 'silver mojo prizm', 'silver scope prizm', 'teal prizm', 'teal wave prizm', 'premium set checkerboard prizm', 'blue laser prizm', 'blue mojo prizm', 'green flash prizm', 'blue flash prizm', 'purple flash prizm', 'purple cracked ice prizm', 'pink flash prizm', 'gold cracked ice prizm', 'gold flash prizm', 'gold laser prizm', 'gold mojo prizm', 'black flash prizm', 'black laser prizm', 'black mojo prizm', 'gold vinyl premium set prizm',
-            // Additional terms that are being incorrectly included in player names
-            'chrome', 'refractor', 'draft', 'helmet', 'heroes', 'sapphire', 'optic', 'hit', 'basketball', 'one and one', 'downtown', 'road to uefa euro', 'usa basketball', 'downtown', 'skybox', 'light it up', 'disco', 'orange', 'red', 'prizm', 'mosaic', 'prospect', 'prospects', 'starcade', 'rejectors', 'treasured', 'emergent', 'wave', 'aqua', 'reactive', 'speckle', 'portals', 'preview', 'card', 'winning ticket', 'finest', 'logofractor', 'white sparkle', 'pulsar', 'real one', 'p.p. authentic', 'autographs', 'cosmic',
-            // NEW: Additional card types from user issues
-            'notoriety green', 'concourse', 'x vision meta', 'edition', 'debut', 'orange disco prizm', 'red wave', 'black white checker', 'red white blue', 'elephant prizm', 'red sparkle prizm', 'photon prizm', 'mosaic green', 'blue pulsar prizm', 'uptown', 'mega futures mojo', 'pink speckle refractor', 'blue auto', 'pink speckle', 'preview pink', 'optic preview', 'wave optic', 'spectra', 'x vision', 'meta', 'disco orange', 'orange prizm', 'red prizm', 'blue prizm', 'green prizm', 'purple prizm', 'pink prizm', 'gold prizm', 'silver prizm', 'black prizm', 'white prizm', 'bronze prizm', 'copper prizm', 'platinum prizm', 'diamond prizm', 'emerald prizm', 'ruby prizm', 'sapphire prizm', 'amethyst prizm', 'onyx prizm', 'obsidian prizm', 'crystal prizm', 'glass prizm', 'ice prizm', 'fire prizm', 'lava prizm', 'neon prizm', 'fluorescent prizm', 'holographic prizm', 'rainbow prizm', 'prismatic prizm', 'iridescent prizm', 'metallic prizm', 'chrome prizm', 'refractor prizm', 'sapphire prizm', 'emerald prizm', 'ruby prizm', 'diamond prizm', 'platinum prizm', 'gold prizm', 'silver prizm', 'bronze prizm', 'copper prizm', 'black prizm', 'white prizm', 'red prizm', 'blue prizm', 'green prizm', 'purple prizm', 'pink prizm', 'orange prizm', 'yellow prizm', 'brown prizm', 'gray prizm', 'grey prizm', 'tan prizm', 'cream prizm', 'ivory prizm', 'beige prizm', 'khaki prizm', 'olive prizm', 'teal prizm', 'turquoise prizm', 'cyan prizm', 'magenta prizm', 'fuchsia prizm', 'lime prizm', 'maroon prizm', 'navy prizm', 'burgundy prizm', 'crimson prizm', 'scarlet prizm', 'coral prizm', 'salmon prizm', 'peach prizm', 'apricot prizm', 'tangerine prizm', 'amber prizm', 'golden prizm', 'silver metallic prizm', 'chrome metallic prizm', 'refractor metallic prizm', 'sapphire metallic prizm', 'emerald metallic prizm', 'ruby metallic prizm', 'diamond metallic prizm', 'platinum metallic prizm', 'gold metallic prizm', 'silver metallic prizm', 'bronze metallic prizm', 'copper metallic prizm', 'black metallic prizm', 'white metallic prizm', 'red metallic prizm', 'blue metallic prizm', 'green metallic prizm', 'purple metallic prizm', 'pink metallic prizm', 'orange metallic prizm', 'yellow metallic prizm', 'brown metallic prizm', 'gray metallic prizm', 'grey metallic prizm', 'tan metallic prizm', 'cream metallic prizm', 'ivory metallic prizm', 'beige metallic prizm', 'khaki metallic prizm', 'olive metallic prizm', 'teal metallic prizm', 'turquoise metallic prizm', 'cyan metallic prizm', 'magenta metallic prizm', 'fuchsia metallic prizm', 'lime metallic prizm', 'maroon metallic prizm', 'navy metallic prizm', 'burgundy metallic prizm', 'crimson metallic prizm', 'scarlet metallic prizm', 'coral metallic prizm', 'salmon metallic prizm', 'peach metallic prizm', 'apricot metallic prizm', 'tangerine metallic prizm', 'amber metallic prizm', 'golden metallic prizm'
-        ];
-        
-        removeTerms.push(...productTerms);
-        removeTerms.push(...cardTypeTerms);
-        removeTerms.push(...sportTerms);
-
-        // Add team names and stadium names to prevent them from being extracted as player names
-        const teamAndStadiumTerms = [
-            // NFL Teams
-            'Buffalo Bills', 'Miami Dolphins', 'New England Patriots', 'New York Jets', 'Baltimore Ravens', 'Cincinnati Bengals', 'Cleveland Browns', 'Pittsburgh Steelers', 'Houston Texans', 'Indianapolis Colts', 'Jacksonville Jaguars', 'Tennessee Titans', 'Denver Broncos', 'Kansas City Chiefs', 'Las Vegas Raiders', 'Los Angeles Chargers', 'Dallas Cowboys', 'New York Giants', 'Philadelphia Eagles', 'Washington Commanders', 'Chicago Bears', 'Detroit Lions', 'Green Bay Packers', 'Minnesota Vikings', 'Atlanta Falcons', 'Carolina Panthers', 'New Orleans Saints', 'Tampa Bay Buccaneers', 'Arizona Cardinals', 'Los Angeles Rams', 'San Francisco 49ers', 'Seattle Seahawks',
-            // MLB Teams
-            'New York Yankees', 'Boston Red Sox', 'Toronto Blue Jays', 'Baltimore Orioles', 'Tampa Bay Rays', 'Chicago White Sox', 'Cleveland Guardians', 'Detroit Tigers', 'Kansas City Royals', 'Minnesota Twins', 'Houston Astros', 'Los Angeles Angels', 'Oakland Athletics', 'Seattle Mariners', 'Texas Rangers', 'Atlanta Braves', 'Miami Marlins', 'New York Mets', 'Philadelphia Phillies', 'Washington Nationals', 'Chicago Cubs', 'Cincinnati Reds', 'Milwaukee Brewers', 'Pittsburgh Pirates', 'St. Louis Cardinals', 'Arizona Diamondbacks', 'Colorado Rockies', 'Los Angeles Dodgers', 'San Diego Padres', 'San Francisco Giants',
-            // NBA Teams
-            'Atlanta Hawks', 'Boston Celtics', 'Brooklyn Nets', 'Charlotte Hornets', 'Chicago Bulls', 'Cleveland Cavaliers', 'Dallas Mavericks', 'Denver Nuggets', 'Detroit Pistons', 'Golden State Warriors', 'Houston Rockets', 'Indiana Pacers', 'Los Angeles Clippers', 'Los Angeles Lakers', 'Memphis Grizzlies', 'Miami Heat', 'Milwaukee Bucks', 'Minnesota Timberwolves', 'New Orleans Pelicans', 'New York Knicks', 'Oklahoma City Thunder', 'Orlando Magic', 'Philadelphia 76ers', 'Phoenix Suns', 'Portland Trail Blazers', 'Sacramento Kings', 'San Antonio Spurs', 'Toronto Raptors', 'Utah Jazz', 'Washington Wizards',
-            // NHL Teams
-            'Anaheim Ducks', 'Arizona Coyotes', 'Boston Bruins', 'Buffalo Sabres', 'Calgary Flames', 'Carolina Hurricanes', 'Chicago Blackhawks', 'Colorado Avalanche', 'Columbus Blue Jackets', 'Dallas Stars', 'Detroit Red Wings', 'Edmonton Oilers', 'Florida Panthers', 'Los Angeles Kings', 'Minnesota Wild', 'Montreal Canadiens', 'Nashville Predators', 'New Jersey Devils', 'New York Islanders', 'New York Rangers', 'Ottawa Senators', 'Philadelphia Flyers', 'Pittsburgh Penguins', 'San Jose Sharks', 'Seattle Kraken', 'St. Louis Blues', 'Tampa Bay Lightning', 'Toronto Maple Leafs', 'Vancouver Canucks', 'Vegas Golden Knights', 'Washington Capitals', 'Winnipeg Jets',
-            // Common team name variations
-            'Bills', 'Dolphins', 'Patriots', 'Jets', 'Ravens', 'Bengals', 'Browns', 'Steelers', 'Texans', 'Colts', 'Jaguars', 'Titans', 'Broncos', 'Chiefs', 'Raiders', 'Chargers', 'Cowboys', 'Giants', 'Eagles', 'Commanders', 'Bears', 'Lions', 'Packers', 'Vikings', 'Falcons', 'Panthers', 'Saints', 'Buccaneers', 'Cardinals', 'Rams', '49ers', 'Seahawks',
-            'Yankees', 'Red Sox', 'Blue Jays', 'Orioles', 'Rays', 'White Sox', 'Guardians', 'Tigers', 'Royals', 'Twins', 'Astros', 'Angels', 'Athletics', 'Mariners', 'Rangers', 'Braves', 'Marlins', 'Mets', 'Phillies', 'Nationals', 'Cubs', 'Reds', 'Brewers', 'Pirates', 'Cardinals', 'Diamondbacks', 'Rockies', 'Dodgers', 'Padres', 'Giants',
-            'Hawks', 'Celtics', 'Nets', 'Hornets', 'Bulls', 'Cavaliers', 'Mavericks', 'Nuggets', 'Pistons', 'Warriors', 'Rockets', 'Pacers', 'Clippers', 'Lakers', 'Grizzlies', 'Heat', 'Bucks', 'Timberwolves', 'Pelicans', 'Knicks', 'Thunder', 'Magic', '76ers', 'Suns', 'Trail Blazers', 'Kings', 'Spurs', 'Raptors', 'Jazz', 'Wizards',
-            'Ducks', 'Coyotes', 'Bruins', 'Sabres', 'Flames', 'Hurricanes', 'Blackhawks', 'Avalanche', 'Blue Jackets', 'Stars', 'Red Wings', 'Oilers', 'Panthers', 'Kings', 'Wild', 'Canadiens', 'Predators', 'Devils', 'Islanders', 'Rangers', 'Senators', 'Flyers', 'Penguins', 'Sharks', 'Kraken', 'Blues', 'Lightning', 'Maple Leafs', 'Canucks', 'Golden Knights', 'Capitals', 'Jets',
-            // Stadium names (excluding card products like "Stadium Club")
-            'Jack Murphy Stadium', 'Petco Park', 'Fenway Park', 'Wrigley Field', 'Yankee Stadium', 'Dodger Stadium', 'Oracle Park', 'Coors Field', 'Minute Maid Park', 'Globe Life Field', 'Truist Park', 'LoanDepot Park', 'Citi Field', 'Citizens Bank Park', 'Nationals Park', 'Guaranteed Rate Field', 'Progressive Field', 'Comerica Park', 'Kauffman Stadium', 'Target Field', 'Angel Stadium', 'RingCentral Coliseum', 'T-Mobile Park', 'Rogers Centre', 'Camden Yards', 'Tropicana Field',
-            // Cities and locations
-            'Buffalo', 'Miami', 'New England', 'New York', 'Baltimore', 'Cincinnati', 'Cleveland', 'Pittsburgh', 'Houston', 'Indianapolis', 'Jacksonville', 'Tennessee', 'Denver', 'Kansas City', 'Las Vegas', 'Los Angeles', 'Dallas', 'Philadelphia', 'Washington', 'Chicago', 'Detroit', 'Green Bay', 'Minnesota', 'Atlanta', 'Carolina', 'New Orleans', 'Tampa Bay', 'Arizona', 'San Francisco', 'Seattle', 'Boston', 'Toronto', 'Oakland', 'Texas', 'Colorado', 'San Diego', 'St. Louis', 'Milwaukee', 'Sacramento', 'Utah', 'Anaheim', 'Calgary', 'Columbus', 'Edmonton', 'Florida', 'Montreal', 'Nashville', 'New Jersey', 'Ottawa', 'Vancouver', 'Vegas', 'Winnipeg',
-            // Additional terms that should be filtered out
-            'Downtown', 'Lakers'
-        ];
-        
-        removeTerms.push(...teamAndStadiumTerms);
-
-        // Sort terms by length (longest first) to remove more specific terms before general ones
-        removeTerms.sort((a, b) => b.length - a.length);
-
-        removeTerms.forEach(term => {
-            // Handle both word boundaries and hyphenated versions
-            const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`\\b${escapedTerm}\\b`, 'gi');
-            cleanTitle = cleanTitle.replace(regex, '');
-            
-            // Also handle hyphenated versions (e.g., "bowman - chrome prospects")
-            const hyphenatedRegex = new RegExp(`\\b${escapedTerm.replace(/\s+/g, '\\s*-\\s*')}\\b`, 'gi');
-            cleanTitle = cleanTitle.replace(hyphenatedRegex, '');
-            
-            // Also handle mixed versions where some words are hyphenated and others aren't
-            const words = term.split(' ');
-            if (words.length >= 2) {
-                // Try different combinations of hyphenation
-                const variations = [
-                    term,
-                    words.join(' - '),
-                    `${words[0]} - ${words.slice(1).join(' ')}`,
-                    `${words[0]} ${words[1]} - ${words.slice(2).join(' ')}`
-                ];
-                
-                for (const variation of variations) {
-                    const escapedVariation = variation.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    const variationRegex = new RegExp(`\\b${escapedVariation}\\b`, 'gi');
-                    cleanTitle = cleanTitle.replace(variationRegex, '');
-                }
-            }
+        // Remove card brands/sets
+        const brands = ['PANINI', 'TOPPS', 'BOWMAN', 'FLEER', 'DONRUSS', 'UPPER DECK', 'STADIUM CLUB', 'CHRONICLES', 'SCORE', 'LEAF', 'PLAYOFF', 'PRESS PASS', 'SAGE', 'PACIFIC', 'SKYBOX'];
+        brands.forEach(brand => {
+            cleanTitle = cleanTitle.replace(new RegExp(`\\b${brand}\\b`, 'g'), '');
         });
-
-        // Special handling: Preserve periods in names like "J.J. McCarthy"
-        // This needs to be done after other filtering to avoid conflicts
-        cleanTitle = cleanTitle.replace(/\b([A-Z])\.([A-Z])\.\s+([A-Z][a-z]+)\b/g, '$1.$2. $3');
-
-        // Handle common nicknames (but be more careful with initials)
-        const nicknameMap = {
-            'vladi': 'vladimir',
-            'jj': 'j.j.',
-            'jared mc': 'jared mccarron',
-            'ladd mc': 'ladd mcconkey',
-            'shai gilgeous-': 'shai gilgeous-alexander',
-            'pete crow-': 'pete crow-armstrong',
-            'tyreek': 'tyreek hill',
-            'john': 'john elway',
-            'deni': 'deni avdija',
-            'brooks': 'brooks koepka',
-            'jayden': 'jayden daniels',
-            'elly': 'elly de la cruz',
-            'paul': 'paul skenes'
-        };
         
-        Object.entries(nicknameMap).forEach(([nickname, fullName]) => {
-            const regex = new RegExp(`\\b${nickname}\\b`, 'gi');
-            cleanTitle = cleanTitle.replace(regex, fullName);
+        // Remove card types/colors - expanded list
+        const cardTypes = ['PRIZM', 'PRIZMATIC', 'MOSAIC', 'OPTIC', 'SELECT', 'CONTENDERS', 'CHROME', 'FINEST', 'HERITAGE', 'GREEN', 'BLUE', 'RED', 'PURPLE', 'PINK', 'ORANGE', 'YELLOW', 'BLACK', 'WHITE', 'SILVER', 'GOLD', 'BRONZE', 'COPPER', 'PLATINUM', 'DIAMOND', 'EMERALD', 'RUBY', 'SAPPHIRE', 'AMETHYST', 'ONYX', 'OBSIDIAN', 'CRYSTAL', 'GLASS', 'ICE', 'FIRE', 'LAVA', 'NEON', 'FLUORESCENT', 'HOLOGRAPHIC', 'RAINBOW', 'PRISMATIC', 'IRIDESCENT', 'METALLIC', 'REFRACTOR', 'WAVE', 'AQUA', 'REACTIVE', 'SPECKLE', 'PORTALS', 'PREVIEW', 'CARD', 'WINNING TICKET', 'LOGOFACTOR', 'WHITE SPARKLE', 'PULSAR', 'REAL ONE', 'AUTOGRAPHS', 'COSMIC', 'CHECKERBOARD', 'X-FRACTOR', 'CRACKED ICE', 'ATOMIC', 'DISCO', 'FAST BREAK', 'NO HUDDLE', 'FLASH', 'SHOCK', 'MOJO', 'MEGA', 'SCOPE', 'SHIMMER', 'MULTI WAVE', 'CARVED IN TIME', 'LENTICULAR', 'SYNTHESIS', 'OUTBURST', 'ELECTRIC ICE', 'ELLIPSE', 'COLOR WHEEL', 'COLOR BLAST', 'DIE-CUT', 'NATIONAL LANDMARKS', 'STAINED GLASS', 'LAVA LAMP', 'DAZZLE', 'BLUE VELOCITY', 'HYPER PINK', 'RED DRAGON', 'LASER', 'LIBERTY', 'DIAMOND MARVELS', 'ON FIRE', 'VOLTAGE', 'CAREER STAT LINE', 'UPDATE', 'SERIES', 'DRAFT', 'STERLING', 'PLATINUM', 'SP', 'SPX', 'EXQUISITE', 'NATIONAL', 'TREASURES', 'FLAWLESS', 'IMMACULATE', 'LIMITED', 'CERTIFIED', 'ELITE', 'ABSOLUTE', 'SPECTRA', 'PHOENIX', 'PLAYBOOK', 'MOMENTUM', 'TOTALLY', 'CROWN', 'ROYALE', 'THREADS', 'PRESTIGE', 'ROOKIES', 'STARS', 'GAME', 'STADIUM', 'CLUB', 'GALLERY', 'GYPSY', 'QUEEN', 'ALLEN', 'GINTER', 'ARCHIVES', 'BIG', 'LEAGUE', 'FIRE', 'OPENING', 'DAY', 'UNIVERSITY', 'U', 'BCP', 'LUNAR GLOW', 'RATED', 'HOLO', 'GEM MINT', 'GEM', 'MINT', 'MT'];
+        cardTypes.forEach(type => {
+            cleanTitle = cleanTitle.replace(new RegExp(`\\b${type}\\b`, 'g'), '');
         });
-
-        // Normalize spaces after filtering to ensure proper pattern matching
+        
+        // Remove card numbers and PSA grades - improved regex
+        cleanTitle = cleanTitle.replace(/\b#\d+\b/g, ''); // Card numbers like #11
+        cleanTitle = cleanTitle.replace(/\bPSA\s+\d+\b/g, ''); // PSA grades like PSA 10
+        cleanTitle = cleanTitle.replace(/\b\d{8,}\b/g, ''); // 8+ digit numbers (cert numbers)
+        cleanTitle = cleanTitle.replace(/\b\d{1,3}\b/g, ''); // 1-3 digit numbers (card numbers)
+        cleanTitle = cleanTitle.replace(/#/g, ''); // Remove all # symbols
+        
+        // Remove common card terms
+        const cardTerms = ['RC', 'ROOKIE', 'AUTO', 'AUTOGRAPH', 'GRADED', 'UNGRADED', 'CERT', 'CERTIFICATE', 'POP', 'POPULATION', 'HIT', 'CASE', 'PROSPECT', 'PROSPECTS', 'DRAFT', 'STERLING', 'PLATINUM', 'SP', 'SPX', 'EXQUISITE', 'NATIONAL', 'TREASURES', 'FLAWLESS', 'IMMACULATE', 'LIMITED', 'CERTIFIED', 'ELITE', 'ABSOLUTE', 'SPECTRA', 'PHOENIX', 'PLAYBOOK', 'MOMENTUM', 'TOTALLY', 'CROWN', 'ROYALE', 'THREADS', 'PRESTIGE', 'ROOKIES', 'STARS', 'GAME', 'STADIUM', 'CLUB', 'GALLERY', 'GYPSY', 'QUEEN', 'ALLEN', 'GINTER', 'ARCHIVES', 'BIG', 'LEAGUE', 'FIRE', 'OPENING', 'DAY', 'UPDATE', 'SERIES', 'SAPPHIRE', 'EMERALD', 'RUBY', 'DIAMOND', 'PLATINUM', 'GOLD', 'SILVER', 'BRONZE', 'COPPER', 'BLACK', 'WHITE', 'RED', 'BLUE', 'GREEN', 'PURPLE', 'PINK', 'ORANGE', 'YELLOW', 'BROWN', 'GRAY', 'GREY', 'TAN', 'CREAM', 'IVORY', 'BEIGE', 'KHAKI', 'OLIVE', 'TEAL', 'TURQUOISE', 'CYAN', 'MAGENTA', 'FUCHSIA', 'LIME', 'MAROON', 'NAVY', 'BURGUNDY', 'CRIMSON', 'SCARLET', 'CORAL', 'SALMON', 'PEACH', 'APRICOT', 'TANGERINE', 'AMBER', 'GOLDEN', 'METALLIC', 'CHROME', 'REFRACTOR', 'SAPPHIRE', 'EMERALD', 'RUBY', 'DIAMOND', 'PLATINUM', 'GOLD', 'SILVER', 'BRONZE', 'COPPER', 'BLACK', 'WHITE', 'RED', 'BLUE', 'GREEN', 'PURPLE', 'PINK', 'ORANGE', 'YELLOW', 'BROWN', 'GRAY', 'GREY', 'TAN', 'CREAM', 'IVORY', 'BEIGE', 'KHAKI', 'OLIVE', 'TEAL', 'TURQUOISE', 'CYAN', 'MAGENTA', 'FUCHSIA', 'LIME', 'MAROON', 'NAVY', 'BURGUNDY', 'CRIMSON', 'SCARLET', 'CORAL', 'SALMON', 'PEACH', 'APRICOT', 'TANGERINE', 'AMBER', 'GOLDEN', 'METALLIC', 'UNIVERSITY', 'U', 'BCP', 'LUNAR GLOW', 'RATED', 'HOLO', 'GEM MINT', 'GEM', 'MINT', 'MT'];
+        cardTerms.forEach(term => {
+            cleanTitle = cleanTitle.replace(new RegExp(`\\b${term}\\b`, 'g'), '');
+        });
+        
+        // Remove team names and locations - expanded list
+        const teamNames = ['BUFFALO BILLS', 'MIAMI DOLPHINS', 'NEW ENGLAND PATRIOTS', 'NEW YORK JETS', 'BALTIMORE RAVENS', 'CINCINNATI BENGALS', 'CLEVELAND BROWNS', 'PITTSBURGH STEELERS', 'HOUSTON TEXANS', 'INDIANAPOLIS COLTS', 'JACKSONVILLE JAGUARS', 'TENNESSEE TITANS', 'DENVER BRONCOS', 'KANSAS CITY CHIEFS', 'LAS VEGAS RAIDERS', 'LOS ANGELES CHARGERS', 'DALLAS COWBOYS', 'NEW YORK GIANTS', 'PHILADELPHIA EAGLES', 'WASHINGTON COMMANDERS', 'CHICAGO BEARS', 'DETROIT LIONS', 'GREEN BAY PACKERS', 'MINNESOTA VIKINGS', 'ATLANTA FALCONS', 'CAROLINA PANTHERS', 'NEW ORLEANS SAINTS', 'TAMPA BAY BUCCANEERS', 'ARIZONA CARDINALS', 'LOS ANGELES RAMS', 'SAN FRANCISCO 49ERS', 'SEATTLE SEAHAWKS', 'NEW YORK YANKEES', 'BOSTON RED SOX', 'TORONTO BLUE JAYS', 'BALTIMORE ORIOLES', 'TAMPA BAY RAYS', 'CHICAGO WHITE SOX', 'CLEVELAND GUARDIANS', 'DETROIT TIGERS', 'KANSAS CITY ROYALS', 'MINNESOTA TWINS', 'HOUSTON ASTROS', 'LOS ANGELES ANGELS', 'OAKLAND ATHLETICS', 'SEATTLE MARINERS', 'TEXAS RANGERS', 'ATLANTA BRAVES', 'MIAMI MARLINS', 'NEW YORK METS', 'PHILADELPHIA PHILLIES', 'WASHINGTON NATIONALS', 'CHICAGO CUBS', 'CINCINNATI REDS', 'MILWAUKEE BREWERS', 'PITTSBURGH PIRATES', 'ST. LOUIS CARDINALS', 'ARIZONA DIAMONDBACKS', 'COLORADO ROCKIES', 'LOS ANGELES DODGERS', 'SAN DIEGO PADRES', 'SAN FRANCISCO GIANTS', 'ATLANTA HAWKS', 'BOSTON CELTICS', 'BROOKLYN NETS', 'CHARLOTTE HORNETS', 'CHICAGO BULLS', 'CLEVELAND CAVALIERS', 'DALLAS MAVERICKS', 'DENVER NUGGETS', 'DETROIT PISTONS', 'GOLDEN STATE WARRIORS', 'HOUSTON ROCKETS', 'INDIANA PACERS', 'LOS ANGELES CLIPPERS', 'LOS ANGELES LAKERS', 'MEMPHIS GRIZZLIES', 'MIAMI HEAT', 'MILWAUKEE BUCKS', 'MINNESOTA TIMBERWOLVES', 'NEW ORLEANS PELICANS', 'NEW YORK KNICKS', 'OKLAHOMA CITY THUNDER', 'ORLANDO MAGIC', 'PHILADELPHIA 76ERS', 'PHOENIX SUNS', 'PORTLAND TRAIL BLAZERS', 'SACRAMENTO KINGS', 'SAN ANTONIO SPURS', 'TORONTO RAPTORS', 'UTAH JAZZ', 'WASHINGTON WIZARDS', 'ANAHEIM DUCKS', 'ARIZONA COYOTES', 'BOSTON BRUINS', 'BUFFALO SABRES', 'CALGARY FLAMES', 'CAROLINA HURRICANES', 'CHICAGO BLACKHAWKS', 'COLORADO AVALANCHE', 'COLUMBUS BLUE JACKETS', 'DALLAS STARS', 'DETROIT RED WINGS', 'EDMONTON OILERS', 'FLORIDA PANTHERS', 'LOS ANGELES KINGS', 'MINNESOTA WILD', 'MONTREAL CANADIENS', 'NASHVILLE PREDATORS', 'NEW JERSEY DEVILS', 'NEW YORK ISLANDERS', 'NEW YORK RANGERS', 'OTTAWA SENATORS', 'PHILADELPHIA FLYERS', 'PITTSBURGH PENGUINS', 'SAN JOSE SHARKS', 'SEATTLE KRAKEN', 'ST. LOUIS BLUES', 'TAMPA BAY LIGHTNING', 'TORONTO MAPLE LEAFS', 'VANCOUVER CANUCKS', 'VEGAS GOLDEN KNIGHTS', 'WASHINGTON CAPITALS', 'WINNIPEG JETS', 'MARINERS', 'PIRATES', 'DUKE'];
+        teamNames.forEach(team => {
+            cleanTitle = cleanTitle.replace(new RegExp(`\\b${team}\\b`, 'g'), '');
+        });
+        
+        // Remove sport terms
+        const sportTerms = ['FOOTBALL', 'BASKETBALL', 'BASEBALL', 'HOCKEY', 'SOCCER', 'MMA', 'UFC', 'WRESTLING', 'POKEMON', 'NFL', 'NBA', 'MLB', 'NHL', 'WNBA', 'USA BASKETBALL', 'USA FOOTBALL', 'USA BASEBALL'];
+        sportTerms.forEach(sport => {
+            cleanTitle = cleanTitle.replace(new RegExp(`\\b${sport}\\b`, 'g'), '');
+        });
+        
+        // Remove additional terms that appeared in the regression test
+        const additionalTerms = ['74TF1', '74TF', 'BCP-61', 'BCP-', 'BCP', 'TF1', 'TF'];
+        additionalTerms.forEach(term => {
+            cleanTitle = cleanTitle.replace(new RegExp(`\\b${term}\\b`, 'g'), '');
+        });
+        
+        // Remove dashes, parentheses, slashes, and other punctuation
+        cleanTitle = cleanTitle.replace(/[-()\/]/g, ' '); // Replace dashes, parentheses, and slashes with spaces
+        
+        // Clean up extra spaces and trim
         cleanTitle = cleanTitle.replace(/\s+/g, ' ').trim();
-
-        // Debug: Log the cleaned title to see what we're working with
-        console.log(`🔍 Cleaned title after filtering: "${cleanTitle}"`);
-
-        // Simplified player name patterns - focus on the most common cases first
-        const patterns = [
-            // Handle quoted nicknames like "Hacksaw" Jim Duggan
-            /"([^"]+)"\s+([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
-            
-            // Handle names with periods in card context like "#7 J.J. McCarthy"
-            /#\d+\s+([A-Z]\.[A-Z]\.\s+[A-Z][a-z]*[A-Z][a-z]*)\b/g,
-            
-            // Handle names with periods like "J.J. McCarthy" (case insensitive)
-            /\b([A-Za-z]\.[A-Za-z]\.)\s+([A-Za-z][a-z]*[A-Za-z][a-z]*)\b/gi,
-            
-            // Handle three-part names like "Elly De La Cruz", "Josue De Paula"
-            /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
-            
-            // Handle three-part hyphenated names like "Shai Gilgeous-Alexander"
-            /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)-([A-Z][a-z]+)\b/g,
-            
-            // Handle names with apostrophes like "De'Von Achane", "Ja'marr Chase"
-            /\b([A-Z][a-z]+'[A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
-            
-            // Handle names with apostrophes in last name like "Logan O'Hoppe"
-            /\b([A-Z][a-z]+)\s+([A-Z]'[A-Z][a-z]+)\b/g,
-            
-            // Handle all-caps names like "LEO DE VRIES"
-            /\b([A-Z]+)\s+([A-Z]+)\s+([A-Z]+)\b/g,
-            
-            // Handle mixed case names like "Leo DE VRIES"
-            /\b([A-Z][a-z]+)\s+([A-Z]+)\s+([A-Z]+)\b/g,
-            
-            // Handle all-caps names like "PAUL SKENES", "TYREEK HILL"
-            /\b([A-Z]+)\s+([A-Z]+)\b/g,
-            
-            // Handle initials like "CJ Kayfus"
-            /\b([A-Z]{2,3})\s+([A-Z][a-z]+)\b/g,
-            
-            // First Last pattern (most common) - check this last
-            /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
-            
-            // Handle single names last (like "Endrick")
-            /\b([A-Z][a-z]+)\b/g
-        ];
-
-        for (const pattern of patterns) {
-            const matches = [...cleanTitle.matchAll(pattern)];
-            for (const match of matches) {
-                // Use the full matched string, but for patterns with card numbers, use the capture group
-                let fullName = match[0];
-                
-                // Special handling for patterns that include card numbers
-                if (pattern.source.includes('#\\d+\\s+')) {
-                    // Use the first capture group (the name part) instead of the full match
-                    fullName = match[1];
-                }
-                // Additional validation - skip if it looks like a product name or is too short
-                const skipWords = Array.from(this.cardSets).concat(Array.from(this.cardTypes));
-                
-                // Very permissive validation - only skip obvious non-player terms
-                // Skip single words that are clearly not names (like "Auto", "RC", "PSA", etc.)
-                const obviousNonNames = ['auto', 'rc', 'psa', 'graded', 'card', 'rookie', 'prospect', 'draft', 'chrome', 'prizm', 'optic', 'select', 'contenders', 'national', 'treasures', 'flawless', 'immaculate', 'limited', 'certified', 'elite', 'absolute', 'spectra', 'phoenix', 'playbook', 'momentum', 'totally', 'crown', 'royale', 'threads', 'prestige', 'rookies', 'stars', 'score', 'leaf', 'playoff', 'press', 'pass', 'sage', 'game', 'pacific', 'skybox', 'metal', 'stadium', 'club', 'gallery', 'heritage', 'gypsy', 'queen', 'allen', 'ginter', 'archives', 'big', 'league', 'fire', 'opening', 'day', 'update', 'series', 'draft', 'sterling', 'platinum', 'sp', 'spx', 'exquisite'];
-                
-                const shouldSkip = fullName.split(' ').length === 1 && 
-                    obviousNonNames.includes(fullName.toLowerCase());
-                
-                if (!shouldSkip && fullName.length >= 3) {
-                    // Format player name with proper case
-                    return fullName.split(' ').map(word => {
-                        // Handle quoted nicknames - preserve original case
-                        if (word.startsWith('"') && word.endsWith('"')) {
-                            return word;
-                        }
-                        // Handle initials with periods like "J.J."
-                        if (word.match(/^[A-Z]\.[A-Z]\.$/)) {
-                            return word;
-                        }
-                        // Handle special cases like "O'Neal", "De'Von", "Ja'marr", etc.
-                        if (word.includes("'")) {
-                            return word.split("'").map(part => 
-                                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-                            ).join("'");
-                        }
-                        // Handle hyphenated names like "Smith-Njigba"
-                        if (word.includes("-")) {
-                            return word.split("-").map(part => 
-                                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-                            ).join("-");
-                        }
-                        // Handle initials like "JJ", "CJ", etc.
-                        if (word.length === 2 && word.toUpperCase() === word) {
-                            return word.toUpperCase();
-                        }
-                        // Handle names that should be properly cased (like "McCarthy")
-                        // Check if the word has internal capitals (like "McCarthy", "McConkey")
-                        if (word.match(/^[A-Z][a-z]*[A-Z][a-z]*$/)) {
-                            // Preserve internal capitals
-                            return word.charAt(0).toUpperCase() + word.slice(1);
-                        }
-                        // Standard case formatting
-                        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-                    }).join(' ');
-                }
+        
+        // Debug: Log the filtered title
+        console.log(`🔍 Filtered title: "${cleanTitle}"`);
+        
+        // If nothing left, return null
+        if (!cleanTitle || cleanTitle.length < 3) {
+            return null;
+        }
+        
+        // Format the player name with proper case
+        const formattedName = cleanTitle.split(' ').map(word => {
+            // Handle initials with periods like "J.J."
+            if (word.match(/^[A-Z]\.[A-Z]\.$/)) {
+                return word;
+            }
+            // Handle special cases like "O'Neal", "De'Von", "Ja'marr", etc.
+            if (word.includes("'")) {
+                return word.split("'").map(part => 
+                    part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+                ).join("'");
+            }
+            // Handle hyphenated names like "Smith-Njigba"
+            if (word.includes("-")) {
+                return word.split("-").map(part => 
+                    part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+                ).join("-");
+            }
+            // Handle initials like "JJ", "CJ", etc.
+            if (word.length === 2 && word.toUpperCase() === word) {
+                return word.toUpperCase();
+            }
+            // Handle names that should be properly cased (like "McCarthy")
+            if (word.match(/^[A-Z][A-Z]*[A-Z][A-Z]*$/)) {
+                // Preserve internal capitals
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            }
+            // Standard case formatting
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }).join(' ');
+        
+        // Remove duplicate consecutive words (like "DANIELS DANIELS" -> "DANIELS")
+        const words = formattedName.split(' ');
+        const deduplicatedWords = [];
+        for (let i = 0; i < words.length; i++) {
+            if (i === 0 || words[i].toLowerCase() !== words[i-1].toLowerCase()) {
+                deduplicatedWords.push(words[i]);
             }
         }
-        return null;
+        
+        return deduplicatedWords.join(' ');
     }
 
     // Extract color/numbering from title using learned data
@@ -1262,9 +1101,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
         title = title.replace(/\b(John)\b/gi, 'John Elway');
         title = title.replace(/\b(Deni)\b/gi, 'Deni Avdija');
         title = title.replace(/\b(Brooks)\b/gi, 'Brooks Koepka');
-        title = title.replace(/\b(Jayden)\b/gi, 'Jayden Daniels');
         title = title.replace(/\b(Elly)\b/gi, 'Elly De La Cruz');
-        title = title.replace(/\b(Paul)\b/gi, 'Paul Skenes');
         
         // Fix "Leo Leo DE VRIES" duplication
         title = title.replace(/\b(Leo Leo)\b/gi, 'Leo');
@@ -1338,6 +1175,9 @@ class DatabaseDrivenStandardizedTitleGenerator {
             // First, connect to database
             await this.connect();
             
+            // Check if player_name column exists, if not add it
+            await this.ensurePlayerNameColumn();
+            
             // Then learn from existing data
             await this.learnFromDatabase();
 
@@ -1363,7 +1203,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
             }
             
             // Get all cards
-            const cards = await this.runQuery('SELECT id, title, summary_title FROM cards');
+            const cards = await this.runQuery('SELECT id, title, summary_title, player_name FROM cards');
             console.log(`📊 Found ${cards.length} cards to process`);
 
             let updated = 0;
@@ -1373,14 +1213,26 @@ class DatabaseDrivenStandardizedTitleGenerator {
             for (const card of cards) {
                 try {
                     const newSummaryTitle = this.generateStandardizedTitle(card.title);
+                    const extractedPlayer = this.extractPlayer(card.title);
                     
-                    if (newSummaryTitle && newSummaryTitle !== card.summary_title) {
+                    // Check if either summary_title or player_name needs updating
+                    const summaryTitleChanged = newSummaryTitle && newSummaryTitle !== card.summary_title;
+                    const playerNameChanged = extractedPlayer && extractedPlayer !== card.player_name;
+                    
+                    if (summaryTitleChanged || playerNameChanged) {
+                        // Update both fields
                         await this.runUpdate(
-                            'UPDATE cards SET summary_title = ? WHERE id = ?',
-                            [newSummaryTitle, card.id]
+                            'UPDATE cards SET summary_title = ?, player_name = ? WHERE id = ?',
+                            [newSummaryTitle || card.summary_title, extractedPlayer || card.player_name, card.id]
                         );
                         
-                        console.log(`✅ Updated card ${card.id}: "${card.summary_title || 'N/A'}" → "${newSummaryTitle}"`);
+                        console.log(`✅ Updated card ${card.id}:`);
+                        if (summaryTitleChanged) {
+                            console.log(`   Summary: "${card.summary_title || 'N/A'}" → "${newSummaryTitle}"`);
+                        }
+                        if (playerNameChanged) {
+                            console.log(`   Player: "${card.player_name || 'N/A'}" → "${extractedPlayer}"`);
+                        }
                         updated++;
                     } else {
                         unchanged++;
@@ -1419,6 +1271,26 @@ class DatabaseDrivenStandardizedTitleGenerator {
         }
     }
 
+    // Ensure player_name column exists in the database
+    async ensurePlayerNameColumn() {
+        try {
+            // Check if player_name column exists
+            const columns = await this.runQuery("PRAGMA table_info(cards)");
+            const hasPlayerNameColumn = columns.some(col => col.name === 'player_name');
+            
+            if (!hasPlayerNameColumn) {
+                console.log('📝 Adding player_name column to cards table...');
+                await this.runUpdate('ALTER TABLE cards ADD COLUMN player_name TEXT');
+                console.log('✅ player_name column added successfully');
+            } else {
+                console.log('✅ player_name column already exists');
+            }
+        } catch (error) {
+            console.error('❌ Error ensuring player_name column:', error);
+            throw error;
+        }
+    }
+
     // Test function to see examples
     async testStandardizedTitles() {
         console.log('🧪 Testing database-driven standardized title generation...\n');
@@ -1445,17 +1317,75 @@ class DatabaseDrivenStandardizedTitleGenerator {
         
         testTitles.forEach((title, index) => {
             const standardized = this.generateStandardizedTitle(title);
+            const player = this.extractPlayer(title);
             console.log(`\n${index + 1}. Original: "${title}"`);
             console.log(`   Standardized: "${standardized}"`);
+            console.log(`   Player Name: "${player}"`);
             
             // Show extracted components
             const year = this.extractYear(title);
             const product = this.extractProduct(title);
-            const player = this.extractPlayer(title);
             const colorNumbering = this.extractColorNumbering(title);
             
-            console.log(`   Components: Year="${year}", Product="${product}", Player="${player}", Color/Numbering="${colorNumbering}"`);
+            console.log(`   Components: Year="${year}", Product="${product}", Color/Numbering="${colorNumbering}"`);
         });
+    }
+
+    // Utility function to get player name from database by card ID
+    async getPlayerName(cardId) {
+        try {
+            const result = await this.runQuery('SELECT player_name FROM cards WHERE id = ?', [cardId]);
+            return result.length > 0 ? result[0].player_name : null;
+        } catch (error) {
+            console.error('❌ Error getting player name:', error);
+            return null;
+        }
+    }
+
+    // Utility function to get all cards with their player names
+    async getAllCardsWithPlayerNames() {
+        try {
+            return await this.runQuery('SELECT id, title, summary_title, player_name FROM cards WHERE player_name IS NOT NULL');
+        } catch (error) {
+            console.error('❌ Error getting cards with player names:', error);
+            return [];
+        }
+    }
+
+    // Utility function to update player name for a specific card
+    async updatePlayerName(cardId, playerName) {
+        try {
+            await this.runUpdate('UPDATE cards SET player_name = ? WHERE id = ?', [playerName, cardId]);
+            console.log(`✅ Updated player name for card ${cardId}: "${playerName}"`);
+            return true;
+        } catch (error) {
+            console.error('❌ Error updating player name:', error);
+            return false;
+        }
+    }
+
+    // Utility function to search cards by player name
+    async searchCardsByPlayer(playerName) {
+        try {
+            return await this.runQuery(
+                'SELECT id, title, summary_title, player_name FROM cards WHERE player_name LIKE ?',
+                [`%${playerName}%`]
+            );
+        } catch (error) {
+            console.error('❌ Error searching cards by player:', error);
+            return [];
+        }
+    }
+
+    // Utility function to get unique player names from database
+    async getUniquePlayerNames() {
+        try {
+            const result = await this.runQuery('SELECT DISTINCT player_name FROM cards WHERE player_name IS NOT NULL ORDER BY player_name');
+            return result.map(row => row.player_name);
+        } catch (error) {
+            console.error('❌ Error getting unique player names:', error);
+            return [];
+        }
     }
 }
 

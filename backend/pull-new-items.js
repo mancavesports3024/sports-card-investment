@@ -5,7 +5,7 @@ const { searchSoldItems } = require('./services/ebayService');
 
 class NewItemsPuller {
     constructor() {
-        this.dbPath = path.join(__dirname, 'data', 'scorecard.db');
+        this.dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
         this.db = null;
     }
 

@@ -1,28 +1,23 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios');
 const sqlite3 = require('sqlite3').verbose();
+const { search130point } = require('./services/130pointService');
 
 // Configuration
 const DATABASE_DIR = path.join(__dirname, 'data');
-const SQLITE_DATABASE_FILE = path.join(DATABASE_DIR, 'scorecard.db');
+const DATABASE_FILE = path.join(DATABASE_DIR, 'new-scorecard.db');
 const GOOD_BUYS_FILE = path.join(DATABASE_DIR, 'improved_api_good_buy_opportunities.json');
 const CACHE_FILE = path.join(DATABASE_DIR, 'improved_api_good_buy_cache.json');
 
-// API Configuration
-const API_BASE_URL = 'https://web-production-9efa.up.railway.app';
-const SEARCH_ENDPOINT = '/api/search-cards';
-
 // Target multiplier for good buy opportunities
 const TARGET_MULTIPLIER = 2.3;
-const MIN_RAW_PRICE = 10;
-const MIN_PSA10_PRICE = 25;
+const MIN_RAW_PRICE = 10; // Minimum raw card price to consider
+const MIN_PSA10_PRICE = 25; // Minimum PSA 10 price to consider
 
-class ImprovedApiGoodBuyFinder {
+class ImprovedAPIGoodBuyFinder {
   constructor() {
     this.goodBuys = [];
-    this.cache = this.loadCache();
     this.db = null;
     this.stats = {
       totalProcessed: 0,
@@ -33,12 +28,11 @@ class ImprovedApiGoodBuyFinder {
     };
   }
 
-  // Connect to SQLite database
-  async connectToDatabase() {
+  async connect() {
     return new Promise((resolve, reject) => {
-      this.db = new sqlite3.Database(SQLITE_DATABASE_FILE, (err) => {
+      this.db = new sqlite3.Database(DATABASE_FILE, (err) => {
         if (err) {
-          console.error('❌ Error connecting to SQLite database:', err);
+          console.error('❌ Database connection failed:', err.message);
           reject(err);
         } else {
           console.log('✅ Connected to SQLite database');
@@ -48,46 +42,27 @@ class ImprovedApiGoodBuyFinder {
     });
   }
 
-  // Load cards with any price data from SQLite database  
-  async loadPSA10Cards(limit = null) {
+  async close() {
+    if (this.db) {
+      this.db.close();
+    }
+  }
+
+  // Get cards from SQLite database
+  async getCardsFromDatabase() {
     return new Promise((resolve, reject) => {
-      const query = limit ? 
-        'SELECT id, title, summaryTitle, sport, rawAveragePrice, psa9AveragePrice, psa10Price FROM cards WHERE rawAveragePrice IS NOT NULL OR psa9AveragePrice IS NOT NULL OR psa10Price IS NOT NULL LIMIT ?' :
-        'SELECT id, title, summaryTitle, sport, rawAveragePrice, psa9AveragePrice, psa10Price FROM cards WHERE rawAveragePrice IS NOT NULL OR psa9AveragePrice IS NOT NULL OR psa10Price IS NOT NULL';
+      const query = `
+        SELECT id, title, summary_title, sport, psa10_price, raw_average_price, psa9_average_price, multiplier
+        FROM cards 
+        WHERE psa10_price IS NOT NULL AND psa10_price > 0
+        ORDER BY psa10_price DESC
+      `;
       
-      const params = limit ? [limit] : [];
-      
-      this.db.all(query, params, (err, rows) => {
+      this.db.all(query, [], (err, rows) => {
         if (err) {
-          console.error('❌ Error loading cards from database:', err);
           reject(err);
         } else {
-          // Convert to the format expected by the existing code
-          const cards = rows.map(row => {
-            // Use PSA 10 price if available, otherwise use PSA 9, otherwise use a target of 10x raw price
-            let targetPrice = row.psa10Price;
-            if (!targetPrice && row.psa9AveragePrice) {
-              targetPrice = row.psa9AveragePrice * 1.5; // Estimate PSA 10 as 1.5x PSA 9
-            } else if (!targetPrice && row.rawAveragePrice) {
-              targetPrice = row.rawAveragePrice * 8; // Estimate PSA 10 as 8x raw
-            }
-            
-            return {
-              id: row.id,
-              title: row.title,
-              summaryTitle: row.summaryTitle,
-              sport: row.sport,
-              rawAveragePrice: row.rawAveragePrice,
-              psa9AveragePrice: row.psa9AveragePrice,
-              psa10Price: row.psa10Price,
-              price: {
-                value: targetPrice || 100, // Default to $100 if no price data
-                currency: 'USD'
-              }
-            };
-          });
-          console.log(`📊 Loaded ${cards.length} cards with pricing data from SQLite database`);
-          resolve(cards);
+          resolve(rows || []);
         }
       });
     });
@@ -274,27 +249,19 @@ class ImprovedApiGoodBuyFinder {
         console.log(`🔍 Testing: "${strategy.query}" (${strategy.name})`);
         
         // Call your API
-        const response = await axios.post(`${API_BASE_URL}${SEARCH_ENDPOINT}`, {
-          searchQuery: strategy.query,
-          numSales: 100
-        }, {
-          timeout: 30000,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
+        const response = await search130point(strategy.query);
 
         this.stats.apiCalls++;
         
-        if (response.data && response.data.results) {
-          const results = response.data.results;
+        if (response && response.results) {
+          const results = response.results;
           
           // Cache the results
           this.cache[cacheKey] = {
             raw: results.raw || [],
             psa9: results.psa9 || [],
             psa10: results.psa10 || [],
-            priceAnalysis: response.data.priceAnalysis || null,
+            priceAnalysis: response.priceAnalysis || null,
             timestamp: Date.now()
           };
           
@@ -305,7 +272,7 @@ class ImprovedApiGoodBuyFinder {
               raw: results.raw,
               psa9: results.psa9 || [],
               psa10: results.psa10 || [],
-              priceAnalysis: response.data.priceAnalysis || null,
+              priceAnalysis: response.priceAnalysis || null,
               strategy: strategy.name
             };
           }
@@ -484,7 +451,7 @@ class ImprovedApiGoodBuyFinder {
 
   // Process a single card
   async processCard(psa10Card) {
-    const databasePsa10Price = parseFloat(psa10Card.price?.value || 0);
+    const databasePsa10Price = parseFloat(psa10Card.psa10_price || 0);
     
     // Skip if PSA 10 price is too low
     if (databasePsa10Price < MIN_PSA10_PRICE) {
@@ -555,7 +522,7 @@ class ImprovedApiGoodBuyFinder {
         validatedMatches: validatedRaw.length,
         psa9CardsFound: validatedPSA9.length,
         originalTitle: cardInfo.originalTitle, // Keep original for reference
-        databasePsa10Price, // Keep original database price for reference
+        databasePsa10Price: databasePsa10Price, // Keep original database price for reference
         apiPsa10AvgPrice: null, // We're not using API's priceAnalysis anymore
         timestamp: new Date().toISOString()
       };
@@ -723,12 +690,12 @@ class ImprovedApiGoodBuyFinder {
 async function main() {
   try {
     // Create finder and connect to database
-    const finder = new ImprovedApiGoodBuyFinder();
-    await finder.connectToDatabase();
+    const finder = new ImprovedAPIGoodBuyFinder();
+    await finder.connect();
     
     // Load cards with pricing data from SQLite database
     console.log('📂 Loading cards with pricing data from SQLite database...');
-    const cards = await finder.loadPSA10Cards(100); // Process 100 cards for comprehensive analysis
+    const cards = await finder.getCardsFromDatabase(); // Process all cards from database
     
     if (cards.length === 0) {
       console.log('❌ No cards found in database');
@@ -740,7 +707,7 @@ async function main() {
     
     // Close database connection
     if (finder.db) {
-      finder.db.close();
+      finder.close();
     }
     
   } catch (error) {
@@ -753,4 +720,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = ImprovedApiGoodBuyFinder;
+module.exports = ImprovedAPIGoodBuyFinder;
