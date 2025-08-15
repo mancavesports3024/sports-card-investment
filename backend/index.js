@@ -3083,23 +3083,23 @@ app.post('/api/admin/fix-specific-player-names', async (req, res) => {
         // Define the specific fixes
         const fixes = [
             {
-                id: 309,
+                id: 103,
                 correctPlayerName: "Triston Casas"
             },
             {
-                id: 407,
+                id: 141,
                 correctPlayerName: "Bryce Harper"
             },
             {
-                id: 169,
+                id: 307,
                 correctPlayerName: "Francisco Lindor"
             },
             {
-                id: 31,
+                id: 122,
                 correctPlayerName: "Xavier Worthy"
             },
             {
-                id: 231,
+                id: 287,
                 correctPlayerName: "Shai Gilgeous-Alexander"
             }
         ];
