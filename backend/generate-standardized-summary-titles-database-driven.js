@@ -3,19 +3,20 @@ const path = require('path');
 
 class DatabaseDrivenStandardizedTitleGenerator {
     constructor() {
-        // Try to use comprehensive database if available, fallback to new-scorecard.db
-        const comprehensiveDbPath = path.join(__dirname, 'data', 'comprehensive-card-database.db');
+        // Always use new-scorecard.db for card updates, but learn from comprehensive if available
+        this.dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
+        this.comprehensiveDbPath = path.join(__dirname, 'data', 'comprehensive-card-database.db');
+        
         const fs = require('fs');
         
-        if (fs.existsSync(comprehensiveDbPath)) {
-            this.dbPath = comprehensiveDbPath;
-            console.log('📚 Using comprehensive card database for learning');
+        if (fs.existsSync(this.comprehensiveDbPath)) {
+            console.log('📚 Will learn from comprehensive card database');
         } else {
-            this.dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
-            console.log('📚 Using new-scorecard database (comprehensive not available)');
+            console.log('📚 Comprehensive database not available, will learn from new-scorecard database');
         }
         
         this.db = null;
+        this.comprehensiveDb = null;
         this.cardSets = new Set();
         this.cardTypes = new Set();
         this.players = new Set();
@@ -65,11 +66,9 @@ class DatabaseDrivenStandardizedTitleGenerator {
         console.log('🧠 Learning from existing database data...\n');
 
         try {
-            // Check if we're using comprehensive database (has 'sets' table) or new-scorecard (has 'cards' table)
-            const tableCheck = await this.runQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='sets'");
-            const isComprehensiveDb = tableCheck.length > 0;
-            
-            if (isComprehensiveDb) {
+            // First try to learn from comprehensive database if available
+            const fs = require('fs');
+            if (fs.existsSync(this.comprehensiveDbPath)) {
                 console.log('📚 Learning from comprehensive database (sets table)...');
                 await this.learnFromComprehensiveDatabase();
             } else {
@@ -83,13 +82,21 @@ class DatabaseDrivenStandardizedTitleGenerator {
 
     async learnFromComprehensiveDatabase() {
         try {
+            // Connect to comprehensive database for learning
+            const comprehensiveDb = new sqlite3.Database(this.comprehensiveDbPath);
+            
             // Extract card sets from comprehensive database
-            const cardSetsQuery = await this.runQuery(`
-                SELECT DISTINCT name, brand, setName 
-                FROM sets 
-                WHERE name IS NOT NULL AND name != ''
-                ORDER BY name
-            `);
+            const cardSetsQuery = await new Promise((resolve, reject) => {
+                comprehensiveDb.all(`
+                    SELECT DISTINCT name, brand, setName 
+                    FROM sets 
+                    WHERE name IS NOT NULL AND name != ''
+                    ORDER BY name
+                `, (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows);
+                });
+            });
             
             console.log(`📚 Learned ${cardSetsQuery.length} card sets from comprehensive database`);
             
@@ -101,12 +108,17 @@ class DatabaseDrivenStandardizedTitleGenerator {
             });
             
             // Extract brands
-            const brandsQuery = await this.runQuery(`
-                SELECT DISTINCT brand 
-                FROM sets 
-                WHERE brand IS NOT NULL AND brand != '' AND brand != 'Unknown'
-                ORDER BY brand
-            `);
+            const brandsQuery = await new Promise((resolve, reject) => {
+                comprehensiveDb.all(`
+                    SELECT DISTINCT brand 
+                    FROM sets 
+                    WHERE brand IS NOT NULL AND brand != '' AND brand != 'Unknown'
+                    ORDER BY brand
+                `, (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows);
+                });
+            });
             
             console.log(`🏷️ Learned ${brandsQuery.length} brands from comprehensive database`);
             
@@ -115,14 +127,22 @@ class DatabaseDrivenStandardizedTitleGenerator {
             });
             
             // Extract years
-            const yearsQuery = await this.runQuery(`
-                SELECT DISTINCT year 
-                FROM sets 
-                WHERE year IS NOT NULL AND year != '' AND year != 'Unknown'
-                ORDER BY year
-            `);
+            const yearsQuery = await new Promise((resolve, reject) => {
+                comprehensiveDb.all(`
+                    SELECT DISTINCT year 
+                    FROM sets 
+                    WHERE year IS NOT NULL AND year != '' AND year != 'Unknown'
+                    ORDER BY year
+                `, (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows);
+                });
+            });
             
             console.log(`📅 Found ${yearsQuery.length} years in comprehensive database`);
+            
+            // Close comprehensive database connection
+            comprehensiveDb.close();
             
         } catch (error) {
             console.error('❌ Error learning from comprehensive database:', error);
@@ -1205,6 +1225,27 @@ class DatabaseDrivenStandardizedTitleGenerator {
             // Then learn from existing data
             await this.learnFromDatabase();
 
+            // Check if we're using comprehensive database (has 'sets' table) or new-scorecard (has 'cards' table)
+            const tableCheck = await this.runQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='cards'");
+            const hasCardsTable = tableCheck.length > 0;
+            
+            if (!hasCardsTable) {
+                console.log('⚠️ No cards table found in database. This appears to be a comprehensive database with only sets table.');
+                console.log('📚 Comprehensive database is used for learning only, not for updating existing cards.');
+                
+                return {
+                    success: true,
+                    totalProcessed: 0,
+                    updated: 0,
+                    unchanged: 0,
+                    errors: 0,
+                    learnedSets: this.cardSets.size,
+                    learnedTypes: this.cardTypes.size,
+                    learnedBrands: this.brands.size,
+                    message: 'Comprehensive database used for learning only'
+                };
+            }
+            
             // Get all cards
             const cards = await this.runQuery('SELECT id, title, summary_title FROM cards');
             console.log(`📊 Found ${cards.length} cards to process`);
