@@ -655,12 +655,13 @@ class DatabaseDrivenStandardizedTitleGenerator {
         // Normalize spaces after filtering to ensure proper pattern matching
         cleanTitle = cleanTitle.replace(/\s+/g, ' ').trim();
 
+        // Debug: Log the cleaned title to see what we're working with
+        console.log(`🔍 Cleaned title after filtering: "${cleanTitle}"`);
+
         // Look for player name patterns
         const patterns = [
             // Handle quoted nicknames like "Hacksaw" Jim Duggan
             /"([^"]+)"\s+([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
-            // Handle names surrounded by hyphens like "- Ja'marr Chase -"
-            /-?\s*([A-Z][a-z]+'?[a-z]*)\s+([A-Z][a-z]+)\s*-?/g,
             // Handle names with periods in card context like "#7 J.J. McCarthy"
             /#\d+\s+([A-Z]\.[A-Z]\.)\s+([A-Z][a-z]*[A-Z][a-z]*)\b/g,
             // Handle names with periods like "J.J. MCCARTHY" or "J.J. McCarthy"
@@ -669,6 +670,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
             /\b([A-Z]\.[A-Z]\.)\s+([A-Z]+)\b/g,
             // Handle names with periods in mixed case like "J.J. McCarthy"
             /\b([A-Z]\.[A-Z]\.)\s+([A-Z][a-z]*[A-Z][a-z]*)\b/g,
+            // Handle names surrounded by hyphens like "- Ja'marr Chase -"
+            /-?\s*([A-Z][a-z]+'?[a-z]*)\s+([A-Z][a-z]+)\s*-?/g,
             // Handle names with apostrophes in first name like "Ja'marr Chase" (with optional hyphens)
             /-?\s*([A-Z][a-z]+'[a-z]+)\s+([A-Z][a-z]+)\s*-?/g,
             // Handle names with apostrophes in last name like "Logan O'Hoppe"
