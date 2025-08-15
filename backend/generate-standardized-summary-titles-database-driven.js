@@ -547,7 +547,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
         });
         
         // Remove card types/colors - expanded list
-        const cardTypes = ['PRIZM', 'PRIZMATIC', 'MOSAIC', 'OPTIC', 'SELECT', 'CONTENDERS', 'CHROME', 'FINEST', 'HERITAGE', 'GREEN', 'BLUE', 'RED', 'PURPLE', 'PINK', 'ORANGE', 'YELLOW', 'BLACK', 'WHITE', 'SILVER', 'GOLD', 'BRONZE', 'COPPER', 'PLATINUM', 'DIAMOND', 'EMERALD', 'RUBY', 'SAPPHIRE', 'AMETHYST', 'ONYX', 'OBSIDIAN', 'CRYSTAL', 'GLASS', 'ICE', 'FIRE', 'LAVA', 'NEON', 'FLUORESCENT', 'HOLOGRAPHIC', 'RAINBOW', 'PRISMATIC', 'IRIDESCENT', 'METALLIC', 'REFRACTOR', 'WAVE', 'AQUA', 'REACTIVE', 'SPECKLE', 'PORTALS', 'PREVIEW', 'CARD', 'WINNING TICKET', 'LOGOFACTOR', 'WHITE SPARKLE', 'PULSAR', 'REAL ONE', 'AUTOGRAPHS', 'COSMIC', 'CHECKERBOARD', 'X-FRACTOR', 'CRACKED ICE', 'ATOMIC', 'DISCO', 'FAST BREAK', 'NO HUDDLE', 'FLASH', 'SHOCK', 'MOJO', 'MEGA', 'SCOPE', 'SHIMMER', 'MULTI WAVE', 'CARVED IN TIME', 'LENTICULAR', 'SYNTHESIS', 'OUTBURST', 'ELECTRIC ICE', 'ELLIPSE', 'COLOR WHEEL', 'COLOR BLAST', 'DIE-CUT', 'NATIONAL LANDMARKS', 'STAINED GLASS', 'LAVA LAMP', 'DAZZLE', 'BLUE VELOCITY', 'HYPER PINK', 'RED DRAGON', 'LASER', 'LIBERTY', 'DIAMOND MARVELS', 'ON FIRE', 'VOLTAGE', 'CAREER STAT LINE', 'UPDATE', 'SERIES', 'DRAFT', 'STERLING', 'PLATINUM', 'SP', 'SPX', 'EXQUISITE', 'NATIONAL', 'TREASURES', 'FLAWLESS', 'IMMACULATE', 'LIMITED', 'CERTIFIED', 'ELITE', 'ABSOLUTE', 'SPECTRA', 'PHOENIX', 'PLAYBOOK', 'MOMENTUM', 'TOTALLY', 'CROWN', 'ROYALE', 'THREADS', 'PRESTIGE', 'ROOKIES', 'STARS', 'GAME', 'STADIUM', 'CLUB', 'GALLERY', 'GYPSY', 'QUEEN', 'ALLEN', 'GINTER', 'ARCHIVES', 'BIG', 'LEAGUE', 'FIRE', 'OPENING', 'DAY', 'UNIVERSITY', 'U', 'BCP', 'LUNAR GLOW', 'RATED', 'HOLO', 'GEM MINT', 'GEM', 'MINT', 'MT', 'FRACTAL', 'FEVER', 'THUNDER', 'CAMO', 'RISING', 'FUTURE', 'ULTRA', 'VIOLET', 'SSP', 'UV', 'SHADOW', 'ETCH', 'SE', '1ST', 'NOTORIETY', 'STAINED', 'DOWNTOWN', 'DUOS', 'SPLASH', 'PRISM', 'SPARKLE', 'NIGHT', 'TIGERS', 'CPACR', 'EW5', 'WT', 'TR', 'INK', 'POP1', 'PFR', 'RPA', 'P.P.', 'AUTHENTIC', 'MANIA', 'REF', 'ALL', 'THE', 'REAL', 'ONE', 'FORMULA', 'LOGOREFRACTOR', 'FLASHBACK', 'WWE', 'BASKETBALL', 'FOOTBALL', 'FORMULA1', 'FORMULA 1', 'GEOMETRIC', 'HONEYCOMB', 'PRIDE', 'KALEIDOSCOPIC', 'LEVEL', 'CLUB', 'COPPER', 'PF6', 'VARIATION', 'SP', 'NO', 'A1', 'FOCUS'];
+        const cardTypes = ['PRIZM', 'PRIZMATIC', 'MOSAIC', 'OPTIC', 'SELECT', 'CONTENDERS', 'CHROME', 'FINEST', 'HERITAGE', 'GREEN', 'BLUE', 'RED', 'PURPLE', 'PINK', 'ORANGE', 'YELLOW', 'BLACK', 'WHITE', 'SILVER', 'GOLD', 'BRONZE', 'COPPER', 'PLATINUM', 'DIAMOND', 'EMERALD', 'RUBY', 'SAPPHIRE', 'AMETHYST', 'ONYX', 'OBSIDIAN', 'CRYSTAL', 'GLASS', 'ICE', 'FIRE', 'LAVA', 'NEON', 'FLUORESCENT', 'HOLOGRAPHIC', 'RAINBOW', 'PRISMATIC', 'IRIDESCENT', 'METALLIC', 'REFRACTOR', 'WAVE', 'AQUA', 'REACTIVE', 'SPECKLE', 'PORTALS', 'PREVIEW', 'CARD', 'WINNING TICKET', 'LOGOFACTOR', 'WHITE SPARKLE', 'PULSAR', 'REAL ONE', 'AUTOGRAPHS', 'COSMIC', 'CHECKERBOARD', 'X-FRACTOR', 'CRACKED ICE', 'ATOMIC', 'DISCO', 'FAST BREAK', 'NO HUDDLE', 'FLASH', 'SHOCK', 'MOJO', 'MEGA', 'SCOPE', 'SHIMMER', 'MULTI WAVE', 'CARVED IN TIME', 'LENTICULAR', 'SYNTHESIS', 'OUTBURST', 'ELECTRIC ICE', 'ELLIPSE', 'COLOR WHEEL', 'COLOR BLAST', 'DIE-CUT', 'NATIONAL LANDMARKS', 'STAINED GLASS', 'LAVA LAMP', 'DAZZLE', 'BLUE VELOCITY', 'HYPER PINK', 'RED DRAGON', 'LASER', 'LIBERTY', 'DIAMOND MARVELS', 'ON FIRE', 'VOLTAGE', 'CAREER STAT LINE', 'UPDATE', 'SERIES', 'DRAFT', 'STERLING', 'PLATINUM', 'SP', 'SPX', 'EXQUISITE', 'NATIONAL', 'TREASURES', 'FLAWLESS', 'IMMACULATE', 'LIMITED', 'CERTIFIED', 'ELITE', 'ABSOLUTE', 'SPECTRA', 'PHOENIX', 'PLAYBOOK', 'MOMENTUM', 'TOTALLY', 'CROWN', 'ROYALE', 'THREADS', 'PRESTIGE', 'ROOKIES', 'STARS', 'GAME', 'STADIUM', 'CLUB', 'GALLERY', 'GYPSY', 'QUEEN', 'ALLEN', 'GINTER', 'ARCHIVES', 'BIG', 'LEAGUE', 'FIRE', 'OPENING', 'DAY', 'UNIVERSITY', 'U', 'BCP', 'LUNAR GLOW', 'RATED', 'HOLO', 'GEM MINT', 'GEM', 'MINT', 'MT', 'FRACTAL', 'FEVER', 'THUNDER', 'CAMO', 'RISING', 'FUTURE', 'ULTRA', 'VIOLET', 'SSP', 'UV', 'SHADOW', 'ETCH', 'SE', '1ST', 'NOTORIETY', 'STAINED', 'DOWNTOWN', 'DUOS', 'SPLASH', 'PRISM', 'SPARKLE', 'NIGHT', 'TIGERS', 'CPACR', 'EW5', 'WT', 'TR', 'INK', 'POP1', 'PFR', 'RPA', 'P.P.', 'AUTHENTIC', 'MANIA', 'REF', 'ALL', 'THE', 'REAL', 'ONE', 'FORMULA', 'LOGOREFRACTOR', 'FLASHBACK', 'WWE', 'BASKETBALL', 'FOOTBALL', 'FORMULA1', 'FORMULA 1', 'GEOMETRIC', 'HONEYCOMB', 'PRIDE', 'KALEIDOSCOPIC', 'LEVEL', 'CLUB', 'COPPER', 'PF6', 'VARIATION', 'SP', 'NO', 'A1', 'FOCUS', 'LIGHT', 'LOGOFRACTOR'];
         cardTypes.forEach(type => {
             cleanTitle = cleanTitle.replace(new RegExp(`\\b${type}\\b`, 'g'), '');
         });
@@ -583,13 +583,18 @@ class DatabaseDrivenStandardizedTitleGenerator {
             cleanTitle = cleanTitle.replace(new RegExp(`\\b${term}\\b`, 'g'), '');
         });
         
-        // Remove specific problematic patterns
-        cleanTitle = cleanTitle.replace(/\b🟦🟨\b/g, ''); // Remove the specific emoji combination
-        cleanTitle = cleanTitle.replace(/\b\[\]\b/g, ''); // Remove empty brackets
-        cleanTitle = cleanTitle.replace(/\b!!\b/g, ''); // Remove double exclamation marks
+        // Remove specific problematic patterns - do this BEFORE emoji filtering
+        cleanTitle = cleanTitle.replace(/🟦🟨/g, ''); // Remove the specific emoji combination
+        cleanTitle = cleanTitle.replace(/\[\]/g, ''); // Remove empty brackets
+        cleanTitle = cleanTitle.replace(/!!/g, ''); // Remove double exclamation marks
+        cleanTitle = cleanTitle.replace(/!/g, ''); // Remove single exclamation marks
         cleanTitle = cleanTitle.replace(/^\.\s*/, ''); // Remove leading periods
         cleanTitle = cleanTitle.replace(/\s*\.$/, ''); // Remove trailing periods
         cleanTitle = cleanTitle.replace(/\s*￼\s*/g, ''); // Remove the specific character
+        cleanTitle = cleanTitle.replace(/P\.P\./g, ''); // Remove P.P.
+        cleanTitle = cleanTitle.replace(/P\.P/g, ''); // Remove P.P (without trailing period)
+        cleanTitle = cleanTitle.replace(/\bUSA\b/g, ''); // Remove USA
+        cleanTitle = cleanTitle.replace(/\bLIGHT\b/g, ''); // Remove LIGHT
         
         // Remove emojis and special characters
         cleanTitle = cleanTitle.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1F018}-\u{1F270}]|[\u{238C}-\u{2454}]|[\u{20D0}-\u{20FF}]|[\u{FE00}-\u{FE0F}]|[\u{1FAB0}-\u{1FABF}]|[\u{1FAD0}-\u{1FAFF}]|[\u{1FA70}-\u{1FAFF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1F9D0}-\u{1F9FF}]|[\u{1F910}-\u{1F93A}]|[\u{1F950}-\u{1F9C0}]|[\u{1F004}]|[\u{1F0CF}]|[\u{1F170}-\u{1F251}]|[\u{2139}]|[\u{2194}-\u{2199}]|[\u{21A9}-\u{21AA}]|[\u{231A}-\u{231B}]|[\u{23E9}-\u{23EC}]|[\u{23F0}]|[\u{23F3}]|[\u{25AA}-\u{25AB}]|[\u{25B6}]|[\u{25C0}]|[\u{25FB}-\u{25FE}]|[\u{2600}-\u{2604}]|[\u{2614}-\u{2615}]|[\u{2648}-\u{2653}]|[\u{26AA}-\u{26AB}]|[\u{26BD}-\u{26BE}]|[\u{26C4}-\u{26C5}]|[\u{26CE}]|[\u{26D4}]|[\u{26EA}]|[\u{26F2}-\u{26F3}]|[\u{26F5}]|[\u{26FA}]|[\u{26FD}]|[\u{2702}]|[\u{2705}]|[\u{2708}-\u{270C}]|[\u{270D}]|[\u{270F}]|[\u{2712}]|[\u{2714}]|[\u{2716}]|[\u{271D}]|[\u{2721}]|[\u{2728}]|[\u{2733}-\u{2734}]|[\u{2744}]|[\u{2747}]|[\u{274C}]|[\u{274E}]|[\u{2753}-\u{2755}]|[\u{2757}]|[\u{2763}-\u{2764}]|[\u{2795}-\u{2797}]|[\u{27A1}]|[\u{27B0}]|[\u{27BF}]|[\u{2934}-\u{2935}]|[\u{2B05}-\u{2B07}]|[\u{2B1B}-\u{2B1C}]|[\u{2B50}]|[\u{2B55}]|[\u{3030}]|[\u{303D}]|[\u{3297}]|[\u{3299}]|[\u{1F004}]|[\u{1F0CF}]|[\u{1F170}-\u{1F251}]|[\u{2139}]|[\u{2194}-\u{2199}]|[\u{21A9}-\u{21AA}]|[\u{231A}-\u{231B}]|[\u{23E9}-\u{23EC}]|[\u{23F0}]|[\u{23F3}]|[\u{25AA}-\u{25AB}]|[\u{25B6}]|[\u{25C0}]|[\u{25FB}-\u{25FE}]|[\u{2600}-\u{2604}]|[\u{2614}-\u{2615}]|[\u{2648}-\u{2653}]|[\u{26AA}-\u{26AB}]|[\u{26BD}-\u{26BE}]|[\u{26C4}-\u{26C5}]|[\u{26CE}]|[\u{26D4}]|[\u{26EA}]|[\u{26F2}-\u{26F3}]|[\u{26F5}]|[\u{26FA}]|[\u{26FD}]|[\u{2702}]|[\u{2705}]|[\u{2708}-\u{270C}]|[\u{270D}]|[\u{270F}]|[\u{2712}]|[\u{2714}]|[\u{2716}]|[\u{271D}]|[\u{2721}]|[\u{2728}]|[\u{2733}-\u{2734}]|[\u{2744}]|[\u{2747}]|[\u{274C}]|[\u{274E}]|[\u{2753}-\u{2755}]|[\u{2757}]|[\u{2763}-\u{2764}]|[\u{2795}-\u{2797}]|[\u{27A1}]|[\u{27B0}]|[\u{27BF}]|[\u{2934}-\u{2935}]|[\u{2B05}-\u{2B07}]|[\u{2B1B}-\u{2B1C}]|[\u{2B50}]|[\u{2B55}]|[\u{3030}]|[\u{303D}]|[\u{3297}]|[\u{3299}]/gu, '');
@@ -603,9 +608,9 @@ class DatabaseDrivenStandardizedTitleGenerator {
         // Debug: Log the filtered title
         console.log(`🔍 Filtered title: "${cleanTitle}"`);
         
-        // If nothing left, return null
+        // If nothing left, return empty string
         if (!cleanTitle || cleanTitle.length < 3) {
-            return null;
+            return '';
         }
         
         // Format the player name with proper case
@@ -635,7 +640,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
                 // Preserve internal capitals
                 return word.charAt(0).toUpperCase() + word.slice(1);
             }
-            // Standard case formatting
+            // Standard case formatting - convert ALL CAPS to Title Case
             return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
         }).join(' ');
         
@@ -660,32 +665,89 @@ class DatabaseDrivenStandardizedTitleGenerator {
         // Fix "SNIDER" -> "Duke Snider"
         result = result.replace(/\bSNIDER\b/gi, 'Duke Snider');
         
-        // Fix "BROCK PURDY DEEBO SAMUEL" -> "Brock Purdy" (take first player only)
-        result = result.replace(/\b(BROCK PURDY)\s+(DEEBO SAMUEL)\b/gi, '$1');
+        // Fix "BROCK PURDY DEEBO SAMUEL" -> "Brock Purdy Deebo Samuel" (dual card - keep both names)
+        result = result.replace(/\b(BROCK PURDY)\s+(DEEBO SAMUEL)\b/gi, 'Brock Purdy Deebo Samuel');
         
-        // Fix "KOBE BRYANT MICHAEL JORDAN" -> "Kobe Bryant" (take first player only)
-        result = result.replace(/\b(KOBE BRYANT)\s+(MICHAEL JORDAN)\b/gi, '$1');
+        // Fix "KOBE BRYANT MICHAEL JORDAN" -> "Kobe Bryant Michael Jordan" (dual card - keep both names)
+        result = result.replace(/\b(KOBE BRYANT)\s+(MICHAEL JORDAN)\b/gi, 'Kobe Bryant Michael Jordan');
         
         // Fix "JOHN PAXSON !!" -> "John Paxson"
-        result = result.replace(/\b(JOHN PAXSON)\s+!!\b/gi, '$1');
+        result = result.replace(/\b(JOHN PAXSON)\s+!!\b/gi, 'John Paxson');
         
         // Fix "DRAKE MAYE !" -> "Drake Maye"
-        result = result.replace(/\b(DRAKE MAYE)\s+!\b/gi, '$1');
+        result = result.replace(/\b(DRAKE MAYE)\s+!\b/gi, 'Drake Maye');
         
         // Fix "JAHMYR GIBBS []" -> "Jahmyr Gibbs"
-        result = result.replace(/\b(JAHMYR GIBBS)\s+\[\]\b/gi, '$1');
+        result = result.replace(/\b(JAHMYR GIBBS)\s+\[\]\b/gi, 'Jahmyr Gibbs');
         
         // Fix "CHRISTIAN WATSON P.P." -> "Christian Watson"
-        result = result.replace(/\b(CHRISTIAN WATSON)\s+P\.P\.\b/gi, '$1');
+        result = result.replace(/\b(CHRISTIAN WATSON)\s+P\.P\.\b/gi, 'Christian Watson');
         
         // Fix "LOGOFRACTOR LEWIS HAMILTON" -> "Lewis Hamilton"
-        result = result.replace(/\bLOGOFRACTOR\s+(LEWIS HAMILTON)\b/gi, '$1');
+        result = result.replace(/\bLOGOFRACTOR\s+(LEWIS HAMILTON)\b/gi, 'Lewis Hamilton');
         
         // Fix "KOBE BRYANT USA" -> "Kobe Bryant"
-        result = result.replace(/\b(KOBE BRYANT)\s+USA\b/gi, '$1');
+        result = result.replace(/\b(KOBE BRYANT)\s+USA\b/gi, 'Kobe Bryant');
         
         // Fix "UCC ENDRICK" -> "Endrick"
-        result = result.replace(/\bUCC\s+(ENDRICK)\b/gi, '$1');
+        result = result.replace(/\bUCC\s+(ENDRICK)\b/gi, 'Endrick');
+        
+        // Fix "LOGOFRACTOR LEWIS HAMILTON" -> "Lewis Hamilton"
+        result = result.replace(/\bLOGOFRACTOR\s+(LEWIS HAMILTON)\b/gi, 'Lewis Hamilton');
+        
+        // Fix "BROCK PURDY DEEBO SAMUEL" -> "Brock Purdy Deebo Samuel" (dual card - keep both names)
+        result = result.replace(/\b(BROCK PURDY)\s+(DEEBO SAMUEL)\b/gi, 'Brock Purdy Deebo Samuel');
+        
+        // Fix "KOBE BRYANT MICHAEL JORDAN" -> "Kobe Bryant Michael Jordan" (dual card - keep both names)
+        result = result.replace(/\b(KOBE BRYANT)\s+(MICHAEL JORDAN)\b/gi, 'Kobe Bryant Michael Jordan');
+        
+        // Fix "JOSH ADAMCZEWSKI 🟦🟨" -> "Josh Adamczewski"
+        result = result.replace(/\b(JOSH ADAMCZEWSKI)\s+🟦🟨\b/gi, 'Josh Adamczewski');
+        
+        // Fix "JOHN PAXSON !!" -> "John Paxson"
+        result = result.replace(/\b(JOHN PAXSON)\s+!!\b/gi, 'John Paxson');
+        
+        // Fix "DRAKE MAYE !" -> "Drake Maye"
+        result = result.replace(/\b(DRAKE MAYE)\s+!\b/gi, 'Drake Maye');
+        
+        // Fix "JAHMYR GIBBS []" -> "Jahmyr Gibbs"
+        result = result.replace(/\b(JAHMYR GIBBS)\s+\[\]\b/gi, 'Jahmyr Gibbs');
+        
+        // Fix "CHRISTIAN WATSON P.P." -> "Christian Watson"
+        result = result.replace(/\b(CHRISTIAN WATSON)\s+P\.P\.\b/gi, 'Christian Watson');
+        
+        // Fix "KOBE BRYANT USA" -> "Kobe Bryant"
+        result = result.replace(/\b(KOBE BRYANT)\s+USA\b/gi, 'Kobe Bryant');
+        
+        // Fix "TUA TAGOVAILOA LIGHT" -> "Tua Tagovailoa"
+        result = result.replace(/\b(TUA TAGOVAILOA)\s+LIGHT\b/gi, 'Tua Tagovailoa');
+        
+        // Fix "JOSH ADAMCZEWSKI 🟦🟨" -> "Josh Adamczewski"
+        result = result.replace(/\b(JOSH ADAMCZEWSKI)\s+🟦🟨\b/gi, 'Josh Adamczewski');
+        
+        // Fix "JOHN PAXSON" -> "John Paxson" (case conversion)
+        result = result.replace(/\bJOHN PAXSON\b/gi, 'John Paxson');
+        
+        // Fix "LEWIS HAMILTON" -> "Lewis Hamilton" (case conversion)
+        result = result.replace(/\bLEWIS HAMILTON\b/gi, 'Lewis Hamilton');
+        
+        // Fix "JAHMYR GIBBS" -> "Jahmyr Gibbs" (case conversion)
+        result = result.replace(/\bJAHMYR GIBBS\b/gi, 'Jahmyr Gibbs');
+        
+        // Fix "CHRISTIAN WATSON" -> "Christian Watson" (case conversion)
+        result = result.replace(/\bCHRISTIAN WATSON\b/gi, 'Christian Watson');
+        
+        // Fix "DRAKE MAYE" -> "Drake Maye" (case conversion)
+        result = result.replace(/\bDRAKE MAYE\b/gi, 'Drake Maye');
+        
+        // Fix "TUA TAGOVAILOA" -> "Tua Tagovailoa" (case conversion)
+        result = result.replace(/\bTUA TAGOVAILOA\b/gi, 'Tua Tagovailoa');
+        
+        // Fix "JOSH ADAMCZEWSKI" -> "Josh Adamczewski" (case conversion)
+        result = result.replace(/\bJOSH ADAMCZEWSKI\b/gi, 'Josh Adamczewski');
+        
+        // Fix "ENDRICK" -> "Endrick" (proper case)
+        result = result.replace(/\bENDRICK\b/gi, 'Endrick');
         
         // Remove standalone "!!" or "!" that might remain
         result = result.replace(/\b!!\b/g, '');
