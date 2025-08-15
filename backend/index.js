@@ -2847,6 +2847,42 @@ app.post('/api/admin/add-player-names', async (req, res) => {
     }
 });
 
+// POST /api/admin/clear-player-names - Clear all player names from Railway database
+app.post('/api/admin/clear-player-names', async (req, res) => {
+    try {
+        console.log('🗑️ Clearing all player names from Railway database...');
+        
+        const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standardized-summary-titles-database-driven.js');
+        const generator = new DatabaseDrivenStandardizedTitleGenerator();
+        
+        await generator.connect();
+        await generator.ensurePlayerNameColumn();
+        
+        // Clear all player names
+        const result = await generator.runUpdate(
+            'UPDATE cards SET player_name = NULL'
+        );
+        
+        await generator.close();
+        
+        console.log('✅ All player names cleared successfully');
+        res.json({ 
+            success: true, 
+            message: 'All player names cleared successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Clear player names failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Clear player names failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/update-prices - Run price updates on Railway
 app.post('/api/admin/update-prices', async (req, res) => {
     try {
