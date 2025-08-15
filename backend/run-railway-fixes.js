@@ -43,7 +43,7 @@ async function runRailwayFixes() {
     try {
         // 1. Check Railway database structure
         console.log('🔍 Checking Railway database structure...');
-        const checkResult = await makeRequest('/api/admin/check-railway-database');
+        const checkResult = await makeRequest('/api/admin/check-railway-database', 'POST');
         console.log('Database check result:', checkResult);
 
         // 2. Fix database schema

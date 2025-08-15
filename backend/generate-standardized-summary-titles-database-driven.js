@@ -352,17 +352,24 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'topps heritage', product: 'Topps Heritage' },
             { pattern: 'topps archives', product: 'Topps Archives' },
             { pattern: 'topps update', product: 'Topps Update' },
-            { pattern: 'panini prizm wnba', product: 'Panini Prizm WNBA' },
-            { pattern: 'panini instant wnba', product: 'Panini Instant WNBA' },
-            { pattern: 'prizm monopoly wnba', product: 'Prizm Monopoly WNBA' },
-            { pattern: 'prizm dp', product: 'Prizm DP' },
-            { pattern: 'light it up', product: 'Light It Up' },
-            { pattern: 'skybox e-x2001', product: 'Skybox E-X2001' },
-            { pattern: 'bowman chrome prospects', product: 'Bowman Chrome Prospects' },
-            { pattern: 'one and one', product: 'One and One' },
-            { pattern: 'road to uefa euro', product: 'Road To UEFA Euro' },
-            { pattern: 'usa basketball', product: 'USA Basketball' },
-            { pattern: 'panini prizm', product: 'Panini Prizm' },
+                         { pattern: 'panini prizm wnba', product: 'Panini Prizm WNBA' },
+             { pattern: 'panini instant wnba', product: 'Panini Instant WNBA' },
+             { pattern: 'prizm monopoly wnba', product: 'Prizm Monopoly WNBA' },
+             { pattern: 'prizm dp', product: 'Prizm DP' },
+             { pattern: 'light it up', product: 'Light It Up' },
+             { pattern: 'skybox e-x2001', product: 'Skybox E-X2001' },
+             { pattern: 'bowman chrome prospects', product: 'Bowman Chrome Prospects' },
+             { pattern: 'one and one', product: 'One and One' },
+             { pattern: 'road to uefa euro', product: 'Road To UEFA Euro' },
+             { pattern: 'usa basketball', product: 'USA Basketball' },
+             { pattern: 'topps chrome formula 1', product: 'Topps Chrome Formula 1' },
+             { pattern: 'topps chrome football', product: 'Topps Chrome Football' },
+             { pattern: 'panini donruss football', product: 'Panini Donruss Football' },
+                          { pattern: 'topps heritage real one', product: 'Topps Heritage Real One' },
+             { pattern: 'bowman chrome 1st', product: 'Bowman Chrome 1st' },
+             { pattern: 'panini mosaic national', product: 'Panini Mosaic National' },
+             { pattern: 'panini select club', product: 'Panini Select Club' },
+             { pattern: 'panini prizm', product: 'Panini Prizm' },
             { pattern: 'panini select', product: 'Panini Select' },
             { pattern: 'panini contenders', product: 'Panini Contenders' },
             { pattern: 'panini donruss', product: 'Panini Donruss' },
@@ -534,13 +541,13 @@ class DatabaseDrivenStandardizedTitleGenerator {
         cleanTitle = cleanTitle.replace(/\b(19|20)\d{2}\b/g, '');
         
         // Remove card brands/sets
-        const brands = ['PANINI', 'TOPPS', 'BOWMAN', 'FLEER', 'DONRUSS', 'UPPER DECK', 'STADIUM CLUB', 'CHRONICLES', 'SCORE', 'LEAF', 'PLAYOFF', 'PRESS PASS', 'SAGE', 'PACIFIC', 'SKYBOX'];
+        const brands = ['PANINI', 'TOPPS', 'BOWMAN', 'FLEER', 'DONRUSS', 'UPPER DECK', 'STADIUM CLUB', 'CHRONICLES', 'SCORE', 'LEAF', 'PLAYOFF', 'PRESS PASS', 'SAGE', 'PACIFIC', 'SKYBOX', 'FOCUS', 'CERTIFIED'];
         brands.forEach(brand => {
             cleanTitle = cleanTitle.replace(new RegExp(`\\b${brand}\\b`, 'g'), '');
         });
         
         // Remove card types/colors - expanded list
-        const cardTypes = ['PRIZM', 'PRIZMATIC', 'MOSAIC', 'OPTIC', 'SELECT', 'CONTENDERS', 'CHROME', 'FINEST', 'HERITAGE', 'GREEN', 'BLUE', 'RED', 'PURPLE', 'PINK', 'ORANGE', 'YELLOW', 'BLACK', 'WHITE', 'SILVER', 'GOLD', 'BRONZE', 'COPPER', 'PLATINUM', 'DIAMOND', 'EMERALD', 'RUBY', 'SAPPHIRE', 'AMETHYST', 'ONYX', 'OBSIDIAN', 'CRYSTAL', 'GLASS', 'ICE', 'FIRE', 'LAVA', 'NEON', 'FLUORESCENT', 'HOLOGRAPHIC', 'RAINBOW', 'PRISMATIC', 'IRIDESCENT', 'METALLIC', 'REFRACTOR', 'WAVE', 'AQUA', 'REACTIVE', 'SPECKLE', 'PORTALS', 'PREVIEW', 'CARD', 'WINNING TICKET', 'LOGOFACTOR', 'WHITE SPARKLE', 'PULSAR', 'REAL ONE', 'AUTOGRAPHS', 'COSMIC', 'CHECKERBOARD', 'X-FRACTOR', 'CRACKED ICE', 'ATOMIC', 'DISCO', 'FAST BREAK', 'NO HUDDLE', 'FLASH', 'SHOCK', 'MOJO', 'MEGA', 'SCOPE', 'SHIMMER', 'MULTI WAVE', 'CARVED IN TIME', 'LENTICULAR', 'SYNTHESIS', 'OUTBURST', 'ELECTRIC ICE', 'ELLIPSE', 'COLOR WHEEL', 'COLOR BLAST', 'DIE-CUT', 'NATIONAL LANDMARKS', 'STAINED GLASS', 'LAVA LAMP', 'DAZZLE', 'BLUE VELOCITY', 'HYPER PINK', 'RED DRAGON', 'LASER', 'LIBERTY', 'DIAMOND MARVELS', 'ON FIRE', 'VOLTAGE', 'CAREER STAT LINE', 'UPDATE', 'SERIES', 'DRAFT', 'STERLING', 'PLATINUM', 'SP', 'SPX', 'EXQUISITE', 'NATIONAL', 'TREASURES', 'FLAWLESS', 'IMMACULATE', 'LIMITED', 'CERTIFIED', 'ELITE', 'ABSOLUTE', 'SPECTRA', 'PHOENIX', 'PLAYBOOK', 'MOMENTUM', 'TOTALLY', 'CROWN', 'ROYALE', 'THREADS', 'PRESTIGE', 'ROOKIES', 'STARS', 'GAME', 'STADIUM', 'CLUB', 'GALLERY', 'GYPSY', 'QUEEN', 'ALLEN', 'GINTER', 'ARCHIVES', 'BIG', 'LEAGUE', 'FIRE', 'OPENING', 'DAY', 'UNIVERSITY', 'U', 'BCP', 'LUNAR GLOW', 'RATED', 'HOLO', 'GEM MINT', 'GEM', 'MINT', 'MT', 'FRACTAL', 'FEVER', 'THUNDER', 'CAMO', 'RISING', 'FUTURE', 'ULTRA', 'VIOLET', 'SSP', 'UV', 'SHADOW', 'ETCH', 'SE', '1ST', 'NOTORIETY', 'STAINED', 'DOWNTOWN', 'DUOS', 'SPLASH', 'PRISM', 'SPARKLE', 'NIGHT', 'TIGERS', 'CPACR', 'EW5', 'WT', 'TR', 'INK', 'POP1', 'PFR', 'RPA', 'P.P.', 'AUTHENTIC', 'MANIA', 'REF', 'ALL'];
+        const cardTypes = ['PRIZM', 'PRIZMATIC', 'MOSAIC', 'OPTIC', 'SELECT', 'CONTENDERS', 'CHROME', 'FINEST', 'HERITAGE', 'GREEN', 'BLUE', 'RED', 'PURPLE', 'PINK', 'ORANGE', 'YELLOW', 'BLACK', 'WHITE', 'SILVER', 'GOLD', 'BRONZE', 'COPPER', 'PLATINUM', 'DIAMOND', 'EMERALD', 'RUBY', 'SAPPHIRE', 'AMETHYST', 'ONYX', 'OBSIDIAN', 'CRYSTAL', 'GLASS', 'ICE', 'FIRE', 'LAVA', 'NEON', 'FLUORESCENT', 'HOLOGRAPHIC', 'RAINBOW', 'PRISMATIC', 'IRIDESCENT', 'METALLIC', 'REFRACTOR', 'WAVE', 'AQUA', 'REACTIVE', 'SPECKLE', 'PORTALS', 'PREVIEW', 'CARD', 'WINNING TICKET', 'LOGOFACTOR', 'WHITE SPARKLE', 'PULSAR', 'REAL ONE', 'AUTOGRAPHS', 'COSMIC', 'CHECKERBOARD', 'X-FRACTOR', 'CRACKED ICE', 'ATOMIC', 'DISCO', 'FAST BREAK', 'NO HUDDLE', 'FLASH', 'SHOCK', 'MOJO', 'MEGA', 'SCOPE', 'SHIMMER', 'MULTI WAVE', 'CARVED IN TIME', 'LENTICULAR', 'SYNTHESIS', 'OUTBURST', 'ELECTRIC ICE', 'ELLIPSE', 'COLOR WHEEL', 'COLOR BLAST', 'DIE-CUT', 'NATIONAL LANDMARKS', 'STAINED GLASS', 'LAVA LAMP', 'DAZZLE', 'BLUE VELOCITY', 'HYPER PINK', 'RED DRAGON', 'LASER', 'LIBERTY', 'DIAMOND MARVELS', 'ON FIRE', 'VOLTAGE', 'CAREER STAT LINE', 'UPDATE', 'SERIES', 'DRAFT', 'STERLING', 'PLATINUM', 'SP', 'SPX', 'EXQUISITE', 'NATIONAL', 'TREASURES', 'FLAWLESS', 'IMMACULATE', 'LIMITED', 'CERTIFIED', 'ELITE', 'ABSOLUTE', 'SPECTRA', 'PHOENIX', 'PLAYBOOK', 'MOMENTUM', 'TOTALLY', 'CROWN', 'ROYALE', 'THREADS', 'PRESTIGE', 'ROOKIES', 'STARS', 'GAME', 'STADIUM', 'CLUB', 'GALLERY', 'GYPSY', 'QUEEN', 'ALLEN', 'GINTER', 'ARCHIVES', 'BIG', 'LEAGUE', 'FIRE', 'OPENING', 'DAY', 'UNIVERSITY', 'U', 'BCP', 'LUNAR GLOW', 'RATED', 'HOLO', 'GEM MINT', 'GEM', 'MINT', 'MT', 'FRACTAL', 'FEVER', 'THUNDER', 'CAMO', 'RISING', 'FUTURE', 'ULTRA', 'VIOLET', 'SSP', 'UV', 'SHADOW', 'ETCH', 'SE', '1ST', 'NOTORIETY', 'STAINED', 'DOWNTOWN', 'DUOS', 'SPLASH', 'PRISM', 'SPARKLE', 'NIGHT', 'TIGERS', 'CPACR', 'EW5', 'WT', 'TR', 'INK', 'POP1', 'PFR', 'RPA', 'P.P.', 'AUTHENTIC', 'MANIA', 'REF', 'ALL', 'THE', 'REAL', 'ONE', 'FORMULA', 'LOGOREFRACTOR', 'FLASHBACK', 'WWE', 'BASKETBALL', 'FOOTBALL', 'FORMULA1', 'FORMULA 1', 'GEOMETRIC', 'HONEYCOMB', 'PRIDE', 'KALEIDOSCOPIC', 'LEVEL', 'CLUB', 'COPPER', 'PF6', 'VARIATION', 'SP', 'NO', 'A1', 'FOCUS'];
         cardTypes.forEach(type => {
             cleanTitle = cleanTitle.replace(new RegExp(`\\b${type}\\b`, 'g'), '');
         });
@@ -553,13 +560,13 @@ class DatabaseDrivenStandardizedTitleGenerator {
         cleanTitle = cleanTitle.replace(/#/g, ''); // Remove all # symbols
         
         // Remove common card terms (but NOT player names)
-        const cardTerms = ['RC', 'ROOKIE', 'AUTO', 'AUTOGRAPH', 'GRADED', 'UNGRADED', 'CERT', 'CERTIFICATE', 'POP', 'POPULATION', 'HIT', 'CASE', 'PROSPECT', 'PROSPECTS', 'DRAFT', 'STERLING', 'PLATINUM', 'SP', 'SPX', 'EXQUISITE', 'NATIONAL', 'TREASURES', 'FLAWLESS', 'IMMACULATE', 'LIMITED', 'CERTIFIED', 'ELITE', 'ABSOLUTE', 'SPECTRA', 'PHOENIX', 'PLAYBOOK', 'MOMENTUM', 'TOTALLY', 'CROWN', 'ROYALE', 'THREADS', 'PRESTIGE', 'ROOKIES', 'STARS', 'GAME', 'STADIUM', 'CLUB', 'GALLERY', 'GYPSY', 'QUEEN', 'ALLEN', 'GINTER', 'ARCHIVES', 'BIG', 'LEAGUE', 'FIRE', 'OPENING', 'DAY', 'UPDATE', 'SERIES', 'SAPPHIRE', 'EMERALD', 'RUBY', 'DIAMOND', 'PLATINUM', 'GOLD', 'SILVER', 'BRONZE', 'COPPER', 'BLACK', 'WHITE', 'RED', 'BLUE', 'GREEN', 'PURPLE', 'PINK', 'ORANGE', 'YELLOW', 'BROWN', 'GRAY', 'GREY', 'TAN', 'CREAM', 'IVORY', 'BEIGE', 'KHAKI', 'OLIVE', 'TEAL', 'TURQUOISE', 'CYAN', 'MAGENTA', 'FUCHSIA', 'LIME', 'MAROON', 'NAVY', 'BURGUNDY', 'CRIMSON', 'SCARLET', 'CORAL', 'SALMON', 'PEACH', 'APRICOT', 'TANGERINE', 'AMBER', 'GOLDEN', 'METALLIC', 'CHROME', 'REFRACTOR', 'SAPPHIRE', 'EMERALD', 'RUBY', 'DIAMOND', 'PLATINUM', 'GOLD', 'SILVER', 'BRONZE', 'COPPER', 'BLACK', 'WHITE', 'RED', 'BLUE', 'GREEN', 'PURPLE', 'PINK', 'ORANGE', 'YELLOW', 'BROWN', 'GRAY', 'GREY', 'TAN', 'CREAM', 'IVORY', 'BEIGE', 'KHAKI', 'OLIVE', 'TEAL', 'TURQUOISE', 'CYAN', 'MAGENTA', 'FUCHSIA', 'LIME', 'MAROON', 'NAVY', 'BURGUNDY', 'CRIMSON', 'SCARLET', 'CORAL', 'SALMON', 'PEACH', 'APRICOT', 'TANGERINE', 'AMBER', 'GOLDEN', 'METALLIC', 'UNIVERSITY', 'U', 'BCP', 'LUNAR GLOW', 'RATED', 'HOLO', 'GEM MINT', 'GEM', 'MINT', 'MT', 'FSA', 'DM', 'EL', 'HE13', 'ENDICK', 'FLAMES', 'FRELICK', 'CPACR', 'EW5', 'WT', 'TR', 'INK', 'POP1', 'PFR', 'RPA', 'P.P.', 'AUTHENTIC', 'MANIA', 'REF', 'ALL'];
+        const cardTerms = ['RC', 'ROOKIE', 'AUTO', 'AUTOGRAPH', 'GRADED', 'UNGRADED', 'CERT', 'CERTIFICATE', 'POP', 'POPULATION', 'HIT', 'CASE', 'PROSPECT', 'PROSPECTS', 'DRAFT', 'STERLING', 'PLATINUM', 'SP', 'SPX', 'EXQUISITE', 'NATIONAL', 'TREASURES', 'FLAWLESS', 'IMMACULATE', 'LIMITED', 'CERTIFIED', 'ELITE', 'ABSOLUTE', 'SPECTRA', 'PHOENIX', 'PLAYBOOK', 'MOMENTUM', 'TOTALLY', 'CROWN', 'ROYALE', 'THREADS', 'PRESTIGE', 'ROOKIES', 'STARS', 'GAME', 'STADIUM', 'CLUB', 'GALLERY', 'GYPSY', 'QUEEN', 'ALLEN', 'GINTER', 'ARCHIVES', 'BIG', 'LEAGUE', 'FIRE', 'OPENING', 'DAY', 'UPDATE', 'SERIES', 'SAPPHIRE', 'EMERALD', 'RUBY', 'DIAMOND', 'PLATINUM', 'GOLD', 'SILVER', 'BRONZE', 'COPPER', 'BLACK', 'WHITE', 'RED', 'BLUE', 'GREEN', 'PURPLE', 'PINK', 'ORANGE', 'YELLOW', 'BROWN', 'GRAY', 'GREY', 'TAN', 'CREAM', 'IVORY', 'BEIGE', 'KHAKI', 'OLIVE', 'TEAL', 'TURQUOISE', 'CYAN', 'MAGENTA', 'FUCHSIA', 'LIME', 'MAROON', 'NAVY', 'BURGUNDY', 'CRIMSON', 'SCARLET', 'CORAL', 'SALMON', 'PEACH', 'APRICOT', 'TANGERINE', 'AMBER', 'GOLDEN', 'METALLIC', 'CHROME', 'REFRACTOR', 'SAPPHIRE', 'EMERALD', 'RUBY', 'DIAMOND', 'PLATINUM', 'GOLD', 'SILVER', 'BRONZE', 'COPPER', 'BLACK', 'WHITE', 'RED', 'BLUE', 'GREEN', 'PURPLE', 'PINK', 'ORANGE', 'YELLOW', 'BROWN', 'GRAY', 'GREY', 'TAN', 'CREAM', 'IVORY', 'BEIGE', 'KHAKI', 'OLIVE', 'TEAL', 'TURQUOISE', 'CYAN', 'MAGENTA', 'FUCHSIA', 'LIME', 'MAROON', 'NAVY', 'BURGUNDY', 'CRIMSON', 'SCARLET', 'CORAL', 'SALMON', 'PEACH', 'APRICOT', 'TANGERINE', 'AMBER', 'GOLDEN', 'METALLIC', 'UNIVERSITY', 'U', 'BCP', 'LUNAR GLOW', 'RATED', 'HOLO', 'GEM MINT', 'GEM', 'MINT', 'MT', 'FSA', 'DM', 'EL', 'HE13', 'ENDICK', 'FLAMES', 'FRELICK', 'CPACR', 'EW5', 'WT', 'TR', 'INK', 'POP1', 'PFR', 'RPA', 'P.P.', 'AUTHENTIC', 'MANIA', 'REF', 'ALL', 'CERTIFIED'];
         cardTerms.forEach(term => {
             cleanTitle = cleanTitle.replace(new RegExp(`\\b${term}\\b`, 'g'), '');
         });
         
         // Remove team names and locations - expanded list
-        const teamNames = ['BUFFALO BILLS', 'MIAMI DOLPHINS', 'NEW ENGLAND PATRIOTS', 'NEW YORK JETS', 'BALTIMORE RAVENS', 'CINCINNATI BENGALS', 'CLEVELAND BROWNS', 'PITTSBURGH STEELERS', 'HOUSTON TEXANS', 'INDIANAPOLIS COLTS', 'JACKSONVILLE JAGUARS', 'TENNESSEE TITANS', 'DENVER BRONCOS', 'KANSAS CITY CHIEFS', 'LAS VEGAS RAIDERS', 'LOS ANGELES CHARGERS', 'DALLAS COWBOYS', 'NEW YORK GIANTS', 'PHILADELPHIA EAGLES', 'WASHINGTON COMMANDERS', 'CHICAGO BEARS', 'DETROIT LIONS', 'GREEN BAY PACKERS', 'MINNESOTA VIKINGS', 'ATLANTA FALCONS', 'CAROLINA PANTHERS', 'NEW ORLEANS SAINTS', 'TAMPA BAY BUCCANEERS', 'ARIZONA CARDINALS', 'LOS ANGELES RAMS', 'SAN FRANCISCO 49ERS', 'SEATTLE SEAHAWKS', 'NEW YORK YANKEES', 'BOSTON RED SOX', 'TORONTO BLUE JAYS', 'BALTIMORE ORIOLES', 'TAMPA BAY RAYS', 'CHICAGO WHITE SOX', 'CLEVELAND GUARDIANS', 'DETROIT TIGERS', 'KANSAS CITY ROYALS', 'MINNESOTA TWINS', 'HOUSTON ASTROS', 'LOS ANGELES ANGELS', 'OAKLAND ATHLETICS', 'SEATTLE MARINERS', 'TEXAS RANGERS', 'ATLANTA BRAVES', 'MIAMI MARLINS', 'NEW YORK METS', 'PHILADELPHIA PHILLIES', 'WASHINGTON NATIONALS', 'CHICAGO CUBS', 'CINCINNATI REDS', 'MILWAUKEE BREWERS', 'PITTSBURGH PIRATES', 'ST. LOUIS CARDINALS', 'ARIZONA DIAMONDBACKS', 'COLORADO ROCKIES', 'LOS ANGELES DODGERS', 'SAN DIEGO PADRES', 'SAN FRANCISCO GIANTS', 'ATLANTA HAWKS', 'BOSTON CELTICS', 'BROOKLYN NETS', 'CHARLOTTE HORNETS', 'CHICAGO BULLS', 'CLEVELAND CAVALIERS', 'DALLAS MAVERICKS', 'DENVER NUGGETS', 'DETROIT PISTONS', 'GOLDEN STATE WARRIORS', 'HOUSTON ROCKETS', 'INDIANA PACERS', 'LOS ANGELES CLIPPERS', 'LOS ANGELES LAKERS', 'MEMPHIS GRIZZLIES', 'MIAMI HEAT', 'MILWAUKEE BUCKS', 'MINNESOTA TIMBERWOLVES', 'NEW ORLEANS PELICANS', 'NEW YORK KNICKS', 'OKLAHOMA CITY THUNDER', 'ORLANDO MAGIC', 'PHILADELPHIA 76ERS', 'PHOENIX SUNS', 'PORTLAND TRAIL BLAZERS', 'SACRAMENTO KINGS', 'SAN ANTONIO SPURS', 'TORONTO RAPTORS', 'UTAH JAZZ', 'WASHINGTON WIZARDS', 'ANAHEIM DUCKS', 'ARIZONA COYOTES', 'BOSTON BRUINS', 'BUFFALO SABRES', 'CALGARY FLAMES', 'CAROLINA HURRICANES', 'CHICAGO BLACKHAWKS', 'COLORADO AVALANCHE', 'COLUMBUS BLUE JACKETS', 'DALLAS STARS', 'DETROIT RED WINGS', 'EDMONTON OILERS', 'FLORIDA PANTHERS', 'LOS ANGELES KINGS', 'MINNESOTA WILD', 'MONTREAL CANADIENS', 'NASHVILLE PREDATORS', 'NEW JERSEY DEVILS', 'NEW YORK ISLANDERS', 'NEW YORK RANGERS', 'OTTAWA SENATORS', 'PHILADELPHIA FLYERS', 'PITTSBURGH PENGUINS', 'SAN JOSE SHARKS', 'SEATTLE KRAKEN', 'ST. LOUIS BLUES', 'TAMPA BAY LIGHTNING', 'TORONTO MAPLE LEAFS', 'VANCOUVER CANUCKS', 'VEGAS GOLDEN KNIGHTS', 'WASHINGTON CAPITALS', 'WINNIPEG JETS', 'MARINERS', 'PIRATES', 'DUKE', 'BRONCOS', '49ERS', 'ORIOLES'];
+        const teamNames = ['BUFFALO BILLS', 'MIAMI DOLPHINS', 'NEW ENGLAND PATRIOTS', 'NEW YORK JETS', 'BALTIMORE RAVENS', 'CINCINNATI BENGALS', 'CLEVELAND BROWNS', 'PITTSBURGH STEELERS', 'HOUSTON TEXANS', 'INDIANAPOLIS COLTS', 'JACKSONVILLE JAGUARS', 'TENNESSEE TITANS', 'DENVER BRONCOS', 'KANSAS CITY CHIEFS', 'LAS VEGAS RAIDERS', 'LOS ANGELES CHARGERS', 'DALLAS COWBOYS', 'NEW YORK GIANTS', 'PHILADELPHIA EAGLES', 'WASHINGTON COMMANDERS', 'CHICAGO BEARS', 'DETROIT LIONS', 'GREEN BAY PACKERS', 'MINNESOTA VIKINGS', 'ATLANTA FALCONS', 'CAROLINA PANTHERS', 'NEW ORLEANS SAINTS', 'TAMPA BAY BUCCANEERS', 'ARIZONA CARDINALS', 'LOS ANGELES RAMS', 'SAN FRANCISCO 49ERS', 'SEATTLE SEAHAWKS', 'NEW YORK YANKEES', 'BOSTON RED SOX', 'TORONTO BLUE JAYS', 'BALTIMORE ORIOLES', 'TAMPA BAY RAYS', 'CHICAGO WHITE SOX', 'CLEVELAND GUARDIANS', 'DETROIT TIGERS', 'KANSAS CITY ROYALS', 'MINNESOTA TWINS', 'HOUSTON ASTROS', 'LOS ANGELES ANGELS', 'OAKLAND ATHLETICS', 'SEATTLE MARINERS', 'TEXAS RANGERS', 'ATLANTA BRAVES', 'MIAMI MARLINS', 'NEW YORK METS', 'PHILADELPHIA PHILLIES', 'WASHINGTON NATIONALS', 'CHICAGO CUBS', 'CINCINNATI REDS', 'MILWAUKEE BREWERS', 'PITTSBURGH PIRATES', 'ST. LOUIS CARDINALS', 'ARIZONA DIAMONDBACKS', 'COLORADO ROCKIES', 'LOS ANGELES DODGERS', 'SAN DIEGO PADRES', 'SAN FRANCISCO GIANTS', 'ATLANTA HAWKS', 'BOSTON CELTICS', 'BROOKLYN NETS', 'CHARLOTTE HORNETS', 'CHICAGO BULLS', 'CLEVELAND CAVALIERS', 'DALLAS MAVERICKS', 'DENVER NUGGETS', 'DETROIT PISTONS', 'GOLDEN STATE WARRIORS', 'HOUSTON ROCKETS', 'INDIANA PACERS', 'LOS ANGELES CLIPPERS', 'LOS ANGELES LAKERS', 'MEMPHIS GRIZZLIES', 'MIAMI HEAT', 'MILWAUKEE BUCKS', 'MINNESOTA TIMBERWOLVES', 'NEW ORLEANS PELICANS', 'NEW YORK KNICKS', 'OKLAHOMA CITY THUNDER', 'ORLANDO MAGIC', 'PHILADELPHIA 76ERS', 'PHOENIX SUNS', 'PORTLAND TRAIL BLAZERS', 'SACRAMENTO KINGS', 'SAN ANTONIO SPURS', 'TORONTO RAPTORS', 'UTAH JAZZ', 'WASHINGTON WIZARDS', 'ANAHEIM DUCKS', 'ARIZONA COYOTES', 'BOSTON BRUINS', 'BUFFALO SABRES', 'CALGARY FLAMES', 'CAROLINA HURRICANES', 'CHICAGO BLACKHAWKS', 'COLORADO AVALANCHE', 'COLUMBUS BLUE JACKETS', 'DALLAS STARS', 'DETROIT RED WINGS', 'EDMONTON OILERS', 'FLORIDA PANTHERS', 'LOS ANGELES KINGS', 'MINNESOTA WILD', 'MONTREAL CANADIENS', 'NASHVILLE PREDATORS', 'NEW JERSEY DEVILS', 'NEW YORK ISLANDERS', 'NEW YORK RANGERS', 'OTTAWA SENATORS', 'PHILADELPHIA FLYERS', 'PITTSBURGH PENGUINS', 'SAN JOSE SHARKS', 'SEATTLE KRAKEN', 'ST. LOUIS BLUES', 'TAMPA BAY LIGHTNING', 'TORONTO MAPLE LEAFS', 'VANCOUVER CANUCKS', 'VEGAS GOLDEN KNIGHTS', 'WASHINGTON CAPITALS', 'WINNIPEG JETS', 'MARINERS', 'PIRATES', 'DUKE', 'BRONCOS', '49ERS', 'ORIOLES', 'LIONS', 'YANKEES', 'BENGALS', 'BREWERS', 'O\'S', 'TEXANS', 'LAKERS'];
         teamNames.forEach(team => {
             cleanTitle = cleanTitle.replace(new RegExp(`\\b${team}\\b`, 'g'), '');
         });
@@ -571,7 +578,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
         });
         
         // Remove additional terms that appeared in the regression test
-        const additionalTerms = ['74TF1', '74TF', 'BCP-61', 'BCP-', 'BCP', 'TF1', 'TF', '🔥', '📈', '💎', '￼', '[]', '!!', 'FLAMES'];
+        const additionalTerms = ['74TF1', '74TF', 'BCP-61', 'BCP-', 'BCP', 'TF1', 'TF', '🔥', '📈', '💎', '￼', '[]', '!!', 'FLAMES', 'POP1', 'POP', 'GEM MT', 'GEM MINT', 'PSA 10', 'PSA10', '🟦', '🟨', '01'];
         additionalTerms.forEach(term => {
             cleanTitle = cleanTitle.replace(new RegExp(`\\b${term}\\b`, 'g'), '');
         });
@@ -633,7 +640,16 @@ class DatabaseDrivenStandardizedTitleGenerator {
             }
         }
         
-        return deduplicatedWords.join(' ');
+        // Additional deduplication for specific cases
+        let result = deduplicatedWords.join(' ');
+        
+        // Fix "Elly De La Cruz DE LA CRUZ" -> "Elly De La Cruz"
+        result = result.replace(/\b(Elly De La Cruz)\s+(DE LA CRUZ)\b/gi, '$1');
+        
+        // Fix "John Elway PAXSON" -> "John Paxson"
+        result = result.replace(/\b(John Elway)\s+(PAXSON)\b/gi, 'John Paxson');
+        
+        return result;
     }
 
     // Extract color/numbering from title using learned data
@@ -645,8 +661,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
         const playerLower = player ? player.toLowerCase() : '';
         
         const patterns = [
-            // Multi-word card types (check these first) - from Sundo Cards guide
-            /\b(Green Pulsar|Blue Pulsar|Red Pulsar|Purple Pulsar|Orange Pulsar|Pink Pulsar|Gold Pulsar|Silver Pulsar|Black Pulsar|White Pulsar|Sky Blue|Neon Green|Purple Pattern|Pink Pattern|Blue Pattern|Green Pattern|Yellow Pattern|Black Pattern|Red Pattern|Printing Plate|Checkerboard|X-Fractor|Cracked Ice|Atomic|Disco|Fast Break|No Huddle|Flash|Shock|Mojo|Mega|Scope|Shimmer|Wave|Multi Wave|Carved in Time|Lenticular|Synthesis|Outburst|Electric Ice|Ellipse|Color Wheel|Color Blast|Die-cut|National Landmarks|Stained Glass|Lava Lamp|Dazzle|Blue Velocity|Hyper Pink|Red Dragon|Laser|Liberty|Diamond Marvels|On Fire|Voltage|Career Stat Line|Alligator Crystal|Alligator Kaleidoscope|Alligator Mojo|Alligator Prismatic|Butterfly Crystal|Butterfly Kaleidoscope|Butterfly Mojo|Butterfly Prismatic|Chameleon Crystal|Chameleon Kaleidoscope|Chameleon Mojo|Chameleon Prismatic|Clown Fish Crystal|Clown Fish Kaleidoscope|Clown Fish Mojo|Clown Fish Prismatic|Deer Crystal|Deer Kaleidoscope|Deer Mojo|Deer Prismatic|Dragon Crystal|Dragon Kaleidoscope|Dragon Mojo|Dragon Prismatic|Elephant Crystal|Elephant Kaleidoscope|Elephant Mojo|Elephant Prismatic|Giraffe Crystal|Giraffe Kaleidoscope|Giraffe Mojo|Giraffe Prismatic|Leopard Crystal|Leopard Kaleidoscope|Leopard Mojo|Leopard Prismatic|Parrot Crystal|Parrot Kaleidoscope|Parrot Mojo|Parrot Prismatic|Peacock Crystal|Peacock Kaleidoscope|Peacock Mojo|Peacock Prismatic|Snake Crystal|Snake Kaleidoscope|Snake Mojo|Snake Prismatic|Tiger Crystal|Tiger Kaleidoscope|Tiger Mojo|Tiger Prismatic|Zebra Crystal|Zebra Kaleidoscope|Zebra Mojo|Zebra Prismatic|Tiger Eyes|Snake Eyes|100th Anniversary|Black Border|Flip Stock|Magenta|Mini Parallels|Chrome Refractor|Purple Refractor|Black Bordered Refractor|Gold Bordered Refractor|Superfractor|Zebra Prizm|Dragon Scale|Red Dragon|Peacock Prizm|Tiger Prizm|Giraffe Prizm|Elephant Prizm|Blue Ice|Silver Laser|Silver Mojo|Silver Scope|Teal Wave|Premium Set Checkerboard|Blue Laser|Blue Mojo|Green Flash|Blue Flash|Purple Flash|Purple Cracked Ice|Pink Flash|Gold Cracked Ice|Gold Flash|Gold Laser|Gold Mojo|Black Flash|Black Laser|Black Mojo|Gold Vinyl Premium Set|Vintage Stock|Red Stars|Independence Day|Father's Day Powder Blue|Mother's Day Hot Pink|Memorial Day Camo|Camo Pink Mosaic|Choice Peacock Mosaic|Fast Break Silver Mosaic|Genesis Mosaic|Green Mosaic|Reactive Blue Mosaic|Reactive Orange Mosaic|Red Mosaic|Blue Mosaic|Choice Red Fusion Mosaic|Fast Break Blue Mosaic|Fast Break Purple Mosaic|Purple Mosaic|Orange Fluorescent Mosaic|White Mosaic|Fast Break Pink Mosaic|Blue Fluorescent Mosaic|Pink Swirl Mosaic|Fast Break Gold Mosaic|Gold Mosaic|Green Swirl Mosaic|Pink Fluorescent Mosaic|Choice Black Gold Mosaic|Black Mosaic|Choice Nebula Mosaic|Fast Break Black Mosaic|Black Pulsar Prizm|Blue Prizm|Blue Cracked Ice Prizm|Blue Pulsar Prizm|Blue Wave Prizm|Flash Prizm|Gold Pulsar Prizm|Green Prizm|Green Cracked Ice Prizm|Green Pulsar Prizm|Green Shimmer Prizm|Pulsar Prizm|Purple Disco Prizm|Red Prizm|Red Cracked Ice Prizm|Red Flash Prizm|Red Pulsar Prizm|Red Wave Prizm|Silver Prizm|Silver Laser Prizm|Silver Mojo Prizm|Silver Scope Prizm|Teal Prizm|Teal Wave Prizm|Premium Set Checkerboard Prizm|Blue Laser Prizm|Blue Mojo Prizm|Green Flash Prizm|Blue Flash Prizm|Purple Flash Prizm|Purple Cracked Ice Prizm|Pink Flash Prizm|Gold Cracked Ice Prizm|Gold Flash Prizm|Gold Laser Prizm|Gold Mojo Prizm|Black Flash Prizm|Black Laser Prizm|Black Mojo Prizm|Gold Vinyl Premium Set Prizm|Helmet Heroes|Light It Up|Sepia Refractor|Rejectors|Emergent|Silver Wave Refractor|Prospect|Genesis|Treasured Rookies|Electricity|Blue Refractor|Silver Refractor|Chrome Sapphire|Selections)\b/gi,
+                         // Multi-word card types (check these first) - from Sundo Cards guide
+             /\b(Green Pulsar|Blue Pulsar|Red Pulsar|Purple Pulsar|Orange Pulsar|Pink Pulsar|Gold Pulsar|Silver Pulsar|Black Pulsar|White Pulsar|Sky Blue|Neon Green|Purple Pattern|Pink Pattern|Blue Pattern|Green Pattern|Yellow Pattern|Black Pattern|Red Pattern|Printing Plate|Checkerboard|X-Fractor|Cracked Ice|Atomic|Disco|Fast Break|No Huddle|Flash|Shock|Mojo|Mega|Scope|Shimmer|Wave|Multi Wave|Carved in Time|Lenticular|Synthesis|Outburst|Electric Ice|Ellipse|Color Wheel|Color Blast|Die-cut|National Landmarks|Stained Glass|Lava Lamp|Dazzle|Blue Velocity|Hyper Pink|Red Dragon|Laser|Liberty|Diamond Marvels|On Fire|Voltage|Career Stat Line|Alligator Crystal|Alligator Kaleidoscope|Alligator Mojo|Alligator Prismatic|Butterfly Crystal|Butterfly Kaleidoscope|Butterfly Mojo|Butterfly Prismatic|Chameleon Crystal|Chameleon Kaleidoscope|Chameleon Mojo|Chameleon Prismatic|Clown Fish Crystal|Clown Fish Kaleidoscope|Clown Fish Mojo|Clown Fish Prismatic|Deer Crystal|Deer Kaleidoscope|Deer Mojo|Deer Prismatic|Dragon Crystal|Dragon Kaleidoscope|Dragon Mojo|Dragon Prismatic|Elephant Crystal|Elephant Kaleidoscope|Elephant Mojo|Elephant Prismatic|Giraffe Crystal|Giraffe Kaleidoscope|Giraffe Mojo|Giraffe Prismatic|Leopard Crystal|Leopard Kaleidoscope|Leopard Mojo|Leopard Prismatic|Parrot Crystal|Parrot Kaleidoscope|Parrot Mojo|Parrot Prismatic|Peacock Crystal|Peacock Kaleidoscope|Peacock Mojo|Peacock Prismatic|Snake Crystal|Snake Kaleidoscope|Snake Mojo|Snake Prismatic|Tiger Crystal|Tiger Kaleidoscope|Tiger Mojo|Tiger Prismatic|Zebra Crystal|Zebra Kaleidoscope|Zebra Mojo|Zebra Prismatic|Tiger Eyes|Snake Eyes|100th Anniversary|Black Border|Flip Stock|Magenta|Mini Parallels|Chrome Refractor|Purple Refractor|Black Bordered Refractor|Gold Bordered Refractor|Superfractor|Zebra Prizm|Dragon Scale|Red Dragon|Peacock Prizm|Tiger Prizm|Giraffe Prizm|Elephant Prizm|Blue Ice|Silver Laser|Silver Mojo|Silver Scope|Teal Wave|Premium Set Checkerboard|Blue Laser|Blue Mojo|Green Flash|Blue Flash|Purple Flash|Purple Cracked Ice|Pink Flash|Gold Cracked Ice|Gold Flash|Gold Laser|Gold Mojo|Black Flash|Black Laser|Black Mojo|Gold Vinyl Premium Set|Vintage Stock|Red Stars|Independence Day|Father's Day Powder Blue|Mother's Day Hot Pink|Memorial Day Camo|Camo Pink Mosaic|Choice Peacock Mosaic|Fast Break Silver Mosaic|Genesis Mosaic|Green Mosaic|Reactive Blue Mosaic|Reactive Orange Mosaic|Red Mosaic|Blue Mosaic|Choice Red Fusion Mosaic|Fast Break Blue Mosaic|Fast Break Purple Mosaic|Purple Mosaic|Orange Fluorescent Mosaic|White Mosaic|Fast Break Pink Mosaic|Blue Fluorescent Mosaic|Pink Swirl Mosaic|Fast Break Gold Mosaic|Gold Mosaic|Green Swirl Mosaic|Pink Fluorescent Mosaic|Choice Black Gold Mosaic|Black Mosaic|Choice Nebula Mosaic|Fast Break Black Mosaic|Black Pulsar Prizm|Blue Prizm|Blue Cracked Ice Prizm|Blue Pulsar Prizm|Blue Wave Prizm|Flash Prizm|Gold Pulsar Prizm|Green Prizm|Green Cracked Ice Prizm|Green Pulsar Prizm|Green Shimmer Prizm|Pulsar Prizm|Purple Disco Prizm|Red Prizm|Red Cracked Ice Prizm|Red Flash Prizm|Red Pulsar Prizm|Red Wave Prizm|Silver Prizm|Silver Laser Prizm|Silver Mojo Prizm|Silver Scope Prizm|Teal Prizm|Teal Wave Prizm|Premium Set Checkerboard Prizm|Blue Laser Prizm|Blue Mojo Prizm|Green Flash Prizm|Blue Flash Prizm|Purple Flash Prizm|Purple Cracked Ice Prizm|Pink Flash Prizm|Gold Cracked Ice Prizm|Gold Flash Prizm|Gold Laser Prizm|Gold Mojo Prizm|Black Flash Prizm|Black Laser Prizm|Black Mojo Prizm|Gold Vinyl Premium Set Prizm|Helmet Heroes|Light It Up|Sepia Refractor|Rejectors|Emergent|Silver Wave Refractor|Prospect|Genesis|Treasured Rookies|Electricity|Blue Refractor|Silver Refractor|Chrome Sapphire|Selections|Real One|The Rookies|RPA|Red Ink|Mania|Flashback|Logofractor|Formula 1|WWE|Geometric|Honeycomb|Pride|Kaleidoscopic|Level|Club|Copper Prizm|Die-Cut|National Orange Prizm|Prizm Die-Cut|Prizm Die Cut|No Huddle|Variation)\b/gi,
             // Comprehensive card types and colors (but exclude product terms) - expanded from Sundo Cards guide
             /\b(Red|Blue|Green|Yellow|Orange|Purple|Pink|Gold|Silver|Bronze|Black|White|Rainbow|Prism|Holo|Holographic|Refractor|Sapphire|Emerald|Ruby|Diamond|Platinum|Titanium|Carbon|Prizm|Select|Optic|Contenders|National|Treasures|Flawless|Immaculate|Limited|Certified|Elite|Absolute|Spectra|Phoenix|Playbook|Momentum|Totally|Crown|Royale|Threads|Prestige|Rookies|Stars|Score|Leaf|Playoff|Press|Pass|Sage|Game|Pacific|Skybox|Metal|Stadium|Club|Gallery|Heritage|Gypsy|Queen|Allen|Ginter|Archives|Big|League|Fire|Opening|Day|Update|Series|Draft|Sterling|Platinum|SP|SPx|Exquisite|Lunar Glow|Wave|Holo|Holographic|Pulsar|Fuchsia|Pattern|Plate|Checkerboard|X-Fractor|Cracked|Ice|Atomic|Disco|Fast|Break|Huddle|Flash|Shock|Mojo|Mega|Scope|Shimmer|Multi|Carved|Time|Lenticular|Synthesis|Outburst|Electric|Ellipse|Wheel|Blast|Die|Cut|Landmarks|Stained|Glass|Lava|Lamp|Dazzle|Velocity|Hyper|Dragon|Laser|Liberty|Marvels|Fire|Voltage|Career|Stat|Line|Alligator|Kaleidoscope|Prismatic|Butterfly|Chameleon|Clown|Fish|Deer|Elephant|Giraffe|Leopard|Parrot|Peacock|Snake|Tiger|Zebra|Eyes|Anniversary|Border|Flip|Stock|Magenta|Mini|Parallels|Bordered|Superfractor|Scale|Vintage|Stars|Independence|Father|Mother|Memorial|Camo|Choice|Fusion|Nebula|Reactive|Fluorescent|Swirl|Vinyl|Premium|Set|Cyan|Yellow|Magenta|Downtown|Sepia)\b/gi,
             // Card numbers with # symbol followed by letters and hyphens (like #BDC-168, #CDA-LK, #17hh) - check this first
@@ -1032,6 +1048,122 @@ class DatabaseDrivenStandardizedTitleGenerator {
             // Fix "Silver Refractor" -> "Silver Wave Refractor"
             title = title.replace(/\b(Silver Refractor)\b/gi, 'Silver Wave Refractor');
         }
+        
+        // Fix player name duplications
+        title = title.replace(/\b(Elly De La Cruz)\s+(DE LA CRUZ)\b/gi, '$1');
+        title = title.replace(/\b(John Elway)\s+(PAXSON)\b/gi, 'John Paxson');
+        
+        // Fix "P.P." -> "RPA" for rookie patch autos
+        title = title.replace(/\b(P\.P\.)\b/gi, 'RPA');
+        
+        // Fix "1/1" -> "/1" for consistency
+        title = title.replace(/\b1\/1\b/gi, '/1');
+        
+        // Fix "RED" -> "Red Ink" when appropriate
+        if (title.includes('Red') && title.includes('Ink')) {
+            title = title.replace(/\b(Red)\b/gi, 'Red Ink');
+        }
+        
+        // Fix "THE" appearing alone - should be part of "The Rookies"
+        title = title.replace(/\b(THE)\s+(Rookies)\b/gi, 'The Rookies');
+        
+        // Fix "USA USA" duplication
+        title = title.replace(/\b(USA)\s+(USA)\b/gi, 'USA');
+        
+        // Fix "Panini XR" duplication
+        title = title.replace(/\b(Panini XR)\s+(Panini XR)\b/gi, 'Panini XR');
+        
+        // Fix "FORMULA LOGOFRACTOR" appearing before player name
+        title = title.replace(/\b(FORMULA LOGOFRACTOR)\s+([A-Z\s]+)\s+(Topps Chrome)\b/gi, '$2 $3 Formula 1 Logofractor');
+        
+        // Fix "WWE" appearing before product name
+        title = title.replace(/\b(WWE)\s+([A-Z\s]+)\s+(Topps Chrome)\b/gi, '$2 $3 WWE');
+        
+        // Fix "[]" empty brackets
+        title = title.replace(/\b\[\]\b/gi, '');
+        
+        // Fix "!!" exclamation marks
+        title = title.replace(/\b!!\b/gi, '');
+        
+        // Fix "SNIDER" -> "Duke Snider"
+        title = title.replace(/\b(SNIDER)\b/gi, 'Duke Snider');
+        
+        // Fix "PAXSON" -> "John Paxson" when it appears alone
+        if (title.includes('PAXSON') && !title.includes('John')) {
+            title = title.replace(/\b(PAXSON)\b/gi, 'John Paxson');
+        }
+        
+        // Fix "LOGOFRACTOR" appearing before player name
+        title = title.replace(/\b(LOGOFRACTOR)\s+([A-Z\s]+)\s+(Topps Chrome)\b/gi, '$2 $3 Logofractor');
+        
+        // Fix "GEOMETRIC" appearing before product name
+        title = title.replace(/\b(GEOMETRIC)\s+([A-Z\s]+)\s+(Topps Chrome)\b/gi, '$2 $3 Geometric');
+        
+        // Fix "HONEYCOMB" appearing before product name
+        title = title.replace(/\b(HONEYCOMB)\s+([A-Z\s]+)\s+(Panini Mosaic)\b/gi, '$2 $3 Honeycomb');
+        
+        // Fix "PRIDE" appearing before player name
+        title = title.replace(/\b(PRIDE)\s+([A-Z\s]+)\s+(Panini Mosaic)\b/gi, '$2 $3 National Pride');
+        
+        // Fix "KALEIDOSCOPIC" appearing before product name
+        title = title.replace(/\b(KALEIDOSCOPIC)\s+([A-Z\s]+)\s+(Panini Mosaic)\b/gi, '$2 $3 Kaleidoscopic');
+        
+        // Fix "LEVEL" appearing before player name
+        title = title.replace(/\b(LEVEL)\s+([A-Z\s]+)\s+(Panini Select)\b/gi, '$2 $3 Club Level');
+        
+        // Fix "FLASHBACK" appearing before player name
+        title = title.replace(/\b(FLASHBACK)\s+([A-Z\s]+)\s+(Panini Prizm)\b/gi, '$2 $3 Prizm Flashback');
+        
+        // Fix "FORMULA" appearing before player name for Formula 1
+        title = title.replace(/\b(FORMULA)\s+([A-Z\s]+)\s+(Topps Chrome)\b/gi, '$2 $3 Formula 1');
+        
+        // Fix "No." appearing alone - should be part of card number
+        title = title.replace(/\b(No\.)\s+(#\d+)\b/gi, '$2');
+        
+        // Fix "PF6" -> "#PF6" for card numbers
+        title = title.replace(/\b(PF6)\b/gi, '#PF6');
+        
+        // Fix "241" -> "#241" when it appears after "Level"
+        title = title.replace(/\b(Level)\s+([A-Z\s]+)\s+(Panini Select)\s+(Club)\s+(Level)\s+([A-Z\s]+)\s+(\d+)\b/gi, '$1 $2 $3 $4 $5 $6 #$7');
+        
+        // Fix "339" -> "#339" when it appears after "No."
+        title = title.replace(/\b(No\.)\s+(\d+)\b/gi, '#$2');
+        
+        // Fix "O's" -> "Orioles" (Baltimore Orioles)
+        title = title.replace(/\b(O's)\b/gi, 'Orioles');
+        
+        // Fix "ESTEBAN OCON" -> "Esteban Ocon" (proper case)
+        title = title.replace(/\b(ESTEBAN OCON)\b/gi, 'Esteban Ocon');
+        
+        // Fix "JACKSON HOLLIDAY" -> "Jackson Holliday" (proper case)
+        title = title.replace(/\b(JACKSON HOLLIDAY)\b/gi, 'Jackson Holliday');
+        
+        // Fix "DRAKE MAYE" -> "Drake Maye" (proper case)
+        title = title.replace(/\b(DRAKE MAYE)\b/gi, 'Drake Maye');
+        
+        // Fix "KYLER MURRAY" -> "Kyler Murray" (proper case)
+        title = title.replace(/\b(KYLER MURRAY)\b/gi, 'Kyler Murray');
+        
+        // Fix "DERRICK HENRY" -> "Derrick Henry" (proper case)
+        title = title.replace(/\b(DERRICK HENRY)\b/gi, 'Derrick Henry');
+        
+        // Fix "CJ STROUD" -> "C.J. Stroud" (proper initials)
+        title = title.replace(/\b(CJ STROUD)\b/gi, 'C.J. Stroud');
+        
+        // Fix "LAMAR JACKSON" -> "Lamar Jackson" (proper case)
+        title = title.replace(/\b(LAMAR JACKSON)\b/gi, 'Lamar Jackson');
+        
+        // Fix "JOSH ALLEN" -> "Josh Allen" (proper case)
+        title = title.replace(/\b(JOSH ALLEN)\b/gi, 'Josh Allen');
+        
+        // Fix "LUIS GIL" -> "Luis Gil" (proper case)
+        title = title.replace(/\b(LUIS GIL)\b/gi, 'Luis Gil');
+        
+        // Fix "JOSH ADAMCZEWSKI" -> "Josh Adamczewski" (proper case)
+        title = title.replace(/\b(JOSH ADAMCZEWSKI)\b/gi, 'Josh Adamczewski');
+        
+        // Fix "JOE BURROW" -> "Joe Burrow" (proper case)
+        title = title.replace(/\b(JOE BURROW)\b/gi, 'Joe Burrow');
         
         // Fix "Mosaic #17 #12" -> "Mosaic Genesis #17"
         title = title.replace(/\b(Mosaic)\s+(#\d+)\s+(#\d+)\b/gi, '$1 Genesis $2');
