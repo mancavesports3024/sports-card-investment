@@ -987,6 +987,11 @@ class DatabaseDrivenStandardizedTitleGenerator {
         result = result.replace(/\bCOMPOSITE TOM BRADY\b/gi, 'Tom Brady');
         result = result.replace(/\bJULIO RODRIGUEZ IMAGE\b/gi, 'Julio Rodriguez');
         result = result.replace(/\bMALIK NABERS CB MNS\b/gi, 'Malik Nabers');
+        
+        // Fix specific problematic player names found in analysis
+        result = result.replace(/\bJOSH\b/gi, 'Josh');
+        result = result.replace(/\bJohn Elway Paxson\b/gi, 'John Paxson');
+        result = result.replace(/\bShai Gilgeous-AlexanderAlexander\b/gi, 'Shai Gilgeous-Alexander');
         result = result.replace(/\bROMAN REIGNS MAIN EVENT\b/gi, 'Roman Reigns');
         result = result.replace(/\bCONCOURSE TYREEK HILL\b/gi, 'Tyreek Hill');
         result = result.replace(/\bAARON JUDGE CRA AJ\b/gi, 'Aaron Judge');
@@ -1590,9 +1595,28 @@ class DatabaseDrivenStandardizedTitleGenerator {
             title = title.replace(/\b(Silver Refractor)\b/gi, 'Silver Wave Refractor');
         }
         
-        // Fix player name duplications
+        // Fix player name duplications - comprehensive list
         title = title.replace(/\b(Elly De La Cruz)\s+(DE LA CRUZ)\b/gi, '$1');
+        title = title.replace(/\b(Elly De La Cruz)\s+(De La Cruz)\b/gi, '$1');
         title = title.replace(/\b(John Elway)\s+(PAXSON)\b/gi, 'John Paxson');
+        title = title.replace(/\b(John Elway)\s+(Elway)\b/gi, 'John Elway');
+        title = title.replace(/\b(Duke)\s+(Duke)\s+(Snider)\b/gi, 'Duke Snider');
+        title = title.replace(/\b(Deni Avdija)\s+(Avdija)\b/gi, '$1');
+        title = title.replace(/\b(Brooks Koepka)\s+(Koepka)\b/gi, '$1');
+        title = title.replace(/\b(LeBron James)\s+(One)\s+(and)\s+(One)\b/gi, 'LeBron James One and One');
+        title = title.replace(/\b(Tyreek Hill)\s+(Hill)\b/gi, '$1');
+        title = title.replace(/\b(Shai Gilgeous-Alexander)\s+(Alexander)\b/gi, '$1');
+        title = title.replace(/\b(Shai Gilgeous-Alexander)\s+(Gilgeous-Alexander)\b/gi, '$1');
+        
+        // Fix general word duplications (any word that appears twice in a row)
+        const words = title.split(' ');
+        const deduplicatedWords = [];
+        for (let i = 0; i < words.length; i++) {
+            if (i === 0 || words[i].toLowerCase() !== words[i-1].toLowerCase()) {
+                deduplicatedWords.push(words[i]);
+            }
+        }
+        title = deduplicatedWords.join(' ');
         
         // Fix "P.P." -> "RPA" for rookie patch autos
         title = title.replace(/\b(P\.P\.)\b/gi, 'RPA');
@@ -1698,6 +1722,15 @@ class DatabaseDrivenStandardizedTitleGenerator {
         title = title.replace(/\b(JOSH ALLEN)\b/gi, 'Josh Allen');
         
         // Fix "LUIS GIL" -> "Luis Gil" (proper case)
+        title = title.replace(/\b(LUIS GIL)\b/gi, 'Luis Gil');
+        
+        // Fix remaining ALL CAPS player names that weren't converted
+        title = title.replace(/\b(JOSH)\b/gi, 'Josh');
+        title = title.replace(/\b(BRYCE HARPER &)\b/gi, 'Bryce Harper');
+        title = title.replace(/\b(' COLLECTION FRANCISCO LINDOR METS)\b/gi, 'Francisco Lindor');
+        title = title.replace(/\b('S BEST TRISTON CASAS TP)\b/gi, 'Triston Casas');
+        title = title.replace(/\b(Shai Gilgeous-Alexander SIGNATURES RS SGA)\b/gi, 'Shai Gilgeous-Alexander');
+        title = title.replace(/\b(Shai Gilgeous-Alexander Velocity,)\b/gi, 'Shai Gilgeous-Alexander');
         title = title.replace(/\b(LUIS GIL)\b/gi, 'Luis Gil');
         
         // Fix "JOSH ADAMCZEWSKI" -> "Josh Adamczewski" (proper case)
