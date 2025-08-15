@@ -526,7 +526,7 @@ class DatabaseDrivenStandardizedTitleGenerator {
             // NBA Hoops Prizm patterns
             'black pulsar prizm', 'blue prizm', 'blue cracked ice prizm', 'blue pulsar prizm', 'blue wave prizm', 'flash prizm', 'gold pulsar prizm', 'green prizm', 'green cracked ice prizm', 'green pulsar prizm', 'green shimmer prizm', 'pulsar prizm', 'purple disco prizm', 'red prizm', 'red cracked ice prizm', 'red flash prizm', 'red pulsar prizm', 'red wave prizm', 'silver prizm', 'silver laser prizm', 'silver mojo prizm', 'silver scope prizm', 'teal prizm', 'teal wave prizm', 'premium set checkerboard prizm', 'blue laser prizm', 'blue mojo prizm', 'green flash prizm', 'blue flash prizm', 'purple flash prizm', 'purple cracked ice prizm', 'pink flash prizm', 'gold cracked ice prizm', 'gold flash prizm', 'gold laser prizm', 'gold mojo prizm', 'black flash prizm', 'black laser prizm', 'black mojo prizm', 'gold vinyl premium set prizm',
                                     // Additional terms that are being incorrectly included in player names
-                'chrome', 'refractor', 'draft', 'helmet', 'heroes', 'sapphire', 'optic', 'hit', 'basketball', 'one and one', 'downtown', 'road to uefa euro', 'usa basketball', 'downtown', 'skybox', 'light it up', 'disco', 'orange', 'prizm', 'mosaic', 'prospect', 'prospects', 'starcade', 'rejectors', 'treasured', 'emergent', 'wave'
+                'chrome', 'refractor', 'draft', 'helmet', 'heroes', 'sapphire', 'optic', 'hit', 'basketball', 'one and one', 'downtown', 'road to uefa euro', 'usa basketball', 'downtown', 'skybox', 'light it up', 'disco', 'orange', 'prizm', 'mosaic', 'prospect', 'prospects', 'starcade', 'rejectors', 'treasured', 'emergent', 'wave', 'aqua', 'reactive', 'speckle', 'portals', 'preview'
         ];
         
         removeTerms.push(...productTerms);
@@ -597,12 +597,18 @@ class DatabaseDrivenStandardizedTitleGenerator {
         const patterns = [
             // Handle quoted nicknames like "Hacksaw" Jim Duggan
             /"([^"]+)"\s+([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
+            // Handle names surrounded by hyphens like "- Ja'marr Chase -"
+            /-?\s*([A-Z][a-z]+'?[a-z]*)\s+([A-Z][a-z]+)\s*-?/g,
+            // Handle names with periods in card context like "#7 J.J. McCarthy"
+            /#\d+\s+([A-Z]\.[A-Z]\.)\s+([A-Z][a-z]*[A-Z][a-z]*)\b/g,
             // Handle names with periods like "J.J. MCCARTHY" or "J.J. McCarthy"
             /\b([A-Z]\.[A-Z]\.)\s+([A-Z][a-z]+)\b/g,
             // Handle names with periods in all caps like "J.J. MCCARTHY"
             /\b([A-Z]\.[A-Z]\.)\s+([A-Z]+)\b/g,
-            // Handle names with apostrophes in first name like "Ja'marr Chase"
-            /\b([A-Z][a-z]+'[a-z]+)\s+([A-Z][a-z]+)\b/g,
+            // Handle names with periods in mixed case like "J.J. McCarthy"
+            /\b([A-Z]\.[A-Z]\.)\s+([A-Z][a-z]*[A-Z][a-z]*)\b/g,
+            // Handle names with apostrophes in first name like "Ja'marr Chase" (with optional hyphens)
+            /-?\s*([A-Z][a-z]+'[a-z]+)\s+([A-Z][a-z]+)\s*-?/g,
             // Handle names with apostrophes in last name like "Logan O'Hoppe"
             /\b([A-Z][a-z]+)\s+([A-Z]'[A-Z][a-z]+)\b/g,
             // Handle names with apostrophes in both parts like "De'Von Achane"
