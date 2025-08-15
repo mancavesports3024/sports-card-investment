@@ -754,6 +754,11 @@ class DatabaseDrivenStandardizedTitleGenerator {
         result = result.replace(/\b(' COLLECTION FRANCISCO LINDOR METS)\b/gi, 'Francisco Lindor');
         result = result.replace(/\b(Shai Gilgeous-Alexander SIGNATURES RS SGA)\b/gi, 'Shai Gilgeous-Alexander');
         result = result.replace(/\b(Shai Gilgeous-Alexander Velocity,)\b/gi, 'Shai Gilgeous-Alexander');
+        
+        // Fix remaining ALL CAPS player names from analysis
+        result = result.replace(/\b('S BEST TRISTON CASAS TP)\b/gi, 'Triston Casas');
+        result = result.replace(/\b(BRYCE HARPER &)\b/gi, 'Bryce Harper');
+        result = result.replace(/\b(' COLLECTION FRANCISCO LINDOR METS)\b/gi, 'Francisco Lindor');
         result = result.replace(/\bJACKSON HOLLIDAY\b/gi, 'Jackson Holliday');
         result = result.replace(/\bTJ WATT\b/gi, 'T.J. Watt');
         result = result.replace(/\bANTHONY DAVIS\b/gi, 'Anthony Davis');
@@ -1832,6 +1837,11 @@ class DatabaseDrivenStandardizedTitleGenerator {
         title = title.replace(/\b('S BEST TRISTON CASAS TP)\b/gi, 'Triston Casas');
         title = title.replace(/\b(BRYCE HARPER &)\b/gi, 'Bryce Harper');
         title = title.replace(/\b(' COLLECTION FRANCISCO LINDOR METS)\b/gi, 'Francisco Lindor');
+        
+        // Fix formatting issues with extra spaces and commas
+        title = title.replace(/\s+,\s*/g, ', ');
+        title = title.replace(/\s{2,}/g, ' ');
+        title = title.trim();
         
         // Fix missing player names in summaries
         title = title.replace(/\b(John Elway Paxson)\b/gi, 'John Paxson');
