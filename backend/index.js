@@ -2786,6 +2786,123 @@ app.post('/api/update-sports-improved-detection', async (req, res) => {
     }
 });
 
+// POST /api/admin/add-player-names - Add player names to Railway database
+app.post('/api/admin/add-player-names', async (req, res) => {
+    try {
+        console.log('🎯 Adding player names to Railway database...');
+        
+        const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standardized-summary-titles-database-driven.js');
+        const generator = new DatabaseDrivenStandardizedTitleGenerator();
+        
+        await generator.connect();
+        await generator.ensurePlayerNameColumn();
+        
+        // Get all cards that don't have player names yet
+        const cards = await generator.runQuery(`
+            SELECT id, title, summary_title, player_name 
+            FROM cards 
+            WHERE player_name IS NULL OR player_name = ''
+        `);
+        
+        console.log(`📊 Found ${cards.length} cards without player names`);
+        
+        let updatedCount = 0;
+        for (const card of cards) {
+            try {
+                const playerName = generator.extractPlayer(card.title);
+                if (playerName) {
+                    await generator.runUpdate(
+                        'UPDATE cards SET player_name = ? WHERE id = ?',
+                        [playerName, card.id]
+                    );
+                    updatedCount++;
+                    
+                    if (updatedCount % 50 === 0) {
+                        console.log(`✅ Updated ${updatedCount} player names...`);
+                    }
+                }
+            } catch (error) {
+                console.error(`❌ Error updating card ${card.id}:`, error.message);
+            }
+        }
+        
+        await generator.close();
+        
+        console.log(`✅ Player names update completed! Updated ${updatedCount} cards`);
+        res.json({ 
+            success: true, 
+            message: `Player names added to ${updatedCount} cards successfully`,
+            cardsUpdated: updatedCount,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Player names update failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Player names update failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// POST /api/admin/update-prices - Run price updates on Railway
+app.post('/api/admin/update-prices', async (req, res) => {
+    try {
+        console.log('🔄 Starting price updates on Railway...');
+        
+        const { SQLitePriceUpdater } = require('./fast-sqlite-price-updater.js');
+        const updater = new SQLitePriceUpdater();
+        
+        await updater.connect();
+        await updater.processBatchFast(50); // Process 50 cards
+        await updater.close();
+        
+        console.log('✅ Price updates completed successfully');
+        res.json({ 
+            success: true, 
+            message: 'Price updates completed successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Price updates failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Price updates failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// POST /api/admin/generate-good-buys - Generate good buy opportunities on Railway
+app.post('/api/admin/generate-good-buys', async (req, res) => {
+    try {
+        console.log('🔄 Generating good buy opportunities on Railway...');
+        
+        const { goodBuyOpportunities } = require('./good-buy-opportunities.js');
+        await goodBuyOpportunities();
+        
+        console.log('✅ Good buy opportunities generated successfully');
+        res.json({ 
+            success: true, 
+            message: 'Good buy opportunities generated successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Good buy opportunities generation failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Good buy opportunities generation failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/update-sports-standardized-titles - Update sports using standardized title player extraction
 app.post('/api/update-sports-standardized-titles', async (req, res) => {
     try {

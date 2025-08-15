@@ -8,7 +8,8 @@ class SportDetectionUpdater {
         // Use the Railway database path (same as other scripts)
         this.dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
         this.db = null;
-        this.detector = new EnhancedSportDetector();
+        // Use the main database class for sport detection
+        this.detector = new NewPricingDatabase();
     }
 
     async connect() {
@@ -39,7 +40,7 @@ class SportDetectionUpdater {
             
             for (const card of cards) {
                 try {
-                    const detectedSport = await this.detector.detectSport(card.title);
+                    const detectedSport = await this.detector.detectSportFromComprehensive(card.title);
                     
                     if (detectedSport && detectedSport !== 'Unknown') {
                         await this.updateCardSport(card.id, detectedSport);
