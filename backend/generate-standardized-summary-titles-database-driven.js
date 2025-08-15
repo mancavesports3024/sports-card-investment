@@ -661,11 +661,10 @@ class DatabaseDrivenStandardizedTitleGenerator {
         // This needs to be done after other filtering to avoid conflicts
         cleanTitle = cleanTitle.replace(/\b([A-Z])\.([A-Z])\.\s+([A-Z][a-z]+)\b/g, '$1.$2. $3');
 
-        // Handle common nicknames
+        // Handle common nicknames (but be more careful with initials)
         const nicknameMap = {
             'vladi': 'vladimir',
             'jj': 'j.j.',
-            'j.j': 'j.j.',
             'jared mc': 'jared mccarron',
             'ladd mc': 'ladd mcconkey',
             'shai gilgeous-': 'shai gilgeous-alexander',
@@ -687,106 +686,71 @@ class DatabaseDrivenStandardizedTitleGenerator {
         // Normalize spaces after filtering to ensure proper pattern matching
         cleanTitle = cleanTitle.replace(/\s+/g, ' ').trim();
 
-        // Additional period preservation for cases that might have been missed
-        cleanTitle = cleanTitle.replace(/\b([A-Z])([A-Z])\s+([A-Z][a-z]+)\b/g, (match, first, second, last) => {
-            // Check if this looks like it should have periods (common initials)
-            if ((first === 'J' && second === 'J') || 
-                (first === 'C' && second === 'J') || 
-                (first === 'T' && second === 'J') ||
-                (first === 'M' && second === 'J')) {
-                return `${first}.${second}. ${last}`;
-            }
-            return match;
-        });
-
         // Debug: Log the cleaned title to see what we're working with
         console.log(`🔍 Cleaned title after filtering: "${cleanTitle}"`);
 
-        // Look for player name patterns - IMPROVED to handle all identified issues
+        // Simplified player name patterns - focus on the most common cases first
         const patterns = [
-            // Handle single names first (like "Endrick")
-            /\b([A-Z][a-z]+)\b/g,
-            
             // Handle quoted nicknames like "Hacksaw" Jim Duggan
             /"([^"]+)"\s+([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
             
             // Handle names with periods in card context like "#7 J.J. McCarthy"
-            /#\d+\s+([A-Z]\.[A-Z]\.)\s+([A-Z][a-z]*[A-Z][a-z]*)\b/g,
+            /#\d+\s+([A-Z]\.[A-Z]\.\s+[A-Z][a-z]*[A-Z][a-z]*)\b/g,
             
-            // Handle names with periods like "J.J. MCCARTHY" or "J.J. McCarthy"
-            /\b([A-Z]\.[A-Z]\.)\s+([A-Z][a-z]+)\b/g,
-            
-            // Handle names with periods in all caps like "J.J. MCCARTHY"
-            /\b([A-Z]\.[A-Z]\.)\s+([A-Z]+)\b/g,
-            
-            // Handle names with periods in mixed case like "J.J. McCarthy"
-            /\b([A-Z]\.[A-Z]\.)\s+([A-Z][a-z]*[A-Z][a-z]*)\b/g,
-            
-            // Handle names surrounded by hyphens like "- Ja'marr Chase -"
-            /-?\s*([A-Z][a-z]+'?[a-z]*)\s+([A-Z][a-z]+)\s*-?/g,
-            
-            // Handle names with apostrophes in first name like "Ja'marr Chase" (with optional hyphens)
-            /-?\s*([A-Z][a-z]+'[a-z]+)\s+([A-Z][a-z]+)\s*-?/g,
-            
-            // Handle names with apostrophes in first name with trailing hyphen like "Ja'marr Chase-"
-            /-?\s*([A-Z][a-z]+'[a-z]+)\s+([A-Z][a-z]+)\s*-/g,
-            
-            // Handle names with apostrophes in last name like "Logan O'Hoppe"
-            /\b([A-Z][a-z]+)\s+([A-Z]'[A-Z][a-z]+)\b/g,
-            
-            // Handle names with apostrophes in both parts like "De'Von Achane"
-            /\b([A-Z][a-z]+'[A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
-            
-            // Handle three-part hyphenated names like "Shai Gilgeous-Alexander", "Pete Crow-Armstrong"
-            /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)-([A-Z][a-z]+)\b/g,
+            // Handle names with periods like "J.J. McCarthy" (case insensitive)
+            /\b([A-Za-z]\.[A-Za-z]\.)\s+([A-Za-z][a-z]*[A-Za-z][a-z]*)\b/gi,
             
             // Handle three-part names like "Elly De La Cruz", "Josue De Paula"
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
             
-            // Handle names with internal capitals like "McConkey", "McCarron", "O'Neal"
-            /\b([A-Z][a-z]+)\s+([A-Z][a-z]*[A-Z][a-z]*)\b/g,
+            // Handle three-part hyphenated names like "Shai Gilgeous-Alexander"
+            /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)-([A-Z][a-z]+)\b/g,
             
-            // Handle all-caps names with apostrophes like "SHAQUILLE O'NEAL"
-            /\b([A-Z]+'[A-Z]+)\s+([A-Z]+)\b/g,
+            // Handle names with apostrophes like "De'Von Achane", "Ja'marr Chase"
+            /\b([A-Z][a-z]+'[A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
             
-            // Handle all-caps names with apostrophes in second part like "SHAQUILLE O'NEAL"
-            /\b([A-Z]+)\s+([A-Z]+'[A-Z]+)\b/g,
+            // Handle names with apostrophes in last name like "Logan O'Hoppe"
+            /\b([A-Z][a-z]+)\s+([A-Z]'[A-Z][a-z]+)\b/g,
             
-            // Handle three-part all-caps names like "LEO DE VRIES" (check this before two-part)
+            // Handle all-caps names like "LEO DE VRIES"
             /\b([A-Z]+)\s+([A-Z]+)\s+([A-Z]+)\b/g,
             
-            // Handle "Leo DE VRIES" specifically (mixed case)
+            // Handle mixed case names like "Leo DE VRIES"
             /\b([A-Z][a-z]+)\s+([A-Z]+)\s+([A-Z]+)\b/g,
             
             // Handle all-caps names like "PAUL SKENES", "TYREEK HILL"
             /\b([A-Z]+)\s+([A-Z]+)\b/g,
             
-            // Handle initials like "CJ Kayfus" and "JJ McCarthy"
+            // Handle initials like "CJ Kayfus"
             /\b([A-Z]{2,3})\s+([A-Z][a-z]+)\b/g,
             
-            // Handle specific initials like "JJ McCarthy"
-            /\bJJ\s+McCarthy\b/g,
-            
-            // First Last pattern (most common)
+            // First Last pattern (most common) - check this last
             /\b([A-Z][a-z]+)\s+([A-Z][a-z]+)\b/g,
             
-            // Handle special cases like "LeBron James", "De'Aaron Fox"
-            /\b([A-Z][a-z]+)\s+([A-Z][a-z]+'[A-Z][a-z]+)\b/g
+            // Handle single names last (like "Endrick")
+            /\b([A-Z][a-z]+)\b/g
         ];
 
         for (const pattern of patterns) {
             const matches = [...cleanTitle.matchAll(pattern)];
             for (const match of matches) {
-                const fullName = match[0];
+                // Use the full matched string, but for patterns with card numbers, use the capture group
+                let fullName = match[0];
+                
+                // Special handling for patterns that include card numbers
+                if (pattern.source.includes('#\\d+\\s+')) {
+                    // Use the first capture group (the name part) instead of the full match
+                    fullName = match[1];
+                }
                 // Additional validation - skip if it looks like a product name or is too short
                 const skipWords = Array.from(this.cardSets).concat(Array.from(this.cardTypes));
                 
-                // Less aggressive validation - only skip if the entire name matches a skip word exactly
-                const shouldSkip = skipWords.some(word => 
-                    fullName.toLowerCase() === word.toLowerCase() || 
-                    fullName.toLowerCase() === word.toLowerCase() + 's' ||
-                    fullName.toLowerCase() === word.toLowerCase() + 'es'
-                );
+                // Very permissive validation - only skip obvious non-player terms
+                // Skip single words that are clearly not names (like "Auto", "RC", "PSA", etc.)
+                const obviousNonNames = ['auto', 'rc', 'psa', 'graded', 'card', 'rookie', 'prospect', 'draft', 'chrome', 'prizm', 'optic', 'select', 'contenders', 'national', 'treasures', 'flawless', 'immaculate', 'limited', 'certified', 'elite', 'absolute', 'spectra', 'phoenix', 'playbook', 'momentum', 'totally', 'crown', 'royale', 'threads', 'prestige', 'rookies', 'stars', 'score', 'leaf', 'playoff', 'press', 'pass', 'sage', 'game', 'pacific', 'skybox', 'metal', 'stadium', 'club', 'gallery', 'heritage', 'gypsy', 'queen', 'allen', 'ginter', 'archives', 'big', 'league', 'fire', 'opening', 'day', 'update', 'series', 'draft', 'sterling', 'platinum', 'sp', 'spx', 'exquisite'];
+                
+                const shouldSkip = fullName.split(' ').length === 1 && 
+                    obviousNonNames.includes(fullName.toLowerCase());
                 
                 if (!shouldSkip && fullName.length >= 3) {
                     // Format player name with proper case
@@ -816,6 +780,12 @@ class DatabaseDrivenStandardizedTitleGenerator {
                             return word.toUpperCase();
                         }
                         // Handle names that should be properly cased (like "McCarthy")
+                        // Check if the word has internal capitals (like "McCarthy", "McConkey")
+                        if (word.match(/^[A-Z][a-z]*[A-Z][a-z]*$/)) {
+                            // Preserve internal capitals
+                            return word.charAt(0).toUpperCase() + word.slice(1);
+                        }
+                        // Standard case formatting
                         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
                     }).join(' ');
                 }

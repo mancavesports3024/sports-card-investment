@@ -218,6 +218,237 @@ async function runRegressionTests() {
                 hasAuto: false,
                 shouldContain: ["Arda Guler"]
             }
+        },
+        // NEW TEST CASES FOR THE 24 FIXED ISSUES
+        {
+            title: "2024 NOTORIETY GREEN Panini Mosaic #19 Jayden Daniels Rookie RC PSA 10",
+            expected: {
+                year: "2024",
+                product: "Panini Mosaic",
+                player: "Jayden Daniels",
+                hasAuto: false,
+                shouldContain: ["Jayden Daniels", "NOTORIETY GREEN"]
+            }
+        },
+        {
+            title: "2018 Shai Gilgeous- Panini Donruss Basketball Rated Rookie PSA 10",
+            expected: {
+                year: "2018",
+                product: "Panini Donruss",
+                player: "Shai Gilgeous-Alexander",
+                hasAuto: false,
+                shouldContain: ["Shai Gilgeous-Alexander"]
+            }
+        },
+        {
+            title: "2024 Panini Prizm #7 J.J. McCarthy Portals Rookie Card PSA 10",
+            expected: {
+                year: "2024",
+                product: "Panini Prizm",
+                player: "J.J. McCarthy",
+                hasAuto: false,
+                shouldContain: ["J.J. McCarthy", "Portals"]
+            }
+        },
+        {
+            title: "2024 Bowman Chrome 1st Vladi Guerrero Speckle Auto /299 PSA 10",
+            expected: {
+                year: "2024",
+                product: "Bowman Chrome 1st",
+                player: "Vladimir Guerrero",
+                hasAuto: true,
+                shouldContain: ["Vladimir Guerrero", "Auto", "/299"]
+            }
+        },
+        {
+            title: "2024 Panini Donruss Optic Pink #303 J.J. McCarthy - Optic Preview Pink RC PSA 10",
+            expected: {
+                year: "2024",
+                product: "Panini Donruss Optic",
+                player: "J.J. McCarthy",
+                hasAuto: false,
+                shouldContain: ["J.J. McCarthy", "Pink"]
+            }
+        },
+        {
+            title: "2024 Leo Leo DE VRIES Bowman's Best Prospect Silver Wave Refractor #TP-18 PSA 10",
+            expected: {
+                year: "2024",
+                product: "Bowman's Best Prospect",
+                player: "Leo DE VRIES",
+                hasAuto: false,
+                shouldContain: ["Leo DE VRIES", "Silver Wave Refractor", "#TP-18"]
+            }
+        },
+        {
+            title: "2023 Von Achane Panini Prizm Green Ice De'Von Achane Rookie PSA 10",
+            expected: {
+                year: "2023",
+                product: "Panini Prizm",
+                player: "De'Von Achane",
+                hasAuto: false,
+                shouldContain: ["De'Von Achane", "Green Ice"]
+            }
+        },
+        {
+            title: "2024 Ladd Mc Topps Chrome Pink Refractor 2024 Topps Chrome - 1974 Topps Football Ladd McConkey Pink Refractor (RC) PSA 10",
+            expected: {
+                year: "2024",
+                product: "Topps Chrome",
+                player: "Ladd McConkey",
+                hasAuto: false,
+                shouldContain: ["Ladd McConkey", "Pink Refractor"]
+            }
+        },
+        {
+            title: "2024 Uptown John Donruss Optic #23 John Elway PSA 10 Graded Card Denver Broncos",
+            expected: {
+                year: "2024",
+                product: "Panini Donruss Optic",
+                player: "John Elway",
+                hasAuto: false,
+                shouldContain: ["John Elway", "Uptown"]
+            }
+        },
+        {
+            title: "2020-21 Penmanship Silver Panini Prizm #21 Auto Deni Avdija Rookie Penmanship Auto Silver PSA 10",
+            expected: {
+                year: "2020-21",
+                product: "Panini Prizm",
+                player: "Deni Avdija",
+                hasAuto: true,
+                shouldContain: ["Deni Avdija", "Auto", "Silver"]
+            }
+        },
+        {
+            title: "2024 Panini Prizm Emergent Blue Ice #19 /99 JJ McCarthy Blue Ice Prizm /99 PSA 10 RC",
+            expected: {
+                year: "2024",
+                product: "Panini Prizm Emergent",
+                player: "JJ McCarthy",
+                hasAuto: false,
+                shouldContain: ["JJ McCarthy", "Blue Ice", "/99"]
+            }
+        },
+        {
+            title: "2024 Liv Golf Panini Prizm Color Blast #3 Brooks Koepka Color Blast PSA 10",
+            expected: {
+                year: "2024",
+                product: "Panini Prizm Liv Golf",
+                player: "Brooks Koepka",
+                hasAuto: false,
+                shouldContain: ["Brooks Koepka", "Color Blast"]
+            }
+        },
+        {
+            title: "2024 All Etch Xfractor Topps Chrome Jayden Daniels All Etch Xfractor Rookie RC PSA 10",
+            expected: {
+                year: "2024",
+                product: "Topps Chrome",
+                player: "Jayden Daniels",
+                hasAuto: false,
+                shouldContain: ["Jayden Daniels", "All Etch Xfractor"]
+            }
+        },
+        {
+            title: "2022 Pro Debut Topps Chrome PSA 10 Elly De La Cruz Topps Chrome Pro Debut Reds Rookie Card RC",
+            expected: {
+                year: "2022",
+                product: "Topps Chrome Pro Debut",
+                player: "Elly De La Cruz",
+                hasAuto: false,
+                shouldContain: ["Elly De La Cruz"]
+            }
+        },
+        {
+            title: "2020 Nikola Jokic #1 Mosaic Basketball Overdrive #1 Nikola Jokic PSA 10",
+            expected: {
+                year: "2020",
+                product: "Mosaic Basketball Overdrive",
+                player: "Nikola Jokic",
+                hasAuto: false,
+                shouldContain: ["Nikola Jokic"]
+            }
+        },
+        {
+            title: "2024 Ladd Mc Spectra /30 Panini Spectra Football Ladd McConkey X Vision Meta /30 PSA 10",
+            expected: {
+                year: "2024",
+                product: "Panini Spectra",
+                player: "Ladd McConkey",
+                hasAuto: false,
+                shouldContain: ["Ladd McConkey", "X Vision Meta", "/30"]
+            }
+        },
+        {
+            title: "2024 Jared Mc Panini Prizm Draft #SJMC Auto Panini Prizm Draft Picks",
+            expected: {
+                year: "2024",
+                product: "Panini Prizm Draft",
+                player: "Jared McCarron",
+                hasAuto: true,
+                shouldContain: ["Jared McCarron", "Auto"]
+            }
+        },
+        {
+            title: "2016 - Concourse Tyreek Panini Select #65 Concourse Tyreek Hill #65 (RC) PSA 10",
+            expected: {
+                year: "2016",
+                product: "Panini Select",
+                player: "Tyreek Hill",
+                hasAuto: false,
+                shouldContain: ["Tyreek Hill", "Concourse"]
+            }
+        },
+        {
+            title: "2022 Edition Julio Rodriguez Topps Chrome Sapphire #67 Topps Chrome Sapphire Edition Julio Rodriguez #67 PSA 10",
+            expected: {
+                year: "2022",
+                product: "Topps Chrome Sapphire",
+                player: "Julio Rodriguez",
+                hasAuto: false,
+                shouldContain: ["Julio Rodriguez", "#67"]
+            }
+        },
+        {
+            title: "2024 Ladd Mc Topps Chrome Auto 2024 Topps Chrome Ladd McConkey Rookie Auto PSA 10",
+            expected: {
+                year: "2024",
+                product: "Topps Chrome",
+                player: "Ladd McConkey",
+                hasAuto: true,
+                shouldContain: ["Ladd McConkey", "Auto"]
+            }
+        },
+        {
+            title: "2024 - Debut Paul Chrome Update Refractor #USC27 Paul Skenes Chrome Update Refractor #USC27 PSA 10",
+            expected: {
+                year: "2024",
+                product: "Topps Chrome Update",
+                player: "Paul Skenes",
+                hasAuto: false,
+                shouldContain: ["Paul Skenes", "Refractor", "#USC27"]
+            }
+        },
+        {
+            title: "2024 Leo DE Bowman Wave Silver Refractor #TP-18 Leo DE VRIES Bowman Wave Silver Refractor #TP-18 PSA 10",
+            expected: {
+                year: "2024",
+                product: "Bowman Wave",
+                player: "Leo DE VRIES",
+                hasAuto: false,
+                shouldContain: ["Leo DE VRIES", "Silver Refractor", "#TP-18"]
+            }
+        },
+        {
+            title: "2024 Carthy Card Panini Prizm #7 J.J. McCarthy Portals Rookie Card PSA 10",
+            expected: {
+                year: "2024",
+                product: "Panini Prizm",
+                player: "J.J. McCarthy",
+                hasAuto: false,
+                shouldContain: ["J.J. McCarthy", "Portals"]
+            }
         }
     ];
     
