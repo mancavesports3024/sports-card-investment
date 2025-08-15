@@ -1229,6 +1229,16 @@ class DatabaseDrivenStandardizedTitleGenerator {
         // Fix "XR CHRISTIAN WATSON" -> "Panini XR Christian Watson"
         title = title.replace(/\b(XR CHRISTIAN WATSON)\b/gi, 'Panini XR Christian Watson');
         
+        // Fix "Ucc Endrick" -> "Endrick" (remove duplicate UCC)
+        title = title.replace(/\b(Ucc Endrick)\b/gi, 'Endrick');
+        
+        // Fix "Vladi Guerrero" -> "Vladimir Guerrero" (nickname mapping)
+        title = title.replace(/\b(Vladi Guerrero)\b/gi, 'Vladimir Guerrero');
+        
+        // Fix "Ja'marr Chase" formatting issues
+        title = title.replace(/\b(Ja'marr Chase)\b/gi, 'Ja\'marr Chase');
+        title = title.replace(/\b(Ja'marr Chase-)\b/gi, 'Ja\'marr Chase');
+        
         // Add "RC" or "Rookie" for rookie cards (cards from 2024 are likely rookies)
         if (title.includes('2024') && !title.includes('RC') && !title.includes('Rookie')) {
             // Add RC after the player name
