@@ -3,7 +3,18 @@ const path = require('path');
 
 class DatabaseDrivenStandardizedTitleGenerator {
     constructor() {
-        this.dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
+        // Try to use comprehensive database if available, fallback to new-scorecard.db
+        const comprehensiveDbPath = path.join(__dirname, 'data', 'comprehensive-card-database.db');
+        const fs = require('fs');
+        
+        if (fs.existsSync(comprehensiveDbPath)) {
+            this.dbPath = comprehensiveDbPath;
+            console.log('📚 Using comprehensive card database for learning');
+        } else {
+            this.dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
+            console.log('📚 Using new-scorecard database (comprehensive not available)');
+        }
+        
         this.db = null;
         this.cardSets = new Set();
         this.cardTypes = new Set();
