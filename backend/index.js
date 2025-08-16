@@ -3769,3 +3769,52 @@ app.post('/api/admin/fix-all-summary-issues', async (req, res) => {
     }
 });
 
+// POST /api/admin/add-summary-component-fields - Add and populate summary component fields
+app.post('/api/admin/add-summary-component-fields', async (req, res) => {
+    try {
+        console.log('🔧 Adding summary component fields to database...');
+        
+        const { SummaryComponentsFieldManager } = require('./add-summary-components-fields.js');
+        const manager = new SummaryComponentsFieldManager();
+        
+        await manager.connect();
+        console.log('✅ Connected to Railway database');
+        
+        // Add the new columns
+        await manager.addSummaryComponentColumns();
+        console.log('✅ Added summary component columns');
+        
+        // Populate the fields
+        const result = await manager.populateSummaryComponents();
+        console.log('✅ Populated summary component fields');
+        
+        // Show sample data
+        await manager.showSampleData();
+        
+        await manager.close();
+        
+        console.log('\n🎉 Summary Component Fields Addition Complete!');
+        console.log(`📊 Total cards processed: ${result.totalProcessed}`);
+        console.log(`🔄 Updated: ${result.updated}`);
+        console.log(`❌ Errors: ${result.errors}`);
+        
+        res.json({ 
+            success: true, 
+            message: `Summary component fields added and populated successfully`,
+            totalProcessed: result.totalProcessed,
+            updated: result.updated,
+            errors: result.errors,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error adding summary component fields:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to add summary component fields', 
+            details: error.message, 
+            timestamp: new Date().toISOString() 
+        });
+    }
+});
+
