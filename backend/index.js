@@ -3943,3 +3943,45 @@ app.post('/api/admin/rebuild-summary-titles', async (req, res) => {
     }
 });
 
+// POST /api/admin/clean-summary-titles - Clean up summary titles
+app.post('/api/admin/clean-summary-titles', async (req, res) => {
+    try {
+        console.log('🧹 Cleaning summary titles...');
+        
+        const { SummaryTitleCleaner } = require('./clean-summary-titles.js');
+        const cleaner = new SummaryTitleCleaner();
+        
+        await cleaner.connect();
+        console.log('✅ Connected to Railway database');
+        
+        const result = await cleaner.cleanAllSummaryTitles();
+        
+        await cleaner.close();
+        
+        console.log('\n🎉 Summary Title Cleanup Complete!');
+        console.log(`📊 Total cards processed: ${result.totalProcessed}`);
+        console.log(`✅ Updated: ${result.updated} cards`);
+        console.log(`⏭️ Unchanged: ${result.unchanged} cards`);
+        console.log(`❌ Errors: ${result.errors} cards`);
+        
+        res.json({
+            success: true,
+            message: 'Summary titles cleaned successfully',
+            totalProcessed: result.totalProcessed,
+            updated: result.updated,
+            unchanged: result.unchanged,
+            errors: result.errors,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error cleaning summary titles:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error cleaning summary titles',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
