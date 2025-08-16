@@ -3450,3 +3450,31 @@ app.post('/api/admin/safe-fix-summary-titles', async (req, res) => {
     }
 });
 
+// POST /api/admin/simple-fix-summary-titles - Simple summary title fixer
+app.post('/api/admin/simple-fix-summary-titles', async (req, res) => {
+    try {
+        console.log('🔧 Starting simple summary title fixer...');
+        
+        const { SimpleSummaryFixer } = require('./simple-summary-fix.js');
+        const fixer = new SimpleSummaryFixer();
+        const result = await fixer.fixSummaryTitles();
+        
+        console.log('✅ Simple summary title fixer completed');
+        res.json({ 
+            success: true, 
+            message: 'Simple summary title fixer completed successfully',
+            result: result,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Simple summary title fixer failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Simple summary title fixer failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
