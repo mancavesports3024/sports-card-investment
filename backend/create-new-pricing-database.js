@@ -7,9 +7,13 @@ const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standar
 // FORCE RAILWAY REDEPLOY - Updated sport detection logic deployed
 class NewPricingDatabase {
     constructor() {
-        // Use the new database for Railway deployment
-        this.pricingDbPath = path.join(__dirname, 'data', 'new-scorecard.db');
-        this.comprehensiveDbPath = path.join(__dirname, 'data', 'comprehensive-card-database.db');
+        // Use Railway volume mount path if available (production), otherwise use local path
+        this.pricingDbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH 
+            ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'new-scorecard.db')
+            : path.join(__dirname, 'data', 'new-scorecard.db');
+        this.comprehensiveDbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH 
+            ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'comprehensive-card-database.db')
+            : path.join(__dirname, 'data', 'comprehensive-card-database.db');
         this.pricingDb = null;
         this.comprehensiveDb = null;
         
@@ -62,6 +66,7 @@ class NewPricingDatabase {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
                 summary_title TEXT,
+                player_name TEXT,
                 sport TEXT,
                 year INTEGER,
                 brand TEXT,
@@ -87,6 +92,7 @@ class NewPricingDatabase {
         const createIndexes = [
             'CREATE INDEX IF NOT EXISTS idx_title ON cards(title)',
             'CREATE INDEX IF NOT EXISTS idx_summary_title ON cards(summary_title)',
+            'CREATE INDEX IF NOT EXISTS idx_player_name ON cards(player_name)',
             'CREATE INDEX IF NOT EXISTS idx_sport ON cards(sport)',
             'CREATE INDEX IF NOT EXISTS idx_year ON cards(year)',
             'CREATE INDEX IF NOT EXISTS idx_brand ON cards(brand)',
