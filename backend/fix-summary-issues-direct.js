@@ -264,4 +264,10 @@ async function fixSummaryIssuesDirect() {
 }
 
 // Run the fix
-fixSummaryIssuesDirect();
+// Export the function for use in other modules
+module.exports = { fixSummaryTitle, fixSummaryIssuesDirect };
+
+// Run if called directly
+if (require.main === module) {
+    fixSummaryIssuesDirect();
+}

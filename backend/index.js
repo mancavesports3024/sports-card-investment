@@ -3710,7 +3710,6 @@ app.post('/api/admin/fix-all-summary-issues', async (req, res) => {
     try {
         console.log('🔧 Running comprehensive summary title fix...');
         
-        const { fixSummaryTitle } = require('./comprehensive-summary-fix.js');
         const db = new NewPricingDatabase();
         
         await db.connect();
@@ -3722,6 +3721,9 @@ app.post('/api/admin/fix-all-summary-issues', async (req, res) => {
         
         let fixedCount = 0;
         let issuesFound = 0;
+        
+        // Import the fix function from the direct fix script
+        const { fixSummaryTitle } = require('./fix-summary-issues-direct.js');
         
         for (const card of cards) {
             const originalSummary = card.summary_title || '';
