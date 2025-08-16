@@ -1,4 +1,4 @@
-const { NewPricingDatabase } = require('./create-new-pricing-database.js');
+const NewPricingDatabase = require('./create-new-pricing-database.js');
 
 class ComponentFieldsChecker {
     constructor() {
