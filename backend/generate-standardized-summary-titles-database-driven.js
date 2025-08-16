@@ -798,6 +798,62 @@ class DatabaseDrivenStandardizedTitleGenerator {
         result = result.replace(/\bLADD MCCONKEY\b/gi, 'Ladd McConkey');
         result = result.replace(/\bRILEY GREENE\b/gi, 'Riley Greene');
         result = result.replace(/\bSHEDEUR SANDERS\b/gi, 'Shedeur Sanders');
+        
+        // Fix specific problematic cases from the analysis
+        result = result.replace(/\bCADE CUNNINGHAM\b/gi, 'Cade Cunningham');
+        result = result.replace(/\bDRAKE LONDON\b/gi, 'Drake London');
+        result = result.replace(/\bOSCAR PIASTRI\b/gi, 'Oscar Piastri');
+        result = result.replace(/\bKODAI SENGA\b/gi, 'Kodai Senga');
+        result = result.replace(/\bCOLTON COWSER\b/gi, 'Colton Cowser');
+        result = result.replace(/\bMANNY MACHADO\b/gi, 'Manny Machado');
+        result = result.replace(/\bTETAIROA MCMILLAN\b/gi, 'Tetairoa McMillan');
+        result = result.replace(/\bWYATT LANGFORD\b/gi, 'Wyatt Langford');
+        result = result.replace(/\bEZEQUIEL TOVAR\b/gi, 'Ezequiel Tovar');
+        result = result.replace(/\bLANDO NORRIS\b/gi, 'Lando Norris');
+        result = result.replace(/\bNIKOLA JOVIC\b/gi, 'Nikola Jovic');
+        result = result.replace(/\bMATAS BUZELIS\b/gi, 'Matas Buzelis');
+        result = result.replace(/\bJACKSON CHOURIO\b/gi, 'Jackson Chourio');
+        result = result.replace(/\bJUSTIN VERLANDER\b/gi, 'Justin Verlander');
+        result = result.replace(/\bJUSTIN JEFFERSON\b/gi, 'Justin Jefferson');
+        result = result.replace(/\bDEVONTA SMITH\b/gi, 'Devonta Smith');
+        result = result.replace(/\bKATE MARTIN\b/gi, 'Kate Martin');
+        result = result.replace(/\bNICK KURTZ\b/gi, 'Nick Kurtz');
+        result = result.replace(/\bRALPHY VELAZQUEZ\b/gi, 'Ralphy Velazquez');
+        result = result.replace(/\bTREVOR ETIENNE\b/gi, 'Trevor Etienne');
+        result = result.replace(/\bISIAH PACHECO\b/gi, 'Isiah Pacheco');
+        result = result.replace(/\bJAXON SMITH NJIGBA\b/gi, 'Jaxon Smith-Njigba');
+        result = result.replace(/\bRASHEE RICE\b/gi, 'Rashee Rice');
+        result = result.replace(/\bTYRANN MATHIEU\b/gi, 'Tyrann Mathieu');
+        result = result.replace(/\bRUSSELL WILSON\b/gi, 'Russell Wilson');
+        result = result.replace(/\bDEVIN BOOKER\b/gi, 'Devin Booker');
+        result = result.replace(/\bAUSTIN RILEY\b/gi, 'Austin Riley');
+        result = result.replace(/\bMARCO VAN BASTEN\b/gi, 'Marco Van Basten');
+        result = result.replace(/\bJARED MCCAIN\b/gi, 'Jared McCain');
+        result = result.replace(/\bSTEPHON CASTLE\b/gi, 'Stephon Castle');
+        result = result.replace(/\bREED SHEPPARD\b/gi, 'Reed Sheppard');
+        result = result.replace(/\bCHRISTIAN YELICH\b/gi, 'Christian Yelich');
+        result = result.replace(/\bARCH MANNING\b/gi, 'Arch Manning');
+        result = result.replace(/\bFRELICK\b/gi, 'Sal Frelick');
+        result = result.replace(/\bSTROUD\b/gi, 'C.J. Stroud');
+        result = result.replace(/\bHENRY BOLTE\b/gi, 'Henry Bolte');
+        result = result.replace(/\bBRYCE HARPER\b/gi, 'Bryce Harper');
+        result = result.replace(/\bCRISTIAN JAVIER\b/gi, 'Cristian Javier');
+        result = result.replace(/\bBLAZE ALEXANDER\b/gi, 'Blaze Alexander');
+        result = result.replace(/\bCHIPPER JONES\b/gi, 'Chipper Jones');
+        result = result.replace(/\bLUKE KEASCHALL\b/gi, 'Luke Keaschall');
+        result = result.replace(/\bKAYFUS\b/gi, 'C.J. Kayfus');
+        
+        // Fix obvious errors
+        result = result.replace(/\b'S BEST TRISTON CASAS\b/gi, 'Triston Casas');
+        result = result.replace(/\bBRYCE HARPER &\b/gi, 'Bryce Harper');
+        result = result.replace(/\b' FRANCISCO LINDOR\b/gi, 'Francisco Lindor');
+        result = result.replace(/\bLEO DE VRIES 'S BEST\b/gi, 'Leo De Vries');
+        result = result.replace(/\bHurston Waldrep 'S BEST\b/gi, 'Hurston Waldrep');
+        
+        // Fix extra commas and formatting
+        result = result.replace(/,\s*$/, ''); // Remove trailing comma
+        result = result.replace(/\s+,\s*/, ' '); // Remove extra spaces around comma
+        result = result.replace(/\s+$/, ''); // Remove trailing spaces
         result = result.replace(/\bJJ MCCARTHY\b/gi, 'J.J. McCarthy');
         result = result.replace(/\bXAVIER WORTHY\b/gi, 'Xavier Worthy');
         result = result.replace(/\bJORDAN LOVE\b/gi, 'Jordan Love');
