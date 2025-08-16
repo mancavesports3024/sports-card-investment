@@ -539,6 +539,29 @@ class NewPricingDatabase {
                 console.warn(`⚠️ Player name extraction failed: ${playerError.message}`);
             }
             
+            // Extract year from title - try multiple patterns
+            let year = null;
+            
+            // Try to extract year from title
+            const yearMatch = cardData.title.match(/(19|20)\d{2}/);
+            if (yearMatch) {
+                year = parseInt(yearMatch[0]);
+            }
+            
+            // If no year found, try to extract from search term or use a default
+            if (!year && cardData.searchTerm) {
+                const searchYearMatch = cardData.searchTerm.match(/(19|20)\d{2}/);
+                if (searchYearMatch) {
+                    year = parseInt(searchYearMatch[0]);
+                }
+            }
+            
+            // If still no year, use current year as fallback for modern cards
+            if (!year) {
+                year = new Date().getFullYear();
+                console.log(`⚠️ No year found in title "${cardData.title}", using current year ${year} as fallback`);
+            }
+            
             // Extract component fields using improved logic
             const cardSet = this.extractCardSet(cardData.title);
             const cardType = this.extractCardType(cardData.title);
@@ -639,29 +662,6 @@ class NewPricingDatabase {
             if (!sport || sport.trim() === '') {
                 sport = 'Unknown';
                 console.log(`⚠️ Sport detection failed for "${cardData.title}", using "Unknown"`);
-            }
-            
-            // Extract year from title - try multiple patterns
-            let year = null;
-            
-            // Try to extract year from title
-            const yearMatch = cardData.title.match(/(19|20)\d{2}/);
-            if (yearMatch) {
-                year = parseInt(yearMatch[0]);
-            }
-            
-            // If no year found, try to extract from search term or use a default
-            if (!year && cardData.searchTerm) {
-                const searchYearMatch = cardData.searchTerm.match(/(19|20)\d{2}/);
-                if (searchYearMatch) {
-                    year = parseInt(searchYearMatch[0]);
-                }
-            }
-            
-            // If still no year, use current year as fallback for modern cards
-            if (!year) {
-                year = new Date().getFullYear();
-                console.log(`⚠️ No year found in title "${cardData.title}", using current year ${year} as fallback`);
             }
             
             // Extract brand and set info
