@@ -3818,3 +3818,45 @@ app.post('/api/admin/add-summary-component-fields', async (req, res) => {
     }
 });
 
+// POST /api/admin/report-missing-components - Generate report of cards missing summary components
+app.post('/api/admin/report-missing-components', async (req, res) => {
+    try {
+        console.log('📊 Generating missing summary components report...');
+        
+        const { MissingComponentsReporter } = require('./report-missing-summary-components.js');
+        const reporter = new MissingComponentsReporter();
+        
+        await reporter.connect();
+        console.log('✅ Connected to Railway database');
+        
+        const result = await reporter.generateMissingComponentsReport();
+        
+        await reporter.close();
+        
+        console.log('\n🎉 Missing Components Report Complete!');
+        console.log(`📊 Total cards: ${result.totalCards}`);
+        console.log(`❌ Missing card_set: ${result.summary.missingCardSet}`);
+        console.log(`❌ Missing card_type: ${result.summary.missingCardType}`);
+        console.log(`❌ Missing card_number: ${result.summary.missingCardNumber}`);
+        console.log(`🚨 Missing ALL fields: ${result.summary.missingAll}`);
+        
+        res.json({ 
+            success: true, 
+            message: `Missing components report generated successfully`,
+            totalCards: result.totalCards,
+            summary: result.summary,
+            details: result.details,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error generating missing components report:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to generate missing components report', 
+            details: error.message, 
+            timestamp: new Date().toISOString() 
+        });
+    }
+});
+
