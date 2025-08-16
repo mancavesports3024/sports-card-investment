@@ -3205,6 +3205,35 @@ app.post('/api/admin/fix-specific-player-names', async (req, res) => {
                   });
               }
           });
+        
+          // POST /api/admin/run-maintenance-job - Run the complete automated maintenance job
+          app.post('/api/admin/run-maintenance-job', async (req, res) => {
+              try {
+                  console.log('🤖 Starting automated maintenance job...');
+                  
+                  const { AutomatedMaintenanceJob } = require('./automated-maintenance-job.js');
+                  const maintenanceJob = new AutomatedMaintenanceJob();
+                  
+                  const result = await maintenanceJob.runMaintenanceJob();
+                  
+                  console.log('✅ Maintenance job completed');
+                  res.json({ 
+                      success: true, 
+                      message: 'Maintenance job completed successfully',
+                      results: result,
+                      timestamp: new Date().toISOString()
+                  });
+                  
+              } catch (error) {
+                  console.error('❌ Maintenance job failed:', error);
+                  res.status(500).json({ 
+                      success: false, 
+                      error: 'Maintenance job failed', 
+                      details: error.message,
+                      timestamp: new Date().toISOString()
+                  });
+              }
+          });
 
 // POST /api/admin/run-fast-batch-pull - Run the actual fast batch pull to find new cards
 app.post('/api/admin/run-fast-batch-pull', async (req, res) => {

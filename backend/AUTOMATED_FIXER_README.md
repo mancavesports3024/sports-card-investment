@@ -189,4 +189,81 @@ The Automated Title Fixer integrates seamlessly with your existing:
 
 ---
 
+# 🤖 Automated Maintenance Job
+
+## Overview
+The Automated Maintenance Job is a comprehensive system that runs multiple maintenance tasks in sequence to keep your ScoreCard database fully optimized.
+
+## What It Does
+
+### 🔄 Complete Workflow
+1. **Fast Batch Pull:** Searches for new PSA 10 cards using 130point service
+2. **Health Check:** Analyzes database health and identifies issues
+3. **Auto Fix:** Automatically fixes any player name or summary title issues
+4. **Price Updates:** Updates prices for cards older than 10 days
+
+### 📊 Smart Logic
+- **Conditional Auto Fix:** Only runs auto fix if issues are detected
+- **Smart Price Updates:** Only updates cards that haven't been updated in 10+ days
+- **Comprehensive Reporting:** Detailed results for each step
+- **Error Handling:** Continues even if individual steps fail
+
+## Usage
+
+### Command Line
+```bash
+# Run the complete maintenance job
+node backend/run-maintenance-job.js
+
+# Or run the class directly
+node backend/automated-maintenance-job.js
+```
+
+### API Endpoint
+```http
+POST /api/admin/run-maintenance-job
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Maintenance job completed successfully",
+  "results": {
+    "success": true,
+    "results": {
+      "fastBatchPull": { "success": true, "newItems": 5, "errors": 0 },
+      "healthCheck": { "success": true, "healthScore": 99.6, "totalIssues": 2 },
+      "autoFix": { "success": true, "fixesApplied": 2, "improvement": 100 },
+      "priceUpdates": { "success": true, "updated": 15, "errors": 0 },
+      "totalDuration": 180
+    }
+  }
+}
+```
+
+## Performance
+
+- **Total Duration:** Usually 2-5 minutes
+- **Fast Batch Pull:** 1-2 minutes
+- **Health Check:** 5-10 seconds
+- **Auto Fix:** 10-30 seconds
+- **Price Updates:** 1-3 minutes
+
+## Best Practices
+
+### When to Run
+- **Daily:** For active trading and monitoring
+- **Weekly:** For regular maintenance
+- **After Major Events:** New releases, market changes
+- **Before Analysis:** Ensure data is current and clean
+
+### Monitoring
+- Track success rates over time
+- Monitor duration trends
+- Set up alerts for failed jobs
+- Review detailed reports
+
+---
+
 **🎉 Your ScoreCard database is now protected by an intelligent automated fixer that keeps your data clean and consistent!**
