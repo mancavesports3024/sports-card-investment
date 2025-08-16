@@ -3209,26 +3209,26 @@ app.post('/api/admin/fix-specific-player-names', async (req, res) => {
           // POST /api/admin/run-maintenance-job - Run the complete automated maintenance job
           app.post('/api/admin/run-maintenance-job', async (req, res) => {
               try {
-                  console.log('🤖 Starting automated maintenance job...');
+                  console.log('🤖 Starting Railway maintenance job...');
                   
-                  const AutomatedMaintenanceJob = require('./automated-maintenance-job.js');
-                  const maintenanceJob = new AutomatedMaintenanceJob();
+                  const RailwayMaintenanceJob = require('./railway-maintenance-job.js');
+                  const maintenanceJob = new RailwayMaintenanceJob();
                   
                   const result = await maintenanceJob.runMaintenanceJob();
                   
-                  console.log('✅ Maintenance job completed');
+                  console.log('✅ Railway maintenance job completed');
                   res.json({ 
                       success: true, 
-                      message: 'Maintenance job completed successfully',
-                      results: result,
+                      message: 'Railway maintenance job completed successfully',
+                      results: result.results,
                       timestamp: new Date().toISOString()
                   });
                   
               } catch (error) {
-                  console.error('❌ Maintenance job failed:', error);
+                  console.error('❌ Railway maintenance job failed:', error);
                   res.status(500).json({ 
                       success: false, 
-                      error: 'Maintenance job failed', 
+                      error: 'Railway maintenance job failed', 
                       details: error.message,
                       timestamp: new Date().toISOString()
                   });
