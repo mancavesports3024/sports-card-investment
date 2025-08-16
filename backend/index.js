@@ -738,7 +738,8 @@ app.use('/api/live-listings', require('./routes/liveListings'));
       console.error('Summary title cleanup error:', error);
       res.status(500).json({ 
         success: false, 
-        error: error.message,
+        error: 'Failed to clean summary titles', 
+        details: error.message,
         timestamp: getCentralTime()
       });
     }
@@ -3854,6 +3855,46 @@ app.post('/api/admin/report-missing-components', async (req, res) => {
         res.status(500).json({ 
             success: false, 
             error: 'Failed to generate missing components report', 
+            details: error.message, 
+            timestamp: new Date().toISOString() 
+        });
+    }
+});
+
+// POST /api/admin/improve-summary-components - Improve summary component fields with enhanced extraction
+app.post('/api/admin/improve-summary-components', async (req, res) => {
+    try {
+        console.log('🔧 Improving summary component fields...');
+        
+        const { SummaryComponentsImprover } = require('./improve-summary-components.js');
+        const improver = new SummaryComponentsImprover();
+        
+        await improver.connect();
+        console.log('✅ Connected to Railway database');
+        
+        const result = await improver.improveSummaryComponents();
+        
+        await improver.close();
+        
+        console.log('\n🎉 Summary Components Improvement Complete!');
+        console.log(`📊 Total cards processed: ${result.totalProcessed}`);
+        console.log(`🔄 Updated: ${result.updated}`);
+        console.log(`❌ Errors: ${result.errors}`);
+        
+        res.json({ 
+            success: true, 
+            message: `Summary components improved successfully`,
+            totalProcessed: result.totalProcessed,
+            updated: result.updated,
+            errors: result.errors,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error improving summary components:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to improve summary components', 
             details: error.message, 
             timestamp: new Date().toISOString() 
         });
