@@ -240,13 +240,13 @@ class SafeSummaryTitleFixer {
                 FROM cards 
                 WHERE (
                     summary_title IS NULL OR 
-                    LENGTH(summary_title) < 20 OR
+                    LENGTH(summary_title) < 30 OR
                     summary_title LIKE '%2024%' OR
                     summary_title LIKE '%2023%' OR
                     summary_title LIKE '%2010%' OR
                     summary_title LIKE '%1964%'
                 )
-                AND LENGTH(summary_title) < 40
+                AND LENGTH(summary_title) < 50
                 LIMIT 50
             `);
             
@@ -263,11 +263,11 @@ class SafeSummaryTitleFixer {
                     // Generate new summary title
                     const newSummary = this.generateStandardizedTitle(title);
                     
-                    // Only update if the new summary is better (longer and more descriptive)
-                    if (newSummary && 
-                        newSummary !== currentSummary && 
-                        newSummary.length > currentSummary.length &&
-                        newSummary.length > 15) {
+                                         // Only update if the new summary is better (longer and more descriptive)
+                     if (newSummary && 
+                         newSummary !== currentSummary && 
+                         newSummary.length > currentSummary.length &&
+                         newSummary.length > 10) {
                         
                         await this.db.runQuery(
                             'UPDATE cards SET summary_title = ? WHERE id = ?',
