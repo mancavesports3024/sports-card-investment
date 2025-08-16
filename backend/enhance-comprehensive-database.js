@@ -580,6 +580,28 @@ class EnhancedComprehensiveDatabase {
       });
     });
 
+    // Upper Deck Synergy (2020-2024)
+    ['2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Upper Deck Synergy Hockey ${year}`,
+        sport: 'Hockey',
+        year: year,
+        brand: 'Upper Deck',
+        setName: 'Synergy',
+        searchText: `upper deck synergy hockey ${year}`,
+        displayName: `Upper Deck Synergy Hockey ${year}`
+      });
+      sets.push({
+        name: `Synergy Hockey ${year}`,
+        sport: 'Hockey',
+        year: year,
+        brand: 'Upper Deck',
+        setName: 'Synergy',
+        searchText: `synergy hockey ${year}`,
+        displayName: `Synergy Hockey ${year}`
+      });
+    });
+
     return sets;
   }
 

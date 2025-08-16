@@ -450,7 +450,9 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'o-pee-chee', product: 'O-Pee-Chee' },
             { pattern: 'obsidian', product: 'Panini Obsidian' },
             { pattern: 'synergy', product: 'Upper Deck Synergy' },
-            { pattern: 'slania', product: 'Slania Stamps' }
+            { pattern: 'slania', product: 'Slania Stamps' },
+            { pattern: 'upper deck synergy hockey', product: 'Upper Deck Synergy Hockey' },
+            { pattern: 'synergy hockey', product: 'Synergy Hockey' }
         ];
         
         // Check for mixed hyphenated patterns FIRST (some words hyphenated, others not)
