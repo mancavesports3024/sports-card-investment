@@ -3422,3 +3422,31 @@ app.post('/api/admin/emergency-restore-summary-titles', async (req, res) => {
     }
 });
 
+// POST /api/admin/safe-fix-summary-titles - Safe summary title fixer
+app.post('/api/admin/safe-fix-summary-titles', async (req, res) => {
+    try {
+        console.log('🔧 Starting safe summary title fixer...');
+        
+        const { SafeSummaryTitleFixer } = require('./safe-summary-title-fixer.js');
+        const fixer = new SafeSummaryTitleFixer();
+        const result = await fixer.fixSummaryTitles();
+        
+        console.log('✅ Safe summary title fixer completed');
+        res.json({ 
+            success: true, 
+            message: 'Safe summary title fixer completed successfully',
+            result: result,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Safe summary title fixer failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Safe summary title fixer failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+

@@ -23,13 +23,9 @@
       "schedule": "0 4 * * *",
       "command": "node backend/price-updates-only.js"
     },
-    "quick-summary-fix": {
-      "schedule": "*/2 * * * *",
-      "command": "node backend/quick-summary-fix.js"
-    },
-    "fix-summary-titles-now": {
-      "schedule": "*/1 * * * *",
-      "command": "node backend/fix-summary-titles-now.js"
+    "safe-summary-fix": {
+      "schedule": "0 */6 * * *",
+      "command": "node backend/safe-summary-title-fixer.js"
     }
   }
 }
