@@ -100,7 +100,8 @@ class NewPricingDatabase {
             'CREATE INDEX IF NOT EXISTS idx_year ON cards(year)',
             'CREATE INDEX IF NOT EXISTS idx_brand ON cards(brand)',
             'CREATE INDEX IF NOT EXISTS idx_created_at ON cards(created_at)',
-            'CREATE INDEX IF NOT EXISTS idx_last_updated ON cards(last_updated)'
+            'CREATE INDEX IF NOT EXISTS idx_last_updated ON cards(last_updated)',
+            'CREATE UNIQUE INDEX IF NOT EXISTS idx_ebay_item_id ON cards(ebay_item_id) WHERE ebay_item_id IS NOT NULL'
         ];
 
         try {
@@ -671,6 +672,21 @@ class NewPricingDatabase {
             const brand = brandInfo.brand || 'Unknown';
             const setName = brandInfo.setName || 'Unknown';
             
+            // Validate data before insertion to prevent constraint violations
+            if (!title || title.trim() === '') {
+                throw new Error('Title cannot be empty');
+            }
+            
+            if (!summaryTitle || summaryTitle.trim() === '') {
+                summaryTitle = title; // Fallback to original title
+            }
+            
+            // Ensure year is a valid integer
+            if (year && (isNaN(year) || year < 1900 || year > new Date().getFullYear() + 1)) {
+                console.warn(`⚠️ Invalid year ${year} for card "${title}", using current year`);
+                year = new Date().getFullYear();
+            }
+            
             const query = `
                 INSERT INTO cards (
                     title, summary_title, sport, year, brand, set_name, 
@@ -679,27 +695,28 @@ class NewPricingDatabase {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
             
+            // Ensure all parameters are properly formatted
             const params = [
                 title, // Use truncated title
                 summaryTitle,
-                sport,
-                year,
-                brand,
-                setName,
-                this.detectCardType(cardData.title) || 'Base',
+                sport || 'Unknown',
+                year || null,
+                brand || 'Unknown',
+                setName || 'Unknown',
+                cardType || 'Base', // Use extracted cardType instead of detectCardType
                 'Raw',
                 'PSA 10',
-                cardData.price?.value || cardData.price,
+                cardData.price?.value || cardData.price || null,
                 null, // psa10_average_price will be calculated later
                 null, // multiplier will be calculated when raw prices are added
                 cardData.searchTerm || 'auto_search',
                 cardData.source || '130point_auto',
                 cardData.ebayItemId || null,
                 cardData.imageUrl || null,
-                playerName, // Add the extracted player name
-                cardSet, // Add the extracted card set
-                cardNumber, // Add the extracted card number
-                printRun // Add the extracted print run
+                playerName || null, // Add the extracted player name
+                cardSet || null, // Add the extracted card set
+                cardNumber || null, // Add the extracted card number
+                printRun || null // Add the extracted print run
             ];
             
             const result = await this.runQuery(query, params);
