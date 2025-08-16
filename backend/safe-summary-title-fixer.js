@@ -63,10 +63,12 @@ class SafeSummaryTitleFixer {
         return yearMatch ? yearMatch[0] : null;
     }
 
-    // Extract product/brand from title
+    // Extract product/brand from title using comprehensive patterns
     extractProduct(title) {
         const titleLower = title.toLowerCase();
         
+        // Most specific patterns first
+        if (titleLower.includes('bowman chrome draft')) return 'Bowman Chrome Draft';
         if (titleLower.includes('bowman chrome')) return 'Bowman Chrome';
         if (titleLower.includes('bowman draft')) return 'Bowman Draft';
         if (titleLower.includes('topps chrome')) return 'Topps Chrome';
@@ -76,11 +78,14 @@ class SafeSummaryTitleFixer {
         if (titleLower.includes('bowman')) return 'Bowman';
         if (titleLower.includes('topps')) return 'Topps';
         if (titleLower.includes('panini')) return 'Panini';
+        if (titleLower.includes('fleer')) return 'Fleer';
+        if (titleLower.includes('donruss')) return 'Donruss';
+        if (titleLower.includes('upper deck')) return 'Upper Deck';
         
         return null;
     }
 
-    // Extract player name from title (simplified, safe approach)
+    // Extract player name from title (comprehensive filtering approach)
     extractPlayer(title) {
         if (!title) return null;
         
@@ -91,7 +96,7 @@ class SafeSummaryTitleFixer {
         cleanTitle = cleanTitle.replace(/\b(19|20)\d{2}\b/g, '');
         
         // Remove card brands/sets
-        const brands = ['PANINI', 'TOPPS', 'BOWMAN', 'FLEER', 'DONRUSS', 'UPPER DECK', 'CHROME', 'PRIZM', 'SELECT'];
+        const brands = ['PANINI', 'TOPPS', 'BOWMAN', 'FLEER', 'DONRUSS', 'UPPER DECK', 'STADIUM CLUB', 'CHRONICLES', 'SCORE', 'LEAF', 'PLAYOFF', 'PRESS PASS', 'SAGE', 'PACIFIC', 'SKYBOX'];
         brands.forEach(brand => {
             cleanTitle = cleanTitle.replace(new RegExp(`\\b${brand}\\b`, 'g'), '');
         });
@@ -234,13 +239,13 @@ class SafeSummaryTitleFixer {
             await this.connect();
             await this.learnFromDatabase();
             
-            // Get ALL remaining cards with broken summary titles (no limit)
+            // Get ALL remaining cards with broken summary titles (ultra aggressive)
             const cards = await this.db.allQuery(`
                 SELECT id, title, summary_title 
                 FROM cards 
                 WHERE (
                     summary_title IS NULL OR 
-                    LENGTH(summary_title) < 60 OR
+                    LENGTH(summary_title) < 70 OR
                     summary_title LIKE '%2024%' OR
                     summary_title LIKE '%2023%' OR
                     summary_title LIKE '%2010%' OR
@@ -248,6 +253,8 @@ class SafeSummaryTitleFixer {
                     summary_title LIKE '%PSA%' OR
                     summary_title LIKE '%GEM%' OR
                     summary_title LIKE '%MINT%' OR
+                    summary_title LIKE '%GRADED%' OR
+                    summary_title LIKE '%CERT%' OR
                     (summary_title NOT LIKE '%Topps%' AND summary_title NOT LIKE '%Panini%' AND summary_title NOT LIKE '%Bowman%' AND summary_title NOT LIKE '%Fleer%' AND summary_title NOT LIKE '%Donruss%' AND summary_title NOT LIKE '%Upper Deck%')
                 )
                 ORDER BY LENGTH(summary_title) ASC
@@ -266,10 +273,10 @@ class SafeSummaryTitleFixer {
                     // Generate new summary title
                     const newSummary = this.generateStandardizedTitle(title);
                     
-                    // Only update if the new summary is better (less strict conditions)
+                    // Update if we have a valid new summary (very permissive)
                     if (newSummary && 
                         newSummary !== currentSummary && 
-                        newSummary.length > 5) { // Changed from 10 to 5
+                        newSummary.length > 3) { // Very permissive
                         
                         await this.db.runQuery(
                             'UPDATE cards SET summary_title = ? WHERE id = ?',
