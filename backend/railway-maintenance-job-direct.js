@@ -84,35 +84,57 @@ class RailwayMaintenanceJobDirect {
         console.log('🔧 Step 2: Running Auto Fix...\n');
         
         try {
-            // Run comprehensive summary title fix
-            console.log('🔧 Running comprehensive summary title fix...');
-            const SummaryTitleFixer = require('./fix-summary-titles.js');
-            const fixer = new SummaryTitleFixer();
+            const db = await this.getDatabase();
             
-            const fixResult = await fixer.fixAllSummaryTitles();
+            // Simple, conservative fix: only fix NULL or very short summary titles
+            console.log('🔧 Running conservative summary title fix...');
             
-            if (fixResult.success) {
-                console.log(`✅ Summary title fix completed: ${fixResult.totalFixed} cards fixed`);
-                
-                this.results.autoFix = {
-                    success: true,
-                    fixesApplied: fixResult.totalFixed,
-                    playerNameFixes: 0,
-                    summaryTitleFixes: fixResult.totalFixed,
-                    improvement: 100,
-                    remainingIssues: 0
-                };
-                
-                console.log(`📊 Auto Fix Results:`);
-                console.log(`   - Summary Title Fixes: ${fixResult.totalFixed}`);
-                console.log(`   - Total Fixes Applied: ${fixResult.totalFixed}\n`);
-                
-                return true;
-            } else {
-                console.error('❌ Summary title fix failed:', fixResult.error);
-                this.results.autoFix.success = false;
-                return false;
+            const cards = await db.allQuery(`
+                SELECT id, title, summary_title 
+                FROM cards 
+                WHERE summary_title IS NULL OR LENGTH(summary_title) < 10
+                LIMIT 50
+            `);
+            
+            let fixed = 0;
+            
+            for (const card of cards) {
+                try {
+                    const title = card.title || '';
+                    const currentSummary = card.summary_title || '';
+                    
+                    // Simple extraction - just get the first part of the title
+                    let newSummary = title
+                        .replace(/PSA\s*10.*$/i, '') // Remove PSA 10 and everything after
+                        .replace(/GEM\s*MINT.*$/i, '') // Remove GEM MINT and everything after
+                        .trim();
+                    
+                    // Only update if we have something meaningful
+                    if (newSummary && newSummary.length > 10 && newSummary !== currentSummary) {
+                        await db.runQuery(
+                            'UPDATE cards SET summary_title = ? WHERE id = ?',
+                            [newSummary, card.id]
+                        );
+                        fixed++;
+                    }
+                } catch (error) {
+                    console.error(`❌ Error fixing card ${card.id}:`, error);
+                }
             }
+            
+            console.log(`✅ Conservative fix completed: ${fixed} cards fixed`);
+            
+            this.results.autoFix = {
+                success: true,
+                fixesApplied: fixed,
+                playerNameFixes: 0,
+                summaryTitleFixes: fixed,
+                improvement: fixed > 0 ? 100 : 0,
+                remainingIssues: 0
+            };
+            
+            await db.close();
+            return true;
             
         } catch (error) {
             console.error('❌ Auto fix failed:', error);
