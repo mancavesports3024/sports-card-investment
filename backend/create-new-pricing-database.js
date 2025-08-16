@@ -521,10 +521,19 @@ class NewPricingDatabase {
             // Initialize title generator if not already done
             await this.initializeTitleGenerator();
             
-            // Generate standardized summary title using database-driven approach
+            // Extract player name using the improved logic
+            let playerName = null;
+            try {
+                playerName = this.titleGenerator.extractPlayer(cardData.title);
+                console.log(`🎯 Extracted player name: "${playerName}" from "${cardData.title}"`);
+            } catch (playerError) {
+                console.warn(`⚠️ Player name extraction failed: ${playerError.message}`);
+            }
+            
+            // Generate standardized summary title using database-driven approach with player name
             let summaryTitle;
             try {
-                summaryTitle = this.titleGenerator.generateStandardizedTitle(cardData.title);
+                summaryTitle = this.titleGenerator.generateStandardizedTitle(cardData.title, playerName);
                 console.log(`🎯 Generated standardized title: "${cardData.title}" → "${summaryTitle}"`);
             } catch (titleError) {
                 console.warn(`⚠️ Standardized title generation failed, falling back to simple cleaning: ${titleError.message}`);
@@ -592,8 +601,8 @@ class NewPricingDatabase {
                 INSERT INTO cards (
                     title, summary_title, sport, year, brand, set_name, 
                     card_type, condition, grade, psa10_price, psa10_average_price, multiplier, search_term, 
-                    source, ebay_item_id, image_url
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    source, ebay_item_id, image_url, player_name
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
             
             const params = [
@@ -612,7 +621,8 @@ class NewPricingDatabase {
                 cardData.searchTerm || 'auto_search',
                 cardData.source || '130point_auto',
                 cardData.ebayItemId || null,
-                cardData.imageUrl || null
+                cardData.imageUrl || null,
+                playerName // Add the extracted player name
             ];
             
             const result = await this.runQuery(query, params);
