@@ -73,7 +73,6 @@ class SummaryTitleCleaner {
         const extraWords = [
             'PSA 10', 'PSA', 'GEM MINT', 'GEM MT', 'GEM', 'MINT', 'CERT',
             'ROOKIE', 'RC', 'Rookie Card', 'Rookie RC', '1st RC', '1st Rookie',
-            'World Champion Boxers', 'Muhammad Ali', 'Boxers',
             'Luck of Lottery', 'Luck of the Lottery', 'LUCK OF LOTTERY',
             'Dragon Scale Prizm', 'Dragon Scale', 'DRAGON SCALE',
             'Blue Refractor', 'BLUE REFRACTOR', 'Refractor',

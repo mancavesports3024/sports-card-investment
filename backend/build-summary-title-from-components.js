@@ -66,8 +66,11 @@ class SummaryTitleBuilder {
             summaryTitle += card_set;
         }
         
-        // Add player name
-        if (player_name) {
+        // Add player name (but not if it's already in the card set)
+        if (player_name && card_set && !card_set.toLowerCase().includes(player_name.toLowerCase())) {
+            if (summaryTitle) summaryTitle += ' ';
+            summaryTitle += player_name;
+        } else if (player_name && !card_set) {
             if (summaryTitle) summaryTitle += ' ';
             summaryTitle += player_name;
         }
