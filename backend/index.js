@@ -3145,8 +3145,66 @@ app.post('/api/admin/fix-specific-player-names', async (req, res) => {
     }
 });
 
-// Initialize token refresh on startup
-initializeServer().catch(console.error);
+          // Initialize token refresh on startup
+          initializeServer().catch(console.error);
+        
+          // POST /api/admin/run-automated-fix - Run the automated title fixer
+          app.post('/api/admin/run-automated-fix', async (req, res) => {
+              try {
+                  console.log('🤖 Starting automated title fixer...');
+                  
+                  const { AutomatedTitleFixer } = require('./automated-title-fixer.js');
+                  const fixer = new AutomatedTitleFixer();
+                  
+                  const result = await fixer.runAutomatedFix();
+                  
+                  console.log('✅ Automated fix completed');
+                  res.json({ 
+                      success: true, 
+                      message: 'Automated fix completed successfully',
+                      results: result,
+                      timestamp: new Date().toISOString()
+                  });
+                  
+              } catch (error) {
+                  console.error('❌ Automated fix failed:', error);
+                  res.status(500).json({ 
+                      success: false, 
+                      error: 'Automated fix failed', 
+                      details: error.message,
+                      timestamp: new Date().toISOString()
+                  });
+              }
+          });
+        
+          // POST /api/admin/health-check - Run a health check
+          app.post('/api/admin/health-check', async (req, res) => {
+              try {
+                  console.log('🏥 Running health check...');
+                  
+                  const { AutomatedTitleFixer } = require('./automated-title-fixer.js');
+                  const fixer = new AutomatedTitleFixer();
+                  
+                  const health = await fixer.healthCheck();
+                  
+                  console.log('✅ Health check completed');
+                  res.json({ 
+                      success: true, 
+                      message: 'Health check completed successfully',
+                      health: health,
+                      timestamp: new Date().toISOString()
+                  });
+                  
+              } catch (error) {
+                  console.error('❌ Health check failed:', error);
+                  res.status(500).json({ 
+                      success: false, 
+                      error: 'Health check failed', 
+                      details: error.message,
+                      timestamp: new Date().toISOString()
+                  });
+              }
+          });
 
 // POST /api/admin/run-fast-batch-pull - Run the actual fast batch pull to find new cards
 app.post('/api/admin/run-fast-batch-pull', async (req, res) => {
