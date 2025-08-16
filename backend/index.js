@@ -3478,3 +3478,31 @@ app.post('/api/admin/simple-fix-summary-titles', async (req, res) => {
     }
 });
 
+// POST /api/admin/comprehensive-fix-summary-titles - Comprehensive summary title fixer
+app.post('/api/admin/comprehensive-fix-summary-titles', async (req, res) => {
+    try {
+        console.log('🔧 Starting comprehensive summary title fixer...');
+        
+        const { ComprehensiveSummaryFixer } = require('./comprehensive-summary-fix.js');
+        const fixer = new ComprehensiveSummaryFixer();
+        const result = await fixer.fixSummaryTitles();
+        
+        console.log('✅ Comprehensive summary title fixer completed');
+        res.json({ 
+            success: true, 
+            message: 'Comprehensive summary title fixer completed successfully',
+            result: result,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Comprehensive summary title fixer failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Comprehensive summary title fixer failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
