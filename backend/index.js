@@ -3325,6 +3325,7 @@ app.post('/api/admin/quick-fix-summary-titles', async (req, res) => {
     try {
         console.log('🔧 Starting quick summary title fix...');
         
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
         const db = new NewPricingDatabase();
         await db.connect();
         
