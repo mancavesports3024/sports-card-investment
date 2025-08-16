@@ -1,8 +1,11 @@
 const NewPricingDatabase = require('./create-new-pricing-database.js');
+const path = require('path');
 
 class RailwayMaintenanceJob {
     constructor() {
         this.db = new NewPricingDatabase();
+        // Override the database path to use the correct one
+        this.db.pricingDbPath = path.join(__dirname, 'data', 'new-scorecard.db');
         this.results = {
             fastBatchPull: { success: false, newItems: 0, errors: 0 },
             healthCheck: { success: false, healthScore: 0, issues: 0 },
