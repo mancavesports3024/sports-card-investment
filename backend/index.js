@@ -3105,6 +3105,10 @@ app.post('/api/admin/fix-specific-player-names', async (req, res) => {
             {
                 id: 549, // Sal Frelick card
                 correctPlayerName: "Sal Frelick"
+            },
+            {
+                id: 341, // CJ Kayfus card (empty player name)
+                correctPlayerName: "C.J. Kayfus"
             }
         ];
         
