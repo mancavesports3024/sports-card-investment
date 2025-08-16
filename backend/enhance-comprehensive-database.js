@@ -26,6 +26,9 @@ class EnhancedComprehensiveDatabase {
       // Add individual card data
       await this.addIndividualCardData();
       
+      // Add other collectibles
+      await this.addOtherCollectibles();
+      
       const stats = await this.getDatabaseStats();
       console.log('✅ Database enhancement completed!');
       console.log(`📈 Final stats: ${stats.sets} sets, ${stats.cards} cards, ${stats.size} bytes`);
@@ -116,7 +119,10 @@ class EnhancedComprehensiveDatabase {
         ...this.generateHockeySets(),
         
         // Soccer (1990-2024)
-        ...this.generateSoccerSets()
+        ...this.generateSoccerSets(),
+        
+        // Other Collectibles
+        ...this.generateOtherCollectibles()
       ];
 
       db.serialize(() => {
@@ -240,6 +246,28 @@ class EnhancedComprehensiveDatabase {
       });
     });
 
+    // Panini Obsidian (2020-2024)
+    ['2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Obsidian Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Panini',
+        setName: 'Obsidian',
+        searchText: `panini obsidian football ${year}`,
+        displayName: `Panini Obsidian Football ${year}`
+      });
+      sets.push({
+        name: `Obsidian Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Panini',
+        setName: 'Obsidian',
+        searchText: `obsidian football ${year}`,
+        displayName: `Obsidian Football ${year}`
+      });
+    });
+
     // Topps Chrome (1997-2024)
     ['1997', '1998', '1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
       sets.push({
@@ -308,6 +336,28 @@ class EnhancedComprehensiveDatabase {
         setName: 'Upper Deck',
         searchText: `upper deck basketball ${year}`,
         displayName: `Upper Deck Basketball ${year}`
+      });
+    });
+
+    // Upper Deck Synergy (2020-2024)
+    ['2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Upper Deck Synergy Basketball ${year}`,
+        sport: 'Basketball',
+        year: year,
+        brand: 'Upper Deck',
+        setName: 'Synergy',
+        searchText: `upper deck synergy basketball ${year}`,
+        displayName: `Upper Deck Synergy Basketball ${year}`
+      });
+      sets.push({
+        name: `Synergy Basketball ${year}`,
+        sport: 'Basketball',
+        year: year,
+        brand: 'Upper Deck',
+        setName: 'Synergy',
+        searchText: `synergy basketball ${year}`,
+        displayName: `Synergy Basketball ${year}`
       });
     });
 
@@ -613,6 +663,74 @@ class EnhancedComprehensiveDatabase {
             card.displayName
           ], (err) => {
             if (err) console.error(`❌ Error inserting card ${index}:`, err);
+            
+            completed++;
+            if (completed === total) {
+              stmt.finalize((err) => {
+                if (err) {
+                  db.close();
+                  reject(err);
+                } else {
+                  db.close((err) => {
+                    if (err) reject(err);
+                    else resolve();
+                  });
+                }
+              });
+            }
+          });
+        });
+      });
+    });
+  }
+
+  generateOtherCollectibles() {
+    const sets = [];
+    
+    // Slania Stamps (1960s-2000s)
+    ['1960', '1961', '1962', '1963', '1964', '1965', '1966', '1967', '1968', '1969', '1970', '1971', '1972', '1973', '1974', '1975', '1976', '1977', '1978', '1979', '1980', '1981', '1982', '1983', '1984', '1985', '1986', '1987', '1988', '1989', '1990', '1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999', '2000'].forEach(year => {
+      sets.push({
+        name: `Slania Stamps ${year}`,
+        sport: 'Stamps',
+        year: year,
+        brand: 'Slania',
+        setName: 'Stamps',
+        searchText: `slania stamps ${year}`,
+        displayName: `Slania Stamps ${year}`
+      });
+    });
+
+    return sets;
+  }
+
+  async addOtherCollectibles() {
+    return new Promise((resolve, reject) => {
+      const db = new sqlite3.Database(this.dbPath);
+      
+      const otherCollectibles = this.generateOtherCollectibles();
+
+      db.serialize(() => {
+        const stmt = db.prepare(`
+          INSERT OR REPLACE INTO sets
+          (name, sport, year, brand, setName, source, searchText, displayName)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+
+        let completed = 0;
+        const total = otherCollectibles.length;
+
+        otherCollectibles.forEach((set, index) => {
+          stmt.run([
+            set.name,
+            set.sport,
+            set.year,
+            set.brand,
+            set.setName,
+            'other_collectibles',
+            set.searchText,
+            set.displayName
+          ], (err) => {
+            if (err) console.error(`❌ Error inserting other collectible ${index}:`, err);
             
             completed++;
             if (completed === total) {
