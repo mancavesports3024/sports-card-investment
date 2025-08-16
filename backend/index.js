@@ -3901,3 +3901,45 @@ app.post('/api/admin/improve-summary-components', async (req, res) => {
     }
 });
 
+// POST /api/admin/rebuild-summary-titles - Rebuild summary titles from component fields
+app.post('/api/admin/rebuild-summary-titles', async (req, res) => {
+    try {
+        console.log('🔨 Rebuilding summary titles from components...');
+        
+        const { SummaryTitleBuilder } = require('./build-summary-title-from-components.js');
+        const builder = new SummaryTitleBuilder();
+        
+        await builder.connect();
+        console.log('✅ Connected to Railway database');
+        
+        const result = await builder.rebuildAllSummaryTitles();
+        
+        await builder.close();
+        
+        console.log('\n🎉 Summary Title Rebuild Complete!');
+        console.log(`📊 Total cards processed: ${result.totalProcessed}`);
+        console.log(`✅ Updated: ${result.updated} cards`);
+        console.log(`⏭️ Unchanged: ${result.unchanged} cards`);
+        console.log(`❌ Errors: ${result.errors} cards`);
+        
+        res.json({
+            success: true,
+            message: 'Summary titles rebuilt successfully from components',
+            totalProcessed: result.totalProcessed,
+            updated: result.updated,
+            unchanged: result.unchanged,
+            errors: result.errors,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error rebuilding summary titles:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error rebuilding summary titles',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
