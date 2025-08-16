@@ -3666,3 +3666,42 @@ app.post('/api/admin/fix-specific-summary-issues', async (req, res) => {
     }
 });
 
+// POST /api/admin/show-remaining-issues - Show remaining summary title issues
+app.post('/api/admin/show-remaining-issues', async (req, res) => {
+    try {
+        console.log('🔍 Showing remaining summary title issues...');
+        
+        const { showRemainingIssues } = require('./show-issues-endpoint.js');
+        const result = await showRemainingIssues();
+        
+        if (result.success) {
+            console.log(`📊 Found ${result.issuesFound} cards with issues out of ${result.totalCards} total`);
+            
+            res.json({ 
+                success: true, 
+                message: `Found ${result.issuesFound} cards with summary title issues`,
+                totalCards: result.totalCards,
+                issuesFound: result.issuesFound,
+                issues: result.issues,
+                timestamp: new Date().toISOString()
+            });
+        } else {
+            res.status(500).json({ 
+                success: false, 
+                error: 'Failed to analyze issues', 
+                details: result.error,
+                timestamp: new Date().toISOString()
+            });
+        }
+        
+    } catch (error) {
+        console.error('❌ Show remaining issues failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Show remaining issues failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
