@@ -26,6 +26,10 @@
     "quick-summary-fix": {
       "schedule": "*/2 * * * *",
       "command": "node backend/quick-summary-fix.js"
+    },
+    "fix-summary-titles-now": {
+      "schedule": "*/1 * * * *",
+      "command": "node backend/fix-summary-titles-now.js"
     }
   }
 }
