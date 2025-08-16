@@ -3144,3 +3144,33 @@ app.post('/api/admin/fix-specific-player-names', async (req, res) => {
 // Initialize token refresh on startup
 initializeServer().catch(console.error);
 
+// POST /api/admin/run-fast-batch-pull - Run the actual fast batch pull to find new cards
+app.post('/api/admin/run-fast-batch-pull', async (req, res) => {
+    try {
+        console.log('🚀 Starting fast batch pull to find new PSA 10 cards...');
+        
+        const { FastBatchItemsPuller } = require('./fast-batch-pull-new-items.js');
+        const puller = new FastBatchItemsPuller();
+        
+        await puller.connect();
+        const result = await puller.pullNewItems();
+        
+        console.log('✅ Fast batch pull completed successfully');
+        res.json({ 
+            success: true, 
+            message: 'Fast batch pull completed successfully',
+            results: result,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Fast batch pull failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Fast batch pull failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
