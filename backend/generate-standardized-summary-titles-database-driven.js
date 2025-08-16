@@ -331,6 +331,9 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'panini donruss optic', product: 'Panini Donruss Optic' },
             { pattern: 'donruss optic', product: 'Donruss Optic' },
             { pattern: 'panini donruss', product: 'Panini Donruss' },
+            { pattern: 'panini obsidian', product: 'Panini Obsidian' },
+            { pattern: 'upper deck synergy', product: 'Upper Deck Synergy' },
+            { pattern: 'slania stamps', product: 'Slania Stamps' },
             { pattern: 'bowman chrome draft', product: 'Bowman Chrome Draft' },
             { pattern: 'bowman chrome', product: 'Bowman Chrome' },
             { pattern: 'bowman draft', product: 'Bowman Draft' },
@@ -444,7 +447,10 @@ class DatabaseDrivenStandardizedTitleGenerator {
             { pattern: 'o-pee-chee', product: 'O-Pee-Chee' },
             { pattern: 'o-pee-chee', product: 'O-Pee-Chee' },
             { pattern: 'o pee chee', product: 'O-Pee-Chee' },
-            { pattern: 'o-pee-chee', product: 'O-Pee-Chee' }
+            { pattern: 'o-pee-chee', product: 'O-Pee-Chee' },
+            { pattern: 'obsidian', product: 'Panini Obsidian' },
+            { pattern: 'synergy', product: 'Upper Deck Synergy' },
+            { pattern: 'slania', product: 'Slania Stamps' }
         ];
         
         // Check for mixed hyphenated patterns FIRST (some words hyphenated, others not)

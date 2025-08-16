@@ -514,6 +514,15 @@ class SummaryComponentsImprover {
         const titleLower = title.toLowerCase();
 
         // Fix specific missing card sets
+        if (titleLower.includes('obsidian') && !titleLower.includes('panini obsidian')) {
+            return 'Panini Obsidian';
+        }
+        if (titleLower.includes('synergy') && !titleLower.includes('upper deck synergy')) {
+            return 'Upper Deck Synergy';
+        }
+        if (titleLower.includes('slania stamps') || titleLower.includes('slania')) {
+            return 'Slania Stamps';
+        }
         if (titleLower.includes('prizm') && !titleLower.includes('panini prizm')) {
             return 'Panini Prizm';
         }
