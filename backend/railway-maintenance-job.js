@@ -4,7 +4,7 @@ const fs = require('fs');
 
 class RailwayMaintenanceJob {
     constructor() {
-        this.dbPath = path.join(__dirname, 'new-scorecard.db');
+        this.dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
         this.results = {
             fastBatchPull: { success: false, newItems: 0, errors: 0 },
             healthCheck: { success: false, healthScore: 0, issues: 0 },
