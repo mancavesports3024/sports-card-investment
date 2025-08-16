@@ -14,6 +14,21 @@
         "name": "update-existing-prices",
         "schedule": "0 2 * * *",
         "command": "node update-prices.js"
+      },
+      {
+        "name": "maintenance-job",
+        "schedule": "0 4 * * *",
+        "command": "node railway-maintenance-job-direct.js"
+      },
+      {
+        "name": "summary-title-fix",
+        "schedule": "0 5 * * *",
+        "command": "node railway-summary-title-fix.js"
+      },
+      {
+        "name": "summary-title-fix-now",
+        "schedule": "*/5 * * * *",
+        "command": "node run-summary-title-fix-now.js"
       }
     ]
   }

@@ -10,69 +10,45 @@
  * node backend/run-railway-maintenance-direct.js
  */
 
-const RailwayMaintenanceJob = require('./railway-maintenance-job.js');
+const RailwayMaintenanceJobDirect = require('./railway-maintenance-job-direct.js');
 
 async function main() {
-    console.log('🤖 Railway Maintenance Job - Direct Runner\n');
-    console.log('🔄 Starting maintenance job directly on Railway...\n');
-    console.log('📋 This job will:');
-    console.log('   1. Check database health');
-    console.log('   2. Auto-fix any issues found (player names, summary titles)');
-    console.log('   3. Update prices for items older than 10 days\n');
+    console.log('🤖 Railway Maintenance Job Runner (Direct)\n');
+    console.log('🔄 This will run the maintenance job directly on Railway database:\n');
+    console.log('   1. Health check (analyze database)');
+    console.log('   2. Auto fix (fix any issues found)');
+    console.log('   3. Price updates (for items older than 10 days)\n');
     
-    const startTime = Date.now();
+    const maintenanceJob = new RailwayMaintenanceJobDirect();
     
     try {
-        // Create and run the maintenance job
-        const maintenanceJob = new RailwayMaintenanceJob();
         const result = await maintenanceJob.runMaintenanceJob();
         
-        const endTime = Date.now();
-        const totalDuration = Math.round((endTime - startTime) / 1000);
-        
-        console.log('\n🎯 MAINTENANCE JOB COMPLETED\n');
-        console.log('=' .repeat(60));
-        
         if (result.success) {
-            console.log('✅ SUCCESS: All maintenance tasks completed successfully!');
+            console.log('\n🎉 SUCCESS! Railway maintenance job completed successfully!');
         } else {
-            console.log('⚠️  WARNING: Some maintenance tasks had issues');
+            console.log('\n⚠️  WARNING! Railway maintenance job completed with some issues');
             if (result.error) {
                 console.log(`Error: ${result.error}`);
             }
         }
         
-        console.log(`\n⏱️  Total Execution Time: ${totalDuration} seconds`);
-        console.log('📅 Completed at:', new Date().toISOString());
-        
-        // Exit with appropriate code
-        process.exit(result.success ? 0 : 1);
+        console.log('\n✨ Process completed!');
         
     } catch (error) {
-        console.error('\n❌ CRITICAL ERROR: Maintenance job failed completely');
-        console.error('Error details:', error.message);
-        console.error('Stack trace:', error.stack);
-        
-        const endTime = Date.now();
-        const totalDuration = Math.round((endTime - startTime) / 1000);
-        console.log(`\n⏱️  Total Execution Time: ${totalDuration} seconds`);
-        console.log('📅 Failed at:', new Date().toISOString());
-        
+        console.error('\n❌ FAILED! Railway maintenance job failed:', error);
         process.exit(1);
     }
 }
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-    process.exit(1);
-});
-
-// Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-    console.error('❌ Uncaught Exception:', error);
+// Handle errors
+process.on('unhandledRejection', (error) => {
+    console.error('❌ Unhandled error:', error);
     process.exit(1);
 });
 
 // Run the main function
-main();
+main().catch(error => {
+    console.error('❌ Main error:', error);
+    process.exit(1);
+});

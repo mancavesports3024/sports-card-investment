@@ -1,4 +1,4 @@
-// Trigger redeploy - trivial change
+// Trigger redeploy - Summary title fix deployment
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -3211,8 +3211,8 @@ app.post('/api/admin/fix-specific-player-names', async (req, res) => {
               try {
                   console.log('🤖 Starting Railway maintenance job...');
                   
-                  const RailwayMaintenanceJob = require('./railway-maintenance-job.js');
-                  const maintenanceJob = new RailwayMaintenanceJob();
+                  const RailwayMaintenanceJobDirect = require('./railway-maintenance-job-direct.js');
+                  const maintenanceJob = new RailwayMaintenanceJobDirect();
                   
                   const result = await maintenanceJob.runMaintenanceJob();
                   
@@ -3259,6 +3259,35 @@ app.post('/api/admin/run-fast-batch-pull', async (req, res) => {
         res.status(500).json({ 
             success: false, 
             error: 'Fast batch pull failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// POST /api/admin/fix-summary-titles - Fix all summary titles in the database
+app.post('/api/admin/fix-summary-titles', async (req, res) => {
+    try {
+        console.log('🔧 Starting summary title fix...');
+        
+        const SummaryTitleFixer = require('./fix-summary-titles.js');
+        const fixer = new SummaryTitleFixer();
+        
+        const result = await fixer.fixAllSummaryTitles();
+        
+        console.log('✅ Summary title fix completed');
+        res.json({ 
+            success: true, 
+            message: 'Summary title fix completed successfully',
+            results: result,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Summary title fix failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Summary title fix failed', 
             details: error.message,
             timestamp: new Date().toISOString()
         });

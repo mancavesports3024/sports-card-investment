@@ -1,10 +1,9 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const NewPricingDatabase = require('./create-new-pricing-database.js');
 
 class RailwayMaintenanceJob {
     constructor() {
-        // Use the exact path where the database with data exists
-        this.dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
+        // Use the same database class that the website API uses
+        this.db = new NewPricingDatabase();
         this.results = {
             fastBatchPull: { success: false, newItems: 0, errors: 0 },
             healthCheck: { success: false, healthScore: 0, issues: 0 },
@@ -15,44 +14,19 @@ class RailwayMaintenanceJob {
     }
 
     // Get database connection
-    getDatabase() {
-        return new Promise((resolve, reject) => {
-            const db = new sqlite3.Database(this.dbPath, (err) => {
-                if (err) {
-                    console.error('❌ Database connection failed:', err.message);
-                    reject(err);
-                } else {
-                    console.log('✅ Connected to database at:', this.dbPath);
-                    resolve(db);
-                }
-            });
-        });
+    async getDatabase() {
+        await this.db.connect();
+        return this.db; // Return the database class instance
     }
 
     // Run SQL query
     async runQuery(db, sql, params = []) {
-        return new Promise((resolve, reject) => {
-            db.all(sql, params, (err, rows) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(rows);
-                }
-            });
-        });
+        return await db.allQuery(sql, params);
     }
 
     // Run SQL update
     async runUpdate(db, sql, params = []) {
-        return new Promise((resolve, reject) => {
-            db.run(sql, params, function(err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve({ changes: this.changes, lastID: this.lastID });
-                }
-            });
-        });
+        return await db.runQuery(sql, params);
     }
 
     // Step 1: Health Check
@@ -69,16 +43,19 @@ class RailwayMaintenanceJob {
             let summaryTitleIssues = 0;
             
             cards.forEach(card => {
-                const playerName = card.player_name || '';
+                const title = card.title || '';
                 const summaryTitle = card.summary_title || '';
                 
-                // Check player name issues
-                if (!playerName || playerName.length <= 2 || playerName === playerName.toUpperCase()) {
+                // Extract player name from title (first part before any card details)
+                const playerName = title.split(' ').slice(0, 2).join(' ').trim();
+                
+                // Check player name issues (if we can extract one)
+                if (playerName && (playerName.length <= 2 || playerName === playerName.toUpperCase())) {
                     playerNameIssues++;
                 }
                 
                 // Check summary title issues
-                if (!summaryTitle || !summaryTitle.includes(playerName) || 
+                if (!summaryTitle || (playerName && !summaryTitle.includes(playerName)) || 
                     !summaryTitle.match(/\b(Topps|Panini|Upper Deck|Donruss|Fleer|Bowman)\b/i)) {
                     summaryTitleIssues++;
                 }
@@ -130,11 +107,15 @@ class RailwayMaintenanceJob {
                 let needsUpdate = false;
                 let updates = {};
                 
-                // Fix player name issues
-                const playerName = card.player_name || '';
+                // Extract player name from title
+                const title = card.title || '';
+                const playerName = title.split(' ').slice(0, 2).join(' ').trim();
+                
+                // Fix player name issues in title
                 if (playerName && playerName.length > 2 && playerName === playerName.toUpperCase()) {
                     const fixedPlayerName = playerName.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
-                    updates.player_name = fixedPlayerName;
+                    const newTitle = title.replace(playerName, fixedPlayerName);
+                    updates.title = newTitle;
                     needsUpdate = true;
                     playerNameFixes++;
                     console.log(`✅ Fixed player name for card ${card.id}: "${playerName}" → "${fixedPlayerName}"`);
@@ -142,7 +123,7 @@ class RailwayMaintenanceJob {
                 
                 // Fix summary title issues
                 const summaryTitle = card.summary_title || '';
-                const currentPlayerName = updates.player_name || playerName;
+                const currentPlayerName = updates.title ? updates.title.split(' ').slice(0, 2).join(' ').trim() : playerName;
                 
                 if (summaryTitle && currentPlayerName && !summaryTitle.includes(currentPlayerName)) {
                     // Try to add player name to summary title
