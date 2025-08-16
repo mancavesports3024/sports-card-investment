@@ -852,6 +852,14 @@ class DatabaseDrivenStandardizedTitleGenerator {
         result = result.replace(/\bCOOPER DEJEAN\b/gi, 'Cooper DeJean');
         result = result.replace(/\bTIM DUNCAN\b/gi, 'Tim Duncan');
         
+        // Fix the remaining problematic cases
+        result = result.replace(/\b'S BEST\b/gi, ''); // Remove "'S BEST" from any player name
+        result = result.replace(/\b' \b/gi, ''); // Remove leading apostrophe and space
+        result = result.replace(/\bCOLLECTION\b/gi, ''); // Remove "COLLECTION" from player names
+        result = result.replace(/\bMETS\b/gi, ''); // Remove "METS" from player names
+        result = result.replace(/\bTP\b/gi, ''); // Remove "TP" from player names
+        result = result.replace(/\bRSJJM\b/gi, ''); // Remove "RSJJM" from player names
+        
         // Fix extra commas and formatting
         result = result.replace(/,\s*$/, ''); // Remove trailing comma
         result = result.replace(/\s+,\s*/, ' '); // Remove extra spaces around comma
