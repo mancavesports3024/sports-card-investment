@@ -22,6 +22,10 @@
     "price-updates": {
       "schedule": "0 4 * * *",
       "command": "node backend/price-updates-only.js"
+    },
+    "quick-summary-fix": {
+      "schedule": "*/2 * * * *",
+      "command": "node backend/quick-summary-fix.js"
     }
   }
 }
