@@ -197,6 +197,8 @@ class SummaryComponentsImprover {
             { pattern: /\b(vinyl)\b/gi, name: 'Vinyl' },
             // Premium Set
             { pattern: /\b(premium set)\b/gi, name: 'Premium Set' },
+            // World Champion Boxers
+            { pattern: /\b(world champion boxers)\b/gi, name: 'World Champion Boxers' },
             // Checkerboard
             { pattern: /\b(checkerboard)\b/gi, name: 'Checkerboard' },
             // Die-cut

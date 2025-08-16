@@ -659,7 +659,10 @@ class EnhancedComprehensiveDatabase {
         
         // Pokemon cards
         { name: 'Charizard', sport: 'Pokemon', year: '1999', brand: 'Wizards of the Coast', setName: 'Base Set', cardNumber: '4', searchText: 'charizard 1999 base set', displayName: 'Charizard 1999 Base Set #4' },
-        { name: 'Pikachu', sport: 'Pokemon', year: '1999', brand: 'Wizards of the Coast', setName: 'Base Set', cardNumber: '58', searchText: 'pikachu 1999 base set', displayName: 'Pikachu 1999 Base Set #58' }
+        { name: 'Pikachu', sport: 'Pokemon', year: '1999', brand: 'Wizards of the Coast', setName: 'Base Set', cardNumber: '58', searchText: 'pikachu 1999 base set', displayName: 'Pikachu 1999 Base Set #58' },
+        
+        // Boxing/Stamps
+        { name: 'Muhammad Ali', sport: 'Boxing', year: '1964', brand: 'Slania', setName: 'Stamps Cassius Clay', cardNumber: '23', searchText: 'muhammad ali 1964 slania stamps cassius clay', displayName: 'Muhammad Ali 1964 Slania Stamps Cassius Clay #23' }
       ];
 
       db.serialize(() => {
@@ -720,6 +723,17 @@ class EnhancedComprehensiveDatabase {
         searchText: `slania stamps ${year}`,
         displayName: `Slania Stamps ${year}`
       });
+    });
+
+    // Specific Muhammad Ali Cassius Clay set
+    sets.push({
+      name: 'Slania Stamps Cassius Clay',
+      sport: 'Boxing',
+      year: '1964',
+      brand: 'Slania',
+      setName: 'Stamps Cassius Clay',
+      searchText: 'slania stamps cassius clay',
+      displayName: 'Slania Stamps Cassius Clay'
     });
 
     return sets;
