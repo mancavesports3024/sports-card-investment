@@ -79,14 +79,23 @@ class FastBatchItemsPuller {
     }
 
     // Check if card already exists (optimized)
-    async cardExists(title, price) {
-        const query = `
+    async cardExists(title, price, ebayItemId) {
+        let query = `
             SELECT id FROM cards 
             WHERE title = ?
-            LIMIT 1
         `;
         
-        const row = await this.db.getQuery(query, [title]);
+        let params = [title];
+        
+        // Also check for duplicate eBay item ID if available
+        if (ebayItemId) {
+            query += ` OR ebay_item_id = ?`;
+            params.push(ebayItemId);
+        }
+        
+        query += ` LIMIT 1`;
+        
+        const row = await this.db.getQuery(query, params);
         return !!row;
     }
 
@@ -98,12 +107,15 @@ class FastBatchItemsPuller {
         } catch (error) {
             // Handle specific constraint errors
             if (error.code === 'SQLITE_CONSTRAINT') {
-                if (error.message.includes('Card with this title already exists')) {
-                    console.log(`⚠️ Skipping duplicate card: "${cardData.title}"`);
-                } else if (error.message.includes('Valid year')) {
-                    console.log(`⚠️ Skipping card with invalid year: "${cardData.title}"`);
-                } else {
-                    console.log(`⚠️ Database constraint error for card: "${cardData.title}" - ${error.message}`);
+                console.log(`⚠️ Database constraint error for card: "${cardData.title}"`);
+                console.log(`   Error details: ${error.message}`);
+                console.log(`   eBay Item ID: ${cardData.ebayItemId || 'N/A'}`);
+                console.log(`   Price: ${cardData.price?.value || cardData.price || 'N/A'}`);
+                
+                // Check if it's likely a duplicate
+                const exists = await this.cardExists(cardData.title, cardData.price?.value || cardData.price, cardData.ebayItemId);
+                if (exists) {
+                    console.log(`   ⚠️ Card already exists in database, skipping`);
                 }
             } else {
                 console.log(`❌ Error adding card: "${cardData.title}" - ${error.message}`);
@@ -135,7 +147,7 @@ class FastBatchItemsPuller {
                 continue;
             }
             
-            const exists = await this.cardExists(item.title, item.price?.value || item.price);
+            const exists = await this.cardExists(item.title, item.price?.value || item.price, item.ebayItemId);
             if (!exists) {
                 item.searchTerm = searchTerm;
                 item.source = '130point_auto';
