@@ -3153,7 +3153,7 @@ app.post('/api/admin/fix-specific-player-names', async (req, res) => {
               try {
                   console.log('🤖 Starting automated title fixer...');
                   
-                  const { AutomatedTitleFixer } = require('./automated-title-fixer.js');
+                  const AutomatedTitleFixer = require('./automated-title-fixer.js');
                   const fixer = new AutomatedTitleFixer();
                   
                   const result = await fixer.runAutomatedFix();
@@ -3182,7 +3182,7 @@ app.post('/api/admin/fix-specific-player-names', async (req, res) => {
               try {
                   console.log('🏥 Running health check...');
                   
-                  const { AutomatedTitleFixer } = require('./automated-title-fixer.js');
+                  const AutomatedTitleFixer = require('./automated-title-fixer.js');
                   const fixer = new AutomatedTitleFixer();
                   
                   const health = await fixer.healthCheck();
@@ -3211,7 +3211,7 @@ app.post('/api/admin/fix-specific-player-names', async (req, res) => {
               try {
                   console.log('🤖 Starting automated maintenance job...');
                   
-                  const { AutomatedMaintenanceJob } = require('./automated-maintenance-job.js');
+                  const AutomatedMaintenanceJob = require('./automated-maintenance-job.js');
                   const maintenanceJob = new AutomatedMaintenanceJob();
                   
                   const result = await maintenanceJob.runMaintenanceJob();
