@@ -849,6 +849,8 @@ class DatabaseDrivenStandardizedTitleGenerator {
         result = result.replace(/\b' FRANCISCO LINDOR\b/gi, 'Francisco Lindor');
         result = result.replace(/\bLEO DE VRIES 'S BEST\b/gi, 'Leo De Vries');
         result = result.replace(/\bHurston Waldrep 'S BEST\b/gi, 'Hurston Waldrep');
+        result = result.replace(/\bCOOPER DEJEAN\b/gi, 'Cooper DeJean');
+        result = result.replace(/\bTIM DUNCAN\b/gi, 'Tim Duncan');
         
         // Fix extra commas and formatting
         result = result.replace(/,\s*$/, ''); // Remove trailing comma
