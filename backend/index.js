@@ -3985,3 +3985,67 @@ app.post('/api/admin/clean-summary-titles', async (req, res) => {
     }
 });
 
+// POST /api/admin/rebuild-existing-summary-titles - Rebuild summary titles for existing cards
+app.post('/api/admin/rebuild-existing-summary-titles', async (req, res) => {
+    try {
+        console.log('🔄 Rebuilding existing summary titles...');
+        
+        const { ExistingSummaryTitleRebuilder } = require('./rebuild-existing-summary-titles.js');
+        const rebuilder = new ExistingSummaryTitleRebuilder();
+        
+        await rebuilder.connect();
+        console.log('✅ Connected to Railway database');
+        
+        await rebuilder.rebuildSummaryTitles();
+        
+        await rebuilder.close();
+        
+        res.json({
+            success: true,
+            message: 'Existing summary titles rebuilt successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error rebuilding existing summary titles:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error rebuilding existing summary titles',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// GET /api/admin/check-component-fields - Check if new component fields were populated correctly
+app.get('/api/admin/check-component-fields', async (req, res) => {
+    try {
+        console.log('🔍 Checking component fields...');
+        
+        const { ComponentFieldsChecker } = require('./check-component-fields.js');
+        const checker = new ComponentFieldsChecker();
+        
+        await checker.connect();
+        console.log('✅ Connected to Railway database');
+        
+        await checker.checkComponentFields();
+        
+        await checker.close();
+        
+        res.json({
+            success: true,
+            message: 'Component fields check completed successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error checking component fields:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error checking component fields',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+

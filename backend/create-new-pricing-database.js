@@ -595,10 +595,10 @@ class NewPricingDatabase {
             // Add player name (but not if it's already in the card set)
             if (playerName && cardSet && !cardSet.toLowerCase().includes(playerName.toLowerCase())) {
                 if (summaryTitle) summaryTitle += ' ';
-                summaryTitle += playerName;
+                summaryTitle += this.capitalizePlayerName(playerName);
             } else if (playerName && !cardSet) {
                 if (summaryTitle) summaryTitle += ' ';
-                summaryTitle += playerName;
+                summaryTitle += this.capitalizePlayerName(playerName);
             }
             
             // Add card type (colors, parallels, etc.)
@@ -1008,41 +1008,50 @@ class NewPricingDatabase {
     extractCardSet(title) {
         const titleLower = title.toLowerCase();
         
+        // Filter out team names first
+        const teamNames = ['a\'s', 'athletics', 'vikings', 'cardinals', 'eagles', 'falcons', 'ravens', 'bills', 'panthers', 'bears', 'bengals', 'browns', 'cowboys', 'broncos', 'lions', 'packers', 'texans', 'colts', 'jaguars', 'chiefs', 'raiders', 'chargers', 'rams', 'dolphins', 'patriots', 'saints', 'giants', 'jets', 'steelers', '49ers', 'seahawks', 'buccaneers', 'titans', 'commanders', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'giants', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls'];
+        
+        // Remove team names from title for card set extraction
+        let cleanTitle = titleLower;
+        teamNames.forEach(team => {
+            cleanTitle = cleanTitle.replace(new RegExp(`\\b${team}\\b`, 'g'), '');
+        });
+        
         // Fix specific missing card sets
-        if (titleLower.includes('obsidian') && !titleLower.includes('panini obsidian')) {
+        if (cleanTitle.includes('obsidian') && !cleanTitle.includes('panini obsidian')) {
             return 'Panini Obsidian';
         }
-        if (titleLower.includes('synergy') && !titleLower.includes('upper deck synergy')) {
+        if (cleanTitle.includes('synergy') && !cleanTitle.includes('upper deck synergy')) {
             return 'Upper Deck Synergy';
         }
-        if (titleLower.includes('slania stamps') || titleLower.includes('slania')) {
+        if (cleanTitle.includes('slania stamps') || cleanTitle.includes('slania')) {
             return 'Slania Stamps';
         }
-        if (titleLower.includes('prizm') && !titleLower.includes('panini prizm')) {
+        if (cleanTitle.includes('prizm') && !cleanTitle.includes('panini prizm')) {
             return 'Panini Prizm';
         }
-        if (titleLower.includes('select') && !titleLower.includes('panini select')) {
+        if (cleanTitle.includes('select') && !cleanTitle.includes('panini select')) {
             return 'Panini Select';
         }
-        if (titleLower.includes('mosaic') && !titleLower.includes('panini mosaic')) {
+        if (cleanTitle.includes('mosaic') && !cleanTitle.includes('panini mosaic')) {
             return 'Panini Mosaic';
         }
-        if (titleLower.includes('donruss') && !titleLower.includes('panini donruss')) {
+        if (cleanTitle.includes('donruss') && !cleanTitle.includes('panini donruss')) {
             return 'Panini Donruss';
         }
-        if (titleLower.includes('optic') && !titleLower.includes('panini donruss optic')) {
+        if (cleanTitle.includes('optic') && !cleanTitle.includes('panini donruss optic')) {
             return 'Panini Donruss Optic';
         }
-        if (titleLower.includes('bowman') && !titleLower.includes('topps bowman')) {
+        if (cleanTitle.includes('bowman') && !cleanTitle.includes('topps bowman')) {
             return 'Bowman';
         }
-        if (titleLower.includes('chrome') && !titleLower.includes('topps chrome')) {
+        if (cleanTitle.includes('chrome') && !cleanTitle.includes('topps chrome')) {
             return 'Topps Chrome';
         }
-        if (titleLower.includes('finest') && !titleLower.includes('topps finest')) {
+        if (cleanTitle.includes('finest') && !cleanTitle.includes('topps finest')) {
             return 'Topps Finest';
         }
-        if (titleLower.includes('heritage') && !titleLower.includes('topps heritage')) {
+        if (cleanTitle.includes('heritage') && !cleanTitle.includes('topps heritage')) {
             return 'Topps Heritage';
         }
         
@@ -1201,6 +1210,103 @@ class NewPricingDatabase {
         }
 
         return null;
+    }
+
+    // Capitalize player name properly (e.g., "JOSH KURODA GRAUER" -> "Josh Kuroda-Grauer")
+    capitalizePlayerName(playerName) {
+        if (!playerName) return null;
+        
+        // Convert to lowercase first
+        const lowerName = playerName.toLowerCase();
+        
+        // Handle special cases for hyphens and apostrophes
+        const words = lowerName.split(/[\s\-']/);
+        const capitalizedWords = words.map(word => {
+            if (word.length === 0) return word;
+            
+            // Handle special cases
+            if (word === 'jr' || word === 'sr') return word.toUpperCase();
+            if (word === 'ii' || word === 'iii' || word === 'iv') return word.toUpperCase();
+            
+            // Capitalize first letter
+            return word.charAt(0).toUpperCase() + word.slice(1);
+        });
+        
+        // Reconstruct with proper separators
+        let result = capitalizedWords.join(' ');
+        
+        // Restore hyphens and apostrophes
+        const originalName = playerName;
+        const hyphenPositions = [];
+        const apostrophePositions = [];
+        
+        // Find positions of hyphens and apostrophes in original name
+        for (let i = 0; i < originalName.length; i++) {
+            if (originalName[i] === '-') hyphenPositions.push(i);
+            if (originalName[i] === "'") apostrophePositions.push(i);
+        }
+        
+        // Restore hyphens
+        for (const pos of hyphenPositions) {
+            const beforeHyphen = originalName.substring(0, pos).trim();
+            const afterHyphen = originalName.substring(pos + 1).trim();
+            
+            // Find the corresponding words in our result
+            const resultWords = result.split(' ');
+            const beforeWords = beforeHyphen.split(/[\s\-']/);
+            const afterWords = afterHyphen.split(/[\s\-']/);
+            
+            // Find where to insert the hyphen
+            let beforeIndex = -1;
+            let afterIndex = -1;
+            
+            for (let i = 0; i < resultWords.length; i++) {
+                if (beforeWords.includes(resultWords[i].toLowerCase())) {
+                    beforeIndex = i;
+                }
+                if (afterWords.includes(resultWords[i].toLowerCase())) {
+                    afterIndex = i;
+                }
+            }
+            
+            if (beforeIndex !== -1 && afterIndex !== -1 && afterIndex === beforeIndex + 1) {
+                resultWords[beforeIndex] = resultWords[beforeIndex] + '-' + resultWords[afterIndex];
+                resultWords.splice(afterIndex, 1);
+                result = resultWords.join(' ');
+            }
+        }
+        
+        // Restore apostrophes
+        for (const pos of apostrophePositions) {
+            const beforeApostrophe = originalName.substring(0, pos).trim();
+            const afterApostrophe = originalName.substring(pos + 1).trim();
+            
+            // Find the corresponding words in our result
+            const resultWords = result.split(' ');
+            const beforeWords = beforeApostrophe.split(/[\s\-']/);
+            const afterWords = afterApostrophe.split(/[\s\-']/);
+            
+            // Find where to insert the apostrophe
+            let beforeIndex = -1;
+            let afterIndex = -1;
+            
+            for (let i = 0; i < resultWords.length; i++) {
+                if (beforeWords.includes(resultWords[i].toLowerCase())) {
+                    beforeIndex = i;
+                }
+                if (afterWords.includes(resultWords[i].toLowerCase())) {
+                    afterIndex = i;
+                }
+            }
+            
+            if (beforeIndex !== -1 && afterIndex !== -1 && afterIndex === beforeIndex + 1) {
+                resultWords[beforeIndex] = resultWords[beforeIndex] + "'" + resultWords[afterIndex];
+                resultWords.splice(afterIndex, 1);
+                result = resultWords.join(' ');
+            }
+        }
+        
+        return result;
     }
 
     async close() {
