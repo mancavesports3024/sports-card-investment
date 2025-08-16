@@ -48,9 +48,12 @@ class SummaryTitleBuilder {
     }
 
     buildSummaryTitle(components) {
-        const { year, card_set, player_name, card_type, card_number, print_run } = components;
+        const { year, card_set, player_name, card_type, card_number, print_run, title } = components;
         
         let summaryTitle = '';
+        
+        // Check if it's an autograph card
+        const isAuto = title && title.toLowerCase().includes('auto');
         
         // Start with year
         if (year) {
@@ -75,6 +78,12 @@ class SummaryTitleBuilder {
             summaryTitle += card_type;
         }
         
+        // Add "auto" after card type if it's an autograph
+        if (isAuto) {
+            if (summaryTitle) summaryTitle += ' ';
+            summaryTitle += 'auto';
+        }
+        
         // Add card number
         if (card_number) {
             if (summaryTitle) summaryTitle += ' ';
@@ -95,7 +104,7 @@ class SummaryTitleBuilder {
         
         try {
             const cards = await this.runQuery(`
-                SELECT id, year, card_set, player_name, card_type, card_number, print_run, summary_title 
+                SELECT id, year, card_set, player_name, card_type, card_number, print_run, summary_title, title 
                 FROM cards 
                 ORDER BY id
             `);
@@ -145,7 +154,7 @@ class SummaryTitleBuilder {
         console.log('\n📊 Sample Results:');
         
         const samples = await this.runQuery(`
-            SELECT id, year, card_set, player_name, card_type, card_number, print_run, summary_title 
+            SELECT id, year, card_set, player_name, card_type, card_number, print_run, summary_title, title 
             FROM cards 
             ORDER BY RANDOM() 
             LIMIT 10
