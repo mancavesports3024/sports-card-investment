@@ -104,6 +104,26 @@ function fixSummaryTitle(summaryTitle, title, playerName) {
                 }
             }
         }
+        
+        // Always check for missing product names and add them
+        for (const mapping of productMappings) {
+            if (mapping.patterns.some(pattern => titleLower.includes(pattern))) {
+                // Check if the product name is already in the summary
+                const summaryLower = fixed.toLowerCase();
+                const productLower = mapping.product.toLowerCase();
+                
+                if (!summaryLower.includes(productLower)) {
+                    // Add product name at the beginning after the year
+                    const yearMatch = fixed.match(/^(\d{4}(?:-\d{2})?)\s+/);
+                    if (yearMatch) {
+                        fixed = fixed.replace(yearMatch[0], `${yearMatch[1]} ${mapping.product} `);
+                    } else {
+                        fixed = `${mapping.product} ${fixed}`;
+                    }
+                    break;
+                }
+            }
+        }
     }
     
     // 0.5. Fix player names
