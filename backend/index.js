@@ -3294,3 +3294,29 @@ app.post('/api/admin/fix-summary-titles', async (req, res) => {
     }
 });
 
+// POST /api/admin/restore-summary-titles - Restore summary titles to proper format
+app.post('/api/admin/restore-summary-titles', async (req, res) => {
+    try {
+        console.log('🔧 Starting summary title restore...');
+        
+        const { restoreSummaryTitles } = require('./restore-summary-titles.js');
+        await restoreSummaryTitles();
+        
+        console.log('✅ Summary title restore completed');
+        res.json({ 
+            success: true, 
+            message: 'Summary title restore completed successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Summary title restore failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Summary title restore failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+

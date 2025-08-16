@@ -161,6 +161,57 @@ class SummaryTitleFixer {
             // Clean up the new summary title
             const cleanedSummaryTitle = this.cleanSummaryTitle(newSummaryTitle, playerName, brand, year);
 
+            // Check if it needs updating - only update if the new title is better (longer and more informative)
+            if (cleanedSummaryTitle !== currentSummaryTitle && 
+                cleanedSummaryTitle.length > 0 && 
+                cleanedSummaryTitle.length > currentSummaryTitle.length &&
+                cleanedSummaryTitle.includes(playerName)) {
+                
+                await this.db.runQuery(
+                    'UPDATE cards SET summary_title = ? WHERE id = ?',
+                    [cleanedSummaryTitle, card.id]
+                );
+
+                console.log(`✅ Fixed card ${card.id}:`);
+                console.log(`   Old: "${currentSummaryTitle}"`);
+                console.log(`   New: "${cleanedSummaryTitle}"`);
+                console.log(`   Player: "${playerName}", Brand: "${brand}", Year: "${year}"`);
+
+                this.fixes.total++;
+                return true;
+            }
+
+            return false;
+
+        } catch (error) {
+            console.error(`❌ Error fixing card ${card.id}:`, error);
+            this.fixes.errors++;
+            return false;
+        }
+    }
+
+    // Fix a single card's summary title
+    async fixCardSummaryTitle(card) {
+        try {
+            const title = card.title || '';
+            const currentSummaryTitle = card.summary_title || '';
+
+            // Extract components
+            const playerName = this.extractPlayerName(title);
+            const brand = this.extractBrand(title);
+            const year = this.extractYear(title);
+
+            if (!playerName) {
+                console.log(`⚠️ Could not extract player name from: "${title}"`);
+                return false;
+            }
+
+            // Generate new summary title
+            const newSummaryTitle = this.generateSummaryTitle(title, playerName, brand, year);
+
+            // Clean up the new summary title
+            const cleanedSummaryTitle = this.cleanSummaryTitle(newSummaryTitle, playerName, brand, year);
+
             // Check if it needs updating
             if (cleanedSummaryTitle !== currentSummaryTitle && cleanedSummaryTitle.length > 0) {
                 await this.db.runQuery(
