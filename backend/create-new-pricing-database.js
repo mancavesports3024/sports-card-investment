@@ -539,14 +539,79 @@ class NewPricingDatabase {
                 console.warn(`⚠️ Player name extraction failed: ${playerError.message}`);
             }
             
-            // Generate standardized summary title using database-driven approach with player name
-            let summaryTitle;
-            try {
-                summaryTitle = this.titleGenerator.generateStandardizedTitle(cardData.title, playerName);
-                console.log(`🎯 Generated standardized title: "${cardData.title}" → "${summaryTitle}"`);
-            } catch (titleError) {
-                console.warn(`⚠️ Standardized title generation failed, falling back to simple cleaning: ${titleError.message}`);
-                summaryTitle = this.cleanSummaryTitle(cardData.title);
+            // Extract component fields using improved logic
+            const cardSet = this.extractCardSet(cardData.title);
+            const cardType = this.extractCardType(cardData.title);
+            const cardNumber = this.extractCardNumber(cardData.title);
+            
+            // Extract print run (typically looks like /##)
+            let printRun = null;
+            const printRunMatch = cardData.title.match(/\/(\d+)/);
+            if (printRunMatch) {
+                printRun = '/' + printRunMatch[1];
+            }
+            
+            // Build summary title from components
+            let summaryTitle = '';
+            
+            // Check if it's an autograph card
+            const isAuto = cardData.title.toLowerCase().includes('auto');
+            
+            // Start with year
+            if (year) {
+                summaryTitle += year;
+            }
+            
+            // Add card set
+            if (cardSet) {
+                if (summaryTitle) summaryTitle += ' ';
+                summaryTitle += cardSet;
+            }
+            
+            // Add player name (but not if it's already in the card set)
+            if (playerName && cardSet && !cardSet.toLowerCase().includes(playerName.toLowerCase())) {
+                if (summaryTitle) summaryTitle += ' ';
+                summaryTitle += playerName;
+            } else if (playerName && !cardSet) {
+                if (summaryTitle) summaryTitle += ' ';
+                summaryTitle += playerName;
+            }
+            
+            // Add card type (colors, parallels, etc.)
+            if (cardType) {
+                if (summaryTitle) summaryTitle += ' ';
+                summaryTitle += cardType;
+            }
+            
+            // Add "auto" after card type if it's an autograph
+            if (isAuto) {
+                if (summaryTitle) summaryTitle += ' ';
+                summaryTitle += 'auto';
+            }
+            
+            // Add card number
+            if (cardNumber) {
+                if (summaryTitle) summaryTitle += ' ';
+                summaryTitle += cardNumber;
+            }
+            
+            // Add print run
+            if (printRun) {
+                if (summaryTitle) summaryTitle += ' ';
+                summaryTitle += printRun;
+            }
+            
+            // Fallback to old method if no components were extracted
+            if (!summaryTitle.trim()) {
+                try {
+                    summaryTitle = this.titleGenerator.generateStandardizedTitle(cardData.title, playerName);
+                    console.log(`🎯 Generated standardized title (fallback): "${cardData.title}" → "${summaryTitle}"`);
+                } catch (titleError) {
+                    console.warn(`⚠️ Standardized title generation failed, falling back to simple cleaning: ${titleError.message}`);
+                    summaryTitle = this.cleanSummaryTitle(cardData.title);
+                }
+            } else {
+                console.log(`🎯 Generated component-based title: "${cardData.title}" → "${summaryTitle.trim()}"`);
             }
             
             // Detect sport using comprehensive database
@@ -605,18 +670,6 @@ class NewPricingDatabase {
             // Ensure brand and set are not null
             const brand = brandInfo.brand || 'Unknown';
             const setName = brandInfo.setName || 'Unknown';
-            
-            // Extract component fields using improved logic
-            const cardSet = this.extractCardSet(cardData.title);
-            const cardType = this.extractCardType(cardData.title);
-            const cardNumber = this.extractCardNumber(cardData.title);
-            
-            // Extract print run (typically looks like /##)
-            let printRun = null;
-            const printRunMatch = cardData.title.match(/\/(\d+)/);
-            if (printRunMatch) {
-                printRun = '/' + printRunMatch[1];
-            }
             
             const query = `
                 INSERT INTO cards (
