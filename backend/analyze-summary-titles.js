@@ -75,8 +75,11 @@ async function analyzeSummaryTitles() {
             missingProduct: [],
             missingYear: [],
             missingPlayer: [],
-            missingCardType: [],
-            missingCardNumber: [],
+            teamNamesInTitle: [],
+            gradingTermsAsNumbers: [],
+            unnecessaryWords: [],
+            parsingErrors: [],
+            capitalizationIssues: [],
             tooShort: [],
             tooLong: [],
             formattingIssues: [],
@@ -264,17 +267,13 @@ async function analyzeSummaryTitles() {
             if (categoryIssues.length > 0) {
                 console.log(`⚠️  ${category.toUpperCase().replace(/([A-Z])/g, ' $1').trim()} (${categoryIssues.length} cards):`);
                 
-                categoryIssues.slice(0, 10).forEach(issue => {
+                categoryIssues.forEach(issue => {
                     console.log(`   ${issue.cardNumber}. ID: ${issue.id}`);
                     console.log(`      Player: "${issue.playerName}"`);
                     console.log(`      Summary: "${issue.summaryTitle}"`);
                     console.log(`      Original: "${issue.originalTitle}"`);
                     console.log('');
                 });
-                
-                if (categoryIssues.length > 10) {
-                    console.log(`   ... and ${categoryIssues.length - 10} more`);
-                }
                 
                 totalIssues += categoryIssues.length;
             }

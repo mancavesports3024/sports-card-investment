@@ -3506,3 +3506,28 @@ app.post('/api/admin/comprehensive-fix-summary-titles', async (req, res) => {
     }
 });
 
+// POST /api/admin/update-summary-title - Update specific card's summary title
+app.post('/api/admin/update-summary-title', async (req, res) => {
+    try {
+        const { cardId, summaryTitle } = req.body;
+        console.log(`🔧 Updating summary title for card ${cardId}...`);
+        
+        if (!cardId || !summaryTitle) {
+            return res.status(400).json({ success: false, error: 'Missing cardId or summaryTitle' });
+        }
+        
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        await db.runQuery('UPDATE cards SET summary_title = ? WHERE id = ?', [summaryTitle, cardId]);
+        
+        await db.close();
+        
+        console.log(`✅ Updated summary title for card ${cardId}`);
+        res.json({ success: true, message: 'Summary title updated successfully', cardId: cardId, summaryTitle: summaryTitle, timestamp: new Date().toISOString() });
+    } catch (error) {
+        console.error('❌ Failed to update summary title:', error);
+        res.status(500).json({ success: false, error: 'Failed to update summary title', details: error.message, timestamp: new Date().toISOString() });
+    }
+});
+
