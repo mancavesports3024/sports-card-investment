@@ -1545,18 +1545,18 @@ class DatabaseDrivenStandardizedTitleGenerator {
     }
 
     // Generate standardized summary title
-    generateStandardizedTitle(title) {
+    generateStandardizedTitle(title, playerName = null) {
         const year = this.extractYear(title);
         const product = this.extractProduct(title);
-        const player = this.extractPlayer(title);
+        const player = playerName || this.extractPlayer(title);
         const colorNumbering = this.extractColorNumbering(title);
         const hasAuto = this.hasAutograph(title);
 
         const parts = [];
         
         if (year) parts.push(year);
-        if (player) parts.push(player);
         if (product) parts.push(product);
+        if (player) parts.push(player);
         if (colorNumbering) parts.push(colorNumbering);
         if (hasAuto) parts.push('Auto');
 
@@ -1964,27 +1964,21 @@ class DatabaseDrivenStandardizedTitleGenerator {
 
             for (const card of cards) {
                 try {
-                    const newSummaryTitle = this.generateStandardizedTitle(card.title);
-                    const extractedPlayer = this.extractPlayer(card.title);
+                    const newSummaryTitle = this.generateStandardizedTitle(card.title, card.player_name);
                     
-                    // Check if either summary_title or player_name needs updating
+                    // Check if summary_title needs updating
                     const summaryTitleChanged = newSummaryTitle && newSummaryTitle !== card.summary_title;
-                    const playerNameChanged = extractedPlayer && extractedPlayer !== card.player_name;
                     
-                    if (summaryTitleChanged || playerNameChanged) {
-                        // Update both fields
+                    if (summaryTitleChanged) {
+                        // Update summary_title only (player_name is already correct)
                         await this.runUpdate(
-                            'UPDATE cards SET summary_title = ?, player_name = ? WHERE id = ?',
-                            [newSummaryTitle || card.summary_title, extractedPlayer || card.player_name, card.id]
+                            'UPDATE cards SET summary_title = ? WHERE id = ?',
+                            [newSummaryTitle, card.id]
                         );
                         
                         console.log(`✅ Updated card ${card.id}:`);
-                        if (summaryTitleChanged) {
-                            console.log(`   Summary: "${card.summary_title || 'N/A'}" → "${newSummaryTitle}"`);
-                        }
-                        if (playerNameChanged) {
-                            console.log(`   Player: "${card.player_name || 'N/A'}" → "${extractedPlayer}"`);
-                        }
+                        console.log(`   Summary: "${card.summary_title || 'N/A'}" → "${newSummaryTitle}"`);
+                        console.log(`   Player: "${card.player_name}" (unchanged)`);
                         updated++;
                     } else {
                         unchanged++;
