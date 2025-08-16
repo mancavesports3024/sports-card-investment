@@ -19,12 +19,35 @@ class FastBatchItemsPuller {
         try {
             // Check if psa10_average_price column exists
             const columns = await this.db.allQuery("PRAGMA table_info(cards)");
-            const hasColumn = columns.some(col => col.name === 'psa10_average_price');
+            const hasPsa10Column = columns.some(col => col.name === 'psa10_average_price');
             
-            if (!hasColumn) {
+            if (!hasPsa10Column) {
                 console.log('🔧 Adding missing psa10_average_price column...');
                 await this.db.runQuery("ALTER TABLE cards ADD COLUMN psa10_average_price DECIMAL(10,2)");
                 console.log('✅ Added psa10_average_price column');
+            }
+
+            // Check if new component fields exist
+            const hasCardSet = columns.some(col => col.name === 'card_set');
+            const hasCardNumber = columns.some(col => col.name === 'card_number');
+            const hasPrintRun = columns.some(col => col.name === 'print_run');
+
+            if (!hasCardSet) {
+                console.log('🔧 Adding missing card_set column...');
+                await this.db.runQuery("ALTER TABLE cards ADD COLUMN card_set TEXT");
+                console.log('✅ Added card_set column');
+            }
+
+            if (!hasCardNumber) {
+                console.log('🔧 Adding missing card_number column...');
+                await this.db.runQuery("ALTER TABLE cards ADD COLUMN card_number TEXT");
+                console.log('✅ Added card_number column');
+            }
+
+            if (!hasPrintRun) {
+                console.log('🔧 Adding missing print_run column...');
+                await this.db.runQuery("ALTER TABLE cards ADD COLUMN print_run TEXT");
+                console.log('✅ Added print_run column');
             }
         } catch (error) {
             console.log('⚠️ Schema fix not needed or already applied');

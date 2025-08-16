@@ -85,7 +85,10 @@ class NewPricingDatabase {
                 source TEXT DEFAULT '130point_auto',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
-                notes TEXT
+                notes TEXT,
+                card_set TEXT,
+                card_number TEXT,
+                print_run TEXT
             )
         `;
 
@@ -603,12 +606,24 @@ class NewPricingDatabase {
             const brand = brandInfo.brand || 'Unknown';
             const setName = brandInfo.setName || 'Unknown';
             
+            // Extract component fields using improved logic
+            const cardSet = this.extractCardSet(cardData.title);
+            const cardType = this.extractCardType(cardData.title);
+            const cardNumber = this.extractCardNumber(cardData.title);
+            
+            // Extract print run (typically looks like /##)
+            let printRun = null;
+            const printRunMatch = cardData.title.match(/\/(\d+)/);
+            if (printRunMatch) {
+                printRun = '/' + printRunMatch[1];
+            }
+            
             const query = `
                 INSERT INTO cards (
                     title, summary_title, sport, year, brand, set_name, 
                     card_type, condition, grade, psa10_price, psa10_average_price, multiplier, search_term, 
-                    source, ebay_item_id, image_url, player_name
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    source, ebay_item_id, image_url, player_name, card_set, card_number, print_run
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
             
             const params = [
@@ -628,7 +643,10 @@ class NewPricingDatabase {
                 cardData.source || '130point_auto',
                 cardData.ebayItemId || null,
                 cardData.imageUrl || null,
-                playerName // Add the extracted player name
+                playerName, // Add the extracted player name
+                cardSet, // Add the extracted card set
+                cardNumber, // Add the extracted card number
+                printRun // Add the extracted print run
             ];
             
             const result = await this.runQuery(query, params);
@@ -914,6 +932,205 @@ class NewPricingDatabase {
             withPrices: withPrices.count,
             missingPrices: stats.total - withPrices.count
         };
+    }
+
+    // Enhanced component extraction methods
+    extractCardSet(title) {
+        const titleLower = title.toLowerCase();
+        
+        // Fix specific missing card sets
+        if (titleLower.includes('obsidian') && !titleLower.includes('panini obsidian')) {
+            return 'Panini Obsidian';
+        }
+        if (titleLower.includes('synergy') && !titleLower.includes('upper deck synergy')) {
+            return 'Upper Deck Synergy';
+        }
+        if (titleLower.includes('slania stamps') || titleLower.includes('slania')) {
+            return 'Slania Stamps';
+        }
+        if (titleLower.includes('prizm') && !titleLower.includes('panini prizm')) {
+            return 'Panini Prizm';
+        }
+        if (titleLower.includes('select') && !titleLower.includes('panini select')) {
+            return 'Panini Select';
+        }
+        if (titleLower.includes('mosaic') && !titleLower.includes('panini mosaic')) {
+            return 'Panini Mosaic';
+        }
+        if (titleLower.includes('donruss') && !titleLower.includes('panini donruss')) {
+            return 'Panini Donruss';
+        }
+        if (titleLower.includes('optic') && !titleLower.includes('panini donruss optic')) {
+            return 'Panini Donruss Optic';
+        }
+        if (titleLower.includes('bowman') && !titleLower.includes('topps bowman')) {
+            return 'Bowman';
+        }
+        if (titleLower.includes('chrome') && !titleLower.includes('topps chrome')) {
+            return 'Topps Chrome';
+        }
+        if (titleLower.includes('finest') && !titleLower.includes('topps finest')) {
+            return 'Topps Finest';
+        }
+        if (titleLower.includes('heritage') && !titleLower.includes('topps heritage')) {
+            return 'Topps Heritage';
+        }
+        
+        return null;
+    }
+
+    extractCardType(title) {
+        const titleLower = title.toLowerCase();
+        
+        // Enhanced color/parallel patterns
+        const colorPatterns = [
+            // Basic colors
+            { pattern: /\b(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white)\b/gi, name: 'Color' },
+            // Refractors
+            { pattern: /\b(refractor|refractors)\b/gi, name: 'Refractor' },
+            // Prizm variants
+            { pattern: /\b(prizm|prizmatic)\b/gi, name: 'Prizm' },
+            // Holo variants
+            { pattern: /\b(holo|holographic)\b/gi, name: 'Holo' },
+            // Chrome variants
+            { pattern: /\b(chrome)\b/gi, name: 'Chrome' },
+            // X-Fractor
+            { pattern: /\b(x-fractor|x-fractors)\b/gi, name: 'X-Fractor' },
+            // Cracked Ice
+            { pattern: /\b(cracked ice)\b/gi, name: 'Cracked Ice' },
+            // Stained Glass
+            { pattern: /\b(stained glass)\b/gi, name: 'Stained Glass' },
+            // World Champion Boxers
+            { pattern: /\b(world champion boxers)\b/gi, name: 'World Champion Boxers' },
+            // Fast Break
+            { pattern: /\b(fast break)\b/gi, name: 'Fast Break' },
+            // Genesis
+            { pattern: /\b(genesis)\b/gi, name: 'Genesis' },
+            // Premier
+            { pattern: /\b(premier)\b/gi, name: 'Premier' },
+            // Level
+            { pattern: /\b(level)\b/gi, name: 'Level' },
+            // Club
+            { pattern: /\b(club)\b/gi, name: 'Club' },
+            // Flashback
+            { pattern: /\b(flashback)\b/gi, name: 'Flashback' },
+            // Emergent
+            { pattern: /\b(emergent)\b/gi, name: 'Emergent' },
+            // Real One
+            { pattern: /\b(real one)\b/gi, name: 'Real One' },
+            // RPA
+            { pattern: /\b(rpa)\b/gi, name: 'RPA' },
+            // Mania
+            { pattern: /\b(mania)\b/gi, name: 'Mania' },
+            // WWE variants
+            { pattern: /\b(wwe)\b/gi, name: 'WWE' },
+            // Geometric
+            { pattern: /\b(geometric)\b/gi, name: 'Geometric' },
+            // Honeycomb
+            { pattern: /\b(honeycomb)\b/gi, name: 'Honeycomb' },
+            // Pride
+            { pattern: /\b(pride)\b/gi, name: 'Pride' },
+            // Kaleidoscopic
+            { pattern: /\b(kaleidoscopic)\b/gi, name: 'Kaleidoscopic' },
+            // Scale variants
+            { pattern: /\b(dragon scale)\b/gi, name: 'Dragon Scale' },
+            // Vintage
+            { pattern: /\b(vintage)\b/gi, name: 'Vintage' },
+            // Stars
+            { pattern: /\b(stars)\b/gi, name: 'Stars' },
+            // Independence Day
+            { pattern: /\b(independence day)\b/gi, name: 'Independence Day' },
+            // Father's Day
+            { pattern: /\b(father's day)\b/gi, name: 'Father\'s Day' },
+            // Mother's Day
+            { pattern: /\b(mother's day)\b/gi, name: 'Mother\'s Day' },
+            // Memorial Day
+            { pattern: /\b(memorial day)\b/gi, name: 'Memorial Day' },
+            // Camo
+            { pattern: /\b(camo)\b/gi, name: 'Camo' },
+            // Vinyl
+            { pattern: /\b(vinyl)\b/gi, name: 'Vinyl' },
+            // Premium Set
+            { pattern: /\b(premium set)\b/gi, name: 'Premium Set' },
+            // Checkerboard
+            { pattern: /\b(checkerboard)\b/gi, name: 'Checkerboard' },
+            // Die-cut
+            { pattern: /\b(die-cut|die cut)\b/gi, name: 'Die-Cut' },
+            // National Landmarks
+            { pattern: /\b(national landmarks)\b/gi, name: 'National Landmarks' },
+            // Lava Lamp
+            { pattern: /\b(lava lamp)\b/gi, name: 'Lava Lamp' },
+            // Dazzle
+            { pattern: /\b(dazzle)\b/gi, name: 'Dazzle' },
+            // Velocity
+            { pattern: /\b(velocity)\b/gi, name: 'Velocity' },
+            // Hyper
+            { pattern: /\b(hyper)\b/gi, name: 'Hyper' },
+            // Dragon
+            { pattern: /\b(dragon)\b/gi, name: 'Dragon' },
+            // Laser
+            { pattern: /\b(laser)\b/gi, name: 'Laser' },
+            // Liberty
+            { pattern: /\b(liberty)\b/gi, name: 'Liberty' },
+            // Marvels
+            { pattern: /\b(marvels)\b/gi, name: 'Marvels' },
+            // Fire
+            { pattern: /\b(fire)\b/gi, name: 'Fire' },
+            // Voltage
+            { pattern: /\b(voltage)\b/gi, name: 'Voltage' },
+            // Career Stat Line
+            { pattern: /\b(career stat line)\b/gi, name: 'Career Stat Line' }
+        ];
+
+        // Find all matches and build card type
+        const foundTypes = [];
+        for (const { pattern, name } of colorPatterns) {
+            const matches = title.match(pattern);
+            if (matches) {
+                foundTypes.push(...matches);
+            }
+        }
+
+        // Remove duplicates and format
+        const uniqueTypes = [...new Set(foundTypes)];
+        const cardType = uniqueTypes.join(' ').trim();
+
+        return cardType || null;
+    }
+
+    extractCardNumber(title) {
+        // Look for card number patterns in the title
+        const cardNumberPatterns = [
+            // Standard card numbers like #123
+            /#(\d+)/g,
+            // Card numbers with letters like #BDC-168, #CDA-LK
+            /#([A-Za-z]+[-\dA-Za-z]+)/g,
+            // Card numbers with letters like #17hh
+            /#(\d+[A-Za-z]+)/g,
+            // Bowman Draft card numbers (BDP, BDC, CDA, etc.)
+            /\b(BD[A-Z]?\d+)\b/g,
+            // Card numbers without # symbol
+            /\b(\d{1,3})\b/g
+        ];
+
+        for (const pattern of cardNumberPatterns) {
+            const matches = title.match(pattern);
+            if (matches) {
+                // Filter out PSA grades and print runs
+                for (const match of matches) {
+                    const matchLower = match.toLowerCase();
+                    if (!matchLower.includes('psa') && 
+                        !matchLower.includes('pop') && 
+                        !matchLower.includes('gem') && 
+                        !matchLower.includes('mint') &&
+                        !title.includes('/' + match)) {
+                        return match.startsWith('#') ? match : '#' + match;
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     async close() {
