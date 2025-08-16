@@ -1,10 +1,8 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const fs = require('fs');
+const NewPricingDatabase = require('./create-new-pricing-database.js');
 
 class RailwayMaintenanceJob {
     constructor() {
-        this.dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
+        this.db = new NewPricingDatabase();
         this.results = {
             fastBatchPull: { success: false, newItems: 0, errors: 0 },
             healthCheck: { success: false, healthScore: 0, issues: 0 },
@@ -15,44 +13,19 @@ class RailwayMaintenanceJob {
     }
 
     // Get database connection
-    getDatabase() {
-        return new Promise((resolve, reject) => {
-            const db = new sqlite3.Database(this.dbPath, (err) => {
-                if (err) {
-                    console.error('❌ Database connection failed:', err.message);
-                    reject(err);
-                } else {
-                    console.log('✅ Connected to database');
-                    resolve(db);
-                }
-            });
-        });
+    async getDatabase() {
+        await this.db.connect();
+        return this.db;
     }
 
     // Run SQL query
     async runQuery(db, sql, params = []) {
-        return new Promise((resolve, reject) => {
-            db.all(sql, params, (err, rows) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(rows);
-                }
-            });
-        });
+        return await db.allQuery(sql, params);
     }
 
     // Run SQL update
     async runUpdate(db, sql, params = []) {
-        return new Promise((resolve, reject) => {
-            db.run(sql, params, function(err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve({ changes: this.changes, lastID: this.lastID });
-                }
-            });
-        });
+        return await db.runQuery(sql, params);
     }
 
     // Step 1: Health Check
@@ -103,7 +76,7 @@ class RailwayMaintenanceJob {
             console.log(`   - Summary Title Issues: ${summaryTitleIssues}`);
             console.log(`   - Total Issues: ${totalIssues}\n`);
             
-            db.close();
+            await this.db.close();
             return true;
             
         } catch (error) {
@@ -183,7 +156,7 @@ class RailwayMaintenanceJob {
             console.log(`   - Summary Title Fixes: ${summaryTitleFixes}`);
             console.log(`   - Total Fixes Applied: ${playerNameFixes + summaryTitleFixes}\n`);
             
-            db.close();
+            await this.db.close();
             return true;
             
         } catch (error) {
@@ -252,7 +225,7 @@ class RailwayMaintenanceJob {
             console.log(`   - Successfully Updated: ${updatedCount}`);
             console.log(`   - Errors: ${cardsNeedingUpdates.length - updatedCount}\n`);
             
-            db.close();
+            await this.db.close();
             return true;
             
         } catch (error) {
