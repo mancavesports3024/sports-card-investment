@@ -3396,3 +3396,29 @@ app.post('/api/admin/quick-fix-summary-titles', async (req, res) => {
     }
 });
 
+// POST /api/admin/emergency-restore-summary-titles - Emergency restore of broken summary titles
+app.post('/api/admin/emergency-restore-summary-titles', async (req, res) => {
+    try {
+        console.log('🚨 Starting emergency summary title restore...');
+        
+        const { restoreBrokenSummaryTitles } = require('./restore-broken-summary-titles.js');
+        await restoreBrokenSummaryTitles();
+        
+        console.log('✅ Emergency summary title restore completed');
+        res.json({ 
+            success: true, 
+            message: 'Emergency summary title restore completed successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Emergency summary title restore failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Emergency summary title restore failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
