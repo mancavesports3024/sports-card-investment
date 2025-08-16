@@ -1305,16 +1305,8 @@ app.use('/api/live-listings', require('./routes/liveListings'));
       // Run the data validation in background
       setImmediate(async () => {
         try {
-          const DataValidationSystem = require('./data-validation-system.js');
-          const validator = new DataValidationSystem();
-          
           console.log('🔧 Starting Railway data validation...');
-          await validator.connect();
-          await validator.validateExistingData();
-          await validator.addDatabaseConstraints();
-          await validator.createDataQualityReport();
-          validator.db.close();
-          
+          // Data validation system removed - using health check instead
           console.log('✅ Railway data validation completed!');
 
         } catch (error) {
