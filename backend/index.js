@@ -3320,3 +3320,78 @@ app.post('/api/admin/restore-summary-titles', async (req, res) => {
     }
 });
 
+// POST /api/admin/quick-fix-summary-titles - Quick fix for specific summary title issues
+app.post('/api/admin/quick-fix-summary-titles', async (req, res) => {
+    try {
+        console.log('🔧 Starting quick summary title fix...');
+        
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        // Fix the most obvious issues
+        const fixes = [
+            {
+                id: 705,
+                old: '2010 Auto RC',
+                new: '2010 Topps Chrome Demaryius Thomas Auto RC'
+            },
+            {
+                id: 704,
+                old: '2024-25 Instant RC #1',
+                new: '2024-25 Panini Instant WNBA Caitlin Clark RC #1'
+            },
+            {
+                id: 703,
+                old: '2024 #12',
+                new: '2024 Panini Prizm Stephon Castle Luck of the Lottery Fast Break #12'
+            },
+            {
+                id: 702,
+                old: '2023 Prizm Select #200',
+                new: '2023 Panini Select Josh Allen Dragon Scale Prizm #200 /70'
+            },
+            {
+                id: 701,
+                old: '1964 Stamps #23',
+                new: '1964 Slania Stamps Cassius Clay World Champion Boxers Muhammad Ali #23'
+            }
+        ];
+        
+        let fixed = 0;
+        
+        for (const fix of fixes) {
+            try {
+                await db.runQuery(
+                    'UPDATE cards SET summary_title = ? WHERE id = ?',
+                    [fix.new, fix.id]
+                );
+                
+                console.log(`✅ Fixed card ${fix.id}: "${fix.old}" → "${fix.new}"`);
+                fixed++;
+            } catch (error) {
+                console.error(`❌ Error fixing card ${fix.id}:`, error);
+            }
+        }
+        
+        await db.close();
+        
+        console.log('✅ Quick summary title fix completed');
+        res.json({ 
+            success: true, 
+            message: 'Quick summary title fix completed successfully',
+            fixed: fixed,
+            total: fixes.length,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Quick summary title fix failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Quick summary title fix failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
