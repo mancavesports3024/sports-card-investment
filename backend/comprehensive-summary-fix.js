@@ -195,4 +195,10 @@ async function fixAllSummaryIssues() {
     }
 }
 
-fixAllSummaryIssues();
+// Export the function for use in other modules
+module.exports = { fixSummaryTitle, fixAllSummaryIssues };
+
+// Run if called directly
+if (require.main === module) {
+    fixAllSummaryIssues();
+}

@@ -3705,3 +3705,65 @@ app.post('/api/admin/show-remaining-issues', async (req, res) => {
     }
 });
 
+// POST /api/admin/fix-all-summary-issues - Fix all remaining summary title issues
+app.post('/api/admin/fix-all-summary-issues', async (req, res) => {
+    try {
+        console.log('🔧 Running comprehensive summary title fix...');
+        
+        const { fixSummaryTitle } = require('./comprehensive-summary-fix.js');
+        const db = new NewPricingDatabase();
+        
+        await db.connect();
+        console.log('✅ Connected to Railway database');
+        
+        // Get all cards
+        const cards = await db.allQuery('SELECT id, title, summary_title, player_name FROM cards');
+        console.log(`📊 Found ${cards.length} cards to check`);
+        
+        let fixedCount = 0;
+        let issuesFound = 0;
+        
+        for (const card of cards) {
+            const originalSummary = card.summary_title || '';
+            const fixedSummary = fixSummaryTitle(originalSummary, card.title, card.player_name);
+            
+            if (fixedSummary !== originalSummary && fixedSummary.length > 0) {
+                issuesFound++;
+                console.log(`🔍 Card ID: ${card.id}`);
+                console.log(`   Player: "${card.player_name}"`);
+                console.log(`   Original: "${originalSummary}"`);
+                console.log(`   Fixed: "${fixedSummary}"`);
+                
+                await db.runQuery('UPDATE cards SET summary_title = ? WHERE id = ?', [fixedSummary, card.id]);
+                fixedCount++;
+                console.log(`✅ Updated card ${card.id}`);
+            }
+        }
+        
+        await db.close();
+        
+        console.log('\n🎉 Comprehensive Summary Title Fix Complete!');
+        console.log(`📊 Total cards checked: ${cards.length}`);
+        console.log(`🔍 Issues found: ${issuesFound}`);
+        console.log(`✅ Cards fixed: ${fixedCount}`);
+        
+        res.json({ 
+            success: true, 
+            message: `Comprehensive summary title fix completed successfully`,
+            totalCards: cards.length,
+            issuesFound: issuesFound,
+            fixedCount: fixedCount,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error in comprehensive summary title fix:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to run comprehensive summary title fix', 
+            details: error.message, 
+            timestamp: new Date().toISOString() 
+        });
+    }
+});
+
