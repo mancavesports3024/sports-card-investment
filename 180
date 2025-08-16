@@ -1,0 +1,5 @@
+[33mc2fea14[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Add comprehensive duplication fixes and specific player name corrections
+[33m2ecf140[m Fix title duplications and ALL CAPS player names in summary titles
+[33m439dca3[m Comprehensive player name fixes - Title Case conversion and special character cleanup for all 281 player names
+[33m41596f8[m Fix dual card player name extraction - keep both names for Kobe Bryant Michael Jordan and Brock Purdy Deebo Samuel
+[33m5a88ad8[m Fix remaining player name extraction issues: add USA, EAST, WEST, UCC, ! to filter terms and add specific corrections for SNIDER, DEEBO SAMUEL, MICHAEL JORDAN, etc.

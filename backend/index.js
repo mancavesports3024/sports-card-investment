@@ -3080,27 +3080,31 @@ app.post('/api/admin/fix-specific-player-names', async (req, res) => {
         await generator.connect();
         await generator.ensurePlayerNameColumn();
         
-        // Define the specific fixes
+        // Define the specific fixes based on the actual database IDs
         const fixes = [
             {
-                id: 103,
+                id: 309, // Triston Casas card
                 correctPlayerName: "Triston Casas"
             },
             {
-                id: 141,
+                id: 407, // Bryce Harper card
                 correctPlayerName: "Bryce Harper"
             },
             {
-                id: 307,
+                id: 169, // Francisco Lindor card
                 correctPlayerName: "Francisco Lindor"
             },
             {
-                id: 122,
+                id: 31, // Xavier Worthy card
                 correctPlayerName: "Xavier Worthy"
             },
             {
-                id: 287,
+                id: 231, // Shai Gilgeous-Alexander card
                 correctPlayerName: "Shai Gilgeous-Alexander"
+            },
+            {
+                id: 549, // Sal Frelick card
+                correctPlayerName: "Sal Frelick"
             }
         ];
         
