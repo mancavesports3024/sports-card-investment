@@ -234,21 +234,23 @@ class SafeSummaryTitleFixer {
             await this.connect();
             await this.learnFromDatabase();
             
-            // Get all cards with broken summary titles (target ALL remaining issues)
+            // Get ALL remaining cards with broken summary titles (no limit)
             const cards = await this.db.allQuery(`
                 SELECT id, title, summary_title 
                 FROM cards 
                 WHERE (
                     summary_title IS NULL OR 
-                    LENGTH(summary_title) < 50 OR
+                    LENGTH(summary_title) < 60 OR
                     summary_title LIKE '%2024%' OR
                     summary_title LIKE '%2023%' OR
                     summary_title LIKE '%2010%' OR
                     summary_title LIKE '%1964%' OR
-                    (summary_title NOT LIKE '%Topps%' AND summary_title NOT LIKE '%Panini%' AND summary_title NOT LIKE '%Bowman%' AND summary_title NOT LIKE '%Fleer%' AND summary_title NOT LIKE '%Donruss%')
+                    summary_title LIKE '%PSA%' OR
+                    summary_title LIKE '%GEM%' OR
+                    summary_title LIKE '%MINT%' OR
+                    (summary_title NOT LIKE '%Topps%' AND summary_title NOT LIKE '%Panini%' AND summary_title NOT LIKE '%Bowman%' AND summary_title NOT LIKE '%Fleer%' AND summary_title NOT LIKE '%Donruss%' AND summary_title NOT LIKE '%Upper Deck%')
                 )
                 ORDER BY LENGTH(summary_title) ASC
-                LIMIT 200
             `);
             
             console.log(`📊 Found ${cards.length} cards with broken summary titles\n`);
@@ -264,11 +266,10 @@ class SafeSummaryTitleFixer {
                     // Generate new summary title
                     const newSummary = this.generateStandardizedTitle(title);
                     
-                    // Only update if the new summary is better (longer and more descriptive)
+                    // Only update if the new summary is better (less strict conditions)
                     if (newSummary && 
                         newSummary !== currentSummary && 
-                        newSummary.length > currentSummary.length &&
-                        newSummary.length > 10) {
+                        newSummary.length > 5) { // Changed from 10 to 5
                         
                         await this.db.runQuery(
                             'UPDATE cards SET summary_title = ? WHERE id = ?',
