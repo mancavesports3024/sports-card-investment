@@ -167,8 +167,8 @@ class ExistingSummaryTitleRebuilder {
         
                  // Enhanced color/parallel patterns
          const colorPatterns = [
-             // Basic colors (including those with slashes) - return the actual color name
-             { pattern: /(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white)(?:\s|$|\/)/gi, name: 'match' },
+                     // Basic colors (including those with slashes) - return the actual color name
+        { pattern: /(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white|neon green)(?:\s|$|\/)/gi, name: 'match' },
             // Refractors
             { pattern: /\b(refractor|refractors)\b/gi, name: 'Refractor' },
             // Prizm variants
@@ -270,7 +270,14 @@ class ExistingSummaryTitleRebuilder {
                                              // Downtown
                                  { pattern: /\b(downtown)\b/gi, name: 'Downtown' },
                                  // Base (for base cards)
-                                 { pattern: /\b(base)\b/gi, name: 'Base' }
+                                 { pattern: /\b(base)\b/gi, name: 'Base' },
+                                 // Pulsar
+                                 { pattern: /\b(pulsar)\b/gi, name: 'Pulsar' },
+                                 // Bomb Squad
+                                 { pattern: /\b(bomb squad)\b/gi, name: 'Bomb Squad' },
+                                 { pattern: /\b(bs\d+)\b/gi, name: 'Bomb Squad' },
+                                 // Rapture
+                                 { pattern: /\b(rapture)\b/gi, name: 'Rapture' }
                              ];
 
                  const foundTypes = [];

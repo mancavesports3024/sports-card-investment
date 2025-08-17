@@ -1018,7 +1018,7 @@ class NewPricingDatabase {
         const titleLower = title.toLowerCase();
         
         // Filter out team names first
-        const teamNames = ['a\'s', 'athletics', 'vikings', 'cardinals', 'eagles', 'falcons', 'ravens', 'bills', 'panthers', 'bears', 'bengals', 'browns', 'cowboys', 'broncos', 'lions', 'packers', 'texans', 'colts', 'jaguars', 'chiefs', 'raiders', 'chargers', 'rams', 'dolphins', 'patriots', 'saints', 'giants', 'jets', 'steelers', '49ers', 'seahawks', 'buccaneers', 'titans', 'commanders', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'giants', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls'];
+        const teamNames = ['a\'s', 'athletics', 'vikings', 'cardinals', 'eagles', 'falcons', 'ravens', 'bills', 'panthers', 'bears', 'bengals', 'browns', 'cowboys', 'broncos', 'lions', 'packers', 'texans', 'colts', 'jaguars', 'chiefs', 'raiders', 'chargers', 'rams', 'dolphins', 'patriots', 'saints', 'giants', 'jets', 'steelers', '49ers', 'seahawks', 'buccaneers', 'titans', 'commanders', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'giants', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls', 'chiefs'];
         
         // Remove team names from title for card set extraction
         let cleanTitle = titleLower;
@@ -1165,6 +1165,12 @@ class NewPricingDatabase {
         if (cleanTitle.includes('prestige')) {
             return 'Prestige';
         }
+        if (cleanTitle.includes('panini instant')) {
+            return 'Panini Instant';
+        }
+        if (cleanTitle.includes('topps')) {
+            return 'Topps';
+        }
         
         return null;
     }
@@ -1187,8 +1193,8 @@ class NewPricingDatabase {
         
         // Enhanced color/parallel patterns
         const colorPatterns = [
-            // Basic colors (including those with slashes) - return the actual color name
-            { pattern: /(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white)(?:\s|$|\/)/gi, name: 'match' },
+                    // Basic colors (including those with slashes) - return the actual color name
+        { pattern: /(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white|neon green)(?:\s|$|\/)/gi, name: 'match' },
             // Refractors
             { pattern: /\b(refractor|refractors)\b/gi, name: 'Refractor' },
             // Prizm variants
@@ -1350,7 +1356,14 @@ class NewPricingDatabase {
                                  // Mini Parallels
                                  { pattern: /\b(mini parallels)\b/gi, name: 'Mini Parallels' },
                                  // Superfractor
-                                 { pattern: /\b(superfractor)\b/gi, name: 'Superfractor' }
+                                 { pattern: /\b(superfractor)\b/gi, name: 'Superfractor' },
+                                 // Pulsar
+                                 { pattern: /\b(pulsar)\b/gi, name: 'Pulsar' },
+                                 // Bomb Squad
+                                 { pattern: /\b(bomb squad)\b/gi, name: 'Bomb Squad' },
+                                 { pattern: /\b(bs\d+)\b/gi, name: 'Bomb Squad' },
+                                 // Rapture
+                                 { pattern: /\b(rapture)\b/gi, name: 'Rapture' }
                              ];
 
         // Find all matches and build card type
@@ -1394,6 +1407,8 @@ class NewPricingDatabase {
             /\b(BD[A-Z]?\d+)\b/g,
             // Card numbers with letters followed by numbers (like DT36, DT1, etc.)
             /\b([A-Z]{2,}\d+)\b/g,
+            // Bomb Squad card numbers (BS3, BS5, etc.)
+            /\b(BS\d+)\b/g,
             // Card numbers without # symbol
             /\b(\d{1,3})\b/g
         ];
