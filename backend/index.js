@@ -4146,3 +4146,35 @@ app.post('/api/admin/update-null-card-types', async (req, res) => {
     }
 });
 
+// POST /api/admin/generate-improved-summary-titles - Generate improved summary titles
+app.post('/api/admin/generate-improved-summary-titles', async (req, res) => {
+    try {
+        console.log('🔄 Generating improved summary titles...');
+        
+        const { ImprovedSummaryTitleGenerator } = require('./generate-improved-summary-titles.js');
+        const generator = new ImprovedSummaryTitleGenerator();
+        
+        await generator.connect();
+        console.log('✅ Connected to Railway database');
+        
+        await generator.generateImprovedSummaryTitles();
+        
+        await generator.close();
+        
+        res.json({
+            success: true,
+            message: 'Improved summary titles generated successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error generating improved summary titles:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error generating improved summary titles',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
