@@ -48,6 +48,8 @@ class SummaryTitleAnalyzer {
             `);
             
             console.log(`📊 Analyzing ${cards.length} cards...\n`);
+            
+            this.totalCardsAnalyzed = cards.length;
 
             const issues = {
                 missingCardSets: [],
@@ -308,8 +310,10 @@ class SummaryTitleAnalyzer {
         }
 
         console.log('\n📊 SUMMARY:');
-        console.log(`   Total cards analyzed: ${issues.missingCardSets.length + issues.missingCardTypes.length + issues.missingCardNumbers.length + issues.teamNamesInTitles.length + issues.genericColorIssues.length + issues.otherIssues.length}`);
-        console.log(`   Cards with issues: ${new Set([...issues.missingCardSets.map(i => i.id), ...issues.missingCardTypes.map(i => i.id), ...issues.missingCardNumbers.map(i => i.id), ...issues.teamNamesInTitles.map(i => i.id), ...issues.genericColorIssues.map(i => i.id), ...issues.otherIssues.map(i => i.id)]).size}`);
+        const totalCardsWithIssues = new Set([...issues.missingCardSets.map(i => i.id), ...issues.missingCardTypes.map(i => i.id), ...issues.missingCardNumbers.map(i => i.id), ...issues.teamNamesInTitles.map(i => i.id), ...issues.genericColorIssues.map(i => i.id), ...issues.otherIssues.map(i => i.id)]).size;
+        console.log(`   Total cards analyzed: ${this.totalCardsAnalyzed || 'Unknown'}`);
+        console.log(`   Cards with issues: ${totalCardsWithIssues}`);
+        console.log(`   Cards without issues: ${(this.totalCardsAnalyzed || 0) - totalCardsWithIssues}`);
     }
 
     async close() {
