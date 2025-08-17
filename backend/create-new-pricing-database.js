@@ -88,7 +88,9 @@ class NewPricingDatabase {
                 notes TEXT,
                 card_set TEXT,
                 card_number TEXT,
-                print_run TEXT
+                print_run TEXT,
+                is_rookie BOOLEAN DEFAULT 0,
+                is_autograph BOOLEAN DEFAULT 0
             )
         `;
 
@@ -568,6 +570,10 @@ class NewPricingDatabase {
             const cardType = this.extractCardType(cardData.title);
             const cardNumber = this.extractCardNumber(cardData.title);
             
+            // Extract rookie and autograph attributes
+            const isRookie = this.isRookieCard(cardData.title);
+            const isAutograph = this.isAutographCard(cardData.title);
+            
             // Extract print run (typically looks like /##)
             let printRun = null;
             const printRunMatch = cardData.title.match(/\/(\d+)/);
@@ -715,8 +721,9 @@ class NewPricingDatabase {
                 INSERT INTO cards (
                     title, summary_title, sport, year, brand, set_name, 
                     card_type, condition, grade, psa10_price, psa10_average_price, multiplier, search_term, 
-                    source, ebay_item_id, image_url, player_name, card_set, card_number, print_run
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    source, ebay_item_id, image_url, player_name, card_set, card_number, print_run,
+                    is_rookie, is_autograph
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
             
             // Ensure all parameters are properly formatted
@@ -740,7 +747,9 @@ class NewPricingDatabase {
                 playerName || null, // Add the extracted player name
                 cardSet || null, // Add the extracted card set
                 cardNumber || null, // Add the extracted card number
-                printRun || null // Add the extracted print run
+                printRun || null, // Add the extracted print run
+                isRookie ? 1 : 0, // Add rookie flag
+                isAutograph ? 1 : 0 // Add autograph flag
             ];
             
             const result = await this.runQuery(query, params);
@@ -1315,14 +1324,6 @@ class NewPricingDatabase {
         
         // Enhanced card type patterns with better prioritization
         const cardTypePatterns = [
-            // Rookie/RC types (high priority)
-            { pattern: /\b(rookie|rc)\b/gi, name: 'Rookie' },
-            { pattern: /\b(yg|young guns)\b/gi, name: 'Young Guns' },
-            
-            // Autograph types (high priority)
-            { pattern: /\b(on card autograph|on card auto)\b/gi, name: 'On Card Auto' },
-            { pattern: /\b(sticker autograph|sticker auto)\b/gi, name: 'Sticker Auto' },
-            { pattern: /\b(autograph|auto)\b/gi, name: 'Auto' },
             
             // Special parallel types (high priority)
             { pattern: /\b(superfractor)\b/gi, name: 'Superfractor' },
@@ -1669,6 +1670,41 @@ class NewPricingDatabase {
         }
         
         return result;
+    }
+
+    // Detect if a card is a rookie card
+    isRookieCard(title) {
+        const titleLower = title.toLowerCase();
+        
+        // Check for rookie indicators
+        const rookiePatterns = [
+            /\brookie\b/gi,
+            /\brc\b/gi,
+            /\byg\b/gi,
+            /\byoung guns\b/gi,
+            /\b1st bowman\b/gi,
+            /\bfirst bowman\b/gi,
+            /\bdebut\b/gi
+        ];
+        
+        return rookiePatterns.some(pattern => pattern.test(titleLower));
+    }
+
+    // Detect if a card is an autograph card
+    isAutographCard(title) {
+        const titleLower = title.toLowerCase();
+        
+        // Check for autograph indicators
+        const autographPatterns = [
+            /\bautograph\b/gi,
+            /\bauto\b/gi,
+            /\bon card autograph\b/gi,
+            /\bon card auto\b/gi,
+            /\bsticker autograph\b/gi,
+            /\bsticker auto\b/gi
+        ];
+        
+        return autographPatterns.some(pattern => pattern.test(titleLower));
     }
 
     async close() {

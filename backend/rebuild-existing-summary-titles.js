@@ -106,6 +106,10 @@ class ExistingSummaryTitleRebuilder {
 
                     // Only update if the new summary title is different and not empty
                     if (newSummaryTitle.trim() && newSummaryTitle.trim() !== card.summary_title) {
+                        // Extract rookie and autograph attributes
+                        const isRookie = this.isRookieCard(card.title);
+                        const isAutograph = this.isAutographCard(card.title);
+                        
                         // Update the card
                         await this.db.runQuery(`
                             UPDATE cards 
@@ -116,6 +120,8 @@ class ExistingSummaryTitleRebuilder {
                                 card_type = ?, 
                                 card_number = ?, 
                                 print_run = ?,
+                                is_rookie = ?,
+                                is_autograph = ?,
                                 last_updated = CURRENT_TIMESTAMP
                             WHERE id = ?
                         `, [
@@ -126,6 +132,8 @@ class ExistingSummaryTitleRebuilder {
                             cardType,
                             cardNumber,
                             printRun,
+                            isRookie ? 1 : 0,
+                            isAutograph ? 1 : 0,
                             card.id
                         ]);
 
@@ -425,6 +433,41 @@ class ExistingSummaryTitleRebuilder {
         });
         
         return result;
+    }
+
+    // Detect if a card is a rookie card
+    isRookieCard(title) {
+        const titleLower = title.toLowerCase();
+        
+        // Check for rookie indicators
+        const rookiePatterns = [
+            /\brookie\b/gi,
+            /\brc\b/gi,
+            /\byg\b/gi,
+            /\byoung guns\b/gi,
+            /\b1st bowman\b/gi,
+            /\bfirst bowman\b/gi,
+            /\bdebut\b/gi
+        ];
+        
+        return rookiePatterns.some(pattern => pattern.test(titleLower));
+    }
+
+    // Detect if a card is an autograph card
+    isAutographCard(title) {
+        const titleLower = title.toLowerCase();
+        
+        // Check for autograph indicators
+        const autographPatterns = [
+            /\bautograph\b/gi,
+            /\bauto\b/gi,
+            /\bon card autograph\b/gi,
+            /\bon card auto\b/gi,
+            /\bsticker autograph\b/gi,
+            /\bsticker auto\b/gi
+        ];
+        
+        return autographPatterns.some(pattern => pattern.test(titleLower));
     }
 
     async close() {
