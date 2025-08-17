@@ -631,8 +631,22 @@ class NewPricingDatabase {
                 summaryTitle += printRun;
             }
             
-            // Clean up any commas from the summary title
-            summaryTitle = summaryTitle.replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+                    // Clean up any commas from the summary title
+        summaryTitle = summaryTitle.replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+        
+        // Remove unwanted terms from final summary title
+        const unwantedTerms = [
+            'psa', 'gem', 'mint', 'rc', 'rookie', 'yg', 'ssp', 'holo', 'velocity', 'notoriety',
+            'mvp', 'hof', 'nfl', 'debut', 'card', 'rated', '1st', 'first', 'chrome', 'university'
+        ];
+        
+        unwantedTerms.forEach(term => {
+            const regex = new RegExp(`\\b${term}\\b`, 'gi');
+            summaryTitle = summaryTitle.replace(regex, '');
+        });
+        
+        // Clean up extra spaces again
+        summaryTitle = summaryTitle.replace(/\s+/g, ' ').trim();
             
             // Fallback to old method if no components were extracted
             if (!summaryTitle.trim()) {
@@ -1018,7 +1032,7 @@ class NewPricingDatabase {
         const titleLower = title.toLowerCase();
         
         // Filter out team names first
-        const teamNames = ['a\'s', 'athletics', 'vikings', 'cardinals', 'eagles', 'falcons', 'ravens', 'bills', 'panthers', 'bears', 'bengals', 'browns', 'cowboys', 'broncos', 'lions', 'packers', 'texans', 'colts', 'jaguars', 'chiefs', 'raiders', 'chargers', 'rams', 'dolphins', 'patriots', 'saints', 'giants', 'jets', 'steelers', '49ers', 'seahawks', 'buccaneers', 'titans', 'commanders', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'giants', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls', 'chiefs', 'ny giants'];
+        const teamNames = ['a\'s', 'athletics', 'vikings', 'cardinals', 'eagles', 'falcons', 'ravens', 'bills', 'panthers', 'bears', 'bengals', 'browns', 'cowboys', 'broncos', 'lions', 'packers', 'texans', 'colts', 'jaguars', 'chiefs', 'raiders', 'chargers', 'rams', 'dolphins', 'patriots', 'saints', 'giants', 'jets', 'steelers', '49ers', 'seahawks', 'buccaneers', 'titans', 'commanders', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'giants', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls', 'chiefs', 'ny giants', 'mvp', 'hof', 'nfl'];
         
         // Remove team names from title for card set extraction
         let cleanTitle = titleLower;
@@ -1390,7 +1404,7 @@ class NewPricingDatabase {
                     // For basic colors, use the actual matched color name
                     matches.forEach(match => {
                         // Extract the color name from the match (remove surrounding characters)
-                        const colorMatch = match.match(/(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white)(?:\s|$|\/)/i);
+                        const colorMatch = match.match(/(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white|teal|neon green)(?:\s|$|\/)/i);
                         if (colorMatch) {
                             foundTypes.push(colorMatch[1].charAt(0).toUpperCase() + colorMatch[1].slice(1).toLowerCase());
                         }

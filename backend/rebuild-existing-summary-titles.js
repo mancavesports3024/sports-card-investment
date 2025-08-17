@@ -86,8 +86,22 @@ class ExistingSummaryTitleRebuilder {
                          newSummaryTitle += printRun;
                      }
                      
-                     // Clean up any commas from the summary title
-                     newSummaryTitle = newSummaryTitle.replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+                             // Clean up any commas from the summary title
+        newSummaryTitle = newSummaryTitle.replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+        
+        // Remove unwanted terms from final summary title
+        const unwantedTerms = [
+            'psa', 'gem', 'mint', 'rc', 'rookie', 'yg', 'ssp', 'holo', 'velocity', 'notoriety',
+            'mvp', 'hof', 'nfl', 'debut', 'card', 'rated', '1st', 'first', 'chrome', 'university'
+        ];
+        
+        unwantedTerms.forEach(term => {
+            const regex = new RegExp(`\\b${term}\\b`, 'gi');
+            newSummaryTitle = newSummaryTitle.replace(regex, '');
+        });
+        
+        // Clean up extra spaces again
+        newSummaryTitle = newSummaryTitle.replace(/\s+/g, ' ').trim();
 
                     // Only update if the new summary title is different and not empty
                     if (newSummaryTitle.trim() && newSummaryTitle.trim() !== card.summary_title) {
@@ -302,11 +316,11 @@ class ExistingSummaryTitleRebuilder {
                  if (name === 'match') {
                      // For basic colors, use the actual matched color name
                      matches.forEach(match => {
-                         // Extract the color name from the match (remove surrounding characters)
-                         const colorMatch = match.match(/(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white)(?:\s|$|\/)/i);
-                         if (colorMatch) {
-                             foundTypes.push(colorMatch[1].charAt(0).toUpperCase() + colorMatch[1].slice(1).toLowerCase());
-                         }
+                                                 // Extract the color name from the match (remove surrounding characters)
+                        const colorMatch = match.match(/(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white|teal|neon green)(?:\s|$|\/)/i);
+                        if (colorMatch) {
+                            foundTypes.push(colorMatch[1].charAt(0).toUpperCase() + colorMatch[1].slice(1).toLowerCase());
+                        }
                      });
                  } else {
                      // Use the standardized name instead of the actual matches to avoid duplicates
