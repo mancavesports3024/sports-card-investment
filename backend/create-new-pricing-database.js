@@ -1669,12 +1669,11 @@ class NewPricingDatabase {
 
         // Post-processing to fix common issues
         if (cardType) {
-            // Fix capitalization issues
-            cardType = cardType.replace(/\b\w/g, l => l.toUpperCase());
+            // Fix capitalization issues - convert to Title Case
+            cardType = cardType.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
             
             // Fix redundant combinations
             cardType = cardType.replace(/Refractor Chrome/g, 'Chrome Refractor');
-            cardType = cardType.replace(/Chrome Refractor/g, 'Chrome Refractor');
             cardType = cardType.replace(/Color Prizm/g, 'Prizm');
             cardType = cardType.replace(/Color Chrome/g, 'Chrome');
             cardType = cardType.replace(/Color Hyper/g, 'Hyper');
@@ -1683,6 +1682,19 @@ class NewPricingDatabase {
             cardType = cardType.replace(/Rookies/g, 'Rookie');
             cardType = cardType.replace(/Autograph/g, 'Auto');
             cardType = cardType.replace(/\bSp\b/g, 'SP');
+            
+            // Fix specific combinations that should be standardized
+            cardType = cardType.replace(/Blue Red White/g, 'Red White & Blue');
+            cardType = cardType.replace(/Red White Blue/g, 'Red White & Blue');
+            cardType = cardType.replace(/Red Yellow/g, 'Red & Yellow');
+            cardType = cardType.replace(/Black Red/g, 'Black & Red');
+            cardType = cardType.replace(/Black Green/g, 'Black & Green');
+            cardType = cardType.replace(/Blue Red/g, 'Blue & Red');
+            cardType = cardType.replace(/Sapphire Orange/g, 'Orange Sapphire');
+            cardType = cardType.replace(/Scope Optic Blue/g, 'Blue Scope Optic');
+            cardType = cardType.replace(/Optic Blue Scope/g, 'Blue Scope Optic');
+            cardType = cardType.replace(/Wave Red Optic/g, 'Red Wave Optic');
+            cardType = cardType.replace(/Update Green/g, 'Green Update');
             
             // Remove generic terms that shouldn't be card types
             if (cardType === 'Color' || cardType === 'Chrome' || cardType === 'Prizm') {
