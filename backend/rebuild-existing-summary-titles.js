@@ -32,7 +32,7 @@ class ExistingSummaryTitleRebuilder {
                 const year = card.year || this.extractYear(card.title);
                 const cardSet = card.card_set || this.db.extractCardSet(card.title);
                 const playerName = card.player_name || this.extractPlayer(card.title);
-                const cardType = card.card_type || this.extractCardTypeWithFiltering(card.title);
+                const cardType = card.card_type || this.db.extractCardType(card.title);
                 const cardNumber = card.card_number || this.db.extractCardNumber(card.title);
                 const printRun = card.print_run || this.extractPrintRun(card.title);
                     
