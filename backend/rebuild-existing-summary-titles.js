@@ -28,13 +28,13 @@ class ExistingSummaryTitleRebuilder {
 
             for (const card of cards) {
                 try {
-                    // Extract components from the original title
-                    const year = card.year || this.extractYear(card.title);
-                    const cardSet = card.card_set || this.db.extractCardSet(card.title);
-                    const playerName = card.player_name || this.db.titleGenerator.extractPlayer(card.title);
-                    const cardType = card.card_type || this.db.extractCardType(card.title);
-                    const cardNumber = card.card_number || this.db.extractCardNumber(card.title);
-                    const printRun = card.print_run || this.extractPrintRun(card.title);
+                                    // Extract components from the original title
+                const year = card.year || this.extractYear(card.title);
+                const cardSet = card.card_set || this.db.extractCardSet(card.title);
+                const playerName = card.player_name || this.extractPlayer(card.title);
+                const cardType = card.card_type || this.db.extractCardType(card.title);
+                const cardNumber = card.card_number || this.db.extractCardNumber(card.title);
+                const printRun = card.print_run || this.extractPrintRun(card.title);
                     
                     // Check if it's an autograph
                     const isAuto = card.title.toLowerCase().includes('auto');
@@ -56,10 +56,10 @@ class ExistingSummaryTitleRebuilder {
                     // Add player name (but not if it's already in the card set)
                     if (playerName && cardSet && !cardSet.toLowerCase().includes(playerName.toLowerCase())) {
                         if (newSummaryTitle) newSummaryTitle += ' ';
-                        newSummaryTitle += this.db.capitalizePlayerName(playerName);
+                        newSummaryTitle += this.capitalizePlayerName(playerName);
                     } else if (playerName && !cardSet) {
                         if (newSummaryTitle) newSummaryTitle += ' ';
-                        newSummaryTitle += this.db.capitalizePlayerName(playerName);
+                        newSummaryTitle += this.capitalizePlayerName(playerName);
                     }
 
                     // Add card type
@@ -104,7 +104,7 @@ class ExistingSummaryTitleRebuilder {
                             newSummaryTitle.trim(),
                             year,
                             cardSet,
-                            playerName ? this.db.capitalizePlayerName(playerName) : null,
+                            playerName ? this.capitalizePlayerName(playerName) : null,
                             cardType,
                             cardNumber,
                             printRun,
@@ -144,6 +144,63 @@ class ExistingSummaryTitleRebuilder {
     extractPrintRun(title) {
         const printRunMatch = title.match(/\/(\d+)/);
         return printRunMatch ? '/' + printRunMatch[1] : null;
+    }
+
+    extractPlayer(title) {
+        // Import the DatabaseDrivenStandardizedTitleGenerator to use its extractPlayer method
+        const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standardized-summary-titles-database-driven.js');
+        const generator = new DatabaseDrivenStandardizedTitleGenerator();
+        return generator.extractPlayer(title);
+    }
+
+    capitalizePlayerName(playerName) {
+        if (!playerName) return null;
+        
+        // Convert to lowercase first
+        const lowerName = playerName.toLowerCase();
+        
+        // Handle special cases for hyphens and apostrophes
+        const words = lowerName.split(/[\s\-']/);
+        const capitalizedWords = words.map(word => {
+            if (word.length === 0) return word;
+            
+            // Handle special cases
+            if (word === 'jr' || word === 'sr') return word.toUpperCase();
+            if (word === 'ii' || word === 'iii' || word === 'iv') return word.toUpperCase();
+            
+            // Capitalize first letter
+            return word.charAt(0).toUpperCase() + word.slice(1);
+        });
+        
+        // Reconstruct with proper separators
+        let result = capitalizedWords.join(' ');
+        
+        // Restore hyphens and apostrophes
+        const originalName = playerName;
+        const hyphenPositions = [];
+        const apostrophePositions = [];
+        
+        // Find positions of hyphens and apostrophes in original name
+        for (let i = 0; i < originalName.length; i++) {
+            if (originalName[i] === '-') hyphenPositions.push(i);
+            if (originalName[i] === "'") apostrophePositions.push(i);
+        }
+        
+        // Restore hyphens
+        hyphenPositions.forEach(pos => {
+            const beforeHyphen = result.substring(0, pos);
+            const afterHyphen = result.substring(pos);
+            result = beforeHyphen + '-' + afterHyphen.substring(1);
+        });
+        
+        // Restore apostrophes
+        apostrophePositions.forEach(pos => {
+            const beforeApostrophe = result.substring(0, pos);
+            const afterApostrophe = result.substring(pos);
+            result = beforeApostrophe + "'" + afterApostrophe.substring(1);
+        });
+        
+        return result;
     }
 
     async close() {
