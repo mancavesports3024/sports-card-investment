@@ -158,7 +158,8 @@ class ExistingSummaryTitleRebuilder {
             .replace(/\bgraded\b/g, '') // Remove "graded" from card type detection
             .replace(/\bungraded\b/g, '') // Remove "ungraded" from card type detection
             .replace(/\bpop\b/g, '') // Remove "pop" from card type detection
-            .replace(/\bpopulation\b/g, ''); // Remove "population" from card type detection
+            .replace(/\bpopulation\b/g, '') // Remove "population" from card type detection
+            .replace(/\bbase\b/g, ''); // Remove "base" from card type detection
         
         // Enhanced color/parallel patterns
         const colorPatterns = [
@@ -259,9 +260,7 @@ class ExistingSummaryTitleRebuilder {
             // Career Stat Line
             { pattern: /\b(career stat line)\b/gi, name: 'Career Stat Line' },
             // Downtown
-            { pattern: /\b(downtown)\b/gi, name: 'Downtown' },
-            // Base (for base cards)
-            { pattern: /\b(base)\b/gi, name: 'Base' }
+            { pattern: /\b(downtown)\b/gi, name: 'Downtown' }
         ];
 
         const foundTypes = [];
