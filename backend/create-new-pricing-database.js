@@ -1500,6 +1500,131 @@ class NewPricingDatabase {
             { pattern: /\b(sapphire refractor)\b/gi, name: 'Sapphire Refractor' },
             { pattern: /\b(prism refractor)\b/gi, name: 'Prism Refractor' },
             
+            // Special color + finish combinations
+            { pattern: /\b(blue ice)\b/gi, name: 'Blue Ice' },
+            { pattern: /\b(green ice)\b/gi, name: 'Green Ice' },
+            { pattern: /\b(pink ice)\b/gi, name: 'Pink Ice' },
+            { pattern: /\b(gold ice)\b/gi, name: 'Gold Ice' },
+            { pattern: /\b(blue hyper)\b/gi, name: 'Blue Hyper' },
+            { pattern: /\b(green hyper)\b/gi, name: 'Green Hyper' },
+            { pattern: /\b(red hyper)\b/gi, name: 'Red Hyper' },
+            { pattern: /\b(blue scope)\b/gi, name: 'Blue Scope' },
+            { pattern: /\b(scope blue)\b/gi, name: 'Blue Scope' },
+            { pattern: /\b(blue velocity)\b/gi, name: 'Blue Velocity' },
+            { pattern: /\b(green velocity)\b/gi, name: 'Green Velocity' },
+            { pattern: /\b(red velocity)\b/gi, name: 'Red Velocity' },
+            { pattern: /\b(blue wave)\b/gi, name: 'Blue Wave' },
+            { pattern: /\b(green wave)\b/gi, name: 'Green Wave' },
+            { pattern: /\b(red wave)\b/gi, name: 'Red Wave' },
+            { pattern: /\b(blue optic)\b/gi, name: 'Blue Optic' },
+            { pattern: /\b(optic blue)\b/gi, name: 'Blue Optic' },
+            { pattern: /\b(pink optic)\b/gi, name: 'Pink Optic' },
+            { pattern: /\b(optic pink)\b/gi, name: 'Pink Optic' },
+            { pattern: /\b(red white blue)\b/gi, name: 'Red White & Blue' },
+            { pattern: /\b(red white & blue)\b/gi, name: 'Red White & Blue' },
+            { pattern: /\b(red white and blue)\b/gi, name: 'Red White & Blue' },
+            { pattern: /\b(blue red white)\b/gi, name: 'Red White & Blue' },
+            { pattern: /\b(red yellow)\b/gi, name: 'Red & Yellow' },
+            { pattern: /\b(red & yellow)\b/gi, name: 'Red & Yellow' },
+            { pattern: /\b(black red)\b/gi, name: 'Black & Red' },
+            { pattern: /\b(black & red)\b/gi, name: 'Black & Red' },
+            { pattern: /\b(black green)\b/gi, name: 'Black & Green' },
+            { pattern: /\b(black & green)\b/gi, name: 'Black & Green' },
+            { pattern: /\b(blue red)\b/gi, name: 'Blue & Red' },
+            { pattern: /\b(blue & red)\b/gi, name: 'Blue & Red' },
+            { pattern: /\b(orange sapphire)\b/gi, name: 'Orange Sapphire' },
+            { pattern: /\b(sapphire orange)\b/gi, name: 'Orange Sapphire' },
+            { pattern: /\b(red ink)\b/gi, name: 'Red Ink' },
+            { pattern: /\b(red ink auto)\b/gi, name: 'Red Ink Auto' },
+            { pattern: /\b(cyan rpa)\b/gi, name: 'Cyan RPA' },
+            { pattern: /\b(rpa cyan)\b/gi, name: 'Cyan RPA' },
+            { pattern: /\b(light blue prizm)\b/gi, name: 'Light Blue Prizm' },
+            { pattern: /\b(light blue)\b/gi, name: 'Light Blue' },
+            { pattern: /\b(reactive blue)\b/gi, name: 'Reactive Blue' },
+            { pattern: /\b(shimmer pink)\b/gi, name: 'Shimmer Pink' },
+            { pattern: /\b(disco orange)\b/gi, name: 'Disco Orange' },
+            { pattern: /\b(disco prizm orange)\b/gi, name: 'Disco Orange Prizm' },
+            { pattern: /\b(shock purple)\b/gi, name: 'Shock Purple' },
+            { pattern: /\b(wave red ruby)\b/gi, name: 'Wave Red Ruby' },
+            { pattern: /\b(flashback silver)\b/gi, name: 'Flashback Silver' },
+            { pattern: /\b(level orange prizm)\b/gi, name: 'Level Orange Prizm' },
+            { pattern: /\b(level prizm)\b/gi, name: 'Level Prizm' },
+            { pattern: /\b(level allen)\b/gi, name: 'Level Allen' },
+            { pattern: /\b(prizm black blue)\b/gi, name: 'Prizm Black Blue' },
+            { pattern: /\b(prizm black silver)\b/gi, name: 'Prizm Black Silver' },
+            { pattern: /\b(prizm silver)\b/gi, name: 'Silver Prizm' },
+            { pattern: /\b(prizm orange)\b/gi, name: 'Orange Prizm' },
+            { pattern: /\b(red hyper prizm)\b/gi, name: 'Red Hyper Prizm' },
+            { pattern: /\b(gold lava)\b/gi, name: 'Gold Lava' },
+            { pattern: /\b(pride genesis prizm)\b/gi, name: 'Pride Genesis Prizm' },
+            { pattern: /\b(variation silver)\b/gi, name: 'Variation Silver' },
+            { pattern: /\b(emergent wave prizm green)\b/gi, name: 'Emergent Wave Green Prizm' },
+            { pattern: /\b(allen prizm)\b/gi, name: 'Allen Prizm' },
+            { pattern: /\b(green ice prizm)\b/gi, name: 'Green Ice Prizm' },
+            { pattern: /\b(wave red optic)\b/gi, name: 'Red Wave Optic' },
+            { pattern: /\b(green rookies prizm)\b/gi, name: 'Green Rookies Prizm' },
+            { pattern: /\b(update green)\b/gi, name: 'Green Update' },
+            { pattern: /\b(disco rookies)\b/gi, name: 'Disco Rookies' },
+            { pattern: /\b(prospect silver wave refractor)\b/gi, name: 'Prospect Silver Wave Refractor' },
+            { pattern: /\b(color blast black)\b/gi, name: 'Color Blast Black' },
+            { pattern: /\b(no huddle flashback)\b/gi, name: 'No Huddle Flashback' },
+            { pattern: /\b(mojo red prizm)\b/gi, name: 'Mojo Red Prizm' },
+            { pattern: /\b(phoenix)\b/gi, name: 'Phoenix' },
+            { pattern: /\b(checkerboard refractor)\b/gi, name: 'Checkerboard Refractor' },
+            { pattern: /\b(scope optic blue)\b/gi, name: 'Blue Scope Optic' },
+            { pattern: /\b(optic blue scope)\b/gi, name: 'Blue Scope Optic' },
+            { pattern: /\b(prizmatic green)\b/gi, name: 'Prizmatic Green' },
+            { pattern: /\b(prizmatic green prizm)\b/gi, name: 'Prizmatic Green Prizm' },
+            { pattern: /\b(prizmatic green wave)\b/gi, name: 'Prizmatic Green Wave' },
+            { pattern: /\b(fireworks green prizm)\b/gi, name: 'Fireworks Green Prizm' },
+            { pattern: /\b(notoriety green)\b/gi, name: 'Notoriety Green' },
+            { pattern: /\b(instant impact)\b/gi, name: 'Instant Impact' },
+            { pattern: /\b(concourses)\b/gi, name: 'Concourses' },
+            { pattern: /\b(concourse)\b/gi, name: 'Concourse' },
+            { pattern: /\b(light blue prizm)\b/gi, name: 'Light Blue Prizm' },
+            { pattern: /\b(light blue)\b/gi, name: 'Light Blue' },
+            { pattern: /\b(reactive blue)\b/gi, name: 'Reactive Blue' },
+            { pattern: /\b(shimmer pink)\b/gi, name: 'Shimmer Pink' },
+            { pattern: /\b(disco orange)\b/gi, name: 'Disco Orange' },
+            { pattern: /\b(disco prizm orange)\b/gi, name: 'Disco Orange Prizm' },
+            { pattern: /\b(shock purple)\b/gi, name: 'Shock Purple' },
+            { pattern: /\b(wave red ruby)\b/gi, name: 'Wave Red Ruby' },
+            { pattern: /\b(flashback silver)\b/gi, name: 'Flashback Silver' },
+            { pattern: /\b(level orange prizm)\b/gi, name: 'Level Orange Prizm' },
+            { pattern: /\b(level prizm)\b/gi, name: 'Level Prizm' },
+            { pattern: /\b(level allen)\b/gi, name: 'Level Allen' },
+            { pattern: /\b(prizm black blue)\b/gi, name: 'Prizm Black Blue' },
+            { pattern: /\b(prizm black silver)\b/gi, name: 'Prizm Black Silver' },
+            { pattern: /\b(prizm silver)\b/gi, name: 'Silver Prizm' },
+            { pattern: /\b(prizm orange)\b/gi, name: 'Orange Prizm' },
+            { pattern: /\b(red hyper prizm)\b/gi, name: 'Red Hyper Prizm' },
+            { pattern: /\b(gold lava)\b/gi, name: 'Gold Lava' },
+            { pattern: /\b(pride genesis prizm)\b/gi, name: 'Pride Genesis Prizm' },
+            { pattern: /\b(variation silver)\b/gi, name: 'Variation Silver' },
+            { pattern: /\b(emergent wave prizm green)\b/gi, name: 'Emergent Wave Green Prizm' },
+            { pattern: /\b(allen prizm)\b/gi, name: 'Allen Prizm' },
+            { pattern: /\b(green ice prizm)\b/gi, name: 'Green Ice Prizm' },
+            { pattern: /\b(wave red optic)\b/gi, name: 'Red Wave Optic' },
+            { pattern: /\b(green rookies prizm)\b/gi, name: 'Green Rookies Prizm' },
+            { pattern: /\b(update green)\b/gi, name: 'Green Update' },
+            { pattern: /\b(disco rookies)\b/gi, name: 'Disco Rookies' },
+            { pattern: /\b(prospect silver wave refractor)\b/gi, name: 'Prospect Silver Wave Refractor' },
+            { pattern: /\b(color blast black)\b/gi, name: 'Color Blast Black' },
+            { pattern: /\b(no huddle flashback)\b/gi, name: 'No Huddle Flashback' },
+            { pattern: /\b(mojo red prizm)\b/gi, name: 'Mojo Red Prizm' },
+            { pattern: /\b(phoenix)\b/gi, name: 'Phoenix' },
+            { pattern: /\b(checkerboard refractor)\b/gi, name: 'Checkerboard Refractor' },
+            { pattern: /\b(scope optic blue)\b/gi, name: 'Blue Scope Optic' },
+            { pattern: /\b(optic blue scope)\b/gi, name: 'Blue Scope Optic' },
+            { pattern: /\b(prizmatic green)\b/gi, name: 'Prizmatic Green' },
+            { pattern: /\b(prizmatic green prizm)\b/gi, name: 'Prizmatic Green Prizm' },
+            { pattern: /\b(prizmatic green wave)\b/gi, name: 'Prizmatic Green Wave' },
+            { pattern: /\b(fireworks green prizm)\b/gi, name: 'Fireworks Green Prizm' },
+            { pattern: /\b(notoriety green)\b/gi, name: 'Notoriety Green' },
+            { pattern: /\b(instant impact)\b/gi, name: 'Instant Impact' },
+            { pattern: /\b(concourses)\b/gi, name: 'Concourses' },
+            { pattern: /\b(concourse)\b/gi, name: 'Concourse' },
+            
             // Basic color types (lower priority)
             { pattern: /\b(gold)\b/gi, name: 'Gold' },
             { pattern: /\b(silver)\b/gi, name: 'Silver' },
@@ -1540,7 +1665,30 @@ class NewPricingDatabase {
 
         // Remove duplicates and format
         const uniqueTypes = [...new Set(foundTypes)];
-        const cardType = uniqueTypes.join(' ').trim();
+        let cardType = uniqueTypes.join(' ').trim();
+
+        // Post-processing to fix common issues
+        if (cardType) {
+            // Fix capitalization issues
+            cardType = cardType.replace(/\b\w/g, l => l.toUpperCase());
+            
+            // Fix redundant combinations
+            cardType = cardType.replace(/Refractor Chrome/g, 'Chrome Refractor');
+            cardType = cardType.replace(/Chrome Refractor/g, 'Chrome Refractor');
+            cardType = cardType.replace(/Color Prizm/g, 'Prizm');
+            cardType = cardType.replace(/Color Chrome/g, 'Chrome');
+            cardType = cardType.replace(/Color Hyper/g, 'Hyper');
+            
+            // Fix inconsistent naming
+            cardType = cardType.replace(/Rookies/g, 'Rookie');
+            cardType = cardType.replace(/Autograph/g, 'Auto');
+            cardType = cardType.replace(/\bSp\b/g, 'SP');
+            
+            // Remove generic terms that shouldn't be card types
+            if (cardType === 'Color' || cardType === 'Chrome' || cardType === 'Prizm') {
+                return null;
+            }
+        }
 
         return cardType || null;
     }
