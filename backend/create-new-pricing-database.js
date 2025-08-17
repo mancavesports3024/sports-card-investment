@@ -1374,6 +1374,122 @@ class NewPricingDatabase {
             return 'Topps';
         }
         
+        // Add missing set detections based on analysis report
+        if (cleanTitle.includes('usa basketball')) {
+            return 'USA Basketball';
+        }
+        if (cleanTitle.includes('kellogg')) {
+            return 'Kellogg\'s';
+        }
+        if (cleanTitle.includes('fleer metal')) {
+            return 'Fleer Metal';
+        }
+        if (cleanTitle.includes('o-pee-chee') || cleanTitle.includes('o pee chee')) {
+            return 'O-Pee-Chee';
+        }
+        if (cleanTitle.includes('skybox')) {
+            return 'Skybox';
+        }
+        if (cleanTitle.includes('flawless')) {
+            return 'Flawless';
+        }
+        if (cleanTitle.includes('absolute')) {
+            return 'Absolute';
+        }
+        if (cleanTitle.includes('spectra')) {
+            return 'Spectra';
+        }
+        if (cleanTitle.includes('national treasures')) {
+            return 'National Treasures';
+        }
+        if (cleanTitle.includes('zenith')) {
+            return 'Zenith';
+        }
+        if (cleanTitle.includes('diamond kings')) {
+            return 'Diamond Kings';
+        }
+        if (cleanTitle.includes('one and one')) {
+            return 'One and One';
+        }
+        if (cleanTitle.includes('chronicles')) {
+            return 'Chronicles';
+        }
+        if (cleanTitle.includes('phoenix')) {
+            return 'Phoenix';
+        }
+        if (cleanTitle.includes('score')) {
+            return 'Score';
+        }
+        if (cleanTitle.includes('stadium club')) {
+            return 'Stadium Club';
+        }
+        if (cleanTitle.includes('gallery')) {
+            return 'Gallery';
+        }
+        if (cleanTitle.includes('finest')) {
+            return 'Finest';
+        }
+        if (cleanTitle.includes('heritage')) {
+            return 'Heritage';
+        }
+        if (cleanTitle.includes('archives')) {
+            return 'Archives';
+        }
+        if (cleanTitle.includes('update')) {
+            return 'Update';
+        }
+        if (cleanTitle.includes('chrome update')) {
+            return 'Chrome Update';
+        }
+        if (cleanTitle.includes('allen & ginter') || cleanTitle.includes('allen and ginter')) {
+            return 'Allen & Ginter';
+        }
+        if (cleanTitle.includes('gypsy queen')) {
+            return 'Gypsy Queen';
+        }
+        if (cleanTitle.includes('tribute')) {
+            return 'Tribute';
+        }
+        if (cleanTitle.includes('crown royale')) {
+            return 'Crown Royale';
+        }
+        if (cleanTitle.includes('limited')) {
+            return 'Limited';
+        }
+        if (cleanTitle.includes('threads')) {
+            return 'Threads';
+        }
+        if (cleanTitle.includes('certified')) {
+            return 'Certified';
+        }
+        if (cleanTitle.includes('triple threads')) {
+            return 'Triple Threads';
+        }
+        if (cleanTitle.includes('rookies & stars') || cleanTitle.includes('rookies and stars')) {
+            return 'Rookies & Stars';
+        }
+        if (cleanTitle.includes('elite')) {
+            return 'Elite';
+        }
+        if (cleanTitle.includes('prestige')) {
+            return 'Prestige';
+        }
+        if (cleanTitle.includes('upper deck')) {
+            return 'Upper Deck';
+        }
+        if (cleanTitle.includes('young guns')) {
+            return 'Young Guns';
+        }
+        if (cleanTitle.includes('synergy')) {
+            return 'Synergy';
+        }
+        if (cleanTitle.includes('fleer')) {
+            return 'Fleer';
+        }
+        if (cleanTitle.includes('fleer tradition')) {
+            return 'Fleer Tradition';
+        }
+        
         return null;
     }
 
@@ -1689,7 +1805,16 @@ class NewPricingDatabase {
         
         // List of team names to filter out
         const teamNames = [
-            'a\'s', 'athletics', 'vikings', 'cardinals', 'eagles', 'falcons', 'ravens', 'bills', 'panthers', 'bears', 'bengals', 'browns', 'cowboys', 'broncos', 'lions', 'packers', 'texans', 'colts', 'jaguars', 'chiefs', 'raiders', 'chargers', 'rams', 'dolphins', 'patriots', 'saints', 'giants', 'jets', 'steelers', '49ers', 'seahawks', 'buccaneers', 'titans', 'commanders', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'giants', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls'
+            // NFL Teams
+            'a\'s', 'athletics', 'vikings', 'cardinals', 'eagles', 'falcons', 'ravens', 'bills', 'panthers', 'bears', 'bengals', 'browns', 'cowboys', 'broncos', 'lions', 'packers', 'texans', 'colts', 'jaguars', 'chiefs', 'raiders', 'chargers', 'rams', 'dolphins', 'patriots', 'saints', 'giants', 'jets', 'steelers', '49ers', 'seahawks', 'buccaneers', 'titans', 'commanders', 'ny giants', 'redskins',
+            // MLB Teams
+            'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'cardinals',
+            // NBA Teams
+            'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls',
+            // NHL Teams
+            'red wings', 'blackhawks', 'bruins', 'rangers', 'maple leafs', 'canadiens', 'senators', 'sabres', 'lightning', 'capitals', 'flyers', 'devils', 'islanders', 'penguins', 'blue jackets', 'hurricanes', 'predators', 'blues', 'wild', 'avalanche', 'stars', 'oilers', 'flames', 'canucks', 'sharks', 'ducks', 'golden knights', 'coyotes', 'jets', 'kraken',
+            // Additional terms that should be filtered
+            'mvp', 'hof', 'nfl', 'mlb', 'nba', 'nhl', 'debut', 'rookie', 'rc', 'yg', 'psa', 'gem', 'mint', 'ssp', 'holo', 'velocity', 'notoriety', 'card', 'rated', '1st', 'first', 'chrome', 'university', 'rams', 'vikings', 'browns', 'chiefs', 'giants', 'eagles', 'cowboys', 'falcons', 'panthers', 'steelers', 'patriots', 'saints', 'jets', 'bills', 'dolphins', 'texans', 'colts', 'jaguars', 'titans', 'broncos', 'raiders', 'chargers', 'seahawks', '49ers', 'cardinals', 'buccaneers', 'commanders', 'redskins', 'packers', 'bears', 'lions', 'bengals', 'ravens', 'browns', 'steelers', 'titans', 'jaguars', 'colts', 'texans', 'chiefs', 'raiders', 'broncos', 'chargers', 'cowboys', 'giants', 'eagles', 'redskins', 'commanders', 'bears', 'lions', 'packers', 'vikings', 'falcons', 'panthers', 'saints', 'buccaneers', 'rams', 'seahawks', '49ers', 'cardinals', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'cardinals', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls'
         ];
         
         let cleanName = playerName;
