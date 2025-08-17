@@ -329,6 +329,188 @@ class EnhancedComprehensiveDatabase {
       });
     });
 
+    // Score Football (1989-2024)
+    ['1989', '1990', '1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Score Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Score',
+        setName: 'Score',
+        searchText: `score football ${year}`,
+        displayName: `Score Football ${year}`
+      });
+    });
+
+    // Panini Phoenix (2020-2024)
+    ['2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Phoenix Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Panini',
+        setName: 'Phoenix',
+        searchText: `panini phoenix football ${year}`,
+        displayName: `Panini Phoenix Football ${year}`
+      });
+    });
+
+    // Panini Chronicles (2017-2024)
+    ['2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Chronicles Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Panini',
+        setName: 'Chronicles',
+        searchText: `panini chronicles football ${year}`,
+        displayName: `Panini Chronicles Football ${year}`
+      });
+    });
+
+    // Panini Flawless (2013-2024)
+    ['2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Flawless Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Panini',
+        setName: 'Flawless',
+        searchText: `panini flawless football ${year}`,
+        displayName: `Panini Flawless Football ${year}`
+      });
+    });
+
+    // Panini Absolute (2013-2024)
+    ['2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Absolute Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Panini',
+        setName: 'Absolute',
+        searchText: `panini absolute football ${year}`,
+        displayName: `Panini Absolute Football ${year}`
+      });
+    });
+
+    // Panini Spectra (2015-2024)
+    ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Spectra Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Panini',
+        setName: 'Spectra',
+        searchText: `panini spectra football ${year}`,
+        displayName: `Panini Spectra Football ${year}`
+      });
+    });
+
+    // Panini National Treasures (2007-2024)
+    ['2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini National Treasures Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Panini',
+        setName: 'National Treasures',
+        searchText: `panini national treasures football ${year}`,
+        displayName: `Panini National Treasures Football ${year}`
+      });
+    });
+
+    // Panini Zenith (2015-2024)
+    ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Zenith Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Panini',
+        setName: 'Zenith',
+        searchText: `panini zenith football ${year}`,
+        displayName: `Panini Zenith Football ${year}`
+      });
+    });
+
+    // Panini Diamond Kings (2015-2024)
+    ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Diamond Kings Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Panini',
+        setName: 'Diamond Kings',
+        searchText: `panini diamond kings football ${year}`,
+        displayName: `Panini Diamond Kings Football ${year}`
+      });
+    });
+
+    // Panini One and One (2018-2024)
+    ['2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini One and One Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Panini',
+        setName: 'One and One',
+        searchText: `panini one and one football ${year}`,
+        displayName: `Panini One and One Football ${year}`
+      });
+    });
+
+    // USA Basketball (1992-2024)
+    ['1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `USA Basketball ${year}`,
+        sport: 'Basketball',
+        year: year,
+        brand: 'USA Basketball',
+        setName: 'USA Basketball',
+        searchText: `usa basketball ${year}`,
+        displayName: `USA Basketball ${year}`
+      });
+    });
+
+    // Kellogg's (1970-1983)
+    ['1970', '1971', '1972', '1973', '1974', '1975', '1976', '1977', '1978', '1979', '1980', '1981', '1982', '1983'].forEach(year => {
+      sets.push({
+        name: `Kellogg's NFL Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Kellogg\'s',
+        setName: 'Kellogg\'s',
+        searchText: `kellogg nfl football ${year}`,
+        displayName: `Kellogg's NFL Football ${year}`
+      });
+    });
+
+    // Fleer Metal (1994-2001)
+    ['1994', '1995', '1996', '1997', '1998', '1999', '2000', '2001'].forEach(year => {
+      sets.push({
+        name: `Fleer Metal Basketball ${year}`,
+        sport: 'Basketball',
+        year: year,
+        brand: 'Fleer',
+        setName: 'Metal',
+        searchText: `fleer metal basketball ${year}`,
+        displayName: `Fleer Metal Basketball ${year}`
+      });
+    });
+
+    // O-Pee-Chee (1968-1992)
+    ['1968', '1969', '1970', '1971', '1972', '1973', '1974', '1975', '1976', '1977', '1978', '1979', '1980', '1981', '1982', '1983', '1984', '1985', '1986', '1987', '1988', '1989', '1990', '1991', '1992'].forEach(year => {
+      sets.push({
+        name: `O-Pee-Chee Hockey ${year}`,
+        sport: 'Hockey',
+        year: year,
+        brand: 'O-Pee-Chee',
+        setName: 'O-Pee-Chee',
+        searchText: `o pee chee hockey ${year}`,
+        displayName: `O-Pee-Chee Hockey ${year}`
+      });
+    });
+
     return sets;
   }
 
@@ -428,6 +610,123 @@ class EnhancedComprehensiveDatabase {
         setName: 'Synergy',
         searchText: `synergy basketball ${year}`,
         displayName: `Synergy Basketball ${year}`
+      });
+    });
+
+    // Panini Chronicles Basketball (2017-2024)
+    ['2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Chronicles Basketball ${year}`,
+        sport: 'Basketball',
+        year: year,
+        brand: 'Panini',
+        setName: 'Chronicles',
+        searchText: `panini chronicles basketball ${year}`,
+        displayName: `Panini Chronicles Basketball ${year}`
+      });
+    });
+
+    // Panini Flawless Basketball (2013-2024)
+    ['2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Flawless Basketball ${year}`,
+        sport: 'Basketball',
+        year: year,
+        brand: 'Panini',
+        setName: 'Flawless',
+        searchText: `panini flawless basketball ${year}`,
+        displayName: `Panini Flawless Basketball ${year}`
+      });
+    });
+
+    // Panini Absolute Basketball (2013-2024)
+    ['2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Absolute Basketball ${year}`,
+        sport: 'Basketball',
+        year: year,
+        brand: 'Panini',
+        setName: 'Absolute',
+        searchText: `panini absolute basketball ${year}`,
+        displayName: `Panini Absolute Basketball ${year}`
+      });
+    });
+
+    // Panini Spectra Basketball (2015-2024)
+    ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Spectra Basketball ${year}`,
+        sport: 'Basketball',
+        year: year,
+        brand: 'Panini',
+        setName: 'Spectra',
+        searchText: `panini spectra basketball ${year}`,
+        displayName: `Panini Spectra Basketball ${year}`
+      });
+    });
+
+    // Panini National Treasures Basketball (2007-2024)
+    ['2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini National Treasures Basketball ${year}`,
+        sport: 'Basketball',
+        year: year,
+        brand: 'Panini',
+        setName: 'National Treasures',
+        searchText: `panini national treasures basketball ${year}`,
+        displayName: `Panini National Treasures Basketball ${year}`
+      });
+    });
+
+    // Panini Zenith Basketball (2015-2024)
+    ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Zenith Basketball ${year}`,
+        sport: 'Basketball',
+        year: year,
+        brand: 'Panini',
+        setName: 'Zenith',
+        searchText: `panini zenith basketball ${year}`,
+        displayName: `Panini Zenith Basketball ${year}`
+      });
+    });
+
+    // Panini Diamond Kings Basketball (2015-2024)
+    ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Diamond Kings Basketball ${year}`,
+        sport: 'Basketball',
+        year: year,
+        brand: 'Panini',
+        setName: 'Diamond Kings',
+        searchText: `panini diamond kings basketball ${year}`,
+        displayName: `Panini Diamond Kings Basketball ${year}`
+      });
+    });
+
+    // Panini One and One Basketball (2018-2024)
+    ['2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini One and One Basketball ${year}`,
+        sport: 'Basketball',
+        year: year,
+        brand: 'Panini',
+        setName: 'One and One',
+        searchText: `panini one and one basketball ${year}`,
+        displayName: `Panini One and One Basketball ${year}`
+      });
+    });
+
+    // Skybox (1990-2003)
+    ['1990', '1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999', '2000', '2001', '2002', '2003'].forEach(year => {
+      sets.push({
+        name: `Skybox Basketball ${year}`,
+        sport: 'Basketball',
+        year: year,
+        brand: 'Skybox',
+        setName: 'Skybox',
+        searchText: `skybox basketball ${year}`,
+        displayName: `Skybox Basketball ${year}`
       });
     });
 
