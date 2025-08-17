@@ -92,7 +92,8 @@ class ExistingSummaryTitleRebuilder {
         // Remove unwanted terms from final summary title
         const unwantedTerms = [
             'psa', 'gem', 'mint', 'rc', 'rookie', 'yg', 'ssp', 'holo', 'velocity', 'notoriety',
-            'mvp', 'hof', 'nfl', 'debut', 'card', 'rated', '1st', 'first', 'chrome', 'university'
+            'mvp', 'hof', 'nfl', 'debut', 'card', 'rated', '1st', 'first', 'chrome', 'university',
+            'rams', 'vikings', 'browns', 'chiefs', 'giants', 'ny giants'
         ];
         
         unwantedTerms.forEach(term => {
@@ -186,10 +187,25 @@ class ExistingSummaryTitleRebuilder {
             .replace(/\bvelocity\b/g, '') // Remove "velocity" from card type detection
             .replace(/\bnotoriety\b/g, ''); // Remove "notoriety" from card type detection
         
-                 // Enhanced color/parallel patterns
-         const colorPatterns = [
-                     // Basic colors (including those with slashes) - return the actual color name
-        { pattern: /(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white|neon green|teal)(?:\s|$|\/)/gi, name: 'match' },
+                         // Enhanced color/parallel patterns
+        const colorPatterns = [
+            // Specific color + Prizm combinations (prioritize these)
+            { pattern: /\b(gold prizm)\b/gi, name: 'Gold Prizm' },
+            { pattern: /\b(silver prizm)\b/gi, name: 'Silver Prizm' },
+            { pattern: /\b(black prizm)\b/gi, name: 'Black Prizm' },
+            { pattern: /\b(green prizm)\b/gi, name: 'Green Prizm' },
+            { pattern: /\b(blue prizm)\b/gi, name: 'Blue Prizm' },
+            { pattern: /\b(red prizm)\b/gi, name: 'Red Prizm' },
+            { pattern: /\b(yellow prizm)\b/gi, name: 'Yellow Prizm' },
+            { pattern: /\b(orange prizm)\b/gi, name: 'Orange Prizm' },
+            { pattern: /\b(purple prizm)\b/gi, name: 'Purple Prizm' },
+            { pattern: /\b(pink prizm)\b/gi, name: 'Pink Prizm' },
+            { pattern: /\b(bronze prizm)\b/gi, name: 'Bronze Prizm' },
+            { pattern: /\b(white prizm)\b/gi, name: 'White Prizm' },
+            { pattern: /\b(teal prizm)\b/gi, name: 'Teal Prizm' },
+            { pattern: /\b(neon green prizm)\b/gi, name: 'Neon Green Prizm' },
+            // Basic colors (including those with slashes) - return the actual color name
+            { pattern: /(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white|neon green|teal)(?:\s|$|\/)/gi, name: 'match' },
             // Refractors
             { pattern: /\b(refractor|refractors)\b/gi, name: 'Refractor' },
             // Prizm variants
