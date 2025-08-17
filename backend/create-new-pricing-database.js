@@ -1172,17 +1172,18 @@ class NewPricingDatabase {
     extractCardType(title) {
         const titleLower = title.toLowerCase();
         
-                                     // Filter out terms that shouldn't be card types
-                             const filteredTitle = titleLower
-                                 .replace(/\brookie\b/g, '') // Remove "rookie" from card type detection
-                                 .replace(/\brc\b/g, '') // Remove "rc" from card type detection
-                                 .replace(/\bauto\b/g, '') // Remove "auto" from card type detection
-                                 .replace(/\bautograph\b/g, '') // Remove "autograph" from card type detection
-                                 .replace(/\bgraded\b/g, '') // Remove "graded" from card type detection
-                                 .replace(/\bungraded\b/g, '') // Remove "ungraded" from card type detection
-                                 .replace(/\bpop\b/g, '') // Remove "pop" from card type detection
-                                 .replace(/\bpopulation\b/g, '') // Remove "population" from card type detection
-                                 .replace(/\bcolor\b/g, ''); // Remove "color" from card type detection
+                                             // Filter out terms that shouldn't be card types
+        const filteredTitle = titleLower
+            .replace(/\brookie\b/g, '') // Remove "rookie" from card type detection
+            .replace(/\brc\b/g, '') // Remove "rc" from card type detection
+            .replace(/\byg\b/g, '') // Remove "yg" from card type detection
+            .replace(/\bauto\b/g, '') // Remove "auto" from card type detection
+            .replace(/\bautograph\b/g, '') // Remove "autograph" from card type detection
+            .replace(/\bgraded\b/g, '') // Remove "graded" from card type detection
+            .replace(/\bungraded\b/g, '') // Remove "ungraded" from card type detection
+            .replace(/\bpop\b/g, '') // Remove "pop" from card type detection
+            .replace(/\bpopulation\b/g, '') // Remove "population" from card type detection
+            .replace(/\bcolor\b/g, ''); // Remove "color" from card type detection
         
         // Enhanced color/parallel patterns
         const colorPatterns = [
