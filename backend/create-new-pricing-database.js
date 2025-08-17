@@ -1093,6 +1093,15 @@ class NewPricingDatabase {
         if (cleanTitle.includes('heritage') && !cleanTitle.includes('topps heritage')) {
             return 'Topps Heritage';
         }
+        if (cleanTitle.includes('flawless')) {
+            return 'Flawless';
+        }
+        if (cleanTitle.includes('skybox')) {
+            return 'Skybox';
+        }
+        if (cleanTitle.includes('apex')) {
+            return 'Skybox Apex';
+        }
         
         return null;
     }
