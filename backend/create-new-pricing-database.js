@@ -1289,7 +1289,67 @@ class NewPricingDatabase {
                                              // Downtown
                                  { pattern: /\b(downtown)\b/gi, name: 'Downtown' },
                                  // Base (for base cards)
-                                 { pattern: /\b(base)\b/gi, name: 'Base' }
+                                 { pattern: /\b(base)\b/gi, name: 'Base' },
+                                 // Sapphire
+                                 { pattern: /\b(sapphire)\b/gi, name: 'Sapphire' },
+                                 // Mojo
+                                 { pattern: /\b(mojo)\b/gi, name: 'Mojo' },
+                                 // Wave
+                                 { pattern: /\b(wave)\b/gi, name: 'Wave' },
+                                 // Scope
+                                 { pattern: /\b(scope)\b/gi, name: 'Scope' },
+                                 // Shock
+                                 { pattern: /\b(shock)\b/gi, name: 'Shock' },
+                                 // Choice
+                                 { pattern: /\b(choice)\b/gi, name: 'Choice' },
+                                 // Fusion
+                                 { pattern: /\b(fusion)\b/gi, name: 'Fusion' },
+                                 // Nebula
+                                 { pattern: /\b(nebula)\b/gi, name: 'Nebula' },
+                                 // Swirl
+                                 { pattern: /\b(swirl)\b/gi, name: 'Swirl' },
+                                 // Fluorescent
+                                 { pattern: /\b(fluorescent)\b/gi, name: 'Fluorescent' },
+                                 // Reactive
+                                 { pattern: /\b(reactive)\b/gi, name: 'Reactive' },
+                                 // Tectonic
+                                 { pattern: /\b(tectonic)\b/gi, name: 'Tectonic' },
+                                 // Lava
+                                 { pattern: /\b(lava)\b/gi, name: 'Lava' },
+                                 // Crystal
+                                 { pattern: /\b(crystal)\b/gi, name: 'Crystal' },
+                                 // Kaleidoscope
+                                 { pattern: /\b(kaleidoscope)\b/gi, name: 'Kaleidoscope' },
+                                 // Prismatic
+                                 { pattern: /\b(prismatic)\b/gi, name: 'Prismatic' },
+                                 // Animal parallels
+                                 { pattern: /\b(alligator)\b/gi, name: 'Alligator' },
+                                 { pattern: /\b(butterfly)\b/gi, name: 'Butterfly' },
+                                 { pattern: /\b(chameleon)\b/gi, name: 'Chameleon' },
+                                 { pattern: /\b(clown fish)\b/gi, name: 'Clown Fish' },
+                                 { pattern: /\b(deer)\b/gi, name: 'Deer' },
+                                 { pattern: /\b(elephant)\b/gi, name: 'Elephant' },
+                                 { pattern: /\b(giraffe)\b/gi, name: 'Giraffe' },
+                                 { pattern: /\b(leopard)\b/gi, name: 'Leopard' },
+                                 { pattern: /\b(parrot)\b/gi, name: 'Parrot' },
+                                 { pattern: /\b(peacock)\b/gi, name: 'Peacock' },
+                                 { pattern: /\b(snake)\b/gi, name: 'Snake' },
+                                 { pattern: /\b(tiger)\b/gi, name: 'Tiger' },
+                                 { pattern: /\b(zebra)\b/gi, name: 'Zebra' },
+                                 // Eyes
+                                 { pattern: /\b(tiger eyes|snake eyes)\b/gi, name: 'Eyes' },
+                                 // Anniversary
+                                 { pattern: /\b(anniversary)\b/gi, name: 'Anniversary' },
+                                 // Border
+                                 { pattern: /\b(border)\b/gi, name: 'Border' },
+                                 // Flip Stock
+                                 { pattern: /\b(flip stock)\b/gi, name: 'Flip Stock' },
+                                 // Magenta
+                                 { pattern: /\b(magenta)\b/gi, name: 'Magenta' },
+                                 // Mini Parallels
+                                 { pattern: /\b(mini parallels)\b/gi, name: 'Mini Parallels' },
+                                 // Superfractor
+                                 { pattern: /\b(superfractor)\b/gi, name: 'Superfractor' }
                              ];
 
         // Find all matches and build card type
