@@ -605,8 +605,8 @@ class NewPricingDatabase {
                 summaryTitle += this.capitalizePlayerName(cleanPlayerName);
             }
             
-            // Add card type (colors, parallels, etc.)
-            if (cardType) {
+            // Add card type (colors, parallels, etc.) - but exclude "Base"
+            if (cardType && cardType.toLowerCase() !== 'base') {
                 if (summaryTitle) summaryTitle += ' ';
                 // Properly capitalize card type (e.g., "REFRACTOR" -> "Refractor")
                 const capitalizedCardType = cardType.charAt(0).toUpperCase() + cardType.slice(1).toLowerCase();
@@ -1097,17 +1097,16 @@ class NewPricingDatabase {
     extractCardType(title) {
         const titleLower = title.toLowerCase();
         
-        // Filter out terms that shouldn't be card types
-        const filteredTitle = titleLower
-            .replace(/\brookie\b/g, '') // Remove "rookie" from card type detection
-            .replace(/\brc\b/g, '') // Remove "rc" from card type detection
-            .replace(/\bauto\b/g, '') // Remove "auto" from card type detection
-            .replace(/\bautograph\b/g, '') // Remove "autograph" from card type detection
-            .replace(/\bgraded\b/g, '') // Remove "graded" from card type detection
-            .replace(/\bungraded\b/g, '') // Remove "ungraded" from card type detection
-            .replace(/\bpop\b/g, '') // Remove "pop" from card type detection
-            .replace(/\bpopulation\b/g, '') // Remove "population" from card type detection
-            .replace(/\bbase\b/g, ''); // Remove "base" from card type detection
+                                     // Filter out terms that shouldn't be card types
+                             const filteredTitle = titleLower
+                                 .replace(/\brookie\b/g, '') // Remove "rookie" from card type detection
+                                 .replace(/\brc\b/g, '') // Remove "rc" from card type detection
+                                 .replace(/\bauto\b/g, '') // Remove "auto" from card type detection
+                                 .replace(/\bautograph\b/g, '') // Remove "autograph" from card type detection
+                                 .replace(/\bgraded\b/g, '') // Remove "graded" from card type detection
+                                 .replace(/\bungraded\b/g, '') // Remove "ungraded" from card type detection
+                                 .replace(/\bpop\b/g, '') // Remove "pop" from card type detection
+                                 .replace(/\bpopulation\b/g, ''); // Remove "population" from card type detection
         
         // Enhanced color/parallel patterns
         const colorPatterns = [
@@ -1209,9 +1208,11 @@ class NewPricingDatabase {
             { pattern: /\b(voltage)\b/gi, name: 'Voltage' },
             // Career Stat Line
             { pattern: /\b(career stat line)\b/gi, name: 'Career Stat Line' },
-            // Downtown
-            { pattern: /\b(downtown)\b/gi, name: 'Downtown' }
-        ];
+                                             // Downtown
+                                 { pattern: /\b(downtown)\b/gi, name: 'Downtown' },
+                                 // Base (for base cards)
+                                 { pattern: /\b(base)\b/gi, name: 'Base' }
+                             ];
 
         // Find all matches and build card type
         const foundTypes = [];
