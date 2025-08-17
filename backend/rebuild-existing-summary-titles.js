@@ -163,12 +163,19 @@ class ExistingSummaryTitleRebuilder {
             .replace(/\bungraded\b/g, '') // Remove "ungraded" from card type detection
             .replace(/\bpop\b/g, '') // Remove "pop" from card type detection
             .replace(/\bpopulation\b/g, '') // Remove "population" from card type detection
-            .replace(/\bcolor\b/g, ''); // Remove "color" from card type detection
+            .replace(/\bcolor\b/g, '') // Remove "color" from card type detection
+            .replace(/\bpsa\b/g, '') // Remove "psa" from card type detection
+            .replace(/\bgem\b/g, '') // Remove "gem" from card type detection
+            .replace(/\bmint\b/g, '') // Remove "mint" from card type detection
+            .replace(/\bssp\b/g, '') // Remove "ssp" from card type detection
+            .replace(/\bholo\b/g, '') // Remove "holo" from card type detection
+            .replace(/\bvelocity\b/g, '') // Remove "velocity" from card type detection
+            .replace(/\bnotoriety\b/g, ''); // Remove "notoriety" from card type detection
         
                  // Enhanced color/parallel patterns
          const colorPatterns = [
                      // Basic colors (including those with slashes) - return the actual color name
-        { pattern: /(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white|neon green)(?:\s|$|\/)/gi, name: 'match' },
+        { pattern: /(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white|neon green|teal)(?:\s|$|\/)/gi, name: 'match' },
             // Refractors
             { pattern: /\b(refractor|refractors)\b/gi, name: 'Refractor' },
             // Prizm variants
@@ -277,7 +284,15 @@ class ExistingSummaryTitleRebuilder {
                                  { pattern: /\b(bomb squad)\b/gi, name: 'Bomb Squad' },
                                  { pattern: /\b(bs\d+)\b/gi, name: 'Bomb Squad' },
                                  // Rapture
-                                 { pattern: /\b(rapture)\b/gi, name: 'Rapture' }
+                                 { pattern: /\b(rapture)\b/gi, name: 'Rapture' },
+                                 // Velocity
+                                 { pattern: /\b(velocity)\b/gi, name: 'Velocity' },
+                                 // Notoriety
+                                 { pattern: /\b(notoriety)\b/gi, name: 'Notoriety' },
+                                 // Holo
+                                 { pattern: /\b(holo)\b/gi, name: 'Holo' },
+                                 // SSP
+                                 { pattern: /\b(ssp)\b/gi, name: 'SSP' }
                              ];
 
                  const foundTypes = [];
