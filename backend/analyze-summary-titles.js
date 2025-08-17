@@ -100,25 +100,89 @@ async function analyzeSummaryTitles() {
             const hasProduct = summaryTitle.includes('Topps') || 
                              summaryTitle.includes('Panini') || 
                              summaryTitle.includes('Upper Deck') ||
+                             summaryTitle.includes('Donruss') ||
+                             summaryTitle.includes('Fleer') ||
+                             summaryTitle.includes('Bowman') ||
+                             summaryTitle.includes('Finest') ||
+                             summaryTitle.includes('Mosaic') ||
+                             summaryTitle.includes('Select') ||
+                             summaryTitle.includes('Contenders') ||
+                             summaryTitle.includes('Hoops') ||
+                             summaryTitle.includes('Pokemon') ||
+                             summaryTitle.includes('O-Pee-Chee') ||
+                             summaryTitle.includes('Score') ||
+                             summaryTitle.includes('Phoenix') ||
                              summaryTitle.includes('Chronicles') ||
-                             summaryTitle.includes('Prizm') ||
-                             summaryTitle.includes('Chrome') ||
                              summaryTitle.includes('Stadium Club') ||
                              summaryTitle.includes('Gallery') ||
-                             summaryTitle.includes('Flawless') ||
+                             summaryTitle.includes('Chrome Update') ||
+                             summaryTitle.includes('Diamond Kings') ||
                              summaryTitle.includes('National Treasures') ||
-                             summaryTitle.includes('Contenders') ||
-                             summaryTitle.includes('Absolute') ||
-                             summaryTitle.includes('Phoenix') ||
+                             summaryTitle.includes('Flawless') ||
                              summaryTitle.includes('Spectra') ||
-                             summaryTitle.includes('USA Basketball') ||
+                             summaryTitle.includes('Zenith') ||
+                             summaryTitle.includes('One and One') ||
+                             summaryTitle.includes('Slania Stamps') ||
+                             summaryTitle.includes('Kellogg') ||
                              summaryTitle.includes('Skybox') ||
-                             summaryTitle.includes('Metal') ||
-                             summaryTitle.includes('Certified') ||
-                             summaryTitle.includes('E-X2001') ||
+                             summaryTitle.includes('USA Basketball') ||
+                             summaryTitle.includes('Fleer Metal') ||
+                             summaryTitle.includes('Fleer Tradition') ||
+                             summaryTitle.includes('Panini Absolute') ||
+                             summaryTitle.includes('Panini Origins') ||
+                             summaryTitle.includes('Panini Instant') ||
+                             summaryTitle.includes('Panini Crown Royale') ||
+                             summaryTitle.includes('Panini Limited') ||
+                             summaryTitle.includes('Panini Threads') ||
+                             summaryTitle.includes('Panini Certified') ||
+                             summaryTitle.includes('Panini Triple Threads') ||
+                             summaryTitle.includes('Panini Tribute') ||
+                             summaryTitle.includes('Panini Rookies & Stars') ||
+                             summaryTitle.includes('Panini Elite') ||
+                             summaryTitle.includes('Panini Prestige') ||
+                             summaryTitle.includes('Upper Deck Young Guns') ||
+                             summaryTitle.includes('Upper Deck Synergy') ||
+                             summaryTitle.includes('Panini Prizm DP') ||
+                             summaryTitle.includes('Panini Prizm WNBA') ||
+                             summaryTitle.includes('Panini Prizm Monopoly WNBA') ||
+                             summaryTitle.includes('Topps Heritage') ||
+                             summaryTitle.includes('Topps Archives') ||
+                             summaryTitle.includes('Topps Update') ||
+                             summaryTitle.includes('Topps Allen & Ginter') ||
+                             summaryTitle.includes('Topps Gypsy Queen') ||
+                             summaryTitle.includes('Bowman Chrome') ||
+                             summaryTitle.includes('Panini Mosaic') ||
+                             summaryTitle.includes('Panini Absolute') ||
+                             summaryTitle.includes('Panini Zenith') ||
+                             summaryTitle.includes('Panini Diamond Kings') ||
+                             summaryTitle.includes('Panini Origins') ||
+                             summaryTitle.includes('Panini One and One') ||
+                             summaryTitle.includes('Panini Instant') ||
+                             summaryTitle.includes('Panini Contenders') ||
+                             summaryTitle.includes('Panini Immaculate') ||
+                             summaryTitle.includes('Panini National Treasures') ||
+                             summaryTitle.includes('Panini Spectra') ||
+                             summaryTitle.includes('Panini Crown Royale') ||
+                             summaryTitle.includes('Panini Limited') ||
+                             summaryTitle.includes('Panini Threads') ||
+                             summaryTitle.includes('Panini Certified') ||
+                             summaryTitle.includes('Panini Triple Threads') ||
+                             summaryTitle.includes('Panini Tribute') ||
+                             summaryTitle.includes('Panini Rookies & Stars') ||
+                             summaryTitle.includes('Panini Elite') ||
+                             summaryTitle.includes('Panini Prestige') ||
+                             summaryTitle.includes('Upper Deck Young Guns') ||
+                             summaryTitle.includes('Upper Deck Synergy') ||
+                             summaryTitle.includes('Slania Stamps') ||
+                             summaryTitle.includes('Kellogg') ||
+                             summaryTitle.includes('O-Pee-Chee') ||
+                             summaryTitle.includes('Fleer Metal') ||
+                             summaryTitle.includes('Fleer Tradition') ||
+                             summaryTitle.includes('Fleer') ||
+                             summaryTitle.includes('Prizm') ||
+                             summaryTitle.includes('Chrome') ||
                              summaryTitle.includes('Road To UEFA') ||
                              summaryTitle.includes('Monopoly') ||
-                             summaryTitle.includes('One and One') ||
                              summaryTitle.includes('Downtown') ||
                              summaryTitle.includes('Helmet Heroes') ||
                              summaryTitle.includes('Color Blast') ||
@@ -128,7 +192,6 @@ async function analyzeSummaryTitles() {
                              summaryTitle.includes('Shimmer') ||
                              summaryTitle.includes('Disco') ||
                              summaryTitle.includes('Optic') ||
-                             summaryTitle.includes('Select') ||
                              summaryTitle.includes('Refractor') ||
                              summaryTitle.includes('X-Fractor') ||
                              summaryTitle.includes('Green Refractor') ||
