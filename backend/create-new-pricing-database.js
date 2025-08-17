@@ -595,16 +595,22 @@ class NewPricingDatabase {
             // Add player name (but not if it's already in the card set)
             if (playerName && cardSet && !cardSet.toLowerCase().includes(playerName.toLowerCase())) {
                 if (summaryTitle) summaryTitle += ' ';
-                summaryTitle += this.capitalizePlayerName(playerName);
+                // Filter out team names from player name
+                const cleanPlayerName = this.filterTeamNamesFromPlayer(playerName);
+                summaryTitle += this.capitalizePlayerName(cleanPlayerName);
             } else if (playerName && !cardSet) {
                 if (summaryTitle) summaryTitle += ' ';
-                summaryTitle += this.capitalizePlayerName(playerName);
+                // Filter out team names from player name
+                const cleanPlayerName = this.filterTeamNamesFromPlayer(playerName);
+                summaryTitle += this.capitalizePlayerName(cleanPlayerName);
             }
             
             // Add card type (colors, parallels, etc.)
             if (cardType) {
                 if (summaryTitle) summaryTitle += ' ';
-                summaryTitle += cardType;
+                // Properly capitalize card type (e.g., "REFRACTOR" -> "Refractor")
+                const capitalizedCardType = cardType.charAt(0).toUpperCase() + cardType.slice(1).toLowerCase();
+                summaryTitle += capitalizedCardType;
             }
             
             // Add "auto" after card type if it's an autograph
@@ -1027,29 +1033,59 @@ class NewPricingDatabase {
         if (cleanTitle.includes('slania stamps') || cleanTitle.includes('slania')) {
             return 'Slania Stamps';
         }
+        if (cleanTitle.includes('panini prizm dp') || cleanTitle.includes('prizm dp')) {
+            return 'Panini Prizm DP';
+        }
+        if (cleanTitle.includes('panini prizm')) {
+            return 'Panini Prizm';
+        }
         if (cleanTitle.includes('prizm') && !cleanTitle.includes('panini prizm')) {
             return 'Panini Prizm';
+        }
+        if (cleanTitle.includes('panini select')) {
+            return 'Panini Select';
         }
         if (cleanTitle.includes('select') && !cleanTitle.includes('panini select')) {
             return 'Panini Select';
         }
+        if (cleanTitle.includes('panini mosaic')) {
+            return 'Panini Mosaic';
+        }
         if (cleanTitle.includes('mosaic') && !cleanTitle.includes('panini mosaic')) {
             return 'Panini Mosaic';
+        }
+        if (cleanTitle.includes('panini donruss')) {
+            return 'Panini Donruss';
         }
         if (cleanTitle.includes('donruss') && !cleanTitle.includes('panini donruss')) {
             return 'Panini Donruss';
         }
+        if (cleanTitle.includes('panini donruss optic')) {
+            return 'Panini Donruss Optic';
+        }
         if (cleanTitle.includes('optic') && !cleanTitle.includes('panini donruss optic')) {
             return 'Panini Donruss Optic';
+        }
+        if (cleanTitle.includes('topps bowman')) {
+            return 'Bowman';
         }
         if (cleanTitle.includes('bowman') && !cleanTitle.includes('topps bowman')) {
             return 'Bowman';
         }
+        if (cleanTitle.includes('topps chrome')) {
+            return 'Topps Chrome';
+        }
         if (cleanTitle.includes('chrome') && !cleanTitle.includes('topps chrome')) {
             return 'Topps Chrome';
         }
+        if (cleanTitle.includes('topps finest')) {
+            return 'Topps Finest';
+        }
         if (cleanTitle.includes('finest') && !cleanTitle.includes('topps finest')) {
             return 'Topps Finest';
+        }
+        if (cleanTitle.includes('topps heritage')) {
+            return 'Topps Heritage';
         }
         if (cleanTitle.includes('heritage') && !cleanTitle.includes('topps heritage')) {
             return 'Topps Heritage';
@@ -1063,8 +1099,8 @@ class NewPricingDatabase {
         
         // Enhanced color/parallel patterns
         const colorPatterns = [
-            // Basic colors
-            { pattern: /\b(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white)\b/gi, name: 'Color' },
+            // Basic colors (including those with slashes)
+            { pattern: /(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white)(?:\s|$|\/)/gi, name: 'Color' },
             // Refractors
             { pattern: /\b(refractor|refractors)\b/gi, name: 'Refractor' },
             // Prizm variants
@@ -1085,6 +1121,8 @@ class NewPricingDatabase {
             { pattern: /\b(fast break)\b/gi, name: 'Fast Break' },
             // Genesis
             { pattern: /\b(genesis)\b/gi, name: 'Genesis' },
+            // Premier Level
+            { pattern: /\b(premier level)\b/gi, name: 'Premier Level' },
             // Premier
             { pattern: /\b(premier)\b/gi, name: 'Premier' },
             // Level
@@ -1133,7 +1171,7 @@ class NewPricingDatabase {
             { pattern: /\b(premium set)\b/gi, name: 'Premium Set' },
             // Checkerboard
             { pattern: /\b(checkerboard)\b/gi, name: 'Checkerboard' },
-            // Die-cut
+            // Die-cut (match both forms but treat as single type)
             { pattern: /\b(die-cut|die cut)\b/gi, name: 'Die-Cut' },
             // National Landmarks
             { pattern: /\b(national landmarks)\b/gi, name: 'National Landmarks' },
@@ -1158,7 +1196,9 @@ class NewPricingDatabase {
             // Voltage
             { pattern: /\b(voltage)\b/gi, name: 'Voltage' },
             // Career Stat Line
-            { pattern: /\b(career stat line)\b/gi, name: 'Career Stat Line' }
+            { pattern: /\b(career stat line)\b/gi, name: 'Career Stat Line' },
+            // Downtown
+            { pattern: /\b(downtown)\b/gi, name: 'Downtown' }
         ];
 
         // Find all matches and build card type
@@ -1166,7 +1206,8 @@ class NewPricingDatabase {
         for (const { pattern, name } of colorPatterns) {
             const matches = title.match(pattern);
             if (matches) {
-                foundTypes.push(...matches);
+                // Use the standardized name instead of the actual matches to avoid duplicates
+                foundTypes.push(name);
             }
         }
 
@@ -1188,6 +1229,8 @@ class NewPricingDatabase {
             /#(\d+[A-Za-z]+)/g,
             // Bowman Draft card numbers (BDP, BDC, CDA, etc.)
             /\b(BD[A-Z]?\d+)\b/g,
+            // Card numbers with letters followed by numbers (like DT36, DT1, etc.)
+            /\b([A-Z]{2,}\d+)\b/g,
             // Card numbers without # symbol
             /\b(\d{1,3})\b/g
         ];
@@ -1210,6 +1253,29 @@ class NewPricingDatabase {
         }
 
         return null;
+    }
+
+    // Filter out team names from player name
+    filterTeamNamesFromPlayer(playerName) {
+        if (!playerName) return null;
+        
+        // List of team names to filter out
+        const teamNames = [
+            'a\'s', 'athletics', 'vikings', 'cardinals', 'eagles', 'falcons', 'ravens', 'bills', 'panthers', 'bears', 'bengals', 'browns', 'cowboys', 'broncos', 'lions', 'packers', 'texans', 'colts', 'jaguars', 'chiefs', 'raiders', 'chargers', 'rams', 'dolphins', 'patriots', 'saints', 'giants', 'jets', 'steelers', '49ers', 'seahawks', 'buccaneers', 'titans', 'commanders', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'giants', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls'
+        ];
+        
+        let cleanName = playerName;
+        
+        // Remove team names from player name
+        teamNames.forEach(team => {
+            const regex = new RegExp(`\\b${team}\\b`, 'gi');
+            cleanName = cleanName.replace(regex, '');
+        });
+        
+        // Clean up extra spaces
+        cleanName = cleanName.replace(/\s+/g, ' ').trim();
+        
+        return cleanName;
     }
 
     // Capitalize player name properly (e.g., "JOSH KURODA GRAUER" -> "Josh Kuroda-Grauer")

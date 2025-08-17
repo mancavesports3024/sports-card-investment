@@ -220,6 +220,28 @@ class EnhancedComprehensiveDatabase {
       });
     });
 
+    // Panini Prizm DP (Draft Picks) - Football (2021-2024)
+    ['2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Prizm DP Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Panini',
+        setName: 'Prizm DP',
+        searchText: `panini prizm dp football ${year}`,
+        displayName: `Panini Prizm DP Football ${year}`
+      });
+      sets.push({
+        name: `Prizm DP Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Panini',
+        setName: 'Prizm DP',
+        searchText: `prizm dp football ${year}`,
+        displayName: `Prizm DP Football ${year}`
+      });
+    });
+
     // Panini Select (2013-2024)
     ['2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
       sets.push({
@@ -297,6 +319,28 @@ class EnhancedComprehensiveDatabase {
         setName: 'Prizm',
         searchText: `panini prizm basketball ${year}`,
         displayName: `Panini Prizm Basketball ${year}`
+      });
+    });
+
+    // Panini Prizm DP (Draft Picks) - Basketball (2021-2024)
+    ['2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Panini Prizm DP Basketball ${year}`,
+        sport: 'Basketball',
+        year: year,
+        brand: 'Panini',
+        setName: 'Prizm DP',
+        searchText: `panini prizm dp basketball ${year}`,
+        displayName: `Panini Prizm DP Basketball ${year}`
+      });
+      sets.push({
+        name: `Prizm DP Basketball ${year}`,
+        sport: 'Basketball',
+        year: year,
+        brand: 'Panini',
+        setName: 'Prizm DP',
+        searchText: `prizm dp basketball ${year}`,
+        displayName: `Prizm DP Basketball ${year}`
       });
     });
 
@@ -662,7 +706,20 @@ class EnhancedComprehensiveDatabase {
         { name: 'Pikachu', sport: 'Pokemon', year: '1999', brand: 'Wizards of the Coast', setName: 'Base Set', cardNumber: '58', searchText: 'pikachu 1999 base set', displayName: 'Pikachu 1999 Base Set #58' },
         
         // Boxing/Stamps
-        { name: 'Muhammad Ali', sport: 'Boxing', year: '1964', brand: 'Slania', setName: 'Stamps Cassius Clay', cardNumber: '23', searchText: 'muhammad ali 1964 slania stamps cassius clay', displayName: 'Muhammad Ali 1964 Slania Stamps Cassius Clay #23' }
+        { name: 'Muhammad Ali', sport: 'Boxing', year: '1964', brand: 'Slania', setName: 'Stamps Cassius Clay', cardNumber: '23', searchText: 'muhammad ali 1964 slania stamps cassius clay', displayName: 'Muhammad Ali 1964 Slania Stamps Cassius Clay #23' },
+        
+        // Panini Select Card Types
+        { name: 'Premier Level', sport: 'Basketball', year: '2023', brand: 'Panini', setName: 'Select', cardNumber: '', searchText: 'panini select premier level', displayName: 'Panini Select Premier Level' },
+        { name: 'Club Level', sport: 'Basketball', year: '2023', brand: 'Panini', setName: 'Select', cardNumber: '', searchText: 'panini select club level', displayName: 'Panini Select Club Level' },
+        { name: 'Field Level', sport: 'Basketball', year: '2023', brand: 'Panini', setName: 'Select', cardNumber: '', searchText: 'panini select field level', displayName: 'Panini Select Field Level' },
+        { name: 'Concourses', sport: 'Basketball', year: '2023', brand: 'Panini', setName: 'Select', cardNumber: '', searchText: 'panini select concourses', displayName: 'Panini Select Concourses' },
+        
+        // Panini Prizm Draft Picks
+        { name: 'Panini Prizm DP', sport: 'Basketball', year: '2021', brand: 'Panini', setName: 'Prizm DP', cardNumber: '', searchText: 'panini prizm dp', displayName: 'Panini Prizm DP' },
+        { name: 'Panini Prizm DP', sport: 'Football', year: '2023', brand: 'Panini', setName: 'Prizm DP', cardNumber: '', searchText: 'panini prizm dp football', displayName: 'Panini Prizm DP Football' },
+        
+        // Donruss Optic Downtown
+        { name: 'Ja\'Marr Chase', sport: 'Football', year: '2021', brand: 'Panini', setName: 'Donruss Optic', cardNumber: 'DT36', searchText: 'ja marr chase 2021 donruss optic downtown', displayName: 'Ja\'Marr Chase 2021 Donruss Optic Downtown #DT36' }
       ];
 
       db.serialize(() => {
