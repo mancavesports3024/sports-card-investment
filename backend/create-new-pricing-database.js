@@ -638,7 +638,7 @@ class NewPricingDatabase {
         const unwantedTerms = [
             'psa', 'gem', 'mint', 'rc', 'rookie', 'yg', 'ssp', 'holo', 'velocity', 'notoriety',
             'mvp', 'hof', 'nfl', 'debut', 'card', 'rated', '1st', 'first', 'chrome', 'university',
-            'rams', 'vikings', 'browns', 'chiefs', 'giants', 'ny giants'
+            'rams', 'vikings', 'browns', 'chiefs', 'giants', 'ny giants', 'eagles', 'cowboys', 'falcons', 'panthers'
         ];
         
         unwantedTerms.forEach(term => {
@@ -1230,6 +1230,21 @@ class NewPricingDatabase {
             { pattern: /\b(white prizm)\b/gi, name: 'White Prizm' },
             { pattern: /\b(teal prizm)\b/gi, name: 'Teal Prizm' },
             { pattern: /\b(neon green prizm)\b/gi, name: 'Neon Green Prizm' },
+            // Additional color variations
+            { pattern: /\b(gold)\b/gi, name: 'Gold' },
+            { pattern: /\b(silver)\b/gi, name: 'Silver' },
+            { pattern: /\b(black)\b/gi, name: 'Black' },
+            { pattern: /\b(green)\b/gi, name: 'Green' },
+            { pattern: /\b(blue)\b/gi, name: 'Blue' },
+            { pattern: /\b(red)\b/gi, name: 'Red' },
+            { pattern: /\b(yellow)\b/gi, name: 'Yellow' },
+            { pattern: /\b(orange)\b/gi, name: 'Orange' },
+            { pattern: /\b(purple)\b/gi, name: 'Purple' },
+            { pattern: /\b(pink)\b/gi, name: 'Pink' },
+            { pattern: /\b(bronze)\b/gi, name: 'Bronze' },
+            { pattern: /\b(white)\b/gi, name: 'White' },
+            { pattern: /\b(teal)\b/gi, name: 'Teal' },
+            { pattern: /\b(neon green)\b/gi, name: 'Neon Green' },
             // Basic colors (including those with slashes) - return the actual color name
             { pattern: /(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white|neon green|teal)(?:\s|$|\/)/gi, name: 'match' },
             // Refractors
