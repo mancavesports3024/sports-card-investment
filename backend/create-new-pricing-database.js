@@ -1178,7 +1178,7 @@ class NewPricingDatabase {
             return 'Upper Deck';
         }
         
-        // Other specific sets
+        // Other specific sets (only if not already matched by more specific patterns above)
         if (cleanTitle.includes('bowman chrome')) {
             return 'Bowman Chrome';
         }
@@ -1218,106 +1218,106 @@ class NewPricingDatabase {
         if (cleanTitle.includes('national treasures')) {
             return 'National Treasures';
         }
-        if (cleanTitle.includes('zenith')) {
+        if (cleanTitle.includes('zenith') && !cleanTitle.includes('panini zenith')) {
             return 'Zenith';
         }
-        if (cleanTitle.includes('diamond kings')) {
+        if (cleanTitle.includes('diamond kings') && !cleanTitle.includes('panini diamond kings')) {
             return 'Diamond Kings';
         }
-        if (cleanTitle.includes('one and one')) {
+        if (cleanTitle.includes('one and one') && !cleanTitle.includes('panini one and one')) {
             return 'One and One';
         }
-        if (cleanTitle.includes('chronicles')) {
+        if (cleanTitle.includes('chronicles') && !cleanTitle.includes('panini chronicles')) {
             return 'Chronicles';
         }
-        if (cleanTitle.includes('phoenix')) {
+        if (cleanTitle.includes('phoenix') && !cleanTitle.includes('panini phoenix')) {
             return 'Phoenix';
         }
         if (cleanTitle.includes('score')) {
             return 'Score';
         }
-        if (cleanTitle.includes('stadium club')) {
+        if (cleanTitle.includes('stadium club') && !cleanTitle.includes('topps stadium club')) {
             return 'Stadium Club';
         }
-        if (cleanTitle.includes('gallery')) {
+        if (cleanTitle.includes('gallery') && !cleanTitle.includes('topps gallery')) {
             return 'Gallery';
         }
-        if (cleanTitle.includes('finest')) {
+        if (cleanTitle.includes('finest') && !cleanTitle.includes('topps finest')) {
             return 'Finest';
         }
-        if (cleanTitle.includes('heritage')) {
+        if (cleanTitle.includes('heritage') && !cleanTitle.includes('topps heritage')) {
             return 'Heritage';
         }
-        if (cleanTitle.includes('archives')) {
+        if (cleanTitle.includes('archives') && !cleanTitle.includes('topps archives')) {
             return 'Archives';
         }
-        if (cleanTitle.includes('update')) {
+        if (cleanTitle.includes('update') && !cleanTitle.includes('topps update') && !cleanTitle.includes('chrome update')) {
             return 'Update';
         }
-        if (cleanTitle.includes('chrome update')) {
+        if (cleanTitle.includes('chrome update') && !cleanTitle.includes('topps chrome update')) {
             return 'Chrome Update';
         }
         if (cleanTitle.includes('allen & ginter') || cleanTitle.includes('allen and ginter')) {
             return 'Allen & Ginter';
         }
-        if (cleanTitle.includes('gypsy queen')) {
+        if (cleanTitle.includes('gypsy queen') && !cleanTitle.includes('topps gypsy queen')) {
             return 'Gypsy Queen';
         }
-        if (cleanTitle.includes('tribute')) {
+        if (cleanTitle.includes('tribute') && !cleanTitle.includes('panini tribute')) {
             return 'Tribute';
         }
-        if (cleanTitle.includes('crown royale')) {
+        if (cleanTitle.includes('crown royale') && !cleanTitle.includes('panini crown royale')) {
             return 'Crown Royale';
         }
-        if (cleanTitle.includes('limited')) {
+        if (cleanTitle.includes('limited') && !cleanTitle.includes('panini limited')) {
             return 'Limited';
         }
-        if (cleanTitle.includes('threads')) {
+        if (cleanTitle.includes('threads') && !cleanTitle.includes('panini threads')) {
             return 'Threads';
         }
-        if (cleanTitle.includes('certified')) {
+        if (cleanTitle.includes('certified') && !cleanTitle.includes('panini certified')) {
             return 'Certified';
         }
-        if (cleanTitle.includes('triple threads')) {
+        if (cleanTitle.includes('triple threads') && !cleanTitle.includes('panini triple threads')) {
             return 'Triple Threads';
         }
         if (cleanTitle.includes('rookies & stars') || cleanTitle.includes('rookies and stars')) {
             return 'Rookies & Stars';
         }
-        if (cleanTitle.includes('elite')) {
+        if (cleanTitle.includes('elite') && !cleanTitle.includes('panini elite')) {
             return 'Elite';
         }
-        if (cleanTitle.includes('prestige')) {
+        if (cleanTitle.includes('prestige') && !cleanTitle.includes('panini prestige')) {
             return 'Prestige';
         }
-        if (cleanTitle.includes('young guns')) {
+        if (cleanTitle.includes('young guns') && !cleanTitle.includes('upper deck young guns')) {
             return 'Young Guns';
         }
-        if (cleanTitle.includes('synergy')) {
+        if (cleanTitle.includes('synergy') && !cleanTitle.includes('upper deck synergy')) {
             return 'Synergy';
         }
-        if (cleanTitle.includes('obsidian')) {
+        if (cleanTitle.includes('obsidian') && !cleanTitle.includes('panini obsidian')) {
             return 'Panini Obsidian';
         }
-        if (cleanTitle.includes('select')) {
+        if (cleanTitle.includes('select') && !cleanTitle.includes('panini select')) {
             return 'Panini Select';
         }
-        if (cleanTitle.includes('mosaic')) {
+        if (cleanTitle.includes('mosaic') && !cleanTitle.includes('panini mosaic')) {
             return 'Panini Mosaic';
         }
-        if (cleanTitle.includes('donruss')) {
+        if (cleanTitle.includes('donruss') && !cleanTitle.includes('panini donruss')) {
             return 'Panini Donruss';
         }
-        if (cleanTitle.includes('optic')) {
+        if (cleanTitle.includes('optic') && !cleanTitle.includes('panini donruss optic')) {
             return 'Panini Donruss Optic';
         }
-        if (cleanTitle.includes('prizm')) {
+        if (cleanTitle.includes('prizm') && !cleanTitle.includes('panini prizm')) {
             return 'Panini Prizm';
         }
-        if (cleanTitle.includes('bowman')) {
+        if (cleanTitle.includes('bowman') && !cleanTitle.includes('topps bowman') && !cleanTitle.includes('bowman chrome')) {
             return 'Bowman';
         }
-        if (cleanTitle.includes('chrome')) {
+        if (cleanTitle.includes('chrome') && !cleanTitle.includes('topps chrome')) {
             return 'Topps Chrome';
         }
         
@@ -1645,7 +1645,7 @@ class NewPricingDatabase {
             // NHL Teams
             'red wings', 'blackhawks', 'bruins', 'rangers', 'maple leafs', 'canadiens', 'senators', 'sabres', 'lightning', 'capitals', 'flyers', 'devils', 'islanders', 'penguins', 'blue jackets', 'hurricanes', 'predators', 'blues', 'wild', 'avalanche', 'stars', 'oilers', 'flames', 'canucks', 'sharks', 'ducks', 'golden knights', 'coyotes', 'jets', 'kraken',
             // Additional terms that should be filtered
-            'mvp', 'hof', 'nfl', 'mlb', 'nba', 'nhl', 'debut', 'rookie', 'rc', 'yg', 'psa', 'gem', 'mint', 'ssp', 'holo', 'velocity', 'notoriety', 'card', 'rated', '1st', 'first', 'chrome', 'university', 'rams', 'vikings', 'browns', 'chiefs', 'giants', 'eagles', 'cowboys', 'falcons', 'panthers', 'steelers', 'patriots', 'saints', 'jets', 'bills', 'dolphins', 'texans', 'colts', 'jaguars', 'titans', 'broncos', 'raiders', 'chargers', 'seahawks', '49ers', 'cardinals', 'buccaneers', 'commanders', 'redskins', 'packers', 'bears', 'lions', 'bengals', 'ravens', 'browns', 'steelers', 'titans', 'jaguars', 'colts', 'texans', 'chiefs', 'raiders', 'broncos', 'chargers', 'cowboys', 'giants', 'eagles', 'redskins', 'commanders', 'bears', 'lions', 'packers', 'vikings', 'falcons', 'panthers', 'saints', 'buccaneers', 'rams', 'seahawks', '49ers', 'cardinals', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'cardinals', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls'
+            'mvp', 'hof', 'nfl', 'mlb', 'nba', 'nhl', 'debut', 'rookie', 'rc', 'yg', 'psa', 'gem', 'mint', 'ssp', 'holo', 'velocity', 'notoriety', 'card', 'rated', '1st', 'first', 'chrome', 'university', 'minnesota', 'oilers', 'kings', 'clear cut', 'premier', 'opc', 's d', 'nfl football', '3-d', 'cardinals', 'rams', 'vikings', 'browns', 'chiefs', 'giants', 'eagles', 'cowboys', 'falcons', 'panthers', 'steelers', 'patriots', 'saints', 'jets', 'bills', 'dolphins', 'texans', 'colts', 'jaguars', 'titans', 'broncos', 'raiders', 'chargers', 'seahawks', '49ers', 'cardinals', 'buccaneers', 'commanders', 'redskins', 'packers', 'bears', 'lions', 'bengals', 'ravens', 'browns', 'steelers', 'titans', 'jaguars', 'colts', 'texans', 'chiefs', 'raiders', 'broncos', 'chargers', 'cowboys', 'giants', 'eagles', 'redskins', 'commanders', 'bears', 'lions', 'packers', 'vikings', 'falcons', 'panthers', 'saints', 'buccaneers', 'rams', 'seahawks', '49ers', 'cardinals', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'cardinals', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls'
         ];
         
         let cleanName = playerName;
