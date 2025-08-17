@@ -13,6 +13,12 @@ async function showRemainingIssues() {
         const cards = await db.allQuery('SELECT id, title, summary_title, player_name, card_set FROM cards');
         console.log(`📊 Found ${cards.length} cards to analyze\n`);
         
+        // Debug: Check specific cards
+        const debugCards = cards.filter(card => card.id === 2 || card.id === 21 || card.id === 36);
+        debugCards.forEach(card => {
+            console.log(`DEBUG: Card ${card.id} - card_set = "${card.card_set}", title = "${card.title}"`);
+        });
+        
         const issues = [];
         
         cards.forEach(card => {
@@ -118,6 +124,18 @@ async function showRemainingIssues() {
         console.log(`   Total cards: ${cards.length}`);
         console.log(`   Cards with issues: ${issues.length}`);
         console.log(`   Health score: ${((cards.length - issues.length) / cards.length * 100).toFixed(1)}%`);
+        
+        // Add debug info to response
+        const debugInfo = {
+            totalCards: cards.length,
+            issuesFound: issues.length,
+            healthScore: ((cards.length - issues.length) / cards.length * 100).toFixed(1),
+            debugCards: debugCards.map(card => ({
+                id: card.id,
+                cardSet: card.card_set,
+                title: card.title
+            }))
+        };
         
     } catch (error) {
         console.error('❌ Analysis failed:', error);
