@@ -1322,15 +1322,27 @@ class NewPricingDatabase {
     extractCardType(title) {
         const titleLower = title.toLowerCase();
         
-        // Enhanced card type patterns with better prioritization
+        // Enhanced card type patterns with better prioritization and new types
         const cardTypePatterns = [
             
-            // Special parallel types (high priority)
+            // Special parallel types (highest priority)
             { pattern: /\b(superfractor)\b/gi, name: 'Superfractor' },
             { pattern: /\b(redemption)\b/gi, name: 'Redemption' },
             { pattern: /\b(1\/1|one of one)\b/gi, name: '1/1' },
             { pattern: /\b(ssp|super short print)\b/gi, name: 'SSP' },
             { pattern: /\b(sp|short print)\b/gi, name: 'SP' },
+            
+            // Modern special refractors (high priority)
+            { pattern: /\b(logofractor|logo fractor)\b/gi, name: 'LogoFractor' },
+            { pattern: /\b(pulsar refractor)\b/gi, name: 'Pulsar Refractor' },
+            { pattern: /\b(aqua wave)\b/gi, name: 'Aqua Wave' },
+            { pattern: /\b(sky blue refractor)\b/gi, name: 'Sky Blue Refractor' },
+            { pattern: /\b(ultra violet)\b/gi, name: 'Ultra Violet' },
+            { pattern: /\b(formula 1)\b/gi, name: 'Formula 1' },
+            { pattern: /\b(stratospheric stars)\b/gi, name: 'Stratospheric Stars' },
+            { pattern: /\b(future stars)\b/gi, name: 'Future Stars' },
+            { pattern: /\b(all stars)\b/gi, name: 'All Stars' },
+            { pattern: /\b(main event)\b/gi, name: 'Main Event' },
             
             // Color + Prizm combinations (prioritize these)
             { pattern: /\b(gold prizm)\b/gi, name: 'Gold Prizm' },
@@ -1358,6 +1370,7 @@ class NewPricingDatabase {
             { pattern: /\b(pandora prizm)\b/gi, name: 'Pandora Prizm' },
             { pattern: /\b(logo prizm)\b/gi, name: 'Logo Prizm' },
             { pattern: /\b(variation prizm)\b/gi, name: 'Variation Prizm' },
+            { pattern: /\b(velocity prizm)\b/gi, name: 'Velocity Prizm' },
             
             // Special parallel types
             { pattern: /\b(teal velocity)\b/gi, name: 'Teal Velocity' },
@@ -1367,6 +1380,8 @@ class NewPricingDatabase {
             { pattern: /\b(real one)\b/gi, name: 'Real One' },
             { pattern: /\b(rpa|rookie patch auto)\b/gi, name: 'RPA' },
             { pattern: /\b(world champion boxers)\b/gi, name: 'World Champion Boxers' },
+            { pattern: /\b(clear cut)\b/gi, name: 'Clear Cut' },
+            { pattern: /\b(zoom)\b/gi, name: 'Zoom' },
             
             // Select card types
             { pattern: /\b(premier level)\b/gi, name: 'Premier Level' },
@@ -1388,6 +1403,9 @@ class NewPricingDatabase {
             { pattern: /\b(dragon scale)\b/gi, name: 'Dragon Scale' },
             { pattern: /\b(vintage)\b/gi, name: 'Vintage' },
             { pattern: /\b(stars)\b/gi, name: 'Stars' },
+            { pattern: /\b(splash)\b/gi, name: 'Splash' },
+            { pattern: /\b(rising)\b/gi, name: 'Rising' },
+            { pattern: /\b(best)\b/gi, name: 'Best' },
             
             // Holiday/Event parallels
             { pattern: /\b(independence day)\b/gi, name: 'Independence Day' },
@@ -1430,6 +1448,7 @@ class NewPricingDatabase {
             { pattern: /\b(crystal)\b/gi, name: 'Crystal' },
             { pattern: /\b(kaleidoscope)\b/gi, name: 'Kaleidoscope' },
             { pattern: /\b(prismatic)\b/gi, name: 'Prismatic' },
+            { pattern: /\b(lunar glow)\b/gi, name: 'Lunar Glow' },
             
             // Animal parallels
             { pattern: /\b(alligator)\b/gi, name: 'Alligator' },
@@ -1458,6 +1477,28 @@ class NewPricingDatabase {
             { pattern: /\b(bs\d+)\b/gi, name: 'Bomb Squad' },
             { pattern: /\b(rapture)\b/gi, name: 'Rapture' },
             { pattern: /\b(notoriety)\b/gi, name: 'Notoriety' },
+            { pattern: /\b(finest)\b/gi, name: 'Finest' },
+            { pattern: /\b(royalty)\b/gi, name: 'Royalty' },
+            { pattern: /\b(uc|update)\b/gi, name: 'Update' },
+            
+            // Color + Refractor combinations (prioritize these)
+            { pattern: /\b(gold refractor)\b/gi, name: 'Gold Refractor' },
+            { pattern: /\b(silver refractor)\b/gi, name: 'Silver Refractor' },
+            { pattern: /\b(black refractor)\b/gi, name: 'Black Refractor' },
+            { pattern: /\b(green refractor)\b/gi, name: 'Green Refractor' },
+            { pattern: /\b(blue refractor)\b/gi, name: 'Blue Refractor' },
+            { pattern: /\b(red refractor)\b/gi, name: 'Red Refractor' },
+            { pattern: /\b(yellow refractor)\b/gi, name: 'Yellow Refractor' },
+            { pattern: /\b(orange refractor)\b/gi, name: 'Orange Refractor' },
+            { pattern: /\b(purple refractor)\b/gi, name: 'Purple Refractor' },
+            { pattern: /\b(pink refractor)\b/gi, name: 'Pink Refractor' },
+            { pattern: /\b(bronze refractor)\b/gi, name: 'Bronze Refractor' },
+            { pattern: /\b(white refractor)\b/gi, name: 'White Refractor' },
+            { pattern: /\b(teal refractor)\b/gi, name: 'Teal Refractor' },
+            { pattern: /\b(neon green refractor)\b/gi, name: 'Neon Green Refractor' },
+            { pattern: /\b(sepia refractor)\b/gi, name: 'Sepia Refractor' },
+            { pattern: /\b(sapphire refractor)\b/gi, name: 'Sapphire Refractor' },
+            { pattern: /\b(prism refractor)\b/gi, name: 'Prism Refractor' },
             
             // Basic color types (lower priority)
             { pattern: /\b(gold)\b/gi, name: 'Gold' },
