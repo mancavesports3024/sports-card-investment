@@ -631,6 +631,9 @@ class NewPricingDatabase {
                 summaryTitle += printRun;
             }
             
+            // Clean up any commas from the summary title
+            summaryTitle = summaryTitle.replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+            
             // Fallback to old method if no components were extracted
             if (!summaryTitle.trim()) {
                 try {

@@ -80,11 +80,14 @@ class ExistingSummaryTitleRebuilder {
                         newSummaryTitle += cardNumber;
                     }
 
-                    // Add print run
-                    if (printRun) {
-                        if (newSummaryTitle) newSummaryTitle += ' ';
-                        newSummaryTitle += printRun;
-                    }
+                                         // Add print run
+                     if (printRun) {
+                         if (newSummaryTitle) newSummaryTitle += ' ';
+                         newSummaryTitle += printRun;
+                     }
+                     
+                     // Clean up any commas from the summary title
+                     newSummaryTitle = newSummaryTitle.replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
 
                     // Only update if the new summary title is different and not empty
                     if (newSummaryTitle.trim() && newSummaryTitle.trim() !== card.summary_title) {
