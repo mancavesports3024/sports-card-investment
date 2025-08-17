@@ -1109,7 +1109,8 @@ class NewPricingDatabase {
                                  .replace(/\bgraded\b/g, '') // Remove "graded" from card type detection
                                  .replace(/\bungraded\b/g, '') // Remove "ungraded" from card type detection
                                  .replace(/\bpop\b/g, '') // Remove "pop" from card type detection
-                                 .replace(/\bpopulation\b/g, ''); // Remove "population" from card type detection
+                                 .replace(/\bpopulation\b/g, '') // Remove "population" from card type detection
+                                 .replace(/\bcolor\b/g, ''); // Remove "color" from card type detection
         
         // Enhanced color/parallel patterns
         const colorPatterns = [
@@ -1205,10 +1206,12 @@ class NewPricingDatabase {
             { pattern: /\b(liberty)\b/gi, name: 'Liberty' },
             // Marvels
             { pattern: /\b(marvels)\b/gi, name: 'Marvels' },
-            // Fire
-            { pattern: /\b(fire)\b/gi, name: 'Fire' },
-            // Voltage
-            { pattern: /\b(voltage)\b/gi, name: 'Voltage' },
+                                             // Fire
+                                 { pattern: /\b(fire)\b/gi, name: 'Fire' },
+                                 // Firestorm
+                                 { pattern: /\b(firestorm)\b/gi, name: 'Firestorm' },
+                                 // Voltage
+                                 { pattern: /\b(voltage)\b/gi, name: 'Voltage' },
             // Career Stat Line
             { pattern: /\b(career stat line)\b/gi, name: 'Career Stat Line' },
                                              // Downtown
