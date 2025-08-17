@@ -1696,6 +1696,13 @@ class NewPricingDatabase {
             cardType = cardType.replace(/Wave Red Optic/g, 'Red Wave Optic');
             cardType = cardType.replace(/Update Green/g, 'Green Update');
             
+            // Remove redundant card types that are already in the card set name
+            if (cardType === 'Finest' || cardType === 'Concourse' || cardType === 'Update' || 
+                cardType === 'Chrome' || cardType === 'Prizm' || cardType === 'Select' ||
+                cardType === 'Heritage' || cardType === 'Diamond Kings' || cardType === 'Zenith') {
+                return 'Base';
+            }
+            
             // Remove generic terms that shouldn't be card types
             if (cardType === 'Color' || cardType === 'Chrome' || cardType === 'Prizm') {
                 return 'Base';
