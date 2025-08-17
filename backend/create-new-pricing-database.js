@@ -1041,88 +1041,35 @@ class NewPricingDatabase {
             cleanTitle = cleanTitle.replace(new RegExp(`\\b${team}\\b`, 'g'), '');
         });
         
-        // Fix specific missing card sets
-        if (cleanTitle.includes('obsidian') && !cleanTitle.includes('panini obsidian')) {
-            return 'Panini Obsidian';
-        }
-        if (cleanTitle.includes('synergy') && !cleanTitle.includes('upper deck synergy')) {
-            return 'Upper Deck Synergy';
-        }
-        if (cleanTitle.includes('slania stamps') || cleanTitle.includes('slania')) {
-            return 'Slania Stamps';
-        }
+        // Check for specific card sets in order of specificity (most specific first)
+        
+        // Panini sets with full names first
         if (cleanTitle.includes('panini prizm dp') || cleanTitle.includes('prizm dp')) {
             return 'Panini Prizm DP';
         }
-        if (cleanTitle.includes('panini prizm')) {
-            return 'Panini Prizm';
+        if (cleanTitle.includes('panini prizm monopoly wnba')) {
+            return 'Panini Prizm Monopoly WNBA';
         }
-        if (cleanTitle.includes('prizm') && !cleanTitle.includes('panini prizm')) {
+        if (cleanTitle.includes('panini prizm wnba')) {
+            return 'Panini Prizm WNBA';
+        }
+        if (cleanTitle.includes('panini instant wnba')) {
+            return 'Panini Instant WNBA';
+        }
+        if (cleanTitle.includes('panini prizm')) {
             return 'Panini Prizm';
         }
         if (cleanTitle.includes('panini select')) {
             return 'Panini Select';
         }
-        if (cleanTitle.includes('select') && !cleanTitle.includes('panini select')) {
-            return 'Panini Select';
-        }
         if (cleanTitle.includes('panini mosaic')) {
             return 'Panini Mosaic';
-        }
-        if (cleanTitle.includes('mosaic') && !cleanTitle.includes('panini mosaic')) {
-            return 'Panini Mosaic';
-        }
-        if (cleanTitle.includes('panini donruss')) {
-            return 'Panini Donruss';
-        }
-        if (cleanTitle.includes('donruss') && !cleanTitle.includes('panini donruss')) {
-            return 'Panini Donruss';
         }
         if (cleanTitle.includes('panini donruss optic')) {
             return 'Panini Donruss Optic';
         }
-        if (cleanTitle.includes('optic') && !cleanTitle.includes('panini donruss optic')) {
-            return 'Panini Donruss Optic';
-        }
-        if (cleanTitle.includes('bowman chrome')) {
-            return 'Bowman Chrome';
-        }
-        if (cleanTitle.includes('topps bowman')) {
-            return 'Bowman';
-        }
-        // Add missing card set detections
-        if (cleanTitle.includes('score')) {
-            return 'Score';
-        }
-        if (cleanTitle.includes('topps gallery')) {
-            return 'Topps Gallery';
-        }
-        if (cleanTitle.includes('phoenix')) {
-            return 'Phoenix';
-        }
-        if (cleanTitle.includes('chronicles')) {
-            return 'Panini Chronicles';
-        }
-        if (cleanTitle.includes('stadium club')) {
-            return 'Topps Stadium Club';
-        }
-        if (cleanTitle.includes('topps finest')) {
-            return 'Topps Finest';
-        }
-        if (cleanTitle.includes('topps heritage')) {
-            return 'Topps Heritage';
-        }
-        if (cleanTitle.includes('topps archives')) {
-            return 'Topps Archives';
-        }
-        if (cleanTitle.includes('topps update')) {
-            return 'Topps Update';
-        }
-        if (cleanTitle.includes('topps chrome update')) {
-            return 'Topps Chrome Update';
-        }
-        if (cleanTitle.includes('panini mosaic')) {
-            return 'Panini Mosaic';
+        if (cleanTitle.includes('panini donruss')) {
+            return 'Panini Donruss';
         }
         if (cleanTitle.includes('panini absolute')) {
             return 'Panini Absolute';
@@ -1133,41 +1080,11 @@ class NewPricingDatabase {
         if (cleanTitle.includes('panini diamond kings')) {
             return 'Panini Diamond Kings';
         }
-        if (cleanTitle.includes('diamond kings')) {
-            return 'Panini Diamond Kings';
-        }
         if (cleanTitle.includes('panini origins')) {
-            return 'Panini Origins';
-        }
-        if (cleanTitle.includes('origins')) {
             return 'Panini Origins';
         }
         if (cleanTitle.includes('panini one and one')) {
             return 'Panini One and One';
-        }
-        if (cleanTitle.includes('one and one')) {
-            return 'Panini One and One';
-        }
-        if (cleanTitle.includes('panini prizm monopoly wnba')) {
-            return 'Panini Prizm Monopoly WNBA';
-        }
-        if (cleanTitle.includes('prizm monopoly wnba')) {
-            return 'Panini Prizm Monopoly WNBA';
-        }
-        if (cleanTitle.includes('panini prizm dp')) {
-            return 'Panini Prizm DP';
-        }
-        if (cleanTitle.includes('prizm dp')) {
-            return 'Panini Prizm DP';
-        }
-        if (cleanTitle.includes('panini prizm wnba')) {
-            return 'Panini Prizm WNBA';
-        }
-        if (cleanTitle.includes('prizm wnba')) {
-            return 'Panini Prizm WNBA';
-        }
-        if (cleanTitle.includes('panini instant wnba')) {
-            return 'Panini Instant WNBA';
         }
         if (cleanTitle.includes('panini instant')) {
             return 'Panini Instant';
@@ -1181,19 +1098,10 @@ class NewPricingDatabase {
         if (cleanTitle.includes('panini national treasures')) {
             return 'Panini National Treasures';
         }
-        if (cleanTitle.includes('national treasures')) {
-            return 'Panini National Treasures';
-        }
         if (cleanTitle.includes('panini spectra')) {
             return 'Panini Spectra';
         }
-        if (cleanTitle.includes('spectra')) {
-            return 'Panini Spectra';
-        }
         if (cleanTitle.includes('panini crown royale')) {
-            return 'Panini Crown Royale';
-        }
-        if (cleanTitle.includes('crown royale')) {
             return 'Panini Crown Royale';
         }
         if (cleanTitle.includes('panini limited')) {
@@ -1205,34 +1113,13 @@ class NewPricingDatabase {
         if (cleanTitle.includes('panini certified')) {
             return 'Panini Certified';
         }
-        if (cleanTitle.includes('certified')) {
-            return 'Panini Certified';
-        }
         if (cleanTitle.includes('panini triple threads')) {
-            return 'Panini Triple Threads';
-        }
-        if (cleanTitle.includes('triple threads')) {
             return 'Panini Triple Threads';
         }
         if (cleanTitle.includes('panini tribute')) {
             return 'Panini Tribute';
         }
-        if (cleanTitle.includes('panini allen & ginter')) {
-            return 'Topps Allen & Ginter';
-        }
-        if (cleanTitle.includes('allen & ginter')) {
-            return 'Topps Allen & Ginter';
-        }
-        if (cleanTitle.includes('panini gypsy queen')) {
-            return 'Topps Gypsy Queen';
-        }
-        if (cleanTitle.includes('gypsy queen')) {
-            return 'Topps Gypsy Queen';
-        }
         if (cleanTitle.includes('panini rookies & stars')) {
-            return 'Panini Rookies & Stars';
-        }
-        if (cleanTitle.includes('rookies & stars')) {
             return 'Panini Rookies & Stars';
         }
         if (cleanTitle.includes('panini elite')) {
@@ -1241,28 +1128,67 @@ class NewPricingDatabase {
         if (cleanTitle.includes('panini prestige')) {
             return 'Panini Prestige';
         }
-        if (cleanTitle.includes('upper deck young guns')) {
-            return 'Upper Deck Young Guns';
+        
+        // Topps sets with full names first
+        if (cleanTitle.includes('topps chrome update')) {
+            return 'Topps Chrome Update';
         }
-        if (cleanTitle.includes('young guns')) {
+        if (cleanTitle.includes('topps chrome')) {
+            return 'Topps Chrome';
+        }
+        if (cleanTitle.includes('topps finest')) {
+            return 'Topps Finest';
+        }
+        if (cleanTitle.includes('topps heritage')) {
+            return 'Topps Heritage';
+        }
+        if (cleanTitle.includes('topps archives')) {
+            return 'Topps Archives';
+        }
+        if (cleanTitle.includes('topps update')) {
+            return 'Topps Update';
+        }
+        if (cleanTitle.includes('topps gallery')) {
+            return 'Topps Gallery';
+        }
+        if (cleanTitle.includes('topps stadium club')) {
+            return 'Topps Stadium Club';
+        }
+        if (cleanTitle.includes('topps allen & ginter')) {
+            return 'Topps Allen & Ginter';
+        }
+        if (cleanTitle.includes('topps gypsy queen')) {
+            return 'Topps Gypsy Queen';
+        }
+        if (cleanTitle.includes('topps bowman')) {
+            return 'Bowman';
+        }
+        if (cleanTitle.includes('topps')) {
+            return 'Topps';
+        }
+        
+        // Upper Deck sets
+        if (cleanTitle.includes('upper deck young guns')) {
             return 'Upper Deck Young Guns';
         }
         if (cleanTitle.includes('upper deck synergy')) {
             return 'Upper Deck Synergy';
         }
-        if (cleanTitle.includes('synergy')) {
-            return 'Upper Deck Synergy';
+        if (cleanTitle.includes('upper deck')) {
+            return 'Upper Deck';
         }
-        if (cleanTitle.includes('slania stamps')) {
+        
+        // Other specific sets
+        if (cleanTitle.includes('bowman chrome')) {
+            return 'Bowman Chrome';
+        }
+        if (cleanTitle.includes('slania stamps') || cleanTitle.includes('slania')) {
             return 'Slania Stamps';
         }
         if (cleanTitle.includes('kellogg')) {
             return 'Kellogg\'s';
         }
-        if (cleanTitle.includes('o-pee-chee')) {
-            return 'O-Pee-Chee';
-        }
-        if (cleanTitle.includes('o pee chee')) {
+        if (cleanTitle.includes('o-pee-chee') || cleanTitle.includes('o pee chee')) {
             return 'O-Pee-Chee';
         }
         if (cleanTitle.includes('fleer metal')) {
@@ -1274,118 +1200,8 @@ class NewPricingDatabase {
         if (cleanTitle.includes('fleer')) {
             return 'Fleer';
         }
-        if (cleanTitle.includes('bowman') && !cleanTitle.includes('topps bowman')) {
-            return 'Bowman';
-        }
-        if (cleanTitle.includes('topps chrome')) {
-            return 'Topps Chrome';
-        }
-        if (cleanTitle.includes('chrome') && !cleanTitle.includes('topps chrome')) {
-            return 'Topps Chrome';
-        }
-        if (cleanTitle.includes('topps finest')) {
-            return 'Topps Finest';
-        }
-        if (cleanTitle.includes('finest') && !cleanTitle.includes('topps finest')) {
-            return 'Topps Finest';
-        }
-        if (cleanTitle.includes('topps heritage')) {
-            return 'Topps Heritage';
-        }
-        if (cleanTitle.includes('heritage') && !cleanTitle.includes('topps heritage')) {
-            return 'Topps Heritage';
-        }
-        if (cleanTitle.includes('flawless')) {
-            return 'Flawless';
-        }
-        if (cleanTitle.includes('skybox')) {
-            return 'Skybox';
-        }
-        if (cleanTitle.includes('apex')) {
-            return 'Skybox Apex';
-        }
-        if (cleanTitle.includes('contenders')) {
-            return 'Contenders';
-        }
-        if (cleanTitle.includes('immaculate')) {
-            return 'Immaculate';
-        }
-        if (cleanTitle.includes('national treasures')) {
-            return 'National Treasures';
-        }
-        if (cleanTitle.includes('spectra')) {
-            return 'Spectra';
-        }
-        if (cleanTitle.includes('phoenix') && !cleanTitle.includes('phoenix suns')) {
-            return 'Phoenix';
-        }
-        if (cleanTitle.includes('crown royale')) {
-            return 'Crown Royale';
-        }
-        if (cleanTitle.includes('absolute')) {
-            return 'Absolute';
-        }
-        if (cleanTitle.includes('limited')) {
-            return 'Limited';
-        }
-        if (cleanTitle.includes('threads')) {
-            return 'Threads';
-        }
-        if (cleanTitle.includes('certified')) {
-            return 'Certified';
-        }
-        if (cleanTitle.includes('triple threads')) {
-            return 'Triple Threads';
-        }
-        if (cleanTitle.includes('tribute')) {
-            return 'Tribute';
-        }
-        if (cleanTitle.includes('archives')) {
-            return 'Archives';
-        }
-        if (cleanTitle.includes('allen & ginter') || cleanTitle.includes('allen and ginter')) {
-            return 'Allen & Ginter';
-        }
-        if (cleanTitle.includes('gypsy queen')) {
-            return 'Gypsy Queen';
-        }
-        if (cleanTitle.includes('stadium club')) {
-            return 'Stadium Club';
-        }
-        if (cleanTitle.includes('score')) {
-            return 'Score';
-        }
-        if (cleanTitle.includes('upper deck') && !cleanTitle.includes('synergy')) {
-            return 'Upper Deck';
-        }
-        if (cleanTitle.includes('rookies & stars') || cleanTitle.includes('rookies and stars')) {
-            return 'Rookies & Stars';
-        }
-        if (cleanTitle.includes('elite') && !cleanTitle.includes('platinum elite')) {
-            return 'Elite';
-        }
-        if (cleanTitle.includes('prestige')) {
-            return 'Prestige';
-        }
-        if (cleanTitle.includes('panini instant')) {
-            return 'Panini Instant';
-        }
-        if (cleanTitle.includes('topps')) {
-            return 'Topps';
-        }
-        
-        // Add missing set detections based on analysis report
         if (cleanTitle.includes('usa basketball')) {
             return 'USA Basketball';
-        }
-        if (cleanTitle.includes('kellogg')) {
-            return 'Kellogg\'s';
-        }
-        if (cleanTitle.includes('fleer metal')) {
-            return 'Fleer Metal';
-        }
-        if (cleanTitle.includes('o-pee-chee') || cleanTitle.includes('o pee chee')) {
-            return 'O-Pee-Chee';
         }
         if (cleanTitle.includes('skybox')) {
             return 'Skybox';
@@ -1474,20 +1290,35 @@ class NewPricingDatabase {
         if (cleanTitle.includes('prestige')) {
             return 'Prestige';
         }
-        if (cleanTitle.includes('upper deck')) {
-            return 'Upper Deck';
-        }
         if (cleanTitle.includes('young guns')) {
             return 'Young Guns';
         }
         if (cleanTitle.includes('synergy')) {
             return 'Synergy';
         }
-        if (cleanTitle.includes('fleer')) {
-            return 'Fleer';
+        if (cleanTitle.includes('obsidian')) {
+            return 'Panini Obsidian';
         }
-        if (cleanTitle.includes('fleer tradition')) {
-            return 'Fleer Tradition';
+        if (cleanTitle.includes('select')) {
+            return 'Panini Select';
+        }
+        if (cleanTitle.includes('mosaic')) {
+            return 'Panini Mosaic';
+        }
+        if (cleanTitle.includes('donruss')) {
+            return 'Panini Donruss';
+        }
+        if (cleanTitle.includes('optic')) {
+            return 'Panini Donruss Optic';
+        }
+        if (cleanTitle.includes('prizm')) {
+            return 'Panini Prizm';
+        }
+        if (cleanTitle.includes('bowman')) {
+            return 'Bowman';
+        }
+        if (cleanTitle.includes('chrome')) {
+            return 'Topps Chrome';
         }
         
         return null;
