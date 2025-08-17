@@ -1191,6 +1191,15 @@ class NewPricingDatabase {
         }
         
         // Other specific sets (only if not already matched by more specific patterns above)
+        if (cleanTitle.includes('bowman chrome u 1st') || cleanTitle.includes('bowman chrome u1st')) {
+            return 'Bowman Chrome U 1st';
+        }
+        if (cleanTitle.includes('bowman chrome draft')) {
+            return 'Bowman Chrome Draft';
+        }
+        if (cleanTitle.includes('bowman chrome sapphire')) {
+            return 'Bowman Chrome Sapphire';
+        }
         if (cleanTitle.includes('bowman chrome')) {
             return 'Bowman Chrome';
         }
