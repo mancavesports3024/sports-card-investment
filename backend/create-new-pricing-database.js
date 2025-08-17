@@ -1097,6 +1097,13 @@ class NewPricingDatabase {
     extractCardType(title) {
         const titleLower = title.toLowerCase();
         
+        // Filter out terms that shouldn't be card types
+        const filteredTitle = titleLower
+            .replace(/\brookie\b/g, '') // Remove "rookie" from card type detection
+            .replace(/\brc\b/g, '') // Remove "rc" from card type detection
+            .replace(/\bauto\b/g, '') // Remove "auto" from card type detection
+            .replace(/\bautograph\b/g, ''); // Remove "autograph" from card type detection
+        
         // Enhanced color/parallel patterns
         const colorPatterns = [
             // Basic colors (including those with slashes)
@@ -1198,13 +1205,15 @@ class NewPricingDatabase {
             // Career Stat Line
             { pattern: /\b(career stat line)\b/gi, name: 'Career Stat Line' },
             // Downtown
-            { pattern: /\b(downtown)\b/gi, name: 'Downtown' }
+            { pattern: /\b(downtown)\b/gi, name: 'Downtown' },
+            // Base (for base cards)
+            { pattern: /\b(base)\b/gi, name: 'Base' }
         ];
 
         // Find all matches and build card type
         const foundTypes = [];
         for (const { pattern, name } of colorPatterns) {
-            const matches = title.match(pattern);
+            const matches = filteredTitle.match(pattern);
             if (matches) {
                 // Use the standardized name instead of the actual matches to avoid duplicates
                 foundTypes.push(name);
