@@ -1698,11 +1698,12 @@ class NewPricingDatabase {
             
             // Remove generic terms that shouldn't be card types
             if (cardType === 'Color' || cardType === 'Chrome' || cardType === 'Prizm') {
-                return null;
+                return 'Base';
             }
         }
 
-        return cardType || null;
+        // Return "Base" for cards without special designation instead of null
+        return cardType || 'Base';
     }
 
     extractCardNumber(title) {
