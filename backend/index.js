@@ -444,7 +444,7 @@ app.use('/api/live-listings', require('./routes/liveListings'));
       const cardsQuery = `
         SELECT id, title, summary_title as summaryTitle, sport, psa10_price as psa10Price, raw_average_price as rawAveragePrice, 
                psa9_average_price as psa9AveragePrice, multiplier, last_updated as lastUpdated, notes as filterInfo, source, search_term as searchTerm,
-               player_name as playerName
+               player_name as playerName, year, card_set as cardSet, card_type as cardType, card_number as cardNumber, print_run as printRun
         FROM cards 
         WHERE ${whereClause}
         ORDER BY ${sortBy} ${sortOrder}
