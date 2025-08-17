@@ -4114,3 +4114,35 @@ app.post('/api/admin/add-rookie-autograph-columns', async (req, res) => {
     }
 });
 
+// POST /api/admin/update-null-card-types - Update null card types to "Base"
+app.post('/api/admin/update-null-card-types', async (req, res) => {
+    try {
+        console.log('🔄 Updating null card types to Base...');
+        
+        const { NullCardTypeUpdater } = require('./update-null-card-types.js');
+        const updater = new NullCardTypeUpdater();
+        
+        await updater.connect();
+        console.log('✅ Connected to Railway database');
+        
+        await updater.updateNullCardTypes();
+        
+        await updater.close();
+        
+        res.json({
+            success: true,
+            message: 'Null card types updated to Base successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error updating null card types:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating null card types',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
