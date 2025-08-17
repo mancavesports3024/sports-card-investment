@@ -84,6 +84,7 @@ async function showRemainingIssues() {
                     title: card.title,
                     summaryTitle: card.summary_title,
                     playerName: card.player_name,
+                    cardSet: card.card_set,
                     problems: problems
                 });
             }
