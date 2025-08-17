@@ -1714,7 +1714,8 @@ class NewPricingDatabase {
             // Remove redundant card types that are already in the card set name
             if (cardType === 'Finest' || cardType === 'Concourse' || cardType === 'Update' || 
                 cardType === 'Chrome' || cardType === 'Prizm' || cardType === 'Select' ||
-                cardType === 'Heritage' || cardType === 'Diamond Kings' || cardType === 'Zenith') {
+                cardType === 'Heritage' || cardType === 'Diamond Kings' || cardType === 'Zenith' ||
+                cardType === 'Bowman' || cardType === 'Topps') {
                 return 'Base';
             }
             
