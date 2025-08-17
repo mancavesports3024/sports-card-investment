@@ -4082,3 +4082,35 @@ app.post('/api/admin/analyze-summary-title-issues', async (req, res) => {
     }
 });
 
+// POST /api/admin/add-rookie-autograph-columns - Add rookie and autograph columns to database
+app.post('/api/admin/add-rookie-autograph-columns', async (req, res) => {
+    try {
+        console.log('🔄 Adding rookie and autograph columns...');
+        
+        const { DatabaseMigration } = require('./add-rookie-autograph-columns.js');
+        const migration = new DatabaseMigration();
+        
+        await migration.connect();
+        console.log('✅ Connected to Railway database');
+        
+        await migration.addRookieAutographColumns();
+        
+        await migration.close();
+        
+        res.json({
+            success: true,
+            message: 'Rookie and autograph columns added successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error adding rookie and autograph columns:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error adding rookie and autograph columns',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
