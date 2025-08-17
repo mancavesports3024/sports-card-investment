@@ -1191,7 +1191,13 @@ class NewPricingDatabase {
         }
         
         // Other specific sets (only if not already matched by more specific patterns above)
-        if (cleanTitle.includes('bowman chrome u 1st') || cleanTitle.includes('bowman chrome u1st')) {
+        if ((cleanTitle.includes('bowman chrome') && cleanTitle.includes('rookie autographs')) || 
+            cleanTitle.includes('bowman chrome rookie autographs')) {
+            return 'Bowman Chrome Rookie Autographs';
+        }
+        if ((cleanTitle.includes('bowman chrome') && cleanTitle.includes('u 1st')) || 
+            cleanTitle.includes('bowman chrome u 1st') || 
+            cleanTitle.includes('bowman chrome u1st')) {
             return 'Bowman Chrome U 1st';
         }
         if (cleanTitle.includes('bowman chrome draft')) {
