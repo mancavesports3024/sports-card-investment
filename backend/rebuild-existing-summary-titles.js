@@ -204,6 +204,9 @@ class ExistingSummaryTitleRebuilder {
             { pattern: /\b(white prizm)\b/gi, name: 'White Prizm' },
             { pattern: /\b(teal prizm)\b/gi, name: 'Teal Prizm' },
             { pattern: /\b(neon green prizm)\b/gi, name: 'Neon Green Prizm' },
+            // Additional color combinations
+            { pattern: /\b(teal velocity)\b/gi, name: 'Teal Velocity' },
+            { pattern: /\b(holo prizm)\b/gi, name: 'Holo Prizm' },
             // Additional color variations
             { pattern: /\b(gold)\b/gi, name: 'Gold' },
             { pattern: /\b(silver)\b/gi, name: 'Silver' },
