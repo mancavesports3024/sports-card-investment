@@ -1047,7 +1047,7 @@ class NewPricingDatabase {
         if (cleanTitle.includes('panini prizm dp') || cleanTitle.includes('prizm dp')) {
             return 'Panini Prizm DP';
         }
-        if (cleanTitle.includes('panini prizm monopoly wnba')) {
+        if (cleanTitle.includes('panini prizm monopoly wnba') || cleanTitle.includes('prizm monopoly wnba')) {
             return 'Panini Prizm Monopoly WNBA';
         }
         if (cleanTitle.includes('panini prizm wnba')) {
@@ -1055,6 +1055,9 @@ class NewPricingDatabase {
         }
         if (cleanTitle.includes('panini instant wnba')) {
             return 'Panini Instant WNBA';
+        }
+        if (cleanTitle.includes('panini chronicles') || cleanTitle.includes('chronicles')) {
+            return 'Panini Chronicles';
         }
         if (cleanTitle.includes('panini prizm')) {
             return 'Panini Prizm';
@@ -1129,12 +1132,15 @@ class NewPricingDatabase {
             return 'Panini Prestige';
         }
         
-        // Topps sets with full names first
+        // Topps sets with full names first (most specific first)
         if (cleanTitle.includes('topps chrome update')) {
             return 'Topps Chrome Update';
         }
-        if (cleanTitle.includes('topps chrome')) {
-            return 'Topps Chrome';
+        if (cleanTitle.includes('topps stadium club')) {
+            return 'Topps Stadium Club';
+        }
+        if (cleanTitle.includes('topps gallery')) {
+            return 'Topps Gallery';
         }
         if (cleanTitle.includes('topps finest')) {
             return 'Topps Finest';
@@ -1148,17 +1154,14 @@ class NewPricingDatabase {
         if (cleanTitle.includes('topps update')) {
             return 'Topps Update';
         }
-        if (cleanTitle.includes('topps gallery')) {
-            return 'Topps Gallery';
-        }
-        if (cleanTitle.includes('topps stadium club')) {
-            return 'Topps Stadium Club';
-        }
         if (cleanTitle.includes('topps allen & ginter')) {
             return 'Topps Allen & Ginter';
         }
         if (cleanTitle.includes('topps gypsy queen')) {
             return 'Topps Gypsy Queen';
+        }
+        if (cleanTitle.includes('topps chrome')) {
+            return 'Topps Chrome';
         }
         if (cleanTitle.includes('topps bowman')) {
             return 'Bowman';
@@ -1227,29 +1230,12 @@ class NewPricingDatabase {
         if (cleanTitle.includes('one and one') && !cleanTitle.includes('panini one and one')) {
             return 'One and One';
         }
-        if (cleanTitle.includes('chronicles') && !cleanTitle.includes('panini chronicles')) {
-            return 'Chronicles';
-        }
+        // Generic set names (only if not already matched by more specific patterns above)
         if (cleanTitle.includes('phoenix') && !cleanTitle.includes('panini phoenix')) {
             return 'Phoenix';
         }
         if (cleanTitle.includes('score')) {
             return 'Score';
-        }
-        if (cleanTitle.includes('stadium club') && !cleanTitle.includes('topps stadium club')) {
-            return 'Stadium Club';
-        }
-        if (cleanTitle.includes('gallery') && !cleanTitle.includes('topps gallery')) {
-            return 'Gallery';
-        }
-        if (cleanTitle.includes('finest') && !cleanTitle.includes('topps finest')) {
-            return 'Finest';
-        }
-        if (cleanTitle.includes('heritage') && !cleanTitle.includes('topps heritage')) {
-            return 'Heritage';
-        }
-        if (cleanTitle.includes('archives') && !cleanTitle.includes('topps archives')) {
-            return 'Archives';
         }
         if (cleanTitle.includes('update') && !cleanTitle.includes('topps update') && !cleanTitle.includes('chrome update')) {
             return 'Update';
