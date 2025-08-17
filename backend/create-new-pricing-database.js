@@ -1313,29 +1313,25 @@ class NewPricingDatabase {
     extractCardType(title) {
         const titleLower = title.toLowerCase();
         
-                                             // Filter out terms that shouldn't be card types
-        const filteredTitle = titleLower
-            .replace(/\brookie\b/g, '') // Remove "rookie" from card type detection
-            .replace(/\brc\b/g, '') // Remove "rc" from card type detection
-            .replace(/\byg\b/g, '') // Remove "yg" from card type detection
-            .replace(/\bauto\b/g, '') // Remove "auto" from card type detection
-            .replace(/\bautograph\b/g, '') // Remove "autograph" from card type detection
-            .replace(/\bgraded\b/g, '') // Remove "graded" from card type detection
-            .replace(/\bungraded\b/g, '') // Remove "ungraded" from card type detection
-            .replace(/\bpop\b/g, '') // Remove "pop" from card type detection
-            .replace(/\bpopulation\b/g, '') // Remove "population" from card type detection
-            .replace(/\bcolor\b/g, '') // Remove "color" from card type detection
-            .replace(/\bpsa\b/g, '') // Remove "psa" from card type detection
-            .replace(/\bgem\b/g, '') // Remove "gem" from card type detection
-            .replace(/\bmint\b/g, '') // Remove "mint" from card type detection
-            .replace(/\bssp\b/g, '') // Remove "ssp" from card type detection
-            .replace(/\bholo\b/g, '') // Remove "holo" from card type detection
-            .replace(/\bvelocity\b/g, '') // Remove "velocity" from card type detection
-            .replace(/\bnotoriety\b/g, ''); // Remove "notoriety" from card type detection
-        
-        // Enhanced color/parallel patterns
-        const colorPatterns = [
-            // Specific color + Prizm combinations (prioritize these)
+        // Enhanced card type patterns with better prioritization
+        const cardTypePatterns = [
+            // Rookie/RC types (high priority)
+            { pattern: /\b(rookie|rc)\b/gi, name: 'Rookie' },
+            { pattern: /\b(yg|young guns)\b/gi, name: 'Young Guns' },
+            
+            // Autograph types (high priority)
+            { pattern: /\b(on card autograph|on card auto)\b/gi, name: 'On Card Auto' },
+            { pattern: /\b(sticker autograph|sticker auto)\b/gi, name: 'Sticker Auto' },
+            { pattern: /\b(autograph|auto)\b/gi, name: 'Auto' },
+            
+            // Special parallel types (high priority)
+            { pattern: /\b(superfractor)\b/gi, name: 'Superfractor' },
+            { pattern: /\b(redemption)\b/gi, name: 'Redemption' },
+            { pattern: /\b(1\/1|one of one)\b/gi, name: '1/1' },
+            { pattern: /\b(ssp|super short print)\b/gi, name: 'SSP' },
+            { pattern: /\b(sp|short print)\b/gi, name: 'SP' },
+            
+            // Color + Prizm combinations (prioritize these)
             { pattern: /\b(gold prizm)\b/gi, name: 'Gold Prizm' },
             { pattern: /\b(silver prizm)\b/gi, name: 'Silver Prizm' },
             { pattern: /\b(black prizm)\b/gi, name: 'Black Prizm' },
@@ -1350,10 +1346,119 @@ class NewPricingDatabase {
             { pattern: /\b(white prizm)\b/gi, name: 'White Prizm' },
             { pattern: /\b(teal prizm)\b/gi, name: 'Teal Prizm' },
             { pattern: /\b(neon green prizm)\b/gi, name: 'Neon Green Prizm' },
-            // Additional color combinations
-            { pattern: /\b(teal velocity)\b/gi, name: 'Teal Velocity' },
+            { pattern: /\b(camo pink prizm)\b/gi, name: 'Camo Pink Prizm' },
+            { pattern: /\b(red white & blue prizm)\b/gi, name: 'Red White & Blue Prizm' },
+            { pattern: /\b(red white and blue prizm)\b/gi, name: 'Red White & Blue Prizm' },
+            
+            // Special Prizm variants
             { pattern: /\b(holo prizm)\b/gi, name: 'Holo Prizm' },
-            // Additional color variations
+            { pattern: /\b(cracked ice prizm)\b/gi, name: 'Cracked Ice Prizm' },
+            { pattern: /\b(illumination prizm)\b/gi, name: 'Illumination Prizm' },
+            { pattern: /\b(pandora prizm)\b/gi, name: 'Pandora Prizm' },
+            { pattern: /\b(logo prizm)\b/gi, name: 'Logo Prizm' },
+            { pattern: /\b(variation prizm)\b/gi, name: 'Variation Prizm' },
+            
+            // Special parallel types
+            { pattern: /\b(teal velocity)\b/gi, name: 'Teal Velocity' },
+            { pattern: /\b(genesis)\b/gi, name: 'Genesis' },
+            { pattern: /\b(fast break)\b/gi, name: 'Fast Break' },
+            { pattern: /\b(downtown)\b/gi, name: 'Downtown' },
+            { pattern: /\b(real one)\b/gi, name: 'Real One' },
+            { pattern: /\b(rpa|rookie patch auto)\b/gi, name: 'RPA' },
+            { pattern: /\b(world champion boxers)\b/gi, name: 'World Champion Boxers' },
+            
+            // Select card types
+            { pattern: /\b(premier level)\b/gi, name: 'Premier Level' },
+            { pattern: /\b(club level)\b/gi, name: 'Club Level' },
+            { pattern: /\b(field level)\b/gi, name: 'Field Level' },
+            { pattern: /\b(concourses)\b/gi, name: 'Concourses' },
+            { pattern: /\b(premier)\b/gi, name: 'Premier' },
+            { pattern: /\b(club)\b/gi, name: 'Club' },
+            { pattern: /\b(level)\b/gi, name: 'Level' },
+            
+            // Special insert types
+            { pattern: /\b(flashback)\b/gi, name: 'Flashback' },
+            { pattern: /\b(emergent)\b/gi, name: 'Emergent' },
+            { pattern: /\b(mania)\b/gi, name: 'Mania' },
+            { pattern: /\b(geometric)\b/gi, name: 'Geometric' },
+            { pattern: /\b(honeycomb)\b/gi, name: 'Honeycomb' },
+            { pattern: /\b(pride)\b/gi, name: 'Pride' },
+            { pattern: /\b(kaleidoscopic)\b/gi, name: 'Kaleidoscopic' },
+            { pattern: /\b(dragon scale)\b/gi, name: 'Dragon Scale' },
+            { pattern: /\b(vintage)\b/gi, name: 'Vintage' },
+            { pattern: /\b(stars)\b/gi, name: 'Stars' },
+            
+            // Holiday/Event parallels
+            { pattern: /\b(independence day)\b/gi, name: 'Independence Day' },
+            { pattern: /\b(father's day)\b/gi, name: 'Father\'s Day' },
+            { pattern: /\b(mother's day)\b/gi, name: 'Mother\'s Day' },
+            { pattern: /\b(memorial day)\b/gi, name: 'Memorial Day' },
+            
+            // Special finish types
+            { pattern: /\b(camo)\b/gi, name: 'Camo' },
+            { pattern: /\b(vinyl)\b/gi, name: 'Vinyl' },
+            { pattern: /\b(premium set)\b/gi, name: 'Premium Set' },
+            { pattern: /\b(checkerboard)\b/gi, name: 'Checkerboard' },
+            { pattern: /\b(die-cut|die cut)\b/gi, name: 'Die-Cut' },
+            { pattern: /\b(national landmarks)\b/gi, name: 'National Landmarks' },
+            { pattern: /\b(lava lamp)\b/gi, name: 'Lava Lamp' },
+            { pattern: /\b(dazzle)\b/gi, name: 'Dazzle' },
+            { pattern: /\b(velocity)\b/gi, name: 'Velocity' },
+            { pattern: /\b(hyper)\b/gi, name: 'Hyper' },
+            { pattern: /\b(dragon)\b/gi, name: 'Dragon' },
+            { pattern: /\b(laser)\b/gi, name: 'Laser' },
+            { pattern: /\b(liberty)\b/gi, name: 'Liberty' },
+            { pattern: /\b(marvels)\b/gi, name: 'Marvels' },
+            { pattern: /\b(fire)\b/gi, name: 'Fire' },
+            { pattern: /\b(firestorm)\b/gi, name: 'Firestorm' },
+            { pattern: /\b(voltage)\b/gi, name: 'Voltage' },
+            { pattern: /\b(career stat line)\b/gi, name: 'Career Stat Line' },
+            { pattern: /\b(sapphire)\b/gi, name: 'Sapphire' },
+            { pattern: /\b(mojo)\b/gi, name: 'Mojo' },
+            { pattern: /\b(wave)\b/gi, name: 'Wave' },
+            { pattern: /\b(scope)\b/gi, name: 'Scope' },
+            { pattern: /\b(shock)\b/gi, name: 'Shock' },
+            { pattern: /\b(choice)\b/gi, name: 'Choice' },
+            { pattern: /\b(fusion)\b/gi, name: 'Fusion' },
+            { pattern: /\b(nebula)\b/gi, name: 'Nebula' },
+            { pattern: /\b(swirl)\b/gi, name: 'Swirl' },
+            { pattern: /\b(fluorescent)\b/gi, name: 'Fluorescent' },
+            { pattern: /\b(reactive)\b/gi, name: 'Reactive' },
+            { pattern: /\b(tectonic)\b/gi, name: 'Tectonic' },
+            { pattern: /\b(lava)\b/gi, name: 'Lava' },
+            { pattern: /\b(crystal)\b/gi, name: 'Crystal' },
+            { pattern: /\b(kaleidoscope)\b/gi, name: 'Kaleidoscope' },
+            { pattern: /\b(prismatic)\b/gi, name: 'Prismatic' },
+            
+            // Animal parallels
+            { pattern: /\b(alligator)\b/gi, name: 'Alligator' },
+            { pattern: /\b(butterfly)\b/gi, name: 'Butterfly' },
+            { pattern: /\b(chameleon)\b/gi, name: 'Chameleon' },
+            { pattern: /\b(clown fish)\b/gi, name: 'Clown Fish' },
+            { pattern: /\b(deer)\b/gi, name: 'Deer' },
+            { pattern: /\b(elephant)\b/gi, name: 'Elephant' },
+            { pattern: /\b(giraffe)\b/gi, name: 'Giraffe' },
+            { pattern: /\b(leopard)\b/gi, name: 'Leopard' },
+            { pattern: /\b(parrot)\b/gi, name: 'Parrot' },
+            { pattern: /\b(peacock)\b/gi, name: 'Peacock' },
+            { pattern: /\b(snake)\b/gi, name: 'Snake' },
+            { pattern: /\b(tiger)\b/gi, name: 'Tiger' },
+            { pattern: /\b(zebra)\b/gi, name: 'Zebra' },
+            { pattern: /\b(tiger eyes|snake eyes)\b/gi, name: 'Eyes' },
+            
+            // Additional special types
+            { pattern: /\b(anniversary)\b/gi, name: 'Anniversary' },
+            { pattern: /\b(border)\b/gi, name: 'Border' },
+            { pattern: /\b(flip stock)\b/gi, name: 'Flip Stock' },
+            { pattern: /\b(magenta)\b/gi, name: 'Magenta' },
+            { pattern: /\b(mini parallels)\b/gi, name: 'Mini Parallels' },
+            { pattern: /\b(pulsar)\b/gi, name: 'Pulsar' },
+            { pattern: /\b(bomb squad)\b/gi, name: 'Bomb Squad' },
+            { pattern: /\b(bs\d+)\b/gi, name: 'Bomb Squad' },
+            { pattern: /\b(rapture)\b/gi, name: 'Rapture' },
+            { pattern: /\b(notoriety)\b/gi, name: 'Notoriety' },
+            
+            // Basic color types (lower priority)
             { pattern: /\b(gold)\b/gi, name: 'Gold' },
             { pattern: /\b(silver)\b/gi, name: 'Silver' },
             { pattern: /\b(black)\b/gi, name: 'Black' },
@@ -1368,205 +1473,26 @@ class NewPricingDatabase {
             { pattern: /\b(white)\b/gi, name: 'White' },
             { pattern: /\b(teal)\b/gi, name: 'Teal' },
             { pattern: /\b(neon green)\b/gi, name: 'Neon Green' },
-            // Basic colors (including those with slashes) - return the actual color name
-            { pattern: /(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white|neon green|teal)(?:\s|$|\/)/gi, name: 'match' },
-            // Refractors
+            
+            // Basic finish types (lowest priority)
             { pattern: /\b(refractor|refractors)\b/gi, name: 'Refractor' },
-            // Prizm variants
             { pattern: /\b(prizm|prizmatic)\b/gi, name: 'Prizm' },
-            // Holo variants
             { pattern: /\b(holo|holographic)\b/gi, name: 'Holo' },
-            // Chrome variants
             { pattern: /\b(chrome)\b/gi, name: 'Chrome' },
-            // X-Fractor
             { pattern: /\b(x-fractor|x-fractors)\b/gi, name: 'X-Fractor' },
-            // Cracked Ice
             { pattern: /\b(cracked ice)\b/gi, name: 'Cracked Ice' },
-            // Stained Glass
             { pattern: /\b(stained glass)\b/gi, name: 'Stained Glass' },
-            // World Champion Boxers
-            { pattern: /\b(world champion boxers)\b/gi, name: 'World Champion Boxers' },
-            // Fast Break
-            { pattern: /\b(fast break)\b/gi, name: 'Fast Break' },
-            // Genesis
-            { pattern: /\b(genesis)\b/gi, name: 'Genesis' },
-            // Premier Level
-            { pattern: /\b(premier level)\b/gi, name: 'Premier Level' },
-            // Premier
-            { pattern: /\b(premier)\b/gi, name: 'Premier' },
-            // Level
-            { pattern: /\b(level)\b/gi, name: 'Level' },
-            // Club
-            { pattern: /\b(club)\b/gi, name: 'Club' },
-            // Flashback
-            { pattern: /\b(flashback)\b/gi, name: 'Flashback' },
-            // Emergent
-            { pattern: /\b(emergent)\b/gi, name: 'Emergent' },
-            // Real One
-            { pattern: /\b(real one)\b/gi, name: 'Real One' },
-            // RPA
-            { pattern: /\b(rpa)\b/gi, name: 'RPA' },
-            // Mania
-            { pattern: /\b(mania)\b/gi, name: 'Mania' },
-            // WWE variants
-            { pattern: /\b(wwe)\b/gi, name: 'WWE' },
-            // Geometric
-            { pattern: /\b(geometric)\b/gi, name: 'Geometric' },
-            // Honeycomb
-            { pattern: /\b(honeycomb)\b/gi, name: 'Honeycomb' },
-            // Pride
-            { pattern: /\b(pride)\b/gi, name: 'Pride' },
-            // Kaleidoscopic
-            { pattern: /\b(kaleidoscopic)\b/gi, name: 'Kaleidoscopic' },
-            // Scale variants
-            { pattern: /\b(dragon scale)\b/gi, name: 'Dragon Scale' },
-            // Vintage
-            { pattern: /\b(vintage)\b/gi, name: 'Vintage' },
-            // Stars
-            { pattern: /\b(stars)\b/gi, name: 'Stars' },
-            // Independence Day
-            { pattern: /\b(independence day)\b/gi, name: 'Independence Day' },
-            // Father's Day
-            { pattern: /\b(father's day)\b/gi, name: 'Father\'s Day' },
-            // Mother's Day
-            { pattern: /\b(mother's day)\b/gi, name: 'Mother\'s Day' },
-            // Memorial Day
-            { pattern: /\b(memorial day)\b/gi, name: 'Memorial Day' },
-            // Camo
-            { pattern: /\b(camo)\b/gi, name: 'Camo' },
-            // Vinyl
-            { pattern: /\b(vinyl)\b/gi, name: 'Vinyl' },
-            // Premium Set
-            { pattern: /\b(premium set)\b/gi, name: 'Premium Set' },
-            // Checkerboard
-            { pattern: /\b(checkerboard)\b/gi, name: 'Checkerboard' },
-            // Die-cut (match both forms but treat as single type)
-            { pattern: /\b(die-cut|die cut)\b/gi, name: 'Die-Cut' },
-            // National Landmarks
-            { pattern: /\b(national landmarks)\b/gi, name: 'National Landmarks' },
-            // Lava Lamp
-            { pattern: /\b(lava lamp)\b/gi, name: 'Lava Lamp' },
-            // Dazzle
-            { pattern: /\b(dazzle)\b/gi, name: 'Dazzle' },
-            // Velocity
-            { pattern: /\b(velocity)\b/gi, name: 'Velocity' },
-            // Hyper
-            { pattern: /\b(hyper)\b/gi, name: 'Hyper' },
-            // Dragon
-            { pattern: /\b(dragon)\b/gi, name: 'Dragon' },
-            // Laser
-            { pattern: /\b(laser)\b/gi, name: 'Laser' },
-            // Liberty
-            { pattern: /\b(liberty)\b/gi, name: 'Liberty' },
-            // Marvels
-            { pattern: /\b(marvels)\b/gi, name: 'Marvels' },
-                                             // Fire
-                                 { pattern: /\b(fire)\b/gi, name: 'Fire' },
-                                 // Firestorm
-                                 { pattern: /\b(firestorm)\b/gi, name: 'Firestorm' },
-                                 // Voltage
-                                 { pattern: /\b(voltage)\b/gi, name: 'Voltage' },
-            // Career Stat Line
-            { pattern: /\b(career stat line)\b/gi, name: 'Career Stat Line' },
-                                             // Downtown
-                                 { pattern: /\b(downtown)\b/gi, name: 'Downtown' },
-                                 // Base (for base cards)
-                                 { pattern: /\b(base)\b/gi, name: 'Base' },
-                                 // Sapphire
-                                 { pattern: /\b(sapphire)\b/gi, name: 'Sapphire' },
-                                 // Mojo
-                                 { pattern: /\b(mojo)\b/gi, name: 'Mojo' },
-                                 // Wave
-                                 { pattern: /\b(wave)\b/gi, name: 'Wave' },
-                                 // Scope
-                                 { pattern: /\b(scope)\b/gi, name: 'Scope' },
-                                 // Shock
-                                 { pattern: /\b(shock)\b/gi, name: 'Shock' },
-                                 // Choice
-                                 { pattern: /\b(choice)\b/gi, name: 'Choice' },
-                                 // Fusion
-                                 { pattern: /\b(fusion)\b/gi, name: 'Fusion' },
-                                 // Nebula
-                                 { pattern: /\b(nebula)\b/gi, name: 'Nebula' },
-                                 // Swirl
-                                 { pattern: /\b(swirl)\b/gi, name: 'Swirl' },
-                                 // Fluorescent
-                                 { pattern: /\b(fluorescent)\b/gi, name: 'Fluorescent' },
-                                 // Reactive
-                                 { pattern: /\b(reactive)\b/gi, name: 'Reactive' },
-                                 // Tectonic
-                                 { pattern: /\b(tectonic)\b/gi, name: 'Tectonic' },
-                                 // Lava
-                                 { pattern: /\b(lava)\b/gi, name: 'Lava' },
-                                 // Crystal
-                                 { pattern: /\b(crystal)\b/gi, name: 'Crystal' },
-                                 // Kaleidoscope
-                                 { pattern: /\b(kaleidoscope)\b/gi, name: 'Kaleidoscope' },
-                                 // Prismatic
-                                 { pattern: /\b(prismatic)\b/gi, name: 'Prismatic' },
-                                 // Animal parallels
-                                 { pattern: /\b(alligator)\b/gi, name: 'Alligator' },
-                                 { pattern: /\b(butterfly)\b/gi, name: 'Butterfly' },
-                                 { pattern: /\b(chameleon)\b/gi, name: 'Chameleon' },
-                                 { pattern: /\b(clown fish)\b/gi, name: 'Clown Fish' },
-                                 { pattern: /\b(deer)\b/gi, name: 'Deer' },
-                                 { pattern: /\b(elephant)\b/gi, name: 'Elephant' },
-                                 { pattern: /\b(giraffe)\b/gi, name: 'Giraffe' },
-                                 { pattern: /\b(leopard)\b/gi, name: 'Leopard' },
-                                 { pattern: /\b(parrot)\b/gi, name: 'Parrot' },
-                                 { pattern: /\b(peacock)\b/gi, name: 'Peacock' },
-                                 { pattern: /\b(snake)\b/gi, name: 'Snake' },
-                                 { pattern: /\b(tiger)\b/gi, name: 'Tiger' },
-                                 { pattern: /\b(zebra)\b/gi, name: 'Zebra' },
-                                 // Eyes
-                                 { pattern: /\b(tiger eyes|snake eyes)\b/gi, name: 'Eyes' },
-                                 // Anniversary
-                                 { pattern: /\b(anniversary)\b/gi, name: 'Anniversary' },
-                                 // Border
-                                 { pattern: /\b(border)\b/gi, name: 'Border' },
-                                 // Flip Stock
-                                 { pattern: /\b(flip stock)\b/gi, name: 'Flip Stock' },
-                                 // Magenta
-                                 { pattern: /\b(magenta)\b/gi, name: 'Magenta' },
-                                 // Mini Parallels
-                                 { pattern: /\b(mini parallels)\b/gi, name: 'Mini Parallels' },
-                                 // Superfractor
-                                 { pattern: /\b(superfractor)\b/gi, name: 'Superfractor' },
-                                 // Pulsar
-                                 { pattern: /\b(pulsar)\b/gi, name: 'Pulsar' },
-                                 // Bomb Squad
-                                 { pattern: /\b(bomb squad)\b/gi, name: 'Bomb Squad' },
-                                 { pattern: /\b(bs\d+)\b/gi, name: 'Bomb Squad' },
-                                 // Rapture
-                                 { pattern: /\b(rapture)\b/gi, name: 'Rapture' },
-                                 // Velocity
-                                 { pattern: /\b(velocity)\b/gi, name: 'Velocity' },
-                                 // Notoriety
-                                 { pattern: /\b(notoriety)\b/gi, name: 'Notoriety' },
-                                 // Holo
-                                 { pattern: /\b(holo)\b/gi, name: 'Holo' },
-                                 // SSP
-                                 { pattern: /\b(ssp)\b/gi, name: 'SSP' }
-                             ];
-
+            
+            // Base cards (lowest priority)
+            { pattern: /\b(base)\b/gi, name: 'Base' }
+        ];
+        
         // Find all matches and build card type
         const foundTypes = [];
-        for (const { pattern, name } of colorPatterns) {
-            const matches = filteredTitle.match(pattern);
+        for (const { pattern, name } of cardTypePatterns) {
+            const matches = titleLower.match(pattern);
             if (matches) {
-                if (name === 'match') {
-                    // For basic colors, use the actual matched color name
-                    matches.forEach(match => {
-                        // Extract the color name from the match (remove surrounding characters)
-                        const colorMatch = match.match(/(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white|teal|neon green)(?:\s|$|\/)/i);
-                        if (colorMatch) {
-                            foundTypes.push(colorMatch[1].charAt(0).toUpperCase() + colorMatch[1].slice(1).toLowerCase());
-                        }
-                    });
-                } else {
-                    // Use the standardized name instead of the actual matches to avoid duplicates
-                    foundTypes.push(name);
-                }
+                foundTypes.push(name);
             }
         }
 
