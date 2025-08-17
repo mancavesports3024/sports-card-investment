@@ -303,6 +303,32 @@ class EnhancedComprehensiveDatabase {
       });
     });
 
+    // Topps Chrome Update Football (2010-2024)
+    ['2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Topps Chrome Update Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Topps',
+        setName: 'Chrome Update',
+        searchText: `topps chrome update football ${year}`,
+        displayName: `Topps Chrome Update Football ${year}`
+      });
+    });
+
+    // Topps Finest Football (1994-2024)
+    ['1994', '1995', '1996', '1997', '1998', '1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Topps Finest Football ${year}`,
+        sport: 'Football',
+        year: year,
+        brand: 'Topps',
+        setName: 'Finest',
+        searchText: `topps finest football ${year}`,
+        displayName: `Topps Finest Football ${year}`
+      });
+    });
+
     return sets;
   }
 
@@ -447,6 +473,123 @@ class EnhancedComprehensiveDatabase {
         setName: 'Heritage',
         searchText: `topps heritage baseball ${year}`,
         displayName: `Topps Heritage Baseball ${year}`
+      });
+    });
+
+    // Topps Gallery (1998-2024)
+    ['1998', '1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Topps Gallery Baseball ${year}`,
+        sport: 'Baseball',
+        year: year,
+        brand: 'Topps',
+        setName: 'Gallery',
+        searchText: `topps gallery baseball ${year}`,
+        displayName: `Topps Gallery Baseball ${year}`
+      });
+    });
+
+    // Topps Stadium Club (1991-2024)
+    ['1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Topps Stadium Club Baseball ${year}`,
+        sport: 'Baseball',
+        year: year,
+        brand: 'Topps',
+        setName: 'Stadium Club',
+        searchText: `topps stadium club baseball ${year}`,
+        displayName: `Topps Stadium Club Baseball ${year}`
+      });
+    });
+
+    // Topps Archives (2001-2024)
+    ['2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Topps Archives Baseball ${year}`,
+        sport: 'Baseball',
+        year: year,
+        brand: 'Topps',
+        setName: 'Archives',
+        searchText: `topps archives baseball ${year}`,
+        displayName: `Topps Archives Baseball ${year}`
+      });
+    });
+
+    // Topps Update (2002-2024)
+    ['2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Topps Update Baseball ${year}`,
+        sport: 'Baseball',
+        year: year,
+        brand: 'Topps',
+        setName: 'Update',
+        searchText: `topps update baseball ${year}`,
+        displayName: `Topps Update Baseball ${year}`
+      });
+    });
+
+    // Topps Chrome Update (2005-2024)
+    ['2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Topps Chrome Update Baseball ${year}`,
+        sport: 'Baseball',
+        year: year,
+        brand: 'Topps',
+        setName: 'Chrome Update',
+        searchText: `topps chrome update baseball ${year}`,
+        displayName: `Topps Chrome Update Baseball ${year}`
+      });
+    });
+
+    // Topps Allen & Ginter (2006-2024)
+    ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Topps Allen & Ginter Baseball ${year}`,
+        sport: 'Baseball',
+        year: year,
+        brand: 'Topps',
+        setName: 'Allen & Ginter',
+        searchText: `topps allen ginter baseball ${year}`,
+        displayName: `Topps Allen & Ginter Baseball ${year}`
+      });
+    });
+
+    // Topps Gypsy Queen (2011-2024)
+    ['2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Topps Gypsy Queen Baseball ${year}`,
+        sport: 'Baseball',
+        year: year,
+        brand: 'Topps',
+        setName: 'Gypsy Queen',
+        searchText: `topps gypsy queen baseball ${year}`,
+        displayName: `Topps Gypsy Queen Baseball ${year}`
+      });
+    });
+
+    // Topps Finest (1993-2024)
+    ['1993', '1994', '1995', '1996', '1997', '1998', '1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Topps Finest Baseball ${year}`,
+        sport: 'Baseball',
+        year: year,
+        brand: 'Topps',
+        setName: 'Finest',
+        searchText: `topps finest baseball ${year}`,
+        displayName: `Topps Finest Baseball ${year}`
+      });
+    });
+
+    // Topps Tribute (2001-2024)
+    ['2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'].forEach(year => {
+      sets.push({
+        name: `Topps Tribute Baseball ${year}`,
+        sport: 'Baseball',
+        year: year,
+        brand: 'Topps',
+        setName: 'Tribute',
+        searchText: `topps tribute baseball ${year}`,
+        displayName: `Topps Tribute Baseball ${year}`
       });
     });
 
