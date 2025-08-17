@@ -1102,6 +1102,69 @@ class NewPricingDatabase {
         if (cleanTitle.includes('apex')) {
             return 'Skybox Apex';
         }
+        if (cleanTitle.includes('contenders')) {
+            return 'Contenders';
+        }
+        if (cleanTitle.includes('immaculate')) {
+            return 'Immaculate';
+        }
+        if (cleanTitle.includes('national treasures')) {
+            return 'National Treasures';
+        }
+        if (cleanTitle.includes('spectra')) {
+            return 'Spectra';
+        }
+        if (cleanTitle.includes('phoenix') && !cleanTitle.includes('phoenix suns')) {
+            return 'Phoenix';
+        }
+        if (cleanTitle.includes('crown royale')) {
+            return 'Crown Royale';
+        }
+        if (cleanTitle.includes('absolute')) {
+            return 'Absolute';
+        }
+        if (cleanTitle.includes('limited')) {
+            return 'Limited';
+        }
+        if (cleanTitle.includes('threads')) {
+            return 'Threads';
+        }
+        if (cleanTitle.includes('certified')) {
+            return 'Certified';
+        }
+        if (cleanTitle.includes('triple threads')) {
+            return 'Triple Threads';
+        }
+        if (cleanTitle.includes('tribute')) {
+            return 'Tribute';
+        }
+        if (cleanTitle.includes('archives')) {
+            return 'Archives';
+        }
+        if (cleanTitle.includes('allen & ginter') || cleanTitle.includes('allen and ginter')) {
+            return 'Allen & Ginter';
+        }
+        if (cleanTitle.includes('gypsy queen')) {
+            return 'Gypsy Queen';
+        }
+        if (cleanTitle.includes('stadium club')) {
+            return 'Stadium Club';
+        }
+        if (cleanTitle.includes('score')) {
+            return 'Score';
+        }
+        if (cleanTitle.includes('upper deck') && !cleanTitle.includes('synergy')) {
+            return 'Upper Deck';
+        }
+        if (cleanTitle.includes('rookies & stars') || cleanTitle.includes('rookies and stars')) {
+            return 'Rookies & Stars';
+        }
+        if (cleanTitle.includes('elite') && !cleanTitle.includes('platinum elite')) {
+            return 'Elite';
+        }
+        if (cleanTitle.includes('prestige')) {
+            return 'Prestige';
+        }
         
         return null;
     }
