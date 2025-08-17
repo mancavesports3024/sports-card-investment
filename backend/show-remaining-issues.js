@@ -21,6 +21,11 @@ async function showRemainingIssues() {
             const playerName = card.player_name || '';
             const cardSet = card.card_set || '';
             
+            // Debug logging for cards with missing product name issues
+            if (card.id === 2 || card.id === 21 || card.id === 36) {
+                console.log(`DEBUG Card ${card.id}: cardSet = "${cardSet}", title = "${title}"`);
+            }
+            
             // Check for various issues
             const problems = [];
             
@@ -65,6 +70,11 @@ async function showRemainingIssues() {
                 const productNamePattern = /\b(Topps|Panini|Upper Deck|Donruss|Fleer|Bowman|Finest|Mosaic|Select|Contenders|Hoops|Pokemon|O-Pee-Chee|Score|Phoenix|Chronicles|Stadium Club|Gallery|Chrome Update|Diamond Kings|National Treasures|Flawless|Spectra|Zenith|One and One|Slania Stamps|Kellogg's|Skybox|USA Basketball|Fleer Metal|Fleer Tradition|Panini Absolute|Panini Origins|Panini Instant|Panini Crown Royale|Panini Limited|Panini Threads|Panini Certified|Panini Triple Threads|Panini Tribute|Panini Rookies & Stars|Panini Elite|Panini Prestige|Upper Deck Young Guns|Upper Deck Synergy|Panini Prizm DP|Panini Prizm WNBA|Panini Prizm Monopoly WNBA|Topps Heritage|Topps Archives|Topps Update|Topps Allen & Ginter|Topps Gypsy Queen|Bowman Chrome|Panini Mosaic|Panini Absolute|Panini Zenith|Panini Diamond Kings|Panini Origins|Panini One and One|Panini Instant|Panini Contenders|Panini Immaculate|Panini National Treasures|Panini Spectra|Panini Crown Royale|Panini Limited|Panini Threads|Panini Certified|Panini Triple Threads|Panini Tribute|Panini Rookies & Stars|Panini Elite|Panini Prestige|Upper Deck Young Guns|Upper Deck Synergy|Slania Stamps|Kellogg's|O-Pee-Chee|Fleer Metal|Fleer Tradition|Fleer)\b/i;
                 if (!summaryTitle.match(productNamePattern)) {
                     problems.push('Missing product name');
+                }
+            } else {
+                // Debug logging for cards that have cardSet but are still being flagged
+                if (card.id === 2 || card.id === 21 || card.id === 36) {
+                    console.log(`DEBUG Card ${card.id}: Has cardSet "${cardSet}", should NOT be flagged as missing product name`);
                 }
             }
             
