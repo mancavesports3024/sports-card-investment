@@ -163,10 +163,10 @@ class ExistingSummaryTitleRebuilder {
                                  .replace(/\bpop\b/g, '') // Remove "pop" from card type detection
                                  .replace(/\bpopulation\b/g, ''); // Remove "population" from card type detection
         
-        // Enhanced color/parallel patterns
-        const colorPatterns = [
-            // Basic colors (including those with slashes)
-            { pattern: /(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white)(?:\s|$|\/)/gi, name: 'Color' },
+                 // Enhanced color/parallel patterns
+         const colorPatterns = [
+             // Basic colors (including those with slashes) - return the actual color name
+             { pattern: /(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white)(?:\s|$|\/)/gi, name: 'match' },
             // Refractors
             { pattern: /\b(refractor|refractors)\b/gi, name: 'Refractor' },
             // Prizm variants
@@ -267,14 +267,25 @@ class ExistingSummaryTitleRebuilder {
                                  { pattern: /\b(base)\b/gi, name: 'Base' }
                              ];
 
-        const foundTypes = [];
-        for (const { pattern, name } of colorPatterns) {
-            const matches = filteredTitle.match(pattern);
-            if (matches) {
-                // Use the standardized name instead of the actual matches to avoid duplicates
-                foundTypes.push(name);
-            }
-        }
+                 const foundTypes = [];
+         for (const { pattern, name } of colorPatterns) {
+             const matches = filteredTitle.match(pattern);
+             if (matches) {
+                 if (name === 'match') {
+                     // For basic colors, use the actual matched color name
+                     matches.forEach(match => {
+                         // Extract the color name from the match (remove surrounding characters)
+                         const colorMatch = match.match(/(?:^|\s|\/)(red|blue|green|yellow|orange|purple|pink|gold|silver|bronze|black|white)(?:\s|$|\/)/i);
+                         if (colorMatch) {
+                             foundTypes.push(colorMatch[1].charAt(0).toUpperCase() + colorMatch[1].slice(1).toLowerCase());
+                         }
+                     });
+                 } else {
+                     // Use the standardized name instead of the actual matches to avoid duplicates
+                     foundTypes.push(name);
+                 }
+             }
+         }
 
         // Remove duplicates and format
         const uniqueTypes = [...new Set(foundTypes)];
