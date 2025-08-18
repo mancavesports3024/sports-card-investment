@@ -1560,6 +1560,19 @@ class NewPricingDatabase {
             { pattern: /\b(black & green)\b/gi, name: 'Black & Green' },
             { pattern: /\b(blue red)\b/gi, name: 'Blue & Red' },
             { pattern: /\b(blue & red)\b/gi, name: 'Blue & Red' },
+            
+            // Color combinations with slashes (e.g., "Green/Yellow" -> "Green and Yellow")
+            { pattern: /\b(green\/yellow|yellow\/green)\b/gi, name: 'Green and Yellow' },
+            { pattern: /\b(red\/white|white\/red)\b/gi, name: 'Red and White' },
+            { pattern: /\b(blue\/red|red\/blue)\b/gi, name: 'Blue and Red' },
+            { pattern: /\b(black\/red|red\/black)\b/gi, name: 'Black and Red' },
+            { pattern: /\b(black\/green|green\/black)\b/gi, name: 'Black and Green' },
+            { pattern: /\b(blue\/green|green\/blue)\b/gi, name: 'Blue and Green' },
+            { pattern: /\b(red\/yellow|yellow\/red)\b/gi, name: 'Red and Yellow' },
+            { pattern: /\b(orange\/blue|blue\/orange)\b/gi, name: 'Orange and Blue' },
+            { pattern: /\b(purple\/gold|gold\/purple)\b/gi, name: 'Purple and Gold' },
+            { pattern: /\b(pink\/purple|purple\/pink)\b/gi, name: 'Pink and Purple' },
+            
             { pattern: /\b(orange sapphire)\b/gi, name: 'Orange Sapphire' },
             { pattern: /\b(sapphire orange)\b/gi, name: 'Orange Sapphire' },
             { pattern: /\b(red ink)\b/gi, name: 'Red Ink' },
@@ -1811,6 +1824,19 @@ class NewPricingDatabase {
                     // Remove Skybox from the card type
                     const cardTypeWithoutSkybox = cardType.replace(/\bskybox\b/gi, '').trim();
                     return cardTypeWithoutSkybox || 'Base';
+                }
+            }
+            
+            // Special handling for Optic - only keep as card type if it's NOT part of the card set
+            if (cardType && cardType.toLowerCase().includes('optic')) {
+                const titleLower = title.toLowerCase();
+                const cardSetDetected = this.extractCardSet(title);
+                // Check if the title or extracted card set contains Optic in a card set context
+                if ((cardSetDetected && cardSetDetected.toLowerCase().includes('optic')) ||
+                    titleLower.includes('donruss optic')) {
+                    // Remove Optic from the card type
+                    const cardTypeWithoutOptic = cardType.replace(/\boptic\b/gi, '').trim();
+                    return cardTypeWithoutOptic || 'Base';
                 }
             }
             
