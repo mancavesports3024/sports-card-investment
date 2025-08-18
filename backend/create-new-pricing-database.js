@@ -1968,6 +1968,13 @@ class NewPricingDatabase {
         cleanTitle = cleanTitle.replace(/\d+\/\d+/g, ' '); // Remove /499, /99, etc.
         cleanTitle = cleanTitle.replace(/\d+/g, ' '); // Remove standalone numbers
         
+        // Remove specific problematic patterns
+        cleanTitle = cleanTitle.replace(/\b(invicta\s+bi\d+)\b/gi, ' '); // Remove "Invicta BI15"
+        cleanTitle = cleanTitle.replace(/\b(ra\s+jca)\b/gi, ' '); // Remove "RA JCA"
+        cleanTitle = cleanTitle.replace(/\b(caedm)\b/gi, ' '); // Remove "CAEDM"
+        cleanTitle = cleanTitle.replace(/\b(in\s+)\b/gi, ' '); // Remove "IN "
+        cleanTitle = cleanTitle.replace(/\b(jesus\s+made)\b/gi, ' '); // Remove "JESUS MADE" - this is likely a placeholder
+        
         // Remove special characters and normalize whitespace
         cleanTitle = cleanTitle.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
         
