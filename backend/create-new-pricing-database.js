@@ -1561,17 +1561,17 @@ class NewPricingDatabase {
             { pattern: /\b(blue red)\b/gi, name: 'Blue & Red' },
             { pattern: /\b(blue & red)\b/gi, name: 'Blue & Red' },
             
-            // Color combinations with slashes (e.g., "Green/Yellow" -> "Green and Yellow")
-            { pattern: /\b(green\/yellow|yellow\/green)\b/gi, name: 'Green and Yellow' },
-            { pattern: /\b(red\/white|white\/red)\b/gi, name: 'Red and White' },
-            { pattern: /\b(blue\/red|red\/blue)\b/gi, name: 'Blue and Red' },
-            { pattern: /\b(black\/red|red\/black)\b/gi, name: 'Black and Red' },
-            { pattern: /\b(black\/green|green\/black)\b/gi, name: 'Black and Green' },
-            { pattern: /\b(blue\/green|green\/blue)\b/gi, name: 'Blue and Green' },
-            { pattern: /\b(red\/yellow|yellow\/red)\b/gi, name: 'Red and Yellow' },
-            { pattern: /\b(orange\/blue|blue\/orange)\b/gi, name: 'Orange and Blue' },
-            { pattern: /\b(purple\/gold|gold\/purple)\b/gi, name: 'Purple and Gold' },
-            { pattern: /\b(pink\/purple|purple\/pink)\b/gi, name: 'Pink and Purple' },
+            // Color combinations with slashes (e.g., "Green/Yellow" -> "Green and Yellow") - HIGH PRIORITY
+            { pattern: /\b(green\/yellow|yellow\/green)\b/gi, name: 'Green and Yellow', priority: 1 },
+            { pattern: /\b(red\/white|white\/red)\b/gi, name: 'Red and White', priority: 1 },
+            { pattern: /\b(blue\/red|red\/blue)\b/gi, name: 'Blue and Red', priority: 1 },
+            { pattern: /\b(black\/red|red\/black)\b/gi, name: 'Black and Red', priority: 1 },
+            { pattern: /\b(black\/green|green\/black)\b/gi, name: 'Black and Green', priority: 1 },
+            { pattern: /\b(blue\/green|green\/blue)\b/gi, name: 'Blue and Green', priority: 1 },
+            { pattern: /\b(red\/yellow|yellow\/red)\b/gi, name: 'Red and Yellow', priority: 1 },
+            { pattern: /\b(orange\/blue|blue\/orange)\b/gi, name: 'Orange and Blue', priority: 1 },
+            { pattern: /\b(purple\/gold|gold\/purple)\b/gi, name: 'Purple and Gold', priority: 1 },
+            { pattern: /\b(pink\/purple|purple\/pink)\b/gi, name: 'Pink and Purple', priority: 1 },
             
             { pattern: /\b(orange sapphire)\b/gi, name: 'Orange Sapphire' },
             { pattern: /\b(sapphire orange)\b/gi, name: 'Orange Sapphire' },
@@ -1724,18 +1724,27 @@ class NewPricingDatabase {
         
         // More aggressive deduplication for complex patterns
         // Remove any word that appears more than once in the card type
-        const words = cardType.split(' ');
-        const uniqueWords = [];
-        const seenWords = new Set();
-        
-        for (const word of words) {
-            if (!seenWords.has(word.toLowerCase())) {
-                uniqueWords.push(word);
-                seenWords.add(word.toLowerCase());
+        // But preserve special combinations like "Green and Yellow"
+        if (cardType.includes('Green and Yellow') || cardType.includes('Red and White') || 
+            cardType.includes('Blue and Red') || cardType.includes('Black and Red') ||
+            cardType.includes('Black and Green') || cardType.includes('Blue and Green') ||
+            cardType.includes('Red and Yellow') || cardType.includes('Orange and Blue') ||
+            cardType.includes('Purple and Gold') || cardType.includes('Pink and Purple')) {
+            // Don't deduplicate these special combinations
+        } else {
+            const words = cardType.split(' ');
+            const uniqueWords = [];
+            const seenWords = new Set();
+            
+            for (const word of words) {
+                if (!seenWords.has(word.toLowerCase())) {
+                    uniqueWords.push(word);
+                    seenWords.add(word.toLowerCase());
+                }
             }
+            
+            cardType = uniqueWords.join(' ');
         }
-        
-        cardType = uniqueWords.join(' ');
 
         // Post-processing to fix common issues
         if (cardType) {
