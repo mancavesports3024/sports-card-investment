@@ -30,7 +30,8 @@ class ExistingSummaryTitleRebuilder {
                 try {
                                     // Extract components from the original title
                 const year = card.year || this.extractYear(card.title);
-                const cardSet = card.card_set || this.db.extractCardSet(card.title);
+                // Always re-extract card set to apply latest fixes (like Skybox vs USA Basketball priority)
+                const cardSet = this.db.extractCardSet(card.title);
                 const playerName = card.player_name || this.extractPlayer(card.title);
                 // Always re-extract card type to apply latest fixes (like Skybox deduplication)
                 const cardType = this.db.extractCardType(card.title);
