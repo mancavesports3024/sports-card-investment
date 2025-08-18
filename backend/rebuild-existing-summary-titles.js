@@ -47,10 +47,11 @@ class ExistingSummaryTitleRebuilder {
                         newSummaryTitle += year;
                     }
 
-                    // Add card set
+                    // Add card set (cleaned of sport names)
                     if (cardSet) {
                         if (newSummaryTitle) newSummaryTitle += ' ';
-                        newSummaryTitle += cardSet;
+                        const cleanedCardSet = this.cleanSportNamesFromCardSet(cardSet);
+                        newSummaryTitle += cleanedCardSet;
                     }
 
                     // Add player name (but not if it's already in the card set)
@@ -160,6 +161,26 @@ class ExistingSummaryTitleRebuilder {
             console.error('❌ Error rebuilding summary titles:', error);
             throw error;
         }
+    }
+
+    // Clean sport names from card set (e.g., "Topps Football" -> "Topps")
+    cleanSportNamesFromCardSet(cardSet) {
+        if (!cardSet) return cardSet;
+        
+        const sportWords = [
+            'football', 'baseball', 'basketball', 'hockey', 'soccer', 'mma', 'wrestling', 'golf', 'racing'
+        ];
+        
+        let cleaned = cardSet;
+        sportWords.forEach(sport => {
+            const regex = new RegExp(`\\b${sport}\\b`, 'gi');
+            cleaned = cleaned.replace(regex, '');
+        });
+        
+        // Clean up extra spaces
+        cleaned = cleaned.replace(/\s+/g, ' ').trim();
+        
+        return cleaned;
     }
 
     extractYear(title) {
