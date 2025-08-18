@@ -353,7 +353,9 @@ class NewPricingDatabase {
             'sebastian walcott', 'daiverson gutierrez', 'luis baez', 'roderick arias', 'spencer jones',
             'kyle lewis', 'jackson merrill', 'cavan biggio', 'mickey moniak', 'dylan crews',
             'wyatt langford', 'jackson holliday', 'jeremy pena', 'yoniel curet', 'edouard julien',
-            'paul skenes', 'gg jackson'
+            'paul skenes', 'gg jackson', 'junior caminero', 'jackson chourio', 'jordan lawlar',
+            'wyatt flores', 'felnin celesten', 'luther burden', 'caitlin clark', 'sabrina ionescu',
+            'stephon castle', 'cooper flagg'
         ];
         
         // Sport terms
@@ -1987,6 +1989,21 @@ class NewPricingDatabase {
             'browns', 'ravens', 'texans', 'colts', 'jaguars', 'titans', 'broncos', 'chargers',
             'raiders', 'chiefs', '49ers', 'seahawks', 'cardinals', 'rams', 'saints', 'buccaneers',
             'falcons', 'panthers',
+            // College/school names
+            'duke', 'mavericks', 'blue devils', 'tar heels', 'wolfpack', 'demon deacons',
+            'seminoles', 'hurricanes', 'gators', 'bulldogs', 'tigers', 'wildcats', 'cardinals',
+            'eagles', 'hawks', 'panthers', 'cavaliers', 'hokies', 'orange', 'syracuse',
+            'connecticut', 'uconn', 'villanova', 'georgetown', 'providence', 'seton hall',
+            'creighton', 'xavier', 'butler', 'depaul', 'marquette', 'st johns', 'kansas',
+            'kentucky', 'north carolina', 'arizona', 'ucla', 'usc', 'stanford', 'california',
+            'oregon', 'oregon state', 'washington', 'washington state', 'colorado', 'utah',
+            'arizona state', 'ucla', 'usc', 'stanford', 'california', 'oregon', 'oregon state',
+            'washington', 'washington state', 'colorado', 'utah', 'arizona state',
+            // Soccer team names
+            'liverpool', 'manchester united', 'manchester city', 'arsenal', 'chelsea',
+            'tottenham', 'barcelona', 'real madrid', 'bayern munich', 'psg', 'juventus',
+            'ac milan', 'inter milan', 'ajax', 'porto', 'benfica', 'celtic', 'rangers',
+            'fc', 'united', 'city', 'athletic', 'sporting', 'dynamo', 'spartak', 'zenit',
             // Specific problematic terms from the cards
             'invicta bi15', 'invicta', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in', 'jesus made',
             'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch'
@@ -2079,7 +2096,22 @@ class NewPricingDatabase {
             // NHL Teams
             'red wings', 'blackhawks', 'bruins', 'rangers', 'maple leafs', 'canadiens', 'senators', 'sabres', 'lightning', 'capitals', 'flyers', 'devils', 'islanders', 'penguins', 'blue jackets', 'hurricanes', 'predators', 'blues', 'wild', 'avalanche', 'stars', 'oilers', 'flames', 'canucks', 'sharks', 'ducks', 'golden knights', 'coyotes', 'jets', 'kraken',
             // Additional terms that should be filtered
-            'mvp', 'hof', 'nfl', 'mlb', 'nba', 'nhl', 'debut', 'rookie', 'rc', 'yg', 'psa', 'gem', 'mint', 'ssp', 'holo', 'velocity', 'notoriety', 'card', 'rated', '1st', 'first', 'chrome', 'university', 'minnesota', 'oilers', 'kings', 'clear cut', 'premier', 'opc', 's d', 'nfl football', '3-d', 'cardinals', 'rams', 'vikings', 'browns', 'chiefs', 'giants', 'eagles', 'cowboys', 'falcons', 'panthers', 'steelers', 'patriots', 'saints', 'jets', 'bills', 'dolphins', 'texans', 'colts', 'jaguars', 'titans', 'broncos', 'raiders', 'chargers', 'seahawks', '49ers', 'cardinals', 'buccaneers', 'commanders', 'redskins', 'packers', 'bears', 'lions', 'bengals', 'ravens', 'browns', 'steelers', 'titans', 'jaguars', 'colts', 'texans', 'chiefs', 'raiders', 'broncos', 'chargers', 'cowboys', 'giants', 'eagles', 'redskins', 'commanders', 'bears', 'lions', 'packers', 'vikings', 'falcons', 'panthers', 'saints', 'buccaneers', 'rams', 'seahawks', '49ers', 'cardinals', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'cardinals', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls'
+            'mvp', 'hof', 'nfl', 'mlb', 'nba', 'nhl', 'debut', 'rookie', 'rc', 'yg', 'psa', 'gem', 'mint', 'ssp', 'holo', 'velocity', 'notoriety', 'card', 'rated', '1st', 'first', 'chrome', 'university', 'minnesota', 'oilers', 'kings', 'clear cut', 'premier', 'opc', 's d', 'nfl football', '3-d', 'cardinals', 'rams', 'vikings', 'browns', 'chiefs', 'giants', 'eagles', 'cowboys', 'falcons', 'panthers', 'steelers', 'patriots', 'saints', 'jets', 'bills', 'dolphins', 'texans', 'colts', 'jaguars', 'titans', 'broncos', 'raiders', 'chargers', 'seahawks', '49ers', 'cardinals', 'buccaneers', 'commanders', 'redskins', 'packers', 'bears', 'lions', 'bengals', 'ravens', 'browns', 'steelers', 'titans', 'jaguars', 'colts', 'texans', 'chiefs', 'raiders', 'broncos', 'chargers', 'cowboys', 'giants', 'eagles', 'redskins', 'commanders', 'bears', 'lions', 'packers', 'vikings', 'falcons', 'panthers', 'saints', 'buccaneers', 'rams', 'seahawks', '49ers', 'cardinals', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'cardinals', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls',
+            // College/school names
+            'duke', 'mavericks', 'blue devils', 'tar heels', 'wolfpack', 'demon deacons',
+            'seminoles', 'hurricanes', 'gators', 'bulldogs', 'tigers', 'wildcats', 'cardinals',
+            'eagles', 'hawks', 'panthers', 'cavaliers', 'hokies', 'orange', 'syracuse',
+            'connecticut', 'uconn', 'villanova', 'georgetown', 'providence', 'seton hall',
+            'creighton', 'xavier', 'butler', 'depaul', 'marquette', 'st johns', 'kansas',
+            'kentucky', 'north carolina', 'arizona', 'ucla', 'usc', 'stanford', 'california',
+            'oregon', 'oregon state', 'washington', 'washington state', 'colorado', 'utah',
+            'arizona state', 'ucla', 'usc', 'stanford', 'california', 'oregon', 'oregon state',
+            'washington', 'washington state', 'colorado', 'utah', 'arizona state',
+            // Soccer team names
+            'liverpool', 'manchester united', 'manchester city', 'arsenal', 'chelsea',
+            'tottenham', 'barcelona', 'real madrid', 'bayern munich', 'psg', 'juventus',
+            'ac milan', 'inter milan', 'ajax', 'porto', 'benfica', 'celtic', 'rangers',
+            'fc', 'united', 'city', 'athletic', 'sporting', 'dynamo', 'spartak', 'zenit'
         ];
         
         let cleanName = playerName;
