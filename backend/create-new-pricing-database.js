@@ -1749,23 +1749,30 @@ class NewPricingDatabase {
             }
         }
         
-        // Process matches by priority (highest first)
-        const sortedPriorities = Array.from(priorityMatches.keys()).sort((a, b) => b - a);
-        for (const priority of sortedPriorities) {
-            const matches = priorityMatches.get(priority);
-            // For highest priority matches, take the first one found
-            if (priority >= 2) {
-                foundTypes.push(matches[0]);
-                break; // Stop after finding highest priority match
-            } else {
-                // For lower priority, add all matches
-                foundTypes.push(...matches);
+                    // Process matches by priority (highest first)
+            const sortedPriorities = Array.from(priorityMatches.keys()).sort((a, b) => b - a);
+            for (const priority of sortedPriorities) {
+                const matches = priorityMatches.get(priority);
+                // For highest priority matches, take the first one found and stop
+                if (priority >= 2) {
+                    foundTypes.push(matches[0]);
+                    break; // Stop after finding highest priority match
+                } else {
+                    // For lower priority, add all matches
+                    foundTypes.push(...matches);
+                }
             }
-        }
 
         // Remove duplicates and format
         const uniqueTypes = [...new Set(foundTypes)];
         let cardType = uniqueTypes.join(' ').trim();
+        
+        // Debug logging for Tom Brady card
+        if (titleLower.includes('tom brady') && titleLower.includes('green/yellow')) {
+            console.log('DEBUG - Found types:', foundTypes);
+            console.log('DEBUG - Unique types:', uniqueTypes);
+            console.log('DEBUG - Initial cardType:', cardType);
+        }
         
         // Remove duplicate consecutive words (e.g., "Wave Red Wave Red" -> "Wave Red")
         cardType = cardType.replace(/\b(\w+)\s+\1\b/gi, '$1');
