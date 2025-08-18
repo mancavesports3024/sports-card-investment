@@ -1081,6 +1081,9 @@ class NewPricingDatabase {
         if (cleanTitle.includes('panini donruss optic')) {
             return 'Panini Donruss Optic';
         }
+        if (cleanTitle.includes('donruss optic')) {
+            return 'Donruss Optic';
+        }
         if (cleanTitle.includes('panini donruss')) {
             return 'Panini Donruss';
         }
@@ -1155,6 +1158,9 @@ class NewPricingDatabase {
         if (cleanTitle.includes('topps finest')) {
             return 'Topps Finest';
         }
+        if (cleanTitle.includes('finest')) {
+            return 'Finest';
+        }
         if (cleanTitle.includes('topps heritage')) {
             return 'Topps Heritage';
         }
@@ -1209,6 +1215,9 @@ class NewPricingDatabase {
         }
         if (cleanTitle.includes('bowman chrome')) {
             return 'Bowman Chrome';
+        }
+        if (cleanTitle.includes('bowman draft')) {
+            return 'Bowman Draft';
         }
         if (cleanTitle.includes('slania stamps') || cleanTitle.includes('slania')) {
             return 'Slania Stamps';
@@ -1410,6 +1419,8 @@ class NewPricingDatabase {
             
             // Special insert types
             { pattern: /\b(usa basketball)\b/gi, name: 'USA Basketball' },
+            { pattern: /\b(rookie kings)\b/gi, name: 'Rookie Kings' },
+            { pattern: /\b(rainmakers)\b/gi, name: 'Rainmakers' },
             { pattern: /\b(flashback)\b/gi, name: 'Flashback' },
             { pattern: /\b(emergent)\b/gi, name: 'Emergent' },
             { pattern: /\b(mania)\b/gi, name: 'Mania' },
@@ -1688,6 +1699,9 @@ class NewPricingDatabase {
         // Remove duplicates and format
         const uniqueTypes = [...new Set(foundTypes)];
         let cardType = uniqueTypes.join(' ').trim();
+        
+        // Remove duplicate consecutive words (e.g., "Wave Red Wave Red" -> "Wave Red")
+        cardType = cardType.replace(/\b(\w+)\s+\1\b/gi, '$1');
 
         // Post-processing to fix common issues
         if (cardType) {
