@@ -4242,3 +4242,17 @@ app.post('/api/admin/cleanup-player-names', async (req, res) => {
 	}
 });
 
+// POST /api/admin/fix-remaining-unknown-sports - Hard-fix final Unknowns by id
+app.post('/api/admin/fix-remaining-unknown-sports', async (req, res) => {
+	try {
+		const { RemainingUnknownSportsFixer } = require('./fix-remaining-unknown-sports.js');
+		const fixer = new RemainingUnknownSportsFixer();
+		await fixer.connect();
+		const result = await fixer.run();
+		await fixer.close();
+		res.json({ success: true, message: 'Remaining Unknown sports fixed', result, timestamp: new Date().toISOString() });
+	} catch (e) {
+		res.status(500).json({ success: false, error: e.message, timestamp: new Date().toISOString() });
+	}
+});
+
