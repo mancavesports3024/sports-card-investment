@@ -13,6 +13,44 @@ class SportsUpdaterWithESPNV2 {
         console.log('✅ Connected to database');
     }
 
+    // Clean player name for ESPN lookups by removing team/set noise, codes and marketing terms
+    cleanPlayerNameForEspn(playerName) {
+        if (!playerName) return null;
+        let cleaned = playerName;
+
+        // Use existing cleaner to remove team names and common noise
+        cleaned = this.db.filterTeamNamesFromPlayer(cleaned) || cleaned;
+
+        // Remove common non-name tokens
+        const noiseWords = [
+            'autograph', 'autographs', 'auto', 'signature', 'signatures', 'rookie', 'rc',
+            'debut', 'ssp', 'variation', 'psa', 'gem', 'mint', 'holo', 'prizm', 'prism',
+            'mosaic', 'optic', 'select', 'finest', 'chrome', 'sapphire', 'update', 'refractor',
+            'rated', 'retro', 'choice', 'wave', 'scope', 'pulsar'
+        ];
+        const noiseRegex = new RegExp(`\\b(${noiseWords.join('|')})\\b`, 'gi');
+        cleaned = cleaned.replace(noiseRegex, ' ');
+
+        // Remove set/code fragments like #RS-SGA, #CRA-AJ, CRA-AJ, RS SGA
+        cleaned = cleaned.replace(/#?[A-Z]{2,4}-[A-Z]{1,4}\b/g, ' ');
+        cleaned = cleaned.replace(/#?[A-Z]{2,4}\s+[A-Z]{2,4}\b/g, ' ');
+
+        // Remove standalone short ALL-CAPS tokens (2-4 letters) except valid suffixes
+        cleaned = cleaned.replace(/\b(?!JR|SR|II|III|IV)[A-Z]{2,4}\b/g, ' ');
+
+        // Remove stray punctuation
+        cleaned = cleaned.replace(/[.,;:()\[\]{}]/g, ' ');
+
+        // Collapse spaces
+        cleaned = cleaned.replace(/\s+/g, ' ').trim();
+
+        // Capitalize nicely
+        cleaned = this.db.capitalizePlayerName(cleaned) || cleaned;
+
+        if (!cleaned || cleaned.length < 2) return null;
+        return cleaned;
+    }
+
     async updateSportsForExistingCards() {
         console.log('🔄 Starting ESPN v2 sport detection update for existing cards...\n');
         
@@ -72,9 +110,11 @@ class SportsUpdaterWithESPNV2 {
             // Use the already extracted player_name for sport detection if available
             let newSport;
             if (card.player_name) {
-                // Use ESPN v2 API directly with the player name
-                newSport = await this.db.espnDetector.detectSportFromPlayer(card.player_name);
-                console.log(`   Using ESPN v2 API with player name: ${card.player_name}`);
+                // Clean player name before ESPN lookup
+                const cleanedPlayer = this.cleanPlayerNameForEspn(card.player_name);
+                const queryName = cleanedPlayer || card.player_name;
+                newSport = await this.db.espnDetector.detectSportFromPlayer(queryName);
+                console.log(`   Using ESPN v2 API with player name: ${queryName}${cleanedPlayer ? ` (from: ${card.player_name})` : ''}`);
             } else {
                 // Fallback to comprehensive detection if no player name
                 newSport = await this.db.detectSportFromComprehensive(card.summary_title);
