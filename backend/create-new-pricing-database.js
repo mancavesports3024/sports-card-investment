@@ -1727,7 +1727,9 @@ class NewPricingDatabase {
                     titleLower.includes('topps chrome') || 
                     titleLower.includes('chrome draft') ||
                     titleLower.includes('chrome sapphire') ||
-                    titleLower.includes('chrome update')) {
+                    titleLower.includes('chrome update') ||
+                    titleLower.includes('chrome u 1st') ||
+                    titleLower.includes('chrome rookie autographs')) {
                     return 'Base'; // Chrome is already in the card set, don't duplicate
                 }
             }
