@@ -1660,7 +1660,17 @@ class NewPricingDatabase {
             { pattern: /\b(refractor|refractors)\b/gi, name: 'Refractor' },
             { pattern: /\b(prizm|prizmatic)\b/gi, name: 'Prizm' },
             { pattern: /\b(holo|holographic)\b/gi, name: 'Holo' },
-            { pattern: /\b(chrome)\b/gi, name: 'Chrome' },
+            // Chrome pattern - but exclude when it's part of a card set
+            { pattern: /\b(chrome)\b/gi, name: 'Chrome', excludeIf: (title) => {
+                const titleLower = title.toLowerCase();
+                return titleLower.includes('bowman chrome') || 
+                       titleLower.includes('topps chrome') || 
+                       titleLower.includes('chrome draft') ||
+                       titleLower.includes('chrome sapphire') ||
+                       titleLower.includes('chrome update') ||
+                       titleLower.includes('chrome u 1st') ||
+                       titleLower.includes('chrome rookie autographs');
+            }},
             { pattern: /\b(x-fractor|x-fractors)\b/gi, name: 'X-Fractor' },
             { pattern: /\b(cracked ice)\b/gi, name: 'Cracked Ice' },
             { pattern: /\b(stained glass)\b/gi, name: 'Stained Glass' },
@@ -1671,9 +1681,13 @@ class NewPricingDatabase {
         
         // Find all matches and build card type
         const foundTypes = [];
-        for (const { pattern, name } of cardTypePatterns) {
+        for (const { pattern, name, excludeIf } of cardTypePatterns) {
             const matches = titleLower.match(pattern);
             if (matches) {
+                // Check if this pattern should be excluded
+                if (excludeIf && excludeIf(title)) {
+                    continue; // Skip this pattern
+                }
                 foundTypes.push(name);
             }
         }
