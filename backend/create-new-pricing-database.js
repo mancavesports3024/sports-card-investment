@@ -1708,6 +1708,21 @@ class NewPricingDatabase {
         
         // Remove duplicate consecutive three-word phrases (e.g., "Silver Prizm Silver Prizm" -> "Silver Prizm")
         cardType = cardType.replace(/\b(\w+\s+\w+\s+\w+)\s+\1\b/gi, '$1');
+        
+        // More aggressive deduplication for complex patterns
+        // Remove any word that appears more than once in the card type
+        const words = cardType.split(' ');
+        const uniqueWords = [];
+        const seenWords = new Set();
+        
+        for (const word of words) {
+            if (!seenWords.has(word.toLowerCase())) {
+                uniqueWords.push(word);
+                seenWords.add(word.toLowerCase());
+            }
+        }
+        
+        cardType = uniqueWords.join(' ');
 
         // Post-processing to fix common issues
         if (cardType) {
