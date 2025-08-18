@@ -1721,9 +1721,13 @@ class NewPricingDatabase {
             
             // Special handling for Chrome - only keep as card type if it's NOT part of the card set
             if (cardType === 'Chrome') {
-                // Check if the card set already contains "Chrome"
-                const cardSet = this.extractCardSet(title);
-                if (cardSet && cardSet.toLowerCase().includes('chrome')) {
+                // Check if the title already contains "chrome" in a card set context
+                const titleLower = title.toLowerCase();
+                if (titleLower.includes('bowman chrome') || 
+                    titleLower.includes('topps chrome') || 
+                    titleLower.includes('chrome draft') ||
+                    titleLower.includes('chrome sapphire') ||
+                    titleLower.includes('chrome update')) {
                     return 'Base'; // Chrome is already in the card set, don't duplicate
                 }
             }
