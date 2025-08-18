@@ -1660,17 +1660,8 @@ class NewPricingDatabase {
             { pattern: /\b(refractor|refractors)\b/gi, name: 'Refractor' },
             { pattern: /\b(prizm|prizmatic)\b/gi, name: 'Prizm' },
             { pattern: /\b(holo|holographic)\b/gi, name: 'Holo' },
-            // Chrome pattern - but exclude when it's part of a card set
-            { pattern: /\b(chrome)\b/gi, name: 'Chrome', excludeIf: (title) => {
-                const titleLower = title.toLowerCase();
-                return titleLower.includes('bowman chrome') || 
-                       titleLower.includes('topps chrome') || 
-                       titleLower.includes('chrome draft') ||
-                       titleLower.includes('chrome sapphire') ||
-                       titleLower.includes('chrome update') ||
-                       titleLower.includes('chrome u 1st') ||
-                       titleLower.includes('chrome rookie autographs');
-            }},
+            // Chrome pattern - temporarily disabled to prevent duplication
+            // { pattern: /\b(chrome)\b/gi, name: 'Chrome' },
             { pattern: /\b(x-fractor|x-fractors)\b/gi, name: 'X-Fractor' },
             { pattern: /\b(cracked ice)\b/gi, name: 'Cracked Ice' },
             { pattern: /\b(stained glass)\b/gi, name: 'Stained Glass' },
