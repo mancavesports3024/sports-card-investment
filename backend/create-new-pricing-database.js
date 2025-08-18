@@ -1228,11 +1228,11 @@ class NewPricingDatabase {
         if (cleanTitle.includes('fleer')) {
             return 'Fleer';
         }
-        if (cleanTitle.includes('usa basketball')) {
-            return 'USA Basketball';
-        }
         if (cleanTitle.includes('skybox')) {
             return 'Skybox';
+        }
+        if (cleanTitle.includes('usa basketball')) {
+            return 'USA Basketball';
         }
         if (cleanTitle.includes('flawless')) {
             return 'Flawless';
@@ -1409,6 +1409,7 @@ class NewPricingDatabase {
             { pattern: /\b(level)\b/gi, name: 'Level' },
             
             // Special insert types
+            { pattern: /\b(usa basketball)\b/gi, name: 'USA Basketball' },
             { pattern: /\b(flashback)\b/gi, name: 'Flashback' },
             { pattern: /\b(emergent)\b/gi, name: 'Emergent' },
             { pattern: /\b(mania)\b/gi, name: 'Mania' },
