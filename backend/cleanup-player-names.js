@@ -46,7 +46,7 @@ class PlayerNameCleanup {
 		cleaned = cleaned.replace(/\\b(?!JR|SR|II|III|IV)[A-Z]{2,4}\\b/g, ' ');
 
 		// Normalize diacritics
-		try { cleaned = cleaned.normalize('NFD').replace(/\\p{Diacritic}+/gu, ''); } catch (_) {}
+		try { cleaned = cleaned.normalize('NFD').replace(/[\u0300-\u036f]+/g, ''); } catch (_) {}
 
 		// Normalize known multi-word names and apostrophes/hyphens
 		const replacements = [
