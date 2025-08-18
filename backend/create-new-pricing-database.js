@@ -1728,8 +1728,12 @@ class NewPricingDatabase {
             if (cardType === 'Chrome') {
                 // Check if the title already contains "chrome" in a card set context
                 const titleLower = title.toLowerCase();
-                if (titleLower.includes('bowman chrome') || 
-                    titleLower.includes('topps chrome') || 
+                const cardSetDetected = this.extractCardSet(title);
+                if ((cardSetDetected && cardSetDetected.toLowerCase().includes('chrome')) ||
+                    titleLower.includes('bowman chrome') ||
+                    titleLower.includes('topps chrome') ||
+                    titleLower.includes('bowman u chrome') ||
+                    titleLower.includes('bowman university chrome') ||
                     titleLower.includes('chrome draft') ||
                     titleLower.includes('chrome sapphire') ||
                     titleLower.includes('chrome update') ||
@@ -1739,12 +1743,16 @@ class NewPricingDatabase {
                 }
             }
             
-            // Additional check: If card type contains Chrome and title contains Chrome card set patterns, remove Chrome from card type
+            // Additional check: If card type contains Chrome and title/card set contains Chrome card set patterns, remove Chrome from card type
             if (cardType && cardType.toLowerCase().includes('chrome')) {
                 const titleLower = title.toLowerCase();
-                // Check if the title contains Chrome in a card set context
-                if (titleLower.includes('bowman chrome') || 
-                    titleLower.includes('topps chrome') || 
+                const cardSetDetected = this.extractCardSet(title);
+                // Check if the title or extracted card set contains Chrome in a card set context
+                if ((cardSetDetected && cardSetDetected.toLowerCase().includes('chrome')) ||
+                    titleLower.includes('bowman chrome') ||
+                    titleLower.includes('topps chrome') ||
+                    titleLower.includes('bowman u chrome') ||
+                    titleLower.includes('bowman university chrome') ||
                     titleLower.includes('chrome draft') ||
                     titleLower.includes('chrome sapphire') ||
                     titleLower.includes('chrome update') ||
