@@ -5,27 +5,15 @@
   },
   "deploy": {
     "startCommand": "node backend/index.js",
-    "healthcheckPath": "/",
+    "healthcheckPath": "/api/health",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   },
   "cron": {
-    "maintenance-job": {
-      "schedule": "0 2 * * *",
-      "command": "node backend/run-railway-maintenance-direct.js"
-    },
-    "health-check": {
+    "fast-batch-pull": {
       "schedule": "0 */6 * * *",
-      "command": "node backend/health-check-only.js"
-    },
-    "price-updates": {
-      "schedule": "0 4 * * *",
-      "command": "node backend/price-updates-only.js"
-    },
-    "safe-summary-fix": {
-      "schedule": "0 */6 * * *",
-      "command": "node backend/safe-summary-title-fixer.js"
+      "command": "curl -X POST https://web-production-9efa.up.railway.app/api/admin/run-fast-batch-pull"
     }
   }
 }
