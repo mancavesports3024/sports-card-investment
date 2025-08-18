@@ -182,75 +182,10 @@ class CleanSportDetector {
     }
 
     /**
-     * Extract player name using comprehensive database
+     * Extract player name using main database method
      */
     async extractPlayerName(title, comprehensiveDb) {
-        // Remove basic card terms
-        let playerName = title
-            .replace(/\d{4}/g, '') // Remove years
-            .replace(/psa|bgs|beckett|gem|mint|near mint|excellent|very good|good|fair|poor/gi, '')
-            .replace(/card|cards/gi, '')
-            .replace(/[#\d\/]+/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-        
-        // Split into words
-        const words = playerName.split(' ').filter(word => word.length > 0);
-        const filteredWords = [];
-        
-        console.log(`🔍 Processing words from title: "${title}"`);
-        console.log(`🔍 Words to process: [${words.join(', ')}]`);
-        
-        for (const word of words) {
-            if (word.length < 2) continue;
-            
-            // Check comprehensive database
-            if (comprehensiveDb) {
-                try {
-                    const query = `
-                        SELECT COUNT(*) as count 
-                        FROM sets 
-                        WHERE LOWER(name) LIKE ? 
-                        OR LOWER(displayName) LIKE ? 
-                        OR LOWER(searchText) LIKE ?
-                        OR LOWER(setName) LIKE ?
-                    `;
-                    
-                    const result = await this.runComprehensiveQuery(comprehensiveDb, query, [
-                        `%${word.toLowerCase()}%`,
-                        `%${word.toLowerCase()}%`,
-                        `%${word.toLowerCase()}%`,
-                        `%${word.toLowerCase()}%`
-                    ]);
-                    
-                    if (result && result.count > 0) {
-                        console.log(`🔍 Filtered out card term: "${word}" (found ${result.count} matches in database)`);
-                        continue;
-                    }
-                } catch (error) {
-                    console.log(`⚠️ Database query failed for word "${word}": ${error.message}`);
-                }
-            }
-            
-            // Check team names
-            if (TEAM_NAMES_FOR_CLEANING.includes(word.toLowerCase())) {
-                continue;
-            }
-            
-            filteredWords.push(word);
-        }
-        
-        // Look for player name patterns
-        if (filteredWords.length >= 2 && filteredWords.length <= 3) {
-            const potentialName = filteredWords.slice(0, Math.min(3, filteredWords.length)).join(' ');
-            if (potentialName.length >= 3 && potentialName.length <= 30) {
-                console.log(`✅ Extracted player name: "${potentialName}" from filtered words: [${filteredWords.join(', ')}]`);
-                return potentialName;
-            }
-        }
-        
-        console.log(`❌ No valid player name found. Filtered words: [${filteredWords.join(', ')}]`);
-        return null;
+        return this.db.extractPlayerName(title);
     }
 
     /**

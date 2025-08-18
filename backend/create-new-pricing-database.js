@@ -143,7 +143,7 @@ class NewPricingDatabase {
         // First try ESPN v2 API for player-based sport detection
         try {
             // Use the title generator's player extraction for better results
-            const playerName = this.titleGenerator.extractPlayer(title);
+            const playerName = this.extractPlayerName(title);
             if (playerName) {
                 const espnSport = await this.espnDetector.detectSportFromPlayer(playerName);
                 if (espnSport && espnSport !== 'Unknown') {
@@ -676,7 +676,7 @@ class NewPricingDatabase {
             // If sport detection fails, try using the title generator's player extraction
             if (!sport || sport === 'Unknown') {
                 try {
-                    const playerName = this.titleGenerator.extractPlayer(cardData.title);
+                    const playerName = this.extractPlayerName(cardData.title);
                     if (playerName) {
                         console.log(`🎯 Using title generator player extraction for sport detection: "${playerName}"`);
                         // Try ESPN API with the extracted player name

@@ -21,33 +21,9 @@ class SummaryTitleFixer {
         await this.db.close();
     }
 
-    // Extract clean player name from title
+    // Extract clean player name from title using main database method
     extractPlayerName(title) {
-        if (!title) return '';
-        
-        // Remove common prefixes and suffixes
-        let cleanTitle = title
-            .replace(/^\d{4}[-]?\d{0,2}\s*/, '') // Remove year prefix
-            .replace(/PSA\s*10.*$/i, '') // Remove PSA 10 and everything after
-            .replace(/GEM\s*MINT.*$/i, '') // Remove GEM MINT and everything after
-            .replace(/RC.*$/i, '') // Remove RC and everything after
-            .replace(/ROOKIE.*$/i, '') // Remove ROOKIE and everything after
-            .replace(/AUTO.*$/i, '') // Remove AUTO and everything after
-            .trim();
-
-        // Split by spaces and take first 2-3 words as player name
-        const words = cleanTitle.split(/\s+/);
-        
-        // Look for player name patterns
-        for (let i = 0; i < Math.min(4, words.length); i++) {
-            const potentialName = words.slice(0, i + 1).join(' ');
-            if (potentialName.length >= 3 && !this.brands.some(brand => 
-                potentialName.toLowerCase().includes(brand.toLowerCase()))) {
-                return potentialName.trim();
-            }
-        }
-
-        return words.slice(0, 2).join(' ').trim();
+        return this.db.extractPlayerName(title);
     }
 
     // Extract brand from title
