@@ -19,7 +19,7 @@ class SportsUpdaterWithESPNV2 {
         try {
             // Get all cards from the database
             const cards = await this.db.allQuery(`
-                SELECT id, title, summary_title, sport 
+                SELECT id, title, summary_title, sport, player_name 
                 FROM cards 
                 ORDER BY created_at DESC
             `);
@@ -66,10 +66,20 @@ class SportsUpdaterWithESPNV2 {
         try {
             console.log(`\n🎯 Processing: ${card.title}`);
             console.log(`   Summary title: ${card.summary_title}`);
+            console.log(`   Player name: ${card.player_name}`);
             console.log(`   Current sport: ${card.sport}`);
             
-            // Use the new ESPN v2 sport detection with summary_title for better player extraction
-            const newSport = await this.db.detectSportFromComprehensive(card.summary_title);
+            // Use the already extracted player_name for sport detection if available
+            let newSport;
+            if (card.player_name) {
+                // Use ESPN v2 API directly with the player name
+                newSport = await this.db.espnDetector.detectSportFromPlayer(card.player_name);
+                console.log(`   Using ESPN v2 API with player name: ${card.player_name}`);
+            } else {
+                // Fallback to comprehensive detection if no player name
+                newSport = await this.db.detectSportFromComprehensive(card.summary_title);
+                console.log(`   Fallback to comprehensive detection (no player name)`);
+            }
             
             console.log(`   New sport: ${newSport}`);
             
