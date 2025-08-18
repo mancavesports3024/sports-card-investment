@@ -78,10 +78,21 @@ class FastBatchItemsPuller {
         ];
     }
 
-    // Check if card already exists (optimized)
+    // Normalize title for duplicate checking
+    normalizeTitle(title) {
+        return title.toLowerCase()
+            .replace(/\s+/g, ' ') // Normalize whitespace
+            .replace(/[^\w\s#-]/g, '') // Remove special characters except # and -
+            .trim();
+    }
+
+    // Check if card already exists (improved duplicate detection)
     async cardExists(title, price, ebayItemId) {
+        const normalizedTitle = this.normalizeTitle(title);
+        
+        // First check exact title match
         let query = `
-            SELECT id FROM cards 
+            SELECT id, title FROM cards 
             WHERE title = ?
         `;
         
@@ -95,13 +106,38 @@ class FastBatchItemsPuller {
         
         query += ` LIMIT 1`;
         
-        const row = await this.db.getQuery(query, params);
-        return !!row;
+        const exactMatch = await this.db.getQuery(query, params);
+        if (exactMatch) {
+            return true;
+        }
+        
+        // If no exact match, check for normalized title matches
+        const allCards = await this.db.allQuery(`SELECT id, title FROM cards`);
+        
+        for (const card of allCards) {
+            const cardNormalized = this.normalizeTitle(card.title);
+            if (cardNormalized === normalizedTitle) {
+                console.log(`⚠️ Found duplicate with normalized title match:`);
+                console.log(`   Existing: "${card.title}"`);
+                console.log(`   New: "${title}"`);
+                console.log(`   Normalized: "${normalizedTitle}"`);
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     // Add new card to database
     async addCard(cardData) {
         try {
+            // Double-check for duplicates before adding
+            const exists = await this.cardExists(cardData.title, cardData.price?.value || cardData.price, cardData.ebayItemId);
+            if (exists) {
+                console.log(`⚠️ Card already exists in database, skipping: "${cardData.title}"`);
+                return null;
+            }
+            
             const cardId = await this.db.addCard(cardData);
             return cardId;
         } catch (error) {
@@ -112,10 +148,12 @@ class FastBatchItemsPuller {
                 console.log(`   eBay Item ID: ${cardData.ebayItemId || 'N/A'}`);
                 console.log(`   Price: ${cardData.price?.value || cardData.price || 'N/A'}`);
                 
-                // Check if it's likely a duplicate
+                // Final check for duplicates
                 const exists = await this.cardExists(cardData.title, cardData.price?.value || cardData.price, cardData.ebayItemId);
                 if (exists) {
                     console.log(`   ⚠️ Card already exists in database, skipping`);
+                } else {
+                    console.log(`   ❌ Unexpected constraint error - card should not exist`);
                 }
             } else {
                 console.log(`❌ Error adding card: "${cardData.title}" - ${error.message}`);
