@@ -1713,10 +1713,19 @@ class NewPricingDatabase {
             
             // Remove redundant card types that are already in the card set name
             if (cardType === 'Finest' || cardType === 'Concourse' || cardType === 'Update' || 
-                cardType === 'Chrome' || cardType === 'Prizm' || cardType === 'Select' ||
+                cardType === 'Prizm' || cardType === 'Select' ||
                 cardType === 'Heritage' || cardType === 'Diamond Kings' || cardType === 'Zenith' ||
                 cardType === 'Bowman' || cardType === 'Topps') {
                 return 'Base';
+            }
+            
+            // Special handling for Chrome - only keep as card type if it's NOT part of the card set
+            if (cardType === 'Chrome') {
+                // Check if the card set already contains "Chrome"
+                const cardSet = this.extractCardSet(title);
+                if (cardSet && cardSet.toLowerCase().includes('chrome')) {
+                    return 'Base'; // Chrome is already in the card set, don't duplicate
+                }
             }
             
             // Remove generic terms that shouldn't be card types
