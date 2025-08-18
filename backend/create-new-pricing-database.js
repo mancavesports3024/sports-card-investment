@@ -1986,7 +1986,10 @@ class NewPricingDatabase {
             'commanders', 'patriots', 'steelers', 'bills', 'dolphins', 'jets', 'bengals',
             'browns', 'ravens', 'texans', 'colts', 'jaguars', 'titans', 'broncos', 'chargers',
             'raiders', 'chiefs', '49ers', 'seahawks', 'cardinals', 'rams', 'saints', 'buccaneers',
-            'falcons', 'panthers'
+            'falcons', 'panthers',
+            // Specific problematic terms from the cards
+            'invicta bi15', 'invicta', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in', 'jesus made',
+            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch'
         ];
         cardTerms.forEach(term => {
             const regex = new RegExp(`\\b${term}\\b`, 'gi');
