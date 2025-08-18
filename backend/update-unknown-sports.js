@@ -163,6 +163,14 @@ class UnknownSportsUpdater {
                 const queryName = cleanedPlayer || card.player_name;
                 newSport = await this.db.espnDetector.detectSportFromPlayer(queryName);
                 console.log(`   Using ESPN v2 API with player name: ${queryName}${cleanedPlayer ? ` (from: ${card.player_name})` : ''}`);
+                // Fallback to comprehensive detection if ESPN returned Unknown
+                if (!newSport || newSport === 'Unknown') {
+                    const fallback = await this.db.detectSportFromComprehensive(card.title);
+                    if (fallback && fallback !== 'Unknown') {
+                        console.log(`   Fallback via comprehensive detection resolved sport: ${fallback}`);
+                        newSport = fallback;
+                    }
+                }
             } else {
                 // Fallback to comprehensive detection if no player name
                 newSport = await this.db.detectSportFromComprehensive(card.title);
