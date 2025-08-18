@@ -1749,19 +1749,23 @@ class NewPricingDatabase {
             }
         }
         
-                    // Process matches by priority (highest first)
-            const sortedPriorities = Array.from(priorityMatches.keys()).sort((a, b) => b - a);
-            for (const priority of sortedPriorities) {
-                const matches = priorityMatches.get(priority);
-                // For highest priority matches, take the first one found and stop
-                if (priority >= 2) {
-                    foundTypes.push(matches[0]);
-                    break; // Stop after finding highest priority match
-                } else {
-                    // For lower priority, add all matches
-                    foundTypes.push(...matches);
-                }
+                            // Process matches by priority (highest first)
+        const sortedPriorities = Array.from(priorityMatches.keys()).sort((a, b) => b - a);
+        let highestPriorityFound = false;
+        
+        for (const priority of sortedPriorities) {
+            const matches = priorityMatches.get(priority);
+            
+            // If we found a highest priority match, only use that and ignore all lower priorities
+            if (priority >= 2 && matches.length > 0) {
+                foundTypes = [matches[0]]; // Replace all previous matches
+                highestPriorityFound = true;
+                break; // Stop after finding highest priority match
+            } else if (!highestPriorityFound) {
+                // Only add lower priority matches if no highest priority was found
+                foundTypes.push(...matches);
             }
+        }
 
         // Remove duplicates and format
         const uniqueTypes = [...new Set(foundTypes)];
