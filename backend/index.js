@@ -4178,3 +4178,41 @@ app.post('/api/admin/generate-improved-summary-titles', async (req, res) => {
     }
 });
 
+// POST /api/admin/update-unknown-sports - Update only cards with Unknown sport
+app.post('/api/admin/update-unknown-sports', async (req, res) => {
+    try {
+        console.log('🔄 Updating unknown sports...');
+        
+        const { UnknownSportsUpdater } = require('./update-unknown-sports.js');
+        const updater = new UnknownSportsUpdater();
+        
+        await updater.connect();
+        console.log('✅ Connected to Railway database');
+        
+        await updater.updateUnknownSports();
+        
+        await updater.close();
+        
+        res.json({
+            success: true,
+            message: 'Unknown sports update completed successfully',
+            results: {
+                updated: updater.updatedCount,
+                unchanged: updater.unchangedCount,
+                errors: updater.errorCount,
+                totalProcessed: updater.updatedCount + updater.unchangedCount + updater.errorCount
+            },
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error updating unknown sports:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating unknown sports',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
