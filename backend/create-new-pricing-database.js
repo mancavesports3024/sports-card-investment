@@ -1561,7 +1561,34 @@ class NewPricingDatabase {
             { pattern: /\b(blue red)\b/gi, name: 'Blue & Red' },
             { pattern: /\b(blue & red)\b/gi, name: 'Blue & Red' },
             
-            // Color combinations with slashes (e.g., "Green/Yellow" -> "Green and Yellow") - HIGH PRIORITY
+            // Panini Select specific parallels - HIGHEST PRIORITY
+            { pattern: /\b(black and green die-cut prizm)\b/gi, name: 'Black and Green Die-Cut Prizm', priority: 2 },
+            { pattern: /\b(black and red die-cut prizm)\b/gi, name: 'Black and Red Die-Cut Prizm', priority: 2 },
+            { pattern: /\b(green and yellow die-cut prizm)\b/gi, name: 'Green and Yellow Die-Cut Prizm', priority: 2 },
+            { pattern: /\b(red and blue die-cut prizm)\b/gi, name: 'Red and Blue Die-Cut Prizm', priority: 2 },
+            { pattern: /\b(blue and orange die-cut prizm)\b/gi, name: 'Blue and Orange Die-Cut Prizm', priority: 2 },
+            { pattern: /\b(snakeskin green and black prizm)\b/gi, name: 'Snakeskin Green and Black Prizm', priority: 2 },
+            { pattern: /\b(neon orange pulsar prizm)\b/gi, name: 'Neon Orange Pulsar Prizm', priority: 2 },
+            { pattern: /\b(disco red prizm)\b/gi, name: 'Disco Red Prizm', priority: 2 },
+            { pattern: /\b(disco blue prizm)\b/gi, name: 'Disco Blue Prizm', priority: 2 },
+            { pattern: /\b(disco gold prizm)\b/gi, name: 'Disco Gold Prizm', priority: 2 },
+            { pattern: /\b(disco green prizm)\b/gi, name: 'Disco Green Prizm', priority: 2 },
+            { pattern: /\b(disco black prizm)\b/gi, name: 'Disco Black Prizm', priority: 2 },
+            { pattern: /\b(tie-dye prizm)\b/gi, name: 'Tie-Dye Prizm', priority: 2 },
+            { pattern: /\b(tie-dye die-cut prizm)\b/gi, name: 'Tie-Dye Die-Cut Prizm', priority: 2 },
+            { pattern: /\b(neon green die-cut prizm)\b/gi, name: 'Neon Green Die-Cut Prizm', priority: 2 },
+            { pattern: /\b(tri-color prizm)\b/gi, name: 'Tri-Color Prizm', priority: 2 },
+            { pattern: /\b(orange die-cut prizm)\b/gi, name: 'Orange Die-Cut Prizm', priority: 2 },
+            { pattern: /\b(copper prizm die-cut)\b/gi, name: 'Copper Prizm Die-Cut', priority: 2 },
+            { pattern: /\b(white die-cut prizm)\b/gi, name: 'White Die-Cut Prizm', priority: 2 },
+            { pattern: /\b(dragon scale prizm)\b/gi, name: 'Dragon Scale Prizm', priority: 2 },
+            { pattern: /\b(gold die-cut prizm)\b/gi, name: 'Gold Die-Cut Prizm', priority: 2 },
+            { pattern: /\b(green die-cut prizm)\b/gi, name: 'Green Die-Cut Prizm', priority: 2 },
+            { pattern: /\b(black die-cut prizm)\b/gi, name: 'Black Die-Cut Prizm', priority: 2 },
+            { pattern: /\b(silver die-cut prizm)\b/gi, name: 'Silver Die-Cut Prizm', priority: 2 },
+            { pattern: /\b(zebra die-cut prizm)\b/gi, name: 'Zebra Die-Cut Prizm', priority: 2 },
+            
+            // Color combinations with slashes (e.g., "Green/Yellow" -> "Green and Yellow") - MEDIUM PRIORITY
             { pattern: /\b(green\/yellow|yellow\/green)\b/gi, name: 'Green and Yellow', priority: 1 },
             { pattern: /\b(red\/white|white\/red)\b/gi, name: 'Red and White', priority: 1 },
             { pattern: /\b(blue\/red|red\/blue)\b/gi, name: 'Blue and Red', priority: 1 },
@@ -1696,16 +1723,37 @@ class NewPricingDatabase {
             { pattern: /\b(base)\b/gi, name: 'Base' }
         ];
         
-        // Find all matches and build card type
+        // Find all matches and build card type with priority handling
         const foundTypes = [];
-        for (const { pattern, name, excludeIf } of cardTypePatterns) {
+        const priorityMatches = new Map(); // Map to store matches by priority
+        
+        for (const { pattern, name, excludeIf, priority = 0 } of cardTypePatterns) {
             const matches = titleLower.match(pattern);
             if (matches) {
                 // Check if this pattern should be excluded
                 if (excludeIf && excludeIf(title)) {
                     continue; // Skip this pattern
                 }
-                foundTypes.push(name);
+                
+                // Store matches by priority
+                if (!priorityMatches.has(priority)) {
+                    priorityMatches.set(priority, []);
+                }
+                priorityMatches.get(priority).push(name);
+            }
+        }
+        
+        // Process matches by priority (highest first)
+        const sortedPriorities = Array.from(priorityMatches.keys()).sort((a, b) => b - a);
+        for (const priority of sortedPriorities) {
+            const matches = priorityMatches.get(priority);
+            // For highest priority matches, take the first one found
+            if (priority >= 2) {
+                foundTypes.push(matches[0]);
+                break; // Stop after finding highest priority match
+            } else {
+                // For lower priority, add all matches
+                foundTypes.push(...matches);
             }
         }
 
