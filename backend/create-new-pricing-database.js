@@ -536,7 +536,8 @@ class NewPricingDatabase {
             // Extract player name using the improved logic
             let playerName = null;
             try {
-                playerName = this.titleGenerator.extractPlayer(cardData.title);
+                // Use the improved player name extraction method
+                playerName = this.extractPlayerName(cardData.title);
                 console.log(`🎯 Extracted player name: "${playerName}" from "${cardData.title}"`);
             } catch (playerError) {
                 console.warn(`⚠️ Player name extraction failed: ${playerError.message}`);
@@ -1923,6 +1924,92 @@ class NewPricingDatabase {
 
         // Return "Base" for cards without special designation instead of null
         return cardType || 'Base';
+    }
+
+    // Extract player name from title (improved method)
+    extractPlayerName(title) {
+        const titleLower = title.toLowerCase();
+        
+        // Remove common card-related words that aren't player names
+        const noiseWords = [
+            'psa', '10', 'gem', 'mint', 'rookie', 'rc', 'auto', 'autograph', 'refractor', 'prizm',
+            'chrome', 'bowman', 'topps', 'panini', 'donruss', 'optic', 'mosaic', 'select', 'finest',
+            'baseball', 'football', 'basketball', 'hockey', 'soccer', 'golf', 'racing', 'pokemon',
+            'rookie card', 'first', '1st', 'prospect', 'university', 'draft', 'stars', 'cosmic',
+            'invicta', 'all-etch', 'die-cut', 'wave', 'velocity', 'scope', 'hyper', 'optic',
+            'sp', 'ssp', 'short print', 'super short print', 'parallel', 'insert', 'base',
+            'gold', 'silver', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink',
+            'bronze', 'white', 'teal', 'neon', 'camo', 'tie-dye', 'disco', 'dragon scale',
+            'snakeskin', 'pulsar', 'logo', 'variation', 'clear cut', 'real one', 'downtown',
+            'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric',
+            'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'splash', 'rising', 'best',
+            'independence day', 'father\'s day', 'mother\'s day', 'memorial day',
+            'vikings', 'hof', 'brewers', 'bears', 'pirates', 'cardinals', 'dodgers', 'yankees',
+            'red sox', 'cubs', 'white sox', 'braves', 'mets', 'phillies', 'nationals', 'marlins',
+            'rays', 'blue jays', 'orioles', 'indians', 'guardians', 'tigers', 'royals', 'twins',
+            'astros', 'rangers', 'athletics', 'mariners', 'angels', 'giants', 'padres', 'rockies',
+            'diamondbacks', 'reds', 'pirates', 'cardinals', 'brewers', 'cubs', 'white sox',
+            'packers', 'bears', 'lions', 'vikings', 'cowboys', 'eagles', 'giants', 'redskins',
+            'commanders', 'patriots', 'steelers', 'bills', 'dolphins', 'jets', 'bengals',
+            'browns', 'ravens', 'texans', 'colts', 'jaguars', 'titans', 'broncos', 'chargers',
+            'raiders', 'chiefs', '49ers', 'seahawks', 'cardinals', 'rams', 'saints', 'buccaneers',
+            'falcons', 'panthers'
+        ];
+        
+        // Remove noise words and clean up the title
+        let cleanTitle = titleLower;
+        for (const word of noiseWords) {
+            const regex = new RegExp(`\\b${word}\\b`, 'gi');
+            cleanTitle = cleanTitle.replace(regex, ' ');
+        }
+        
+        // Remove card numbers and codes
+        cleanTitle = cleanTitle.replace(/#[a-z0-9-]+/gi, ' '); // Remove #PP-21, #BCP-50, etc.
+        cleanTitle = cleanTitle.replace(/\d+\/\d+/g, ' '); // Remove /499, /99, etc.
+        cleanTitle = cleanTitle.replace(/\d+/g, ' '); // Remove standalone numbers
+        
+        // Remove special characters and normalize whitespace
+        cleanTitle = cleanTitle.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+        
+        // Split into words and find the most likely player name
+        const words = cleanTitle.split(' ').filter(word => word.length > 1);
+        
+        // Look for patterns that indicate player names
+        const playerNamePatterns = [
+            // First Last pattern
+            /^[a-z]+\s+[a-z]+$/i,
+            // First Middle Last pattern
+            /^[a-z]+\s+[a-z]+\s+[a-z]+$/i,
+            // Single word names (for players like "Judge", "Trout", etc.)
+            /^[a-z]+$/i
+        ];
+        
+        // Try to find a player name pattern
+        for (let i = 0; i < words.length - 1; i++) {
+            for (let j = i + 1; j <= Math.min(i + 3, words.length); j++) {
+                const potentialName = words.slice(i, j).join(' ');
+                if (potentialName.length >= 3 && potentialName.length <= 30) {
+                    // Check if it looks like a player name
+                    const isLikelyPlayerName = playerNamePatterns.some(pattern => pattern.test(potentialName));
+                    if (isLikelyPlayerName) {
+                        // Capitalize properly
+                        return potentialName.split(' ').map(word => 
+                            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                        ).join(' ');
+                    }
+                }
+            }
+        }
+        
+        // Fallback: return the first few words that look like a name
+        const firstWords = words.slice(0, 3).join(' ');
+        if (firstWords.length >= 3) {
+            return firstWords.split(' ').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            ).join(' ');
+        }
+        
+        return null;
     }
 
     extractCardNumber(title) {
