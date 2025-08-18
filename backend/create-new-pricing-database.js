@@ -1734,11 +1734,17 @@ class NewPricingDatabase {
                 }
             }
             
-            // Additional check: If card type contains Chrome and card set also contains Chrome, remove Chrome from card type
+            // Additional check: If card type contains Chrome and title contains Chrome card set patterns, remove Chrome from card type
             if (cardType && cardType.toLowerCase().includes('chrome')) {
-                // Get the card set to check for Chrome
-                const cardSet = this.extractCardSet(title);
-                if (cardSet && cardSet.toLowerCase().includes('chrome')) {
+                const titleLower = title.toLowerCase();
+                // Check if the title contains Chrome in a card set context
+                if (titleLower.includes('bowman chrome') || 
+                    titleLower.includes('topps chrome') || 
+                    titleLower.includes('chrome draft') ||
+                    titleLower.includes('chrome sapphire') ||
+                    titleLower.includes('chrome update') ||
+                    titleLower.includes('chrome u 1st') ||
+                    titleLower.includes('chrome rookie autographs')) {
                     // Remove Chrome from the card type
                     const cardTypeWithoutChrome = cardType.replace(/\bchrome\b/gi, '').trim();
                     return cardTypeWithoutChrome || 'Base';
