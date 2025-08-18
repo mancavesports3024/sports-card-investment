@@ -1702,6 +1702,12 @@ class NewPricingDatabase {
         
         // Remove duplicate consecutive words (e.g., "Wave Red Wave Red" -> "Wave Red")
         cardType = cardType.replace(/\b(\w+)\s+\1\b/gi, '$1');
+        
+        // Remove duplicate consecutive phrases (e.g., "Wave Red Wave Red" -> "Wave Red")
+        cardType = cardType.replace(/\b(\w+\s+\w+)\s+\1\b/gi, '$1');
+        
+        // Remove duplicate consecutive three-word phrases (e.g., "Silver Prizm Silver Prizm" -> "Silver Prizm")
+        cardType = cardType.replace(/\b(\w+\s+\w+\s+\w+)\s+\1\b/gi, '$1');
 
         // Post-processing to fix common issues
         if (cardType) {
