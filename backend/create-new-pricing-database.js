@@ -1721,7 +1721,7 @@ class NewPricingDatabase {
             if (cardType === 'Finest' || cardType === 'Concourse' || cardType === 'Update' || 
                 cardType === 'Prizm' || cardType === 'Select' ||
                 cardType === 'Heritage' || cardType === 'Diamond Kings' || cardType === 'Zenith' ||
-                cardType === 'Bowman' || cardType === 'Topps') {
+                cardType === 'Bowman' || cardType === 'Topps' || cardType === 'Skybox') {
                 return 'Base';
             }
             
@@ -1762,6 +1762,19 @@ class NewPricingDatabase {
                     // Remove Chrome from the card type
                     const cardTypeWithoutChrome = cardType.replace(/\bchrome\b/gi, '').trim();
                     return cardTypeWithoutChrome || 'Base';
+                }
+            }
+            
+            // Special handling for Skybox - only keep as card type if it's NOT part of the card set
+            if (cardType && cardType.toLowerCase().includes('skybox')) {
+                const titleLower = title.toLowerCase();
+                const cardSetDetected = this.extractCardSet(title);
+                // Check if the title or extracted card set contains Skybox in a card set context
+                if ((cardSetDetected && cardSetDetected.toLowerCase().includes('skybox')) ||
+                    titleLower.includes('skybox')) {
+                    // Remove Skybox from the card type
+                    const cardTypeWithoutSkybox = cardType.replace(/\bskybox\b/gi, '').trim();
+                    return cardTypeWithoutSkybox || 'Base';
                 }
             }
             
