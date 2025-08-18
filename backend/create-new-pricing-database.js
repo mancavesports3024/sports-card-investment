@@ -1926,24 +1926,57 @@ class NewPricingDatabase {
         return cardType || 'Base';
     }
 
-    // Extract player name from title (improved method)
+    // Extract player name from title (improved method using removal approach)
     extractPlayerName(title) {
-        const titleLower = title.toLowerCase();
+        let cleanTitle = title;
         
-        // Remove common card-related words that aren't player names
-        const noiseWords = [
-            'psa', '10', 'gem', 'mint', 'rookie', 'rc', 'auto', 'autograph', 'refractor', 'prizm',
-            'chrome', 'bowman', 'topps', 'panini', 'donruss', 'optic', 'mosaic', 'select', 'finest',
-            'baseball', 'football', 'basketball', 'hockey', 'soccer', 'golf', 'racing', 'pokemon',
-            'rookie card', 'first', '1st', 'prospect', 'university', 'draft', 'stars', 'cosmic',
-            'invicta', 'all-etch', 'die-cut', 'wave', 'velocity', 'scope', 'hyper', 'optic',
-            'sp', 'ssp', 'short print', 'super short print', 'parallel', 'insert', 'base',
+        // Step 1: Remove the card set
+        const cardSet = this.extractCardSet(title);
+        if (cardSet) {
+            cleanTitle = cleanTitle.replace(new RegExp(cardSet, 'gi'), ' ');
+        }
+        
+        // Step 2: Remove the card type
+        const cardType = this.extractCardType(title);
+        if (cardType && cardType.toLowerCase() !== 'base') {
+            cleanTitle = cleanTitle.replace(new RegExp(cardType, 'gi'), ' ');
+        }
+        
+        // Step 3: Remove the card number
+        const cardNumber = this.extractCardNumber(title);
+        if (cardNumber) {
+            cleanTitle = cleanTitle.replace(new RegExp(cardNumber.replace('#', ''), 'gi'), ' ');
+            cleanTitle = cleanTitle.replace(/#/g, ' '); // Remove any remaining # symbols
+        }
+        
+        // Step 4: Remove grading terms
+        const gradingTerms = [
+            'psa', '10', 'gem', 'mint', 'gem mint', 'psa 10', 'psa10',
+            'bgs', 'beckett', 'sgc', 'csg', 'hga', 'gma', 'graded', 'ungraded'
+        ];
+        gradingTerms.forEach(term => {
+            const regex = new RegExp(`\\b${term}\\b`, 'gi');
+            cleanTitle = cleanTitle.replace(regex, ' ');
+        });
+        
+        // Step 5: Remove other common card terms
+        const cardTerms = [
+            'rookie', 'rc', 'yg', 'young guns', '1st', 'first', 'prospect', 'debut',
+            'auto', 'autograph', 'on card', 'sticker', 'patch', 'relic', 'memorabilia',
+            'parallel', 'insert', 'base', 'sp', 'ssp', 'short print', 'super short print',
+            'parallel', 'insert', 'base', 'holo', 'holographic', 'chrome', 'prizm',
+            'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
+            'wave', 'velocity', 'scope', 'hyper', 'optic', 'mosaic', 'select', 'finest',
+            'bowman', 'topps', 'panini', 'donruss', 'optic', 'mosaic', 'select', 'finest',
+            'baseball', 'football', 'basketball', 'hockey', 'soccer', 'golf', 'racing',
+            'rookie card', 'university', 'draft', 'stars', 'cosmic', 'invicta', 'all-etch',
             'gold', 'silver', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink',
             'bronze', 'white', 'teal', 'neon', 'camo', 'tie-dye', 'disco', 'dragon scale',
             'snakeskin', 'pulsar', 'logo', 'variation', 'clear cut', 'real one', 'downtown',
             'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric',
             'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'splash', 'rising', 'best',
             'independence day', 'father\'s day', 'mother\'s day', 'memorial day',
+            'mvp', 'hof', 'nfl', 'mlb', 'nba', 'nhl', 'debut', 'card', 'rated', 'chrome', 'university',
             'vikings', 'hof', 'brewers', 'bears', 'pirates', 'cardinals', 'dodgers', 'yankees',
             'red sox', 'cubs', 'white sox', 'braves', 'mets', 'phillies', 'nationals', 'marlins',
             'rays', 'blue jays', 'orioles', 'indians', 'guardians', 'tigers', 'royals', 'twins',
@@ -1955,68 +1988,38 @@ class NewPricingDatabase {
             'raiders', 'chiefs', '49ers', 'seahawks', 'cardinals', 'rams', 'saints', 'buccaneers',
             'falcons', 'panthers'
         ];
-        
-        // Remove noise words and clean up the title
-        let cleanTitle = titleLower;
-        for (const word of noiseWords) {
-            const regex = new RegExp(`\\b${word}\\b`, 'gi');
+        cardTerms.forEach(term => {
+            const regex = new RegExp(`\\b${term}\\b`, 'gi');
             cleanTitle = cleanTitle.replace(regex, ' ');
-        }
+        });
         
-        // Remove card numbers and codes
-        cleanTitle = cleanTitle.replace(/#[a-z0-9-]+/gi, ' '); // Remove #PP-21, #BCP-50, etc.
+        // Step 6: Remove years
+        cleanTitle = cleanTitle.replace(/\b(19|20)\d{2}\b/g, ' ');
+        
+        // Step 7: Remove print runs
         cleanTitle = cleanTitle.replace(/\d+\/\d+/g, ' '); // Remove /499, /99, etc.
-        cleanTitle = cleanTitle.replace(/\d+/g, ' '); // Remove standalone numbers
         
-        // Remove specific problematic patterns
-        cleanTitle = cleanTitle.replace(/\b(invicta\s+bi\d+)\b/gi, ' '); // Remove "Invicta BI15"
-        cleanTitle = cleanTitle.replace(/\b(ra\s+jca)\b/gi, ' '); // Remove "RA JCA"
-        cleanTitle = cleanTitle.replace(/\b(caedm)\b/gi, ' '); // Remove "CAEDM"
-        cleanTitle = cleanTitle.replace(/\b(in\s+)\b/gi, ' '); // Remove "IN "
-        cleanTitle = cleanTitle.replace(/\b(jesus\s+made)\b/gi, ' '); // Remove "JESUS MADE" - this is likely a placeholder
+        // Step 8: Remove standalone numbers
+        cleanTitle = cleanTitle.replace(/\b\d+\b/g, ' ');
         
-        // Remove special characters and normalize whitespace
+        // Step 9: Remove special characters and normalize whitespace
         cleanTitle = cleanTitle.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
         
-        // Split into words and find the most likely player name
+        // Step 10: Split into words and find the player name
         const words = cleanTitle.split(' ').filter(word => word.length > 1);
         
-        // Look for patterns that indicate player names
-        const playerNamePatterns = [
-            // First Last pattern
-            /^[a-z]+\s+[a-z]+$/i,
-            // First Middle Last pattern
-            /^[a-z]+\s+[a-z]+\s+[a-z]+$/i,
-            // Single word names (for players like "Judge", "Trout", etc.)
-            /^[a-z]+$/i
-        ];
-        
-        // Try to find a player name pattern
-        for (let i = 0; i < words.length - 1; i++) {
-            for (let j = i + 1; j <= Math.min(i + 3, words.length); j++) {
-                const potentialName = words.slice(i, j).join(' ');
-                if (potentialName.length >= 3 && potentialName.length <= 30) {
-                    // Check if it looks like a player name
-                    const isLikelyPlayerName = playerNamePatterns.some(pattern => pattern.test(potentialName));
-                    if (isLikelyPlayerName) {
-                        // Capitalize properly
-                        return potentialName.split(' ').map(word => 
-                            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-                        ).join(' ');
-                    }
-                }
-            }
+        if (words.length === 0) {
+            return null;
         }
         
-        // Fallback: return the first few words that look like a name
-        const firstWords = words.slice(0, 3).join(' ');
-        if (firstWords.length >= 3) {
-            return firstWords.split(' ').map(word => 
-                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-            ).join(' ');
-        }
+        // Take the first 1-3 words as the player name
+        const playerNameWords = words.slice(0, Math.min(3, words.length));
+        const playerName = playerNameWords.join(' ');
         
-        return null;
+        // Capitalize properly
+        return playerName.split(' ').map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        ).join(' ');
     }
 
     extractCardNumber(title) {
