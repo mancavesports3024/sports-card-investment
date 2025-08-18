@@ -1771,12 +1771,7 @@ class NewPricingDatabase {
         const uniqueTypes = [...new Set(foundTypes)];
         let cardType = uniqueTypes.join(' ').trim();
         
-        // Debug logging for Tom Brady card
-        if (titleLower.includes('tom brady') && titleLower.includes('green/yellow')) {
-            console.log('DEBUG - Found types:', foundTypes);
-            console.log('DEBUG - Unique types:', uniqueTypes);
-            console.log('DEBUG - Initial cardType:', cardType);
-        }
+
         
         // Remove duplicate consecutive words (e.g., "Wave Red Wave Red" -> "Wave Red")
         cardType = cardType.replace(/\b(\w+)\s+\1\b/gi, '$1');
@@ -1813,6 +1808,12 @@ class NewPricingDatabase {
 
         // Post-processing to fix common issues
         if (cardType) {
+            // Special fix for Green/Yellow Die-Cut Prizm
+            if (cardType.toLowerCase().includes('green and yellow prizm die-cut') && 
+                cardType.toLowerCase().includes('green yellow prizm')) {
+                cardType = 'Green and Yellow Die-Cut Prizm';
+            }
+            
             // Fix capitalization issues - convert to Title Case
             cardType = cardType.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
             
