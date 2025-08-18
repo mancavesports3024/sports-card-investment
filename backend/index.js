@@ -4216,3 +4216,29 @@ app.post('/api/admin/update-unknown-sports', async (req, res) => {
     }
 });
 
+// POST /api/admin/cleanup-player-names - Normalize player_name across all cards
+app.post('/api/admin/cleanup-player-names', async (req, res) => {
+	try {
+		console.log('🔄 Running player_name cleanup...');
+		const { PlayerNameCleanup } = require('./cleanup-player-names.js');
+		const cleaner = new PlayerNameCleanup();
+		await cleaner.connect();
+		await cleaner.run();
+		await cleaner.db.close();
+		res.json({
+			success: true,
+			message: 'Player name cleanup completed successfully',
+			results: {
+				updated: cleaner.updatedCount,
+				unchanged: cleaner.unchangedCount,
+				errors: cleaner.errorCount,
+				totalProcessed: cleaner.updatedCount + cleaner.unchangedCount + cleaner.errorCount
+			},
+			timestamp: new Date().toISOString()
+		});
+	} catch (error) {
+		console.error('❌ Error running player_name cleanup:', error);
+		res.status(500).json({ success: false, error: error.message, timestamp: new Date().toISOString() });
+	}
+});
+
