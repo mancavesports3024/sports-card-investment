@@ -238,8 +238,8 @@ class ExistingSummaryTitleRebuilder {
             { pattern: /\b(prizm|prizmatic)\b/gi, name: 'Prizm' },
             // Holo variants
             { pattern: /\b(holo|holographic)\b/gi, name: 'Holo' },
-            // Chrome variants
-            { pattern: /\b(chrome)\b/gi, name: 'Chrome' },
+            // Chrome variants - temporarily disabled to prevent duplication
+            // { pattern: /\b(chrome)\b/gi, name: 'Chrome' },
             // X-Fractor
             { pattern: /\b(x-fractor|x-fractors)\b/gi, name: 'X-Fractor' },
             // Cracked Ice
