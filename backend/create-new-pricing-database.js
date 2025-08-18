@@ -598,6 +598,14 @@ class NewPricingDatabase {
                 summaryTitle += cardSet;
             }
             
+            // Add card type (colors, parallels, etc.) - but exclude "Base"
+            if (cardType && cardType.toLowerCase() !== 'base') {
+                if (summaryTitle) summaryTitle += ' ';
+                // Properly capitalize card type (e.g., "REFRACTOR" -> "Refractor")
+                const capitalizedCardType = cardType.charAt(0).toUpperCase() + cardType.slice(1).toLowerCase();
+                summaryTitle += capitalizedCardType;
+            }
+            
             // Add player name (but not if it's already in the card set)
             if (playerName && cardSet && !cardSet.toLowerCase().includes(playerName.toLowerCase())) {
                 if (summaryTitle) summaryTitle += ' ';
@@ -609,14 +617,6 @@ class NewPricingDatabase {
                 // Filter out team names from player name
                 const cleanPlayerName = this.filterTeamNamesFromPlayer(playerName);
                 summaryTitle += this.capitalizePlayerName(cleanPlayerName);
-            }
-            
-            // Add card type (colors, parallels, etc.) - but exclude "Base"
-            if (cardType && cardType.toLowerCase() !== 'base') {
-                if (summaryTitle) summaryTitle += ' ';
-                // Properly capitalize card type (e.g., "REFRACTOR" -> "Refractor")
-                const capitalizedCardType = cardType.charAt(0).toUpperCase() + cardType.slice(1).toLowerCase();
-                summaryTitle += capitalizedCardType;
             }
             
             // Add "auto" after card type if it's an autograph

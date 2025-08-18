@@ -76,14 +76,14 @@ class ImprovedSummaryTitleGenerator {
             components.push(card.card_set);
         }
 
-        // 3. Player Name (if available)
-        if (card.player_name) {
-            components.push(this.capitalizePlayerName(card.player_name));
-        }
-
-        // 4. Card Type (if available and not "Base")
+        // 3. Card Type (if available and not "Base")
         if (card.card_type && card.card_type.toLowerCase() !== 'base') {
             components.push(card.card_type);
+        }
+
+        // 4. Player Name (if available)
+        if (card.player_name) {
+            components.push(this.capitalizePlayerName(card.player_name));
         }
 
         // 5. Auto designation (if it's an autograph)
