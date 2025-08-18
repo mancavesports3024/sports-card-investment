@@ -76,12 +76,17 @@ class UnknownSportsUpdater {
         // Use existing cleaner to remove team names and common noise
         cleaned = this.db.filterTeamNamesFromPlayer(cleaned) || cleaned;
 
-        // Remove common non-name tokens
+        // Remove common non-name tokens (sets, parallels, marketing, org tags)
         const noiseWords = [
             'autograph', 'autographs', 'auto', 'signature', 'signatures', 'rookie', 'rc',
             'debut', 'ssp', 'variation', 'psa', 'gem', 'mint', 'holo', 'prizm', 'prism',
             'mosaic', 'optic', 'select', 'finest', 'chrome', 'sapphire', 'update', 'refractor',
-            'rated', 'retro', 'choice', 'wave', 'scope', 'pulsar'
+            'rated', 'retro', 'choice', 'wave', 'scope', 'pulsar', 'genesis', 'firestorm',
+            'emergent', 'essentials', 'uptown', 'uptowns', 'logo', 'lightboard', 'planetary',
+            'pursuit', 'mars', 'premium', 'box', 'set', 'pitch', 'prodigies', 'image', 'clear',
+            'cut', 'premier', 'young', 'guns', 'star', 'starquest', 'tint', 'pandora', 'allies',
+            'apex', 'on', 'iconic', 'knows', 'classic', 'events', 'edition', 'ucl', 'uefa', 'mls',
+            'cc', 'mint2', 'kellogg', 'atl', 'colorado', 'picks', 'sky'
         ];
         const noiseRegex = new RegExp(`\\b(${noiseWords.join('|')})\\b`, 'gi');
         cleaned = cleaned.replace(noiseRegex, ' ');
@@ -89,12 +94,48 @@ class UnknownSportsUpdater {
         // Remove set/code fragments like #RS-SGA, #CRA-AJ, CRA-AJ, RS SGA
         cleaned = cleaned.replace(/#?[A-Z]{2,4}-[A-Z]{1,4}\b/g, ' ');
         cleaned = cleaned.replace(/#?[A-Z]{2,4}\s+[A-Z]{2,4}\b/g, ' ');
+        // Remove alphanumeric codes like UV15, DT36, CE14, SG5, MJ9, BDC13, ROH, CPANR, CPANK
+        cleaned = cleaned.replace(/\b[A-Z]{2,5}\d{1,4}\b/g, ' ');
+        cleaned = cleaned.replace(/\b(CPANR|CPANK|CPANP|BDC|BDP|ROH)\b/gi, ' ');
 
         // Remove standalone short ALL-CAPS tokens (2-4 letters) except valid suffixes
         cleaned = cleaned.replace(/\b(?!JR|SR|II|III|IV)[A-Z]{2,4}\b/g, ' ');
 
+        // Normalize diacritics
+        try { cleaned = cleaned.normalize('NFD').replace(/[\p{Diacritic}]/gu, ''); } catch (_) {}
+
+        // Normalize known multi-word names and apostrophes/hyphens
+        const replacements = [
+            { r: /\bja\s*marr\b/gi, v: "Ja'Marr" },
+            { r: /\bde\s*von\b\s+achane/gi, v: "De'Von Achane" },
+            { r: /\bo\s*'?\s*hearn\b/gi, v: "O'Hearn" },
+            { r: /\bo\s*'?\s*hoppe\b/gi, v: "O'Hoppe" },
+            { r: /\bsmith\s*njigba\b/gi, v: 'Smith-Njigba' },
+            { r: /\bkuroda\s*grauer\b/gi, v: 'Kuroda-Grauer' },
+            { r: /\bcee\s*dee\s+lamb\b/gi, v: 'CeeDee Lamb' },
+            { r: /\bdon[cč]i[cć]\b/gi, v: 'Doncic' },
+            { r: /\bt\s*j\b/gi, v: 'TJ' }
+        ];
+        for (const { r, v } of replacements) cleaned = cleaned.replace(r, v);
+
+        // If multiple names remain (e.g., duals), keep up to first 3 tokens (First Middle Last)
+        let tokens = cleaned.split(/\s+/).filter(Boolean);
+        if (tokens.length > 3) tokens = tokens.slice(0, 3);
+        cleaned = tokens.join(' ');
+
         // Remove stray punctuation
-        cleaned = cleaned.replace(/[.,;:()\[\]{}]/g, ' ');
+        cleaned = cleaned.replace(/[.,;:()\[\]{}&]/g, ' ');
+
+        // Token-level cleanup: drop very short tokens except allowed particles
+        const allowedParticles = new Set(['jr','sr','ii','iii','iv','de','la','le','da','di','van','von','st']);
+        cleaned = cleaned
+            .split(/\s+/)
+            .filter(tok => {
+                const t = tok.toLowerCase();
+                if (t.length <= 2 && !allowedParticles.has(t)) return false;
+                return true;
+            })
+            .join(' ');
 
         // Collapse spaces
         cleaned = cleaned.replace(/\s+/g, ' ').trim();
