@@ -3289,6 +3289,77 @@ app.post('/api/admin/fix-existing-cards-extraction', async (req, res) => {
     }
 });
 
+// POST /api/admin/test-extraction - Test extraction logic
+app.post('/api/admin/test-extraction', async (req, res) => {
+    try {
+        console.log('🧪 Testing extraction logic...');
+        
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        const testTitle = "2024 Topps Chrome Junior Caminero Rookie AU Autograph Orange Wave Ref PSA 10";
+        
+        console.log(`🔍 Testing extraction for: "${testTitle}"`);
+        
+        // Test each extraction method
+        const year = db.extractYear(testTitle);
+        const cardSet = db.extractCardSet(testTitle);
+        const cardType = db.extractCardType(testTitle);
+        const cardNumber = db.extractCardNumber(testTitle);
+        const printRun = db.extractPrintRun(testTitle);
+        const isRookie = db.isRookieCard(testTitle);
+        const isAutograph = db.isAutographCard(testTitle);
+        const sport = db.detectSportFromKeywords(testTitle);
+        
+        // Test player name extraction
+        const playerName = db.extractPlayerName(testTitle);
+        const cleanPlayerName = playerName ? db.filterTeamNamesFromPlayer(playerName) : null;
+        const finalPlayerName = cleanPlayerName ? db.capitalizePlayerName(cleanPlayerName) : null;
+        
+        // Build summary title
+        let summaryTitle = '';
+        if (year) summaryTitle += year;
+        if (cardSet) summaryTitle += (summaryTitle ? ' ' : '') + cardSet;
+        if (finalPlayerName) summaryTitle += (summaryTitle ? ' ' : '') + finalPlayerName;
+        if (cardType && cardType.toLowerCase() !== 'base') summaryTitle += (summaryTitle ? ' ' : '') + cardType;
+        if (isAutograph) summaryTitle += (summaryTitle ? ' ' : '') + 'auto';
+        if (cardNumber) summaryTitle += (summaryTitle ? ' ' : '') + cardNumber;
+        if (printRun) summaryTitle += (summaryTitle ? ' ' : '') + printRun;
+        
+        await db.close();
+        
+        res.json({
+            success: true,
+            testTitle: testTitle,
+            results: {
+                year,
+                cardSet,
+                cardType,
+                cardNumber,
+                printRun,
+                isRookie,
+                isAutograph,
+                sport,
+                playerName,
+                cleanPlayerName,
+                finalPlayerName,
+                summaryTitle
+            },
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error testing extraction:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to test extraction',
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/analyze-summary-title-issues - Analyze all summary titles for issues
 app.post('/api/admin/analyze-summary-title-issues', async (req, res) => {
     try {
