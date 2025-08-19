@@ -3314,6 +3314,31 @@ app.post('/api/admin/analyze-player-name-issues', async (req, res) => {
     }
 });
 
+// POST /api/admin/analyze-player-name-issues-simple - Get player name issues as JSON
+app.post('/api/admin/analyze-player-name-issues-simple', async (req, res) => {
+    try {
+        console.log('🔍 Starting simplified player name issue analysis...');
+        
+        const { PlayerNameIssueAnalyzerSimple } = require('./analyze-player-name-issues-simple.js');
+        const analyzer = new PlayerNameIssueAnalyzerSimple();
+        const results = await analyzer.analyzePlayerNameIssues();
+        
+        res.json({
+            success: true,
+            results: results,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error analyzing player name issues:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error analyzing player name issues',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/test-extraction - Test extraction logic
 app.post('/api/admin/test-extraction', async (req, res) => {
     try {
