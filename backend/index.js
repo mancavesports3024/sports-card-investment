@@ -3313,6 +3313,8 @@ app.post('/api/admin/test-extraction', async (req, res) => {
             "2002 Topps Chrome Refractor Tracy Mcgrady Busters #ZB10",
             "2020 Panini Mosaic Reactive Gold Prizm Justin Herbert Reactive #263",
             "2008 Topps Gold Refractor Mickey Mantle Reprint #MMR-54",
+            "2023 Panini Prizm Snake Zion Williamson King #27",
+            "1998 Topps Finest Dirk Nowitzki Dallas #234",
             "2024 Donruss Optic Gold Sunday Davante #10 /10",
             "2002 Topps Chrome Refractor Tracy Mcgrady Zone #ZB10",
             "2024 Bowman Chrome Gold Refractor Eduardo Tait Pop #10 /50"
