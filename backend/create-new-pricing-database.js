@@ -2008,6 +2008,7 @@ class NewPricingDatabase {
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
             'wave', 'velocity', 'scope', 'hyper', 'optic', 'mosaic', 'select', 'finest',
             'bowman', 'topps', 'panini', 'donruss', 'optic', 'mosaic', 'select', 'finest',
+            'chronicles', 'picks', 'prospects',
             'baseball', 'football', 'basketball', 'hockey', 'soccer', 'golf', 'racing',
             'rookie card', 'university', 'draft', 'stars', 'cosmic', 'invicta', 'all-etch',
             'gold', 'silver', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink',
@@ -2023,7 +2024,7 @@ class NewPricingDatabase {
             'astros', 'rangers', 'athletics', 'mariners', 'angels', 'giants', 'padres', 'rockies',
             'diamondbacks', 'reds', 'pirates', 'cardinals', 'brewers', 'cubs', 'white sox',
             'packers', 'bears', 'lions', 'vikings', 'cowboys', 'eagles', 'giants', 'redskins',
-            'commanders', 'patriots', 'steelers', 'bills', 'dolphins', 'jets', 'bengals',
+            'commanders', 'patriots', 'pats', 'steelers', 'bills', 'dolphins', 'jets', 'bengals',
             'browns', 'ravens', 'texans', 'colts', 'jaguars', 'titans', 'broncos', 'chargers',
             'raiders', 'chiefs', '49ers', 'seahawks', 'cardinals', 'rams', 'saints', 'buccaneers',
             'falcons', 'panthers',
@@ -2055,6 +2056,8 @@ class NewPricingDatabase {
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
             'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
             'super short print', 'parallel', 'insert', 'numbered', 'limited',
+            // Additional card types identified by analysis
+            'ice', 'lazer', 'lightboard', 'magenta', 'mt', 'shock',
             // Specific problematic terms from the cards
             'invicta bi15', 'invicta', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in', 'jesus made',
             'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch'
