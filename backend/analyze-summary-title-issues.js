@@ -80,62 +80,61 @@ class SummaryTitleAnalyzer {
         ];
     }
 
-    // Analyze a summary title for issues
-    analyzeSummaryTitle(summaryTitle, originalTitle) {
+    // Analyze a card for issues (focus checks strictly on player_name and true duplicates)
+    analyzeSummaryTitle(card) {
+        const { summary_title: summaryTitle, player_name: playerName, card_set: cardSet, card_type: cardType } = card;
         const issues = [];
         const cardTypes = this.getKnownCardTypes();
         
         if (!summaryTitle) return issues;
         
-        // Split summary title into words
-        const words = summaryTitle.toLowerCase().split(/\s+/);
-        
-        // Check for card types appearing in the middle of the title (likely in player name)
-        for (let i = 0; i < words.length; i++) {
-            const word = words[i].replace(/[^\w]/g, ''); // Remove punctuation
-            
-            if (cardTypes.includes(word)) {
-                // Check if this word appears to be part of a player name (not at the beginning or end)
-                if (i > 0 && i < words.length - 1) {
-                    const prevWord = words[i-1].replace(/[^\w]/g, '');
-                    const nextWord = words[i+1].replace(/[^\w]/g, '');
-                    
-                    // If surrounded by what looks like name words, it's probably a card type in the player name
-                    if (prevWord.length > 2 && nextWord.length > 2 && 
-                        !cardTypes.includes(prevWord) && !cardTypes.includes(nextWord)) {
-                        issues.push({
-                            type: 'card_type_in_player_name',
-                            word: word,
-                            position: i,
-                            context: `${prevWord} ${word} ${nextWord}`,
-                            suggestion: `Remove "${word}" from player name`
-                        });
-                    }
+        // 1) Card-type terms inside player_name only (avoid false positives from other parts of the title)
+        if (playerName && playerName.trim()) {
+            const playerWords = playerName.toLowerCase().split(/\s+/).map(w => w.replace(/[^\w]/g, ''));
+            playerWords.forEach((w, idx) => {
+                if (w && cardTypes.includes(w)) {
+                    issues.push({
+                        type: 'card_type_in_player_name',
+                        word: w,
+                        position: idx,
+                        context: playerName,
+                        suggestion: `Remove "${w}" from player name`
+                    });
                 }
+            });
+        }
+        
+        // 2) True duplicate brand/type: e.g., card_set has Prizm and card_type also contains Prizm
+        if (cardSet && cardType) {
+            const setLower = String(cardSet).toLowerCase();
+            const typeLower = String(cardType).toLowerCase();
+            if (/\bprizm\b/.test(setLower) && /\bprizm\b/.test(typeLower)) {
+                issues.push({
+                    type: 'duplicate_card_type',
+                    word: 'prizm',
+                    count: 2,
+                    suggestion: 'Remove duplicate "Prizm" (present in both card set and card type)'
+                });
+            }
+            if (/\boptic\b/.test(setLower) && /\boptic\b/.test(typeLower)) {
+                issues.push({
+                    type: 'duplicate_card_type',
+                    word: 'optic',
+                    count: 2,
+                    suggestion: 'Remove duplicate "Optic" (present in both card set and card type)'
+                });
+            }
+            if (/\bchrome\b/.test(setLower) && /\bchrome\b/.test(typeLower)) {
+                issues.push({
+                    type: 'duplicate_card_type',
+                    word: 'chrome',
+                    count: 2,
+                    suggestion: 'Remove duplicate "Chrome" (present in both card set and card type)'
+                });
             }
         }
         
-        // Check for duplicate card types
-        const cardTypeCounts = {};
-        words.forEach(word => {
-            const cleanWord = word.replace(/[^\w]/g, '');
-            if (cardTypes.includes(cleanWord)) {
-                cardTypeCounts[cleanWord] = (cardTypeCounts[cleanWord] || 0) + 1;
-            }
-        });
-        
-        Object.entries(cardTypeCounts).forEach(([word, count]) => {
-            if (count > 1) {
-                issues.push({
-                    type: 'duplicate_card_type',
-                    word: word,
-                    count: count,
-                    suggestion: `Remove duplicate "${word}" (appears ${count} times)`
-                });
-            }
-        });
-        
-        // Check for team/school names that shouldn't be there
+        // 3) Team/school names inside player_name only
         const teamSchoolNames = [
             'duke', 'mavericks', 'blue devils', 'tar heels', 'wolfpack', 'demon deacons',
             'seminoles', 'hurricanes', 'gators', 'bulldogs', 'tigers', 'wildcats', 'cardinals',
@@ -149,17 +148,19 @@ class SummaryTitleAnalyzer {
             'ac milan', 'inter milan', 'ajax', 'porto', 'benfica', 'celtic', 'rangers',
             'fc', 'united', 'city', 'athletic', 'sporting', 'dynamo', 'spartak', 'zenit'
         ];
-        
-        words.forEach(word => {
-            const cleanWord = word.replace(/[^\w]/g, '');
-            if (teamSchoolNames.includes(cleanWord)) {
-                issues.push({
-                    type: 'team_school_name',
-                    word: word,
-                    suggestion: `Remove team/school name "${word}"`
-                });
-            }
-        });
+        if (playerName && playerName.trim()) {
+            const pn = playerName.toLowerCase();
+            teamSchoolNames.forEach(name => {
+                const regex = new RegExp(`(^|\\s)${name}(\\s|$)`, 'i');
+                if (regex.test(pn)) {
+                    issues.push({
+                        type: 'team_school_name',
+                        word: name,
+                        suggestion: `Remove team/school name "${name}" from player name`
+                    });
+                }
+            });
+        }
         
         return issues;
     }
@@ -181,7 +182,7 @@ class SummaryTitleAnalyzer {
             const issueTypes = {};
             
             for (const card of cards) {
-                const issues = this.analyzeSummaryTitle(card.summary_title, card.title);
+                const issues = this.analyzeSummaryTitle(card);
                 
                 if (issues.length > 0) {
                     allIssues.push({

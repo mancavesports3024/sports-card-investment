@@ -38,7 +38,9 @@ class ExistingCardsFixer {
                     }
                     
                     const cardSet = this.db.extractCardSet(card.title);
-                    const cardType = this.db.extractCardType(card.title);
+                    let cardType = this.db.extractCardType(card.title);
+                    // Normalize card type to avoid duplicate brand words (e.g., Prizm) when already in set
+                    cardType = this.db.normalizeCardType(cardType, cardSet);
                     const cardNumber = this.db.extractCardNumber(card.title);
                     
                     // Extract print run

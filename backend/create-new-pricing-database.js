@@ -624,11 +624,11 @@ class NewPricingDatabase {
             }
             
             // Add card type (colors, parallels, etc.) - but exclude "Base"
-            if (cardType && cardType.toLowerCase() !== 'base') {
+            const normalizedCardType = cardType ? this.normalizeCardType(cardType, cardSet) : null;
+            if (normalizedCardType && normalizedCardType.toLowerCase() !== 'base') {
                 if (summaryTitle) summaryTitle += ' ';
-                // Properly capitalize card type (e.g., "REFRACTOR" -> "Refractor")
-                const capitalizedCardType = cardType.charAt(0).toUpperCase() + cardType.slice(1).toLowerCase();
-                summaryTitle += capitalizedCardType;
+                // Use extracted/normalized casing as-is
+                summaryTitle += normalizedCardType;
             }
             
             // Add "auto" if it's an autograph
@@ -2290,6 +2290,26 @@ class NewPricingDatabase {
         }
         
         return result;
+    }
+
+    // Normalize card type by removing brand words already present in the card set
+    normalizeCardType(cardType, cardSet) {
+        if (!cardType) return cardType;
+        const setLower = (cardSet || '').toLowerCase();
+        let normalized = cardType;
+        const brands = [
+            'prizm', 'optic', 'chrome', 'bowman', 'topps', 'select', 'mosaic', 'finest', 'gallery',
+            'fleer', 'score', 'panini'
+        ];
+        brands.forEach((brand) => {
+            if (setLower.includes(brand)) {
+                const regex = new RegExp(`\\b${brand}\\b`, 'gi');
+                normalized = normalized.replace(regex, ' ');
+            }
+        });
+        // Collapse spaces and trim
+        normalized = normalized.replace(/\s+/g, ' ').trim();
+        return normalized;
     }
 
     // Detect if a card is a rookie card
