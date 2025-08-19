@@ -28,12 +28,13 @@ class ExistingSummaryTitleIssueFixer {
 
             for (const card of cards) {
                 try {
-                    // Use the NEW extraction order (card type first, then player name)
+                    // Use the SAME extraction order as the main addCard method
                     const year = card.year || this.extractYear(card.title);
+                    
+                    // Extract component fields using improved logic - EXTRACT CARD TYPE FIRST
                     const cardSet = this.db.extractCardSet(card.title);
                     const cardType = this.db.extractCardType(card.title);
                     const cardNumber = card.card_number || this.db.extractCardNumber(card.title);
-                    const printRun = card.print_run || this.extractPrintRun(card.title);
                     
                     // Extract player name AFTER card type to avoid card types in player names
                     let playerName = null;
@@ -51,6 +52,8 @@ class ExistingSummaryTitleIssueFixer {
                     } catch (playerError) {
                         console.warn(`⚠️ Player name extraction failed for card ${card.id}: ${playerError.message}`);
                     }
+                    
+                    const printRun = card.print_run || this.extractPrintRun(card.title);
                     
                     // Check if it's an autograph
                     const isAuto = card.title.toLowerCase().includes('auto');
