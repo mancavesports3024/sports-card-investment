@@ -212,7 +212,14 @@ const AdminCardDatabase = () => {
               <option value="Basketball">Basketball</option>
               <option value="Football">Football</option>
               <option value="Baseball">Baseball</option>
+              <option value="Hockey">Hockey</option>
+              <option value="Soccer">Soccer</option>
+              <option value="Golf">Golf</option>
+              <option value="Racing">Racing</option>
+              <option value="Wrestling">Wrestling</option>
               <option value="Pokemon">Pokemon</option>
+              <option value="Magic">Magic</option>
+              <option value="Yu-Gi-Oh">Yu-Gi-Oh</option>
               <option value="Unknown">Unknown</option>
             </select>
           </div>
