@@ -3316,6 +3316,8 @@ app.post('/api/admin/test-extraction', async (req, res) => {
             "2023 Panini Prizm Snake Zion Williamson King #27",
             "1998 Topps Finest Dirk Nowitzki Dallas #234",
             "2022 Topps Update Julio Rodriguez Rainbow #US44",
+            "2016 Panini Prizm Wave Blue Go Hard Go #9 /99",
+            "2016 Prizm Basketball Go Hard Go Home #9 Kyrie Irving Blue Wave /99 PSA 10",
             "2024 Donruss Optic Gold Sunday Davante #10 /10",
             "2002 Topps Chrome Refractor Tracy Mcgrady Zone #ZB10",
             "2024 Bowman Chrome Gold Refractor Eduardo Tait Pop #10 /50"
