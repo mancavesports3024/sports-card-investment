@@ -3260,6 +3260,35 @@ app.post('/api/admin/fix-summary-titles-simple', async (req, res) => {
     }
 });
 
+// POST /api/admin/fix-existing-cards-extraction - Re-extract all components for existing cards
+app.post('/api/admin/fix-existing-cards-extraction', async (req, res) => {
+    try {
+        console.log('🔧 Re-extracting components for existing cards...');
+        
+        const { ExistingCardsFixer } = require('./fix-existing-cards-with-improved-extraction.js');
+        const fixer = new ExistingCardsFixer();
+        
+        await fixer.connect();
+        await fixer.fixExistingCards();
+        await fixer.close();
+        
+        res.json({
+            success: true,
+            message: 'Existing cards fixed with improved extraction',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error fixing existing cards:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fix existing cards',
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/analyze-summary-title-issues - Analyze all summary titles for issues
 app.post('/api/admin/analyze-summary-title-issues', async (req, res) => {
     try {
