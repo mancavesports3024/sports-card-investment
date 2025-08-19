@@ -864,7 +864,7 @@ class NewPricingDatabase {
                 // Parallel and insert types
                 'refractor', 'parallel', 'numbered', 'limited', 'gold', 'silver', 'bronze', 'platinum', 'diamond', 'emerald', 'sapphire', 'ruby', 'amethyst', 'onyx', 'black', 'white', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'teal', 'aqua', 'cyan', 'lime', 'mint', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet',
                 // Card features
-                'rookie', 'rc', 'auto', 'autograph', 'jersey', 'patch', 'base', 'holo', 'ssp', 'sp', 'hof',
+                'rookie', 'rc', 'auto', 'autograph', 'au', 'jersey', 'patch', 'base', 'holo', 'ssp', 'sp', 'hof',
                 // Other card terms
                 'victory', 'crown', 'portrait', 'police', 'instant', 'impact', 'update', 'field', 'level', 'courtside', 'elephant', 'disco', 'ice', 'lazer', 'shock', 'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua', 'sapphire', 'woo', 'draft', 'red/white/blue', 'tf1'
             ];
@@ -1522,24 +1522,61 @@ class NewPricingDatabase {
             { pattern: /\b(royalty)\b/gi, name: 'Royalty' },
             { pattern: /\b(uc|update)\b/gi, name: 'Update' },
             
+            // Topps Chrome Baseball Parallels (HIGHEST PRIORITY - add these first)
+            { pattern: /\b(superfractor)\b/gi, name: 'Superfractor', priority: 3 },
+            { pattern: /\b(printing plates)\b/gi, name: 'Printing Plates', priority: 3 },
+            { pattern: /\b(murakami base variations)\b/gi, name: 'Murakami Base Variations', priority: 3 },
+            { pattern: /\b(red geometric refractors)\b/gi, name: 'Red Geometric Refractors', priority: 3 },
+            { pattern: /\b(black geometric refractors)\b/gi, name: 'Black Geometric Refractors', priority: 3 },
+            { pattern: /\b(orange geometric refractors)\b/gi, name: 'Orange Geometric Refractors', priority: 3 },
+            { pattern: /\b(gold geometric refractors)\b/gi, name: 'Gold Geometric Refractors', priority: 3 },
+            { pattern: /\b(green geometric refractors)\b/gi, name: 'Green Geometric Refractors', priority: 3 },
+            { pattern: /\b(geometric refractors)\b/gi, name: 'Geometric Refractors', priority: 3 },
+            { pattern: /\b(lightboard logo base variation)\b/gi, name: 'Lightboard Logo Base Variation', priority: 3 },
+            { pattern: /\b(red lava refractor)\b/gi, name: 'Red Lava Refractor', priority: 3 },
+            { pattern: /\b(red wave refractor)\b/gi, name: 'Red Wave Refractor', priority: 3 },
+            { pattern: /\b(red raywave refractor)\b/gi, name: 'Red Raywave Refractor', priority: 3 },
+            { pattern: /\b(black lava refractor)\b/gi, name: 'Black Lava Refractor', priority: 3 },
+            { pattern: /\b(black raywave refractor)\b/gi, name: 'Black Raywave Refractor', priority: 3 },
+            { pattern: /\b(black refractor refractor)\b/gi, name: 'Black Refractor', priority: 3 },
+            { pattern: /\b(frozenfractor)\b/gi, name: 'Frozenfractor', priority: 3 },
+            { pattern: /\b(orange lava refractor)\b/gi, name: 'Orange Lava Refractor', priority: 3 },
+            { pattern: /\b(orange raywave refractor)\b/gi, name: 'Orange Raywave Refractor', priority: 3 },
+            { pattern: /\b(orange wave refractor)\b/gi, name: 'Orange Wave Refractor', priority: 3 },
+            { pattern: /\b(gold lava refractor)\b/gi, name: 'Gold Lava Refractor', priority: 3 },
+            { pattern: /\b(gold raywave refractor)\b/gi, name: 'Gold Raywave Refractor', priority: 3 },
+            { pattern: /\b(gold wave refractor)\b/gi, name: 'Gold Wave Refractor', priority: 3 },
+            { pattern: /\b(green lava refractor)\b/gi, name: 'Green Lava Refractor', priority: 3 },
+            { pattern: /\b(green raywave refractor)\b/gi, name: 'Green Raywave Refractor', priority: 3 },
+            { pattern: /\b(green wave refractor)\b/gi, name: 'Green Wave Refractor', priority: 3 },
+            { pattern: /\b(blue lava refractor)\b/gi, name: 'Blue Lava Refractor', priority: 3 },
+            { pattern: /\b(blue raywave refractor)\b/gi, name: 'Blue Raywave Refractor', priority: 3 },
+            { pattern: /\b(aqua lava refractor)\b/gi, name: 'Aqua Lava Refractor', priority: 3 },
+            { pattern: /\b(aqua raywave refractor)\b/gi, name: 'Aqua Raywave Refractor', priority: 3 },
+            { pattern: /\b(purple raywave refractor)\b/gi, name: 'Purple Raywave Refractor', priority: 3 },
+            { pattern: /\b(raywave refractor)\b/gi, name: 'Raywave Refractor', priority: 3 },
+            { pattern: /\b(negative refractor)\b/gi, name: 'Negative Refractor', priority: 3 },
+            { pattern: /\b(sepia refractor)\b/gi, name: 'Sepia Refractor', priority: 3 },
+            { pattern: /\b(teal refractor)\b/gi, name: 'Teal Refractor', priority: 3 },
+            { pattern: /\b(purple refractor)\b/gi, name: 'Purple Refractor', priority: 3 },
+            { pattern: /\b(aqua refractor)\b/gi, name: 'Aqua Refractor', priority: 3 },
+            { pattern: /\b(blue refractor)\b/gi, name: 'Blue Refractor', priority: 3 },
+            { pattern: /\b(green refractor)\b/gi, name: 'Green Refractor', priority: 3 },
+            { pattern: /\b(gold refractor)\b/gi, name: 'Gold Refractor', priority: 3 },
+            { pattern: /\b(orange refractor)\b/gi, name: 'Orange Refractor', priority: 3 },
+            { pattern: /\b(black refractor)\b/gi, name: 'Black Refractor', priority: 3 },
+            { pattern: /\b(red refractor)\b/gi, name: 'Red Refractor', priority: 3 },
+            { pattern: /\b(x-fractor)\b/gi, name: 'X-Fractor', priority: 3 },
+            { pattern: /\b(prism refractor)\b/gi, name: 'Prism Refractor', priority: 3 },
+            { pattern: /\b(topps refractor)\b/gi, name: 'Topps Refractor', priority: 3 },
+
             // Color + Refractor combinations (prioritize these)
-            { pattern: /\b(gold refractor)\b/gi, name: 'Gold Refractor' },
             { pattern: /\b(silver refractor)\b/gi, name: 'Silver Refractor' },
-            { pattern: /\b(black refractor)\b/gi, name: 'Black Refractor' },
-            { pattern: /\b(green refractor)\b/gi, name: 'Green Refractor' },
-            { pattern: /\b(blue refractor)\b/gi, name: 'Blue Refractor' },
-            { pattern: /\b(red refractor)\b/gi, name: 'Red Refractor' },
-            { pattern: /\b(yellow refractor)\b/gi, name: 'Yellow Refractor' },
-            { pattern: /\b(orange refractor)\b/gi, name: 'Orange Refractor' },
-            { pattern: /\b(purple refractor)\b/gi, name: 'Purple Refractor' },
             { pattern: /\b(pink refractor)\b/gi, name: 'Pink Refractor' },
             { pattern: /\b(bronze refractor)\b/gi, name: 'Bronze Refractor' },
             { pattern: /\b(white refractor)\b/gi, name: 'White Refractor' },
-            { pattern: /\b(teal refractor)\b/gi, name: 'Teal Refractor' },
             { pattern: /\b(neon green refractor)\b/gi, name: 'Neon Green Refractor' },
-            { pattern: /\b(sepia refractor)\b/gi, name: 'Sepia Refractor' },
             { pattern: /\b(sapphire refractor)\b/gi, name: 'Sapphire Refractor' },
-            { pattern: /\b(prism refractor)\b/gi, name: 'Prism Refractor' },
             
             // Special color + finish combinations
             { pattern: /\b(blue ice)\b/gi, name: 'Blue Ice' },
@@ -2134,7 +2171,7 @@ class NewPricingDatabase {
             'yellow', 'green', 'blue', 'red', 'black', 'silver', 'gold', 'white',
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
             'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
-            'super short print', 'parallel', 'insert', 'numbered', 'limited'
+            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph'
         ];
         
         let cleanName = playerName;
