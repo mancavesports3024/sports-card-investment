@@ -1159,6 +1159,9 @@ class NewPricingDatabase {
         if (cleanTitle.includes('topps chrome update')) {
             return 'Topps Chrome Update';
         }
+        if (cleanTitle.includes('topps stadium club chrome') || cleanTitle.includes('stadium club chrome')) {
+            return 'Topps Stadium Club Chrome';
+        }
         if (cleanTitle.includes('topps stadium club')) {
             return 'Topps Stadium Club';
         }
@@ -1170,6 +1173,9 @@ class NewPricingDatabase {
         }
         if (cleanTitle.includes('finest')) {
             return 'Finest';
+        }
+        if (cleanTitle.includes('topps heritage chrome') || cleanTitle.includes('heritage chrome')) {
+            return 'Topps Heritage Chrome';
         }
         if (cleanTitle.includes('topps heritage')) {
             return 'Topps Heritage';
@@ -1185,6 +1191,12 @@ class NewPricingDatabase {
         }
         if (cleanTitle.includes('topps gypsy queen')) {
             return 'Topps Gypsy Queen';
+        }
+        if (cleanTitle.includes('topps cosmic chrome') || cleanTitle.includes('cosmic chrome')) {
+            return 'Topps Cosmic Chrome';
+        }
+        if (cleanTitle.includes('topps ufc chrome') || cleanTitle.includes('ufc chrome')) {
+            return 'Topps UFC Chrome';
         }
         if (cleanTitle.includes('topps chrome')) {
             return 'Topps Chrome';
@@ -1231,6 +1243,9 @@ class NewPricingDatabase {
         }
         if (cleanTitle.includes('bowman chrome')) {
             return 'Bowman Chrome';
+        }
+        if (cleanTitle.includes('bowman draft chrome') || cleanTitle.includes('draft chrome')) {
+            return 'Bowman Draft Chrome';
         }
         if (cleanTitle.includes('bowman draft')) {
             return 'Bowman Draft';
