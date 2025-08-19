@@ -2039,6 +2039,17 @@ class NewPricingDatabase {
     extractPlayerName(title) {
         let cleanTitle = title;
         
+        // Step 0: Special handling for J.J. McCarthy - preserve "J.J." before cleaning
+        const hasJJ = cleanTitle.toLowerCase().includes('j.j.') || cleanTitle.toLowerCase().includes('j j');
+        if (hasJJ) {
+            // Look for "J.J. McCarthy" pattern specifically
+            const jjPattern = /\b(J\.?\s*J\.?\s+[A-Z][a-z]+)\b/gi;
+            const jjMatches = title.match(jjPattern);
+            if (jjMatches && jjMatches.length > 0) {
+                return jjMatches[0].replace(/\s+/g, ' ').trim();
+            }
+        }
+        
         // Step 1: Remove the card set
         const cardSet = this.extractCardSet(title);
         if (cardSet) {
@@ -2131,7 +2142,7 @@ class NewPricingDatabase {
             'ice', 'lazer', 'lightboard', 'magenta', 'mt', 'shock',
             // Specific problematic terms from the cards
             'invicta bi15', 'invicta', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in', 'jesus made',
-            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'zone', 'sunday'
+            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'zone', 'sunday', 'pop'
         ];
         cardTerms.forEach(term => {
             const regex = new RegExp(`\\b${term}\\b`, 'gi');
@@ -2265,7 +2276,7 @@ class NewPricingDatabase {
             'yellow', 'green', 'blue', 'red', 'black', 'silver', 'gold', 'white',
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
             'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
-            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'zone', 'sunday'
+            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'zone', 'sunday', 'pop'
         ];
         
         let cleanName = playerName;

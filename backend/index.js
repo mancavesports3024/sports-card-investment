@@ -3307,9 +3307,11 @@ app.post('/api/admin/test-extraction', async (req, res) => {
             "2024 Panini Prizm Rob Dillingham Sublime #24",
             "2024 Bowman Chrome Gold Refractor Eduardo Tait Reptilian #10 /50",
             "2024 Panini Mosaic Blue Mccarthy auto #BN391",
+            "2024 Panini Mosaic J.J. McCarthy Rookie Scripts Auto Blue Disco PSA 10 BN391",
             "2022 Panini Mosaic Josh Allen Storm #10",
             "2024 Donruss Optic Gold Sunday Davante #10 /10",
-            "2002 Topps Chrome Refractor Tracy Mcgrady Zone #ZB10"
+            "2002 Topps Chrome Refractor Tracy Mcgrady Zone #ZB10",
+            "2024 Bowman Chrome Gold Refractor Eduardo Tait Pop #10 /50"
         ];
         
         const results = [];
