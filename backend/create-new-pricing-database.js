@@ -2131,7 +2131,7 @@ class NewPricingDatabase {
             'ice', 'lazer', 'lightboard', 'magenta', 'mt', 'shock',
             // Specific problematic terms from the cards
             'invicta bi15', 'invicta', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in', 'jesus made',
-            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'sublime'
+            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'sublime', 'shimmer', 'scripts'
         ];
         cardTerms.forEach(term => {
             const regex = new RegExp(`\\b${term}\\b`, 'gi');
@@ -2149,6 +2149,15 @@ class NewPricingDatabase {
         
         // Step 9: Remove special characters and normalize whitespace
         cleanTitle = cleanTitle.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+        
+        // Step 9.5: Special handling for initials like J.J. McCarthy
+        // Look for patterns like "J.J. McCarthy" or "J J McCarthy" and preserve them
+        const initialPattern = /\b([A-Z]\.?\s*[A-Z]\.?\s+[A-Z][a-z]+)\b/g;
+        const initialMatches = cleanTitle.match(initialPattern);
+        if (initialMatches && initialMatches.length > 0) {
+            // Take the first match as the player name
+            return initialMatches[0].replace(/\s+/g, ' ').trim();
+        }
         
         // Step 10: Split into words and find the player name
         const words = cleanTitle.split(' ').filter(word => word.length > 1);
@@ -2249,7 +2258,7 @@ class NewPricingDatabase {
             'yellow', 'green', 'blue', 'red', 'black', 'silver', 'gold', 'white',
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
             'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
-            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition', 'sublime'
+            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition', 'sublime', 'shimmer', 'scripts'
         ];
         
         let cleanName = playerName;
