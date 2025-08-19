@@ -535,16 +535,6 @@ class NewPricingDatabase {
             // Initialize title generator if not already done
             await this.initializeTitleGenerator();
             
-            // Extract player name using the improved logic
-            let playerName = null;
-            try {
-                // Use the improved player name extraction method
-                playerName = this.extractPlayerName(cardData.title);
-                console.log(`🎯 Extracted player name: "${playerName}" from "${cardData.title}"`);
-            } catch (playerError) {
-                console.warn(`⚠️ Player name extraction failed: ${playerError.message}`);
-            }
-            
             // Extract year from title - try multiple patterns
             let year = null;
             
@@ -568,10 +558,28 @@ class NewPricingDatabase {
                 console.log(`⚠️ No year found in title "${cardData.title}", using current year ${year} as fallback`);
             }
             
-            // Extract component fields using improved logic
+            // Extract component fields using improved logic - EXTRACT CARD TYPE FIRST
             const cardSet = this.extractCardSet(cardData.title);
             const cardType = this.extractCardType(cardData.title);
             const cardNumber = this.extractCardNumber(cardData.title);
+            
+            // Extract player name AFTER card type to avoid card types in player names
+            let playerName = null;
+            try {
+                // Remove card type from title before extracting player name
+                let titleForPlayerExtraction = cardData.title;
+                if (cardType && cardType.toLowerCase() !== 'base') {
+                    // Remove the card type from the title to prevent it from being included in player name
+                    const cardTypeRegex = new RegExp(`\\b${cardType.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+                    titleForPlayerExtraction = titleForPlayerExtraction.replace(cardTypeRegex, '');
+                }
+                
+                // Use the improved player name extraction method
+                playerName = this.extractPlayerName(titleForPlayerExtraction);
+                console.log(`🎯 Extracted player name: "${playerName}" from "${titleForPlayerExtraction}" (card type "${cardType}" removed)`);
+            } catch (playerError) {
+                console.warn(`⚠️ Player name extraction failed: ${playerError.message}`);
+            }
             
             // Extract rookie and autograph attributes
             const isRookie = this.isRookieCard(cardData.title);
