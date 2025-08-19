@@ -861,7 +861,7 @@ class NewPricingDatabase {
                 // Parallel and insert types
                 'refractor', 'parallel', 'numbered', 'limited', 'gold', 'silver', 'bronze', 'platinum', 'diamond', 'emerald', 'sapphire', 'ruby', 'amethyst', 'onyx', 'black', 'white', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'teal', 'aqua', 'cyan', 'lime', 'mint', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet',
                 // Card features
-                'rookie', 'rc', 'auto', 'autograph', 'au', 'jersey', 'patch', 'base', 'holo', 'ssp', 'sp', 'hof',
+                'rookie', 'rc', 'auto', 'autograph', 'autographs', 'au', 'jersey', 'patch', 'base', 'holo', 'ssp', 'sp', 'hof',
                 // Other card terms
                 'victory', 'crown', 'portrait', 'police', 'instant', 'impact', 'update', 'field', 'level', 'courtside', 'elephant', 'disco', 'ice', 'lazer', 'shock', 'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua', 'sapphire', 'woo', 'draft', 'red/white/blue', 'tf1'
             ];
