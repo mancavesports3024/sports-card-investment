@@ -1982,7 +1982,9 @@ class NewPricingDatabase {
         // Step 1: Remove the card set
         const cardSet = this.extractCardSet(title);
         if (cardSet) {
-            cleanTitle = cleanTitle.replace(new RegExp(cardSet, 'gi'), ' ');
+            // Build a hyphen/space tolerant regex for the card set
+            const tolerant = cardSet.replace(/\s+/g, '[\\s-]+');
+            cleanTitle = cleanTitle.replace(new RegExp(tolerant, 'gi'), ' ');
         }
         
         // Step 2: Remove the card type
