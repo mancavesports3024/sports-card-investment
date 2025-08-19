@@ -101,9 +101,9 @@ const AdminCardDatabase = () => {
   const generateEbaySearchUrl = (searchQuery) => {
     if (!searchQuery) return '#';
     
-    // Clean up the search query for eBay
+    // Clean up the search query for eBay, but preserve # for card numbers
     const cleanQuery = searchQuery
-      .replace(/[^\w\s]/g, ' ') // Remove special characters
+      .replace(/[^\w\s#]/g, ' ') // Remove special characters but keep # and alphanumeric
       .replace(/\s+/g, ' ') // Replace multiple spaces with single space
       .trim();
     
