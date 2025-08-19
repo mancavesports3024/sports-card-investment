@@ -2060,7 +2060,7 @@ class NewPricingDatabase {
         // Step 5: Remove other common card terms
         const cardTerms = [
             'rookie', 'rc', 'yg', 'young guns', '1st', 'first', 'prospect', 'debut',
-            'auto', 'autograph', 'on card', 'sticker', 'patch', 'relic', 'memorabilia',
+            'auto', 'autograph', 'autographs', 'on card', 'sticker', 'patch', 'relic', 'memorabilia',
             'parallel', 'insert', 'base', 'sp', 'ssp', 'short print', 'super short print',
             'parallel', 'insert', 'base', 'holo', 'holographic', 'chrome', 'prizm',
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
@@ -2068,7 +2068,7 @@ class NewPricingDatabase {
             'bowman', 'topps', 'panini', 'donruss', 'optic', 'mosaic', 'select', 'finest',
             'chronicles', 'picks', 'prospects', 'obsidian', 'contenders', 'instant', 'update', 'courtside', 'jersey', 'international', 'impact',
             'baseball', 'football', 'basketball', 'hockey', 'soccer', 'golf', 'racing',
-            'rookie card', 'university', 'draft', 'stars', 'cosmic', 'invicta', 'all-etch',
+            'rookie card', 'university', 'draft', 'stars', 'cosmic', 'invicta', 'all-etch', 'edition',
             'gold', 'silver', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink',
             'bronze', 'white', 'teal', 'neon', 'camo', 'tie-dye', 'disco', 'dragon scale',
             'snakeskin', 'pulsar', 'logo', 'variation', 'clear cut', 'real one', 'downtown',
@@ -2236,7 +2236,7 @@ class NewPricingDatabase {
             'yellow', 'green', 'blue', 'red', 'black', 'silver', 'gold', 'white',
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
             'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
-            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph'
+            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition'
         ];
         
         let cleanName = playerName;
