@@ -220,7 +220,7 @@ class NewPricingDatabase {
         }
         
         // Baseball detection - enhanced with more specific terms
-        if (this.hasBaseballIndicators(titleLower)) {
+        if (this.hasBaseballIndicators(titleLower) || titleLower.includes('bowman')) {
             return 'Baseball';
         }
         
@@ -1058,6 +1058,8 @@ class NewPricingDatabase {
         teamNames.forEach(team => {
             cleanTitle = cleanTitle.replace(new RegExp(`\\b${team}\\b`, 'g'), '');
         });
+        // Normalize separators like hyphens between brand and set (e.g., "Bowman - Chrome" -> "Bowman Chrome")
+        cleanTitle = cleanTitle.replace(/\s*-\s*/g, ' ');
         
         // Check for specific card sets in order of specificity (most specific first)
         
@@ -1214,6 +1216,12 @@ class NewPricingDatabase {
             cleanTitle.includes('bowman chrome u 1st') || 
             cleanTitle.includes('bowman chrome u1st')) {
             return 'Bowman Chrome U 1st';
+        }
+        // Bowman Chrome U (University) base
+        if (cleanTitle.includes('bowman chrome u ') ||
+            cleanTitle.endsWith('bowman chrome u') ||
+            cleanTitle.includes('bowman university chrome')) {
+            return 'Bowman Chrome U';
         }
         if (cleanTitle.includes('bowman chrome draft')) {
             return 'Bowman Chrome Draft';
@@ -1863,7 +1871,11 @@ class NewPricingDatabase {
             
             // Fix inconsistent naming
             cardType = cardType.replace(/Rookies/g, 'Rookie');
-            cardType = cardType.replace(/Autograph/g, 'Auto');
+            // Replace Autograph(s) -> Auto then strip solitary Auto from type since we already output 'auto' separately
+            cardType = cardType.replace(/Autographs?/g, 'Auto');
+            if (/^auto\b/i.test(cardType)) {
+                cardType = cardType.replace(/^auto\b/i, '').trim();
+            }
             cardType = cardType.replace(/\bSp\b/g, 'SP');
             
             // Fix specific combinations that should be standardized
