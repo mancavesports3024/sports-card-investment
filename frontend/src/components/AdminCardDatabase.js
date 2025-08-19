@@ -116,7 +116,6 @@ const AdminCardDatabase = () => {
       '_nkw': rawQuery,
       '_sacat': '0', // All categories
       '_sop': '12', // Sort by newly listed
-      'LH_ItemCondition': '4', // Used condition (raw cards)
       // eBay Partner Network affiliate tracking
       'mkevt': '1',
       'mkcid': '1',
