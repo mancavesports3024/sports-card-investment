@@ -110,7 +110,7 @@ const AdminCardDatabase = () => {
     // Add terms to exclude graded cards and focus on raw cards
     const rawQuery = `${cleanQuery} -psa -bgs -sgc -cgc -tag -graded -gem -mint`;
     
-    // Build eBay search URL with tracking parameters
+    // Build eBay search URL with affiliate tracking parameters
     const baseUrl = 'https://www.ebay.com/sch/i.html';
     const params = new URLSearchParams({
       '_nkw': rawQuery,
@@ -119,13 +119,14 @@ const AdminCardDatabase = () => {
       'LH_Auction': '1', // Show auctions
       'LH_BIN': '1', // Show buy it now
       'LH_ItemCondition': '4', // Used condition (raw cards)
+      // eBay Partner Network affiliate tracking
       'mkevt': '1',
       'mkcid': '1',
       'mkrid': '711-53200-19255-0',
       'siteid': '0',
       'campid': '5338333097',
       'toolid': '10001',
-      'customid': 'trading-card-tracker'
+      'customid': 'mancavesportscards-admin'
     });
     
     return `${baseUrl}?${params.toString()}`;
