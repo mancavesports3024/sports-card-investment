@@ -107,14 +107,18 @@ const AdminCardDatabase = () => {
       .replace(/\s+/g, ' ') // Replace multiple spaces with single space
       .trim();
     
+    // Add terms to exclude graded cards and focus on raw cards
+    const rawQuery = `${cleanQuery} -psa -bgs -sgc -cgc -tag -graded -gem -mint`;
+    
     // Build eBay search URL with tracking parameters
     const baseUrl = 'https://www.ebay.com/sch/i.html';
     const params = new URLSearchParams({
-      '_nkw': cleanQuery,
+      '_nkw': rawQuery,
       '_sacat': '0', // All categories
       '_sop': '12', // Sort by newly listed
-      'LH_Sold': '1', // Show sold items
-      'LH_Complete': '1', // Show completed items
+      'LH_Auction': '1', // Show auctions
+      'LH_BIN': '1', // Show buy it now
+      'LH_ItemCondition': '4', // Used condition (raw cards)
       'mkevt': '1',
       'mkcid': '1',
       'mkrid': '711-53200-19255-0',
