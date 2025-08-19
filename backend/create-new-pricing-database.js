@@ -1923,6 +1923,19 @@ class NewPricingDatabase {
             if (cardType && !cardType.toLowerCase().includes('1st edition')) {
                 cardType = cardType.replace(/\bedition\b/gi, '').trim();
             }
+            
+            // Remove "Sapphire" from card_type if it's already in the card set
+            if (cardType && cardType.toLowerCase().includes('sapphire')) {
+                const titleLower = title.toLowerCase();
+                if (titleLower.includes('bowman chrome sapphire') || titleLower.includes('sapphire edition')) {
+                    cardType = cardType.replace(/\bsapphire\b/gi, '').trim();
+                }
+            }
+            
+            // Remove SP and SSP from card_type - they're not card types
+            if (cardType) {
+                cardType = cardType.replace(/\b(sp|ssp)\b/gi, '').trim();
+            }
             cardType = cardType.replace(/\bSp\b/g, 'SP');
             
             // Fix specific combinations that should be standardized
@@ -2118,7 +2131,7 @@ class NewPricingDatabase {
             'ice', 'lazer', 'lightboard', 'magenta', 'mt', 'shock',
             // Specific problematic terms from the cards
             'invicta bi15', 'invicta', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in', 'jesus made',
-            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch'
+            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'sublime'
         ];
         cardTerms.forEach(term => {
             const regex = new RegExp(`\\b${term}\\b`, 'gi');
@@ -2236,7 +2249,7 @@ class NewPricingDatabase {
             'yellow', 'green', 'blue', 'red', 'black', 'silver', 'gold', 'white',
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
             'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
-            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition'
+            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition', 'sublime'
         ];
         
         let cleanName = playerName;

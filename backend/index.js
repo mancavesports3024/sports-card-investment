@@ -3301,7 +3301,10 @@ app.post('/api/admin/test-extraction', async (req, res) => {
         const testTitles = [
             "2023 Bowman Chrome Autographs Gold Michael Harris II auto #CRA-MH",
             "2023 Bowman - Chrome Rookie Autographs Michael Harris II #CRA-MH Gold Ref PSA 10",
-            "2023 Bowman Chrome Sapphire Orange Sapphire Edition Zach Neto #10 /75"
+            "2023 Bowman Chrome Sapphire Orange Sapphire Edition Zach Neto #10 /75",
+            "2024 Bowman Chrome U SP Green Sarah Strong Shimmer #62",
+            "2024 Panini Mosaic Blue Mccarthy Scripts auto #BN391",
+            "2024 Panini Prizm Rob Dillingham Sublime #24"
         ];
         
         const results = [];
