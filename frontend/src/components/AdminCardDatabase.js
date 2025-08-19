@@ -126,26 +126,6 @@ const AdminCardDatabase = () => {
     
     return `${baseUrl}?${params.toString()}`;
   };
-    if (!searchQuery) return '#';
-    
-    // Encode the search query for URL
-    const encodedQuery = encodeURIComponent(searchQuery);
-    
-    // Build eBay search URL with tracking parameters
-    const baseUrl = 'https://www.ebay.com/sch/i.html';
-    const params = [
-      `_nkw=${encodedQuery}`,
-      'mkevt=1',
-      'mkcid=1',
-      'mkrid=711-53200-19255-0',
-      'siteid=0',
-      'campid=5338333097',
-      'toolid=10001',
-      'customid=trading-card-tracker'
-    ];
-    
-    return `${baseUrl}?${params.join('&')}`;
-  };
 
   const getPaginationButtons = () => {
     const buttons = [];
