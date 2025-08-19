@@ -3338,6 +3338,8 @@ app.post('/api/admin/test-extraction', async (req, res) => {
             "2022 Topps Update Julio Rodriguez Printing Plates #US44",
             "2024 Topps Chrome Radiating Rookies Yoshinobu #RR-16",
             "2024 Topps Chrome Radiating Rookies Yoshinobu Yamamoto #RR-16 (RC) PSA 10",
+            "2022 Topps Update Julio Rodriguez Foil #US44",
+            "2024 Topps Gold Stephen Curry Now #27",
             "2024 Donruss Optic Gold Sunday Davante #10 /10",
             "2002 Topps Chrome Refractor Tracy Mcgrady Zone #ZB10",
             "2024 Bowman Chrome Gold Refractor Eduardo Tait Pop #10 /50"
