@@ -1232,10 +1232,7 @@ class NewPricingDatabase {
         }
         
         // Other specific sets (only if not already matched by more specific patterns above)
-        if ((cleanTitle.includes('bowman chrome') && cleanTitle.includes('rookie autographs')) || 
-            cleanTitle.includes('bowman chrome rookie autographs')) {
-            return 'Bowman Chrome Rookie Autographs';
-        }
+        // Note: "Autographs" is removed from card_set - it's handled as an attribute, not a set
         if ((cleanTitle.includes('bowman chrome') && cleanTitle.includes('u 1st')) || 
             cleanTitle.includes('bowman chrome u 1st') || 
             cleanTitle.includes('bowman chrome u1st')) {
@@ -1913,10 +1910,18 @@ class NewPricingDatabase {
             
             // Fix inconsistent naming
             cardType = cardType.replace(/Rookies/g, 'Rookie');
+            // Remove "Autographs" from card_type - it's handled as an attribute, not a type
+            cardType = cardType.replace(/\bautographs?\b/gi, '').trim();
+            
             // Replace Autograph(s) -> Auto then strip solitary Auto from type since we already output 'auto' separately
             cardType = cardType.replace(/Autographs?/g, 'Auto');
             if (/^auto\b/i.test(cardType)) {
                 cardType = cardType.replace(/^auto\b/i, '').trim();
+            }
+            
+            // Remove "Edition" from card_type unless it's "1st Edition"
+            if (cardType && !cardType.toLowerCase().includes('1st edition')) {
+                cardType = cardType.replace(/\bedition\b/gi, '').trim();
             }
             cardType = cardType.replace(/\bSp\b/g, 'SP');
             

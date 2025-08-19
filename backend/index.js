@@ -3298,67 +3298,79 @@ app.post('/api/admin/test-extraction', async (req, res) => {
         const db = new NewPricingDatabase();
         await db.connect();
         
-        const testTitle = "2024 Topps Chrome Junior Caminero Rookie AU Autograph Orange Wave Ref PSA 10";
+        const testTitles = [
+            "2023 Bowman Chrome Autographs Gold Michael Harris II auto #CRA-MH",
+            "2023 Bowman - Chrome Rookie Autographs Michael Harris II #CRA-MH Gold Ref PSA 10",
+            "2023 Bowman Chrome Sapphire Orange Sapphire Edition Zach Neto #10 /75"
+        ];
         
-        console.log(`🔍 Testing extraction for: "${testTitle}"`);
+        const results = [];
         
-        // Test each extraction method
-        // Extract year from title
-        let year = null;
-        const yearMatch = testTitle.match(/(19|20)\d{2}/);
-        if (yearMatch) {
-            year = parseInt(yearMatch[0]);
+        for (const testTitle of testTitles) {
+            console.log(`🔍 Testing extraction for: "${testTitle}"`);
+            
+            // Test each extraction method
+            // Extract year from title
+            let year = null;
+            const yearMatch = testTitle.match(/(19|20)\d{2}/);
+            if (yearMatch) {
+                year = parseInt(yearMatch[0]);
+            }
+            
+            const cardSet = db.extractCardSet(testTitle);
+            const cardType = db.extractCardType(testTitle);
+            const cardNumber = db.extractCardNumber(testTitle);
+            
+            // Extract print run
+            let printRun = null;
+            const printRunMatch = testTitle.match(/\/(\d+)/);
+            if (printRunMatch) {
+                printRun = '/' + printRunMatch[1];
+            }
+            
+            const isRookie = db.isRookieCard(testTitle);
+            const isAutograph = db.isAutographCard(testTitle);
+            const sport = db.detectSportFromKeywords(testTitle);
+            
+            // Test player name extraction
+            const playerName = db.extractPlayerName(testTitle);
+            const cleanPlayerName = playerName ? db.filterTeamNamesFromPlayer(playerName) : null;
+            const finalPlayerName = cleanPlayerName ? db.capitalizePlayerName(cleanPlayerName) : null;
+            
+            // Build summary title
+            let summaryTitle = '';
+            if (year) summaryTitle += year;
+            if (cardSet) summaryTitle += (summaryTitle ? ' ' : '') + cardSet;
+            if (finalPlayerName) summaryTitle += (summaryTitle ? ' ' : '') + finalPlayerName;
+            if (cardType && cardType.toLowerCase() !== 'base') summaryTitle += (summaryTitle ? ' ' : '') + cardType;
+            if (isAutograph) summaryTitle += (summaryTitle ? ' ' : '') + 'auto';
+            if (cardNumber) summaryTitle += (summaryTitle ? ' ' : '') + cardNumber;
+            if (printRun) summaryTitle += (summaryTitle ? ' ' : '') + printRun;
+            
+            results.push({
+                testTitle,
+                results: {
+                    year,
+                    cardSet,
+                    cardType,
+                    cardNumber,
+                    printRun,
+                    isRookie,
+                    isAutograph,
+                    sport,
+                    playerName,
+                    cleanPlayerName,
+                    finalPlayerName,
+                    summaryTitle
+                }
+            });
         }
-        
-        const cardSet = db.extractCardSet(testTitle);
-        const cardType = db.extractCardType(testTitle);
-        const cardNumber = db.extractCardNumber(testTitle);
-        
-        // Extract print run
-        let printRun = null;
-        const printRunMatch = testTitle.match(/\/(\d+)/);
-        if (printRunMatch) {
-            printRun = '/' + printRunMatch[1];
-        }
-        
-        const isRookie = db.isRookieCard(testTitle);
-        const isAutograph = db.isAutographCard(testTitle);
-        const sport = db.detectSportFromKeywords(testTitle);
-        
-        // Test player name extraction
-        const playerName = db.extractPlayerName(testTitle);
-        const cleanPlayerName = playerName ? db.filterTeamNamesFromPlayer(playerName) : null;
-        const finalPlayerName = cleanPlayerName ? db.capitalizePlayerName(cleanPlayerName) : null;
-        
-        // Build summary title
-        let summaryTitle = '';
-        if (year) summaryTitle += year;
-        if (cardSet) summaryTitle += (summaryTitle ? ' ' : '') + cardSet;
-        if (finalPlayerName) summaryTitle += (summaryTitle ? ' ' : '') + finalPlayerName;
-        if (cardType && cardType.toLowerCase() !== 'base') summaryTitle += (summaryTitle ? ' ' : '') + cardType;
-        if (isAutograph) summaryTitle += (summaryTitle ? ' ' : '') + 'auto';
-        if (cardNumber) summaryTitle += (summaryTitle ? ' ' : '') + cardNumber;
-        if (printRun) summaryTitle += (summaryTitle ? ' ' : '') + printRun;
         
         await db.close();
         
         res.json({
             success: true,
-            testTitle: testTitle,
-            results: {
-                year,
-                cardSet,
-                cardType,
-                cardNumber,
-                printRun,
-                isRookie,
-                isAutograph,
-                sport,
-                playerName,
-                cleanPlayerName,
-                finalPlayerName,
-                summaryTitle
-            },
+            results,
             timestamp: new Date().toISOString()
         });
         
@@ -3492,21 +3504,7 @@ app.post('/api/admin/fix-summary-titles', async (req, res) => {
     }
 });
 
-// POST /api/admin/check-missing-chrome - Find titles that mention Chrome but summaries do not
-app.post('/api/admin/check-missing-chrome', async (req, res) => {
-    try {
-        console.log('🔍 Checking for missing Chrome in summary titles...');
-        const { ChromeGapChecker } = require('./check-missing-chrome.js');
-        const checker = new ChromeGapChecker();
-        await checker.connect();
-        const results = await checker.findChromeMissingInSummary();
-        await checker.close();
-        res.json({ success: true, count: results.length, results, timestamp: new Date().toISOString() });
-    } catch (error) {
-        console.error('❌ Error checking missing chrome:', error);
-        res.status(500).json({ success: false, error: error.message, timestamp: new Date().toISOString() });
-    }
-});
+
 
 // POST /api/admin/restore-summary-titles - Restore summary titles to proper format
 app.post('/api/admin/restore-summary-titles', async (req, res) => {
