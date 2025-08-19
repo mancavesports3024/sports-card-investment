@@ -96,7 +96,20 @@ class ExistingSummaryTitleRebuilder {
         const unwantedTerms = [
             'psa', 'gem', 'mint', 'rc', 'rookie', 'yg', 'ssp', 'holo', 'velocity', 'notoriety',
             'mvp', 'hof', 'nfl', 'debut', 'card', 'rated', '1st', 'first', 'chrome', 'university',
-            'rams', 'vikings', 'browns', 'chiefs', 'giants', 'ny giants', 'eagles', 'cowboys', 'falcons', 'panthers'
+            'rams', 'vikings', 'browns', 'chiefs', 'giants', 'ny giants', 'eagles', 'cowboys', 'falcons', 'panthers',
+            // Card types that should be removed from summary titles
+            'flash', 'fifa', 'scope', 'hyper', 'optic', 'mosaic', 'select', 'finest',
+            'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua', 'sapphire',
+            'woo', 'draft', 'red/white/blue', 'tf1', 'invicta', 'all-etch', 'night',
+            'cosmic stars', 'cosmic', 'all etch', 'stars', 'splash', 'rising', 'best',
+            'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric',
+            'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'downtown', 'real one',
+            'clear cut', 'variation', 'logo', 'pulsar', 'snakeskin', 'dragon scale',
+            'tie-dye', 'disco', 'neon', 'camo', 'bronze', 'teal', 'pink', 'purple', 'orange',
+            'yellow', 'green', 'blue', 'red', 'black', 'silver', 'gold', 'white',
+            'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
+            'holographic', 'prizm', 'base', 'sp', 'short print', 'super short print',
+            'parallel', 'insert', 'numbered', 'limited'
         ];
         
         unwantedTerms.forEach(term => {
