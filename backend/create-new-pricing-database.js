@@ -2131,7 +2131,7 @@ class NewPricingDatabase {
             'ice', 'lazer', 'lightboard', 'magenta', 'mt', 'shock',
             // Specific problematic terms from the cards
             'invicta bi15', 'invicta', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in', 'jesus made',
-            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'sublime', 'shimmer', 'scripts'
+            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'sublime', 'shimmer', 'scripts', 'ref'
         ];
         cardTerms.forEach(term => {
             const regex = new RegExp(`\\b${term}\\b`, 'gi');
@@ -2157,6 +2157,13 @@ class NewPricingDatabase {
         if (initialMatches && initialMatches.length > 0) {
             // Take the first match as the player name
             return initialMatches[0].replace(/\s+/g, ' ').trim();
+        }
+        
+        // Also look for "J.J." or "J J" followed by a last name
+        const jjPattern = /\b(J\.?\s*J\.?\s+[A-Z][a-z]+)\b/g;
+        const jjMatches = cleanTitle.match(jjPattern);
+        if (jjMatches && jjMatches.length > 0) {
+            return jjMatches[0].replace(/\s+/g, ' ').trim();
         }
         
         // Step 10: Split into words and find the player name
@@ -2258,7 +2265,7 @@ class NewPricingDatabase {
             'yellow', 'green', 'blue', 'red', 'black', 'silver', 'gold', 'white',
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
             'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
-            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition', 'sublime', 'shimmer', 'scripts'
+            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition', 'sublime', 'shimmer', 'scripts', 'ref'
         ];
         
         let cleanName = playerName;
