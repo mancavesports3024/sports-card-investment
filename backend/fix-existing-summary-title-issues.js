@@ -115,7 +115,7 @@ class ExistingSummaryTitleIssueFixer {
                     // Clean up any commas from the summary title
                     newSummaryTitle = newSummaryTitle.replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
                     
-                    // Remove unwanted terms from final summary title
+                    // Remove unwanted terms from final summary title (but NOT card types - those should be in the summary)
                     const unwantedTerms = [
                         'psa', 'gem', 'mint', 'rc', 'rookie', 'yg', 'ssp', 'holo', 'velocity', 'notoriety',
                         'mvp', 'hof', 'nfl', 'debut', 'card', 'rated', '1st', 'first', 'chrome', 'university',
