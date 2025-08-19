@@ -1776,38 +1776,25 @@ class NewPricingDatabase {
         
 
         
-        // Remove duplicate consecutive words (e.g., "Wave Red Wave Red" -> "Wave Red")
-        cardType = cardType.replace(/\b(\w+)\s+\1\b/gi, '$1');
+        // Enhanced deduplication to prevent duplicates like "Chrome Chrome", "Prizm Prizm"
+        const words = cardType.split(' ');
+        const uniqueWords = [];
+        const seenWords = new Set();
         
-        // Remove duplicate consecutive phrases (e.g., "Wave Red Wave Red" -> "Wave Red")
-        cardType = cardType.replace(/\b(\w+\s+\w+)\s+\1\b/gi, '$1');
-        
-        // Remove duplicate consecutive three-word phrases (e.g., "Silver Prizm Silver Prizm" -> "Silver Prizm")
-        cardType = cardType.replace(/\b(\w+\s+\w+\s+\w+)\s+\1\b/gi, '$1');
-        
-        // More aggressive deduplication for complex patterns
-        // Remove any word that appears more than once in the card type
-        // But preserve special combinations like "Green and Yellow"
-        if (cardType.includes('Green and Yellow') || cardType.includes('Red and White') || 
-            cardType.includes('Blue and Red') || cardType.includes('Black and Red') ||
-            cardType.includes('Black and Green') || cardType.includes('Blue and Green') ||
-            cardType.includes('Red and Yellow') || cardType.includes('Orange and Blue') ||
-            cardType.includes('Purple and Gold') || cardType.includes('Pink and Purple')) {
-            // Don't deduplicate these special combinations
-        } else {
-            const words = cardType.split(' ');
-            const uniqueWords = [];
-            const seenWords = new Set();
-            
-            for (const word of words) {
-                if (!seenWords.has(word.toLowerCase())) {
-                    uniqueWords.push(word);
-                    seenWords.add(word.toLowerCase());
-                }
+        for (const word of words) {
+            const wordLower = word.toLowerCase();
+            if (!seenWords.has(wordLower)) {
+                uniqueWords.push(word);
+                seenWords.add(wordLower);
             }
-            
-            cardType = uniqueWords.join(' ');
         }
+        
+        cardType = uniqueWords.join(' ');
+        
+        // Additional deduplication for common patterns
+        cardType = cardType.replace(/\b(\w+)\s+\1\b/gi, '$1'); // Remove consecutive duplicates
+        cardType = cardType.replace(/\b(\w+\s+\w+)\s+\1\b/gi, '$1'); // Remove consecutive phrase duplicates
+        cardType = cardType.replace(/\b(\w+\s+\w+\s+\w+)\s+\1\b/gi, '$1'); // Remove consecutive three-word duplicates
 
         // Post-processing to fix common issues
         if (cardType) {
@@ -2004,6 +1991,19 @@ class NewPricingDatabase {
             'tottenham', 'barcelona', 'real madrid', 'bayern munich', 'psg', 'juventus',
             'ac milan', 'inter milan', 'ajax', 'porto', 'benfica', 'celtic', 'rangers',
             'fc', 'united', 'city', 'athletic', 'sporting', 'dynamo', 'spartak', 'zenit',
+            // Card types that should be removed from player names
+            'flash', 'fifa', 'velocity', 'scope', 'hyper', 'optic', 'mosaic', 'select', 'finest',
+            'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua', 'sapphire',
+            'woo', 'draft', 'red/white/blue', 'tf1', 'invicta', 'all-etch', 'night',
+            'cosmic stars', 'cosmic', 'all etch', 'stars', 'splash', 'rising', 'best',
+            'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric',
+            'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'downtown', 'real one',
+            'clear cut', 'variation', 'logo', 'pulsar', 'snakeskin', 'dragon scale',
+            'tie-dye', 'disco', 'neon', 'camo', 'bronze', 'teal', 'pink', 'purple', 'orange',
+            'yellow', 'green', 'blue', 'red', 'black', 'silver', 'gold', 'white',
+            'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
+            'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
+            'super short print', 'parallel', 'insert', 'numbered', 'limited',
             // Specific problematic terms from the cards
             'invicta bi15', 'invicta', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in', 'jesus made',
             'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch'
@@ -2111,7 +2111,20 @@ class NewPricingDatabase {
             'liverpool', 'manchester united', 'manchester city', 'arsenal', 'chelsea',
             'tottenham', 'barcelona', 'real madrid', 'bayern munich', 'psg', 'juventus',
             'ac milan', 'inter milan', 'ajax', 'porto', 'benfica', 'celtic', 'rangers',
-            'fc', 'united', 'city', 'athletic', 'sporting', 'dynamo', 'spartak', 'zenit'
+            'fc', 'united', 'city', 'athletic', 'sporting', 'dynamo', 'spartak', 'zenit',
+            // Card types that should be removed from player names
+            'flash', 'fifa', 'velocity', 'scope', 'hyper', 'optic', 'mosaic', 'select', 'finest',
+            'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua', 'sapphire',
+            'woo', 'draft', 'red/white/blue', 'tf1', 'invicta', 'all-etch', 'night',
+            'cosmic stars', 'cosmic', 'all etch', 'stars', 'splash', 'rising', 'best',
+            'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric',
+            'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'downtown', 'real one',
+            'clear cut', 'variation', 'logo', 'pulsar', 'snakeskin', 'dragon scale',
+            'tie-dye', 'disco', 'neon', 'camo', 'bronze', 'teal', 'pink', 'purple', 'orange',
+            'yellow', 'green', 'blue', 'red', 'black', 'silver', 'gold', 'white',
+            'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
+            'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
+            'super short print', 'parallel', 'insert', 'numbered', 'limited'
         ];
         
         let cleanName = playerName;
