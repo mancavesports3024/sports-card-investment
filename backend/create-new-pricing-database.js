@@ -1252,7 +1252,8 @@ class NewPricingDatabase {
         if (cleanTitle.includes('bowman chrome draft') || (cleanTitle.includes('bowman draft') && cleanTitle.includes('chrome'))) {
             return 'Bowman Chrome Draft';
         }
-        if (cleanTitle.includes('bowman chrome sapphire')) {
+        if (cleanTitle.includes('bowman chrome sapphire') ||
+            (cleanTitle.includes('bowman') && cleanTitle.includes('sapphire') && cleanTitle.includes('chrome'))) {
             return 'Bowman Chrome Sapphire';
         }
         if (cleanTitle.includes('bowman chrome')) {
