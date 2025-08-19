@@ -2005,7 +2005,7 @@ class NewPricingDatabase {
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
             'wave', 'velocity', 'scope', 'hyper', 'optic', 'mosaic', 'select', 'finest',
             'bowman', 'topps', 'panini', 'donruss', 'optic', 'mosaic', 'select', 'finest',
-            'chronicles', 'picks', 'prospects', 'obsidian', 'contenders', 'instant', 'update', 'courtside', 'jersey',
+            'chronicles', 'picks', 'prospects', 'obsidian', 'contenders', 'instant', 'update', 'courtside', 'jersey', 'international', 'impact',
             'baseball', 'football', 'basketball', 'hockey', 'soccer', 'golf', 'racing',
             'rookie card', 'university', 'draft', 'stars', 'cosmic', 'invicta', 'all-etch',
             'gold', 'silver', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink',
