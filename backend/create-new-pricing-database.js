@@ -1216,7 +1216,7 @@ class NewPricingDatabase {
         if (cleanTitle.includes('topps bowman')) {
             return 'Bowman';
         }
-        if (cleanTitle.includes('topps now')) {
+        if (cleanTitle.includes('topps now') || (cleanTitle.includes('topps') && cleanTitle.includes('now'))) {
             return 'Topps Now';
         }
         if (cleanTitle.includes('topps')) {
