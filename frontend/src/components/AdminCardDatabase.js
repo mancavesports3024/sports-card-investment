@@ -97,6 +97,56 @@ const AdminCardDatabase = () => {
     }
   };
 
+  // Generate eBay search URL for live listings
+  const generateEbaySearchUrl = (searchQuery) => {
+    if (!searchQuery) return '#';
+    
+    // Clean up the search query for eBay
+    const cleanQuery = searchQuery
+      .replace(/[^\w\s]/g, ' ') // Remove special characters
+      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+      .trim();
+    
+    // Build eBay search URL with tracking parameters
+    const baseUrl = 'https://www.ebay.com/sch/i.html';
+    const params = new URLSearchParams({
+      '_nkw': cleanQuery,
+      '_sacat': '0', // All categories
+      '_sop': '12', // Sort by newly listed
+      'LH_Sold': '1', // Show sold items
+      'LH_Complete': '1', // Show completed items
+      'mkevt': '1',
+      'mkcid': '1',
+      'mkrid': '711-53200-19255-0',
+      'siteid': '0',
+      'campid': '5338333097',
+      'toolid': '10001',
+      'customid': 'trading-card-tracker'
+    });
+    
+    return `${baseUrl}?${params.toString()}`;
+  };
+    if (!searchQuery) return '#';
+    
+    // Encode the search query for URL
+    const encodedQuery = encodeURIComponent(searchQuery);
+    
+    // Build eBay search URL with tracking parameters
+    const baseUrl = 'https://www.ebay.com/sch/i.html';
+    const params = [
+      `_nkw=${encodedQuery}`,
+      'mkevt=1',
+      'mkcid=1',
+      'mkrid=711-53200-19255-0',
+      'siteid=0',
+      'campid=5338333097',
+      'toolid=10001',
+      'customid=trading-card-tracker'
+    ];
+    
+    return `${baseUrl}?${params.join('&')}`;
+  };
+
   const getPaginationButtons = () => {
     const buttons = [];
     const { page = 1, totalPages = 1, hasPrevPage = false, hasNextPage = false } = pagination;
@@ -276,7 +326,16 @@ const AdminCardDatabase = () => {
                 {cards.map((card) => (
                   <tr key={card.id}>
                     <td className="card-title">
-                      <div className="title-main">{card.summaryTitle || card.title}</div>
+                      <div className="title-main">
+                        {card.summaryTitle || card.title}
+                        <button 
+                          className="ebay-link-btn"
+                          onClick={() => window.open(generateEbaySearchUrl(card.summaryTitle || card.title), '_blank')}
+                          title="View eBay Live Listings"
+                        >
+                          🔍 eBay
+                        </button>
+                      </div>
                       {card.summaryTitle && card.title !== card.summaryTitle && (
                         <div className="title-original">{card.title}</div>
                       )}
