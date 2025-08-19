@@ -57,51 +57,75 @@ class ExistingCardsFixer {
                     const cleanPlayerName = playerName ? this.db.filterTeamNamesFromPlayer(playerName) : null;
                     const finalPlayerName = cleanPlayerName ? this.db.capitalizePlayerName(cleanPlayerName) : null;
 
-                    // Build new summary title
+                    // Build new summary title (matching addCard method exactly)
                     let newSummaryTitle = '';
-
+                    
+                    // Check if it's an autograph card
+                    const isAuto = card.title.toLowerCase().includes('auto');
+                    
                     // Start with year
                     if (year) {
                         newSummaryTitle += year;
                     }
-
-                    // Add card set
+                    
+                    // Add card set (cleaned of sport names)
                     if (cardSet) {
                         if (newSummaryTitle) newSummaryTitle += ' ';
-                        newSummaryTitle += cardSet;
+                        const cleanedCardSet = this.db.cleanSportNamesFromCardSet(cardSet);
+                        newSummaryTitle += cleanedCardSet;
                     }
-
-                    // Add player name
-                    if (finalPlayerName) {
+                    
+                    // Add player name (but not if it's already in the card set)
+                    if (finalPlayerName && cardSet && !cardSet.toLowerCase().includes(finalPlayerName.toLowerCase())) {
+                        if (newSummaryTitle) newSummaryTitle += ' ';
+                        newSummaryTitle += finalPlayerName;
+                    } else if (finalPlayerName && !cardSet) {
                         if (newSummaryTitle) newSummaryTitle += ' ';
                         newSummaryTitle += finalPlayerName;
                     }
-
-                    // Add card type (but exclude "Base")
+                    
+                    // Add card type (colors, parallels, etc.) - but exclude "Base"
                     if (cardType && cardType.toLowerCase() !== 'base') {
                         if (newSummaryTitle) newSummaryTitle += ' ';
-                        newSummaryTitle += cardType;
+                        // Properly capitalize card type (e.g., "REFRACTOR" -> "Refractor")
+                        const capitalizedCardType = cardType.charAt(0).toUpperCase() + cardType.slice(1).toLowerCase();
+                        newSummaryTitle += capitalizedCardType;
                     }
-
+                    
                     // Add "auto" if it's an autograph
-                    if (isAutograph) {
+                    if (isAuto) {
                         if (newSummaryTitle) newSummaryTitle += ' ';
                         newSummaryTitle += 'auto';
                     }
-
+                    
                     // Add card number
                     if (cardNumber) {
                         if (newSummaryTitle) newSummaryTitle += ' ';
                         newSummaryTitle += cardNumber;
                     }
-
+                    
                     // Add print run
                     if (printRun) {
                         if (newSummaryTitle) newSummaryTitle += ' ';
                         newSummaryTitle += printRun;
                     }
-
-                    // Clean up extra spaces
+                    
+                    // Clean up any commas from the summary title
+                    newSummaryTitle = newSummaryTitle.replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+                    
+                    // Remove unwanted terms from final summary title
+                    const unwantedTerms = [
+                        'psa', 'gem', 'mint', 'rc', 'rookie', 'yg', 'ssp', 'holo', 'velocity', 'notoriety',
+                        'mvp', 'hof', 'nfl', 'debut', 'card', 'rated', '1st', 'first', 'university',
+                        'rams', 'vikings', 'browns', 'chiefs', 'giants', 'ny giants', 'eagles', 'cowboys', 'falcons', 'panthers'
+                    ];
+                    
+                    unwantedTerms.forEach(term => {
+                        const regex = new RegExp(`\\b${term}\\b`, 'gi');
+                        newSummaryTitle = newSummaryTitle.replace(regex, '');
+                    });
+                    
+                    // Clean up extra spaces again
                     newSummaryTitle = newSummaryTitle.replace(/\s+/g, ' ').trim();
 
                     // Check if any component has changed
