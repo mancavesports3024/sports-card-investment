@@ -3303,11 +3303,24 @@ app.post('/api/admin/test-extraction', async (req, res) => {
         console.log(`🔍 Testing extraction for: "${testTitle}"`);
         
         // Test each extraction method
-        const year = db.extractYear(testTitle);
+        // Extract year from title
+        let year = null;
+        const yearMatch = testTitle.match(/(19|20)\d{2}/);
+        if (yearMatch) {
+            year = parseInt(yearMatch[0]);
+        }
+        
         const cardSet = db.extractCardSet(testTitle);
         const cardType = db.extractCardType(testTitle);
         const cardNumber = db.extractCardNumber(testTitle);
-        const printRun = db.extractPrintRun(testTitle);
+        
+        // Extract print run
+        let printRun = null;
+        const printRunMatch = testTitle.match(/\/(\d+)/);
+        if (printRunMatch) {
+            printRun = '/' + printRunMatch[1];
+        }
+        
         const isRookie = db.isRookieCard(testTitle);
         const isAutograph = db.isAutographCard(testTitle);
         const sport = db.detectSportFromKeywords(testTitle);

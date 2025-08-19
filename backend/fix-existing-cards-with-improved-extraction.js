@@ -30,11 +30,24 @@ class ExistingCardsFixer {
                     console.log(`🔍 Processing card ${card.id}: "${card.title}"`);
                     
                     // Re-extract all components using the improved logic
-                    const year = this.db.extractYear(card.title);
+                    // Extract year from title
+                    let year = null;
+                    const yearMatch = card.title.match(/(19|20)\d{2}/);
+                    if (yearMatch) {
+                        year = parseInt(yearMatch[0]);
+                    }
+                    
                     const cardSet = this.db.extractCardSet(card.title);
                     const cardType = this.db.extractCardType(card.title);
                     const cardNumber = this.db.extractCardNumber(card.title);
-                    const printRun = this.db.extractPrintRun(card.title);
+                    
+                    // Extract print run
+                    let printRun = null;
+                    const printRunMatch = card.title.match(/\/(\d+)/);
+                    if (printRunMatch) {
+                        printRun = '/' + printRunMatch[1];
+                    }
+                    
                     const isRookie = this.db.isRookieCard(card.title);
                     const isAutograph = this.db.isAutographCard(card.title);
                     const sport = this.db.detectSportFromKeywords(card.title);
