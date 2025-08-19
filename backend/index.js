@@ -3231,6 +3231,35 @@ app.post('/api/admin/fix-specific-player-names', async (req, res) => {
 
 
 
+// POST /api/admin/fix-summary-titles-simple - Fix summary titles for existing cards
+app.post('/api/admin/fix-summary-titles-simple', async (req, res) => {
+    try {
+        console.log('🔧 Fixing summary titles for existing cards...');
+        
+        const { SimpleSummaryTitleFixer } = require('./fix-summary-titles-simple.js');
+        const fixer = new SimpleSummaryTitleFixer();
+        
+        await fixer.connect();
+        await fixer.fixSummaryTitles();
+        await fixer.close();
+        
+        res.json({
+            success: true,
+            message: 'Summary titles fixed successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error fixing summary titles:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fix summary titles',
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/analyze-summary-title-issues - Analyze all summary titles for issues
 app.post('/api/admin/analyze-summary-title-issues', async (req, res) => {
     try {
