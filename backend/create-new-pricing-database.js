@@ -1232,7 +1232,8 @@ class NewPricingDatabase {
         // Bowman Chrome U (University) base
         if (cleanTitle.includes('bowman chrome u ') ||
             cleanTitle.endsWith('bowman chrome u') ||
-            cleanTitle.includes('bowman university chrome')) {
+            cleanTitle.includes('bowman university chrome') ||
+            cleanTitle.includes('bowman u chrome')) {
             return 'Bowman Chrome U';
         }
         if (cleanTitle.includes('bowman chrome draft')) {
@@ -1243,6 +1244,10 @@ class NewPricingDatabase {
         }
         if (cleanTitle.includes('bowman chrome')) {
             return 'Bowman Chrome';
+        }
+        // UEFA Club Competitions Chrome
+        if ((cleanTitle.includes('uefa cc') || cleanTitle.includes('uefa club')) && cleanTitle.includes('chrome')) {
+            return 'Topps UEFA Club Competitions Chrome';
         }
         if (cleanTitle.includes('bowman draft chrome') || cleanTitle.includes('draft chrome')) {
             return 'Bowman Draft Chrome';
