@@ -1159,7 +1159,8 @@ class NewPricingDatabase {
         if (cleanTitle.includes('topps chrome update')) {
             return 'Topps Chrome Update';
         }
-        if (cleanTitle.includes('topps stadium club chrome') || cleanTitle.includes('stadium club chrome')) {
+        if ((cleanTitle.includes('topps stadium club') && cleanTitle.includes('chrome')) ||
+            cleanTitle.includes('stadium club chrome')) {
             return 'Topps Stadium Club Chrome';
         }
         if (cleanTitle.includes('topps stadium club')) {
@@ -1174,7 +1175,8 @@ class NewPricingDatabase {
         if (cleanTitle.includes('finest')) {
             return 'Finest';
         }
-        if (cleanTitle.includes('topps heritage chrome') || cleanTitle.includes('heritage chrome')) {
+        if ((cleanTitle.includes('topps heritage') && cleanTitle.includes('chrome')) ||
+            cleanTitle.includes('heritage chrome')) {
             return 'Topps Heritage Chrome';
         }
         if (cleanTitle.includes('topps heritage')) {
@@ -1192,13 +1194,23 @@ class NewPricingDatabase {
         if (cleanTitle.includes('topps gypsy queen')) {
             return 'Topps Gypsy Queen';
         }
-        if (cleanTitle.includes('topps cosmic chrome') || cleanTitle.includes('cosmic chrome')) {
+        if ((cleanTitle.includes('topps cosmic') && cleanTitle.includes('chrome')) ||
+            cleanTitle.includes('cosmic chrome')) {
             return 'Topps Cosmic Chrome';
         }
-        if (cleanTitle.includes('topps ufc chrome') || cleanTitle.includes('ufc chrome')) {
+        if ((cleanTitle.includes('topps') && cleanTitle.includes('ufc') && cleanTitle.includes('chrome')) ||
+            cleanTitle.includes('ufc chrome')) {
             return 'Topps UFC Chrome';
         }
+        // UEFA Club Competitions Chrome (place before generic Topps/Chrome)
+        if ((cleanTitle.includes('topps') && (cleanTitle.includes('uefa cc') || cleanTitle.includes('uefa club'))) && cleanTitle.includes('chrome')) {
+            return 'Topps UEFA Club Competitions Chrome';
+        }
         if (cleanTitle.includes('topps chrome')) {
+            return 'Topps Chrome';
+        }
+        // Fallback: any Topps + Chrome
+        if (cleanTitle.includes('topps') && cleanTitle.includes('chrome')) {
             return 'Topps Chrome';
         }
         if (cleanTitle.includes('topps bowman')) {
@@ -1232,17 +1244,26 @@ class NewPricingDatabase {
         // Bowman Chrome U (University) base
         if (cleanTitle.includes('bowman chrome u ') ||
             cleanTitle.endsWith('bowman chrome u') ||
+            (cleanTitle.includes('bowman university') && cleanTitle.includes('chrome')) ||
             cleanTitle.includes('bowman university chrome') ||
             cleanTitle.includes('bowman u chrome')) {
             return 'Bowman Chrome U';
         }
-        if (cleanTitle.includes('bowman chrome draft')) {
+        if (cleanTitle.includes('bowman chrome draft') || (cleanTitle.includes('bowman draft') && cleanTitle.includes('chrome'))) {
             return 'Bowman Chrome Draft';
         }
         if (cleanTitle.includes('bowman chrome sapphire')) {
             return 'Bowman Chrome Sapphire';
         }
         if (cleanTitle.includes('bowman chrome')) {
+            return 'Bowman Chrome';
+        }
+        // Fallback: any Bowman + Chrome (avoid Sapphire-only sets)
+        if (cleanTitle.includes('bowman') && cleanTitle.includes('chrome') && !cleanTitle.includes('sapphire')) {
+            if (cleanTitle.includes('draft')) {
+                return 'Bowman Draft Chrome';
+            }
+            // University case without explicit U keyword handled above
             return 'Bowman Chrome';
         }
         // UEFA Club Competitions Chrome
