@@ -3229,34 +3229,7 @@ app.post('/api/admin/fix-specific-player-names', async (req, res) => {
               }
           });
 
-// POST /api/admin/fix-existing-summary-title-issues - Fix existing summary title issues
-app.post('/api/admin/fix-existing-summary-title-issues', async (req, res) => {
-    try {
-        console.log('🔧 Fixing existing summary title issues...');
-        
-        const { ExistingSummaryTitleIssueFixer } = require('./fix-existing-summary-title-issues.js');
-        const fixer = new ExistingSummaryTitleIssueFixer();
-        
-        await fixer.connect();
-        await fixer.fixExistingSummaryTitleIssues();
-        await fixer.close();
-        
-        res.json({
-            success: true,
-            message: 'Existing summary title issues fixed successfully',
-            timestamp: new Date().toISOString()
-        });
-        
-    } catch (error) {
-        console.error('❌ Error fixing existing summary title issues:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to fix existing summary title issues',
-            details: error.message,
-            timestamp: new Date().toISOString()
-        });
-    }
-});
+
 
 // POST /api/admin/analyze-summary-title-issues - Analyze all summary titles for issues
 app.post('/api/admin/analyze-summary-title-issues', async (req, res) => {
