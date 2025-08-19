@@ -610,25 +610,22 @@ class NewPricingDatabase {
                 summaryTitle += cleanedCardSet;
             }
             
+            // Add card type (colors, parallels, etc.) - but exclude "Base" (comes BEFORE player)
+            const normalizedCardType = cardType ? this.normalizeCardType(cardType, cardSet) : null;
+            if (normalizedCardType && normalizedCardType.toLowerCase() !== 'base') {
+                if (summaryTitle) summaryTitle += ' ';
+                summaryTitle += normalizedCardType;
+            }
+
             // Add player name (but not if it's already in the card set)
             if (playerName && cardSet && !cardSet.toLowerCase().includes(playerName.toLowerCase())) {
                 if (summaryTitle) summaryTitle += ' ';
-                // Filter out team names from player name
                 const cleanPlayerName = this.filterTeamNamesFromPlayer(playerName);
                 summaryTitle += this.capitalizePlayerName(cleanPlayerName);
             } else if (playerName && !cardSet) {
                 if (summaryTitle) summaryTitle += ' ';
-                // Filter out team names from player name
                 const cleanPlayerName = this.filterTeamNamesFromPlayer(playerName);
                 summaryTitle += this.capitalizePlayerName(cleanPlayerName);
-            }
-            
-            // Add card type (colors, parallels, etc.) - but exclude "Base"
-            const normalizedCardType = cardType ? this.normalizeCardType(cardType, cardSet) : null;
-            if (normalizedCardType && normalizedCardType.toLowerCase() !== 'base') {
-                if (summaryTitle) summaryTitle += ' ';
-                // Use extracted/normalized casing as-is
-                summaryTitle += normalizedCardType;
             }
             
             // Add "auto" if it's an autograph
@@ -2008,7 +2005,7 @@ class NewPricingDatabase {
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
             'wave', 'velocity', 'scope', 'hyper', 'optic', 'mosaic', 'select', 'finest',
             'bowman', 'topps', 'panini', 'donruss', 'optic', 'mosaic', 'select', 'finest',
-            'chronicles', 'picks', 'prospects',
+            'chronicles', 'picks', 'prospects', 'obsidian', 'contenders', 'instant', 'update', 'courtside', 'jersey',
             'baseball', 'football', 'basketball', 'hockey', 'soccer', 'golf', 'racing',
             'rookie card', 'university', 'draft', 'stars', 'cosmic', 'invicta', 'all-etch',
             'gold', 'silver', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink',

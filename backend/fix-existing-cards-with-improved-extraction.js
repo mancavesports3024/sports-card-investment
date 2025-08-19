@@ -77,6 +77,12 @@ class ExistingCardsFixer {
                         newSummaryTitle += cleanedCardSet;
                     }
                     
+                    // Add card type (colors, parallels, etc.) - but exclude "Base" (comes BEFORE player)
+                    if (cardType && cardType.toLowerCase() !== 'base') {
+                        if (newSummaryTitle) newSummaryTitle += ' ';
+                        newSummaryTitle += cardType;
+                    }
+
                     // Add player name (but not if it's already in the card set)
                     if (finalPlayerName && cardSet && !cardSet.toLowerCase().includes(finalPlayerName.toLowerCase())) {
                         if (newSummaryTitle) newSummaryTitle += ' ';
@@ -84,13 +90,6 @@ class ExistingCardsFixer {
                     } else if (finalPlayerName && !cardSet) {
                         if (newSummaryTitle) newSummaryTitle += ' ';
                         newSummaryTitle += finalPlayerName;
-                    }
-                    
-                    // Add card type (colors, parallels, etc.) - but exclude "Base"
-                    if (cardType && cardType.toLowerCase() !== 'base') {
-                        if (newSummaryTitle) newSummaryTitle += ' ';
-                        // Use the card type as extracted (it's already properly capitalized)
-                        newSummaryTitle += cardType;
                     }
                     
                     // Add "auto" if it's an autograph
