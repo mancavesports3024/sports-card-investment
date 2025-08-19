@@ -87,9 +87,8 @@ class ExistingCardsFixer {
                     // Add card type (colors, parallels, etc.) - but exclude "Base"
                     if (cardType && cardType.toLowerCase() !== 'base') {
                         if (newSummaryTitle) newSummaryTitle += ' ';
-                        // Properly capitalize card type (e.g., "REFRACTOR" -> "Refractor")
-                        const capitalizedCardType = cardType.charAt(0).toUpperCase() + cardType.slice(1).toLowerCase();
-                        newSummaryTitle += capitalizedCardType;
+                        // Use the card type as extracted (it's already properly capitalized)
+                        newSummaryTitle += cardType;
                     }
                     
                     // Add "auto" if it's an autograph
