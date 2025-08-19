@@ -1784,7 +1784,7 @@ class NewPricingDatabase {
         ];
         
         // Find all matches and build card type with priority handling
-        const foundTypes = [];
+        let foundTypes = [];
         const priorityMatches = new Map(); // Map to store matches by priority
         
         for (const { pattern, name, excludeIf, priority = 0 } of cardTypePatterns) {
