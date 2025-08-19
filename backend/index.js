@@ -3373,6 +3373,36 @@ app.post('/api/admin/test-extraction', async (req, res) => {
     }
 });
 
+// POST /api/admin/extract-missing-terms - Extract missing terms from player names
+app.post('/api/admin/extract-missing-terms', async (req, res) => {
+    try {
+        console.log('🔍 Extract missing terms endpoint called');
+        
+        const { MissingTermsExtractor } = require('./extract-missing-terms.js');
+        const extractor = new MissingTermsExtractor();
+        
+        await extractor.connect();
+        const result = await extractor.extractMissingTerms();
+        await extractor.close();
+
+        res.json({
+            success: true,
+            message: 'Missing terms extracted successfully',
+            data: result,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error in extract missing terms endpoint:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error extracting missing terms',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/analyze-summary-title-issues - Analyze all summary titles for issues
 app.post('/api/admin/analyze-summary-title-issues', async (req, res) => {
     try {
