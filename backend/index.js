@@ -3229,6 +3229,36 @@ app.post('/api/admin/fix-specific-player-names', async (req, res) => {
               }
           });
 
+// POST /api/admin/analyze-summary-title-issues - Analyze all summary titles for issues
+app.post('/api/admin/analyze-summary-title-issues', async (req, res) => {
+    try {
+        console.log('🔍 Analyzing summary title issues...');
+        
+        const { SummaryTitleAnalyzer } = require('./analyze-summary-title-issues.js');
+        const analyzer = new SummaryTitleAnalyzer();
+        
+        await analyzer.connect();
+        const report = await analyzer.analyzeAllSummaryTitles();
+        await analyzer.close();
+        
+        res.json({
+            success: true,
+            message: 'Summary title analysis completed successfully',
+            report: report,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error analyzing summary title issues:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to analyze summary title issues',
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/run-fast-batch-pull - Run the actual fast batch pull to find new cards
 app.post('/api/admin/run-fast-batch-pull', async (req, res) => {
     try {
