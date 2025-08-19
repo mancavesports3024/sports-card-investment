@@ -1453,6 +1453,8 @@ class NewPricingDatabase {
             { pattern: /\b(national landmarks)\b/gi, name: 'National Landmarks' },
             { pattern: /\b(lava lamp)\b/gi, name: 'Lava Lamp' },
             { pattern: /\b(dazzle)\b/gi, name: 'Dazzle' },
+            { pattern: /\b(flash)\b/gi, name: 'Flash' },
+            { pattern: /\b(fifa)\b/gi, name: 'FIFA' },
             { pattern: /\b(velocity)\b/gi, name: 'Velocity' },
             { pattern: /\b(hyper)\b/gi, name: 'Hyper' },
             { pattern: /\b(dragon)\b/gi, name: 'Dragon' },
