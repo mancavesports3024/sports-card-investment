@@ -655,7 +655,7 @@ class NewPricingDatabase {
         // Remove unwanted terms from final summary title
         const unwantedTerms = [
             'psa', 'gem', 'mint', 'rc', 'rookie', 'yg', 'ssp', 'holo', 'velocity', 'notoriety',
-            'mvp', 'hof', 'nfl', 'debut', 'card', 'rated', '1st', 'first', 'chrome', 'university',
+            'mvp', 'hof', 'nfl', 'debut', 'card', 'rated', '1st', 'first', 'university',
             'rams', 'vikings', 'browns', 'chiefs', 'giants', 'ny giants', 'eagles', 'cowboys', 'falcons', 'panthers'
         ];
         
