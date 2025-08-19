@@ -55,7 +55,7 @@ class ExistingSummaryTitleIssueFixer {
                     // Check if it's an autograph
                     const isAuto = card.title.toLowerCase().includes('auto');
 
-                    // Build new summary title using the CORRECT order
+                    // Build new summary title using the CORRECT order: [Year] [Card Set] [Player] [Card Type] [auto] [Card Number] [Print Run]
                     let newSummaryTitle = '';
 
                     // Start with year
@@ -68,14 +68,6 @@ class ExistingSummaryTitleIssueFixer {
                         if (newSummaryTitle) newSummaryTitle += ' ';
                         const cleanedCardSet = this.cleanSportNamesFromCardSet(cardSet);
                         newSummaryTitle += cleanedCardSet;
-                    }
-
-                    // Add card type (colors, parallels, etc.) - but exclude "Base"
-                    if (cardType && cardType.toLowerCase() !== 'base') {
-                        if (newSummaryTitle) newSummaryTitle += ' ';
-                        // Properly capitalize card type (e.g., "REFRACTOR" -> "Refractor")
-                        const capitalizedCardType = cardType.charAt(0).toUpperCase() + cardType.slice(1).toLowerCase();
-                        newSummaryTitle += capitalizedCardType;
                     }
 
                     // Add player name (but not if it's already in the card set)
@@ -91,7 +83,15 @@ class ExistingSummaryTitleIssueFixer {
                         newSummaryTitle += this.capitalizePlayerName(cleanPlayerName);
                     }
 
-                    // Add "auto" after card type if it's an autograph
+                    // Add card type (colors, parallels, etc.) - but exclude "Base"
+                    if (cardType && cardType.toLowerCase() !== 'base') {
+                        if (newSummaryTitle) newSummaryTitle += ' ';
+                        // Properly capitalize card type (e.g., "REFRACTOR" -> "Refractor")
+                        const capitalizedCardType = cardType.charAt(0).toUpperCase() + cardType.slice(1).toLowerCase();
+                        newSummaryTitle += capitalizedCardType;
+                    }
+
+                    // Add "auto" if it's an autograph
                     if (isAuto) {
                         if (newSummaryTitle) newSummaryTitle += ' ';
                         newSummaryTitle += 'auto';
