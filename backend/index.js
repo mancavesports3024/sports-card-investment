@@ -3492,6 +3492,22 @@ app.post('/api/admin/fix-summary-titles', async (req, res) => {
     }
 });
 
+// POST /api/admin/check-missing-chrome - Find titles that mention Chrome but summaries do not
+app.post('/api/admin/check-missing-chrome', async (req, res) => {
+    try {
+        console.log('🔍 Checking for missing Chrome in summary titles...');
+        const { ChromeGapChecker } = require('./check-missing-chrome.js');
+        const checker = new ChromeGapChecker();
+        await checker.connect();
+        const results = await checker.findChromeMissingInSummary();
+        await checker.close();
+        res.json({ success: true, count: results.length, results, timestamp: new Date().toISOString() });
+    } catch (error) {
+        console.error('❌ Error checking missing chrome:', error);
+        res.status(500).json({ success: false, error: error.message, timestamp: new Date().toISOString() });
+    }
+});
+
 // POST /api/admin/restore-summary-titles - Restore summary titles to proper format
 app.post('/api/admin/restore-summary-titles', async (req, res) => {
     try {
