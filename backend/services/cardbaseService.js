@@ -21,20 +21,147 @@ class CardBaseService {
         try {
             console.log(`🔍 Searching CardBase for: "${searchQuery}"`);
             
-            // Build the exact URL format with proper encoding
-            // Replace spaces with + and encode special characters like apostrophes
-            const encodedSearch = searchQuery
-                .replace(/'/g, '%27')  // Encode apostrophes as %27
-                .replace(/ /g, '+');   // Replace spaces with +
+            // Try multiple search strategies with increasing specificity
+            const searchStrategies = [
+                // Strategy 1: Full search query
+                searchQuery,
+                // Strategy 2: Remove card number and try player + year + brand
+                this.createPlayerYearBrandQuery(searchQuery),
+                // Strategy 3: Just player name + year
+                this.createPlayerYearQuery(searchQuery),
+                // Strategy 4: Just player name
+                this.createPlayerOnlyQuery(searchQuery)
+            ];
             
-            const url = `${this.baseUrl}/search?page=1&search=${encodedSearch}&target_types[0]=Category&target_ids[0]=1&target_values[0]=Sport+Cards&index=collectibles-catalog_items`;
+            for (let i = 0; i < searchStrategies.length; i++) {
+                const strategy = searchStrategies[i];
+                if (!strategy) continue;
+                
+                console.log(`🔍 Trying search strategy ${i + 1}: "${strategy}"`);
+                
+                try {
+                    const result = await this.performSearch(strategy);
+                    if (result.success && result.data?.items?.length > 0) {
+                        console.log(`✅ Found ${result.data.items.length} results with strategy ${i + 1}`);
+                        return result;
+                    }
+                } catch (error) {
+                    console.log(`❌ Strategy ${i + 1} failed: ${error.message}`);
+                    continue;
+                }
+            }
             
-            console.log(`🌐 Making request to: ${url}`);
+            console.log(`❌ No results found with any search strategy`);
+            return {
+                success: false,
+                error: 'No results found with any search strategy',
+                searchQuery: searchQuery
+            };
+            
+        } catch (error) {
+            console.error('❌ CardBase API error:', error.message);
+            
+            if (error.response) {
+                console.error('Response status:', error.response.status);
+                console.error('Response data:', error.response.data);
+            }
 
-            const response = await axios.get(url, {
-                headers: this.defaultHeaders,
-                timeout: 10000
-            });
+            return {
+                success: false,
+                error: error.message,
+                searchQuery: searchQuery
+            };
+        }
+    }
+
+    async performSearch(searchQuery) {
+        // Build the exact URL format with proper encoding
+        const encodedSearch = searchQuery
+            .replace(/'/g, '%27')  // Encode apostrophes as %27
+            .replace(/ /g, '+');   // Replace spaces with +
+        
+        const url = `${this.baseUrl}/search?page=1&search=${encodedSearch}&target_types[0]=Category&target_ids[0]=1&target_values[0]=Sport+Cards&index=collectibles-catalog_items`;
+        
+        console.log(`🌐 Making request to: ${url}`);
+
+        const response = await axios.get(url, {
+            headers: this.defaultHeaders,
+            timeout: 15000  // Increased timeout
+        });
+
+        console.log(`✅ CardBase API response status: ${response.status}`);
+        console.log(`📊 CardBase found ${response.data?.items?.length || 0} results`);
+
+        return {
+            success: true,
+            data: response.data,
+            searchQuery: searchQuery,
+            url: url
+        };
+    }
+
+    createPlayerYearBrandQuery(searchQuery) {
+        // Extract player name, year, and brand from search query
+        const yearMatch = searchQuery.match(/\b(19|20)\d{2}\b/);
+        const year = yearMatch ? yearMatch[0] : '';
+        
+        // Common brand names
+        const brands = ['Panini', 'Topps', 'Bowman', 'Upper Deck', 'Donruss', 'Fleer'];
+        let brand = '';
+        for (const b of brands) {
+            if (searchQuery.toLowerCase().includes(b.toLowerCase())) {
+                brand = b;
+                break;
+            }
+        }
+        
+        // Extract player name (simplified)
+        const words = searchQuery.split(' ');
+        const playerWords = words.filter(word => 
+            !word.match(/^\d/) && 
+            !brands.some(b => word.toLowerCase().includes(b.toLowerCase())) &&
+            !['Select', 'Chrome', 'Prizm', 'Finest', 'Bowman', 'Topps'].some(s => word.toLowerCase().includes(s.toLowerCase())) &&
+            word.length > 2
+        );
+        
+        const player = playerWords.slice(0, 3).join(' '); // Take first 3 words as player name
+        
+        if (year && brand && player) {
+            return `${year} ${brand} ${player}`;
+        }
+        return null;
+    }
+
+    createPlayerYearQuery(searchQuery) {
+        const yearMatch = searchQuery.match(/\b(19|20)\d{2}\b/);
+        const year = yearMatch ? yearMatch[0] : '';
+        
+        const words = searchQuery.split(' ');
+        const playerWords = words.filter(word => 
+            !word.match(/^\d/) && 
+            !['Select', 'Chrome', 'Prizm', 'Finest', 'Bowman', 'Topps', 'Panini'].some(s => word.toLowerCase().includes(s.toLowerCase())) &&
+            word.length > 2
+        );
+        
+        const player = playerWords.slice(0, 3).join(' ');
+        
+        if (year && player) {
+            return `${year} ${player}`;
+        }
+        return null;
+    }
+
+    createPlayerOnlyQuery(searchQuery) {
+        const words = searchQuery.split(' ');
+        const playerWords = words.filter(word => 
+            !word.match(/^\d/) && 
+            !['Select', 'Chrome', 'Prizm', 'Finest', 'Bowman', 'Topps', 'Panini'].some(s => word.toLowerCase().includes(s.toLowerCase())) &&
+            word.length > 2
+        );
+        
+        const player = playerWords.slice(0, 2).join(' '); // Take first 2 words as player name
+        return player || null;
+    }
 
             console.log(`✅ CardBase API response status: ${response.status}`);
             console.log(`📊 CardBase found ${response.data?.items?.length || 0} results`);
