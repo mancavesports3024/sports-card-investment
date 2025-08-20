@@ -2554,13 +2554,10 @@ class NewPricingDatabase {
                     continue;
                 }
                 
-                // Skip if it's a PSA grade number (like "10" when "PSA 10" is present)
-                if (/^\d{1,2}$/.test(fullMatch) && 
+                // Skip if it's a PSA grade number (1-10) when "PSA" is present
+                if (/^[1-9]|10$/.test(fullMatch) && 
                     (titleLower.includes('psa ' + fullMatch) || 
-                     titleLower.includes('psa' + fullMatch) ||
-                     titleLower.includes('gem mint ' + fullMatch) ||
-                     titleLower.includes('pop ' + fullMatch) ||
-                     titleLower.includes('pop' + fullMatch))) {
+                     titleLower.includes('psa' + fullMatch))) {
                     continue;
                 }
                 
@@ -2569,11 +2566,11 @@ class NewPricingDatabase {
                     continue;
                 }
                 
-                // Skip if it's a standalone grade number (1-10) without context
+                // Skip if it's a standalone PSA grade number (1-10) without context
                 // But ONLY if it's not preceded by # and there's a PSA grade in the title
-                if (/^\d{1,2}$/.test(fullMatch) && 
+                if (/^[1-9]|10$/.test(fullMatch) && 
                     !fullMatch.startsWith('#') && // Don't skip if it's part of a # pattern
-                    (titleLower.includes('psa') || titleLower.includes('gem') || titleLower.includes('mint'))) {
+                    titleLower.includes('psa')) {
                     continue;
                 }
                 
