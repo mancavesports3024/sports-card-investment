@@ -2550,13 +2550,17 @@ class NewPricingDatabase {
                 if (matchLower.includes('psa') || 
                     matchLower.includes('pop') || 
                     matchLower.includes('gem') || 
-                    matchLower.includes('mint') ||
-                    titleLower.includes('psa ' + fullMatch) ||
-                    titleLower.includes('psa' + fullMatch) ||
-                    titleLower.includes('gem mint') ||
-                    titleLower.includes('gem mint ' + fullMatch) ||
-                    titleLower.includes('pop ' + fullMatch) ||
-                    titleLower.includes('pop' + fullMatch)) {
+                    matchLower.includes('mint')) {
+                    continue;
+                }
+                
+                // Skip if it's a PSA grade number (like "10" when "PSA 10" is present)
+                if (/^\d{1,2}$/.test(fullMatch) && 
+                    (titleLower.includes('psa ' + fullMatch) || 
+                     titleLower.includes('psa' + fullMatch) ||
+                     titleLower.includes('gem mint ' + fullMatch) ||
+                     titleLower.includes('pop ' + fullMatch) ||
+                     titleLower.includes('pop' + fullMatch))) {
                     continue;
                 }
                 
@@ -2568,7 +2572,7 @@ class NewPricingDatabase {
                 // Skip if it's a standalone grade number (1-10) without context
                 // But ONLY if it's not preceded by # and there's a PSA grade in the title
                 if (/^\d{1,2}$/.test(fullMatch) && 
-                    !title.includes('#' + fullMatch) && // Don't skip if it's part of a # pattern
+                    !fullMatch.startsWith('#') && // Don't skip if it's part of a # pattern
                     (titleLower.includes('psa') || titleLower.includes('gem') || titleLower.includes('mint'))) {
                     continue;
                 }
