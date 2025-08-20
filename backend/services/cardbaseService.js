@@ -67,34 +67,104 @@ class CardBaseService {
      * @returns {Object} Standardized card information
      */
     extractCardInfo(cardbaseData) {
-        if (!cardbaseData?.success || !cardbaseData?.data?.data?.length) {
+        if (!cardbaseData?.success || !cardbaseData?.data?.items?.length) {
             return null;
         }
 
-        const card = cardbaseData.data.data[0]; // Get the first (best) match
+        const card = cardbaseData.data.items[0]; // Get the first (best) match
+        
+        // Parse the card name to extract components
+        const cardName = card.name || '';
+        const parsedInfo = this.parseCardName(cardName);
         
         return {
-            title: card.attributes?.title || card.attributes?.name,
-            year: card.attributes?.year,
-            brand: card.attributes?.brand,
-            set: card.attributes?.set,
-            player: card.attributes?.player,
-            cardNumber: card.attributes?.card_number,
-            parallel: card.attributes?.parallel,
-            sport: card.attributes?.sport,
-            team: card.attributes?.team,
-            rookie: card.attributes?.rookie,
-            autograph: card.attributes?.autograph,
-            memorabilia: card.attributes?.memorabilia,
-            printRun: card.attributes?.print_run,
-            condition: card.attributes?.condition,
-            grade: card.attributes?.grade,
+            title: card.name,
+            year: parsedInfo.year,
+            brand: parsedInfo.brand,
+            set: parsedInfo.set,
+            player: parsedInfo.player,
+            cardNumber: parsedInfo.cardNumber,
+            parallel: parsedInfo.parallel,
+            sport: 'Baseball', // Default, could be enhanced with sport detection
+            team: parsedInfo.team,
+            rookie: parsedInfo.rookie,
+            autograph: parsedInfo.autograph,
+            memorabilia: parsedInfo.memorabilia,
+            printRun: parsedInfo.printRun,
+            condition: 'Raw', // Default
+            grade: null,
             // Additional metadata
             cardbaseId: card.id,
-            slug: card.attributes?.slug,
-            imageUrl: card.attributes?.image_url,
-            marketData: card.attributes?.market_data
+            slug: card.url_slug,
+            imageUrl: card.front_image?.url,
+            rarityNumber: card.rarity_number,
+            ownersCount: card.owners_count
         };
+    }
+
+    /**
+     * Parse card name to extract components
+     * @param {string} cardName - Full card name from CardBase
+     * @returns {Object} Parsed card components
+     */
+    parseCardName(cardName) {
+        const parts = cardName.split(' ');
+        const result = {
+            year: null,
+            brand: null,
+            set: null,
+            player: null,
+            cardNumber: null,
+            parallel: null,
+            team: null,
+            rookie: false,
+            autograph: false,
+            memorabilia: false,
+            printRun: null
+        };
+
+        // Extract year (first 4-digit number)
+        const yearMatch = cardName.match(/\b(19|20)\d{2}\b/);
+        if (yearMatch) {
+            result.year = yearMatch[0];
+        }
+
+        // Extract card number (pattern like #123 or #MT-1)
+        const cardNumberMatch = cardName.match(/#([A-Z0-9\-]+)/);
+        if (cardNumberMatch) {
+            result.cardNumber = cardNumberMatch[1];
+        }
+
+        // Check for autograph indicators
+        if (cardName.toLowerCase().includes('autograph') || cardName.toLowerCase().includes('auto')) {
+            result.autograph = true;
+        }
+
+        // Check for memorabilia indicators
+        if (cardName.toLowerCase().includes('relic') || cardName.toLowerCase().includes('memorabilia')) {
+            result.memorabilia = true;
+        }
+
+        // Check for rookie indicators
+        if (cardName.toLowerCase().includes('rookie') || cardName.toLowerCase().includes('rc')) {
+            result.rookie = true;
+        }
+
+        // Extract brand and set (this is more complex and would need refinement)
+        // For now, let's extract common patterns
+        const brandSetMatch = cardName.match(/(\d{4})\s+([A-Za-z]+)\s+([A-Za-z\s]+?)(?=\s+#|\s+[A-Z][a-z]+\s+[A-Z][a-z]+|$)/);
+        if (brandSetMatch) {
+            result.brand = brandSetMatch[2];
+            result.set = brandSetMatch[3].trim();
+        }
+
+        // Extract player name (usually at the end, before card number)
+        const playerMatch = cardName.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+?)(?=\s+#|\s*$)/);
+        if (playerMatch) {
+            result.player = playerMatch[1].trim();
+        }
+
+        return result;
     }
 
     /**
@@ -179,8 +249,8 @@ class CardBaseService {
             results.push({
                 query,
                 success: result.success,
-                cardCount: result.data?.data?.length || 0,
-                sampleCard: result.data?.data?.[0] || null
+                cardCount: result.data?.items?.length || 0,
+                sampleCard: result.data?.items?.[0] || null
             });
 
             // Add a small delay between requests
