@@ -3339,6 +3339,73 @@ app.post('/api/admin/analyze-player-name-issues-simple', async (req, res) => {
     }
 });
 
+// POST /api/admin/test-cardbase-api - Test CardBase API integration
+app.post('/api/admin/test-cardbase-api', async (req, res) => {
+    try {
+        console.log('🧪 Testing CardBase API integration...');
+        
+        const { CardBaseService } = require('./services/cardbaseService.js');
+        const cardbaseService = new CardBaseService();
+        
+        const testResults = await cardbaseService.testCardBaseAPI();
+        
+        res.json({
+            success: true,
+            results: testResults,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error testing CardBase API:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error testing CardBase API',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// POST /api/admin/search-cardbase - Search for a specific card using CardBase
+app.post('/api/admin/search-cardbase', async (req, res) => {
+    try {
+        const { searchQuery } = req.body;
+        
+        if (!searchQuery) {
+            return res.status(400).json({
+                success: false,
+                message: 'searchQuery is required',
+                timestamp: new Date().toISOString()
+            });
+        }
+        
+        console.log(`🔍 Searching CardBase for: "${searchQuery}"`);
+        
+        const { CardBaseService } = require('./services/cardbaseService.js');
+        const cardbaseService = new CardBaseService();
+        
+        const result = await cardbaseService.searchCard(searchQuery);
+        const cardInfo = cardbaseService.extractCardInfo(result);
+        const improvedTitle = cardbaseService.generateImprovedTitle(cardInfo, searchQuery);
+        
+        res.json({
+            success: true,
+            originalQuery: searchQuery,
+            cardbaseResult: result,
+            extractedInfo: cardInfo,
+            improvedTitle: improvedTitle,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error searching CardBase:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error searching CardBase',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/test-extraction - Test extraction logic
 app.post('/api/admin/test-extraction', async (req, res) => {
     try {
