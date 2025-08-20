@@ -55,6 +55,9 @@ const {
   rateLimitMiddleware 
 } = require('./middleware/cacheMiddleware');
 
+// Import NewPricingDatabase for admin endpoints
+const NewPricingDatabase = require('./create-new-pricing-database.js');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
