@@ -280,14 +280,65 @@ class CardBaseService {
             return originalTitle;
         }
 
-        // Use the CardBase title directly - it's already perfectly formatted!
         const cardbaseTitle = cardInfo.title;
         
         console.log(`🔄 Title improvement:`);
         console.log(`   Original: ${originalTitle}`);
         console.log(`   CardBase: ${cardbaseTitle}`);
 
+        // Check for important characteristics that shouldn't be lost
+        const originalHasAuto = this.hasAutograph(originalTitle);
+        const cardbaseHasAuto = this.hasAutograph(cardbaseTitle);
+        
+        const originalHasRookie = this.hasRookie(originalTitle);
+        const cardbaseHasRookie = this.hasRookie(cardbaseTitle);
+        
+        const originalHasNumbered = this.hasNumbered(originalTitle);
+        const cardbaseHasNumbered = this.hasNumbered(cardbaseTitle);
+
+        // Don't downgrade from autograph to non-autograph
+        if (originalHasAuto && !cardbaseHasAuto) {
+            console.log(`⚠️ Rejecting improvement: Original has autograph, CardBase result doesn't`);
+            return originalTitle;
+        }
+
+        // Don't downgrade from rookie to non-rookie
+        if (originalHasRookie && !cardbaseHasRookie) {
+            console.log(`⚠️ Rejecting improvement: Original has rookie, CardBase result doesn't`);
+            return originalTitle;
+        }
+
+        // Don't downgrade from numbered to non-numbered
+        if (originalHasNumbered && !cardbaseHasNumbered) {
+            console.log(`⚠️ Rejecting improvement: Original has numbered print run, CardBase result doesn't`);
+            return originalTitle;
+        }
+
+        console.log(`✅ Accepting improvement: All important characteristics preserved`);
         return cardbaseTitle || originalTitle;
+    }
+
+    /**
+     * Check if a title contains autograph indicators
+     */
+    hasAutograph(title) {
+        const autoTerms = ['auto', 'autograph', 'au', 'signature', 'signed'];
+        return autoTerms.some(term => title.toLowerCase().includes(term));
+    }
+
+    /**
+     * Check if a title contains rookie indicators
+     */
+    hasRookie(title) {
+        const rookieTerms = ['rookie', 'rc', 'yg', 'young guns', '1st bowman', 'first bowman'];
+        return rookieTerms.some(term => title.toLowerCase().includes(term));
+    }
+
+    /**
+     * Check if a title contains numbered print run
+     */
+    hasNumbered(title) {
+        return /\/(\d+)/.test(title) || /\b(\d+)\/(\d+)\b/.test(title);
     }
 
     /**
