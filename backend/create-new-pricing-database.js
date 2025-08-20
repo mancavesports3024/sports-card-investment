@@ -514,6 +514,15 @@ class NewPricingDatabase {
             return 'Golf';
         }
         
+        // UFC/MMA detection
+        if (titleLower.includes('ufc') || titleLower.includes('mma') || titleLower.includes('mixed martial arts') ||
+            titleLower.includes('octagon') || titleLower.includes('fighter') || titleLower.includes('fighting') ||
+            titleLower.includes('khamzat chimaev') || titleLower.includes('valentina shevchenko') || titleLower.includes('michael morales') ||
+            titleLower.includes('conor mcgregor') || titleLower.includes('khabib nurmagomedov') || titleLower.includes('jon jones') ||
+            titleLower.includes('amanda nunes') || titleLower.includes('rose namajunas') || titleLower.includes('weili zhang')) {
+            return 'UFC';
+        }
+        
         // Card game detection - be more specific to avoid false matches
         if (titleLower.includes('yugioh') || titleLower.includes('yu-gi-oh')) {
             return 'Yu-Gi-Oh';
@@ -2409,7 +2418,9 @@ class NewPricingDatabase {
             'ice', 'lazer', 'lightboard', 'magenta', 'mt', 'shock',
             // Specific problematic terms from the cards
             'invicta bi15', 'invicta', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in', 'jesus made',
-            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'radiating', 'now', 'foil'
+            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'radiating', 'now', 'foil',
+            // UFC/MMA terms that should be removed from player names
+            'ufc', 'mma', 'mixed martial arts', 'octagon', 'fighter', 'fighting'
         ];
         cardTerms.forEach(term => {
             const regex = new RegExp(`\\b${term}\\b`, 'gi');
