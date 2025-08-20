@@ -2540,42 +2540,40 @@ class NewPricingDatabase {
         ];
 
         for (const pattern of cardNumberPatterns) {
-            const matches = title.match(pattern);
-            if (matches) {
-                // Filter out PSA grades and print runs
-                for (const match of matches) {
-                    const matchLower = match.toLowerCase();
-                    const titleLower = title.toLowerCase();
-                    
-                    // Skip if it's clearly a PSA grade
-                    if (matchLower.includes('psa') || 
-                        matchLower.includes('pop') || 
-                        matchLower.includes('gem') || 
-                        matchLower.includes('mint') ||
-                        titleLower.includes('psa ' + match) ||
-                        titleLower.includes('psa' + match) ||
-                        titleLower.includes('gem mint') ||
-                        titleLower.includes('gem mint ' + match) ||
-                        titleLower.includes('pop ' + match) ||
-                        titleLower.includes('pop' + match)) {
-                        continue;
-                    }
-                    
-                    // Skip if it's part of a print run (e.g., /10, /99, /150)
-                    if (title.includes('/' + match) || title.includes(' / ' + match)) {
-                        continue;
-                    }
-                    
-                    // Skip if it's a standalone grade number (1-10) without context
-                    // But ONLY if it's not preceded by # and there's a PSA grade in the title
-                    if (/^\d{1,2}$/.test(match) && 
-                        !title.includes('#' + match) && // Don't skip if it's part of a # pattern
-                        (titleLower.includes('psa') || titleLower.includes('gem') || titleLower.includes('mint'))) {
-                        continue;
-                    }
-                    
-                    return match.startsWith('#') ? match : '#' + match;
+            let match;
+            while ((match = pattern.exec(title)) !== null) {
+                const fullMatch = match[0]; // The full match including #
+                const matchLower = fullMatch.toLowerCase();
+                const titleLower = title.toLowerCase();
+                
+                // Skip if it's clearly a PSA grade
+                if (matchLower.includes('psa') || 
+                    matchLower.includes('pop') || 
+                    matchLower.includes('gem') || 
+                    matchLower.includes('mint') ||
+                    titleLower.includes('psa ' + fullMatch) ||
+                    titleLower.includes('psa' + fullMatch) ||
+                    titleLower.includes('gem mint') ||
+                    titleLower.includes('gem mint ' + fullMatch) ||
+                    titleLower.includes('pop ' + fullMatch) ||
+                    titleLower.includes('pop' + fullMatch)) {
+                    continue;
                 }
+                
+                // Skip if it's part of a print run (e.g., /10, /99, /150)
+                if (title.includes('/' + fullMatch) || title.includes(' / ' + fullMatch)) {
+                    continue;
+                }
+                
+                // Skip if it's a standalone grade number (1-10) without context
+                // But ONLY if it's not preceded by # and there's a PSA grade in the title
+                if (/^\d{1,2}$/.test(fullMatch) && 
+                    !title.includes('#' + fullMatch) && // Don't skip if it's part of a # pattern
+                    (titleLower.includes('psa') || titleLower.includes('gem') || titleLower.includes('mint'))) {
+                    continue;
+                }
+                
+                return fullMatch.startsWith('#') ? fullMatch : '#' + fullMatch;
             }
         }
 
