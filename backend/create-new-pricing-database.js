@@ -2535,7 +2535,7 @@ class NewPricingDatabase {
             /\b([A-Z]{2,}\d+)\b/g,
             // Bomb Squad card numbers (BS3, BS5, etc.)
             /\b(BS\d+)\b/g,
-            // Card numbers without # symbol
+            // Card numbers without # symbol (but be more careful about filtering)
             /\b(\d{1,3})\b/g
         ];
 
@@ -2567,7 +2567,9 @@ class NewPricingDatabase {
                     }
                     
                     // Skip if it's a standalone grade number (1-10) without context
+                    // But ONLY if it's not preceded by # and there's a PSA grade in the title
                     if (/^\d{1,2}$/.test(match) && 
+                        !title.includes('#' + match) && // Don't skip if it's part of a # pattern
                         (titleLower.includes('psa') || titleLower.includes('gem') || titleLower.includes('mint'))) {
                         continue;
                     }
