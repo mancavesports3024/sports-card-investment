@@ -1,9 +1,10 @@
 const NewPricingDatabase = require('./create-new-pricing-database.js');
-const cardbaseService = require('./services/cardbaseService.js');
+const { CardBaseService } = require('./services/cardbaseService.js');
 
 class MissingCardNumberChecker {
     constructor() {
         this.db = new NewPricingDatabase();
+        this.cardbaseService = new CardBaseService();
     }
 
     async connect() {
@@ -125,7 +126,7 @@ class MissingCardNumberChecker {
                         console.log(`   🔍 Search query: "${searchQuery}"`);
                         
                         try {
-                            const cardbaseResult = await cardbaseService.searchCard(searchQuery);
+                            const cardbaseResult = await this.cardbaseService.searchCard(searchQuery);
                             
                             if (cardbaseResult && cardbaseResult.cardNumber) {
                                 newCardNumber = cardbaseResult.cardNumber;
