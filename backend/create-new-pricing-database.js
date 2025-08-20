@@ -311,7 +311,9 @@ class NewPricingDatabase {
         
         // Add card number
         if (card.card_number) {
-            parts.push(`#${card.card_number}`);
+            // Check if card_number already has # prefix to avoid double #
+            const cardNumber = card.card_number.startsWith('#') ? card.card_number : `#${card.card_number}`;
+            parts.push(cardNumber);
         }
         
         // Add print run

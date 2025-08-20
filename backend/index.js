@@ -5010,3 +5010,47 @@ app.post('/api/admin/fix-missing-card-numbers', async (req, res) => {
     }
 });
 
+// POST /api/admin/test-card-number-extraction - Test card number extraction with specific examples
+app.post('/api/admin/test-card-number-extraction', async (req, res) => {
+    try {
+        console.log('🧪 Testing card number extraction...');
+        
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        const testTitles = [
+            "Tom Brady 2015 Topps Chrome #50 Graded PSA 10 GEM MINT New England Football Card",
+            "1990 Fleer Basketball #26 Michael Jordan Chicago Bulls PSA 10 GEM MINT",
+            "2019 Donruss Optic Kobe Bryant Rainmakers PSA 10 GEM MINT #19 Lakers",
+            "2024 Panini Prizm Draft Picks #SJMC Jared McCain Signature PSA 10 GEM MINT 76ers"
+        ];
+        
+        const results = testTitles.map(title => {
+            const extracted = db.extractCardNumber(title);
+            return {
+                title: title,
+                extractedNumber: extracted,
+                hasNumber: !!extracted
+            };
+        });
+        
+        await db.close();
+        
+        res.json({
+            success: true,
+            results: results,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error testing card number extraction:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error testing card number extraction',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
