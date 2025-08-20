@@ -60,22 +60,26 @@ class NewPricingDatabase {
 
     /**
      * Improve card title using CardBase API
-     * @param {string} originalTitle - Original title from eBay
+     * @param {string} searchQuery - Search query for CardBase
+     * @param {string} originalTitle - Original title for safety comparison (optional)
      * @returns {Object} Improved card information
      */
-    async improveCardTitleWithCardBase(originalTitle) {
+    async improveCardTitleWithCardBase(searchQuery, originalTitle = null) {
         try {
             const { CardBaseService } = require('./services/cardbaseService.js');
             const cardbaseService = new CardBaseService();
             
-            console.log(`🔍 Improving title with CardBase: "${originalTitle}"`);
+            console.log(`🔍 Improving title with CardBase: "${searchQuery}"`);
             
-            const result = await cardbaseService.searchCard(originalTitle);
+            const result = await cardbaseService.searchCard(searchQuery);
             const cardInfo = cardbaseService.extractCardInfo(result);
-            const improvedTitle = cardbaseService.generateImprovedTitle(cardInfo, originalTitle);
+            
+            // Use originalTitle for safety check if provided, otherwise use searchQuery
+            const titleForComparison = originalTitle || searchQuery;
+            const improvedTitle = cardbaseService.generateImprovedTitle(cardInfo, titleForComparison);
             
             return {
-                originalTitle: originalTitle,
+                originalTitle: titleForComparison,
                 improvedTitle: improvedTitle,
                 cardbaseInfo: cardInfo,
                 success: !!cardInfo
@@ -84,8 +88,8 @@ class NewPricingDatabase {
         } catch (error) {
             console.error('❌ Error improving title with CardBase:', error.message);
             return {
-                originalTitle: originalTitle,
-                improvedTitle: originalTitle, // Fallback to original
+                originalTitle: originalTitle || searchQuery,
+                improvedTitle: originalTitle || searchQuery, // Fallback to original
                 cardbaseInfo: null,
                 success: false,
                 error: error.message

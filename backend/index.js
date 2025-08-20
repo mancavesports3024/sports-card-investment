@@ -3467,8 +3467,9 @@ app.post('/api/admin/improve-card-title', async (req, res) => {
         const searchQuery = card ? (card.summary_title || originalTitle) : originalTitle;
         
         console.log(`🔍 Using search query: "${searchQuery}"`);
+        console.log(`🔍 Original title for comparison: "${originalTitle}"`);
         
-        const result = await db.improveCardTitleWithCardBase(searchQuery);
+        const result = await db.improveCardTitleWithCardBase(searchQuery, originalTitle);
         
         res.json({
             success: true,
@@ -3504,7 +3505,7 @@ app.post('/api/admin/batch-improve-titles', async (req, res) => {
         for (const card of cards) {
             console.log(`Processing card: ${card.title}`);
             
-            const improvement = await db.improveCardTitleWithCardBase(card.title);
+            const improvement = await db.improveCardTitleWithCardBase(card.title, card.title);
             
             if (improvement.success && improvement.improvedTitle !== card.title) {
                 // Update the card with improved title

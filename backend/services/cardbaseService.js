@@ -21,8 +21,11 @@ class CardBaseService {
         try {
             console.log(`🔍 Searching CardBase for: "${searchQuery}"`);
             
+            // Check if original query has autograph
+            const hasAuto = this.hasAutograph(searchQuery);
+            
             // Try multiple search strategies with increasing specificity
-            const searchStrategies = [
+            let searchStrategies = [
                 // Strategy 1: Full search query
                 searchQuery,
                 // Strategy 2: Remove card number and try player + year + brand
@@ -32,6 +35,21 @@ class CardBaseService {
                 // Strategy 4: Just player name
                 this.createPlayerOnlyQuery(searchQuery)
             ];
+            
+            // If original has autograph, add autograph-specific searches
+            if (hasAuto) {
+                const autoStrategies = [
+                    // Strategy 1.5: Full search with "autograph" explicitly added
+                    searchQuery + ' autograph',
+                    // Strategy 2.5: Player + year + brand + autograph
+                    this.createPlayerYearBrandQuery(searchQuery + ' autograph'),
+                    // Strategy 3.5: Player + year + autograph
+                    this.createPlayerYearQuery(searchQuery + ' autograph')
+                ];
+                
+                // Insert autograph strategies after the first strategy
+                searchStrategies.splice(1, 0, ...autoStrategies);
+            }
             
             for (let i = 0; i < searchStrategies.length; i++) {
                 const strategy = searchStrategies[i];
@@ -126,8 +144,15 @@ class CardBaseService {
         
         const player = playerWords.slice(0, 3).join(' '); // Take first 3 words as player name
         
+        // Check if original query has autograph
+        const hasAuto = this.hasAutograph(searchQuery);
+        
         if (year && brand && player) {
-            return `${year} ${brand} ${player}`;
+            let query = `${year} ${brand} ${player}`;
+            if (hasAuto) {
+                query += ' autograph';
+            }
+            return query;
         }
         return null;
     }
