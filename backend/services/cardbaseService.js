@@ -21,8 +21,12 @@ class CardBaseService {
         try {
             console.log(`🔍 Searching CardBase for: "${searchQuery}"`);
             
-            // Build the exact URL format you specified
-            const encodedSearch = encodeURIComponent(searchQuery);
+            // Build the exact URL format with proper encoding
+            // Replace spaces with + and encode special characters like apostrophes
+            const encodedSearch = searchQuery
+                .replace(/'/g, '%27')  // Encode apostrophes as %27
+                .replace(/ /g, '+');   // Replace spaces with +
+            
             const url = `${this.baseUrl}/search?page=1&search=${encodedSearch}&target_types[0]=Category&target_ids[0]=1&target_values[0]=Sport+Cards&index=collectibles-catalog_items`;
             
             console.log(`🌐 Making request to: ${url}`);
