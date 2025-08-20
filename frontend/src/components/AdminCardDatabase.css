@@ -503,7 +503,7 @@
   background: #ccc;
   cursor: not-allowed;
 }
-  }
+@media (max-width: 768px) {
   
   .cards-table th,
   .cards-table td {
