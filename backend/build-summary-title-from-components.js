@@ -63,8 +63,8 @@ class SummaryTitleBuilder {
             summaryTitle += card_set;
         }
         
-        // Add card type (colors, parallels, etc.)
-        if (card_type) {
+        // Add card type (colors, parallels, etc.) - but skip "Base"
+        if (card_type && card_type.toLowerCase() !== 'base') {
             if (summaryTitle) summaryTitle += ' ';
             summaryTitle += card_type;
         }
