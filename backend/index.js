@@ -3585,6 +3585,46 @@ app.post('/api/admin/run-title-updater', async (req, res) => {
     }
 });
 
+// POST /api/admin/check-cards - Check what cards need improvement
+app.post('/api/admin/check-cards', async (req, res) => {
+    try {
+        console.log('🔍 Checking cards that need title improvement...');
+        
+        const { CardChecker } = require('./check-cards-for-improvement.js');
+        const checker = new CardChecker();
+        
+        // Capture console output
+        const originalLog = console.log;
+        const output = [];
+        console.log = (...args) => {
+            const message = args.join(' ');
+            output.push(message);
+            originalLog(...args);
+        };
+        
+        await checker.connect();
+        await checker.checkCardsForImprovement();
+        await checker.close();
+        
+        // Restore console.log
+        console.log = originalLog;
+        
+        res.json({
+            success: true,
+            output: output,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error checking cards:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error checking cards',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/test-extraction - Test extraction logic
 app.post('/api/admin/test-extraction', async (req, res) => {
     try {
