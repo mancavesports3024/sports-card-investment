@@ -294,8 +294,8 @@ class NewPricingDatabase {
             parts.push(card.card_set);
         }
         
-        // Add card type
-        if (card.card_type) {
+        // Add card type (but skip "Base")
+        if (card.card_type && card.card_type.toLowerCase() !== 'base') {
             parts.push(card.card_type);
         }
         
