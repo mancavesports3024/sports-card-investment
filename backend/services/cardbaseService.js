@@ -179,55 +179,14 @@ class CardBaseService {
             return originalTitle;
         }
 
-        const parts = [];
-
-        // Year
-        if (cardInfo.year) {
-            parts.push(cardInfo.year);
-        }
-
-        // Brand
-        if (cardInfo.brand) {
-            parts.push(cardInfo.brand);
-        }
-
-        // Set
-        if (cardInfo.set) {
-            parts.push(cardInfo.set);
-        }
-
-        // Parallel/Variant
-        if (cardInfo.parallel) {
-            parts.push(cardInfo.parallel);
-        }
-
-        // Player name
-        if (cardInfo.player) {
-            parts.push(cardInfo.player);
-        }
-
-        // Autograph indicator
-        if (cardInfo.autograph) {
-            parts.push('auto');
-        }
-
-        // Card number
-        if (cardInfo.cardNumber) {
-            parts.push(`#${cardInfo.cardNumber}`);
-        }
-
-        // Print run
-        if (cardInfo.printRun) {
-            parts.push(cardInfo.printRun);
-        }
-
-        const improvedTitle = parts.join(' ').trim();
+        // Use the CardBase title directly - it's already perfectly formatted!
+        const cardbaseTitle = cardInfo.title;
         
         console.log(`🔄 Title improvement:`);
         console.log(`   Original: ${originalTitle}`);
-        console.log(`   Improved: ${improvedTitle}`);
+        console.log(`   CardBase: ${cardbaseTitle}`);
 
-        return improvedTitle || originalTitle;
+        return cardbaseTitle || originalTitle;
     }
 
     /**
