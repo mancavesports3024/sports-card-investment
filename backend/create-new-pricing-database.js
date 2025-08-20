@@ -2503,13 +2503,34 @@ class NewPricingDatabase {
                 // Filter out PSA grades and print runs
                 for (const match of matches) {
                     const matchLower = match.toLowerCase();
-                    if (!matchLower.includes('psa') && 
-                        !matchLower.includes('pop') && 
-                        !matchLower.includes('gem') && 
-                        !matchLower.includes('mint') &&
-                        !title.includes('/' + match)) {
-                        return match.startsWith('#') ? match : '#' + match;
+                    const titleLower = title.toLowerCase();
+                    
+                    // Skip if it's clearly a PSA grade
+                    if (matchLower.includes('psa') || 
+                        matchLower.includes('pop') || 
+                        matchLower.includes('gem') || 
+                        matchLower.includes('mint') ||
+                        titleLower.includes('psa ' + match) ||
+                        titleLower.includes('psa' + match) ||
+                        titleLower.includes('gem mint') ||
+                        titleLower.includes('gem mint ' + match) ||
+                        titleLower.includes('pop ' + match) ||
+                        titleLower.includes('pop' + match)) {
+                        continue;
                     }
+                    
+                    // Skip if it's part of a print run (e.g., /10, /99, /150)
+                    if (title.includes('/' + match) || title.includes(' / ' + match)) {
+                        continue;
+                    }
+                    
+                    // Skip if it's a standalone grade number (1-10) without context
+                    if (/^\d{1,2}$/.test(match) && 
+                        (titleLower.includes('psa') || titleLower.includes('gem') || titleLower.includes('mint'))) {
+                        continue;
+                    }
+                    
+                    return match.startsWith('#') ? match : '#' + match;
                 }
             }
         }
