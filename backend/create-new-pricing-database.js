@@ -211,6 +211,117 @@ class NewPricingDatabase {
         });
     }
 
+    /**
+     * Get a card by ID with all fields
+     * @param {number} cardId - Card ID
+     * @returns {Object} Card data
+     */
+    async getCardById(cardId) {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT id, title, summary_title, year, card_set, card_type, 
+                       player_name, card_number, print_run, is_rookie, is_autograph,
+                       sport, condition, grade, created_at, updated_at
+                FROM cards 
+                WHERE id = ?
+            `;
+            
+            this.pricingDb.get(query, [cardId], (err, row) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(row || null);
+                }
+            });
+        });
+    }
+
+    /**
+     * Update card fields
+     * @param {number} cardId - Card ID
+     * @param {Object} fields - Fields to update
+     */
+    async updateCardFields(cardId, fields) {
+        return new Promise((resolve, reject) => {
+            const updateFields = [];
+            const values = [];
+            
+            // Build dynamic update query
+            Object.keys(fields).forEach(key => {
+                if (fields[key] !== undefined && fields[key] !== null) {
+                    updateFields.push(`${key} = ?`);
+                    values.push(fields[key]);
+                }
+            });
+            
+            if (updateFields.length === 0) {
+                resolve(0);
+                return;
+            }
+            
+            updateFields.push('updated_at = ?');
+            values.push(new Date().toISOString());
+            values.push(cardId);
+            
+            const query = `UPDATE cards SET ${updateFields.join(', ')} WHERE id = ?`;
+            
+            this.pricingDb.run(query, values, function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    console.log(`✅ Updated card ${cardId} fields: ${Object.keys(fields).join(', ')}`);
+                    resolve(this.changes);
+                }
+            });
+        });
+    }
+
+    /**
+     * Generate summary title from card data
+     * @param {Object} card - Card data
+     * @returns {string} Generated summary title
+     */
+    async generateSummaryTitle(card) {
+        const parts = [];
+        
+        // Add year
+        if (card.year) {
+            parts.push(card.year);
+        }
+        
+        // Add card set
+        if (card.card_set) {
+            parts.push(card.card_set);
+        }
+        
+        // Add card type
+        if (card.card_type) {
+            parts.push(card.card_type);
+        }
+        
+        // Add player name
+        if (card.player_name) {
+            parts.push(card.player_name);
+        }
+        
+        // Add autograph indicator
+        if (card.is_autograph) {
+            parts.push('auto');
+        }
+        
+        // Add card number
+        if (card.card_number) {
+            parts.push(`#${card.card_number}`);
+        }
+        
+        // Add print run
+        if (card.print_run) {
+            parts.push(card.print_run);
+        }
+        
+        return parts.join(' ');
+    }
+
     async createTables() {
         console.log('📋 Creating new pricing database tables...');
         

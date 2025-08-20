@@ -1,6 +1,182 @@
 import React, { useState, useEffect } from 'react';
 import './AdminCardDatabase.css';
 
+// Edit Card Modal Component
+const EditCardModal = ({ card, loading, error, onSave, onClose }) => {
+  const [formData, setFormData] = useState({
+    year: '',
+    card_set: '',
+    card_type: '',
+    player_name: '',
+    card_number: '',
+    print_run: '',
+    is_rookie: false,
+    is_autograph: false
+  });
+
+  useEffect(() => {
+    if (card) {
+      setFormData({
+        year: card.year || '',
+        card_set: card.card_set || '',
+        card_type: card.card_type || '',
+        player_name: card.player_name || '',
+        card_number: card.card_number || '',
+        print_run: card.print_run || '',
+        is_rookie: card.is_rookie || false,
+        is_autograph: card.is_autograph || false
+      });
+    }
+  }, [card]);
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave({
+      id: card.id,
+      ...formData
+    });
+  };
+
+  if (!card) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h2>Edit Card Details</h2>
+          <button onClick={onClose} className="close-btn">&times;</button>
+        </div>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Original Title:</label>
+            <div className="original-title">{card.title}</div>
+          </div>
+
+          <div className="form-group">
+            <label>Current Summary Title:</label>
+            <div className="current-summary">{card.summary_title}</div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="year">Year:</label>
+              <input
+                type="number"
+                id="year"
+                value={formData.year}
+                onChange={(e) => handleInputChange('year', e.target.value)}
+                placeholder="2024"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="card_set">Card Set:</label>
+              <input
+                type="text"
+                id="card_set"
+                value={formData.card_set}
+                onChange={(e) => handleInputChange('card_set', e.target.value)}
+                placeholder="Topps Chrome"
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="card_type">Card Type:</label>
+              <input
+                type="text"
+                id="card_type"
+                value={formData.card_type}
+                onChange={(e) => handleInputChange('card_type', e.target.value)}
+                placeholder="Base"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="player_name">Player Name:</label>
+              <input
+                type="text"
+                id="player_name"
+                value={formData.player_name}
+                onChange={(e) => handleInputChange('player_name', e.target.value)}
+                placeholder="Mike Trout"
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="card_number">Card Number:</label>
+              <input
+                type="text"
+                id="card_number"
+                value={formData.card_number}
+                onChange={(e) => handleInputChange('card_number', e.target.value)}
+                placeholder="123"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="print_run">Print Run:</label>
+              <input
+                type="text"
+                id="print_run"
+                value={formData.print_run}
+                onChange={(e) => handleInputChange('print_run', e.target.value)}
+                placeholder="/150"
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group checkbox-group">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={formData.is_rookie}
+                  onChange={(e) => handleInputChange('is_rookie', e.target.checked)}
+                />
+                Rookie Card
+              </label>
+            </div>
+
+            <div className="form-group checkbox-group">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={formData.is_autograph}
+                  onChange={(e) => handleInputChange('is_autograph', e.target.checked)}
+                />
+                Autograph
+              </label>
+            </div>
+          </div>
+
+          {error && <div className="error-message">{error}</div>}
+
+          <div className="modal-actions">
+            <button type="button" onClick={onClose} className="cancel-btn">
+              Cancel
+            </button>
+            <button type="submit" className="save-btn" disabled={loading}>
+              {loading ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 function isAdminUser() {
   try {
     const token = localStorage.getItem('authToken');
@@ -27,6 +203,14 @@ const AdminCardDatabase = () => {
     sortOrder: 'DESC'
   });
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Edit modal state
+  const [editModal, setEditModal] = useState({
+    isOpen: false,
+    card: null,
+    loading: false,
+    error: null
+  });
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://web-production-9efa.up.railway.app';
 
@@ -72,6 +256,74 @@ const AdminCardDatabase = () => {
   const handleSearch = () => {
     setCurrentPage(1);
     fetchCards();
+  };
+
+  const handleEditCard = async (cardId) => {
+    setEditModal(prev => ({ ...prev, loading: true, error: null }));
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/card/${cardId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setEditModal({
+          isOpen: true,
+          card: data.card,
+          loading: false,
+          error: null
+        });
+      } else {
+        setEditModal(prev => ({ 
+          ...prev, 
+          loading: false, 
+          error: data.message || 'Failed to load card details' 
+        }));
+      }
+    } catch (err) {
+      setEditModal(prev => ({ 
+        ...prev, 
+        loading: false, 
+        error: 'Error loading card details: ' + err.message 
+      }));
+    }
+  };
+
+  const handleSaveCard = async (updatedCard) => {
+    setEditModal(prev => ({ ...prev, loading: true, error: null }));
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/card/${updatedCard.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedCard)
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setEditModal({ isOpen: false, card: null, loading: false, error: null });
+        // Refresh the cards list
+        fetchCards();
+      } else {
+        setEditModal(prev => ({ 
+          ...prev, 
+          loading: false, 
+          error: data.message || 'Failed to update card' 
+        }));
+      }
+    } catch (err) {
+      setEditModal(prev => ({ 
+        ...prev, 
+        loading: false, 
+        error: 'Error updating card: ' + err.message 
+      }));
+    }
+  };
+
+  const handleCloseEditModal = () => {
+    setEditModal({ isOpen: false, card: null, loading: false, error: null });
   };
 
   const handlePageChange = (newPage) => {
@@ -324,6 +576,13 @@ const AdminCardDatabase = () => {
                         >
                           🔍 eBay
                         </button>
+                        <button 
+                          className="edit-btn"
+                          onClick={() => handleEditCard(card.id)}
+                          title="Edit card details"
+                        >
+                          ✏️ Edit
+                        </button>
                       </div>
                       {card.summaryTitle && card.title !== card.summaryTitle && (
                         <div className="title-original">{card.title}</div>
@@ -362,6 +621,17 @@ const AdminCardDatabase = () => {
             </div>
           )}
         </>
+      )}
+
+      {/* Edit Card Modal */}
+      {editModal.isOpen && (
+        <EditCardModal
+          card={editModal.card}
+          loading={editModal.loading}
+          error={editModal.error}
+          onSave={handleSaveCard}
+          onClose={handleCloseEditModal}
+        />
       )}
     </div>
   );

@@ -3632,6 +3632,99 @@ app.post('/api/admin/check-cards', async (req, res) => {
     }
 });
 
+// GET /api/admin/card/:id - Get detailed card information for editing
+app.get('/api/admin/card/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        console.log(`🔍 Getting card details for ID: ${id}`);
+        
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        const card = await db.getCardById(id);
+        
+        if (!card) {
+            return res.status(404).json({
+                success: false,
+                message: 'Card not found',
+                timestamp: new Date().toISOString()
+            });
+        }
+        
+        res.json({
+            success: true,
+            card: card,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error getting card details:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error getting card details',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// PUT /api/admin/card/:id - Update card information
+app.put('/api/admin/card/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            year,
+            card_set,
+            card_type,
+            player_name,
+            card_number,
+            print_run,
+            is_rookie,
+            is_autograph
+        } = req.body;
+        
+        console.log(`🔧 Updating card ID: ${id}`);
+        console.log('📝 Update data:', req.body);
+        
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        // Update the card fields
+        await db.updateCardFields(id, {
+            year,
+            card_set,
+            card_type,
+            player_name,
+            card_number,
+            print_run,
+            is_rookie,
+            is_autograph
+        });
+        
+        // Regenerate the summary title
+        const updatedCard = await db.getCardById(id);
+        const newSummaryTitle = await db.generateSummaryTitle(updatedCard);
+        await db.updateCardTitle(id, newSummaryTitle);
+        
+        res.json({
+            success: true,
+            message: 'Card updated successfully',
+            card: await db.getCardById(id),
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error updating card:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating card',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/test-extraction - Test extraction logic
 app.post('/api/admin/test-extraction', async (req, res) => {
     try {
