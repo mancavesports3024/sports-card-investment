@@ -2443,6 +2443,8 @@ class NewPricingDatabase {
             'ink', 'endrick', 'tie', 'pandora', 'pedro de', 'jr tie', 'ohtani judge', 'ja marr chase', 'joe milton', 'malik', 'pandora malik', 'jayson tatum', 'devin', 'worthy', 'kobe bryant michael', 'tua tagovailoa', 'randy moss', 'keon coleman', 'kris draper detroit', 'deni avdija', 'tyson bagent', 'breece hall',
             // Bowman numbering prefixes that should not appear in player names
             'bdc', 'bdp', 'bcp', 'cda',
+            // Card number prefixes that should not appear in player names
+            'mmr', 'tc', 'dt', 'bs', 'sjmc',
             // Panini Prizm Basketball Parallels
             'black white prizms', 'china variation', 'choice blue', 'choice yellow', 'choice green prizms',
             'choice tiger stripe prizms', 'fast break prizms', 'glitter prizms', 'green prizms',
