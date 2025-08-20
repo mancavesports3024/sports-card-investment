@@ -37,15 +37,17 @@ class ExistingTitleUpdater {
                 console.log(`\n🔍 Processing card ${this.processedCount}/${cards.length}: ${card.title}`);
                 
                 try {
-                    const improvement = await this.db.improveCardTitleWithCardBase(card.title);
+                    // Use the current summary_title to search CardBase (it's cleaner than the original title)
+                    const searchQuery = card.summary_title || card.title;
+                    const improvement = await this.db.improveCardTitleWithCardBase(searchQuery);
                     
-                    if (improvement.success && improvement.improvedTitle !== card.title) {
+                    if (improvement.success && improvement.improvedTitle !== card.summary_title) {
                         // Update the card with improved title
                         await this.db.updateCardTitle(card.id, improvement.improvedTitle);
                         this.updatedCount++;
                         
                         console.log(`✅ Updated card ${card.id}:`);
-                        console.log(`   Original: ${card.title}`);
+                        console.log(`   Current Summary: ${card.summary_title}`);
                         console.log(`   Improved: ${improvement.improvedTitle}`);
                     } else {
                         this.failedCount++;

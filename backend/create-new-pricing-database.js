@@ -148,6 +148,30 @@ class NewPricingDatabase {
     }
 
     /**
+     * Find a card by its original title
+     * @param {string} title - The original title to search for
+     * @returns {Object|null} Card object or null if not found
+     */
+    async findCardByTitle(title) {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT id, title, summary_title 
+                FROM cards 
+                WHERE title = ? OR title LIKE ?
+                LIMIT 1
+            `;
+            
+            this.pricingDb.get(query, [title, `%${title}%`], (err, row) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(row || null);
+                }
+            });
+        });
+    }
+
+    /**
      * Get cards with specific issues in summary titles
      * @param {number} limit - Number of cards to get
      * @param {number} offset - Offset for pagination

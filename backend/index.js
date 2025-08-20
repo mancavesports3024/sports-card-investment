@@ -3462,7 +3462,13 @@ app.post('/api/admin/improve-card-title', async (req, res) => {
         const db = new NewPricingDatabase();
         await db.connect();
         
-        const result = await db.improveCardTitleWithCardBase(originalTitle);
+        // First, try to find this card in the database to get its current summary_title
+        const card = await db.findCardByTitle(originalTitle);
+        const searchQuery = card ? (card.summary_title || originalTitle) : originalTitle;
+        
+        console.log(`🔍 Using search query: "${searchQuery}"`);
+        
+        const result = await db.improveCardTitleWithCardBase(searchQuery);
         
         res.json({
             success: true,
