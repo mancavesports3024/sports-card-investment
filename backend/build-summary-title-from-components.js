@@ -81,10 +81,23 @@ class SummaryTitleBuilder {
             summaryTitle += 'auto';
         }
         
-        // Add card number
+        // Add card number (normalize and avoid confusing PSA grades with card numbers)
         if (card_number) {
-            if (summaryTitle) summaryTitle += ' ';
-            summaryTitle += `#${card_number}`;
+            const t = (title || '').toUpperCase();
+            let raw = String(card_number).trim();
+            // Remove any leading '#'
+            raw = raw.replace(/^#\s*/, '');
+            // Heuristic: if the card_number is a bare 1-3 digit number and the title contains
+            // "PSA <same number>" but the title does not include any real card number marker '#',
+            // then it's likely a grade, not a card number → skip adding it.
+            const isBareDigits = /^\d{1,3}$/.test(raw);
+            const titleHasSamePSAGrade = t.includes(`PSA ${raw}`);
+            const titleHasHashNumber = /#\s*\w+/.test(title || '');
+            const looksLikeGrade = isBareDigits && titleHasSamePSAGrade && !titleHasHashNumber;
+            if (!looksLikeGrade && raw) {
+                if (summaryTitle) summaryTitle += ' ';
+                summaryTitle += `#${raw}`;
+            }
         }
         
         // Add print run
