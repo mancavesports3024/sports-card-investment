@@ -3458,7 +3458,7 @@ app.post('/api/admin/improve-card-title', async (req, res) => {
         
         console.log(`🔍 Improving card title: "${originalTitle}"`);
         
-        const { NewPricingDatabase } = require('./create-new-pricing-database.js');
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
         const db = new NewPricingDatabase();
         await db.connect();
         
@@ -3487,7 +3487,7 @@ app.post('/api/admin/batch-improve-titles', async (req, res) => {
         
         console.log(`🔍 Batch improving card titles (limit: ${limit}, offset: ${offset})`);
         
-        const { NewPricingDatabase } = require('./create-new-pricing-database.js');
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
         const db = new NewPricingDatabase();
         await db.connect();
         
