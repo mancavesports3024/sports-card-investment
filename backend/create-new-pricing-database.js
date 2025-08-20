@@ -221,7 +221,7 @@ class NewPricingDatabase {
             const query = `
                 SELECT id, title, summary_title, year, card_set, card_type, 
                        player_name, card_number, print_run, is_rookie, is_autograph,
-                       sport, condition, grade, created_at, updated_at
+                       sport, condition, grade, created_at, last_updated AS updated_at
                 FROM cards 
                 WHERE id = ?
             `;
@@ -259,7 +259,7 @@ class NewPricingDatabase {
                 return;
             }
             
-            updateFields.push('updated_at = ?');
+            updateFields.push('last_updated = ?');
             values.push(new Date().toISOString());
             values.push(cardId);
             
