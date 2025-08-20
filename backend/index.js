@@ -3443,6 +3443,103 @@ app.post('/api/admin/run-cardbase-tests', async (req, res) => {
     }
 });
 
+// POST /api/admin/improve-card-title - Improve a specific card title using CardBase
+app.post('/api/admin/improve-card-title', async (req, res) => {
+    try {
+        const { originalTitle } = req.body;
+        
+        if (!originalTitle) {
+            return res.status(400).json({
+                success: false,
+                message: 'originalTitle is required',
+                timestamp: new Date().toISOString()
+            });
+        }
+        
+        console.log(`🔍 Improving card title: "${originalTitle}"`);
+        
+        const { NewPricingDatabase } = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        const result = await db.improveCardTitleWithCardBase(originalTitle);
+        
+        res.json({
+            success: true,
+            result: result,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error improving card title:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error improving card title',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// POST /api/admin/batch-improve-titles - Improve multiple card titles in batch
+app.post('/api/admin/batch-improve-titles', async (req, res) => {
+    try {
+        const { limit = 10, offset = 0 } = req.body;
+        
+        console.log(`🔍 Batch improving card titles (limit: ${limit}, offset: ${offset})`);
+        
+        const { NewPricingDatabase } = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        // Get cards that might need improvement (cards with poor summary titles)
+        const cards = await db.getCardsForTitleImprovement(limit, offset);
+        
+        const results = [];
+        for (const card of cards) {
+            console.log(`Processing card: ${card.title}`);
+            
+            const improvement = await db.improveCardTitleWithCardBase(card.title);
+            
+            if (improvement.success && improvement.improvedTitle !== card.title) {
+                // Update the card with improved title
+                await db.updateCardTitle(card.id, improvement.improvedTitle);
+                results.push({
+                    id: card.id,
+                    originalTitle: card.title,
+                    improvedTitle: improvement.improvedTitle,
+                    success: true
+                });
+            } else {
+                results.push({
+                    id: card.id,
+                    originalTitle: card.title,
+                    improvedTitle: card.title,
+                    success: false,
+                    reason: 'No improvement found or API failed'
+                });
+            }
+            
+            // Add delay to be respectful to the API
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+        res.json({
+            success: true,
+            processed: results.length,
+            results: results,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error in batch title improvement:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error in batch title improvement',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/test-extraction - Test extraction logic
 app.post('/api/admin/test-extraction', async (req, res) => {
     try {

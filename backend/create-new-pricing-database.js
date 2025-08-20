@@ -58,6 +58,91 @@ class NewPricingDatabase {
         });
     }
 
+    /**
+     * Improve card title using CardBase API
+     * @param {string} originalTitle - Original title from eBay
+     * @returns {Object} Improved card information
+     */
+    async improveCardTitleWithCardBase(originalTitle) {
+        try {
+            const { CardBaseService } = require('./services/cardbaseService.js');
+            const cardbaseService = new CardBaseService();
+            
+            console.log(`🔍 Improving title with CardBase: "${originalTitle}"`);
+            
+            const result = await cardbaseService.searchCard(originalTitle);
+            const cardInfo = cardbaseService.extractCardInfo(result);
+            const improvedTitle = cardbaseService.generateImprovedTitle(cardInfo, originalTitle);
+            
+            return {
+                originalTitle: originalTitle,
+                improvedTitle: improvedTitle,
+                cardbaseInfo: cardInfo,
+                success: !!cardInfo
+            };
+            
+        } catch (error) {
+            console.error('❌ Error improving title with CardBase:', error.message);
+            return {
+                originalTitle: originalTitle,
+                improvedTitle: originalTitle, // Fallback to original
+                cardbaseInfo: null,
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    /**
+     * Get cards that might need title improvement
+     * @param {number} limit - Number of cards to get
+     * @param {number} offset - Offset for pagination
+     * @returns {Array} Cards that might need improvement
+     */
+    async getCardsForTitleImprovement(limit = 10, offset = 0) {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT id, title, summary_title 
+                FROM cards 
+                WHERE summary_title IS NULL OR summary_title = '' OR summary_title = title
+                ORDER BY created_at DESC
+                LIMIT ? OFFSET ?
+            `;
+            
+            this.pricingDb.all(query, [limit, offset], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+
+    /**
+     * Update a card's title
+     * @param {number} cardId - Card ID
+     * @param {string} newTitle - New title
+     */
+    async updateCardTitle(cardId, newTitle) {
+        return new Promise((resolve, reject) => {
+            const query = `
+                UPDATE cards 
+                SET summary_title = ?, last_updated = CURRENT_TIMESTAMP
+                WHERE id = ?
+            `;
+            
+            this.pricingDb.run(query, [newTitle, cardId], function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    console.log(`✅ Updated card ${cardId} with new title: "${newTitle}"`);
+                    resolve(this.changes);
+                }
+            });
+        });
+    }
+
     async createTables() {
         console.log('📋 Creating new pricing database tables...');
         
