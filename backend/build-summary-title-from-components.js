@@ -48,12 +48,9 @@ class SummaryTitleBuilder {
     }
 
     buildSummaryTitle(components) {
-        const { year, card_set, player_name, card_type, card_number, print_run, title } = components;
+        const { year, card_set, player_name, card_type, card_number, print_run, title, is_autograph } = components;
         
         let summaryTitle = '';
-        
-        // Check if it's an autograph card
-        const isAuto = title && title.toLowerCase().includes('auto');
         
         // Start with year
         if (year) {
@@ -66,23 +63,20 @@ class SummaryTitleBuilder {
             summaryTitle += card_set;
         }
         
-        // Add player name (but not if it's already in the card set)
-        if (player_name && card_set && !card_set.toLowerCase().includes(player_name.toLowerCase())) {
-            if (summaryTitle) summaryTitle += ' ';
-            summaryTitle += player_name;
-        } else if (player_name && !card_set) {
-            if (summaryTitle) summaryTitle += ' ';
-            summaryTitle += player_name;
-        }
-        
         // Add card type (colors, parallels, etc.)
         if (card_type) {
             if (summaryTitle) summaryTitle += ' ';
             summaryTitle += card_type;
         }
         
-        // Add "auto" after card type if it's an autograph
-        if (isAuto) {
+        // Add player name
+        if (player_name) {
+            if (summaryTitle) summaryTitle += ' ';
+            summaryTitle += player_name;
+        }
+        
+        // Add "auto" if it's an autograph
+        if (is_autograph) {
             if (summaryTitle) summaryTitle += ' ';
             summaryTitle += 'auto';
         }
@@ -90,7 +84,7 @@ class SummaryTitleBuilder {
         // Add card number
         if (card_number) {
             if (summaryTitle) summaryTitle += ' ';
-            summaryTitle += card_number;
+            summaryTitle += `#${card_number}`;
         }
         
         // Add print run
