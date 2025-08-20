@@ -2361,6 +2361,19 @@ class NewPricingDatabase {
             cleanTitle = cleanTitle.replace(/#/g, ' '); // Remove any remaining # symbols
         }
         
+        // Step 3.5: Remove card number patterns that might be left (like TC264, MMR-54, etc.)
+        const cardNumberPatterns = [
+            /\b(TC\d+)\b/gi,  // TC264, TC123, etc.
+            /\b(MMR-\d+)\b/gi, // MMR-54, MMR-123, etc.
+            /\b(DT\d+)\b/gi,   // DT36, DT123, etc.
+            /\b(BS\d+)\b/gi,   // BS3, BS123, etc.
+            /\b(SJMC)\b/gi,    // SJMC
+        ];
+        
+        cardNumberPatterns.forEach(pattern => {
+            cleanTitle = cleanTitle.replace(pattern, ' ');
+        });
+        
         // Step 4: Remove grading terms
         const gradingTerms = [
             'psa', '10', 'gem', 'mint', 'gem mint', 'psa 10', 'psa10',
@@ -2445,6 +2458,8 @@ class NewPricingDatabase {
             'bdc', 'bdp', 'bcp', 'cda',
             // Card number prefixes that should not appear in player names
             'mmr', 'tc', 'dt', 'bs', 'sjmc',
+            // Card number patterns that should not appear in player names (with numbers)
+            'tc264', 'mmr-54',
             // Panini Prizm Basketball Parallels
             'black white prizms', 'china variation', 'choice blue', 'choice yellow', 'choice green prizms',
             'choice tiger stripe prizms', 'fast break prizms', 'glitter prizms', 'green prizms',
