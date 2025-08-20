@@ -19,8 +19,11 @@ class ExistingTitleUpdater {
         try {
             console.log(`🔄 Starting to update existing titles (limit: ${limit}, offset: ${offset})`);
             
-            // Get cards that need improvement
-            const cards = await this.db.getCardsForTitleImprovement(limit, offset);
+            // Get cards with title issues first, then fall back to general improvement
+            let cards = await this.db.getCardsWithTitleIssues(limit, offset);
+            if (cards.length === 0) {
+                cards = await this.db.getCardsForTitleImprovement(limit, offset);
+            }
             
             if (cards.length === 0) {
                 console.log('ℹ️ No cards found that need title improvement');

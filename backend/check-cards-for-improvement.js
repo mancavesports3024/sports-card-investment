@@ -22,7 +22,19 @@ class CardChecker {
             const cardsNeedingImprovement = await this.db.getCardsForTitleImprovement(10, 0);
             console.log(`📋 Cards needing improvement: ${cardsNeedingImprovement.length}`);
             
-            if (cardsNeedingImprovement.length > 0) {
+            // Get cards with specific issues
+            const cardsWithIssues = await this.db.getCardsWithTitleIssues(10, 0);
+            console.log(`🚨 Cards with title issues: ${cardsWithIssues.length}`);
+            
+            if (cardsWithIssues.length > 0) {
+                console.log('\n📝 Sample cards with title issues:');
+                cardsWithIssues.slice(0, 5).forEach((card, index) => {
+                    console.log(`${index + 1}. ID: ${card.id}`);
+                    console.log(`   Title: ${card.title}`);
+                    console.log(`   Summary Title: ${card.summary_title || 'NULL'}`);
+                    console.log('');
+                });
+            } else if (cardsNeedingImprovement.length > 0) {
                 console.log('\n📝 Sample cards that need improvement:');
                 cardsNeedingImprovement.slice(0, 5).forEach((card, index) => {
                     console.log(`${index + 1}. ID: ${card.id}`);

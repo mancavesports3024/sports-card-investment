@@ -105,6 +105,10 @@ class NewPricingDatabase {
                 SELECT id, title, summary_title 
                 FROM cards 
                 WHERE summary_title IS NULL OR summary_title = '' OR summary_title = title
+                   OR summary_title LIKE '%PSA%' OR summary_title LIKE '%GEM%' OR summary_title LIKE '%MINT%'
+                   OR summary_title LIKE '%RC%' OR summary_title LIKE '%Rookie%'
+                   OR summary_title LIKE '%Duke%' OR summary_title LIKE '%Mavericks%'
+                   OR summary_title LIKE '%Liverpool%' OR summary_title LIKE '%FC%'
                 ORDER BY created_at DESC
                 LIMIT ? OFFSET ?
             `;
@@ -138,6 +142,42 @@ class NewPricingDatabase {
                 } else {
                     console.log(`✅ Updated card ${cardId} with new title: "${newTitle}"`);
                     resolve(this.changes);
+                }
+            });
+        });
+    }
+
+    /**
+     * Get cards with specific issues in summary titles
+     * @param {number} limit - Number of cards to get
+     * @param {number} offset - Offset for pagination
+     * @returns {Array} Cards with issues
+     */
+    async getCardsWithTitleIssues(limit = 10, offset = 0) {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT id, title, summary_title 
+                FROM cards 
+                WHERE summary_title LIKE '%PSA%' 
+                   OR summary_title LIKE '%GEM%' 
+                   OR summary_title LIKE '%MINT%'
+                   OR summary_title LIKE '%RC%' 
+                   OR summary_title LIKE '%Rookie%'
+                   OR summary_title LIKE '%Duke%' 
+                   OR summary_title LIKE '%Mavericks%'
+                   OR summary_title LIKE '%Liverpool%' 
+                   OR summary_title LIKE '%FC%'
+                   OR summary_title LIKE '%🔥%'
+                   OR summary_title LIKE '%💎%'
+                ORDER BY created_at DESC
+                LIMIT ? OFFSET ?
+            `;
+            
+            this.pricingDb.all(query, [limit, offset], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
                 }
             });
         });
