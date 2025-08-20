@@ -3540,6 +3540,51 @@ app.post('/api/admin/batch-improve-titles', async (req, res) => {
     }
 });
 
+// POST /api/admin/run-title-updater - Run the existing title updater script
+app.post('/api/admin/run-title-updater', async (req, res) => {
+    try {
+        const { limit = 5, offset = 0 } = req.body;
+        
+        console.log(`🔄 Running existing title updater (limit: ${limit}, offset: ${offset})`);
+        
+        const { ExistingTitleUpdater } = require('./update-existing-titles.js');
+        const updater = new ExistingTitleUpdater();
+        
+        // Capture console output
+        const originalLog = console.log;
+        const output = [];
+        console.log = (...args) => {
+            const message = args.join(' ');
+            output.push(message);
+            originalLog(...args);
+        };
+        
+        await updater.connect();
+        await updater.updateExistingTitles(limit, offset);
+        await updater.close();
+        
+        // Restore console.log
+        console.log = originalLog;
+        
+        res.json({
+            success: true,
+            output: output,
+            processed: updater.processedCount,
+            updated: updater.updatedCount,
+            failed: updater.failedCount,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error running title updater:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error running title updater',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/test-extraction - Test extraction logic
 app.post('/api/admin/test-extraction', async (req, res) => {
     try {
