@@ -163,32 +163,6 @@ class CardBaseService {
         return player || null;
     }
 
-            console.log(`✅ CardBase API response status: ${response.status}`);
-            console.log(`📊 CardBase found ${response.data?.items?.length || 0} results`);
-
-            return {
-                success: true,
-                data: response.data,
-                searchQuery: searchQuery,
-                url: url
-            };
-
-        } catch (error) {
-            console.error('❌ CardBase API error:', error.message);
-            
-            if (error.response) {
-                console.error('Response status:', error.response.status);
-                console.error('Response data:', error.response.data);
-            }
-
-            return {
-                success: false,
-                error: error.message,
-                searchQuery: searchQuery
-            };
-        }
-    }
-
     /**
      * Extract standardized card information from CardBase response
      * @param {Object} cardbaseData - Response from CardBase API
