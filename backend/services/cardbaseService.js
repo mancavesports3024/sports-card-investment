@@ -21,28 +21,25 @@ class CardBaseService {
         try {
             console.log(`🔍 Searching CardBase for: "${searchQuery}"`);
             
-            const params = {
-                page: 1,
-                search: searchQuery,
-                'target_types[0]': 'Category',
-                'target_ids[0]': '1',
-                'target_values[0]': 'Sport Cards',
-                index: 'collectibles-catalog_items'
-            };
+            // Build the exact URL format you specified
+            const encodedSearch = encodeURIComponent(searchQuery);
+            const url = `${this.baseUrl}/search?page=1&search=${encodedSearch}&target_types[0]=Category&target_ids[0]=1&target_values[0]=Sport+Cards&index=collectibles-catalog_items`;
+            
+            console.log(`🌐 Making request to: ${url}`);
 
-            const response = await axios.get(`${this.baseUrl}/search`, {
-                params,
+            const response = await axios.get(url, {
                 headers: this.defaultHeaders,
                 timeout: 10000
             });
 
             console.log(`✅ CardBase API response status: ${response.status}`);
-            console.log(`📊 CardBase found ${response.data?.data?.length || 0} results`);
+            console.log(`📊 CardBase found ${response.data?.items?.length || 0} results`);
 
             return {
                 success: true,
                 data: response.data,
-                searchQuery: searchQuery
+                searchQuery: searchQuery,
+                url: url
             };
 
         } catch (error) {
