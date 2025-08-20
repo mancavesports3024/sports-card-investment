@@ -4954,3 +4954,59 @@ app.post('/api/admin/fix-remaining-unknown-sports', async (req, res) => {
 	}
 });
 
+// POST /api/admin/check-missing-card-numbers - Find cards with missing card numbers
+app.post('/api/admin/check-missing-card-numbers', async (req, res) => {
+    try {
+        console.log('🔍 Checking for cards with missing card numbers...');
+        
+        const { MissingCardNumberChecker } = require('./check-missing-card-numbers.js');
+        const checker = new MissingCardNumberChecker();
+        await checker.connect();
+        const results = await checker.findCardsWithMissingNumbers();
+        await checker.close();
+
+        res.json({
+            success: true,
+            results: results,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error checking missing card numbers:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error checking missing card numbers',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// POST /api/admin/fix-missing-card-numbers - Batch fix missing card numbers
+app.post('/api/admin/fix-missing-card-numbers', async (req, res) => {
+    try {
+        console.log('🔧 Starting batch fix for missing card numbers...');
+        
+        const { MissingCardNumberChecker } = require('./check-missing-card-numbers.js');
+        const checker = new MissingCardNumberChecker();
+        await checker.connect();
+        const results = await checker.fixMissingCardNumbers();
+        await checker.close();
+
+        res.json({
+            success: true,
+            results: results,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error fixing missing card numbers:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fixing missing card numbers',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+

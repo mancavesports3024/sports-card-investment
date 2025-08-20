@@ -2340,10 +2340,22 @@ class NewPricingDatabase {
             cleanTitle = cleanTitle.replace(new RegExp(cardType, 'gi'), ' ');
         }
         
-        // Step 3: Remove the card number
+        // Step 3: Remove the card number (be tolerant to hyphens/spaces)
         const cardNumber = this.extractCardNumber(title);
         if (cardNumber) {
-            cleanTitle = cleanTitle.replace(new RegExp(cardNumber.replace('#', ''), 'gi'), ' ');
+            const base = cardNumber.replace('#', '');
+            // Build tolerant pattern: allow optional separators between letters and digits
+            const tolerantBase = base
+                .replace(/[-\s]+/g, '[-\\s]*')
+                .replace(/([A-Za-z]+)(\d+)/, '$1[-\\s]*$2');
+            const tolerantRegex = new RegExp(tolerantBase, 'gi');
+            cleanTitle = cleanTitle.replace(tolerantRegex, ' ');
+            // Also remove leftover standalone letter prefixes like BDC if present
+            const letterPrefixMatch = base.match(/^[A-Za-z]+/);
+            if (letterPrefixMatch) {
+                const prefix = letterPrefixMatch[0];
+                cleanTitle = cleanTitle.replace(new RegExp(`\\b${prefix}\\b`, 'gi'), ' ');
+            }
             cleanTitle = cleanTitle.replace(/#/g, ' '); // Remove any remaining # symbols
         }
         
@@ -2418,7 +2430,7 @@ class NewPricingDatabase {
             'ice', 'lazer', 'lightboard', 'magenta', 'mt', 'shock',
             // Specific problematic terms from the cards
             'invicta bi15', 'invicta', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in', 'jesus made',
-            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'radiating', 'now', 'foil',
+            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'storm chasers', 'storm-chasers', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'radiating', 'now', 'foil', 'case hit', 'case-hit', 'case hits', 'case-hits',
             // UFC/MMA terms that should be removed from player names
             'ufc', 'mma', 'mixed martial arts', 'octagon', 'fighter', 'fighting',
             // Additional card types that should be removed from player names
@@ -2426,7 +2438,35 @@ class NewPricingDatabase {
             // Card sets that should be removed from player names
             'collector', 'phenomenon', 'preview', 'mls', 'blazers', 'level', 'premier', 'sparkle', 'ucc', 'snider', 'road to uefa', 'jack murphy stadium',
             // Other card terms
-            'ink', 'endrick', 'tie', 'pandora', 'pedro de', 'jr tie', 'ohtani judge', 'ja marr chase', 'joe milton', 'malik', 'pandora malik', 'jayson tatum', 'devin', 'worthy', 'kobe bryant michael', 'tua tagovailoa', 'randy moss', 'keon coleman', 'kris draper detroit', 'deni avdija', 'tyson bagent', 'breece hall'
+            'ink', 'endrick', 'tie', 'pandora', 'pedro de', 'jr tie', 'ohtani judge', 'ja marr chase', 'joe milton', 'malik', 'pandora malik', 'jayson tatum', 'devin', 'worthy', 'kobe bryant michael', 'tua tagovailoa', 'randy moss', 'keon coleman', 'kris draper detroit', 'deni avdija', 'tyson bagent', 'breece hall',
+            // Bowman numbering prefixes that should not appear in player names
+            'bdc', 'bdp', 'bcp', 'cda',
+            // Panini Prizm Basketball Parallels
+            'black white prizms', 'china variation', 'choice blue', 'choice yellow', 'choice green prizms',
+            'choice tiger stripe prizms', 'fast break prizms', 'glitter prizms', 'green prizms',
+            'green ice prizms', 'green wave prizms', 'hyper prizms', 'ice prizms', 'orange ice prizms',
+            'pink ice prizms', 'pulsar prizms', 'red ice prizms', 'red sparkle prizms', 'red/white/blue prizms',
+            'ruby wave prizms', 'silver prizms', 'snakeskin prizms', 'wave prizms', 'white sparkle prizms',
+            'white tiger stripe prizms', 'red prizms', 'red seismic prizms', 'white lazer prizms',
+            'pink prizms', 'skewed prizms', 'basketball prizms', 'teal ice prizms', 'blue prizms',
+            'orange seismic prizms', 'white prizms', 'fast break blue prizms', 'premium factory set prizms',
+            'purple ice prizms', 'blue sparkle prizms', 'blue ice prizms', 'fast break orange prizms',
+            'wave blue prizms', 'fast break red prizms', 'blue pulsar prizms', 'blue seismic prizms',
+            'purple prizms', 'choice red prizms', 'dragon year prizms', 'multi wave prizms',
+            'fast break purple prizms', 'red power prizms', 'red pulsar prizms', 'wave orange prizms',
+            'fast break pink prizms', 'choice blue prizms', 'orange prizms', 'jade dragon scale prizms',
+            'pink pulsar prizms', 'white wave prizms', 'blue shimmer prizms', 'purple pulsar prizms',
+            'red lazer prizms', 'white ice prizms', 'green pulsar prizms', 'mojo prizms',
+            'gold sparkle prizms', 'choice cherry blossom prizms', 'fast break bronze prizms',
+            'lotus flower prizms', 'gold prizms', 'gold shimmer prizms', 'ice gold prizms',
+            'lazer gold prizms', 'wave gold prizms', 'choice green prizms', 'green sparkle prizms',
+            'lucky envelopes prizms', 'plum blossom prizms', 'black gold prizms', 'fast break neon green prizms',
+            'green shimmer prizms', 'black prizms', 'black shimmer prizms', 'choice nebula prizms',
+            // Individual terms from Prizm parallels
+            'king snake', 'china', 'choice', 'tiger stripe', 'glitter', 'ice', 'sparkle', 'ruby',
+            'seismic', 'lazer', 'skewed', 'pulsar', 'dragon year', 'multi wave', 'power',
+            'jade dragon scale', 'cherry blossom', 'bronze', 'lotus flower', 'shimmer',
+            'mojo', 'neon green', 'nebula', 'plum blossom', 'lucky envelopes'
         ];
         cardTerms.forEach(term => {
             const regex = new RegExp(`\\b${term}\\b`, 'gi');
