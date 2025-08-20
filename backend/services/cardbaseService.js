@@ -321,6 +321,16 @@ class CardBaseService {
         const originalHasNumbered = this.hasNumbered(originalTitle);
         const cardbaseHasNumbered = this.hasNumbered(cardbaseTitle);
 
+        // Extract player names for comparison
+        const originalPlayer = this.extractPlayerName(originalTitle);
+        const cardbasePlayer = this.extractPlayerName(cardbaseTitle);
+
+        // Don't change player names unless they're very similar (typo fixes)
+        if (originalPlayer && cardbasePlayer && !this.arePlayerNamesSimilar(originalPlayer, cardbasePlayer)) {
+            console.log(`⚠️ Rejecting improvement: Player name changed from "${originalPlayer}" to "${cardbasePlayer}"`);
+            return originalTitle;
+        }
+
         // Don't downgrade from autograph to non-autograph
         if (originalHasAuto && !cardbaseHasAuto) {
             console.log(`⚠️ Rejecting improvement: Original has autograph, CardBase result doesn't`);
@@ -364,6 +374,128 @@ class CardBaseService {
      */
     hasNumbered(title) {
         return /\/(\d+)/.test(title) || /\b(\d+)\/(\d+)\b/.test(title);
+    }
+
+    /**
+     * Extract player name from title
+     */
+    extractPlayerName(title) {
+        // Common patterns for player names
+        const patterns = [
+            // Pattern: Year Brand Set Player Name
+            /(\d{4})\s+[A-Za-z\s]+\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+?)(?=\s+#|\s+auto|\s+autograph|\s+rc|\s+rookie|\s*$)/i,
+            // Pattern: Player Name at the end
+            /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+?)(?=\s+#|\s+auto|\s+autograph|\s+rc|\s+rookie|\s*$)/i,
+            // Pattern: Player Name after "AU" or "RC"
+            /(?:AU|RC)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+?)(?=\s+#|\s*$)/i
+        ];
+
+        for (const pattern of patterns) {
+            const match = title.match(pattern);
+            if (match && match[1]) {
+                const playerName = match[1].trim();
+                // Filter out common non-player words
+                if (playerName.length > 2 && !this.isCommonCardTerm(playerName)) {
+                    return playerName;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if two player names are similar (for typo fixes)
+     */
+    arePlayerNamesSimilar(name1, name2) {
+        if (!name1 || !name2) return false;
+        
+        const n1 = name1.toLowerCase().replace(/[^a-z\s]/g, '');
+        const n2 = name2.toLowerCase().replace(/[^a-z\s]/g, '');
+        
+        // Exact match
+        if (n1 === n2) return true;
+        
+        // Check if one is contained in the other (for partial matches)
+        if (n1.includes(n2) || n2.includes(n1)) return true;
+        
+        // Check for common variations (e.g., "J.J." vs "JJ")
+        const normalized1 = n1.replace(/\s+/g, '').replace(/\./g, '');
+        const normalized2 = n2.replace(/\s+/g, '').replace(/\./g, '');
+        
+        if (normalized1 === normalized2) return true;
+        
+        // Check for initials vs full names
+        const words1 = n1.split(/\s+/);
+        const words2 = n2.split(/\s+/);
+        
+        if (words1.length === 1 && words2.length === 1) {
+            // Single word names - check if they're similar
+            return this.calculateSimilarity(n1, n2) > 0.8;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Calculate string similarity (simple Levenshtein-based)
+     */
+    calculateSimilarity(str1, str2) {
+        const longer = str1.length > str2.length ? str1 : str2;
+        const shorter = str1.length > str2.length ? str2 : str1;
+        
+        if (longer.length === 0) return 1.0;
+        
+        const distance = this.levenshteinDistance(longer, shorter);
+        return (longer.length - distance) / longer.length;
+    }
+
+    /**
+     * Calculate Levenshtein distance
+     */
+    levenshteinDistance(str1, str2) {
+        const matrix = [];
+        
+        for (let i = 0; i <= str2.length; i++) {
+            matrix[i] = [i];
+        }
+        
+        for (let j = 0; j <= str1.length; j++) {
+            matrix[0][j] = j;
+        }
+        
+        for (let i = 1; i <= str2.length; i++) {
+            for (let j = 1; j <= str1.length; j++) {
+                if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                    matrix[i][j] = matrix[i - 1][j - 1];
+                } else {
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j - 1] + 1,
+                        matrix[i][j - 1] + 1,
+                        matrix[i - 1][j] + 1
+                    );
+                }
+            }
+        }
+        
+        return matrix[str2.length][str1.length];
+    }
+
+    /**
+     * Check if a word is a common card term (not a player name)
+     */
+    isCommonCardTerm(word) {
+        const commonTerms = [
+            'auto', 'autograph', 'rc', 'rookie', 'refractor', 'prizm', 'chrome',
+            'select', 'finest', 'bowman', 'topps', 'panini', 'upper', 'deck',
+            'donruss', 'fleer', 'signatures', 'intimidators', 'legends', 'legend',
+            'gold', 'silver', 'blue', 'red', 'green', 'orange', 'purple', 'black',
+            'wave', 'shimmer', 'crackle', 'holo', 'foil', 'parallel', 'variation',
+            'insert', 'base', 'numbered', 'limited', 'exclusive', 'mega', 'hobby',
+            'jumbo', 'value', 'fat', 'pack', 'box', 'case', 'hit', 'ssp', 'sp'
+        ];
+        
+        return commonTerms.includes(word.toLowerCase());
     }
 
     /**
