@@ -3406,6 +3406,43 @@ app.post('/api/admin/search-cardbase', async (req, res) => {
     }
 });
 
+// POST /api/admin/run-cardbase-tests - Run comprehensive CardBase integration tests
+app.post('/api/admin/run-cardbase-tests', async (req, res) => {
+    try {
+        console.log('🧪 Running comprehensive CardBase integration tests...');
+        
+        const { CardBaseIntegrationTester } = require('./test-cardbase-integration.js');
+        const tester = new CardBaseIntegrationTester();
+        
+        // Capture console output
+        const originalLog = console.log;
+        const testOutput = [];
+        console.log = (...args) => {
+            testOutput.push(args.join(' '));
+            originalLog(...args);
+        };
+        
+        await tester.runAllTests();
+        
+        // Restore console.log
+        console.log = originalLog;
+        
+        res.json({
+            success: true,
+            testOutput: testOutput,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error running CardBase tests:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error running CardBase tests',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/test-extraction - Test extraction logic
 app.post('/api/admin/test-extraction', async (req, res) => {
     try {
