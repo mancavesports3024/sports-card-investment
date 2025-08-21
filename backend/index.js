@@ -5055,6 +5055,34 @@ app.post('/api/admin/fix-incorrect-unknown-sports', async (req, res) => {
     }
 });
 
+// POST /api/admin/restore-player-names - Restore corrupted player names by re-extracting from original titles
+app.post('/api/admin/restore-player-names', async (req, res) => {
+    try {
+        console.log('🔧 Restoring corrupted player names...');
+        
+        const { PlayerNameRestorer } = require('./restore-player-names.js');
+        const restorer = new PlayerNameRestorer();
+        await restorer.connect();
+        await restorer.restorePlayerNames();
+        await restorer.close();
+
+        res.json({
+            success: true,
+            message: 'Player name restoration completed successfully',
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error restoring player names:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error restoring player names',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/apply-ultra-conservative-player-name-fixes - Apply ultra-conservative fixes for specific ESPN API failure cases
 app.post('/api/admin/apply-ultra-conservative-player-name-fixes', async (req, res) => {
     try {
