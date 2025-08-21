@@ -112,82 +112,184 @@ class EnhancedPlayerExtraction {
     }
 
     enhancedExtractPlayerName(title) {
-        let cleanTitle = title;
+        // Use the original extraction as a base
+        let playerName = this.db.extractPlayerName(title);
         
-        // Step 1: Remove sport terms
-        this.sportTerms.forEach(term => {
-            const regex = new RegExp(`\\b${term}\\b`, 'gi');
-            cleanTitle = cleanTitle.replace(regex, ' ');
-        });
-        
-        // Step 2: Remove card types
-        this.cardTypes.forEach(term => {
-            const regex = new RegExp(`\\b${term}\\b`, 'gi');
-            cleanTitle = cleanTitle.replace(regex, ' ');
-        });
-        
-        // Step 3: Remove city/team terms
-        this.cityTeamTerms.forEach(term => {
-            const regex = new RegExp(`\\b${term}\\b`, 'gi');
-            cleanTitle = cleanTitle.replace(regex, ' ');
-        });
-        
-        // Step 4: Remove card descriptions
-        this.cardDescriptions.forEach(term => {
-            const regex = new RegExp(`\\b${term}\\b`, 'gi');
-            cleanTitle = cleanTitle.replace(regex, ' ');
-        });
-        
-        // Step 5: Remove alphanumeric codes
-        this.alphanumericCodes.forEach(code => {
-            const regex = new RegExp(`\\b${code}\\b`, 'gi');
-            cleanTitle = cleanTitle.replace(regex, ' ');
-        });
-        
-        // Step 6: Remove card number patterns
-        const cardNumberPatterns = [
-            /\b(TC\d+)\b/gi,  // TC264, TC123, etc.
-            /\b(MMR-\d+)\b/gi, // MMR-54, MMR-123, etc.
-            /\b(DT\d+)\b/gi,   // DT36, DT123, etc.
-            /\b(BS\d+)\b/gi,   // BS3, BS123, etc.
-            /\b(SJMC)\b/gi,    // SJMC
-            /\b([A-Z]{2,5}\d{1,4})\b/gi, // General alphanumeric codes
-            /\b([A-Z]{2,4}-[A-Z]{1,4})\b/gi, // Codes like RS-SGA
-        ];
-        
-        cardNumberPatterns.forEach(pattern => {
-            cleanTitle = cleanTitle.replace(pattern, ' ');
-        });
-        
-        // Step 7: Clean up extra spaces and normalize
-        cleanTitle = cleanTitle
-            .replace(/\s+/g, ' ')
-            .trim()
-            .replace(/^[^a-zA-Z]*/, '') // Remove leading non-letters
-            .replace(/[^a-zA-Z]*$/, ''); // Remove trailing non-letters
-        
-        // Step 8: Extract the first 2-3 words as potential player name
-        const words = cleanTitle.split(/\s+/).filter(word => word.length > 0);
-        
-        // Take first 2-3 words, but be smart about it
-        let playerName = '';
-        if (words.length >= 3) {
-            // Check if third word looks like a name (not a number, not too short)
-            if (words[2].length >= 2 && !/\d/.test(words[2])) {
-                playerName = words.slice(0, 3).join(' ');
-            } else {
-                playerName = words.slice(0, 2).join(' ');
-            }
-        } else if (words.length === 2) {
-            playerName = words.join(' ');
-        } else if (words.length === 1) {
-            playerName = words[0];
+        if (!playerName) {
+            return null;
         }
         
-        // Step 9: Final cleanup
-        playerName = this.db.capitalizePlayerName(playerName);
+        // Only apply very specific fixes to known problematic patterns
+        let cleanPlayerName = playerName;
+        let needsUpdate = false;
         
-        return playerName || null;
+        // Remove sport terms from the beginning ONLY
+        const sportPrefixes = [
+            /^wwe\s+/gi,
+            /^wwf\s+/gi,
+            /^formula\s+/gi,
+            /^f1\s+/gi,
+            /^wnba\s+/gi,
+            /^nba\s+/gi,
+            /^nfl\s+/gi,
+            /^mlb\s+/gi,
+            /^nhl\s+/gi,
+            /^soccer\s+/gi,
+            /^fifa\s+/gi,
+            /^pga\s+/gi,
+            /^ufc\s+/gi,
+            /^mma\s+/gi,
+            /^pokemon\s+/gi,
+            /^pokémon\s+/gi
+        ];
+        
+        sportPrefixes.forEach(pattern => {
+            if (pattern.test(cleanPlayerName)) {
+                cleanPlayerName = cleanPlayerName.replace(pattern, '');
+                needsUpdate = true;
+            }
+        });
+        
+        // Remove city names from the end ONLY
+        const citySuffixes = [
+            /\s+chicago$/gi,
+            /\s+detroit$/gi,
+            /\s+denver$/gi,
+            /\s+miami$/gi,
+            /\s+new york$/gi,
+            /\s+los angeles$/gi,
+            /\s+boston$/gi,
+            /\s+dallas$/gi,
+            /\s+houston$/gi,
+            /\s+phoenix$/gi,
+            /\s+portland$/gi,
+            /\s+sacramento$/gi,
+            /\s+minneapolis$/gi,
+            /\s+oklahoma city$/gi,
+            /\s+salt lake city$/gi,
+            /\s+memphis$/gi,
+            /\s+new orleans$/gi,
+            /\s+san antonio$/gi,
+            /\s+orlando$/gi,
+            /\s+atlanta$/gi,
+            /\s+charlotte$/gi,
+            /\s+washington$/gi,
+            /\s+cleveland$/gi,
+            /\s+indianapolis$/gi,
+            /\s+milwaukee$/gi,
+            /\s+philadelphia$/gi,
+            /\s+brooklyn$/gi,
+            /\s+toronto$/gi,
+            /\s+montreal$/gi,
+            /\s+vancouver$/gi,
+            /\s+calgary$/gi,
+            /\s+edmonton$/gi,
+            /\s+winnipeg$/gi,
+            /\s+ottawa$/gi,
+            /\s+quebec$/gi,
+            /\s+seattle$/gi,
+            /\s+las vegas$/gi,
+            /\s+nashville$/gi,
+            /\s+columbus$/gi,
+            /\s+pittsburgh$/gi,
+            /\s+st louis$/gi,
+            /\s+kansas city$/gi,
+            /\s+cincinnati$/gi,
+            /\s+baltimore$/gi,
+            /\s+jacksonville$/gi,
+            /\s+tampa bay$/gi,
+            /\s+carolina$/gi,
+            /\s+arizona$/gi,
+            /\s+tennessee$/gi,
+            /\s+colorado$/gi
+        ];
+        
+        citySuffixes.forEach(pattern => {
+            if (pattern.test(cleanPlayerName)) {
+                cleanPlayerName = cleanPlayerName.replace(pattern, '');
+                needsUpdate = true;
+            }
+        });
+        
+        // Remove specific problematic terms from the end
+        const problematicSuffixes = [
+            /\s+supernatural$/gi,
+            /\s+pitching$/gi,
+            /\s+catching$/gi,
+            /\s+new$/gi,
+            /\s+color$/gi,
+            /\s+design$/gi,
+            /\s+vision$/gi,
+            /\s+explosive$/gi,
+            /\s+buffaloes$/gi,
+            /\s+usa$/gi,
+            /\s+tom$/gi,
+            /\s+lewis$/gi,
+            /\s+big$/gi,
+            /\s+club$/gi,
+            /\s+nix$/gi,
+            /\s+liv$/gi,
+            /\s+euro$/gi,
+            /\s+warming$/gi,
+            /\s+x2001$/gi,
+            /\s+q0902$/gi,
+            /\s+montana rice$/gi,
+            /\s+ohtani judge$/gi,
+            /\s+ja marr chase$/gi,
+            /\s+booker$/gi,
+            /\s+arda guler$/gi,
+            /\s+esteban ocon$/gi,
+            /\s+de von achane$/gi,
+            /\s+spencer rattler$/gi,
+            /\s+drake maye$/gi,
+            /\s+shedeur sanders$/gi,
+            /\s+ladd mcconkey$/gi,
+            /\s+nikola jokic$/gi,
+            /\s+vladimir guerrero$/gi,
+            /\s+francisco lindor$/gi,
+            /\s+wyatt langford$/gi,
+            /\s+tom brady$/gi,
+            /\s+tyranitar$/gi,
+            /\s+hacksaw jim$/gi,
+            /\s+nabers$/gi,
+            /\s+victor wembanyama$/gi,
+            /\s+david robinson$/gi,
+            /\s+jacob misiorowski$/gi,
+            /\s+julio rodriguez$/gi,
+            /\s+roman reigns$/gi,
+            /\s+kobe bryant michael$/gi,
+            /\s+kris draper$/gi,
+            /\s+walter payton$/gi,
+            /\s+josh adamczewski$/gi,
+            /\s+vladi guerrero$/gi,
+            /\s+brooks koepka$/gi,
+            /\s+bernabel$/gi,
+            /\s+aaron judge catching$/gi,
+            /\s+tyreek hill$/gi,
+            /\s+shohei ohtani$/gi,
+            /\s+charizard$/gi,
+            /\s+barry sanders$/gi,
+            /\s+cameron brink$/gi,
+            /\s+bo nix$/gi
+        ];
+        
+        problematicSuffixes.forEach(pattern => {
+            if (pattern.test(cleanPlayerName)) {
+                cleanPlayerName = cleanPlayerName.replace(pattern, '');
+                needsUpdate = true;
+            }
+        });
+        
+        // Clean up extra spaces
+        cleanPlayerName = cleanPlayerName.replace(/\s+/g, ' ').trim();
+        
+        // Only return the cleaned version if it's different and still valid
+        if (needsUpdate && cleanPlayerName.length > 0) {
+            return this.db.capitalizePlayerName(cleanPlayerName);
+        }
+        
+        // Return original if no changes needed
+        return playerName;
     }
 
     async testEnhancedExtraction() {
