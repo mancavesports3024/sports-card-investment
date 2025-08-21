@@ -5055,6 +5055,34 @@ app.post('/api/admin/fix-incorrect-unknown-sports', async (req, res) => {
     }
 });
 
+// POST /api/admin/apply-conservative-player-name-fixes - Apply very conservative fixes for specific ESPN API failure cases
+app.post('/api/admin/apply-conservative-player-name-fixes', async (req, res) => {
+    try {
+        console.log('🎯 Applying conservative player name fixes...');
+        
+        const { ConservativePlayerNameFixes } = require('./conservative-player-name-fixes.js');
+        const fixer = new ConservativePlayerNameFixes();
+        await fixer.connect();
+        await fixer.applyConservativeFixesToDatabase();
+        await fixer.close();
+
+        res.json({
+            success: true,
+            message: 'Conservative player name fixes completed successfully',
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error applying conservative player name fixes:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error applying conservative player name fixes',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/apply-targeted-player-name-fixes - Apply targeted fixes for specific ESPN API failure cases
 app.post('/api/admin/apply-targeted-player-name-fixes', async (req, res) => {
     try {
