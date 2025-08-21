@@ -5017,6 +5017,44 @@ app.post('/api/admin/update-unknown-sports', async (req, res) => {
     }
 });
 
+// POST /api/admin/fix-incorrect-unknown-sports - Fix cards incorrectly marked as Unknown
+app.post('/api/admin/fix-incorrect-unknown-sports', async (req, res) => {
+    try {
+        console.log('🔄 Fixing incorrect unknown sports...');
+        
+        const { IncorrectUnknownSportsFixer } = require('./fix-incorrect-unknown-sports.js');
+        const fixer = new IncorrectUnknownSportsFixer();
+        
+        await fixer.connect();
+        console.log('✅ Connected to Railway database');
+        
+        await fixer.fixIncorrectUnknownSports();
+        
+        await fixer.close();
+        
+        res.json({
+            success: true,
+            message: 'Incorrect unknown sports fix completed successfully',
+            results: {
+                fixed: fixer.fixedCount,
+                skipped: fixer.skippedCount,
+                errors: fixer.errorCount,
+                totalProcessed: fixer.fixedCount + fixer.skippedCount + fixer.errorCount
+            },
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error fixing incorrect unknown sports:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fixing incorrect unknown sports',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/cleanup-player-names - Normalize player_name across all cards
 app.post('/api/admin/cleanup-player-names', async (req, res) => {
 	try {
