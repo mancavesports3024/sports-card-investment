@@ -5055,6 +5055,34 @@ app.post('/api/admin/fix-incorrect-unknown-sports', async (req, res) => {
     }
 });
 
+// POST /api/admin/fix-messed-up-player-names - Fix player names that got messed up by enhanced extraction
+app.post('/api/admin/fix-messed-up-player-names', async (req, res) => {
+    try {
+        console.log('🔧 Fixing messed up player names...');
+        
+        const { MessedUpPlayerNameFixer } = require('./fix-messed-up-player-names.js');
+        const fixer = new MessedUpPlayerNameFixer();
+        await fixer.connect();
+        await fixer.fixMessedUpPlayerNames();
+        await fixer.close();
+
+        res.json({
+            success: true,
+            message: 'Messed up player names fix completed successfully',
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error fixing messed up player names:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fixing messed up player names',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/test-enhanced-player-extraction - Test enhanced player name extraction
 app.post('/api/admin/test-enhanced-player-extraction', async (req, res) => {
     try {
