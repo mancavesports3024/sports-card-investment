@@ -163,7 +163,14 @@ class UnknownSportsUpdater {
                 const queryName = cleanedPlayer || card.player_name;
                 newSport = await this.db.espnDetector.detectSportFromPlayer(queryName);
                 console.log(`   Using ESPN v2 API with player name: ${queryName}${cleanedPlayer ? ` (from: ${card.player_name})` : ''}`);
-                // Fallback to comprehensive detection if ESPN returned Unknown
+                
+                // Safety check: Don't let ESPN override existing valid sports with Unknown
+                if (newSport === 'Unknown' && card.sport && card.sport !== 'Unknown' && card.sport !== null && card.sport !== '') {
+                    console.log(`   ⚠️ ESPN returned Unknown, but card already has valid sport: ${card.sport}. Skipping ESPN result.`);
+                    newSport = null; // Reset to force fallback
+                }
+                
+                // Fallback to comprehensive detection if ESPN returned Unknown or was skipped
                 if (!newSport || newSport === 'Unknown') {
                     const fallback = await this.db.detectSportFromComprehensive(card.title);
                     if (fallback && fallback !== 'Unknown') {
@@ -179,7 +186,8 @@ class UnknownSportsUpdater {
             
             console.log(`   New sport: ${newSport}`);
             
-            if (newSport && newSport !== 'Unknown' && newSport !== card.sport) {
+            // Only update if we have a valid sport AND the current sport is Unknown or NULL
+            if (newSport && newSport !== 'Unknown' && (card.sport === 'Unknown' || card.sport === null || card.sport === '')) {
                 // Update the card with the new sport
                 await this.db.runQuery(`
                     UPDATE cards 
@@ -189,6 +197,9 @@ class UnknownSportsUpdater {
                 
                 console.log(`   ✅ Updated: ${card.sport} → ${newSport}`);
                 this.updatedCount++;
+            } else if (newSport === 'Unknown' && card.sport !== 'Unknown' && card.sport !== null && card.sport !== '') {
+                console.log(`   ⚠️ Skipping update: ESPN returned Unknown for card with existing sport: ${card.sport}`);
+                this.unchangedCount++;
             } else {
                 console.log(`   ⏭️ No change needed (still Unknown or no valid sport detected)`);
                 this.unchangedCount++;
