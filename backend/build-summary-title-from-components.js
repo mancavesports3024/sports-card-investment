@@ -114,7 +114,17 @@ class SummaryTitleBuilder {
         
         try {
             const cards = await this.runQuery(`
-                SELECT id, year, card_set, player_name, card_type, card_number, print_run, summary_title, title 
+                SELECT 
+                    id, 
+                    year, 
+                    card_set, 
+                    player_name, 
+                    card_type, 
+                    card_number, 
+                    print_run, 
+                    summary_title, 
+                    title,
+                    is_autograph
                 FROM cards 
                 ORDER BY id
             `);
@@ -164,7 +174,17 @@ class SummaryTitleBuilder {
         console.log('\n📊 Sample Results:');
         
         const samples = await this.runQuery(`
-            SELECT id, year, card_set, player_name, card_type, card_number, print_run, summary_title, title 
+            SELECT 
+                id, 
+                year, 
+                card_set, 
+                player_name, 
+                card_type, 
+                card_number, 
+                print_run, 
+                summary_title, 
+                title,
+                is_autograph
             FROM cards 
             ORDER BY RANDOM() 
             LIMIT 10

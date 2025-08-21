@@ -3865,6 +3865,107 @@ app.post('/api/admin/test-extraction', async (req, res) => {
     }
 });
 
+// POST /api/admin/audit-autograph-flags - Report mismatches between title and is_autograph flag
+app.post('/api/admin/audit-autograph-flags', async (req, res) => {
+    try {
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        await db.connect();
+
+        const rows = await db.allQuery(`
+            SELECT id, title, summary_title, card_type, is_autograph
+            FROM cards
+            ORDER BY id
+        `);
+
+        const autoTerms = [' auto ', ' autograph', 'signature', 'signed', 'sig ', 'sig.', 'on card', 'sticker auto'];
+        const negativeTerms = ['no auto', 'non auto'];
+        const normalize = (s) => ` ${String(s || '').toLowerCase()} `;
+
+        const mismatches = [];
+        let shouldBeTrue = 0;
+        let shouldBeFalse = 0;
+
+        for (const c of rows) {
+            const t = normalize(c.title);
+            const s = normalize(c.summary_title);
+            const ct = normalize(c.card_type);
+
+            const hasNegative = negativeTerms.some(term => t.includes(term) || s.includes(term) || ct.includes(term));
+            let inferred = false;
+            if (!hasNegative) {
+                inferred = autoTerms.some(term => t.includes(term) || s.includes(term) || ct.includes(term));
+            }
+
+            if (inferred && !c.is_autograph) {
+                mismatches.push({ id: c.id, current: !!c.is_autograph, inferred: true, source: 'title/card_type indicates autograph' });
+                shouldBeTrue++;
+            } else if (!inferred && c.is_autograph) {
+                mismatches.push({ id: c.id, current: !!c.is_autograph, inferred: false, source: 'no autograph indicators present' });
+                shouldBeFalse++;
+            }
+        }
+
+        await db.close();
+        res.json({ success: true, total: rows.length, mismatches: mismatches.slice(0, 50), shouldBeTrue, shouldBeFalse, previewCount: Math.min(50, mismatches.length), timestamp: new Date().toISOString() });
+    } catch (error) {
+        console.error('Error auditing autograph flags:', error);
+        res.status(500).json({ success: false, message: 'Error auditing autograph flags', error: error.message });
+    }
+});
+
+// POST /api/admin/fix-autograph-flags - Fix is_autograph based on title/card_type, rebuild summaries for changed cards
+app.post('/api/admin/fix-autograph-flags', async (req, res) => {
+    try {
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        await db.connect();
+
+        const rows = await db.allQuery(`
+            SELECT id, title, summary_title, card_type, is_autograph
+            FROM cards
+            ORDER BY id
+        `);
+
+        const autoTerms = [' auto ', ' autograph', 'signature', 'signed', 'sig ', 'sig.', 'on card', 'sticker auto'];
+        const negativeTerms = ['no auto', 'non auto'];
+        const normalize = (s) => ` ${String(s || '').toLowerCase()} `;
+
+        let updated = 0;
+        const changed = [];
+
+        for (const c of rows) {
+            const t = normalize(c.title);
+            const s = normalize(c.summary_title);
+            const ct = normalize(c.card_type);
+
+            const hasNegative = negativeTerms.some(term => t.includes(term) || s.includes(term) || ct.includes(term));
+            let inferred = false;
+            if (!hasNegative) {
+                inferred = autoTerms.some(term => t.includes(term) || s.includes(term) || ct.includes(term));
+            }
+
+            // Only update when different
+            if (Boolean(c.is_autograph) !== inferred) {
+                await db.runQuery(`UPDATE cards SET is_autograph = ?, last_updated = CURRENT_TIMESTAMP WHERE id = ?`, [inferred ? 1 : 0, c.id]);
+                const refreshed = await db.getCardById(c.id);
+                const newTitle = await db.generateSummaryTitle(refreshed);
+                await db.updateCardTitle(c.id, newTitle);
+                updated++;
+                if (updated <= 20) {
+                    changed.push({ id: c.id, from: !!c.is_autograph, to: inferred, newSummary: newTitle });
+                }
+            }
+        }
+
+        await db.close();
+        res.json({ success: true, updated, sample: changed, timestamp: new Date().toISOString() });
+    } catch (error) {
+        console.error('Error fixing autograph flags:', error);
+        res.status(500).json({ success: false, message: 'Error fixing autograph flags', error: error.message });
+    }
+});
+
 // POST /api/admin/extract-missing-terms - Extract missing terms from player names
 app.post('/api/admin/extract-missing-terms', async (req, res) => {
     try {
