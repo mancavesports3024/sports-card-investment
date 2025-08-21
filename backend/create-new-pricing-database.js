@@ -405,15 +405,15 @@ class NewPricingDatabase {
     }
 
     // Enhanced sport detection using ESPN v2 API, comprehensive database, and keyword analysis
-    async detectSportFromComprehensive(title) {
+    async detectSportFromComprehensive(title, playerName = null) {
         // First try ESPN v2 API for player-based sport detection
         try {
-            // Use the title generator's player extraction for better results
-            const playerName = this.extractPlayerName(title);
-            if (playerName) {
-                const espnSport = await this.espnDetector.detectSportFromPlayer(playerName);
+            // Use provided player name or extract from title
+            const playerToUse = playerName || this.extractPlayerName(title);
+            if (playerToUse) {
+                const espnSport = await this.espnDetector.detectSportFromPlayer(playerToUse);
                 if (espnSport && espnSport !== 'Unknown') {
-                    console.log(`✅ ESPN v2 API detected sport for ${playerName}: ${espnSport}`);
+                    console.log(`✅ ESPN v2 API detected sport for ${playerToUse}: ${espnSport}`);
                     return espnSport;
                 }
             }
@@ -952,26 +952,8 @@ class NewPricingDatabase {
                 console.log(`🎯 Generated component-based title: "${cardData.title}" → "${summaryTitle.trim()}"`);
             }
             
-            // Detect sport using comprehensive database
-            let sport = await this.detectSportFromComprehensive(cardData.title);
-            
-            // If sport detection fails, try using the title generator's player extraction
-            if (!sport || sport === 'Unknown') {
-                try {
-                    const playerName = this.extractPlayerName(cardData.title);
-                    if (playerName) {
-                        console.log(`🎯 Using title generator player extraction for sport detection: "${playerName}"`);
-                        // Try ESPN API with the extracted player name
-                        const espnSport = await this.espnDetector.detectSportFromPlayer(playerName);
-                        if (espnSport && espnSport !== 'Unknown') {
-                            sport = espnSport;
-                            console.log(`✅ ESPN API detected sport for ${playerName}: ${sport}`);
-                        }
-                    }
-                } catch (playerError) {
-                    console.log(`⚠️ Title generator player extraction failed: ${playerError.message}`);
-                }
-            }
+            // Detect sport using comprehensive database with already extracted player name
+            let sport = await this.detectSportFromComprehensive(cardData.title, playerName);
             
             // Ensure sport is not null or empty
             if (!sport || sport.trim() === '') {

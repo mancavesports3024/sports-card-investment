@@ -40,7 +40,7 @@ class SportDetectionUpdater {
             
             for (const card of cards) {
                 try {
-                    const detectedSport = await this.detector.detectSportFromComprehensive(card.title);
+                    const detectedSport = await this.detector.detectSportFromComprehensive(card.title, card.player_name);
                     
                     if (detectedSport && detectedSport !== 'Unknown') {
                         await this.updateCardSport(card.id, detectedSport);
@@ -68,7 +68,7 @@ class SportDetectionUpdater {
     async getCardsToUpdate() {
         return new Promise((resolve, reject) => {
             const query = `
-                SELECT id, title, sport 
+                SELECT id, title, sport, player_name 
                 FROM cards 
                 WHERE sport IS NULL OR sport = 'Unknown' OR sport = ''
                 ORDER BY id DESC
