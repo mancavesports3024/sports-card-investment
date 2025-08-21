@@ -11,7 +11,8 @@ const EditCardModal = ({ card, loading, error, onSave, onClose }) => {
     card_number: '',
     print_run: '',
     is_rookie: false,
-    is_autograph: false
+    is_autograph: false,
+    sport: ''
   });
 
   useEffect(() => {
@@ -24,7 +25,8 @@ const EditCardModal = ({ card, loading, error, onSave, onClose }) => {
         card_number: card.card_number || '',
         print_run: card.print_run || '',
         is_rookie: card.is_rookie || false,
-        is_autograph: card.is_autograph || false
+        is_autograph: card.is_autograph || false,
+        sport: card.sport || ''
       });
     }
   }, [card]);
@@ -101,6 +103,27 @@ const EditCardModal = ({ card, loading, error, onSave, onClose }) => {
               />
             </div>
 
+            <div className="form-group">
+              <label htmlFor="sport">Sport:</label>
+              <select
+                id="sport"
+                value={formData.sport}
+                onChange={(e) => handleInputChange('sport', e.target.value)}
+              >
+                <option value="">Select Sport</option>
+                <option value="Baseball">Baseball</option>
+                <option value="Basketball">Basketball</option>
+                <option value="Football">Football</option>
+                <option value="Hockey">Hockey</option>
+                <option value="Soccer">Soccer</option>
+                <option value="Racing">Racing</option>
+                <option value="UFC">UFC</option>
+                <option value="UNKNOWN">Unknown</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-row">
             <div className="form-group">
               <label htmlFor="player_name">Player Name:</label>
               <input

@@ -3684,7 +3684,8 @@ app.put('/api/admin/card/:id', async (req, res) => {
             card_number,
             print_run,
             is_rookie,
-            is_autograph
+            is_autograph,
+            sport
         } = req.body;
         
         console.log(`🔧 Updating card ID: ${id}`);
@@ -3703,7 +3704,8 @@ app.put('/api/admin/card/:id', async (req, res) => {
             card_number,
             print_run,
             is_rookie,
-            is_autograph
+            is_autograph,
+            sport
         });
         
         // Regenerate the summary title
