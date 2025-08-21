@@ -5055,6 +5055,62 @@ app.post('/api/admin/fix-incorrect-unknown-sports', async (req, res) => {
     }
 });
 
+// POST /api/admin/test-enhanced-player-extraction - Test enhanced player name extraction
+app.post('/api/admin/test-enhanced-player-extraction', async (req, res) => {
+    try {
+        console.log('🧪 Testing enhanced player extraction...');
+        
+        const { EnhancedPlayerExtraction } = require('./enhanced-player-extraction.js');
+        const extractor = new EnhancedPlayerExtraction();
+        await extractor.connect();
+        await extractor.testEnhancedExtraction();
+        await extractor.close();
+
+        res.json({
+            success: true,
+            message: 'Enhanced player extraction test completed',
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error testing enhanced player extraction:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error testing enhanced player extraction',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// POST /api/admin/update-player-names-enhanced - Update player names with enhanced extraction
+app.post('/api/admin/update-player-names-enhanced', async (req, res) => {
+    try {
+        console.log('🔄 Updating player names with enhanced extraction...');
+        
+        const { EnhancedPlayerExtraction } = require('./enhanced-player-extraction.js');
+        const extractor = new EnhancedPlayerExtraction();
+        await extractor.connect();
+        await extractor.updatePlayerNamesWithEnhancedExtraction();
+        await extractor.close();
+
+        res.json({
+            success: true,
+            message: 'Enhanced player name update completed successfully',
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error updating player names with enhanced extraction:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating player names with enhanced extraction',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/cleanup-player-names - Normalize player_name across all cards
 app.post('/api/admin/cleanup-player-names', async (req, res) => {
 	try {
