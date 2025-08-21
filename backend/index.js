@@ -5055,6 +5055,34 @@ app.post('/api/admin/fix-incorrect-unknown-sports', async (req, res) => {
     }
 });
 
+// POST /api/admin/apply-targeted-player-name-fixes - Apply targeted fixes for specific ESPN API failure cases
+app.post('/api/admin/apply-targeted-player-name-fixes', async (req, res) => {
+    try {
+        console.log('🎯 Applying targeted player name fixes...');
+        
+        const { TargetedPlayerNameFixes } = require('./targeted-player-name-fixes.js');
+        const fixer = new TargetedPlayerNameFixes();
+        await fixer.connect();
+        await fixer.applyTargetedFixesToDatabase();
+        await fixer.close();
+
+        res.json({
+            success: true,
+            message: 'Targeted player name fixes completed successfully',
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error applying targeted player name fixes:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error applying targeted player name fixes',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/fix-messed-up-player-names - Fix player names that got messed up by enhanced extraction
 app.post('/api/admin/fix-messed-up-player-names', async (req, res) => {
     try {
