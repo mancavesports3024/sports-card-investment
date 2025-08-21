@@ -5055,6 +5055,34 @@ app.post('/api/admin/fix-incorrect-unknown-sports', async (req, res) => {
     }
 });
 
+// POST /api/admin/verify-player-names - Verify current state of player names in database
+app.post('/api/admin/verify-player-names', async (req, res) => {
+    try {
+        console.log('🔍 Verifying player names...');
+        
+        const { PlayerNameVerifier } = require('./verify-player-names.js');
+        const verifier = new PlayerNameVerifier();
+        await verifier.connect();
+        await verifier.verifyPlayerNames();
+        await verifier.close();
+
+        res.json({
+            success: true,
+            message: 'Player name verification completed successfully',
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error verifying player names:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error verifying player names',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/restore-player-names - Restore corrupted player names by re-extracting from original titles
 app.post('/api/admin/restore-player-names', async (req, res) => {
     try {
