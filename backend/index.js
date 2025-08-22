@@ -5419,3 +5419,32 @@ app.post('/api/admin/test-card-number-extraction', async (req, res) => {
     }
 });
 
+// POST /api/admin/test-player-names-espn - Test player names against ESPN API
+app.post('/api/admin/test-player-names-espn', async (req, res) => {
+    try {
+        console.log('🔍 Testing player names with ESPN API...');
+        const { PlayerNameESPNTester } = require('./test-player-names-espn.js');
+        const tester = new PlayerNameESPNTester();
+        await tester.connect();
+        await tester.testPlayerNamesInDatabase();
+        await tester.close();
+        
+        res.json({ 
+            success: true, 
+            message: 'Player name ESPN API testing completed successfully',
+            problematicCount: tester.problematicNames.length,
+            totalTested: tester.testResults.length,
+            problematicNames: tester.problematicNames,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('❌ Error testing player names with ESPN:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error testing player names with ESPN', 
+            error: error.message, 
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
