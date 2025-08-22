@@ -5419,32 +5419,41 @@ app.post('/api/admin/test-card-number-extraction', async (req, res) => {
     }
 });
 
-// POST /api/admin/test-player-names-espn - Test player names against ESPN API
-app.post('/api/admin/test-player-names-espn', async (req, res) => {
+// POST /api/admin/analyze-player-names - Analyze player names to identify problematic ones
+app.post('/api/admin/analyze-player-names', async (req, res) => {
     try {
-        console.log('🔍 Testing player names with ESPN API...');
-        const { PlayerNameESPNTester } = require('./test-player-names-espn.js');
-        const tester = new PlayerNameESPNTester();
-        await tester.connect();
-        await tester.testPlayerNamesInDatabase();
-        await tester.close();
+        console.log('🔍 Analyzing player names...');
+        const { PlayerNameAnalyzer } = require('./analyze-player-names-simple.js');
+        const analyzer = new PlayerNameAnalyzer();
+        await analyzer.connect();
+        await analyzer.analyzePlayerNames();
+        await analyzer.close();
         
         res.json({ 
             success: true, 
-            message: 'Player name ESPN API testing completed successfully',
-            problematicCount: tester.problematicNames.length,
-            totalTested: tester.testResults.length,
-            problematicNames: tester.problematicNames,
+            message: 'Player name analysis completed successfully',
+            problematicCount: analyzer.problematicNames.length,
+            totalAnalyzed: analyzer.analysisResults.length,
+            problematicNames: analyzer.problematicNames.map(name => {
+                const result = analyzer.analysisResults.find(r => r.playerName === name);
+                return {
+                    name: name,
+                    count: result.count,
+                    reason: result.reason
+                };
+            }),
             timestamp: new Date().toISOString()
         });
     } catch (error) {
-        console.error('❌ Error testing player names with ESPN:', error);
+        console.error('❌ Error analyzing player names:', error);
         res.status(500).json({ 
             success: false, 
-            message: 'Error testing player names with ESPN', 
+            message: 'Error analyzing player names', 
             error: error.message, 
             timestamp: new Date().toISOString()
         });
     }
 });
+
+
 
