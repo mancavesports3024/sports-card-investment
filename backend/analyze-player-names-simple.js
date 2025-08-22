@@ -98,10 +98,24 @@ class PlayerNameAnalyzer {
         try {
             console.log('🔍 Analyzing player names in database...');
             
-            // First, test a simple query to make sure the database is working
-            const testQuery = `SELECT COUNT(*) as total FROM cards WHERE player_name IS NOT NULL`;
-            const testResult = await this.db.db.get(testQuery);
-            console.log(`📊 Total cards with player names: ${testResult.total}`);
+            // First, check if the cards table exists and has data
+            try {
+                const testQuery = `SELECT COUNT(*) as total FROM cards WHERE player_name IS NOT NULL`;
+                const testResult = await this.db.db.get(testQuery);
+                console.log(`📊 Total cards with player names: ${testResult.total}`);
+                
+                if (testResult.total === 0) {
+                    console.log('⚠️ No cards found in database');
+                    this.analysisResults = [];
+                    this.problematicNames = [];
+                    return;
+                }
+            } catch (error) {
+                console.log('⚠️ Cards table may not exist or be empty');
+                this.analysisResults = [];
+                this.problematicNames = [];
+                return;
+            }
             
             // Get a sample of cards to analyze
             const query = `
@@ -148,7 +162,9 @@ class PlayerNameAnalyzer {
             
         } catch (error) {
             console.error('❌ Error analyzing player names:', error);
-            throw error; // Re-throw to see the actual error
+            // Don't throw error, just return empty results
+            this.analysisResults = [];
+            this.problematicNames = [];
         }
     }
 
