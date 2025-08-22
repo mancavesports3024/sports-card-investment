@@ -18,7 +18,7 @@ class PlayerNameAnalyzer {
     }
 
     isLikelyProblematic(playerName) {
-        if (!playerName || playerName.trim().length < 2) return true;
+        if (!playerName || playerName.trim().length < 2) return { isProblematic: true, reason: 'Empty or too short' };
         
         const name = playerName.trim().toLowerCase();
         
