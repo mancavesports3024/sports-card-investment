@@ -10,6 +10,14 @@ class PlayerNameAnalyzer {
     async connect() {
         await this.db.connect();
         console.log('✅ Connected to database');
+        
+        // Ensure the database and tables exist
+        try {
+            await this.db.createTables();
+            console.log('✅ Database tables ensured');
+        } catch (error) {
+            console.log('⚠️ Tables may already exist, continuing...');
+        }
     }
 
     async close() {
@@ -90,6 +98,11 @@ class PlayerNameAnalyzer {
         try {
             console.log('🔍 Analyzing player names in database...');
             
+            // First, test a simple query to make sure the database is working
+            const testQuery = `SELECT COUNT(*) as total FROM cards WHERE player_name IS NOT NULL`;
+            const testResult = await this.db.db.get(testQuery);
+            console.log(`📊 Total cards with player names: ${testResult.total}`);
+            
             // Get a sample of cards to analyze
             const query = `
                 SELECT DISTINCT player_name, COUNT(*) as count
@@ -99,7 +112,7 @@ class PlayerNameAnalyzer {
                 AND player_name != 'Unknown'
                 GROUP BY player_name
                 ORDER BY count DESC
-                LIMIT 100
+                LIMIT 50
             `;
             
             const results = await this.db.db.all(query);
@@ -135,6 +148,7 @@ class PlayerNameAnalyzer {
             
         } catch (error) {
             console.error('❌ Error analyzing player names:', error);
+            throw error; // Re-throw to see the actual error
         }
     }
 
