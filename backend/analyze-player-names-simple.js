@@ -22,7 +22,7 @@ class PlayerNameAnalyzer {
         
         const name = playerName.trim().toLowerCase();
         
-        // Check for obvious non-player terms
+        // Check for obvious non-player terms (updated)
         const nonPlayerTerms = [
             'base', 'parallel', 'chrome', 'prizm', 'optic', 'select', 'donruss', 'topps',
             'panini', 'fleer', 'upper deck', 'bowman', 'heritage', 'gallery', 'museum',
