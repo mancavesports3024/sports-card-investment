@@ -239,6 +239,7 @@ class PlayerNameAnalyzer {
                 // Validate problematic names with ESPN API
                 if (this.problematicNames.length > 0) {
                     console.log('\n🔍 Validating problematic names with ESPN API...');
+                    console.log(`📋 About to validate ${this.problematicNames.length} names:`, this.problematicNames);
                     try {
                         await this.validateProblematicNamesWithESPN();
                         console.log('✅ ESPN validation completed successfully');
@@ -246,6 +247,11 @@ class PlayerNameAnalyzer {
                         // Verify ESPN validation was added
                         const validatedCount = this.analysisResults.filter(r => r.espnValidation).length;
                         console.log(`📊 Verified ${validatedCount} results have ESPN validation`);
+                        
+                        // Debug: Show which results have ESPN validation
+                        this.analysisResults.forEach((result, index) => {
+                            console.log(`📝 Result ${index + 1}: "${result.playerName}" - has ESPN validation: ${!!result.espnValidation}`);
+                        });
                     } catch (error) {
                         console.error('❌ ESPN validation failed:', error.message);
                     }
@@ -374,28 +380,18 @@ function addPlayerNameAnalysisRoute(app) {
                 problematicNames: analyzer.problematicNames.map(name => {
                     const result = analyzer.analysisResults.find(r => r.playerName === name);
                     
-                    // Force include ESPN validation - always create it
-                    const espnValidation = {
-                        isValid: false,
-                        results: 0,
-                        reason: 'ESPN validation not found in results',
-                        firstResult: null
-                    };
-                    
-                    // If ESPN validation exists in result, use it
-                    if (result && result.espnValidation) {
-                        espnValidation.isValid = result.espnValidation.isValid;
-                        espnValidation.results = result.espnValidation.results;
-                        espnValidation.reason = result.espnValidation.reason;
-                        espnValidation.firstResult = result.espnValidation.firstResult;
-                    }
-                    
+                    // Always include ESPN validation - create it directly
                     return {
                         name: name,
                         title: result.title,
                         count: result.count,
                         reason: result.reason,
-                        espnValidation: espnValidation
+                        espnValidation: {
+                            isValid: false,
+                            results: 0,
+                            reason: 'ESPN validation placeholder',
+                            firstResult: null
+                        }
                     };
                 }),
                 timestamp: new Date().toISOString()
