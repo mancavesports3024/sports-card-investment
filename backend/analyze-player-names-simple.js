@@ -389,17 +389,19 @@ function addPlayerNameAnalysisRoute(app) {
                     });
                     
                     // Always include ESPN validation - create it directly
+                    const espnValidation = result.espnValidation || {
+                        isValid: false,
+                        results: 0,
+                        reason: 'ESPN validation not performed',
+                        firstResult: null
+                    };
+                    
                     return {
                         name: name,
                         title: result.title,
                         count: result.count,
                         reason: result.reason,
-                        espnValidation: result.espnValidation || {
-                            isValid: false,
-                            results: 0,
-                            reason: 'ESPN validation not performed',
-                            firstResult: null
-                        }
+                        espnValidation: espnValidation
                     };
                 }),
                 timestamp: new Date().toISOString()
