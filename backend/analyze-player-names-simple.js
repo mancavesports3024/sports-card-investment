@@ -380,6 +380,14 @@ function addPlayerNameAnalysisRoute(app) {
                 problematicNames: analyzer.problematicNames.map(name => {
                     const result = analyzer.analysisResults.find(r => r.playerName === name);
                     
+                    // Debug: Log what we found
+                    console.log(`🔍 DEBUG - Mapping "${name}":`, {
+                        hasResult: !!result,
+                        resultKeys: result ? Object.keys(result) : 'NO RESULT',
+                        hasEspnValidation: result ? !!result.espnValidation : false,
+                        espnValidation: result ? result.espnValidation : 'NO RESULT'
+                    });
+                    
                     // Always include ESPN validation - create it directly
                     return {
                         name: name,
