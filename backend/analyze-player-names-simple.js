@@ -369,6 +369,10 @@ function addPlayerNameAnalysisRoute(app) {
                 },
                 problematicNames: analyzer.problematicNames.map(name => {
                     const result = analyzer.analysisResults.find(r => r.playerName === name);
+                    console.log(`🔍 Mapping response for "${name}":`, {
+                        hasEspnValidation: !!result.espnValidation,
+                        espnValidation: result.espnValidation
+                    });
                     
                     return {
                         name: name,
