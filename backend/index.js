@@ -5434,10 +5434,15 @@ app.post('/api/admin/analyze-player-names', async (req, res) => {
             message: 'Player name analysis completed successfully',
             problematicCount: analyzer.problematicNames.length,
             totalAnalyzed: analyzer.analysisResults.length,
+            databaseStats: {
+                totalCards: analyzer.totalCards || 0,
+                cardsWithPlayerNames: analyzer.cardsWithPlayerNames || 0
+            },
             problematicNames: analyzer.problematicNames.map(name => {
                 const result = analyzer.analysisResults.find(r => r.playerName === name);
                 return {
                     name: name,
+                    title: result.title,
                     count: result.count,
                     reason: result.reason
                 };
@@ -5449,6 +5454,32 @@ app.post('/api/admin/analyze-player-names', async (req, res) => {
         res.status(500).json({ 
             success: false, 
             message: 'Error analyzing player names', 
+            error: error.message, 
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// POST /api/admin/diagnose-database - Diagnose database structure and content
+app.post('/api/admin/diagnose-database', async (req, res) => {
+    try {
+        console.log('🔍 Diagnosing database...');
+        const { PlayerNameAnalyzer } = require('./analyze-player-names-simple.js');
+        const analyzer = new PlayerNameAnalyzer();
+        await analyzer.connect();
+        await analyzer.diagnoseDatabase();
+        await analyzer.close();
+        
+        res.json({ 
+            success: true, 
+            message: 'Database diagnosis completed successfully',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('❌ Error diagnosing database:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error diagnosing database', 
             error: error.message, 
             timestamp: new Date().toISOString()
         });
@@ -5476,6 +5507,44 @@ app.post('/api/admin/test-espn-connection', async (req, res) => {
         res.status(500).json({ 
             success: false, 
             message: 'Error testing ESPN API connection', 
+            error: error.message, 
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// POST /api/admin/test-sample-player-names - Test sample player names with ESPN API
+app.post('/api/admin/test-sample-player-names', async (req, res) => {
+    try {
+        console.log('🔍 Testing sample player names with ESPN API...');
+        const { ESPNPlayerNameValidator } = require('./test-player-names-espn-simple.js');
+        const validator = new ESPNPlayerNameValidator();
+        await validator.connect();
+        await validator.testSamplePlayerNames();
+        await validator.close();
+        
+        res.json({ 
+            success: true, 
+            message: 'Sample player name validation completed successfully',
+            validCount: validator.validNames.length,
+            problematicCount: validator.problematicNames.length,
+            totalTested: validator.testResults.length,
+            problematicNames: validator.problematicNames.map(name => {
+                const result = validator.testResults.find(r => r.playerName === name);
+                return {
+                    name: name,
+                    title: result.title,
+                    reason: result.reason
+                };
+            }),
+            validNames: validator.validNames.slice(0, 10), // Show first 10 valid names
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('❌ Error testing sample player names with ESPN:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error testing sample player names with ESPN', 
             error: error.message, 
             timestamp: new Date().toISOString()
         });
