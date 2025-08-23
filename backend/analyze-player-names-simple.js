@@ -98,29 +98,43 @@ class PlayerNameAnalyzer {
         try {
             console.log('🔍 Analyzing player names in database...');
             
-            // Simple test - just get a few player names to see if the database works
-            const simpleQuery = `SELECT player_name FROM cards WHERE player_name IS NOT NULL LIMIT 5`;
+            // First, let's see what's in the database
+            const totalQuery = `SELECT COUNT(*) as total FROM cards`;
+            const totalResult = await this.db.db.get(totalQuery);
+            this.totalCards = totalResult.total;
+            console.log(`📊 Total cards in database: ${this.totalCards}`);
+            
+            // Check how many have player_name
+            const playerNameQuery = `SELECT COUNT(*) as count FROM cards WHERE player_name IS NOT NULL AND player_name != ''`;
+            const playerNameResult = await this.db.db.get(playerNameQuery);
+            this.cardsWithPlayerNames = playerNameResult.count;
+            console.log(`📊 Cards with player_name: ${this.cardsWithPlayerNames}`);
+            
+            // Get a sample of cards to analyze
+            const sampleQuery = `SELECT player_name, title FROM cards WHERE player_name IS NOT NULL AND player_name != '' LIMIT 20`;
             
             try {
-                const results = await this.db.db.all(simpleQuery);
-                console.log(`📊 Found ${results.length} sample player names`);
+                const results = await this.db.db.all(sampleQuery);
+                console.log(`📊 Found ${results.length} sample cards with player names`);
                 
                 if (results.length === 0) {
-                    console.log('⚠️ No cards found in database');
+                    console.log('⚠️ No cards with player names found in database');
                     this.analysisResults = [];
                     this.problematicNames = [];
                     return;
                 }
                 
-                // Just analyze the first few names as a test
+                // Analyze the sample
                 for (const result of results) {
                     const playerName = result.player_name;
+                    const title = result.title;
                     
                     if (playerName && playerName.trim()) {
                         const analysis = this.isLikelyProblematic(playerName.trim());
                         
                         const analysisResult = {
                             playerName: playerName.trim(),
+                            title: title,
                             count: 1,
                             isProblematic: analysis.isProblematic,
                             reason: analysis.reason
@@ -130,9 +144,9 @@ class PlayerNameAnalyzer {
                         
                         if (analysis.isProblematic) {
                             this.problematicNames.push(playerName.trim());
-                            console.log(`❌ Problematic: "${playerName}" - ${analysis.reason}`);
+                            console.log(`❌ Problematic: "${playerName}" (from: "${title}") - ${analysis.reason}`);
                         } else {
-                            console.log(`✅ Valid: "${playerName}"`);
+                            console.log(`✅ Valid: "${playerName}" (from: "${title}")`);
                         }
                     }
                 }
@@ -203,10 +217,15 @@ function addPlayerNameAnalysisRoute(app) {
                 message: 'Player name analysis completed successfully',
                 problematicCount: analyzer.problematicNames.length,
                 totalAnalyzed: analyzer.analysisResults.length,
+                databaseStats: {
+                    totalCards: analyzer.totalCards || 0,
+                    cardsWithPlayerNames: analyzer.cardsWithPlayerNames || 0
+                },
                 problematicNames: analyzer.problematicNames.map(name => {
                     const result = analyzer.analysisResults.find(r => r.playerName === name);
                     return {
                         name: name,
+                        title: result.title,
                         count: result.count,
                         reason: result.reason
                     };
