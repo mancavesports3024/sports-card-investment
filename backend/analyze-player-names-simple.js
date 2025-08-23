@@ -371,16 +371,20 @@ function addPlayerNameAnalysisRoute(app) {
                     const result = analyzer.analysisResults.find(r => r.playerName === name);
                     console.log(`🔍 Mapping response for "${name}":`, {
                         hasEspnValidation: !!result.espnValidation,
-                        espnValidation: result.espnValidation
+                        espnValidation: result.espnValidation,
+                        resultKeys: Object.keys(result)
                     });
                     
-                    return {
+                    const responseItem = {
                         name: name,
                         title: result.title,
                         count: result.count,
                         reason: result.reason,
                         espnValidation: result.espnValidation || null
                     };
+                    
+                    console.log(`📝 Final response item for "${name}":`, responseItem);
+                    return responseItem;
                 }),
                 timestamp: new Date().toISOString()
             });
