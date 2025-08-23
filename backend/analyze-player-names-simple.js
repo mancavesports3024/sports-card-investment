@@ -242,6 +242,10 @@ class PlayerNameAnalyzer {
                     try {
                         await this.validateProblematicNamesWithESPN();
                         console.log('✅ ESPN validation completed successfully');
+                        
+                        // Verify ESPN validation was added
+                        const validatedCount = this.analysisResults.filter(r => r.espnValidation).length;
+                        console.log(`📊 Verified ${validatedCount} results have ESPN validation`);
                     } catch (error) {
                         console.error('❌ ESPN validation failed:', error.message);
                     }
