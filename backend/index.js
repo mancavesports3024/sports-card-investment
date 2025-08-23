@@ -5455,6 +5455,33 @@ app.post('/api/admin/analyze-player-names', async (req, res) => {
     }
 });
 
+// POST /api/admin/test-espn-connection - Test ESPN API connection
+app.post('/api/admin/test-espn-connection', async (req, res) => {
+    try {
+        console.log('🔍 Testing ESPN API connection...');
+        const { ESPNPlayerNameValidator } = require('./test-player-names-espn-simple.js');
+        const validator = new ESPNPlayerNameValidator();
+        await validator.connect();
+        const isWorking = await validator.testESPNConnection();
+        await validator.close();
+        
+        res.json({ 
+            success: true, 
+            message: 'ESPN API connection test completed',
+            isWorking: isWorking,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('❌ Error testing ESPN API connection:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error testing ESPN API connection', 
+            error: error.message, 
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/validate-player-names-espn - Validate player names using ESPN API
 app.post('/api/admin/validate-player-names-espn', async (req, res) => {
     try {
