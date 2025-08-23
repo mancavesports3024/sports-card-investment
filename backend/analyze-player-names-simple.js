@@ -25,6 +25,52 @@ class PlayerNameAnalyzer {
         console.log('✅ Database connection closed');
     }
 
+    async testPlayerNameWithESPN(playerName) {
+        try {
+            // ESPN API endpoint for player search
+            const url = 'https://site.web.api.espn.com/apis/search/v2';
+            const params = new URLSearchParams({
+                query: playerName,
+                limit: '5',
+                type: 'player'
+            });
+
+            const response = await fetch(`${url}?${params}`, { 
+                method: 'GET'
+            });
+            
+            if (!response.ok) {
+                return {
+                    isValid: false,
+                    results: 0,
+                    reason: `HTTP Error: ${response.status} ${response.statusText}`
+                };
+            }
+            
+            const data = await response.json();
+            
+            if (data && data.results && data.results.length > 0) {
+                return {
+                    isValid: true,
+                    results: data.results.length,
+                    firstResult: data.results[0]?.displayText || 'Unknown'
+                };
+            } else {
+                return {
+                    isValid: false,
+                    results: 0,
+                    reason: 'No results found'
+                };
+            }
+        } catch (error) {
+            return {
+                isValid: false,
+                results: 0,
+                reason: `API Error: ${error.message}`
+            };
+        }
+    }
+
     async diagnoseDatabase() {
         try {
             console.log('🔍 Diagnosing database...');
@@ -188,6 +234,12 @@ class PlayerNameAnalyzer {
                     }
                 }
                 
+                // Validate problematic names with ESPN API
+                if (this.problematicNames.length > 0) {
+                    console.log('\n🔍 Validating problematic names with ESPN API...');
+                    await this.validateProblematicNamesWithESPN();
+                }
+                
                 // Generate summary
                 this.generateSummary();
                 
@@ -201,6 +253,51 @@ class PlayerNameAnalyzer {
             console.error('❌ Error analyzing player names:', error);
             this.analysisResults = [];
             this.problematicNames = [];
+        }
+    }
+
+    async validateProblematicNamesWithESPN() {
+        try {
+            console.log(`🔍 Testing ${this.problematicNames.length} problematic names with ESPN API...`);
+            
+            for (let i = 0; i < this.problematicNames.length; i++) {
+                const playerName = this.problematicNames[i];
+                const result = this.analysisResults.find(r => r.playerName === playerName);
+                
+                console.log(`\n🔍 Testing ${i + 1}/${this.problematicNames.length}: "${playerName}" (from: "${result.title}")`);
+                
+                const espnResult = await this.testPlayerNameWithESPN(playerName);
+                
+                // Add ESPN validation result to the analysis result
+                result.espnValidation = {
+                    isValid: espnResult.isValid,
+                    results: espnResult.results,
+                    reason: espnResult.reason,
+                    firstResult: espnResult.firstResult
+                };
+                
+                if (espnResult.isValid) {
+                    console.log(`✅ ESPN Valid: "${playerName}" - Found ${espnResult.results} results`);
+                    if (espnResult.firstResult) {
+                        console.log(`   First result: ${espnResult.firstResult}`);
+                    }
+                } else {
+                    console.log(`❌ ESPN Invalid: "${playerName}" - ${espnResult.reason}`);
+                }
+                
+                // Small delay to be nice to the API
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+            
+            console.log('\n📊 ESPN Validation Summary:');
+            console.log('==========================');
+            const espnValid = this.analysisResults.filter(r => r.espnValidation && r.espnValidation.isValid).length;
+            const espnInvalid = this.analysisResults.filter(r => r.espnValidation && !r.espnValidation.isValid).length;
+            console.log(`✅ ESPN Valid: ${espnValid}`);
+            console.log(`❌ ESPN Invalid: ${espnInvalid}`);
+            
+        } catch (error) {
+            console.error('❌ Error validating with ESPN API:', error);
         }
     }
 
@@ -264,7 +361,8 @@ function addPlayerNameAnalysisRoute(app) {
                         name: name,
                         title: result.title,
                         count: result.count,
-                        reason: result.reason
+                        reason: result.reason,
+                        espnValidation: result.espnValidation || null
                     };
                 }),
                 timestamp: new Date().toISOString()
