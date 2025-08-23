@@ -5522,6 +5522,36 @@ app.post('/api/admin/test-database-connection', async (req, res) => {
     }
 });
 
+// POST /api/admin/fix-player-names - Fix problematic player names in database
+app.post('/api/admin/fix-player-names', async (req, res) => {
+    try {
+        console.log('🔧 Starting player name fix...');
+        const { PlayerNameFixer } = require('./fix-player-names-railway.js');
+        const fixer = new PlayerNameFixer();
+        
+        await fixer.connect();
+        await fixer.fixPlayerNames();
+        await fixer.showSampleResults();
+        await fixer.close();
+        
+        res.json({ 
+            success: true, 
+            message: 'Player name fix completed successfully',
+            fixedCount: fixer.fixedCount,
+            totalCount: fixer.totalCount,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('❌ Error fixing player names:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error fixing player names', 
+            error: error.message, 
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/test-espn-connection - Test ESPN API connection
 app.post('/api/admin/test-espn-connection', async (req, res) => {
     try {
