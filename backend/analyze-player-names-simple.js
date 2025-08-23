@@ -27,6 +27,8 @@ class PlayerNameAnalyzer {
 
     async testPlayerNameWithESPN(playerName) {
         try {
+            console.log(`🔍 Testing ESPN API for: "${playerName}"`);
+            
             // ESPN API endpoint for player search
             const url = 'https://site.web.api.espn.com/apis/search/v2';
             const params = new URLSearchParams({
@@ -35,6 +37,7 @@ class PlayerNameAnalyzer {
                 type: 'player'
             });
 
+            console.log(`🌐 ESPN API URL: ${url}?${params}`);
             const response = await fetch(`${url}?${params}`, { 
                 method: 'GET'
             });
@@ -237,7 +240,14 @@ class PlayerNameAnalyzer {
                 // Validate problematic names with ESPN API
                 if (this.problematicNames.length > 0) {
                     console.log('\n🔍 Validating problematic names with ESPN API...');
-                    await this.validateProblematicNamesWithESPN();
+                    try {
+                        await this.validateProblematicNamesWithESPN();
+                        console.log('✅ ESPN validation completed successfully');
+                    } catch (error) {
+                        console.error('❌ ESPN validation failed:', error.message);
+                    }
+                } else {
+                    console.log('ℹ️ No problematic names to validate with ESPN');
                 }
                 
                 // Generate summary
@@ -259,6 +269,7 @@ class PlayerNameAnalyzer {
     async validateProblematicNamesWithESPN() {
         try {
             console.log(`🔍 Testing ${this.problematicNames.length} problematic names with ESPN API...`);
+            console.log('📋 Problematic names to test:', this.problematicNames);
             
             for (let i = 0; i < this.problematicNames.length; i++) {
                 const playerName = this.problematicNames[i];
