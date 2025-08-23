@@ -272,7 +272,10 @@ class PlayerNameAnalyzer {
             
             for (let i = 0; i < this.problematicNames.length; i++) {
                 const playerName = this.problematicNames[i];
-                const result = this.analysisResults.find(r => r.playerName === playerName);
+                const resultIndex = this.analysisResults.findIndex(r => r.playerName === playerName);
+                const result = this.analysisResults[resultIndex];
+                
+                console.log(`🔍 Found result for "${playerName}" at index ${resultIndex}:`, result);
                 
                 console.log(`\n🔍 Testing ${i + 1}/${this.problematicNames.length}: "${playerName}" (from: "${result.title}")`);
                 
@@ -368,7 +371,8 @@ function addPlayerNameAnalysisRoute(app) {
                     cardsWithPlayerNames: analyzer.cardsWithPlayerNames || 0
                 },
                 problematicNames: analyzer.problematicNames.map(name => {
-                    const result = analyzer.analysisResults.find(r => r.playerName === name);
+                    const resultIndex = analyzer.analysisResults.findIndex(r => r.playerName === name);
+                    const result = analyzer.analysisResults[resultIndex];
                     console.log(`🔍 Mapping response for "${name}":`, {
                         hasEspnValidation: !!result.espnValidation,
                         espnValidation: result.espnValidation
