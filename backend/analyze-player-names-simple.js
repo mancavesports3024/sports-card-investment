@@ -386,10 +386,10 @@ function addPlayerNameAnalysisRoute(app) {
                         title: result.title,
                         count: result.count,
                         reason: result.reason,
-                        espnValidation: {
+                        espnValidation: result.espnValidation || {
                             isValid: false,
                             results: 0,
-                            reason: 'ESPN validation placeholder',
+                            reason: 'ESPN validation not performed',
                             firstResult: null
                         }
                     };
