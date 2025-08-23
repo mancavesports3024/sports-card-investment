@@ -1,4 +1,5 @@
 const NewPricingDatabase = require('./create-new-pricing-database.js');
+const axios = require('axios');
 
 class PlayerNameAnalyzer {
     constructor() {
@@ -38,11 +39,9 @@ class PlayerNameAnalyzer {
             });
 
             console.log(`🌐 ESPN API URL: ${url}?${params}`);
-            const response = await fetch(`${url}?${params}`, { 
-                method: 'GET'
-            });
+            const response = await axios.get(`${url}?${params}`);
             
-            if (!response.ok) {
+            if (response.status !== 200) {
                 return {
                     isValid: false,
                     results: 0,
@@ -50,7 +49,7 @@ class PlayerNameAnalyzer {
                 };
             }
             
-            const data = await response.json();
+            const data = response.data;
             
             if (data && data.results && data.results.length > 0) {
                 return {
