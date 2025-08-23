@@ -5506,7 +5506,7 @@ app.post('/api/admin/test-database-connection', async (req, res) => {
         
         res.json({ 
             success: true, 
-            message: 'Database connection test completed successfully',
+            message: 'Database connection test completed successfully - FORCE REDEPLOY',
             totalCards: countResult.total,
             sampleCards: sampleCards,
             timestamp: new Date().toISOString()
