@@ -31,7 +31,7 @@ class PlayerNameAnalyzer {
             
             // Check what tables exist
             const tablesQuery = `SELECT name FROM sqlite_master WHERE type='table'`;
-            const tables = await this.db.db.all(tablesQuery);
+            const tables = await this.db.pricingDb.all(tablesQuery);
             console.log('📋 Tables in database:', tables.map(t => t.name));
             
             // Check if cards table exists
@@ -40,17 +40,17 @@ class PlayerNameAnalyzer {
                 
                 // Check table structure
                 const structureQuery = `PRAGMA table_info(cards)`;
-                const structure = await this.db.db.all(structureQuery);
+                const structure = await this.db.pricingDb.all(structureQuery);
                 console.log('📋 Cards table structure:', structure.map(col => `${col.name} (${col.type})`));
                 
                 // Check total count
                 const countQuery = `SELECT COUNT(*) as total FROM cards`;
-                const countResult = await this.db.db.get(countQuery);
+                const countResult = await this.db.pricingDb.get(countQuery);
                 console.log(`📊 Total cards: ${countResult.total}`);
                 
                 // Check for any player_name values
                 const playerNameQuery = `SELECT player_name FROM cards WHERE player_name IS NOT NULL LIMIT 5`;
-                const playerNames = await this.db.db.all(playerNameQuery);
+                const playerNames = await this.db.pricingDb.all(playerNameQuery);
                 console.log(`📊 Sample player names:`, playerNames.map(p => p.player_name));
                 
             } else {
@@ -137,13 +137,13 @@ class PlayerNameAnalyzer {
             
             // First, let's see what's in the database
             const totalQuery = `SELECT COUNT(*) as total FROM cards`;
-            const totalResult = await this.db.db.get(totalQuery);
+            const totalResult = await this.db.pricingDb.get(totalQuery);
             this.totalCards = totalResult.total;
             console.log(`📊 Total cards in database: ${this.totalCards}`);
             
             // Check how many have player_name
             const playerNameQuery = `SELECT COUNT(*) as count FROM cards WHERE player_name IS NOT NULL AND player_name != ''`;
-            const playerNameResult = await this.db.db.get(playerNameQuery);
+            const playerNameResult = await this.db.pricingDb.get(playerNameQuery);
             this.cardsWithPlayerNames = playerNameResult.count;
             console.log(`📊 Cards with player_name: ${this.cardsWithPlayerNames}`);
             
@@ -151,7 +151,7 @@ class PlayerNameAnalyzer {
             const sampleQuery = `SELECT player_name, title FROM cards WHERE player_name IS NOT NULL AND player_name != '' LIMIT 20`;
             
             try {
-                const results = await this.db.db.all(sampleQuery);
+                const results = await this.db.pricingDb.all(sampleQuery);
                 console.log(`📊 Found ${results.length} sample cards with player names`);
                 
                 if (results.length === 0) {
