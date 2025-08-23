@@ -94,18 +94,79 @@ class ESPNPlayerNameValidator {
         }
     }
 
+    async testSamplePlayerNames() {
+        try {
+            console.log('🔍 Testing sample player names with ESPN API...');
+            
+            // Test some sample player names (both valid and invalid)
+            const sampleNames = [
+                'Tom Brady',
+                'Michael Jordan',
+                'LeBron James',
+                'Base',
+                'Parallel',
+                'Chrome',
+                'Orange',
+                'Blue',
+                'WWE',
+                'Formula'
+            ];
+            
+            console.log(`📊 Testing ${sampleNames.length} sample names`);
+            
+            for (let i = 0; i < sampleNames.length; i++) {
+                const playerName = sampleNames[i];
+                
+                console.log(`\n🔍 Testing ${i + 1}/${sampleNames.length}: "${playerName}"`);
+                
+                const testResult = await this.testPlayerNameWithESPN(playerName);
+                
+                const resultData = {
+                    playerName: playerName,
+                    title: 'Sample test',
+                    isValid: testResult.isValid,
+                    results: testResult.results,
+                    reason: testResult.reason || 'Valid player found',
+                    firstResult: testResult.firstResult
+                };
+                
+                this.testResults.push(resultData);
+                
+                if (testResult.isValid) {
+                    this.validNames.push(playerName);
+                    console.log(`✅ Valid: "${playerName}" - Found ${testResult.results} results`);
+                    if (testResult.firstResult) {
+                        console.log(`   First result: ${testResult.firstResult}`);
+                    }
+                } else {
+                    this.problematicNames.push(playerName);
+                    console.log(`❌ Invalid: "${playerName}" - ${testResult.reason}`);
+                }
+                
+                // Small delay to be nice to the API
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+            
+            this.generateSummary();
+            
+        } catch (error) {
+            console.error('❌ Error testing sample player names:', error);
+            throw error;
+        }
+    }
+
     async validatePlayerNames() {
         try {
             console.log('🔍 Validating player names with ESPN API...');
             
             // First, let's check what's in the database
             const totalQuery = `SELECT COUNT(*) as total FROM cards`;
-            const totalResult = await this.db.db.get(totalQuery);
+            const totalResult = await this.db.getQuery(totalQuery);
             console.log(`📊 Total cards in database: ${totalResult.total}`);
             
             // Check how many have player_name
             const playerNameQuery = `SELECT COUNT(*) as count FROM cards WHERE player_name IS NOT NULL AND player_name != ''`;
-            const playerNameResult = await this.db.db.get(playerNameQuery);
+            const playerNameResult = await this.db.getQuery(playerNameQuery);
             console.log(`📊 Cards with player_name: ${playerNameResult.count}`);
             
             if (playerNameResult.count === 0) {
@@ -115,7 +176,7 @@ class ESPNPlayerNameValidator {
             
             // Get player names from database
             const query = `SELECT DISTINCT player_name, title FROM cards WHERE player_name IS NOT NULL AND player_name != '' LIMIT 10`;
-            const results = await this.db.db.all(query);
+            const results = await this.db.allQuery(query);
             
             console.log(`📊 Found ${results.length} unique player names to test`);
             
