@@ -369,22 +369,22 @@ function addPlayerNameAnalysisRoute(app) {
                 },
                 problematicNames: analyzer.problematicNames.map(name => {
                     const result = analyzer.analysisResults.find(r => r.playerName === name);
-                    console.log(`🔍 Mapping response for "${name}":`, {
-                        hasEspnValidation: !!result.espnValidation,
-                        espnValidation: result.espnValidation,
-                        resultKeys: Object.keys(result)
-                    });
                     
-                    const responseItem = {
+                    // Force include ESPN validation - if it doesn't exist, create a default
+                    const espnValidation = result.espnValidation || {
+                        isValid: false,
+                        results: 0,
+                        reason: 'ESPN validation not performed',
+                        firstResult: null
+                    };
+                    
+                    return {
                         name: name,
                         title: result.title,
                         count: result.count,
                         reason: result.reason,
-                        espnValidation: result.espnValidation || null
+                        espnValidation: espnValidation
                     };
-                    
-                    console.log(`📝 Final response item for "${name}":`, responseItem);
-                    return responseItem;
                 }),
                 timestamp: new Date().toISOString()
             });
