@@ -1,4 +1,4 @@
-const { NewPricingDatabase } = require('./create-new-pricing-database.js');
+const NewPricingDatabase = require('./create-new-pricing-database.js');
 
 class PlayerNameAnalyzer {
     constructor() {
@@ -98,71 +98,56 @@ class PlayerNameAnalyzer {
         try {
             console.log('🔍 Analyzing player names in database...');
             
-            // First, check if the cards table exists and has data
+            // Simple test - just get a few player names to see if the database works
+            const simpleQuery = `SELECT player_name FROM cards WHERE player_name IS NOT NULL LIMIT 5`;
+            
             try {
-                const testQuery = `SELECT COUNT(*) as total FROM cards WHERE player_name IS NOT NULL`;
-                const testResult = await this.db.db.get(testQuery);
-                console.log(`📊 Total cards with player names: ${testResult.total}`);
+                const results = await this.db.db.all(simpleQuery);
+                console.log(`📊 Found ${results.length} sample player names`);
                 
-                if (testResult.total === 0) {
+                if (results.length === 0) {
                     console.log('⚠️ No cards found in database');
                     this.analysisResults = [];
                     this.problematicNames = [];
                     return;
                 }
-            } catch (error) {
-                console.log('⚠️ Cards table may not exist or be empty');
-                this.analysisResults = [];
-                this.problematicNames = [];
-                return;
-            }
-            
-            // Get a sample of cards to analyze
-            const query = `
-                SELECT DISTINCT player_name, COUNT(*) as count
-                FROM cards 
-                WHERE player_name IS NOT NULL 
-                AND player_name != '' 
-                AND player_name != 'Unknown'
-                GROUP BY player_name
-                ORDER BY count DESC
-                LIMIT 50
-            `;
-            
-            const results = await this.db.db.all(query);
-            console.log(`📊 Found ${results.length} unique player names to analyze`);
-            
-            for (const result of results) {
-                const playerName = result.player_name;
-                const count = result.count;
                 
-                if (playerName && playerName.trim()) {
-                    const analysis = this.isLikelyProblematic(playerName.trim());
+                // Just analyze the first few names as a test
+                for (const result of results) {
+                    const playerName = result.player_name;
                     
-                    const analysisResult = {
-                        playerName: playerName.trim(),
-                        count: count,
-                        isProblematic: analysis.isProblematic,
-                        reason: analysis.reason
-                    };
-                    
-                    this.analysisResults.push(analysisResult);
-                    
-                    if (analysis.isProblematic) {
-                        this.problematicNames.push(playerName.trim());
-                        console.log(`❌ Problematic: "${playerName}" (${count} cards) - ${analysis.reason}`);
-                    } else {
-                        console.log(`✅ Valid: "${playerName}" (${count} cards)`);
+                    if (playerName && playerName.trim()) {
+                        const analysis = this.isLikelyProblematic(playerName.trim());
+                        
+                        const analysisResult = {
+                            playerName: playerName.trim(),
+                            count: 1,
+                            isProblematic: analysis.isProblematic,
+                            reason: analysis.reason
+                        };
+                        
+                        this.analysisResults.push(analysisResult);
+                        
+                        if (analysis.isProblematic) {
+                            this.problematicNames.push(playerName.trim());
+                            console.log(`❌ Problematic: "${playerName}" - ${analysis.reason}`);
+                        } else {
+                            console.log(`✅ Valid: "${playerName}"`);
+                        }
                     }
                 }
+                
+                // Generate summary
+                this.generateSummary();
+                
+            } catch (error) {
+                console.log('⚠️ Database query failed:', error.message);
+                this.analysisResults = [];
+                this.problematicNames = [];
             }
-            
-            // Generate summary
-            this.generateSummary();
             
         } catch (error) {
             console.error('❌ Error analyzing player names:', error);
-            // Don't throw error, just return empty results
             this.analysisResults = [];
             this.problematicNames = [];
         }
