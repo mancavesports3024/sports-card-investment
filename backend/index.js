@@ -5494,19 +5494,19 @@ app.post('/api/admin/test-database-connection', async (req, res) => {
         const db = new NewPricingDatabase();
         await db.connect();
         
-        // Simple query to test connection
+        // Simple query to test connection using wrapper methods
         const countQuery = `SELECT COUNT(*) as total FROM cards`;
-        const countResult = await db.pricingDb.get(countQuery);
+        const countResult = await db.getQuery(countQuery);
         
-        // Get a few sample cards
+        // Get a few sample cards using wrapper methods
         const sampleQuery = `SELECT id, title, player_name FROM cards LIMIT 3`;
-        const sampleCards = await db.pricingDb.all(sampleQuery);
+        const sampleCards = await db.allQuery(sampleQuery);
         
         await db.close();
         
         res.json({ 
             success: true, 
-            message: 'Database connection test completed successfully - FORCE REDEPLOY',
+            message: 'Database connection test completed successfully - USING WRAPPER METHODS',
             totalCards: countResult.total,
             sampleCards: sampleCards,
             timestamp: new Date().toISOString()
