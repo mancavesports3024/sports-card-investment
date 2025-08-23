@@ -286,6 +286,8 @@ class PlayerNameAnalyzer {
                     firstResult: espnResult.firstResult
                 };
                 
+                console.log(`📝 Added ESPN validation to result for "${playerName}":`, result.espnValidation);
+                
                 if (espnResult.isValid) {
                     console.log(`✅ ESPN Valid: "${playerName}" - Found ${espnResult.results} results`);
                     if (espnResult.firstResult) {
@@ -367,6 +369,10 @@ function addPlayerNameAnalysisRoute(app) {
                 },
                 problematicNames: analyzer.problematicNames.map(name => {
                     const result = analyzer.analysisResults.find(r => r.playerName === name);
+                    console.log(`🔍 Mapping response for "${name}":`, {
+                        hasEspnValidation: !!result.espnValidation,
+                        espnValidation: result.espnValidation
+                    });
                     return {
                         name: name,
                         title: result.title,
