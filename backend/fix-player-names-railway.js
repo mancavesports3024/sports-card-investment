@@ -94,8 +94,13 @@ class PlayerNameFixer {
                 const originalName = card.player_name;
                 const cleanedName = this.cleanPlayerName(originalName);
 
+                // Debug: Log all names being processed
+                if (originalName.includes('Donruss') || originalName.includes('Topps') || originalName.includes('Silver') || originalName.includes('Green') || originalName.includes('Bears')) {
+                    console.log(`🔍 DEBUG: "${originalName}" → "${cleanedName}" (from: "${card.title}")`);
+                }
+
                 // Only update if the name actually changed
-                if (cleanedName !== originalName && cleanedName.length > 0) {
+                if (cleanedName !== originalName) {
                     const updateQuery = `UPDATE cards SET player_name = ? WHERE id = ?`;
                     await this.db.runQuery(updateQuery, [cleanedName, card.id]);
                     
