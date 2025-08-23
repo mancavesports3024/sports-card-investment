@@ -25,6 +25,43 @@ class PlayerNameAnalyzer {
         console.log('✅ Database connection closed');
     }
 
+    async diagnoseDatabase() {
+        try {
+            console.log('🔍 Diagnosing database...');
+            
+            // Check what tables exist
+            const tablesQuery = `SELECT name FROM sqlite_master WHERE type='table'`;
+            const tables = await this.db.db.all(tablesQuery);
+            console.log('📋 Tables in database:', tables.map(t => t.name));
+            
+            // Check if cards table exists
+            if (tables.some(t => t.name === 'cards')) {
+                console.log('✅ Cards table exists');
+                
+                // Check table structure
+                const structureQuery = `PRAGMA table_info(cards)`;
+                const structure = await this.db.db.all(structureQuery);
+                console.log('📋 Cards table structure:', structure.map(col => `${col.name} (${col.type})`));
+                
+                // Check total count
+                const countQuery = `SELECT COUNT(*) as total FROM cards`;
+                const countResult = await this.db.db.get(countQuery);
+                console.log(`📊 Total cards: ${countResult.total}`);
+                
+                // Check for any player_name values
+                const playerNameQuery = `SELECT player_name FROM cards WHERE player_name IS NOT NULL LIMIT 5`;
+                const playerNames = await this.db.db.all(playerNameQuery);
+                console.log(`📊 Sample player names:`, playerNames.map(p => p.player_name));
+                
+            } else {
+                console.log('❌ Cards table does not exist');
+            }
+            
+        } catch (error) {
+            console.error('❌ Database diagnosis failed:', error);
+        }
+    }
+
     isLikelyProblematic(playerName) {
         if (!playerName || playerName.trim().length < 2) return { isProblematic: true, reason: 'Empty or too short' };
         
@@ -237,6 +274,31 @@ function addPlayerNameAnalysisRoute(app) {
             res.status(500).json({ 
                 success: false, 
                 message: 'Error analyzing player names', 
+                error: error.message, 
+                timestamp: new Date().toISOString()
+            });
+        }
+    });
+
+    // Add diagnostic endpoint
+    app.post('/api/admin/diagnose-database', async (req, res) => {
+        try {
+            console.log('🔍 Diagnosing database...');
+            const analyzer = new PlayerNameAnalyzer();
+            await analyzer.connect();
+            await analyzer.diagnoseDatabase();
+            await analyzer.close();
+            
+            res.json({ 
+                success: true, 
+                message: 'Database diagnosis completed successfully',
+                timestamp: new Date().toISOString()
+            });
+        } catch (error) {
+            console.error('❌ Error diagnosing database:', error);
+            res.status(500).json({ 
+                success: false, 
+                message: 'Error diagnosing database', 
                 error: error.message, 
                 timestamp: new Date().toISOString()
             });
