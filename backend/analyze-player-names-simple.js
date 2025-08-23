@@ -373,13 +373,25 @@ function addPlayerNameAnalysisRoute(app) {
                         hasEspnValidation: !!result.espnValidation,
                         espnValidation: result.espnValidation
                     });
-                    return {
+                    
+                    // Ensure we have the ESPN validation data
+                    const responseItem = {
                         name: name,
                         title: result.title,
                         count: result.count,
-                        reason: result.reason,
-                        espnValidation: result.espnValidation || null
+                        reason: result.reason
                     };
+                    
+                    // Add ESPN validation if it exists
+                    if (result.espnValidation) {
+                        responseItem.espnValidation = result.espnValidation;
+                        console.log(`✅ Added ESPN validation for "${name}":`, result.espnValidation);
+                    } else {
+                        responseItem.espnValidation = null;
+                        console.log(`❌ No ESPN validation found for "${name}"`);
+                    }
+                    
+                    return responseItem;
                 }),
                 timestamp: new Date().toISOString()
             });
