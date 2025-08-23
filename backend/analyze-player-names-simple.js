@@ -370,20 +370,18 @@ function addPlayerNameAnalysisRoute(app) {
                 problematicNames: analyzer.problematicNames.map(name => {
                     const result = analyzer.analysisResults.find(r => r.playerName === name);
                     
-                    // Force include ESPN validation - if it doesn't exist, create a default
-                    const espnValidation = result.espnValidation || {
-                        isValid: false,
-                        results: 0,
-                        reason: 'ESPN validation not performed',
-                        firstResult: null
-                    };
-                    
+                    // Always include ESPN validation
                     return {
                         name: name,
                         title: result.title,
                         count: result.count,
                         reason: result.reason,
-                        espnValidation: espnValidation
+                        espnValidation: result.espnValidation || {
+                            isValid: false,
+                            results: 0,
+                            reason: 'ESPN validation not performed',
+                            firstResult: null
+                        }
                     };
                 }),
                 timestamp: new Date().toISOString()
