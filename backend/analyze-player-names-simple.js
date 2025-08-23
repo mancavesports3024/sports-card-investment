@@ -272,10 +272,7 @@ class PlayerNameAnalyzer {
             
             for (let i = 0; i < this.problematicNames.length; i++) {
                 const playerName = this.problematicNames[i];
-                const resultIndex = this.analysisResults.findIndex(r => r.playerName === playerName);
-                const result = this.analysisResults[resultIndex];
-                
-                console.log(`🔍 Found result for "${playerName}" at index ${resultIndex}:`, result);
+                const result = this.analysisResults.find(r => r.playerName === playerName);
                 
                 console.log(`\n🔍 Testing ${i + 1}/${this.problematicNames.length}: "${playerName}" (from: "${result.title}")`);
                 
@@ -371,31 +368,15 @@ function addPlayerNameAnalysisRoute(app) {
                     cardsWithPlayerNames: analyzer.cardsWithPlayerNames || 0
                 },
                 problematicNames: analyzer.problematicNames.map(name => {
-                    const resultIndex = analyzer.analysisResults.findIndex(r => r.playerName === name);
-                    const result = analyzer.analysisResults[resultIndex];
-                    console.log(`🔍 Mapping response for "${name}":`, {
-                        hasEspnValidation: !!result.espnValidation,
-                        espnValidation: result.espnValidation
-                    });
+                    const result = analyzer.analysisResults.find(r => r.playerName === name);
                     
-                    // Ensure we have the ESPN validation data
-                    const responseItem = {
+                    return {
                         name: name,
                         title: result.title,
                         count: result.count,
-                        reason: result.reason
+                        reason: result.reason,
+                        espnValidation: result.espnValidation || null
                     };
-                    
-                    // Add ESPN validation if it exists
-                    if (result.espnValidation) {
-                        responseItem.espnValidation = result.espnValidation;
-                        console.log(`✅ Added ESPN validation for "${name}":`, result.espnValidation);
-                    } else {
-                        responseItem.espnValidation = null;
-                        console.log(`❌ No ESPN validation found for "${name}"`);
-                    }
-                    
-                    return responseItem;
                 }),
                 timestamp: new Date().toISOString()
             });
