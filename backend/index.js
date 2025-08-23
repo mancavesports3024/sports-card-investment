@@ -5486,6 +5486,42 @@ app.post('/api/admin/diagnose-database', async (req, res) => {
     }
 });
 
+// POST /api/admin/test-database-connection - Simple database connection test
+app.post('/api/admin/test-database-connection', async (req, res) => {
+    try {
+        console.log('🔍 Testing database connection...');
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        // Simple query to test connection
+        const countQuery = `SELECT COUNT(*) as total FROM cards`;
+        const countResult = await db.pricingDb.get(countQuery);
+        
+        // Get a few sample cards
+        const sampleQuery = `SELECT id, title, player_name FROM cards LIMIT 3`;
+        const sampleCards = await db.pricingDb.all(sampleQuery);
+        
+        await db.close();
+        
+        res.json({ 
+            success: true, 
+            message: 'Database connection test completed successfully',
+            totalCards: countResult.total,
+            sampleCards: sampleCards,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('❌ Error testing database connection:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error testing database connection', 
+            error: error.message, 
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/test-espn-connection - Test ESPN API connection
 app.post('/api/admin/test-espn-connection', async (req, res) => {
     try {
