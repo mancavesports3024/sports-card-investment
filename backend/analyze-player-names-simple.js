@@ -374,30 +374,18 @@ function addPlayerNameAnalysisRoute(app) {
                 problematicNames: analyzer.problematicNames.map(name => {
                     const result = analyzer.analysisResults.find(r => r.playerName === name);
                     
-                    // Debug: Log what we found
-                    console.log(`🔍 DEBUG - Mapping "${name}":`, {
-                        hasResult: !!result,
-                        resultKeys: result ? Object.keys(result) : 'NO RESULT',
-                        hasEspnValidation: result ? !!result.espnValidation : false,
-                        espnValidation: result ? result.espnValidation : 'NO RESULT'
-                    });
-                    
-                    // Always include ESPN validation - create a simple object
-                    const responseItem = {
+                    return {
                         name: name,
                         title: result.title,
                         count: result.count,
                         reason: result.reason,
-                        espnValidation: {
-                            isValid: result.espnValidation ? result.espnValidation.isValid : false,
-                            results: result.espnValidation ? result.espnValidation.results : 0,
-                            reason: result.espnValidation ? result.espnValidation.reason : 'No ESPN validation data',
-                            firstResult: result.espnValidation ? result.espnValidation.firstResult : null
+                        espnValidation: result.espnValidation || {
+                            isValid: false,
+                            results: 0,
+                            reason: 'ESPN validation not performed',
+                            firstResult: null
                         }
                     };
-                    
-                    console.log(`📝 DEBUG - Final response item for "${name}":`, responseItem);
-                    return responseItem;
                 }),
                 timestamp: new Date().toISOString()
             });
@@ -431,6 +419,40 @@ function addPlayerNameAnalysisRoute(app) {
             res.status(500).json({ 
                 success: false, 
                 message: 'Error diagnosing database', 
+                error: error.message, 
+                timestamp: new Date().toISOString()
+            });
+        }
+    });
+
+    // Add test endpoint to debug ESPN validation
+    app.post('/api/admin/test-espn-validation', async (req, res) => {
+        try {
+            console.log('🧪 Testing ESPN validation...');
+            const analyzer = new PlayerNameAnalyzer();
+            await analyzer.connect();
+            
+            // Test with a simple player name
+            const testName = "Tom Brady";
+            console.log(`🧪 Testing ESPN validation for: "${testName}"`);
+            
+            const espnResult = await analyzer.testPlayerNameWithESPN(testName);
+            console.log(`🧪 ESPN result:`, espnResult);
+            
+            await analyzer.close();
+            
+            res.json({ 
+                success: true, 
+                message: 'ESPN validation test completed',
+                testName: testName,
+                espnResult: espnResult,
+                timestamp: new Date().toISOString()
+            });
+        } catch (error) {
+            console.error('❌ Error testing ESPN validation:', error);
+            res.status(500).json({ 
+                success: false, 
+                message: 'Error testing ESPN validation', 
                 error: error.message, 
                 timestamp: new Date().toISOString()
             });
