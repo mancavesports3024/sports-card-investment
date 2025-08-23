@@ -5423,32 +5423,22 @@ app.post('/api/admin/test-card-number-extraction', async (req, res) => {
 app.post('/api/admin/analyze-player-names', async (req, res) => {
     try {
         console.log('🔍 Analyzing player names...');
-        const { PlayerNameAnalyzer } = require('./analyze-player-names-simple.js');
-        const analyzer = new PlayerNameAnalyzer();
-        await analyzer.connect();
-        await analyzer.analyzePlayerNames();
-        await analyzer.close();
+        const { addPlayerNameAnalysisRoute } = require('./analyze-player-names-simple.js');
         
-        res.json({ 
-            success: true, 
-            message: 'Player name analysis completed successfully',
-            problematicCount: analyzer.problematicNames.length,
-            totalAnalyzed: analyzer.analysisResults.length,
-            databaseStats: {
-                totalCards: analyzer.totalCards || 0,
-                cardsWithPlayerNames: analyzer.cardsWithPlayerNames || 0
-            },
-            problematicNames: analyzer.problematicNames.map(name => {
-                const result = analyzer.analysisResults.find(r => r.playerName === name);
-                return {
-                    name: name,
-                    title: result.title,
-                    count: result.count,
-                    reason: result.reason
-                };
-            }),
-            timestamp: new Date().toISOString()
-        });
+        // Create a mock app object to capture the route handler
+        const mockApp = {
+            post: (path, handler) => {
+                // Store the handler for immediate execution
+                mockApp.handler = handler;
+            }
+        };
+        
+        // Add the route to get the handler
+        addPlayerNameAnalysisRoute(mockApp);
+        
+        // Execute the handler
+        await mockApp.handler(req, res);
+        
     } catch (error) {
         console.error('❌ Error analyzing player names:', error);
         res.status(500).json({ 
