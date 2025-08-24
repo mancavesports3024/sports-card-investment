@@ -171,4 +171,31 @@ router.get('/test-connection', async (req, res) => {
     }
 });
 
+// Debug endpoint to test getAllCardSets directly
+router.get('/debug-card-sets', async (req, res) => {
+    try {
+        const parallelsDb = new RailwayParallelsDatabase();
+        await parallelsDb.connectDatabase();
+        
+        console.log('🔍 Testing getAllCardSets method...');
+        const cardSets = await parallelsDb.getAllCardSets();
+        console.log('✅ getAllCardSets result:', cardSets);
+        
+        await parallelsDb.closeDatabase();
+        
+        res.json({
+            success: true,
+            data: cardSets,
+            count: cardSets.length
+        });
+    } catch (error) {
+        console.error('❌ Error in debug-card-sets:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
 module.exports = router;
