@@ -199,6 +199,7 @@ class RailwayParallelsDatabase {
         await this.addCardSet('2023 Panini Prizm Football', 'Football', '2023', 'Panini');
         
         const prizmParallels = [
+            // Base Prizms
             { name: 'Blue Prizms', type: 'Parallel', rarity: 'Standard' },
             { name: 'Silver Prizms', type: 'Parallel', rarity: 'Standard' },
             { name: 'Red Prizms', type: 'Parallel', rarity: 'Limited' },
@@ -207,11 +208,67 @@ class RailwayParallelsDatabase {
             { name: 'Orange Prizms', type: 'Parallel', rarity: 'Limited', printRun: '/249' },
             { name: 'Blue Ice Prizms', type: 'Parallel', rarity: 'Limited', printRun: '/99' },
             { name: 'Gold Prizms', type: 'Parallel', rarity: 'Limited', printRun: '/10' },
+            { name: 'Black Finite Prizms', type: 'Parallel', rarity: 'Limited', printRun: '1/1' },
+            { name: 'Chrome Superfractor', type: 'Parallel', rarity: 'Limited', printRun: '1/1' },
+            
+            // Special Prizms
             { name: 'Disco Prizms', type: 'Parallel', rarity: 'Limited' },
             { name: 'No Huddle Prizms', type: 'Parallel', rarity: 'Limited' },
             { name: 'Snakeskin Prizms', type: 'Parallel', rarity: 'Limited' },
             { name: 'Pink Prizms', type: 'Parallel', rarity: 'Limited' },
-            { name: 'Chrome Superfractor', type: 'Parallel', rarity: 'Limited', printRun: '1/1' }
+            { name: 'White Sparkle Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Red Sparkle Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Blue Sparkle Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Green Sparkle Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Purple Sparkle Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Orange Sparkle Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Gold Sparkle Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Black Sparkle Prizms', type: 'Parallel', rarity: 'Limited' },
+            
+            // Additional Limited Prizms
+            { name: 'Camo Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Fast Break Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Holo Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Hyper Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Neon Green Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Neon Orange Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Neon Pink Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Neon Yellow Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Neon Blue Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Neon Purple Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Neon Red Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Neon Silver Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Neon Gold Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Neon Black Prizms', type: 'Parallel', rarity: 'Limited' },
+            
+            // Retail Prizms
+            { name: 'Retail Blue Prizms', type: 'Parallel', rarity: 'Retail' },
+            { name: 'Retail Green Prizms', type: 'Parallel', rarity: 'Retail' },
+            { name: 'Retail Red Prizms', type: 'Parallel', rarity: 'Retail' },
+            { name: 'Retail Purple Prizms', type: 'Parallel', rarity: 'Retail' },
+            { name: 'Retail Orange Prizms', type: 'Parallel', rarity: 'Retail' },
+            { name: 'Retail Pink Prizms', type: 'Parallel', rarity: 'Retail' },
+            { name: 'Retail Silver Prizms', type: 'Parallel', rarity: 'Retail' },
+            { name: 'Retail Gold Prizms', type: 'Parallel', rarity: 'Retail' },
+            
+            // Hobby Prizms
+            { name: 'Hobby Blue Prizms', type: 'Parallel', rarity: 'Hobby' },
+            { name: 'Hobby Green Prizms', type: 'Parallel', rarity: 'Hobby' },
+            { name: 'Hobby Red Prizms', type: 'Parallel', rarity: 'Hobby' },
+            { name: 'Hobby Purple Prizms', type: 'Parallel', rarity: 'Hobby' },
+            { name: 'Hobby Orange Prizms', type: 'Parallel', rarity: 'Hobby' },
+            { name: 'Hobby Pink Prizms', type: 'Parallel', rarity: 'Hobby' },
+            { name: 'Hobby Silver Prizms', type: 'Parallel', rarity: 'Hobby' },
+            { name: 'Hobby Gold Prizms', type: 'Parallel', rarity: 'Hobby' },
+            
+            // Additional Special Editions
+            { name: 'Genesis Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Mojo Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Pulsar Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Select Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Stained Glass Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Tiger Prizms', type: 'Parallel', rarity: 'Limited' },
+            { name: 'Zebra Prizms', type: 'Parallel', rarity: 'Limited' }
         ];
 
         for (const parallel of prizmParallels) {
