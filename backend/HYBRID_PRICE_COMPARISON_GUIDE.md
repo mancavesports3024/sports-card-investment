@@ -10,7 +10,7 @@ The system now includes the **Ultimate Multi-Sport Filtering System** - a compre
 
 - **5 Sports Supported**: Basketball, Football, Baseball, Hockey, Soccer
 - **150+ Parallel Types**: Comprehensive coverage of all major parallels
-- **Smart Sport Detection**: Automatic sport identification based on players, teams, and brands
+- **Smart Sport Detection**: Automatic sport identification based on players  teams, and brands
 - **Base vs Premium Parallel Handling**: Includes reasonable parallels, excludes expensive ones
 - **Sport-Optimized Pricing**: Different price thresholds for each sport
 - **Grade-Specific Filtering**: Proper separation of raw, PSA 9, and PSA 10 cards

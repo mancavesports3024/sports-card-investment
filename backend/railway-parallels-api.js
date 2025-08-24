@@ -233,4 +233,22 @@ router.get('/simple-test', async (req, res) => {
     }
 });
 
+// Debug environment variables
+router.get('/debug-env', async (req, res) => {
+    try {
+        require('./debug-env.js');
+        
+        res.json({
+            success: true,
+            message: 'Environment variables debug completed - check logs'
+        });
+    } catch (error) {
+        console.error('❌ Error in debug-env:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 module.exports = router;
