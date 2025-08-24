@@ -2437,7 +2437,7 @@ class NewPricingDatabase {
             // Other card terms
             'ink', 'endrick', 'tie', 'pandora', 'pedro de', 'jr tie', 'ohtani judge', 'ja marr chase', 'joe milton', 'malik', 'pandora malik', 'jayson tatum', 'devin', 'worthy', 'kobe bryant michael', 'tua tagovailoa', 'randy moss', 'keon coleman', 'kris draper detroit', 'deni avdija', 'tyson bagent', 'breece hall',
             // Common non-player words that should be removed
-            'bo', 'malik', 'devin', 'holo', 'orange', 'blue', 'red', 'green', 'yellow', 'purple', 'pink', 'brown', 'black', 'white', 'gray', 'grey',
+            'malik', 'devin', 'holo', 'orange', 'blue', 'red', 'green', 'yellow', 'purple', 'pink', 'brown', 'black', 'white', 'gray', 'grey',
             // Bowman numbering prefixes that should not appear in player names
             'bdc', 'bdp', 'bcp', 'cda',
             // Card number prefixes that should not appear in player names

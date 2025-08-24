@@ -59,7 +59,7 @@ class PlayerNameFixer {
             'pitching', 'batting', 'fielding', 'running', 'throwing', 'catching',
             
             // Common non-player words
-            'bo', 'malik', 'devin', 'holo', 'orange', 'blue', 'red', 'green', 'yellow', 'purple', 'pink', 'brown', 'black', 'white', 'gray', 'grey'
+            'malik', 'devin', 'holo', 'orange', 'blue', 'red', 'green', 'yellow', 'purple', 'pink', 'brown', 'black', 'white', 'gray', 'grey'
         ];
 
         // Split into words and filter out unwanted words
