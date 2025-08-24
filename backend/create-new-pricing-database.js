@@ -589,7 +589,7 @@ class NewPricingDatabase {
         // Player names (current and recent players)
         const basketballPlayers = [
             'lebron james', 'stephen curry', 'kevin durant', 'giannis', 'nikola jokic', 'joel embiid',
-            'luka doncic', 'ja morant', 'zion williamson', 'anthony edwards', 'lamelo ball', 'cade cunningham',
+            'luka doncic', 'ja morant', 'zion williamson', 'lamelo ball', 'cade cunningham',
             'paolo banchero', 'chet holmgren', 'victor wembanyama', 'scoot henderson', 'domantas sabonis',
             'caitlin clark', 'brock purdy', 'rj barrett', 'sabrina ionescu', 'stephon castle', 'cooper flagg'
         ];
@@ -2542,6 +2542,83 @@ class NewPricingDatabase {
             return 'Luis Aparicio';
         }
         
+        // Look for "Jesus Made" in various contexts
+        const jesusMadePattern = /\b(Jesus\s+Made)\b/gi;
+        const jesusMadeMatch = cleanTitle.match(jesusMadePattern);
+        if (jesusMadeMatch && jesusMadeMatch.length > 0) {
+            return 'Jesus Made';
+        }
+        
+        // Look for "Anthony Edwards" in various contexts
+        const anthonyEdwardsPattern = /\b(Anthony\s+Edwards)\b/gi;
+        const anthonyEdwardsMatch = cleanTitle.match(anthonyEdwardsPattern);
+        if (anthonyEdwardsMatch && anthonyEdwardsMatch.length > 0) {
+            return 'Anthony Edwards';
+        }
+        
+        // Look for "Tua Tagovailoa" in various contexts
+        const tuaTagovailoaPattern = /\b(Tua\s+Tagovailoa)\b/gi;
+        const tuaTagovailoaMatch = cleanTitle.match(tuaTagovailoaPattern);
+        if (tuaTagovailoaMatch && tuaTagovailoaMatch.length > 0) {
+            return 'Tua Tagovailoa';
+        }
+        
+        // Look for "Keon Coleman" in various contexts
+        const keonColemanPattern = /\b(Keon\s+Coleman)\b/gi;
+        const keonColemanMatch = cleanTitle.match(keonColemanPattern);
+        if (keonColemanMatch && keonColemanMatch.length > 0) {
+            return 'Keon Coleman';
+        }
+        
+        // Look for "Deni Avdija" in various contexts
+        const deniAvdijaPattern = /\b(Deni\s+Avdija)\b/gi;
+        const deniAvdijaMatch = cleanTitle.match(deniAvdijaPattern);
+        if (deniAvdijaMatch && deniAvdijaMatch.length > 0) {
+            return 'Deni Avdija';
+        }
+        
+        // Look for "Tyson Bagent" in various contexts
+        const tysonBagentPattern = /\b(Tyson\s+Bagent)\b/gi;
+        const tysonBagentMatch = cleanTitle.match(tysonBagentPattern);
+        if (tysonBagentMatch && tysonBagentMatch.length > 0) {
+            return 'Tyson Bagent';
+        }
+        
+        // Look for "Breece Hall" in various contexts
+        const breeseHallPattern = /\b(Breece\s+Hall)\b/gi;
+        const breeseHallMatch = cleanTitle.match(breeseHallPattern);
+        if (breeseHallMatch && breeseHallMatch.length > 0) {
+            return 'Breece Hall';
+        }
+        
+        // Look for "Cal Raleigh" in various contexts (Raleigh is both a city and player name)
+        const calRaleighPattern = /\b(Cal\s+Raleigh)\b/gi;
+        const calRaleighMatch = cleanTitle.match(calRaleighPattern);
+        if (calRaleighMatch && calRaleighMatch.length > 0) {
+            return 'Cal Raleigh';
+        }
+        
+        // Look for "Cooper Kupp" in various contexts (Cooper is also a car manufacturer)
+        const cooperKuppPattern = /\b(Cooper\s+Kupp)\b/gi;
+        const cooperKuppMatch = cleanTitle.match(cooperKuppPattern);
+        if (cooperKuppMatch && cooperKuppMatch.length > 0) {
+            return 'Cooper Kupp';
+        }
+        
+        // Look for "Christian Watson" in various contexts
+        const christianWatsonPattern = /\b(Christian\s+Watson)\b/gi;
+        const christianWatsonMatch = cleanTitle.match(christianWatsonPattern);
+        if (christianWatsonMatch && christianWatsonMatch.length > 0) {
+            return 'Christian Watson';
+        }
+        
+        // Look for "Lewis Hamilton" in various contexts
+        const lewisHamiltonPattern = /\b(Lewis\s+Hamilton)\b/gi;
+        const lewisHamiltonMatch = cleanTitle.match(lewisHamiltonPattern);
+        if (lewisHamiltonMatch && lewisHamiltonMatch.length > 0) {
+            return 'Lewis Hamilton';
+        }
+        
         // Step 5: Remove other common card terms
         const cardTerms = [
             'rookie', 'rookies', 'rc', 'yg', 'young guns', '1st', 'first', 'prospect', 'debut',
@@ -2602,7 +2679,7 @@ class NewPricingDatabase {
             // Additional card types identified by analysis
             'ice', 'lazer', 'lightboard', 'magenta', 'mt', 'shock',
             // Specific problematic terms from the cards
-            'invicta bi15', 'invicta', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in', 'jesus made',
+            'invicta bi15', 'invicta', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in',
             'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'storm chasers', 'storm-chasers', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'radiating', 'now', 'foil', 'case hit', 'case-hit', 'case hits', 'case-hits',
             // UFC/MMA terms that should be removed from player names
             'ufc', 'mma', 'mixed martial arts', 'octagon', 'fighter', 'fighting',
@@ -2611,9 +2688,9 @@ class NewPricingDatabase {
             // Card sets that should be removed from player names
             'collector', 'phenomenon', 'preview', 'mls', 'blazers', 'level', 'premier', 'sparkle', 'ucc', 'snider', 'road to uefa', 'jack murphy stadium',
             // Other card terms
-            'ink', 'endrick', 'tie', 'pandora', 'pedro de', 'jr tie', 'ohtani judge', 'ja marr chase', 'joe milton', 'malik', 'pandora malik', 'devin', 'worthy', 'kobe bryant michael', 'tua tagovailoa', 'keon coleman', 'kris draper detroit', 'deni avdija', 'tyson bagent', 'breece hall',
+            'ink', 'endrick', 'tie', 'pandora', 'pedro de', 'jr tie', 'ohtani judge', 'ja marr chase', 'joe milton', 'malik', 'pandora malik', 'devin', 'worthy',
             // Additional missing card terms
-            'signature', 'color', 'wwe', 'design', 'pitching', 'no huddle', 'starcade', 'premium', 'speckle', 'flair', 'ucl', 'cosmic stars', 'the', 'of', 'olympics', 'wnba', 'league', 'championship', 'tournament', 'series', 'profiles', 'mini', 'border', 'intimidators', 'kellogg',
+            'signature', 'color', 'wwe', 'design', 'pitching', 'no huddle', 'starcade', 'premium', 'speckle', 'flair', 'ucl', 'cosmic stars', 'the', 'of', 'olympics', 'wnba', 'league', 'championship', 'tournament', 'series', 'profiles', 'mini', 'border', 'intimidators', 'kellogg', 'mist', 'usa', 'xr', 'logofractor', 'cyan', 'authentic', 'rpa', 'formula 1', 'p.p.',
             // Common non-player words that should be removed
             'malik', 'devin', 'holo', 'orange', 'blue', 'red', 'green', 'yellow', 'purple', 'pink', 'brown', 'black', 'white', 'gray', 'grey',
             // Bowman numbering prefixes that should not appear in player names
