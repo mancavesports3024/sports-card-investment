@@ -2430,6 +2430,16 @@ class NewPricingDatabase {
             return 'Ohtani';
         }
         
+        // Check for "Pete Alonso" in the original title
+        if (cleanTitle.includes('Pete Alonso') || cleanTitle.includes('PETE ALONSO')) {
+            return 'Pete Alonso';
+        }
+        
+        // Check for "Tom Brady" in the original title
+        if (cleanTitle.includes('Tom Brady') || cleanTitle.includes('TOM BRADY')) {
+            return 'Tom Brady';
+        }
+        
         // Step 4.5.1: Early filtering of obviously invalid player names
         // Filter out just slashes
         if (cleanTitle.trim() === '/' || cleanTitle.trim() === '\\') {
