@@ -116,7 +116,15 @@ class RailwayParallelsDatabase {
         const client = await this.pool.connect();
         
         try {
-            const setId = await this.addCardSet(setName);
+            // Get the existing card set ID (don't create a new one)
+            const findQuery = `SELECT id FROM card_sets WHERE set_name = $1`;
+            const findResult = await client.query(findQuery, [setName]);
+            
+            if (findResult.rows.length === 0) {
+                throw new Error(`Card set "${setName}" not found. Please add the card set first.`);
+            }
+            
+            const setId = findResult.rows[0].id;
             
             const query = `
                 INSERT INTO parallels (set_id, parallel_name, parallel_type, rarity, print_run)
@@ -186,6 +194,9 @@ class RailwayParallelsDatabase {
 
     async addPrizmFootballParallels() {
         console.log('📚 Adding 2023 Panini Prizm Football parallels...');
+        
+        // First, add the card set with proper metadata
+        await this.addCardSet('2023 Panini Prizm Football', 'Football', '2023', 'Panini');
         
         const prizmParallels = [
             { name: 'Blue Prizms', type: 'Parallel', rarity: 'Standard' },
