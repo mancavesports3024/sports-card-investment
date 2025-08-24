@@ -2372,6 +2372,17 @@ class NewPricingDatabase {
         cleanTitle = cleanTitle.replace(/\bLEBRON\b/gi, 'LEBRON_PLACEHOLDER');
         cleanTitle = cleanTitle.replace(/\blebron\b/gi, 'LEBRON_PLACEHOLDER');
         
+        // Step 4.5.5: Very early detection of specific dual player patterns
+        // Check for "Montana/Rice" before any other processing
+        if (cleanTitle.includes('Montana/Rice') || cleanTitle.includes('montana/rice')) {
+            return 'Montana/Rice';
+        }
+        
+        // Check for "Kobe Bryant/Lakers" before any other processing
+        if (cleanTitle.includes('Kobe Bryant/Lakers') || cleanTitle.includes('kobe bryant/lakers')) {
+            return 'Kobe Bryant';
+        }
+        
         // Step 4.6: Early detection of dual player cards with "/" separator
         // Look for patterns like "Montana/Rice" or "Player1/Player2" BEFORE removing card terms
         const earlyDualPlayerPattern = /\b([A-Z][a-z]+\s*\/\s*[A-Z][a-z]+)\b/g;
