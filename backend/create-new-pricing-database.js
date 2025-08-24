@@ -2411,6 +2411,27 @@ class NewPricingDatabase {
             return 'LeBron James';
         }
         
+        // Pattern for "LeBron James" followed by "LA Lakers" with any case variations
+        const lebronLALakersPattern = /\b(LeBron\s+James)\s+LA\s+Lakers\b/gi;
+        const lebronLALakersMatch = cleanTitle.match(lebronLALakersPattern);
+        if (lebronLALakersMatch && lebronLALakersMatch.length > 0) {
+            return 'LeBron James';
+        }
+        
+        // Pattern for "LeBRON JAMES" (all caps) followed by "LA Lakers"
+        const lebronAllCapsPattern = /\b(LeBRON\s+JAMES)\s+LA\s+Lakers\b/gi;
+        const lebronAllCapsMatch = cleanTitle.match(lebronAllCapsPattern);
+        if (lebronAllCapsMatch && lebronAllCapsMatch.length > 0) {
+            return 'LeBron James';
+        }
+        
+        // Pattern for "LeBRON JAMES" with dash separator followed by "LA Lakers"
+        const lebronDashPattern = /\b(LeBRON\s+JAMES)\s*-\s*.*?LA\s+Lakers\b/gi;
+        const lebronDashMatch = cleanTitle.match(lebronDashPattern);
+        if (lebronDashMatch && lebronDashMatch.length > 0) {
+            return 'LeBron James';
+        }
+        
         // Step 4.8: Special handling for specific player patterns
         // Look for "Caleb Williams" in various contexts
         const calebWilliamsPattern = /\b(Caleb\s+Williams)\b/gi;
@@ -2502,8 +2523,8 @@ class NewPricingDatabase {
             'packers', 'bears', 'lions', 'vikings', 'cowboys', 'eagles', 'giants', 'redskins',
             'commanders', 'patriots', 'pats', 'steelers', 'bills', 'dolphins', 'jets', 'bengals',
             'browns', 'ravens', 'texans', 'colts', 'jaguars', 'titans', 'broncos', 'chargers',
-            'raiders', 'chiefs', '49ers', 'seahawks', 'cardinals', 'rams', 'saints', 'buccaneers',
-            'falcons', 'panthers',
+            'raiders', 'chiefs', '49ers', 'seahawks', 'cardinals', 'rams', 'saints', 'buccaneers', 'la lakers',
+            'falcons', 'panthers', 'la lakers', 'lakers',
             // College/school names
             'duke', 'mavericks', 'blue devils', 'tar heels', 'wolfpack', 'demon deacons',
             'seminoles', 'hurricanes', 'gators', 'bulldogs', 'tigers', 'wildcats', 'cardinals',
