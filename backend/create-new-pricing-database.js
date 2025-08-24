@@ -2372,6 +2372,64 @@ class NewPricingDatabase {
         cleanTitle = cleanTitle.replace(/\bLEBRON\b/gi, 'LEBRON_PLACEHOLDER');
         cleanTitle = cleanTitle.replace(/\blebron\b/gi, 'LEBRON_PLACEHOLDER');
         
+        // Step 4.5.1: Check for specific problematic patterns BEFORE card terms removal
+        // These patterns need to be checked before card terms are removed
+        
+        // Check for "Anthony Edwards" in the original title
+        if (cleanTitle.includes('Anthony Edwards') || cleanTitle.includes('ANTHONY EDWARDS')) {
+            return 'Anthony Edwards';
+        }
+        
+        // Check for "Ryan O\'Hearn" in the original title
+        if (cleanTitle.includes('Ryan O\'Hearn') || cleanTitle.includes('RYAN O\'HEARN')) {
+            return 'Ryan O\'Hearn';
+        }
+        
+        // Check for "Kobe Bryant" in the original title
+        if (cleanTitle.includes('Kobe Bryant') || cleanTitle.includes('KOBE BRYANT')) {
+            return 'Kobe Bryant';
+        }
+        
+        // Check for "Michael Jordan" in the original title
+        if (cleanTitle.includes('Michael Jordan') || cleanTitle.includes('MICHAEL JORDAN')) {
+            return 'Michael Jordan';
+        }
+        
+        // Check for "Brock Purdy" in the original title
+        if (cleanTitle.includes('Brock Purdy') || cleanTitle.includes('BROCK PURDY')) {
+            return 'Brock Purdy';
+        }
+        
+        // Check for "Deebo Samuel" in the original title
+        if (cleanTitle.includes('Deebo Samuel') || cleanTitle.includes('DEEBO SAMUEL')) {
+            return 'Deebo Samuel';
+        }
+        
+        // Check for "Pedro De La Vega" in the original title
+        if (cleanTitle.includes('Pedro De La Vega') || cleanTitle.includes('PEDRO DE LA VEGA')) {
+            return 'Pedro De La Vega';
+        }
+        
+        // Check for "Shohei Ohtani" in the original title
+        if (cleanTitle.includes('Shohei Ohtani') || cleanTitle.includes('SHOHEI OHTANI')) {
+            return 'Shohei Ohtani';
+        }
+        
+        // Check for "Bo Jackson" in the original title
+        if (cleanTitle.includes('Bo Jackson') || cleanTitle.includes('BO JACKSON')) {
+            return 'Bo Jackson';
+        }
+        
+        // Check for "Judge" in the original title (from Ohtani/Judge cards)
+        if (cleanTitle.includes('Judge') && !cleanTitle.includes('Ohtani')) {
+            return 'Judge';
+        }
+        
+        // Check for "Ohtani" in the original title (from Ohtani/Judge cards)
+        if (cleanTitle.includes('Ohtani') && !cleanTitle.includes('Judge')) {
+            return 'Ohtani';
+        }
+        
         // Step 4.5.1: Early filtering of obviously invalid player names
         // Filter out just slashes
         if (cleanTitle.trim() === '/' || cleanTitle.trim() === '\\') {
@@ -2817,6 +2875,20 @@ class NewPricingDatabase {
         const boJacksonMatch = cleanTitle.match(boJacksonPattern);
         if (boJacksonMatch && boJacksonMatch.length > 0) {
             return 'Bo Jackson';
+        }
+        
+        // Look for "Judge" (from Ohtani/Judge cards)
+        const judgePattern = /\b(Judge)\b/gi;
+        const judgeMatch = cleanTitle.match(judgePattern);
+        if (judgeMatch && judgeMatch.length > 0) {
+            return 'Judge';
+        }
+        
+        // Look for "Ohtani" (from Ohtani/Judge cards)
+        const ohtaniPattern = /\b(Ohtani)\b/gi;
+        const ohtaniMatch = cleanTitle.match(ohtaniPattern);
+        if (ohtaniMatch && ohtaniMatch.length > 0) {
+            return 'Ohtani';
         }
         
         // Step 5: Remove other common card terms
