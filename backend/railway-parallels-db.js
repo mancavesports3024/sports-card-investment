@@ -37,14 +37,18 @@ class RailwayParallelsDatabase {
         const client = await this.pool.connect();
         
         try {
+            // Drop existing tables if they exist (to fix schema issues)
+            await client.query('DROP TABLE IF EXISTS parallels CASCADE');
+            await client.query('DROP TABLE IF EXISTS card_sets CASCADE');
+            
             const createSetsTable = `
                 CREATE TABLE IF NOT EXISTS card_sets (
                     id SERIAL PRIMARY KEY,
-                    set_name VARCHAR(255) UNIQUE NOT NULL,
-                    sport VARCHAR(100),
+                    set_name VARCHAR(500) UNIQUE NOT NULL,
+                    sport VARCHAR(200),
                     year VARCHAR(50),
-                    brand VARCHAR(100),
-                    source VARCHAR(100) DEFAULT 'manual',
+                    brand VARCHAR(200),
+                    source VARCHAR(200) DEFAULT 'manual',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
@@ -54,11 +58,11 @@ class RailwayParallelsDatabase {
                 CREATE TABLE IF NOT EXISTS parallels (
                     id SERIAL PRIMARY KEY,
                     set_id INTEGER NOT NULL,
-                    parallel_name VARCHAR(255) NOT NULL,
-                    parallel_type VARCHAR(100),
-                    rarity VARCHAR(100),
-                    print_run VARCHAR(100),
-                    source VARCHAR(100) DEFAULT 'beckett',
+                    parallel_name VARCHAR(500) NOT NULL,
+                    parallel_type VARCHAR(200),
+                    rarity VARCHAR(200),
+                    print_run VARCHAR(200),
+                    source VARCHAR(200) DEFAULT 'beckett',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (set_id) REFERENCES card_sets (id),
                     UNIQUE(set_id, parallel_name)
