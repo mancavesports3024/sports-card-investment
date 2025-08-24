@@ -2629,7 +2629,23 @@ class NewPricingDatabase {
             return 'Ausar Thompson';
         }
         
-        // Step 4.9: Additional specific player patterns from analysis
+        // Step 4.9: Filter out obviously invalid player names first
+        // Filter out just slashes
+        if (cleanTitle.trim() === '/' || cleanTitle.trim() === '\\') {
+            return null;
+        }
+        
+        // Filter out just "III" (likely a suffix)
+        if (cleanTitle.trim().toLowerCase() === 'iii') {
+            return null;
+        }
+        
+        // Filter out very short names that are likely incomplete
+        if (cleanTitle.trim().length <= 2) {
+            return null;
+        }
+        
+        // Step 4.10: Additional specific player patterns from analysis
         // Look for "Purdy/Deebo" dual player card
         const purdyDeeboPattern = /\b(Purdy\s*\/\s*Deebo)\b/gi;
         const purdyDeeboMatch = cleanTitle.match(purdyDeeboPattern);
