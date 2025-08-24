@@ -2369,6 +2369,8 @@ class NewPricingDatabase {
         // Step 4.5: Special handling for "LeBron" to prevent "La" removal
         // Replace "LeBron" with a placeholder before removing "La", then restore it
         cleanTitle = cleanTitle.replace(/\bLeBron\b/gi, 'LEBRON_PLACEHOLDER');
+        cleanTitle = cleanTitle.replace(/\bLEBRON\b/gi, 'LEBRON_PLACEHOLDER');
+        cleanTitle = cleanTitle.replace(/\blebron\b/gi, 'LEBRON_PLACEHOLDER');
         
         // Step 5: Remove other common card terms
         const cardTerms = [
@@ -2506,8 +2508,23 @@ class NewPricingDatabase {
         const dualPlayerPattern = /\b([A-Z][a-z]+\s*\/\s*[A-Z][a-z]+)\b/g;
         const dualPlayerMatches = cleanTitle.match(dualPlayerPattern);
         if (dualPlayerMatches && dualPlayerMatches.length > 0) {
-            // Take the first match as the player name
-            return dualPlayerMatches[0].replace(/\s+/g, '').trim();
+            // Take the first match as the player name and preserve proper capitalization
+            const match = dualPlayerMatches[0].replace(/\s+/g, '').trim();
+            return match.split('/').map(part => 
+                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+            ).join('/');
+        }
+        
+        // Also look for patterns like "Kobe Bryant/Lakers" where the second part is a team
+        const playerTeamPattern = /\b([A-Z][a-z]+\s+[A-Z][a-z]+\s*\/\s*[A-Z][a-z]+)\b/g;
+        const playerTeamMatches = cleanTitle.match(playerTeamPattern);
+        if (playerTeamMatches && playerTeamMatches.length > 0) {
+            // Take just the player part before the "/"
+            const match = playerTeamMatches[0];
+            const playerPart = match.split('/')[0].trim();
+            return playerPart.split(' ').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            ).join(' ');
         }
         
         // Step 9.5: Special handling for initials like J.J. McCarthy
