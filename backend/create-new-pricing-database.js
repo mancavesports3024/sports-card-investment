@@ -2384,6 +2384,13 @@ class NewPricingDatabase {
             ).join('/');
         }
         
+        // Specific pattern for "Montana/Rice" dual player card
+        const montanaRicePattern = /\b(Montana\s*\/\s*Rice)\b/gi;
+        const montanaRiceMatch = cleanTitle.match(montanaRicePattern);
+        if (montanaRiceMatch && montanaRiceMatch.length > 0) {
+            return 'Montana/Rice';
+        }
+        
         // Also look for patterns like "Kobe Bryant/Lakers" where the second part is a team
         const earlyPlayerTeamPattern = /\b([A-Z][a-z]+\s+[A-Z][a-z]+\s*\/\s*[A-Z][a-z]+)\b/g;
         const earlyPlayerTeamMatches = cleanTitle.match(earlyPlayerTeamPattern);
@@ -2394,6 +2401,13 @@ class NewPricingDatabase {
             return playerPart.split(' ').map(word => 
                 word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
             ).join(' ');
+        }
+        
+        // Specific pattern for "Kobe Bryant/Lakers" player/team pattern
+        const kobeLakersPattern = /\b(Kobe\s+Bryant\s*\/\s*Lakers)\b/gi;
+        const kobeLakersMatch = cleanTitle.match(kobeLakersPattern);
+        if (kobeLakersMatch && kobeLakersMatch.length > 0) {
+            return 'Kobe Bryant';
         }
         
         // Step 4.7: Special handling for "LeBron James" patterns
