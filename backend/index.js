@@ -393,6 +393,9 @@ app.use('/api/live-listings', require('./routes/liveListings'));
   app.use('/api/auth', require('./routes/auth'));
   
   app.use('/api', require('./routes/imageAnalysis'));
+  
+  // Parallels database API routes
+  app.use('/api/parallels', require('./railway-parallels-api'));
 
   // API endpoint to search and view all cards (admin only)
   app.get('/api/admin/cards', async (req, res) => {

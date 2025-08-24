@@ -2142,6 +2142,37 @@ class NewPricingDatabase {
             { pattern: /\b(concourses)\b/gi, name: 'Concourses' },
             { pattern: /\b(concourse)\b/gi, name: 'Concourse' },
             
+// 2023 Topps Heritage Baseball Parallels
+{ pattern: /\b(name-position\s+swap\s+variation)\b/gi, name: 'NamePosition Swap Variation' },
+
+// 2023 Topps Heritage Baseball Parallels
+{ pattern: /\b(black\s+bordered)\b/gi, name: 'Black Bordered' },
+{ pattern: /\b(black\s+and\s+white\s+image\s+variation)\b/gi, name: 'Black and White Image Variation' },
+{ pattern: /\b(chrome)\b/gi, name: 'Chrome' },
+{ pattern: /\b(chrome\s+black\s+refractor)\b/gi, name: 'Chrome Black Refractor' },
+{ pattern: /\b(chrome\s+blue\s+refractor)\b/gi, name: 'Chrome Blue Refractor' },
+{ pattern: /\b(chrome\s+gold\s+refractor)\b/gi, name: 'Chrome Gold Refractor' },
+{ pattern: /\b(chrome\s+green\s+refractor)\b/gi, name: 'Chrome Green Refractor' },
+{ pattern: /\b(chrome\s+purple\s+refractor)\b/gi, name: 'Chrome Purple Refractor' },
+{ pattern: /\b(chrome\s+red\s+refractor)\b/gi, name: 'Chrome Red Refractor' },
+{ pattern: /\b(chrome\s+refractor)\b/gi, name: 'Chrome Refractor' },
+{ pattern: /\b(chrome\s+superfractor)\b/gi, name: 'Chrome Superfractor' },
+{ pattern: /\b(clubhouse\s+collection)\b/gi, name: 'Clubhouse Collection' },
+{ pattern: /\b(clubhouse\s+collection\s+autograph)\b/gi, name: 'Clubhouse Collection Autograph' },
+{ pattern: /\b(clubhouse\s+collection\s+relic)\b/gi, name: 'Clubhouse Collection Relic' },
+{ pattern: /\b(flip\s+stock)\b/gi, name: 'Flip Stock' },
+{ pattern: /\b(mini)\b/gi, name: 'Mini' },
+{ pattern: /\b(mini\s+black)\b/gi, name: 'Mini Black' },
+{ pattern: /\b(mini\s+blue)\b/gi, name: 'Mini Blue' },
+{ pattern: /\b(mini\s+gold)\b/gi, name: 'Mini Gold' },
+{ pattern: /\b(mini\s+green)\b/gi, name: 'Mini Green' },
+{ pattern: /\b(mini\s+purple)\b/gi, name: 'Mini Purple' },
+{ pattern: /\b(mini\s+red)\b/gi, name: 'Mini Red' },
+{ pattern: /\b(mini\s+superfractor)\b/gi, name: 'Mini Superfractor' },
+{ pattern: /\b(name-position\s+swap\s+variation)\b/gi, name: 'NamePosition Swap Variation' },
+{ pattern: /\b(real\s+one\s+autograph)\b/gi, name: 'Real One Autograph' },
+{ pattern: /\b(real\s+one\s+triple\s+autograph)\b/gi, name: 'Real One Triple Autograph' },
+
             // Basic color types (lower priority)
             { pattern: /\b(gold)\b/gi, name: 'Gold' },
             { pattern: /\b(silver)\b/gi, name: 'Silver' },
