@@ -152,4 +152,23 @@ router.get('/search/:searchTerm', async (req, res) => {
     }
 });
 
+// Test database connection
+router.get('/test-connection', async (req, res) => {
+    try {
+        const { testRailwayConnection } = require('./test-railway-db-connection.js');
+        await testRailwayConnection();
+        
+        res.json({
+            success: true,
+            message: 'Database connection test completed'
+        });
+    } catch (error) {
+        console.error('❌ Error testing database connection:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 module.exports = router;
