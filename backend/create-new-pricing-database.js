@@ -1537,6 +1537,9 @@ class NewPricingDatabase {
         if (cleanTitle.includes('slania stamps') || cleanTitle.includes('slania')) {
             return 'Slania Stamps';
         }
+        if (cleanTitle.includes('collector\'s choice') || cleanTitle.includes('collectors choice')) {
+            return 'Collector\'s Choice';
+        }
         if (cleanTitle.includes('kellogg')) {
             return 'Kellogg\'s';
         }
@@ -1683,6 +1686,19 @@ class NewPricingDatabase {
             { pattern: /\b(future stars)\b/gi, name: 'Future Stars' },
             { pattern: /\b(all stars)\b/gi, name: 'All Stars' },
             { pattern: /\b(main event)\b/gi, name: 'Main Event' },
+            
+            // Missing card type patterns (high priority)
+            { pattern: /\b(storm chasers)\b/gi, name: 'Storm Chasers' },
+            { pattern: /\b(disco prizm)\b/gi, name: 'Disco Prizm' },
+            { pattern: /\b(sublime)\b/gi, name: 'Sublime' },
+            { pattern: /\b(zone busters refractor)\b/gi, name: 'Zone Busters Refractor' },
+            { pattern: /\b(aqua geometric)\b/gi, name: 'Aqua Geometric' },
+            { pattern: /\b(king snake)\b/gi, name: 'King Snake' },
+            { pattern: /\b(radiating rookies)\b/gi, name: 'Radiating Rookies' },
+            { pattern: /\b(orange lazer)\b/gi, name: 'Orange Lazer' },
+            { pattern: /\b(rainbow foil)\b/gi, name: 'Rainbow Foil' },
+            { pattern: /\b(prospect profiles mini)\b/gi, name: 'Prospect Profiles Mini' },
+            { pattern: /\b(invicta)\b/gi, name: 'Invicta' },
             
             // Color + Prizm combinations (prioritize these)
             { pattern: /\b(gold prizm)\b/gi, name: 'Gold Prizm' },
@@ -2948,7 +2964,7 @@ class NewPricingDatabase {
             // Card types that should be removed from player names
             'flash', 'fifa', 'velocity', 'scope', 'hyper', 'optic', 'mosaic', 'select', 'finest',
             'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua', 'sapphire',
-            'woo', 'draft', 'red/white/blue', 'tf1', 'invicta', 'all-etch', 'night',
+            'woo', 'draft', 'red/white/blue', 'tf1', 'all-etch', 'night',
             'cosmic stars', 'cosmic', 'all etch', 'stars', 'splash', 'rising', 'best',
             'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric',
             'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'downtown', 'real one',
@@ -2961,8 +2977,8 @@ class NewPricingDatabase {
             // Additional card types identified by analysis
             'ice', 'lazer', 'lightboard', 'magenta', 'mt', 'shock',
             // Specific problematic terms from the cards
-            'invicta bi15', 'invicta', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in',
-            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'storm chasers', 'storm-chasers', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'radiating', 'now', 'foil', 'case hit', 'case-hit', 'case hits', 'case-hits',
+            'invicta bi15', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in',
+            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'storm-chasers', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'now', 'foil', 'case hit', 'case-hit', 'case hits', 'case-hits',
             // UFC/MMA terms that should be removed from player names
             'ufc', 'mma', 'mixed martial arts', 'octagon', 'fighter', 'fighting',
             // Additional card types that should be removed from player names
@@ -3007,7 +3023,7 @@ class NewPricingDatabase {
             'lucky envelopes prizms', 'plum blossom prizms', 'black gold prizms', 'fast break neon green prizms',
             'green shimmer prizms', 'black prizms', 'black shimmer prizms', 'choice nebula prizms',
             // Individual terms from Prizm parallels
-            'king snake', 'china', 'choice', 'tiger stripe', 'glitter', 'ice', 'sparkle', 'ruby',
+            'china', 'choice', 'tiger stripe', 'glitter', 'ice', 'sparkle', 'ruby',
             'seismic', 'lazer', 'skewed', 'pulsar', 'dragon year', 'multi wave', 'power',
             'jade dragon scale', 'cherry blossom', 'bronze', 'lotus flower', 'shimmer',
             'mojo', 'neon green', 'nebula', 'plum blossom', 'lucky envelopes',
