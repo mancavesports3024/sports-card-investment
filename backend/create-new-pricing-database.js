@@ -2366,6 +2366,10 @@ class NewPricingDatabase {
             cleanTitle = cleanTitle.replace(regex, ' ');
         });
         
+        // Step 4.5: Special handling for "LeBron" to prevent "La" removal
+        // Replace "LeBron" with a placeholder before removing "La", then restore it
+        cleanTitle = cleanTitle.replace(/\bLeBron\b/gi, 'LEBRON_PLACEHOLDER');
+        
         // Step 5: Remove other common card terms
         const cardTerms = [
             'rookie', 'rookies', 'rc', 'yg', 'young guns', '1st', 'first', 'prospect', 'debut',
@@ -2436,6 +2440,8 @@ class NewPricingDatabase {
             'collector', 'phenomenon', 'preview', 'mls', 'blazers', 'level', 'premier', 'sparkle', 'ucc', 'snider', 'road to uefa', 'jack murphy stadium',
             // Other card terms
             'ink', 'endrick', 'tie', 'pandora', 'pedro de', 'jr tie', 'ohtani judge', 'ja marr chase', 'joe milton', 'malik', 'pandora malik', 'jayson tatum', 'devin', 'worthy', 'kobe bryant michael', 'tua tagovailoa', 'randy moss', 'keon coleman', 'kris draper detroit', 'deni avdija', 'tyson bagent', 'breece hall',
+            // Additional missing card terms
+            'signature', 'color', 'wwe', 'design', 'pitching', 'no huddle', 'starcade', 'premium', 'speckle', 'flair', 'ucl', 'cosmic stars', 'the',
             // Common non-player words that should be removed
             'malik', 'devin', 'holo', 'orange', 'blue', 'red', 'green', 'yellow', 'purple', 'pink', 'brown', 'black', 'white', 'gray', 'grey',
             // Bowman numbering prefixes that should not appear in player names
@@ -2471,7 +2477,7 @@ class NewPricingDatabase {
             'jade dragon scale', 'cherry blossom', 'bronze', 'lotus flower', 'shimmer',
             'mojo', 'neon green', 'nebula', 'plum blossom', 'lucky envelopes',
             // Major city names
-            'new york', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia', 'san antonio', 'san diego', 'dallas', 'san jose', 'austin', 'jacksonville', 'fort worth', 'columbus', 'charlotte', 'san francisco', 'indianapolis', 'seattle', 'denver', 'washington', 'boston', 'el paso', 'nashville', 'detroit', 'oklahoma city', 'portland', 'las vegas', 'memphis', 'louisville', 'baltimore', 'milwaukee', 'albuquerque', 'tucson', 'fresno', 'sacramento', 'atlanta', 'kansas city', 'long beach', 'colorado springs', 'raleigh', 'miami', 'virginia beach', 'omaha', 'oakland', 'minneapolis', 'tulsa', 'arlington', 'tampa', 'new orleans', 'wichita', 'cleveland', 'bakersfield', 'aurora', 'anaheim', 'honolulu', 'santa ana', 'corpus christi', 'riverside', 'lexington', 'stockton', 'henderson', 'saint paul', 'st louis', 'st. louis', 'cincinnati', 'pittsburgh', 'anchorage', 'greensboro', 'plano', 'newark', 'lincoln', 'orlando', 'irvine', 'durham', 'chula vista', 'toledo', 'fort wayne', 'st petersburg', 'laredo', 'jersey city', 'chandler', 'madison', 'lubbock', 'scottsdale', 'reno', 'buffalo', 'gilbert', 'glendale', 'north las vegas', 'winston salem', 'chesapeake', 'norfolk', 'fremont', 'garland', 'irving', 'hialeah', 'richmond', 'boise', 'spokane', 'baton rouge', 'tacoma', 'san bernardino', 'grand rapids', 'huntsville', 'salt lake city', 'frisco', 'yonkers', 'worcester', 'st. petersburg', 'st petersburg', 'st. paul', 'st paul',
+            'new york', 'new england', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia', 'san antonio', 'san diego', 'dallas', 'san jose', 'austin', 'jacksonville', 'fort worth', 'columbus', 'charlotte', 'san francisco', 'indianapolis', 'seattle', 'denver', 'washington', 'boston', 'el paso', 'nashville', 'detroit', 'oklahoma city', 'portland', 'las vegas', 'memphis', 'louisville', 'baltimore', 'milwaukee', 'albuquerque', 'tucson', 'fresno', 'sacramento', 'atlanta', 'kansas city', 'long beach', 'colorado springs', 'raleigh', 'miami', 'virginia beach', 'omaha', 'oakland', 'minneapolis', 'tulsa', 'arlington', 'tampa', 'new orleans', 'wichita', 'cleveland', 'bakersfield', 'aurora', 'anaheim', 'honolulu', 'santa ana', 'corpus christi', 'riverside', 'lexington', 'stockton', 'henderson', 'saint paul', 'st louis', 'st. louis', 'cincinnati', 'pittsburgh', 'anchorage', 'greensboro', 'plano', 'newark', 'lincoln', 'orlando', 'irvine', 'durham', 'chula vista', 'toledo', 'fort wayne', 'st petersburg', 'laredo', 'jersey city', 'chandler', 'madison', 'lubbock', 'scottsdale', 'reno', 'buffalo', 'gilbert', 'glendale', 'north las vegas', 'winston salem', 'chesapeake', 'norfolk', 'fremont', 'garland', 'irving', 'hialeah', 'richmond', 'boise', 'spokane', 'baton rouge', 'tacoma', 'san bernardino', 'grand rapids', 'huntsville', 'salt lake city', 'frisco', 'yonkers', 'worcester', 'st. petersburg', 'st petersburg', 'st. paul', 'st paul',
             // Racing terms and teams
             'racing', 'nascar', 'formula 1', 'f1', 'indycar', 'indy', 'drag racing', 'rally', 'rallycross', 'motocross', 'supercross', 'endurance', 'sprint', 'dirt track', 'oval', 'road course', 'street circuit', 'paddock', 'pit', 'pit lane', 'grid', 'qualifying', 'practice', 'warm up', 'formation lap', 'safety car', 'virtual safety car', 'red flag', 'yellow flag', 'blue flag', 'checkered flag', 'pole position', 'podium', 'championship', 'points', 'season', 'race', 'grand prix', 'gp', 'monaco', 'silverstone', 'monza', 'spa', 'suzuka', 'interlagos', 'red bull', 'ferrari', 'mercedes', 'mclaren', 'aston martin', 'alpine', 'williams', 'haas', 'alfa romeo', 'alpha tauri', 'racing point', 'force india', 'sauber', 'toro rosso', 'minardi', 'benetton', 'tyrrell', 'lotus', 'brabham', 'cooper', 'vanwall', 'maserati', 'alfa', 'bugatti', 'delage', 'peugeot', 'renault', 'bmw', 'toyota', 'honda', 'ford', 'chevrolet', 'dodge', 'pontiac', 'oldsmobile', 'buick', 'cadillac', 'lincoln', 'mercury', 'plymouth', 'amc', 'studebaker', 'packard', 'nash', 'hudson', 'kaiser', 'frazer', 'willys', 'jeep', 'international', 'diamond t', 'mack', 'peterbilt', 'kenworth', 'freightliner', 'western star', 'volvo', 'scania', 'man', 'iveco', 'daf', 'renault trucks', 'volvo trucks', 'scania trucks', 'man trucks', 'iveco trucks', 'daf trucks'
         ];
@@ -2479,6 +2485,9 @@ class NewPricingDatabase {
             const regex = new RegExp(`\\b${term}\\b`, 'gi');
             cleanTitle = cleanTitle.replace(regex, ' ');
         });
+        
+        // Step 5.5: Restore "LeBron" placeholder
+        cleanTitle = cleanTitle.replace(/LEBRON_PLACEHOLDER/gi, 'LeBron');
         
         // Step 6: Remove years
         cleanTitle = cleanTitle.replace(/\b(19|20)\d{2}\b/g, ' ');
@@ -2489,8 +2498,17 @@ class NewPricingDatabase {
         // Step 8: Remove standalone numbers
         cleanTitle = cleanTitle.replace(/\b\d+\b/g, ' ');
         
-        // Step 9: Remove special characters and normalize whitespace
-        cleanTitle = cleanTitle.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+        // Step 9: Remove special characters but preserve "/" for dual player cards
+        cleanTitle = cleanTitle.replace(/[^\w\s\/]/g, ' ').replace(/\s+/g, ' ').trim();
+        
+        // Step 9.25: Special handling for dual player cards with "/" separator
+        // Look for patterns like "Montana/Rice" or "Player1/Player2"
+        const dualPlayerPattern = /\b([A-Z][a-z]+\s*\/\s*[A-Z][a-z]+)\b/g;
+        const dualPlayerMatches = cleanTitle.match(dualPlayerPattern);
+        if (dualPlayerMatches && dualPlayerMatches.length > 0) {
+            // Take the first match as the player name
+            return dualPlayerMatches[0].replace(/\s+/g, '').trim();
+        }
         
         // Step 9.5: Special handling for initials like J.J. McCarthy
         // Look for patterns like "J.J. McCarthy" or "J J McCarthy" and preserve them
