@@ -198,4 +198,39 @@ router.get('/debug-card-sets', async (req, res) => {
     }
 });
 
+// Simple test endpoint to check database connection directly
+router.get('/simple-test', async (req, res) => {
+    try {
+        const { Pool } = require('pg');
+        const pool = new Pool({
+            connectionString: process.env.DATABASE_URL,
+            ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+        });
+        
+        console.log('🔍 Simple test - DATABASE_URL:', process.env.DATABASE_URL ? 'Found' : 'NOT FOUND');
+        
+        const client = await pool.connect();
+        console.log('✅ Simple test - Connected to database');
+        
+        const result = await client.query('SELECT COUNT(*) as count FROM card_sets');
+        console.log('✅ Simple test - Query result:', result.rows[0]);
+        
+        client.release();
+        await pool.end();
+        
+        res.json({
+            success: true,
+            message: 'Simple test completed',
+            cardSetsCount: result.rows[0].count
+        });
+    } catch (error) {
+        console.error('❌ Error in simple-test:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
 module.exports = router;
