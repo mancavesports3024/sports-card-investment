@@ -2521,6 +2521,27 @@ class NewPricingDatabase {
             return 'Jayson Tatum';
         }
         
+        // Look for "Travis Kelce" in various contexts
+        const travisKelcePattern = /\b(Travis\s+Kelce)\b/gi;
+        const travisKelceMatch = cleanTitle.match(travisKelcePattern);
+        if (travisKelceMatch && travisKelceMatch.length > 0) {
+            return 'Travis Kelce';
+        }
+        
+        // Look for "Tony Ferguson" in various contexts
+        const tonyFergusonPattern = /\b(Tony\s+Ferguson)\b/gi;
+        const tonyFergusonMatch = cleanTitle.match(tonyFergusonPattern);
+        if (tonyFergusonMatch && tonyFergusonMatch.length > 0) {
+            return 'Tony Ferguson';
+        }
+        
+        // Look for "Luis Aparicio" in various contexts
+        const luisAparicioPattern = /\b(Luis\s+Aparicio)\b/gi;
+        const luisAparicioMatch = cleanTitle.match(luisAparicioPattern);
+        if (luisAparicioMatch && luisAparicioMatch.length > 0) {
+            return 'Luis Aparicio';
+        }
+        
         // Step 5: Remove other common card terms
         const cardTerms = [
             'rookie', 'rookies', 'rc', 'yg', 'young guns', '1st', 'first', 'prospect', 'debut',
@@ -2592,7 +2613,7 @@ class NewPricingDatabase {
             // Other card terms
             'ink', 'endrick', 'tie', 'pandora', 'pedro de', 'jr tie', 'ohtani judge', 'ja marr chase', 'joe milton', 'malik', 'pandora malik', 'devin', 'worthy', 'kobe bryant michael', 'tua tagovailoa', 'keon coleman', 'kris draper detroit', 'deni avdija', 'tyson bagent', 'breece hall',
             // Additional missing card terms
-            'signature', 'color', 'wwe', 'design', 'pitching', 'no huddle', 'starcade', 'premium', 'speckle', 'flair', 'ucl', 'cosmic stars', 'the', 'of', 'olympics', 'wnba', 'league', 'championship', 'tournament', 'series', 'profiles', 'mini',
+            'signature', 'color', 'wwe', 'design', 'pitching', 'no huddle', 'starcade', 'premium', 'speckle', 'flair', 'ucl', 'cosmic stars', 'the', 'of', 'olympics', 'wnba', 'league', 'championship', 'tournament', 'series', 'profiles', 'mini', 'border', 'intimidators', 'kellogg',
             // Common non-player words that should be removed
             'malik', 'devin', 'holo', 'orange', 'blue', 'red', 'green', 'yellow', 'purple', 'pink', 'brown', 'black', 'white', 'gray', 'grey',
             // Bowman numbering prefixes that should not appear in player names
