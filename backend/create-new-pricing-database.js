@@ -1509,9 +1509,25 @@ class NewPricingDatabase {
         if (cleanTitle.includes('bowman chrome draft') || (cleanTitle.includes('bowman draft') && cleanTitle.includes('chrome'))) {
             return 'Bowman Chrome Draft';
         }
+        // Sapphire card sets (premium editions)
+        if (cleanTitle.includes('topps chrome football sapphire')) {
+            return 'Topps Chrome Football Sapphire';
+        }
+        if (cleanTitle.includes('topps chrome baseball sapphire')) {
+            return 'Topps Chrome Baseball Sapphire';
+        }
+        if (cleanTitle.includes('topps chrome sapphire')) {
+            return 'Topps Chrome Sapphire';
+        }
         if (cleanTitle.includes('bowman chrome sapphire') ||
             (cleanTitle.includes('bowman') && cleanTitle.includes('sapphire') && cleanTitle.includes('chrome'))) {
             return 'Bowman Chrome Sapphire';
+        }
+        if (cleanTitle.includes('sapphire edition')) {
+            return 'Sapphire Edition';
+        }
+        if (cleanTitle.includes('sapphire') && !cleanTitle.includes('chrome')) {
+            return 'Sapphire';
         }
         if (cleanTitle.includes('bowman chrome')) {
             return 'Bowman Chrome';
@@ -1793,7 +1809,7 @@ class NewPricingDatabase {
             { pattern: /\b(firestorm)\b/gi, name: 'Firestorm' },
             { pattern: /\b(voltage)\b/gi, name: 'Voltage' },
             { pattern: /\b(career stat line)\b/gi, name: 'Career Stat Line' },
-            { pattern: /\b(sapphire)\b/gi, name: 'Sapphire' },
+
             { pattern: /\b(mojo)\b/gi, name: 'Mojo' },
             { pattern: /\b(wave)\b/gi, name: 'Wave' },
             { pattern: /\b(scope)\b/gi, name: 'Scope' },
@@ -1900,7 +1916,7 @@ class NewPricingDatabase {
             { pattern: /\b(bronze refractor)\b/gi, name: 'Bronze Refractor' },
             { pattern: /\b(white refractor)\b/gi, name: 'White Refractor' },
             { pattern: /\b(neon green refractor)\b/gi, name: 'Neon Green Refractor' },
-            { pattern: /\b(sapphire refractor)\b/gi, name: 'Sapphire Refractor' },
+
             
             // Special color + finish combinations
             { pattern: /\b(blue ice)\b/gi, name: 'Blue Ice' },
@@ -1980,8 +1996,14 @@ class NewPricingDatabase {
             { pattern: /\b(purple\/gold|gold\/purple)\b/gi, name: 'Purple and Gold', priority: 1 },
             { pattern: /\b(pink\/purple|purple\/pink)\b/gi, name: 'Pink and Purple', priority: 1 },
             
+
+            // Sapphire set card types (parallels within Sapphire sets)
+            { pattern: /\b(gold sapphire)\b/gi, name: 'Gold Sapphire' },
             { pattern: /\b(orange sapphire)\b/gi, name: 'Orange Sapphire' },
-            { pattern: /\b(sapphire orange)\b/gi, name: 'Orange Sapphire' },
+            { pattern: /\b(purple sapphire)\b/gi, name: 'Purple Sapphire' },
+            { pattern: /\b(sapphire selections)\b/gi, name: 'Sapphire Selections' },
+            { pattern: /\b(infinite sapphire)\b/gi, name: 'Infinite Sapphire' },
+            { pattern: /\b(sapphire refractor)\b/gi, name: 'Sapphire Refractor' },
             { pattern: /\b(red ink)\b/gi, name: 'Red Ink' },
             { pattern: /\b(red ink auto)\b/gi, name: 'Red Ink Auto' },
             { pattern: /\b(cyan rpa)\b/gi, name: 'Cyan RPA' },
@@ -2203,7 +2225,8 @@ class NewPricingDatabase {
             // Remove "Sapphire" from card_type if it's already in the card set
             if (cardType && cardType.toLowerCase().includes('sapphire')) {
                 const titleLower = title.toLowerCase();
-                if (titleLower.includes('bowman chrome sapphire') || titleLower.includes('sapphire edition')) {
+                if (titleLower.includes('sapphire')) {
+                    // Sapphire is a card set, not a card type - remove it from card type
                     cardType = cardType.replace(/\bsapphire\b/gi, '').trim();
                 }
             }
@@ -2963,7 +2986,7 @@ class NewPricingDatabase {
             'fc', 'united', 'city', 'athletic', 'sporting', 'dynamo', 'spartak', 'zenit',
             // Card types that should be removed from player names
             'flash', 'fifa', 'velocity', 'scope', 'hyper', 'optic', 'mosaic', 'select', 'finest',
-            'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua', 'sapphire',
+            'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua',
             'woo', 'draft', 'red/white/blue', 'tf1', 'all-etch', 'night',
             'cosmic stars', 'cosmic', 'all etch', 'stars', 'splash', 'rising', 'best',
             'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric',
@@ -3181,7 +3204,7 @@ class NewPricingDatabase {
             'fc', 'united', 'city', 'athletic', 'sporting', 'dynamo', 'spartak', 'zenit',
             // Card types that should be removed from player names
             'flash', 'fifa', 'velocity', 'scope', 'hyper', 'optic', 'mosaic', 'select', 'finest',
-            'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua', 'sapphire',
+            'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua',
             'woo', 'draft', 'red/white/blue', 'tf1', 'invicta', 'all-etch', 'night',
             'cosmic stars', 'cosmic', 'all etch', 'stars', 'splash', 'rising', 'best',
             'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric',
