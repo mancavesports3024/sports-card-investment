@@ -2372,6 +2372,22 @@ class NewPricingDatabase {
         cleanTitle = cleanTitle.replace(/\bLEBRON\b/gi, 'LEBRON_PLACEHOLDER');
         cleanTitle = cleanTitle.replace(/\blebron\b/gi, 'LEBRON_PLACEHOLDER');
         
+        // Step 4.5.1: Early filtering of obviously invalid player names
+        // Filter out just slashes
+        if (cleanTitle.trim() === '/' || cleanTitle.trim() === '\\') {
+            return null;
+        }
+        
+        // Filter out just "III" (likely a suffix)
+        if (cleanTitle.trim().toLowerCase() === 'iii') {
+            return null;
+        }
+        
+        // Filter out very short names that are likely incomplete
+        if (cleanTitle.trim().length <= 2) {
+            return null;
+        }
+        
         // Step 4.5.5: Very early detection of specific dual player patterns
         // Check for "Montana/Rice" before any other processing
         if (cleanTitle.includes('Montana/Rice') || cleanTitle.includes('montana/rice')) {
@@ -2738,6 +2754,69 @@ class NewPricingDatabase {
         const jjMccarthyMatch = cleanTitle.match(jjMccarthyPattern);
         if (jjMccarthyMatch && jjMccarthyMatch.length > 0) {
             return 'J.J. McCarthy';
+        }
+        
+        // Look for "Joe Milton III" - extract just "Joe Milton"
+        const joeMiltonPattern = /\b(Joe\s+Milton)\s+III\b/gi;
+        const joeMiltonMatch = cleanTitle.match(joeMiltonPattern);
+        if (joeMiltonMatch && joeMiltonMatch.length > 0) {
+            return 'Joe Milton';
+        }
+        
+        // Look for "Ryan O'Hearn" - extract full name
+        const ryanOHearnPattern = /\b(Ryan\s+O'Hearn)\b/gi;
+        const ryanOHearnMatch = cleanTitle.match(ryanOHearnPattern);
+        if (ryanOHearnMatch && ryanOHearnMatch.length > 0) {
+            return 'Ryan O\'Hearn';
+        }
+        
+        // Look for "Anthony Edwards" - extract full name (pattern already exists earlier)
+        
+        // Look for "Kobe Bryant" or "Michael Jordan" from dual player cards
+        const kobeBryantPattern = /\b(Kobe\s+Bryant)\b/gi;
+        const kobeBryantMatch = cleanTitle.match(kobeBryantPattern);
+        if (kobeBryantMatch && kobeBryantMatch.length > 0) {
+            return 'Kobe Bryant';
+        }
+        
+        const michaelJordanPattern = /\b(Michael\s+Jordan)\b/gi;
+        const michaelJordanMatch = cleanTitle.match(michaelJordanPattern);
+        if (michaelJordanMatch && michaelJordanMatch.length > 0) {
+            return 'Michael Jordan';
+        }
+        
+        // Look for "Brock Purdy" or "Deebo Samuel" from dual player cards
+        const brockPurdyPattern = /\b(Brock\s+Purdy)\b/gi;
+        const brockPurdyMatch = cleanTitle.match(brockPurdyPattern);
+        if (brockPurdyMatch && brockPurdyMatch.length > 0) {
+            return 'Brock Purdy';
+        }
+        
+        const deeboSamuelPattern = /\b(Deebo\s+Samuel)\b/gi;
+        const deeboSamuelMatch = cleanTitle.match(deeboSamuelPattern);
+        if (deeboSamuelMatch && deeboSamuelMatch.length > 0) {
+            return 'Deebo Samuel';
+        }
+        
+        // Look for "Pedro De La Vega" - extract full name
+        const pedroDeLaVegaPattern = /\b(Pedro\s+De\s+La\s+Vega)\b/gi;
+        const pedroDeLaVegaMatch = cleanTitle.match(pedroDeLaVegaPattern);
+        if (pedroDeLaVegaMatch && pedroDeLaVegaMatch.length > 0) {
+            return 'Pedro De La Vega';
+        }
+        
+        // Look for "Shohei Ohtani" - extract full name
+        const shoheiOhtaniPattern = /\b(Shohei\s+Ohtani)\b/gi;
+        const shoheiOhtaniMatch = cleanTitle.match(shoheiOhtaniPattern);
+        if (shoheiOhtaniMatch && shoheiOhtaniMatch.length > 0) {
+            return 'Shohei Ohtani';
+        }
+        
+        // Look for "Bo Jackson" - extract full name
+        const boJacksonPattern = /\b(Bo\s+Jackson)\b/gi;
+        const boJacksonMatch = cleanTitle.match(boJacksonPattern);
+        if (boJacksonMatch && boJacksonMatch.length > 0) {
+            return 'Bo Jackson';
         }
         
         // Step 5: Remove other common card terms
