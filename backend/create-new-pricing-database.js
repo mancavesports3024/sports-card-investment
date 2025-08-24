@@ -2651,6 +2651,27 @@ class NewPricingDatabase {
             return null; // This is likely a card type, not a player
         }
         
+        // Look for "/pitch" - this is likely a card type, not a player
+        const pitchPattern = /\b\/pitch\b/gi;
+        const pitchMatch = cleanTitle.match(pitchPattern);
+        if (pitchMatch && pitchMatch.length > 0) {
+            return null; // This is likely a card type, not a player
+        }
+        
+        // Look for "Pitching/no" - this is likely a card type, not a player
+        const pitchingNoPattern = /\b(Pitching\s*\/\s*no)\b/gi;
+        const pitchingNoMatch = cleanTitle.match(pitchingNoPattern);
+        if (pitchingNoMatch && pitchingNoMatch.length > 0) {
+            return null; // This is likely a card type, not a player
+        }
+        
+        // Look for "Baseball/football" - this is likely a card type, not a player
+        const baseballFootballPattern = /\b(Baseball\s*\/\s*football)\b/gi;
+        const baseballFootballMatch = cleanTitle.match(baseballFootballPattern);
+        if (baseballFootballMatch && baseballFootballMatch.length > 0) {
+            return null; // This is likely a card type, not a player
+        }
+        
         // Look for "Wyatt Langford" (remove the Q0902 part)
         const wyattLangfordPattern = /\b(Wyatt\s+Langford)\b/gi;
         const wyattLangfordMatch = cleanTitle.match(wyattLangfordPattern);
@@ -2777,6 +2798,8 @@ class NewPricingDatabase {
             'signature', 'color', 'wwe', 'design', 'pitching', 'no huddle', 'starcade', 'premium', 'speckle', 'flair', 'ucl', 'cosmic stars', 'the', 'of', 'olympics', 'wnba', 'league', 'championship', 'tournament', 'series', 'profiles', 'mini', 'border', 'intimidators', 'kellogg', 'mist', 'usa', 'xr', 'logofractor', 'cyan', 'authentic', 'rpa', 'formula 1', 'p.p.', 'match', 'mav', 'concourse', 'essentials', 'supernatural',
             // New missing card terms from analysis
             'heritage', 'focus', 'winning ticket', 'prizmatic', 'mint2', 'indiana', 'batting', 'florida', 'pitch', 'baseball', 'football',
+            // Additional missing terms from remaining issues
+            'pitching', 'no',
             // Common non-player words that should be removed
             'malik', 'devin', 'holo', 'orange', 'blue', 'red', 'green', 'yellow', 'purple', 'pink', 'brown', 'black', 'white', 'gray', 'grey',
             // Bowman numbering prefixes that should not appear in player names
