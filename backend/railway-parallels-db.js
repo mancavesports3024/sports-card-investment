@@ -2,6 +2,11 @@ const { Pool } = require('pg');
 
 class RailwayParallelsDatabase {
     constructor() {
+        console.log('🔍 DATABASE_URL check:', process.env.DATABASE_URL ? 'Found' : 'NOT FOUND');
+        if (process.env.DATABASE_URL) {
+            console.log('🔍 DATABASE_URL starts with:', process.env.DATABASE_URL.substring(0, 20) + '...');
+        }
+        
         this.pool = new Pool({
             connectionString: process.env.DATABASE_URL,
             ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
