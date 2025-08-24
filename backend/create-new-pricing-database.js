@@ -2372,6 +2372,109 @@ class NewPricingDatabase {
         cleanTitle = cleanTitle.replace(/\bLEBRON\b/gi, 'LEBRON_PLACEHOLDER');
         cleanTitle = cleanTitle.replace(/\blebron\b/gi, 'LEBRON_PLACEHOLDER');
         
+        // Step 4.6: Early detection of dual player cards with "/" separator
+        // Look for patterns like "Montana/Rice" or "Player1/Player2" BEFORE removing card terms
+        const earlyDualPlayerPattern = /\b([A-Z][a-z]+\s*\/\s*[A-Z][a-z]+)\b/g;
+        const earlyDualPlayerMatches = cleanTitle.match(earlyDualPlayerPattern);
+        if (earlyDualPlayerMatches && earlyDualPlayerMatches.length > 0) {
+            // Take the first match as the player name and preserve proper capitalization
+            const match = earlyDualPlayerMatches[0].replace(/\s+/g, '').trim();
+            return match.split('/').map(part => 
+                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+            ).join('/');
+        }
+        
+        // Also look for patterns like "Kobe Bryant/Lakers" where the second part is a team
+        const earlyPlayerTeamPattern = /\b([A-Z][a-z]+\s+[A-Z][a-z]+\s*\/\s*[A-Z][a-z]+)\b/g;
+        const earlyPlayerTeamMatches = cleanTitle.match(earlyPlayerTeamPattern);
+        if (earlyPlayerTeamMatches && earlyPlayerTeamMatches.length > 0) {
+            // Take just the player part before the "/"
+            const match = earlyPlayerTeamMatches[0];
+            const playerPart = match.split('/')[0].trim();
+            return playerPart.split(' ').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            ).join(' ');
+        }
+        
+        // Step 4.7: Special handling for "LeBron James" patterns
+        // Look for "LeBron James" followed by team names and extract just "LeBron James"
+        const lebronLakersPattern = /\b(LeBron\s+James)\s+LA\s+Lakers\b/gi;
+        const lebronLakersMatch = cleanTitle.match(lebronLakersPattern);
+        if (lebronLakersMatch && lebronLakersMatch.length > 0) {
+            return 'LeBron James';
+        }
+        
+        // More general pattern for "LeBron James" followed by any team
+        const lebronTeamPattern = /\b(LeBron\s+James)\s+[A-Z][a-z]+\s+[A-Z][a-z]+\b/gi;
+        const lebronTeamMatch = cleanTitle.match(lebronTeamPattern);
+        if (lebronTeamMatch && lebronTeamMatch.length > 0) {
+            return 'LeBron James';
+        }
+        
+        // Step 4.8: Special handling for specific player patterns
+        // Look for "Caleb Williams" in various contexts
+        const calebWilliamsPattern = /\b(Caleb\s+Williams)\b/gi;
+        const calebWilliamsMatch = cleanTitle.match(calebWilliamsPattern);
+        if (calebWilliamsMatch && calebWilliamsMatch.length > 0) {
+            return 'Caleb Williams';
+        }
+        
+        // Look for "Xavier Worthy" in various contexts
+        const xavierWorthyPattern = /\b(Xavier\s+Worthy)\b/gi;
+        const xavierWorthyMatch = cleanTitle.match(xavierWorthyPattern);
+        if (xavierWorthyMatch && xavierWorthyMatch.length > 0) {
+            return 'Xavier Worthy';
+        }
+        
+        // Look for "Cooper Flagg" in various contexts
+        const cooperFlaggPattern = /\b(Cooper\s+Flagg)\b/gi;
+        const cooperFlaggMatch = cleanTitle.match(cooperFlaggPattern);
+        if (cooperFlaggMatch && cooperFlaggMatch.length > 0) {
+            return 'Cooper Flagg';
+        }
+        
+        // Look for "Angel Reese" in various contexts
+        const angelReesePattern = /\b(Angel\s+Reese)\b/gi;
+        const angelReeseMatch = cleanTitle.match(angelReesePattern);
+        if (angelReeseMatch && angelReeseMatch.length > 0) {
+            return 'Angel Reese';
+        }
+        
+        // Look for "Kyrie Irving" in various contexts
+        const kyrieIrvingPattern = /\b(Kyrie\s+Irving)\b/gi;
+        const kyrieIrvingMatch = cleanTitle.match(kyrieIrvingPattern);
+        if (kyrieIrvingMatch && kyrieIrvingMatch.length > 0) {
+            return 'Kyrie Irving';
+        }
+        
+        // Look for "Aaron Judge" in various contexts
+        const aaronJudgePattern = /\b(Aaron\s+Judge)\b/gi;
+        const aaronJudgeMatch = cleanTitle.match(aaronJudgePattern);
+        if (aaronJudgeMatch && aaronJudgeMatch.length > 0) {
+            return 'Aaron Judge';
+        }
+        
+        // Look for "Randy Moss" in various contexts
+        const randyMossPattern = /\b(Randy\s+Moss)\b/gi;
+        const randyMossMatch = cleanTitle.match(randyMossPattern);
+        if (randyMossMatch && randyMossMatch.length > 0) {
+            return 'Randy Moss';
+        }
+        
+        // Look for "Stephen Curry" in various contexts
+        const stephenCurryPattern = /\b(Stephen\s+Curry)\b/gi;
+        const stephenCurryMatch = cleanTitle.match(stephenCurryPattern);
+        if (stephenCurryMatch && stephenCurryMatch.length > 0) {
+            return 'Stephen Curry';
+        }
+        
+        // Look for "Jayson Tatum" in various contexts
+        const jaysonTatumPattern = /\b(Jayson\s+Tatum)\b/gi;
+        const jaysonTatumMatch = cleanTitle.match(jaysonTatumPattern);
+        if (jaysonTatumMatch && jaysonTatumMatch.length > 0) {
+            return 'Jayson Tatum';
+        }
+        
         // Step 5: Remove other common card terms
         const cardTerms = [
             'rookie', 'rookies', 'rc', 'yg', 'young guns', '1st', 'first', 'prospect', 'debut',
@@ -2441,9 +2544,9 @@ class NewPricingDatabase {
             // Card sets that should be removed from player names
             'collector', 'phenomenon', 'preview', 'mls', 'blazers', 'level', 'premier', 'sparkle', 'ucc', 'snider', 'road to uefa', 'jack murphy stadium',
             // Other card terms
-            'ink', 'endrick', 'tie', 'pandora', 'pedro de', 'jr tie', 'ohtani judge', 'ja marr chase', 'joe milton', 'malik', 'pandora malik', 'jayson tatum', 'devin', 'worthy', 'kobe bryant michael', 'tua tagovailoa', 'randy moss', 'keon coleman', 'kris draper detroit', 'deni avdija', 'tyson bagent', 'breece hall',
+            'ink', 'endrick', 'tie', 'pandora', 'pedro de', 'jr tie', 'ohtani judge', 'ja marr chase', 'joe milton', 'malik', 'pandora malik', 'devin', 'worthy', 'kobe bryant michael', 'tua tagovailoa', 'keon coleman', 'kris draper detroit', 'deni avdija', 'tyson bagent', 'breece hall',
             // Additional missing card terms
-            'signature', 'color', 'wwe', 'design', 'pitching', 'no huddle', 'starcade', 'premium', 'speckle', 'flair', 'ucl', 'cosmic stars', 'the',
+            'signature', 'color', 'wwe', 'design', 'pitching', 'no huddle', 'starcade', 'premium', 'speckle', 'flair', 'ucl', 'cosmic stars', 'the', 'of', 'olympics', 'wnba', 'league', 'championship', 'tournament', 'series', 'profiles', 'mini',
             // Common non-player words that should be removed
             'malik', 'devin', 'holo', 'orange', 'blue', 'red', 'green', 'yellow', 'purple', 'pink', 'brown', 'black', 'white', 'gray', 'grey',
             // Bowman numbering prefixes that should not appear in player names
@@ -2503,29 +2606,7 @@ class NewPricingDatabase {
         // Step 9: Remove special characters but preserve "/" for dual player cards
         cleanTitle = cleanTitle.replace(/[^\w\s\/]/g, ' ').replace(/\s+/g, ' ').trim();
         
-        // Step 9.25: Special handling for dual player cards with "/" separator
-        // Look for patterns like "Montana/Rice" or "Player1/Player2"
-        const dualPlayerPattern = /\b([A-Z][a-z]+\s*\/\s*[A-Z][a-z]+)\b/g;
-        const dualPlayerMatches = cleanTitle.match(dualPlayerPattern);
-        if (dualPlayerMatches && dualPlayerMatches.length > 0) {
-            // Take the first match as the player name and preserve proper capitalization
-            const match = dualPlayerMatches[0].replace(/\s+/g, '').trim();
-            return match.split('/').map(part => 
-                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-            ).join('/');
-        }
-        
-        // Also look for patterns like "Kobe Bryant/Lakers" where the second part is a team
-        const playerTeamPattern = /\b([A-Z][a-z]+\s+[A-Z][a-z]+\s*\/\s*[A-Z][a-z]+)\b/g;
-        const playerTeamMatches = cleanTitle.match(playerTeamPattern);
-        if (playerTeamMatches && playerTeamMatches.length > 0) {
-            // Take just the player part before the "/"
-            const match = playerTeamMatches[0];
-            const playerPart = match.split('/')[0].trim();
-            return playerPart.split(' ').map(word => 
-                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-            ).join(' ');
-        }
+
         
         // Step 9.5: Special handling for initials like J.J. McCarthy
         // Look for patterns like "J.J. McCarthy" or "J J McCarthy" and preserve them
