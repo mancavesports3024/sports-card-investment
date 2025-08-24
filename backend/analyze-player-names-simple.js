@@ -195,8 +195,8 @@ class PlayerNameAnalyzer {
             this.cardsWithPlayerNames = playerNameResult.count;
             console.log(`📊 Cards with player_name: ${this.cardsWithPlayerNames}`);
             
-            // Get a sample of cards to analyze
-            const sampleQuery = `SELECT player_name, title FROM cards WHERE player_name IS NOT NULL AND player_name != '' LIMIT 20`;
+            // Get a larger sample of cards to analyze
+            const sampleQuery = `SELECT player_name, title FROM cards WHERE player_name IS NOT NULL AND player_name != '' LIMIT 100`;
             
             try {
                 const results = await this.db.allQuery(sampleQuery);
