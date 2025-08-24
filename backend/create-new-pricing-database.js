@@ -2619,6 +2619,90 @@ class NewPricingDatabase {
             return 'Lewis Hamilton';
         }
         
+        // Look for "Xavier Worthy" in various contexts (handles "Worthy" → "Xavier Worthy")
+        // Note: This pattern already exists earlier in the file
+        
+        // Look for "Ausar Thompson" in various contexts (handles incomplete "Ausar Thompso")
+        const ausarThompsonPattern = /\b(Ausar\s+Thompson)\b/gi;
+        const ausarThompsonMatch = cleanTitle.match(ausarThompsonPattern);
+        if (ausarThompsonMatch && ausarThompsonMatch.length > 0) {
+            return 'Ausar Thompson';
+        }
+        
+        // Step 4.9: Additional specific player patterns from analysis
+        // Look for "Purdy/Deebo" dual player card
+        const purdyDeeboPattern = /\b(Purdy\s*\/\s*Deebo)\b/gi;
+        const purdyDeeboMatch = cleanTitle.match(purdyDeeboPattern);
+        if (purdyDeeboMatch && purdyDeeboMatch.length > 0) {
+            return 'Purdy/Deebo';
+        }
+        
+        // Look for "Ohtani/Judge" dual player card
+        const ohtaniJudgePattern = /\b(Ohtani\s*\/\s*Judge)\b/gi;
+        const ohtaniJudgeMatch = cleanTitle.match(ohtaniJudgePattern);
+        if (ohtaniJudgeMatch && ohtaniJudgeMatch.length > 0) {
+            return 'Ohtani/Judge';
+        }
+        
+        // Look for "East/West" (this might be a card type, not a player)
+        const eastWestPattern = /\b(East\s*\/\s*West)\b/gi;
+        const eastWestMatch = cleanTitle.match(eastWestPattern);
+        if (eastWestMatch && eastWestMatch.length > 0) {
+            return null; // This is likely a card type, not a player
+        }
+        
+        // Look for "Wyatt Langford" (remove the Q0902 part)
+        const wyattLangfordPattern = /\b(Wyatt\s+Langford)\b/gi;
+        const wyattLangfordMatch = cleanTitle.match(wyattLangfordPattern);
+        if (wyattLangfordMatch && wyattLangfordMatch.length > 0) {
+            return 'Wyatt Langford';
+        }
+        
+        // Look for "Vladimir Guerrero" (remove Heritage)
+        const vladimirGuerreroPattern = /\b(Vladimir\s+Guerrero)\b/gi;
+        const vladimirGuerreroMatch = cleanTitle.match(vladimirGuerreroPattern);
+        if (vladimirGuerreroMatch && vladimirGuerreroMatch.length > 0) {
+            return 'Vladimir Guerrero';
+        }
+        
+        // Look for "Victor Wembanyama" (remove Supernatural)
+        const victorWembanyamaPattern = /\b(Victor\s+Wembanyama)\b/gi;
+        const victorWembanyamaMatch = cleanTitle.match(victorWembanyamaPattern);
+        if (victorWembanyamaMatch && victorWembanyamaMatch.length > 0) {
+            return 'Victor Wembanyama';
+        }
+        
+        // Look for "Ryan" - this might be incomplete, but let's handle it
+        const ryanPattern = /\b(Ryan)\b/gi;
+        const ryanMatch = cleanTitle.match(ryanPattern);
+        if (ryanMatch && ryanMatch.length > 0) {
+            // Check if there's more context to make it a full name
+            const fullNameMatch = cleanTitle.match(/\b(Ryan\s+[A-Z][a-z]+)\b/gi);
+            if (fullNameMatch && fullNameMatch.length > 0) {
+                return fullNameMatch[0];
+            }
+            return 'Ryan'; // Keep as is for now
+        }
+        
+        // Look for "Tom" - this might be incomplete, but let's handle it
+        const tomPattern = /\b(Tom)\b/gi;
+        const tomMatch = cleanTitle.match(tomPattern);
+        if (tomMatch && tomMatch.length > 0) {
+            // Check if there's more context to make it a full name
+            const fullNameMatch = cleanTitle.match(/\b(Tom\s+[A-Z][a-z]+)\b/gi);
+            if (fullNameMatch && fullNameMatch.length > 0) {
+                return fullNameMatch[0];
+            }
+            return 'Tom'; // Keep as is for now
+        }
+        
+        // Look for "J.J. McCarthy" with periods (this is a valid player name)
+        const jjMccarthyPattern = /\b(J\.J\.\s+McCarthy)\b/gi;
+        const jjMccarthyMatch = cleanTitle.match(jjMccarthyPattern);
+        if (jjMccarthyMatch && jjMccarthyMatch.length > 0) {
+            return 'J.J. McCarthy';
+        }
+        
         // Step 5: Remove other common card terms
         const cardTerms = [
             'rookie', 'rookies', 'rc', 'yg', 'young guns', '1st', 'first', 'prospect', 'debut',
@@ -2690,7 +2774,9 @@ class NewPricingDatabase {
             // Other card terms
             'ink', 'endrick', 'tie', 'pandora', 'pedro de', 'jr tie', 'ohtani judge', 'ja marr chase', 'joe milton', 'malik', 'pandora malik', 'devin', 'worthy',
             // Additional missing card terms
-            'signature', 'color', 'wwe', 'design', 'pitching', 'no huddle', 'starcade', 'premium', 'speckle', 'flair', 'ucl', 'cosmic stars', 'the', 'of', 'olympics', 'wnba', 'league', 'championship', 'tournament', 'series', 'profiles', 'mini', 'border', 'intimidators', 'kellogg', 'mist', 'usa', 'xr', 'logofractor', 'cyan', 'authentic', 'rpa', 'formula 1', 'p.p.',
+            'signature', 'color', 'wwe', 'design', 'pitching', 'no huddle', 'starcade', 'premium', 'speckle', 'flair', 'ucl', 'cosmic stars', 'the', 'of', 'olympics', 'wnba', 'league', 'championship', 'tournament', 'series', 'profiles', 'mini', 'border', 'intimidators', 'kellogg', 'mist', 'usa', 'xr', 'logofractor', 'cyan', 'authentic', 'rpa', 'formula 1', 'p.p.', 'match', 'mav', 'concourse', 'essentials', 'supernatural',
+            // New missing card terms from analysis
+            'heritage', 'focus', 'winning ticket', 'prizmatic', 'mint2', 'indiana', 'batting', 'florida', 'pitch', 'baseball', 'football',
             // Common non-player words that should be removed
             'malik', 'devin', 'holo', 'orange', 'blue', 'red', 'green', 'yellow', 'purple', 'pink', 'brown', 'black', 'white', 'gray', 'grey',
             // Bowman numbering prefixes that should not appear in player names
