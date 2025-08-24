@@ -24,6 +24,7 @@ class ExistingCardsFixer {
 
             let updatedCount = 0;
             let skippedCount = 0;
+            const changes = []; // Array to store all changes
 
             for (const card of cards) {
                 try {
@@ -162,6 +163,18 @@ class ExistingCardsFixer {
                             printRun, isRookie, isAutograph, sport, newSummaryTitle, card.id
                         ]);
 
+                        const change = {
+                            cardId: card.id,
+                            title: card.title,
+                            oldPlayerName: card.player_name,
+                            newPlayerName: finalPlayerName,
+                            oldCardType: card.card_type,
+                            newCardType: cardType,
+                            oldSummary: card.summary_title,
+                            newSummary: newSummaryTitle
+                        };
+                        changes.push(change);
+                        
                         console.log(`✅ Fixed card ${card.id}:`);
                         console.log(`   Old player name: "${card.player_name}" -> New: "${finalPlayerName}"`);
                         console.log(`   Old card type: "${card.card_type}" -> New: "${cardType}"`);
@@ -183,6 +196,13 @@ class ExistingCardsFixer {
             console.log(`   ⏭️  Skipped: ${skippedCount} cards`);
             console.log(`   📝 Total processed: ${cards.length} cards`);
 
+            return {
+                updatedCount,
+                skippedCount,
+                totalProcessed: cards.length,
+                changes
+            };
+
         } catch (error) {
             console.error('❌ Error fixing existing cards:', error);
             throw error;
@@ -202,13 +222,14 @@ function addFixExistingCardsRoute(app) {
             
             const fixer = new ExistingCardsFixer();
             await fixer.connect();
-            await fixer.fixExistingCards();
+            const result = await fixer.fixExistingCards();
             await fixer.close();
 
             res.json({
                 success: true,
                 message: 'Existing cards fixed with improved extraction',
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                ...result
             });
 
         } catch (error) {
