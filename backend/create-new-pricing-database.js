@@ -1964,7 +1964,7 @@ class NewPricingDatabase {
             { pattern: /\b(orange refractor)\b/gi, name: 'Orange Refractor', priority: 3 },
             { pattern: /\b(black refractor)\b/gi, name: 'Black Refractor', priority: 3 },
             { pattern: /\b(red refractor)\b/gi, name: 'Red Refractor', priority: 3 },
-            { pattern: /\b(x-fractor)\b/gi, name: 'X-Fractor', priority: 3 },
+            { pattern: /\b(x-fractor|x.factor|x factor)\b/gi, name: 'X-Fractor', priority: 3 },
             { pattern: /\b(prism refractor)\b/gi, name: 'Prism Refractor', priority: 3 },
             { pattern: /\b(topps refractor)\b/gi, name: 'Topps Refractor', priority: 3 },
 
@@ -2206,7 +2206,7 @@ class NewPricingDatabase {
             { pattern: /\b(holo|holographic)\b/gi, name: 'Holo' },
             // Chrome pattern - temporarily disabled to prevent duplication
             // { pattern: /\b(chrome)\b/gi, name: 'Chrome' },
-            { pattern: /\b(x-fractor|x-fractors)\b/gi, name: 'X-Fractor' },
+            { pattern: /\b(x-fractor|x.factor|x factor|x-fractors)\b/gi, name: 'X-Fractor' },
             { pattern: /\b(cracked ice)\b/gi, name: 'Cracked Ice' },
             { pattern: /\b(stained glass)\b/gi, name: 'Stained Glass' },
             
@@ -3110,7 +3110,7 @@ class NewPricingDatabase {
             // Bowman numbering prefixes that should not appear in player names
             'bdc', 'bdp', 'bcp', 'cda',
             // Additional missing terms that should be filtered out
-            'sunday', 'bn391', 'reptilian', 'edition', 'au', 'fifa', 'insert', 'cra', 'mh', 'storm chasers',
+            'sunday', 'bn391', 'reptilian', 'edition', 'au', 'fifa', 'insert', 'cra', 'mh', 'storm chasers', 'x factor',
             // Card number prefixes that should not appear in player names
             'mmr', 'tc', 'dt', 'bs', 'sjmc',
             // Card number patterns that should not appear in player names (with numbers)
