@@ -1915,6 +1915,16 @@ class NewPricingDatabase {
             { pattern: /\b(insert)\b/gi, name: 'Insert' },
             { pattern: /\b(cra)\b/gi, name: 'CRA' },
             { pattern: /\b(mh)\b/gi, name: 'MH' },
+            { pattern: /\b(bulls)\b/gi, name: 'Bulls' },
+            { pattern: /\b(lakers)\b/gi, name: 'Lakers' },
+            { pattern: /\b(celtics)\b/gi, name: 'Celtics' },
+            { pattern: /\b(warriors)\b/gi, name: 'Warriors' },
+            { pattern: /\b(heat)\b/gi, name: 'Heat' },
+            { pattern: /\b(knicks)\b/gi, name: 'Knicks' },
+            { pattern: /\b(nets)\b/gi, name: 'Nets' },
+            { pattern: /\b(raptors)\b/gi, name: 'Raptors' },
+            { pattern: /\b(76ers)\b/gi, name: '76ers' },
+            { pattern: /\b(hawks)\b/gi, name: 'Hawks' },
             
             // Topps Chrome Baseball Parallels (HIGHEST PRIORITY - add these first)
             { pattern: /\b(superfractor)\b/gi, name: 'Superfractor', priority: 3 },
