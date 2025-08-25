@@ -5644,5 +5644,70 @@ app.post('/api/admin/validate-player-names-espn', async (req, res) => {
     }
 });
 
+// GET /api/admin/find-3-word-player-names - Find all player names with exactly 3 words
+app.get('/api/admin/find-3-word-player-names', async (req, res) => {
+    try {
+        console.log('🔍 Finding player names with exactly 3 words...');
+        
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        // Get all cards from the database
+        const cards = await db.allQuery(`
+            SELECT id, title, player_name, summary_title 
+            FROM cards 
+            WHERE player_name IS NOT NULL AND player_name != ''
+        `);
+        
+        const threeWordPlayers = [];
+        
+        cards.forEach(card => {
+            const playerName = card.player_name || '';
+            const words = playerName.trim().split(/\s+/).filter(word => word.length > 0);
+            
+            if (words.length === 3) {
+                threeWordPlayers.push({
+                    id: card.id,
+                    title: card.title,
+                    player_name: playerName,
+                    summary_title: card.summary_title || 'NULL'
+                });
+            }
+        });
+        
+        // Sort by player name for easier review
+        threeWordPlayers.sort((a, b) => a.player_name.localeCompare(b.player_name));
+        
+        // Get unique player names
+        const uniquePlayerNames = [...new Set(threeWordPlayers.map(card => card.player_name))];
+        
+        await db.close();
+        
+        res.json({ 
+            success: true, 
+            message: 'Found player names with exactly 3 words',
+            totalCards: threeWordPlayers.length,
+            uniquePlayerNames: uniquePlayerNames.length,
+            cards: threeWordPlayers,
+            uniqueNames: uniquePlayerNames.sort(),
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error finding 3-word player names:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error finding 3-word player names', 
+            error: error.message, 
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📅 Server started at: ${getCentralTime()}`);
+});
+
 
 
