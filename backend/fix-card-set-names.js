@@ -21,9 +21,6 @@ class CardSetNameFixer {
         
         // Clean up the set name - remove "Unknown" if it's just a placeholder
         let cleanSetName = setName.trim();
-        if (cleanSetName === 'Unknown' || cleanSetName === '') {
-            cleanSetName = 'Base'; // Default to "Base" if no set name
-        }
         
         // Start with year first
         let name = '';
@@ -36,8 +33,19 @@ class CardSetNameFixer {
             name += `${brand} `;
         }
         
-        // Add the clean set name
-        name += cleanSetName;
+        // For the set name, if it's "Unknown", try to derive a better name
+        if (cleanSetName === 'Unknown' || cleanSetName === '') {
+            // If we have brand info, use that as the set name
+            if (brand && brand !== 'Unknown') {
+                name += brand;
+            } else {
+                // Default to "Base" if no other info
+                name += 'Base';
+            }
+        } else {
+            // Use the original set name if it's not "Unknown"
+            name += cleanSetName;
+        }
         
         return name.trim();
     }
