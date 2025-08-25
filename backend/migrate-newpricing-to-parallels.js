@@ -123,15 +123,27 @@ class NewPricingToParallelsMigration {
     generateSetName(setName, year, brand) {
         if (!setName) return '';
         
-        let name = setName.trim();
-        if (year && !name.includes(year)) {
-            name = `${year} ${name}`;
-        }
-        if (brand && !name.toLowerCase().includes(brand.toLowerCase())) {
-            name = `${brand} ${name}`;
+        // Clean up the set name - remove "Unknown" if it's just a placeholder
+        let cleanSetName = setName.trim();
+        if (cleanSetName === 'Unknown' || cleanSetName === '') {
+            cleanSetName = 'Base'; // Default to "Base" if no set name
         }
         
-        return name;
+        // Start with year first
+        let name = '';
+        if (year && year !== 'Unknown') {
+            name = `${year} `;
+        }
+        
+        // Add brand if it's not "Unknown" and not already in the set name
+        if (brand && brand !== 'Unknown' && !cleanSetName.toLowerCase().includes(brand.toLowerCase())) {
+            name += `${brand} `;
+        }
+        
+        // Add the clean set name
+        name += cleanSetName;
+        
+        return name.trim();
     }
 
     removeDuplicates(sets) {

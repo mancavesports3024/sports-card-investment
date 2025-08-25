@@ -281,4 +281,60 @@ router.post('/migrate-from-newpricing', async (req, res) => {
     }
 });
 
+// Add Beckett scraping endpoint
+router.post('/scrape-beckett-parallels', async (req, res) => {
+    try {
+        console.log('🚀 Starting Beckett parallels scraping...');
+        
+        const { BeckettParallelsScraper } = require('./beckett-parallels-scraper');
+        const scraper = new BeckettParallelsScraper();
+        
+        await scraper.initialize();
+        await scraper.scrapeAllCardSets();
+        await scraper.close();
+        
+        res.json({
+            success: true,
+            message: 'Beckett parallels scraping completed successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Beckett scraping failed:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// Add card set name fixing endpoint
+router.post('/fix-card-set-names', async (req, res) => {
+    try {
+        console.log('🚀 Starting card set name fixing...');
+        
+        const { CardSetNameFixer } = require('./fix-card-set-names');
+        const fixer = new CardSetNameFixer();
+        
+        await fixer.initialize();
+        await fixer.fixAllCardSetNames();
+        await fixer.close();
+        
+        res.json({
+            success: true,
+            message: 'Card set names fixed successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Card set name fixing failed:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 module.exports = router;
