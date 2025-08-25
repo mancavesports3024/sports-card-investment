@@ -3121,7 +3121,7 @@ class NewPricingDatabase {
             // Bowman numbering prefixes that should not appear in player names
             'bdc', 'bdp', 'bcp', 'cda',
             // Additional missing terms that should be filtered out
-            'sunday', 'bn391', 'reptilian', 'edition', 'au', 'fifa', 'insert', 'cra', 'mh', 'storm chasers', 'x factor',
+            'sunday', 'bn391', 'reptilian', 'edition', 'au', 'fifa', 'insert', 'cra', 'mh', 'storm chasers', 'x factor', 'lk',
             // Card number prefixes that should not appear in player names
             'mmr', 'tc', 'dt', 'bs', 'sjmc',
             // Card number patterns that should not appear in player names (with numbers)
@@ -3234,6 +3234,8 @@ class NewPricingDatabase {
             /#(\d+[A-Za-z]+)/g,
             // Bowman Draft card numbers (BDP, BDC, CDA, etc.)
             /\b(BD[A-Z]?\d+)\b/g,
+            // Bowman Draft card numbers with letters (CDA-LK, etc.)
+            /\b(CDA-[A-Z]+)\b/g,
             // Card numbers with letters followed by numbers (like DT36, DT1, etc.)
             /\b([A-Z]{2,}\d+)\b/g,
             // Bomb Squad card numbers (BS3, BS5, etc.)
