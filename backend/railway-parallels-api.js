@@ -393,4 +393,32 @@ router.post('/comprehensive-cleanup', async (req, res) => {
     }
 });
 
+// Add database reset endpoint
+router.post('/reset-database', async (req, res) => {
+    try {
+        console.log('🚀 Starting database reset...');
+        
+        const { ParallelsDatabaseReset } = require('./reset-parallels-database');
+        const reset = new ParallelsDatabaseReset();
+        
+        await reset.initialize();
+        await reset.resetDatabase();
+        await reset.close();
+        
+        res.json({
+            success: true,
+            message: 'Database reset completed successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Database reset failed:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 module.exports = router;
