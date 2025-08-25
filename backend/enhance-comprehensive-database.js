@@ -23,9 +23,6 @@ class EnhancedComprehensiveDatabase {
       // Add extensive set data
       await this.addExtensiveSetData();
       
-      // Add individual card data
-      await this.addIndividualCardData();
-      
       // Add other collectibles
       await this.addOtherCollectibles();
       
