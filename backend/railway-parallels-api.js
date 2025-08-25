@@ -365,4 +365,32 @@ router.post('/cleanup-unknown-brands', async (req, res) => {
     }
 });
 
+// Add comprehensive cleanup endpoint
+router.post('/comprehensive-cleanup', async (req, res) => {
+    try {
+        console.log('🚀 Starting comprehensive cleanup...');
+        
+        const { ComprehensiveCleanup } = require('./comprehensive-cleanup');
+        const cleanup = new ComprehensiveCleanup();
+        
+        await cleanup.initialize();
+        await cleanup.comprehensiveCleanup();
+        await cleanup.close();
+        
+        res.json({
+            success: true,
+            message: 'Comprehensive cleanup completed successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Comprehensive cleanup failed:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 module.exports = router;
