@@ -63,16 +63,16 @@ class NewPricingToParallelsMigration {
             // Query to get unique card sets with year and brand information
             const query = `
                 SELECT DISTINCT 
-                    card_set as setName,
+                    set_name as setName,
                     year,
                     brand,
                     sport
                 FROM cards 
-                WHERE card_set IS NOT NULL 
-                AND card_set != ''
+                WHERE set_name IS NOT NULL 
+                AND set_name != ''
                 AND year IS NOT NULL
                 AND year != ''
-                ORDER BY card_set, year
+                ORDER BY set_name, year
             `;
             
             this.pricingDb.all(query, [], (err, rows) => {
@@ -223,7 +223,7 @@ class NewPricingToParallelsMigration {
                 }
                 
                 this.pricingDb.get(
-                    "SELECT COUNT(DISTINCT card_set) as count FROM cards WHERE card_set IS NOT NULL AND card_set != '' AND year IS NOT NULL AND year != ''", 
+                    "SELECT COUNT(DISTINCT set_name) as count FROM cards WHERE set_name IS NOT NULL AND set_name != '' AND year IS NOT NULL AND year != ''", 
                     [], 
                     (err, setsRow) => {
                         if (err) {
