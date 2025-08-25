@@ -24,6 +24,12 @@ class PlayerNameFixer {
 
         let cleaned = playerName.trim();
 
+        // Fix "Ja Marr Chase" to "Ja'Marr Chase" (add missing apostrophe)
+        cleaned = cleaned.replace(/\bJa Marr Chase\b/g, "Ja'Marr Chase");
+        cleaned = cleaned.replace(/\bJaMarr Chase\b/g, "Ja'Marr Chase");
+        cleaned = cleaned.replace(/\bJa'marr Chase\b/g, "Ja'Marr Chase");
+        cleaned = cleaned.replace(/\bJAMARR CHASE\b/g, "Ja'Marr Chase");
+
         // Remove card numbers (e.g., #279, #26, #36)
         cleaned = cleaned.replace(/#\d+/g, '');
 

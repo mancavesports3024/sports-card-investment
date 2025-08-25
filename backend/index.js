@@ -2791,14 +2791,13 @@ app.post('/api/admin/add-player-names', async (req, res) => {
     try {
         console.log('🎯 Adding player names to Railway database...');
         
-        const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standardized-summary-titles-database-driven.js');
-        const generator = new DatabaseDrivenStandardizedTitleGenerator();
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
         
-        await generator.connect();
-        await generator.ensurePlayerNameColumn();
+        await db.connect();
         
         // Get all cards that don't have player names yet
-        const cards = await generator.runQuery(`
+        const cards = await db.allQuery(`
             SELECT id, title, summary_title, player_name 
             FROM cards 
             WHERE player_name IS NULL OR player_name = ''
@@ -2809,9 +2808,9 @@ app.post('/api/admin/add-player-names', async (req, res) => {
         let updatedCount = 0;
         for (const card of cards) {
             try {
-                const playerName = generator.extractPlayer(card.title);
+                const playerName = await db.extractPlayerName(card.title);
                 if (playerName) {
-                    await generator.runUpdate(
+                    await db.runQuery(
                         'UPDATE cards SET player_name = ? WHERE id = ?',
                         [playerName, card.id]
                     );
@@ -2826,7 +2825,7 @@ app.post('/api/admin/add-player-names', async (req, res) => {
             }
         }
         
-        await generator.close();
+        await db.close();
         
         console.log(`✅ Player names update completed! Updated ${updatedCount} cards`);
         res.json({ 
@@ -2852,18 +2851,17 @@ app.post('/api/admin/clear-player-names', async (req, res) => {
     try {
         console.log('🗑️ Clearing all player names from Railway database...');
         
-        const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standardized-summary-titles-database-driven.js');
-        const generator = new DatabaseDrivenStandardizedTitleGenerator();
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
         
-        await generator.connect();
-        await generator.ensurePlayerNameColumn();
+        await db.connect();
         
         // Clear all player names
-        const result = await generator.runUpdate(
+        const result = await db.runQuery(
             'UPDATE cards SET player_name = NULL'
         );
         
-        await generator.close();
+        await db.close();
         
         console.log('✅ All player names cleared successfully');
         res.json({ 
@@ -4790,37 +4788,7 @@ app.post('/api/admin/clean-summary-titles', async (req, res) => {
     }
 });
 
-// POST /api/admin/rebuild-existing-summary-titles - Rebuild summary titles for existing cards
-app.post('/api/admin/rebuild-existing-summary-titles', async (req, res) => {
-    try {
-        console.log('🔄 Rebuilding existing summary titles...');
-        
-        const { ExistingSummaryTitleRebuilder } = require('./rebuild-existing-summary-titles.js');
-        const rebuilder = new ExistingSummaryTitleRebuilder();
-        
-        await rebuilder.connect();
-        console.log('✅ Connected to Railway database');
-        
-        await rebuilder.rebuildSummaryTitles();
-        
-        await rebuilder.close();
-        
-        res.json({
-            success: true,
-            message: 'Existing summary titles rebuilt successfully',
-            timestamp: new Date().toISOString()
-        });
-        
-    } catch (error) {
-        console.error('❌ Error rebuilding existing summary titles:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error rebuilding existing summary titles',
-            error: error.message,
-            timestamp: new Date().toISOString()
-        });
-    }
-});
+
 
 // GET /api/admin/check-component-fields - Check if new component fields were populated correctly
 app.get('/api/admin/check-component-fields', async (req, res) => {

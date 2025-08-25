@@ -91,7 +91,7 @@ class ImprovedCardExtraction {
                 'victory', 'crown', 'portrait', 'police', 'instant', 'impact', 'update', 'field', 
                 'level', 'courtside', 'elephant', 'disco', 'ice', 'lazer', 'shock', 'wave', 'cosmic', 
                 'planetary', 'pursuit', 'eris', 'autos', 'aqua', 'sapphire', 'woo', 'draft', 
-                'red/white/blue', 'tf1', 'and', 'ohtani', 'judge', 'sox'
+                'red/white/blue', 'tf1', 'and', 'ohtani', 'judge', 'sox', 'pop', 'road', 'to', 'premier'
             ];
             
             if (cardTerms.includes(word.toLowerCase())) {
@@ -112,7 +112,7 @@ class ImprovedCardExtraction {
                 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 
                 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 
                 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 
-                'kings', 'suns', 'clippers', 'bulls'
+                'kings', 'suns', 'clippers', 'bulls', 'red wings'
             ];
             
             if (teamNames.includes(word.toLowerCase())) {
