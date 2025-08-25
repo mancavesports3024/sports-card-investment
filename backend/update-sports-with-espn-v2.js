@@ -23,6 +23,7 @@ class SportsUpdaterWithESPNV2 {
 
         // Remove common non-name tokens (sets, parallels, marketing, org tags)
         const noiseWords = [
+            // Card brands and sets
             'autograph', 'autographs', 'auto', 'signature', 'signatures', 'rookie', 'rc',
             'debut', 'ssp', 'variation', 'psa', 'gem', 'mint', 'holo', 'prizm', 'prism',
             'mosaic', 'optic', 'select', 'finest', 'chrome', 'sapphire', 'update', 'refractor',
@@ -31,7 +32,32 @@ class SportsUpdaterWithESPNV2 {
             'pursuit', 'mars', 'premium', 'box', 'set', 'pitch', 'prodigies', 'image', 'clear',
             'cut', 'premier', 'young', 'guns', 'star', 'starquest', 'tint', 'pandora', 'allies',
             'apex', 'on', 'iconic', 'knows', 'classic', 'events', 'edition', 'ucl', 'uefa', 'mls',
-            'cc', 'mint2', 'kellogg', 'atl', 'colorado', 'picks', 'sky'
+            'cc', 'mint2', 'kellogg', 'atl', 'colorado', 'picks', 'sky',
+            
+            // Additional card sets and terms from the errors
+            'sun', 'ascensions', 'future', 'fireworks', 'kaboom', 'truth', 'persona', 'hoops',
+            'and', 'ohtani', 'judge', 'sox', 'field', 'women', 'champions', 'origins',
+            'checkerboard', 'fever', 'luck', 'lottery', 'phenom', 'lava', 'sparks', 'authentix',
+            'portrait', 'national', 'razzle', 'tectonic', 'euro', 'wings',
+            
+            // Team names and locations
+            'bears', 'lakers', 'bulls', '49ers', 'chicago', 'detroit', 'new york', 'los angeles',
+            'boston', 'philadelphia', 'miami', 'atlanta', 'houston', 'dallas', 'denver', 'seattle',
+            'portland', 'minnesota', 'milwaukee', 'cleveland', 'cincinnati', 'pittsburgh',
+            'baltimore', 'washington', 'tampa', 'orlando', 'phoenix', 'las vegas', 'san francisco',
+            'san diego', 'oakland', 'sacramento', 'memphis', 'new orleans', 'oklahoma', 'utah',
+            'indiana', 'kentucky', 'tennessee', 'missouri', 'arkansas', 'louisiana', 'mississippi',
+            'alabama', 'georgia', 'florida', 'south carolina', 'north carolina', 'virginia',
+            'west virginia', 'maryland', 'delaware', 'new jersey', 'connecticut', 'rhode island',
+            'vermont', 'new hampshire', 'maine', 'massachusetts', 'pennsylvania', 'ohio', 'michigan',
+            'wisconsin', 'illinois', 'iowa', 'nebraska', 'kansas', 'texas', 'new mexico', 'arizona',
+            'nevada', 'california', 'oregon', 'washington', 'idaho', 'montana', 'wyoming', 'colorado',
+            'north dakota', 'south dakota',
+            
+            // Common card terms
+            'graded', 'numbered', 'print', 'run', 'parallel', 'rainbow', 'gold', 'silver', 'bronze',
+            'platinum', 'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'obsidian', 'case hit',
+            'storm chasers', 'winning ticket', 'focus', 'supernatural'
         ];
         const noiseRegex = new RegExp(`\\b(${noiseWords.join('|')})\\b`, 'gi');
         cleaned = cleaned.replace(noiseRegex, ' ');
@@ -52,6 +78,7 @@ class SportsUpdaterWithESPNV2 {
         // Normalize known multi-word names and apostrophes/hyphens
         const replacements = [
             { r: /\bja\s*marr\b/gi, v: "Ja'Marr" },
+            { r: /\bja\s*marr\s+chase\b/gi, v: "Ja'Marr Chase" },
             { r: /\bde\s*von\b\s+achane/gi, v: "De'Von Achane" },
             { r: /\bo\s*'?\s*hearn\b/gi, v: "O'Hearn" },
             { r: /\bo\s*'?\s*hoppe\b/gi, v: "O'Hoppe" },
@@ -59,7 +86,29 @@ class SportsUpdaterWithESPNV2 {
             { r: /\bkuroda\s*grauer\b/gi, v: 'Kuroda-Grauer' },
             { r: /\bcee\s*dee\s+lamb\b/gi, v: 'CeeDee Lamb' },
             { r: /\bdon[cč]i[cć]\b/gi, v: 'Doncic' },
-            { r: /\bt\s*j\b/gi, v: 'TJ' }
+            { r: /\bt\s*j\b/gi, v: 'TJ' },
+            { r: /\bcassius\s+clay\b/gi, v: 'Muhammad Ali' },
+            { r: /\bryan\s+o\s*'?\s*hearn\b/gi, v: "Ryan O'Hearn" },
+            { r: /\bstephon\s+castle\b/gi, v: 'Stephon Castle' },
+            { r: /\bchase\s+burns\b/gi, v: 'Chase Burns' },
+            { r: /\bcameron\s+brink\b/gi, v: 'Cameron Brink' },
+            { r: /\blebron\s+james\b/gi, v: 'LeBron James' },
+            { r: /\blando\s+norris\b/gi, v: 'Lando Norris' },
+            { r: /\bderrick\s+henry\b/gi, v: 'Derrick Henry' },
+            { r: /\bcaitlin\s+clark\b/gi, v: 'Caitlin Clark' },
+            { r: /\bdrake\s+maye\b/gi, v: 'Drake Maye' },
+            { r: /\broman\s+anthony\b/gi, v: 'Roman Anthony' },
+            { r: /\balex\s+rodriguez\b/gi, v: 'Alex Rodriguez' },
+            { r: /\bjack\s+grealish\b/gi, v: 'Jack Grealish' },
+            { r: /\bjosh\s+allen\b/gi, v: 'Josh Allen' },
+            { r: /\bfrank\s+thomas\b/gi, v: 'Frank Thomas' },
+            { r: /\bsaquon\s+barkley\b/gi, v: 'Saquon Barkley' },
+            { r: /\bmichael\s+penix\b/gi, v: 'Michael Penix' },
+            { r: /\blarry\s+wilson\b/gi, v: 'Larry Wilson' },
+            { r: /\bjayden\s+daniels\b/gi, v: 'Jayden Daniels' },
+            { r: /\bdevonte\s+booker\b/gi, v: 'Devin Booker' },
+            { r: /\barda\s+guler\b/gi, v: 'Arda Guler' },
+            { r: /\bkris\s+draper\b/gi, v: 'Kris Draper' }
         ];
         for (const { r, v } of replacements) cleaned = cleaned.replace(r, v);
 
