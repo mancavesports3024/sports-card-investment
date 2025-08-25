@@ -251,4 +251,34 @@ router.get('/debug-env', async (req, res) => {
     }
 });
 
+// Add migration endpoint
+router.post('/migrate-from-newpricing', async (req, res) => {
+    try {
+        console.log('🚀 Starting migration from NewPricingDatabase to parallels database...');
+        
+        const { NewPricingToParallelsMigration } = require('./migrate-newpricing-to-parallels');
+        const migration = new NewPricingToParallelsMigration();
+        
+        await migration.migrateData();
+        
+        // Get final stats
+        const stats = await migration.getMigrationStats();
+        
+        res.json({
+            success: true,
+            message: 'Migration completed successfully',
+            stats: stats,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Migration failed:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 module.exports = router;
