@@ -337,4 +337,32 @@ router.post('/fix-card-set-names', async (req, res) => {
     }
 });
 
+// Add unknown brand cleanup endpoint
+router.post('/cleanup-unknown-brands', async (req, res) => {
+    try {
+        console.log('🚀 Starting unknown brand cleanup...');
+        
+        const { UnknownBrandCleanup } = require('./cleanup-unknown-brands');
+        const cleanup = new UnknownBrandCleanup();
+        
+        await cleanup.initialize();
+        await cleanup.cleanupUnknownBrands();
+        await cleanup.close();
+        
+        res.json({
+            success: true,
+            message: 'Unknown brand cleanup completed successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Unknown brand cleanup failed:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 module.exports = router;

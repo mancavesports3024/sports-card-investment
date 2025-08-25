@@ -171,8 +171,8 @@ class NewPricingToParallelsMigration {
         
         for (const set of cardSets) {
             try {
-                // Only add sets that have sport, year, and brand info
-                if (set.sport && set.year && set.brand) {
+                // Only add sets that have sport, year, and brand info, and brand is not "Unknown"
+                if (set.sport && set.year && set.brand && set.brand !== 'Unknown' && set.brand !== 'unknown') {
                     // Check if set already exists
                     if (existingSetNames.has(set.name.toLowerCase())) {
                         skippedCount++;
