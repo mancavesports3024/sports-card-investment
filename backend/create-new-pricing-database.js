@@ -1905,6 +1905,17 @@ class NewPricingDatabase {
             { pattern: /\b(royalty)\b/gi, name: 'Royalty' },
             { pattern: /\b(uc|update)\b/gi, name: 'Update' },
             
+            // Missing card types that should be filtered from player names
+            { pattern: /\b(reptilian)\b/gi, name: 'Reptilian' },
+            { pattern: /\b(sunday)\b/gi, name: 'Sunday' },
+            { pattern: /\b(bn391)\b/gi, name: 'BN391' },
+            { pattern: /\b(bdc)\b/gi, name: 'BDC' },
+            { pattern: /\b(edition)\b/gi, name: 'Edition' },
+            { pattern: /\b(au)\b/gi, name: 'AU' },
+            { pattern: /\b(insert)\b/gi, name: 'Insert' },
+            { pattern: /\b(cra)\b/gi, name: 'CRA' },
+            { pattern: /\b(mh)\b/gi, name: 'MH' },
+            
             // Topps Chrome Baseball Parallels (HIGHEST PRIORITY - add these first)
             { pattern: /\b(superfractor)\b/gi, name: 'Superfractor', priority: 3 },
             { pattern: /\b(printing plates)\b/gi, name: 'Printing Plates', priority: 3 },
@@ -3098,6 +3109,8 @@ class NewPricingDatabase {
             'malik', 'devin', 'holo', 'orange', 'blue', 'red', 'green', 'yellow', 'purple', 'pink', 'brown', 'black', 'white', 'gray', 'grey',
             // Bowman numbering prefixes that should not appear in player names
             'bdc', 'bdp', 'bcp', 'cda',
+            // Additional missing terms that should be filtered out
+            'sunday', 'bn391', 'reptilian', 'edition', 'au', 'fifa', 'insert', 'cra', 'mh', 'storm chasers',
             // Card number prefixes that should not appear in player names
             'mmr', 'tc', 'dt', 'bs', 'sjmc',
             // Card number patterns that should not appear in player names (with numbers)
