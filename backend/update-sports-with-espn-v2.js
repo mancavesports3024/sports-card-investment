@@ -96,10 +96,11 @@ class SportsUpdaterWithESPNV2 {
         console.log('🔄 Starting ESPN v2 sport detection update for existing cards...\n');
         
         try {
-            // Get all cards from the database
+            // Get only cards with Unknown sport from the database
             const cards = await this.db.allQuery(`
                 SELECT id, title, summary_title, sport, player_name 
                 FROM cards 
+                WHERE sport IS NULL OR sport = 'Unknown' OR sport = 'UNKNOWN'
                 ORDER BY created_at DESC
             `);
             
@@ -164,7 +165,13 @@ class SportsUpdaterWithESPNV2 {
             
             console.log(`   New sport: ${newSport}`);
             
-            if (newSport && newSport !== card.sport) {
+            // Only update if:
+            // 1. Current sport is "Unknown" or "UNKNOWN" 
+            // 2. New sport is not "Unknown" and is different from current
+            const currentSportIsUnknown = !card.sport || card.sport === 'Unknown' || card.sport === 'UNKNOWN';
+            const newSportIsValid = newSport && newSport !== 'Unknown' && newSport !== 'UNKNOWN';
+            
+            if (currentSportIsUnknown && newSportIsValid && newSport !== card.sport) {
                 // Update the card with the new sport
                 await this.db.runQuery(`
                     UPDATE cards 
@@ -174,6 +181,12 @@ class SportsUpdaterWithESPNV2 {
                 
                 console.log(`   ✅ Updated: ${card.sport} → ${newSport}`);
                 this.updatedCount++;
+            } else if (currentSportIsUnknown && (!newSportIsValid || newSport === card.sport)) {
+                console.log(`   ⏭️ Skipping: Current sport is Unknown but ESPN couldn't find better sport`);
+                this.unchangedCount++;
+            } else if (!currentSportIsUnknown) {
+                console.log(`   ⏭️ Skipping: Card already has valid sport (${card.sport})`);
+                this.unchangedCount++;
             } else {
                 console.log(`   ⏭️ No change needed`);
                 this.unchangedCount++;
