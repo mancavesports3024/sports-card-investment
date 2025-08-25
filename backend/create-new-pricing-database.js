@@ -1916,6 +1916,7 @@ class NewPricingDatabase {
             { pattern: /\b(cra)\b/gi, name: 'CRA' },
             { pattern: /\b(mh)\b/gi, name: 'MH' },
             { pattern: /\b(bulls)\b/gi, name: 'Bulls' },
+            { pattern: /\b(bulls)\s*$/gi, name: 'Bulls' }, // Catch Bulls at end of title
             { pattern: /\b(lakers)\b/gi, name: 'Lakers' },
             { pattern: /\b(celtics)\b/gi, name: 'Celtics' },
             { pattern: /\b(warriors)\b/gi, name: 'Warriors' },
@@ -3159,6 +3160,17 @@ class NewPricingDatabase {
         cardTerms.forEach(term => {
             const regex = new RegExp(`\\b${term}\\b`, 'gi');
             cleanTitle = cleanTitle.replace(regex, ' ');
+        });
+        
+        // Step 5.4: Special handling for team names at the end of titles
+        const teamNamesAtEnd = [
+            'bulls', 'lakers', 'celtics', 'warriors', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks',
+            'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks',
+            'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers'
+        ];
+        teamNamesAtEnd.forEach(team => {
+            const endPattern = new RegExp(`\\b${team}\\s*$`, 'gi');
+            cleanTitle = cleanTitle.replace(endPattern, ' ');
         });
         
         // Step 5.5: Restore "LeBron" placeholder
