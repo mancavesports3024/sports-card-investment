@@ -1146,7 +1146,10 @@ class NewPricingDatabase {
                 'huddle', 'and', 'snake', 'minnesota', 'wings', 'legend', 'marco', 'van', 'liv', 'luck', 'lottery', 'hoops', 'origins', 'overdrive', 'pokemon', 'aquapolis', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'retro', 'sublime', 'main', 'event', 'blast', 'cb', 'national', 'pride', 'nil', 'opc', 'wayne', 'gretzky', 'pa', 'tographs', 'uefa', 'women', 'champions', 'uptown', 'uptowns', 'rps', 'lk',
                 
                 // Additional missing terms from duplicate files
-                'sunday', 'bn391', 'reptilian', 'edition', 'au', 'fifa', 'insert', 'cra', 'mh', 'storm chasers', 'x factor', 'lk', 'foil', 'sun', 'lunar', 'fireworks', 'kings', 'millionaire', 'sparks', 'nuggets', 'lava', 'razzle', 'fever', 'allies', 'ascensions', 'authentix', 'checkerboard', 'sky', 'events', 'club', 'collection', 'future', 'ne', 'mars', 'la', 'atl', 'tmc', 'blast', 'cb', 'vision', 'buffaloes', 'explosive', 'look', 'iv', 'image', 'tographs', 'champions'
+                'sunday', 'bn391', 'reptilian', 'edition', 'au', 'fifa', 'insert', 'cra', 'mh', 'storm chasers', 'x factor', 'lk', 'foil', 'sun', 'lunar', 'fireworks', 'kings', 'millionaire', 'sparks', 'nuggets', 'lava', 'razzle', 'fever', 'allies', 'ascensions', 'authentix', 'checkerboard', 'sky', 'events', 'club', 'collection', 'future', 'ne', 'mars', 'la', 'atl', 'tmc', 'blast', 'cb', 'vision', 'buffaloes', 'explosive', 'look', 'iv', 'image', 'tographs', 'champions',
+                
+                // Additional terms from 3-word player name analysis
+                'starquest', 'sox', 'texas', 'longhorns', 'minnesota', 'wings', 'atl', 'buffaloes', 'la', 'mars', 'ne', 'sun', 'lunar', 'fireworks', 'kaboom', 'hoops', 'field', 'euro', 'main', 'pokemon', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'wayne', 'gretzky', 'stadium'
             ];
             
             // Check if word is a clearly card-related term
@@ -1382,7 +1385,10 @@ class NewPricingDatabase {
                 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'retro', 'sublime', 'main', 
                 'event', 'blast', 'cb', 'national', 'pride', 'nil', 'opc', 'wayne', 'gretzky', 
                 'field', 'pa', 'tographs', 'uefa', 'women', 'champions', 'uptown', 'uptowns', 
-                'rps', 'sapphire'
+                'rps', 'sapphire', 'starquest', 'sox', 'texas', 'longhorns', 'atl', 'buffaloes', 
+                'la', 'mars', 'ne', 'sun', 'lunar', 'fireworks', 'kaboom', 'hoops', 'field', 
+                'euro', 'main', 'pokemon', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 
+                'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'wayne', 'gretzky', 'stadium'
             ];
             
             let containsCardType = false;
@@ -1425,7 +1431,9 @@ class NewPricingDatabase {
                 // Sport terms
                 'football', 'basketball', 'baseball', 'hockey', 'soccer', 'mma', 'ufc', 'wrestling', 'pokemon', 'nfl', 'nba', 'mlb', 'nhl', 'wnba', 'golf', 'racing', 'formula 1', 'formula1', 'wwe', 'olympics', 'championship', 'tournament', 'league',
                 // Additional missing terms
-                'sunday', 'bn391', 'reptilian', 'au', 'insert', 'cra', 'mh', 'storm chasers', 'x factor', 'lk', 'foil', 'bdc', 'bdp', 'bcp', 'cda', 'mmr', 'tc', 'dt', 'bs', 'sjmc', 'sun', 'lunar', 'fireworks', 'kings', 'millionaire', 'sparks', 'nuggets', 'lava', 'razzle', 'fever', 'allies', 'ascensions', 'authentix', 'checkerboard', 'sky', 'events', 'club', 'collection', 'future', 'ne', 'mars', 'la', 'atl', 'tmc', 'blast', 'cb', 'vision', 'buffaloes', 'explosive', 'look', 'iv', 'image', 'tographs', 'champions'
+                'sunday', 'bn391', 'reptilian', 'au', 'insert', 'cra', 'mh', 'storm chasers', 'x factor', 'lk', 'foil', 'bdc', 'bdp', 'bcp', 'cda', 'mmr', 'tc', 'dt', 'bs', 'sjmc', 'sun', 'lunar', 'fireworks', 'kings', 'millionaire', 'sparks', 'nuggets', 'lava', 'razzle', 'fever', 'allies', 'ascensions', 'authentix', 'checkerboard', 'sky', 'events', 'club', 'collection', 'future', 'ne', 'mars', 'la', 'atl', 'tmc', 'blast', 'cb', 'vision', 'buffaloes', 'explosive', 'look', 'iv', 'image', 'tographs', 'champions',
+                // Additional terms from 3-word player name analysis
+                'starquest', 'sox', 'texas', 'longhorns', 'minnesota', 'wings', 'atl', 'buffaloes', 'la', 'mars', 'ne', 'sun', 'lunar', 'fireworks', 'kaboom', 'hoops', 'field', 'euro', 'main', 'pokemon', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'wayne', 'gretzky', 'stadium'
             ]);
             let nameParts = potentialName.split(/\s+/).filter(p => p && !bannedWithinName.has(p.toLowerCase()));
             // If removing banned words reduces to 2-3 tokens, prefer that
