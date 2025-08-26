@@ -1146,7 +1146,7 @@ class NewPricingDatabase {
                 'huddle', 'and', 'snake', 'minnesota', 'wings', 'legend', 'marco', 'van', 'liv', 'luck', 'lottery', 'hoops', 'origins', 'overdrive', 'pokemon', 'aquapolis', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'retro', 'sublime', 'main', 'event', 'blast', 'cb', 'national', 'pride', 'nil', 'opc', 'wayne', 'gretzky', 'pa', 'tographs', 'uefa', 'women', 'champions', 'uptown', 'uptowns', 'rps', 'lk',
                 
                 // Additional missing terms from duplicate files
-                'sunday', 'bn391', 'reptilian', 'edition', 'au', 'fifa', 'insert', 'cra', 'mh', 'storm chasers', 'x factor', 'lk', 'foil'
+                'sunday', 'bn391', 'reptilian', 'edition', 'au', 'fifa', 'insert', 'cra', 'mh', 'storm chasers', 'x factor', 'lk', 'foil', 'sun', 'lunar', 'fireworks', 'kings', 'millionaire', 'sparks', 'nuggets', 'lava', 'razzle', 'fever', 'allies', 'ascensions', 'authentix', 'checkerboard', 'sky', 'events', 'club', 'collection', 'future', 'ne', 'mars', 'la', 'atl', 'tmc', 'blast', 'cb', 'vision', 'buffaloes', 'explosive', 'look', 'iv', 'image', 'tographs', 'champions'
             ];
             
             // Check if word is a clearly card-related term
@@ -1407,6 +1407,7 @@ class NewPricingDatabase {
             potentialName = potentialName.replace(/\bJaMarr Chase\b/gi, "Ja'Marr Chase");
             potentialName = potentialName.replace(/\bJa'marr Chase\b/gi, "Ja'Marr Chase");
             potentialName = potentialName.replace(/\bJAMARR CHASE\b/gi, "Ja'Marr Chase");
+            potentialName = potentialName.replace(/\bJa Marr Chase\b/gi, "Ja'Marr Chase"); // Additional fix for consistency
 
             // FINAL SANITIZATION: Remove any lingering card terms from the assembled potential name
             // This is a comprehensive list of terms that should NEVER appear in player names
@@ -1424,7 +1425,7 @@ class NewPricingDatabase {
                 // Sport terms
                 'football', 'basketball', 'baseball', 'hockey', 'soccer', 'mma', 'ufc', 'wrestling', 'pokemon', 'nfl', 'nba', 'mlb', 'nhl', 'wnba', 'golf', 'racing', 'formula 1', 'formula1', 'wwe', 'olympics', 'championship', 'tournament', 'league',
                 // Additional missing terms
-                'sunday', 'bn391', 'reptilian', 'au', 'insert', 'cra', 'mh', 'storm chasers', 'x factor', 'lk', 'foil', 'bdc', 'bdp', 'bcp', 'cda', 'mmr', 'tc', 'dt', 'bs', 'sjmc'
+                'sunday', 'bn391', 'reptilian', 'au', 'insert', 'cra', 'mh', 'storm chasers', 'x factor', 'lk', 'foil', 'bdc', 'bdp', 'bcp', 'cda', 'mmr', 'tc', 'dt', 'bs', 'sjmc', 'sun', 'lunar', 'fireworks', 'kings', 'millionaire', 'sparks', 'nuggets', 'lava', 'razzle', 'fever', 'allies', 'ascensions', 'authentix', 'checkerboard', 'sky', 'events', 'club', 'collection', 'future', 'ne', 'mars', 'la', 'atl', 'tmc', 'blast', 'cb', 'vision', 'buffaloes', 'explosive', 'look', 'iv', 'image', 'tographs', 'champions'
             ]);
             let nameParts = potentialName.split(/\s+/).filter(p => p && !bannedWithinName.has(p.toLowerCase()));
             // If removing banned words reduces to 2-3 tokens, prefer that
