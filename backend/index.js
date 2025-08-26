@@ -5729,10 +5729,3 @@ app.get('/api/admin/find-3-word-player-names', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📅 Server started at: ${getCentralTime()}`);
-});
-
-
-
