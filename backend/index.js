@@ -2845,9 +2845,24 @@ app.post('/api/admin/add-player-names', async (req, res) => {
         
         let updatedCount = 0;
         const verboseExtraction = process.env.VERBOSE_EXTRACTION === '1' || process.env.VERBOSE_EXTRACTION === 'true';
+        // Helper to sanitize extracted player names at the API layer as a safety net
+        const sanitizeExtractedName = (name) => {
+          if (!name || typeof name !== 'string') return name;
+          const bannedSet = new Set([
+            'sapphire','snake','king','king snake','huddle','and'
+          ]);
+          const parts = name.split(/\s+/);
+          const cleaned = parts.filter(p => p && !bannedSet.has(p.toLowerCase()));
+          // Prefer 2-3 token person-like names if possible
+          if (cleaned.length >= 2 && cleaned.length <= 3) return cleaned.join(' ');
+          return cleaned.length > 0 ? cleaned.join(' ') : name;
+        };
+
         for (const card of cards) {
             try {
-                const playerName = await db.extractPlayerName(card.title);
+                let playerName = await db.extractPlayerName(card.title);
+                // API-level guard: strip common card terms that slipped through
+                playerName = sanitizeExtractedName(playerName);
                 if (playerName) {
                     await db.runQuery(
                         'UPDATE cards SET player_name = ? WHERE id = ?',
