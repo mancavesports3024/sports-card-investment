@@ -1409,18 +1409,31 @@ class NewPricingDatabase {
             ];
             
             // Filter out card types from the potential name instead of rejecting it entirely
+            const originalPotentialName = potentialName;
             let filteredPotentialName = potentialName;
             for (const cardType of cardTypesToFilter) {
                 if (potentialNameLower.includes(cardType.toLowerCase())) {
                     if (verboseExtraction) console.log(`🔍 Filtering out card type "${cardType}" from "${potentialName}"`);
-                    // Remove the card type from the name
+                    // Remove the card type from the name - use more flexible regex
                     const cardTypeRegex = new RegExp(`\\b${cardType}\\b`, 'gi');
-                    filteredPotentialName = filteredPotentialName.replace(cardTypeRegex, '').trim();
+                    let newName = filteredPotentialName.replace(cardTypeRegex, '').trim();
+                    // If the regex didn't work, try a more aggressive approach
+                    if (newName === filteredPotentialName) {
+                        if (verboseExtraction) console.log(`🔍 Regex didn't work for "${cardType}", trying word-by-word filtering`);
+                        const words = filteredPotentialName.split(/\s+/);
+                        const filteredWords = words.filter(word => word.toLowerCase() !== cardType.toLowerCase());
+                        newName = filteredWords.join(' ').trim();
+                        if (verboseExtraction) console.log(`🔍 Word filtering: "${filteredPotentialName}" -> "${newName}"`);
+                    }
+                    filteredPotentialName = newName;
                 }
             }
             
             // Update potentialName with the filtered version
             potentialName = filteredPotentialName;
+            if (verboseExtraction && potentialName !== originalPotentialName) {
+                console.log(`🔍 Final filtering result: "${originalPotentialName}" -> "${potentialName}"`);
+            }
             
             // Normalize Jr/Jr. and Sr/Sr. suffixes
             potentialName = potentialName.replace(/\bJr\b/gi, 'Jr.').replace(/\bSr\b/gi, 'Sr.');
