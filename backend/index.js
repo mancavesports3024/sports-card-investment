@@ -1505,11 +1505,20 @@ const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standar
       console.error(`   Please wait a moment for the previous instance to shut down, or manually stop it.`);
       console.error(`   Error details: ${error.message}`);
       
-      // Exit gracefully after a short delay to allow Railway to handle the restart
+      // Instead of exiting, let's try to wait and retry
+      console.log('🔄 Waiting 10 seconds before retrying...');
       setTimeout(() => {
-        console.log('🔄 Exiting to allow Railway to restart the service...');
-        process.exit(1);
-      }, 5000);
+        console.log('🔄 Retrying server startup...');
+        // Try to start the server again
+        const retryServer = app.listen(PORT, () => {
+          console.log(`🚀 Server successfully started on port ${PORT} (retry)`);
+          console.log(`📅 Server started at: ${getCentralTime()}`);
+        }).on('error', (retryError) => {
+          console.error(`❌ Retry failed: ${retryError.message}`);
+          // If retry fails, exit with success code to prevent infinite restart loop
+          process.exit(0);
+        });
+      }, 10000);
     } else {
       console.error(`❌ Server failed to start: ${error.message}`);
       process.exit(1);
