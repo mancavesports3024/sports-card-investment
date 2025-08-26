@@ -1131,6 +1131,68 @@ class NewPricingDatabase {
                 continue;
             }
             
+            // Check if word matches any card type patterns
+            const cardTypePatterns = [
+                // Additional card types from 3-word player name analysis
+                { pattern: /\b(huddle)\b/gi, name: 'Huddle' },
+                { pattern: /\b(and)\b/gi, name: 'And' }, // From "Red White And Blue"
+                { pattern: /\b(snake)\b/gi, name: 'Snake' },
+                { pattern: /\b(minnesota)\b/gi, name: 'Minnesota' },
+                { pattern: /\b(wings)\b/gi, name: 'Wings' },
+                { pattern: /\b(portrait)\b/gi, name: 'Portrait' },
+                { pattern: /\b(legend)\b/gi, name: 'Legend' },
+                { pattern: /\b(marco)\b/gi, name: 'Marco' }, // From "Legend Marco Van"
+                { pattern: /\b(van)\b/gi, name: 'Van' }, // From "Legend Marco Van"
+                { pattern: /\b(liv)\b/gi, name: 'LIV' },
+                { pattern: /\b(luck)\b/gi, name: 'Luck' },
+                { pattern: /\b(lottery)\b/gi, name: 'Lottery' },
+                { pattern: /\b(hoops)\b/gi, name: 'Hoops' },
+                { pattern: /\b(origins)\b/gi, name: 'Origins' },
+                { pattern: /\b(overdrive)\b/gi, name: 'Overdrive' },
+                { pattern: /\b(pokemon)\b/gi, name: 'Pokemon' },
+                { pattern: /\b(aquapolis)\b/gi, name: 'Aquapolis' },
+                { pattern: /\b(japanese)\b/gi, name: 'Japanese' },
+                { pattern: /\b(stormfront)\b/gi, name: 'Stormfront' },
+                { pattern: /\b(sword)\b/gi, name: 'Sword' },
+                { pattern: /\b(shield)\b/gi, name: 'Shield' },
+                { pattern: /\b(radiant)\b/gi, name: 'Radiant' },
+                { pattern: /\b(retro)\b/gi, name: 'Retro' },
+                { pattern: /\b(sublime)\b/gi, name: 'Sublime' },
+                { pattern: /\b(main)\b/gi, name: 'Main' },
+                { pattern: /\b(event)\b/gi, name: 'Event' },
+                { pattern: /\b(blast)\b/gi, name: 'Blast' },
+                { pattern: /\b(cb)\b/gi, name: 'CB' },
+                { pattern: /\b(national)\b/gi, name: 'National' },
+                { pattern: /\b(pride)\b/gi, name: 'Pride' },
+                { pattern: /\b(nil)\b/gi, name: 'NIL' },
+                { pattern: /\b(opc)\b/gi, name: 'OPC' },
+                { pattern: /\b(wayne)\b/gi, name: 'Wayne' }, // From "Opc Wayne Gretzky"
+                { pattern: /\b(gretzky)\b/gi, name: 'Gretzky' },
+                { pattern: /\b(field)\b/gi, name: 'Field' },
+                { pattern: /\b(pa)\b/gi, name: 'PA' },
+                { pattern: /\b(tographs)\b/gi, name: 'Tographs' }, // From "Tographs Anthony Volpe"
+                { pattern: /\b(uefa)\b/gi, name: 'UEFA' },
+                { pattern: /\b(women)\b/gi, name: 'Women' },
+                { pattern: /\b(champions)\b/gi, name: 'Champions' },
+                { pattern: /\b(uptown)\b/gi, name: 'Uptown' },
+                { pattern: /\b(uptowns)\b/gi, name: 'Uptowns' },
+                { pattern: /\b(rps)\b/gi, name: 'RPS' },
+                { pattern: /\b(sapphire)\b/gi, name: 'Sapphire' }
+            ];
+            
+            let isCardType = false;
+            for (const { pattern } of cardTypePatterns) {
+                if (pattern.test(word)) {
+                    console.log(`🔍 Filtered out card type: "${word}" (matches pattern: ${pattern})`);
+                    isCardType = true;
+                    break;
+                }
+            }
+            
+            if (isCardType) {
+                continue;
+            }
+            
             // Check comprehensive database for card-related terms (but be more selective)
             if (this.comprehensiveDb) {
                 try {
@@ -1199,6 +1261,12 @@ class NewPricingDatabase {
             
             // Normalize Jr/Jr. and Sr/Sr. suffixes
             potentialName = potentialName.replace(/\bJr\b/gi, 'Jr.').replace(/\bSr\b/gi, 'Sr.');
+            
+            // Special case: Fix "Ja Marr Chase" to "Ja'Marr Chase"
+            potentialName = potentialName.replace(/\bJa Marr Chase\b/gi, "Ja'Marr Chase");
+            potentialName = potentialName.replace(/\bJaMarr Chase\b/gi, "Ja'Marr Chase");
+            potentialName = potentialName.replace(/\bJa'marr Chase\b/gi, "Ja'Marr Chase");
+            potentialName = potentialName.replace(/\bJAMARR CHASE\b/gi, "Ja'Marr Chase");
             
             if (potentialName.length >= 3 && potentialName.length <= 30) {
                 console.log(`✅ Extracted player name: "${potentialName}" from filtered words: [${filteredWords.join(', ')}]`);
