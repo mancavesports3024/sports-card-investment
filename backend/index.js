@@ -2844,6 +2844,7 @@ app.post('/api/admin/add-player-names', async (req, res) => {
         console.log(`📊 Found ${cards.length} cards without player names`);
         
         let updatedCount = 0;
+        const verboseExtraction = process.env.VERBOSE_EXTRACTION === '1' || process.env.VERBOSE_EXTRACTION === 'true';
         for (const card of cards) {
             try {
                 const playerName = await db.extractPlayerName(card.title);
@@ -2852,6 +2853,9 @@ app.post('/api/admin/add-player-names', async (req, res) => {
                         'UPDATE cards SET player_name = ? WHERE id = ?',
                         [playerName, card.id]
                     );
+                    if (verboseExtraction) {
+                        console.log(`🧪 extractPlayerName | id=${card.id} | title="${card.title}" | extracted="${playerName}"`);
+                    }
                     updatedCount++;
                     
                     if (updatedCount % 50 === 0) {
