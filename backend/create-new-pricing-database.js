@@ -1411,6 +1411,7 @@ class NewPricingDatabase {
             // Filter out card types from the potential name instead of rejecting it entirely
             const originalPotentialName = potentialName;
             let filteredPotentialName = potentialName;
+            if (verboseExtraction) console.log(`🔍 Starting filtering for: "${potentialName}" (lowercase: "${potentialNameLower}")`);
             for (const cardType of cardTypesToFilter) {
                 if (potentialNameLower.includes(cardType.toLowerCase())) {
                     if (verboseExtraction) console.log(`🔍 Filtering out card type "${cardType}" from "${potentialName}"`);
@@ -1427,6 +1428,9 @@ class NewPricingDatabase {
                     }
                     filteredPotentialName = newName;
                 }
+            }
+            if (verboseExtraction && filteredPotentialName !== originalPotentialName) {
+                console.log(`🔍 Filtering completed: "${originalPotentialName}" -> "${filteredPotentialName}"`);
             }
             
             // Update potentialName with the filtered version
