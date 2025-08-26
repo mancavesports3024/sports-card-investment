@@ -1102,8 +1102,11 @@ class NewPricingDatabase {
         // Filter out words that are clearly card-related terms
         const filteredWords = [];
         
-        console.log(`🔍 Processing words from title: "${title}"`);
-        console.log(`🔍 Words to process: [${words.join(', ')}]`);
+        const verboseExtraction = process.env.VERBOSE_EXTRACTION === '1' || process.env.VERBOSE_EXTRACTION === 'true';
+        if (verboseExtraction) {
+            console.log(`🔍 Processing words from title: "${title}"`);
+            console.log(`🔍 Words to process: [${words.join(', ')}]`);
+        }
         
         for (const word of words) {
             // Skip if word is too short (likely not a player name)
@@ -1127,7 +1130,7 @@ class NewPricingDatabase {
             
             // Check if word is a clearly card-related term
             if (cardTerms.includes(word.toLowerCase())) {
-                console.log(`🔍 Filtered out card term: "${word}" (known card term)`);
+                if (verboseExtraction) console.log(`🔍 Filtered out card term: "${word}" (known card term)`);
                 continue;
             }
             
@@ -1230,15 +1233,15 @@ class NewPricingDatabase {
                         }
                         
                         if (shouldFilter) {
-                            console.log(`🔍 Filtered out card term: "${word}" (found card-related entries in database)`);
+                            if (verboseExtraction) console.log(`🔍 Filtered out card term: "${word}" (found card-related entries in database)`);
                             continue;
                         } else {
-                            console.log(`🔍 Keeping "${word}" (appears to be a player name, not a card term)`);
+                            if (verboseExtraction) console.log(`🔍 Keeping "${word}" (appears to be a player name, not a card term)`);
                         }
                     }
                 } catch (error) {
                     // If database query fails, keep the word (safer to include than exclude)
-                    console.log(`⚠️ Database query failed for word "${word}": ${error.message}`);
+                    if (verboseExtraction) console.log(`⚠️ Database query failed for word "${word}": ${error.message}`);
                 }
             }
             
@@ -1246,7 +1249,7 @@ class NewPricingDatabase {
             const teamNames = ['cardinals', 'eagles', 'falcons', 'ravens', 'bills', 'panthers', 'bears', 'bengals', 'browns', 'cowboys', 'broncos', 'lions', 'packers', 'texans', 'colts', 'jaguars', 'chiefs', 'raiders', 'chargers', 'rams', 'dolphins', 'vikings', 'patriots', 'saints', 'giants', 'jets', 'steelers', '49ers', 'seahawks', 'buccaneers', 'titans', 'commanders', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'athletics', 'mariners', 'angels', 'dodgers', 'giants', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls'];
             
             if (teamNames.includes(word.toLowerCase())) {
-                console.log(`🔍 Filtered out team name: "${word}"`);
+                if (verboseExtraction) console.log(`🔍 Filtered out team name: "${word}"`);
                 continue;
             }
             
@@ -1321,14 +1324,14 @@ class NewPricingDatabase {
             let containsCardType = false;
             for (const cardType of cardTypesToFilter) {
                 if (potentialNameLower.includes(cardType.toLowerCase())) {
-                    console.log(`🔍 Potential name "${potentialName}" contains card type "${cardType}", filtering out`);
+                    if (verboseExtraction) console.log(`🔍 Potential name "${potentialName}" contains card type "${cardType}", filtering out`);
                     containsCardType = true;
                     break;
                 }
             }
             
             if (containsCardType) {
-                console.log(`❌ Rejected potential name "${potentialName}" due to card type content`);
+                if (verboseExtraction) console.log(`❌ Rejected potential name "${potentialName}" due to card type content`);
                 return null;
             }
             
@@ -1342,12 +1345,12 @@ class NewPricingDatabase {
             potentialName = potentialName.replace(/\bJAMARR CHASE\b/gi, "Ja'Marr Chase");
             
             if (potentialName.length >= 3 && potentialName.length <= 30) {
-                console.log(`✅ Extracted player name: "${potentialName}" from filtered words: [${filteredWords.join(', ')}]`);
+                if (verboseExtraction) console.log(`✅ Extracted player name: "${potentialName}" from filtered words: [${filteredWords.join(', ')}]`);
                 return potentialName;
             }
         }
         
-        console.log(`❌ No valid player name found. Filtered words: [${filteredWords.join(', ')}]`);
+        if (verboseExtraction) console.log(`❌ No valid player name found. Filtered words: [${filteredWords.join(', ')}]`);
         return null;
     }
 

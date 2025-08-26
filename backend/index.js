@@ -1480,9 +1480,22 @@ const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standar
   });
 
   // Start the server with proper error handling
+  // Load package version for startup diagnostics
+  let appVersion = 'unknown';
+  try {
+    // package.json is located at project root
+    appVersion = require('../package.json').version || 'unknown';
+  } catch (e) {
+    // ignore if not found
+  }
+
   const server = app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📅 Server started at: ${getCentralTime()}`);
+    // Deployment diagnostics
+    const commitSha = process.env.RAILWAY_GIT_COMMIT_SHA || process.env.COMMIT_SHA || process.env.VERCEL_GIT_COMMIT_SHA || 'unknown';
+    const verboseExtraction = process.env.VERBOSE_EXTRACTION === '1' || process.env.VERBOSE_EXTRACTION === 'true';
+    console.log(`🧾 Version: ${appVersion} | Commit: ${commitSha} | VERBOSE_EXTRACTION=${verboseExtraction}`);
     console.log(`📊 API endpoints:`);
     console.log(`   • POST /api/search-cards - Search for trading cards`);
     console.log(`   • GET /api/search-history - Get saved searches`);
