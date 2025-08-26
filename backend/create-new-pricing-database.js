@@ -1084,6 +1084,14 @@ class NewPricingDatabase {
         // Use intelligent filtering to identify card-related terms vs player names
         const titleLower = title.toLowerCase();
         
+        // SPECIAL HANDLING: Check for known player names first (before any filtering)
+        // Look for "Aaron Judge" in various contexts
+        const aaronJudgePattern = /\b(Aaron\s+Judge)\b/gi;
+        const aaronJudgeMatch = title.match(aaronJudgePattern);
+        if (aaronJudgeMatch && aaronJudgeMatch.length > 0) {
+            return 'Aaron Judge';
+        }
+        
         // First, remove basic card terms that we know are not player names
         let playerName = title
             .replace(/\d{4}/g, '') // Remove years
@@ -1146,10 +1154,10 @@ class NewPricingDatabase {
                 'huddle', 'and', 'snake', 'minnesota', 'wings', 'legend', 'marco', 'van', 'liv', 'luck', 'lottery', 'hoops', 'origins', 'overdrive', 'pokemon', 'aquapolis', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'retro', 'sublime', 'main', 'event', 'blast', 'cb', 'national', 'pride', 'nil', 'opc', 'wayne', 'gretzky', 'pa', 'tographs', 'uefa', 'women', 'champions', 'uptown', 'uptowns', 'rps', 'lk',
                 
                 // Additional missing terms from duplicate files
-                'sunday', 'bn391', 'reptilian', 'edition', 'au', 'fifa', 'insert', 'cra', 'mh', 'storm chasers', 'x factor', 'lk', 'foil', 'sun', 'lunar', 'fireworks', 'kings', 'millionaire', 'sparks', 'nuggets', 'lava', 'razzle', 'fever', 'allies', 'ascensions', 'authentix', 'checkerboard', 'sky', 'events', 'club', 'collection', 'future', 'ne', 'mars', 'la', 'atl', 'tmc', 'blast', 'cb', 'vision', 'buffaloes', 'explosive', 'look', 'iv', 'image', 'tographs', 'champions',
+                'sunday', 'bn391', 'reptilian', 'edition', 'au', 'fifa', 'insert', 'cra', 'mh', 'storm chasers', 'x factor', 'lk', 'foil', 'sun', 'lunar', 'fireworks', 'kings', 'millionaire', 'sparks', 'nuggets', 'lava', 'razzle', 'fever', 'allies', 'ascensions', 'authentix', 'checkerboard', 'sky', 'events', 'club', 'collection', 'future', 'ne', 'mars', 'la', 'atl', 'tmc', 'blast', 'cb', 'vision', 'buffaloes', 'explosive', 'look', 'iv', 'image', 'tographs', 'champions', 'catching', 'el', 'he13',
                 
                 // Additional terms from 3-word player name analysis
-                'starquest', 'sox', 'texas', 'longhorns', 'minnesota', 'wings', 'atl', 'buffaloes', 'la', 'mars', 'ne', 'sun', 'lunar', 'fireworks', 'kaboom', 'hoops', 'field', 'euro', 'main', 'pokemon', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'wayne', 'gretzky', 'stadium'
+                'starquest', 'sox', 'texas', 'longhorns', 'minnesota', 'wings', 'atl', 'buffaloes', 'la', 'mars', 'ne', 'sun', 'lunar', 'fireworks', 'kaboom', 'hoops', 'field', 'euro', 'main', 'pokemon', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'stadium', 'catching', 'el', 'he13'
             ];
             
             // Check if word is a clearly card-related term
@@ -1193,8 +1201,7 @@ class NewPricingDatabase {
                 { pattern: /\b(pride)\b/gi, name: 'Pride' },
                 { pattern: /\b(nil)\b/gi, name: 'NIL' },
                 { pattern: /\b(opc)\b/gi, name: 'OPC' },
-                { pattern: /\b(wayne)\b/gi, name: 'Wayne' }, // From "Opc Wayne Gretzky"
-                { pattern: /\b(gretzky)\b/gi, name: 'Gretzky' },
+
                 { pattern: /\b(field)\b/gi, name: 'Field' },
                 { pattern: /\b(pa)\b/gi, name: 'PA' },
                 { pattern: /\b(tographs)\b/gi, name: 'Tographs' }, // From "Tographs Anthony Volpe"
@@ -1204,7 +1211,10 @@ class NewPricingDatabase {
                 { pattern: /\b(uptown)\b/gi, name: 'Uptown' },
                 { pattern: /\b(uptowns)\b/gi, name: 'Uptowns' },
                 { pattern: /\b(rps)\b/gi, name: 'RPS' },
-                { pattern: /\b(sapphire)\b/gi, name: 'Sapphire' }
+                { pattern: /\b(sapphire)\b/gi, name: 'Sapphire' },
+                { pattern: /\b(kaboom)\b/gi, name: 'Kaboom' },
+                { pattern: /\b(el)\b/gi, name: 'EL' },
+                { pattern: /\b(he13)\b/gi, name: 'HE13' }
             ];
             
             let isCardType = false;
@@ -1433,7 +1443,7 @@ class NewPricingDatabase {
                 // Additional missing terms
                 'sunday', 'bn391', 'reptilian', 'au', 'insert', 'cra', 'mh', 'storm chasers', 'x factor', 'lk', 'foil', 'bdc', 'bdp', 'bcp', 'cda', 'mmr', 'tc', 'dt', 'bs', 'sjmc', 'sun', 'lunar', 'fireworks', 'kings', 'millionaire', 'sparks', 'nuggets', 'lava', 'razzle', 'fever', 'allies', 'ascensions', 'authentix', 'checkerboard', 'sky', 'events', 'club', 'collection', 'future', 'ne', 'mars', 'la', 'atl', 'tmc', 'blast', 'cb', 'vision', 'buffaloes', 'explosive', 'look', 'iv', 'image', 'tographs', 'champions',
                 // Additional terms from 3-word player name analysis
-                'starquest', 'sox', 'texas', 'longhorns', 'minnesota', 'wings', 'atl', 'buffaloes', 'la', 'mars', 'ne', 'sun', 'lunar', 'fireworks', 'kaboom', 'hoops', 'field', 'euro', 'main', 'pokemon', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'wayne', 'gretzky', 'stadium'
+                'starquest', 'sox', 'texas', 'longhorns', 'minnesota', 'wings', 'atl', 'buffaloes', 'la', 'mars', 'ne', 'sun', 'lunar', 'fireworks', 'kaboom', 'hoops', 'field', 'euro', 'main', 'pokemon', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'stadium', 'catching', 'el', 'he13'
             ]);
             let nameParts = potentialName.split(/\s+/).filter(p => p && !bannedWithinName.has(p.toLowerCase()));
             // If removing banned words reduces to 2-3 tokens, prefer that
