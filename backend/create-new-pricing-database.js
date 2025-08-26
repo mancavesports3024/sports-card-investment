@@ -1092,6 +1092,13 @@ class NewPricingDatabase {
             return 'Aaron Judge';
         }
         
+        // Look for "Ja'Marr Chase" in various contexts
+        const jaMarrChasePattern = /\b(Ja['\s]*Marr\s+Chase)\b/gi;
+        const jaMarrChaseMatch = title.match(jaMarrChasePattern);
+        if (jaMarrChaseMatch && jaMarrChaseMatch.length > 0) {
+            return "Ja'Marr Chase";
+        }
+        
         // First, remove basic card terms that we know are not player names
         let playerName = title
             .replace(/\d{4}/g, '') // Remove years
@@ -1398,22 +1405,22 @@ class NewPricingDatabase {
                 'rps', 'sapphire', 'starquest', 'sox', 'texas', 'longhorns', 'atl', 'buffaloes', 
                 'la', 'mars', 'ne', 'sun', 'lunar', 'fireworks', 'kaboom', 'hoops', 'field', 
                 'euro', 'main', 'pokemon', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 
-                'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'wayne', 'gretzky', 'stadium'
+                'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'wayne', 'gretzky', 'stadium', 'catching', 'el', 'he13', 'future', 'millionaire', 'sparks', 'nuggets', 'lava', 'razzle', 'fever', 'allies', 'ascensions', 'authentix', 'checkerboard', 'sky', 'events', 'club', 'collection', 'vision', 'buffaloes', 'explosive', 'look', 'iv', 'image', 'tographs', 'champions'
             ];
             
-            let containsCardType = false;
+            // Filter out card types from the potential name instead of rejecting it entirely
+            let filteredPotentialName = potentialName;
             for (const cardType of cardTypesToFilter) {
                 if (potentialNameLower.includes(cardType.toLowerCase())) {
-                    if (verboseExtraction) console.log(`🔍 Potential name "${potentialName}" contains card type "${cardType}", filtering out`);
-                    containsCardType = true;
-                    break;
+                    if (verboseExtraction) console.log(`🔍 Filtering out card type "${cardType}" from "${potentialName}"`);
+                    // Remove the card type from the name
+                    const cardTypeRegex = new RegExp(`\\b${cardType}\\b`, 'gi');
+                    filteredPotentialName = filteredPotentialName.replace(cardTypeRegex, '').trim();
                 }
             }
             
-            if (containsCardType) {
-                if (verboseExtraction) console.log(`❌ Rejected potential name "${potentialName}" due to card type content`);
-                return null;
-            }
+            // Update potentialName with the filtered version
+            potentialName = filteredPotentialName;
             
             // Normalize Jr/Jr. and Sr/Sr. suffixes
             potentialName = potentialName.replace(/\bJr\b/gi, 'Jr.').replace(/\bSr\b/gi, 'Sr.');
