@@ -1479,9 +1479,10 @@ const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standar
     }
   });
 
-  // Start the server
-  app.listen(PORT, () => {
+  // Start the server with proper error handling
+  const server = app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📅 Server started at: ${getCentralTime()}`);
     console.log(`📊 API endpoints:`);
     console.log(`   • POST /api/search-cards - Search for trading cards`);
     console.log(`   • GET /api/search-history - Get saved searches`);
@@ -1497,6 +1498,21 @@ const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standar
       refreshEbayToken(); // Initial refresh
     } else {
       console.log('⚠️  Automatic token refresh disabled. Set EBAY_CLIENT_ID, EBAY_CLIENT_SECRET, and EBAY_REFRESH_TOKEN in .env file');
+    }
+  }).on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(`❌ Port ${PORT} is already in use. This usually means another instance is running.`);
+      console.error(`   Please wait a moment for the previous instance to shut down, or manually stop it.`);
+      console.error(`   Error details: ${error.message}`);
+      
+      // Exit gracefully after a short delay to allow Railway to handle the restart
+      setTimeout(() => {
+        console.log('🔄 Exiting to allow Railway to restart the service...');
+        process.exit(1);
+      }, 5000);
+    } else {
+      console.error(`❌ Server failed to start: ${error.message}`);
+      process.exit(1);
     }
   });
 }

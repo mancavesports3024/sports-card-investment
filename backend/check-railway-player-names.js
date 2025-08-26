@@ -1,11 +1,13 @@
 const https = require('https');
 
-async function makeRequest(endpoint, method = 'GET') {
+const RAILWAY_URL = 'https://web-production-9efa.up.railway.app';
+
+async function makeRequest(path, method = 'GET', data = null) {
     return new Promise((resolve, reject) => {
         const options = {
             hostname: 'web-production-9efa.up.railway.app',
             port: 443,
-            path: endpoint,
+            path: path,
             method: method,
             headers: {
                 'Content-Type': 'application/json',
@@ -13,153 +15,87 @@ async function makeRequest(endpoint, method = 'GET') {
         };
 
         const req = https.request(options, (res) => {
-            let data = '';
+            let body = '';
             res.on('data', (chunk) => {
-                data += chunk;
+                body += chunk;
             });
             res.on('end', () => {
                 try {
-                    const result = JSON.parse(data);
-                    resolve({
-                        status: 'success',
-                        data: result
-                    });
+                    const response = JSON.parse(body);
+                    resolve(response);
                 } catch (error) {
-                    resolve({
-                        status: 'error',
-                        code: res.statusCode,
-                        message: 'Invalid JSON response',
-                        data: data
-                    });
+                    resolve(body);
                 }
             });
         });
 
         req.on('error', (error) => {
-            resolve({
-                status: 'error',
-                code: 500,
-                message: error.message
-            });
+            reject(error);
         });
 
-        req.setTimeout(30000, () => {
-            req.destroy();
-            resolve({
-                status: 'error',
-                code: 408,
-                message: 'Request timeout'
-            });
-        });
-
+        if (data) {
+            req.write(JSON.stringify(data));
+        }
         req.end();
     });
 }
 
-async function checkRailwayPlayerNames() {
-    console.log('🔍 Checking player names in Railway database...\n');
-    
+async function checkChaseCards() {
+    console.log('🔍 Checking Railway database for Chase cards...\n');
+
     try {
+        // Get all cards with "Chase" in the title, player_name, or summary_title
         const response = await makeRequest('/api/admin/cards?limit=1000');
         
-        if (response.status !== 'success') {
-            console.error('❌ Failed to fetch cards:', response);
-            return;
-        }
-        
-        const cards = response.data.cards || [];
-        console.log(`📊 Found ${cards.length} cards\n`);
-        
-        // Check for problematic player names
-        const problems = [];
-        
-        cards.forEach((card, index) => {
-            const playerName = card.playerName || '';
-            const title = card.title || '';
-            
-            // Check for ALL CAPS player names
-            if (playerName && playerName === playerName.toUpperCase() && playerName.length > 3) {
-                problems.push({
-                    cardNumber: index + 1,
-                    id: card.id,
-                    issue: 'ALL CAPS player name',
-                    playerName: playerName,
-                    title: title
-                });
-            }
-            
-            // Check for empty player names
-            if (!playerName || playerName.trim() === '') {
-                problems.push({
-                    cardNumber: index + 1,
-                    id: card.id,
-                    issue: 'Empty player name',
-                    playerName: playerName,
-                    title: title
-                });
-            }
-            
-            // Check for very short player names
-            if (playerName && playerName.length <= 2) {
-                problems.push({
-                    cardNumber: index + 1,
-                    id: card.id,
-                    issue: 'Very short player name',
-                    playerName: playerName,
-                    title: title
-                });
-            }
-            
-            // Check for player names with obvious errors
-            if (playerName && (
-                playerName.includes("'S BEST") ||
-                playerName.includes("BRYCE HARPER &") ||
-                playerName.includes("' COLLECTION") ||
-                playerName.includes("STARCADE ,") ||
-                playerName.includes("Velocity,")
-            )) {
-                problems.push({
-                    cardNumber: index + 1,
-                    id: card.id,
-                    issue: 'Obvious player name error',
-                    playerName: playerName,
-                    title: title
-                });
-            }
-        });
-        
-        if (problems.length === 0) {
-            console.log('✅ All player names look correct!');
-        } else {
-            console.log(`❌ Found ${problems.length} problematic player names:\n`);
-            
-            problems.forEach(problem => {
-                console.log(`${problem.cardNumber}. ID: ${problem.id}`);
-                console.log(`   Issue: ${problem.issue}`);
-                console.log(`   Player Name: "${problem.playerName}"`);
-                console.log(`   Title: "${problem.title}"`);
+        if (response.success && response.cards) {
+            // Filter for cards with "Chase" in any field
+            const chaseCards = response.cards.filter(card => {
+                const title = card.title || '';
+                const playerName = card.player_name || '';
+                const summaryTitle = card.summary_title || '';
+                return title.includes('Chase') || playerName.includes('Chase') || summaryTitle.includes('Chase');
+            });
+
+            console.log(`📊 Found ${chaseCards.length} cards with "Chase" in title, player_name, or summary_title:\n`);
+
+            chaseCards.forEach((card, index) => {
+                console.log(`${index + 1}. ID: ${card.id}`);
+                console.log(`   Title: ${card.title}`);
+                console.log(`   Player Name: "${card.player_name || 'NULL'}"`);
+                console.log(`   Summary Title: ${card.summary_title || 'NULL'}`);
+                console.log(`   Sport: ${card.sport || 'NULL'}`);
                 console.log('');
             });
+
+            // Check specifically for "Ja Marr Chase" variations in player_name
+            const jaMarrChaseCards = chaseCards.filter(card => {
+                const playerName = card.player_name || '';
+                return playerName.includes('Ja') && playerName.includes('Marr') && playerName.includes('Chase');
+            });
+
+            console.log(`🔍 Found ${jaMarrChaseCards.length} cards with "Ja Marr Chase" variations in player_name:\n`);
+
+            jaMarrChaseCards.forEach((card, index) => {
+                console.log(`${index + 1}. ID: ${card.id}`);
+                console.log(`   Title: ${card.title}`);
+                console.log(`   Player Name: "${card.player_name}"`);
+                console.log(`   Summary Title: ${card.summary_title || 'NULL'}`);
+                console.log('');
+            });
+
+            if (jaMarrChaseCards.length === 0) {
+                console.log('❌ No cards found with "Ja Marr Chase" variations in player_name field.');
+                console.log('This might explain why the fix-player-names script reported 0 changes.');
+            }
+
+        } else {
+            console.log('❌ Failed to get cards from Railway API');
+            console.log('Response:', response);
         }
-        
-        // Show summary
-        const allCapsCount = problems.filter(p => p.issue === 'ALL CAPS player name').length;
-        const emptyCount = problems.filter(p => p.issue === 'Empty player name').length;
-        const shortCount = problems.filter(p => p.issue === 'Very short player name').length;
-        const errorCount = problems.filter(p => p.issue === 'Obvious player name error').length;
-        
-        console.log('📊 SUMMARY:');
-        console.log(`- Total cards: ${cards.length}`);
-        console.log(`- Cards with ALL CAPS player names: ${allCapsCount}`);
-        console.log(`- Cards with empty player names: ${emptyCount}`);
-        console.log(`- Cards with very short player names: ${shortCount}`);
-        console.log(`- Cards with obvious errors: ${errorCount}`);
-        console.log(`- Total problems: ${problems.length}`);
-        
+
     } catch (error) {
-        console.error('❌ Check failed:', error);
+        console.error('❌ Error checking Railway database:', error);
     }
 }
 
-// Run the check
-checkRailwayPlayerNames();
+checkChaseCards();
