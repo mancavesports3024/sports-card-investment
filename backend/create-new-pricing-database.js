@@ -1120,7 +1120,9 @@ class NewPricingDatabase {
                 // Card features
                 'rookie', 'rc', 'auto', 'autograph', 'autographs', 'au', 'jersey', 'patch', 'base', 'holo', 'ssp', 'sp', 'hof',
                 // Other card terms
-                'victory', 'crown', 'portrait', 'police', 'instant', 'impact', 'update', 'field', 'level', 'courtside', 'elephant', 'disco', 'ice', 'lazer', 'shock', 'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua', 'sapphire', 'woo', 'draft', 'red/white/blue', 'tf1'
+                'victory', 'crown', 'portrait', 'police', 'instant', 'impact', 'update', 'field', 'level', 'courtside', 'elephant', 'disco', 'ice', 'lazer', 'shock', 'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua', 'sapphire', 'woo', 'draft', 'red/white/blue', 'tf1',
+                // Additional terms from 3-word player name analysis
+                'huddle', 'and', 'snake', 'minnesota', 'wings', 'legend', 'marco', 'van', 'liv', 'luck', 'lottery', 'hoops', 'origins', 'overdrive', 'pokemon', 'aquapolis', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'retro', 'sublime', 'main', 'event', 'blast', 'cb', 'national', 'pride', 'nil', 'opc', 'wayne', 'gretzky', 'pa', 'tographs', 'uefa', 'women', 'champions', 'uptown', 'uptowns', 'rps', 'lk'
             ];
             
             // Check if word is a clearly card-related term
@@ -1193,7 +1195,11 @@ class NewPricingDatabase {
         // Look for patterns like "First Last" or "First Middle Last"
         if (filteredWords.length >= 2 && filteredWords.length <= 3) {
             // Check if it looks like a name (reasonable length)
-            const potentialName = filteredWords.slice(0, Math.min(3, filteredWords.length)).join(' ');
+            let potentialName = filteredWords.slice(0, Math.min(3, filteredWords.length)).join(' ');
+            
+            // Normalize Jr/Jr. and Sr/Sr. suffixes
+            potentialName = potentialName.replace(/\bJr\b/gi, 'Jr.').replace(/\bSr\b/gi, 'Sr.');
+            
             if (potentialName.length >= 3 && potentialName.length <= 30) {
                 console.log(`✅ Extracted player name: "${potentialName}" from filtered words: [${filteredWords.join(', ')}]`);
                 return potentialName;
@@ -1926,6 +1932,51 @@ class NewPricingDatabase {
             { pattern: /\b(raptors)\b/gi, name: 'Raptors' },
             { pattern: /\b(76ers)\b/gi, name: '76ers' },
             { pattern: /\b(hawks)\b/gi, name: 'Hawks' },
+            
+            // Additional card types from 3-word player name analysis
+            { pattern: /\b(huddle)\b/gi, name: 'Huddle' },
+            { pattern: /\b(and)\b/gi, name: 'And' }, // From "Red White And Blue"
+            { pattern: /\b(snake)\b/gi, name: 'Snake' },
+            { pattern: /\b(minnesota)\b/gi, name: 'Minnesota' },
+            { pattern: /\b(wings)\b/gi, name: 'Wings' },
+            { pattern: /\b(portrait)\b/gi, name: 'Portrait' },
+            { pattern: /\b(legend)\b/gi, name: 'Legend' },
+            { pattern: /\b(marco)\b/gi, name: 'Marco' }, // From "Legend Marco Van"
+            { pattern: /\b(van)\b/gi, name: 'Van' }, // From "Legend Marco Van"
+            { pattern: /\b(liv)\b/gi, name: 'LIV' },
+            { pattern: /\b(luck)\b/gi, name: 'Luck' },
+            { pattern: /\b(lottery)\b/gi, name: 'Lottery' },
+            { pattern: /\b(hoops)\b/gi, name: 'Hoops' },
+            { pattern: /\b(origins)\b/gi, name: 'Origins' },
+            { pattern: /\b(overdrive)\b/gi, name: 'Overdrive' },
+            { pattern: /\b(pokemon)\b/gi, name: 'Pokemon' },
+            { pattern: /\b(aquapolis)\b/gi, name: 'Aquapolis' },
+            { pattern: /\b(japanese)\b/gi, name: 'Japanese' },
+            { pattern: /\b(stormfront)\b/gi, name: 'Stormfront' },
+            { pattern: /\b(sword)\b/gi, name: 'Sword' },
+            { pattern: /\b(shield)\b/gi, name: 'Shield' },
+            { pattern: /\b(radiant)\b/gi, name: 'Radiant' },
+            { pattern: /\b(retro)\b/gi, name: 'Retro' },
+            { pattern: /\b(sublime)\b/gi, name: 'Sublime' },
+            { pattern: /\b(main)\b/gi, name: 'Main' },
+            { pattern: /\b(event)\b/gi, name: 'Event' },
+            { pattern: /\b(blast)\b/gi, name: 'Blast' },
+            { pattern: /\b(cb)\b/gi, name: 'CB' },
+            { pattern: /\b(national)\b/gi, name: 'National' },
+            { pattern: /\b(pride)\b/gi, name: 'Pride' },
+            { pattern: /\b(nil)\b/gi, name: 'NIL' },
+            { pattern: /\b(opc)\b/gi, name: 'OPC' },
+            { pattern: /\b(wayne)\b/gi, name: 'Wayne' }, // From "Opc Wayne Gretzky"
+            { pattern: /\b(gretzky)\b/gi, name: 'Gretzky' },
+            { pattern: /\b(field)\b/gi, name: 'Field' },
+            { pattern: /\b(pa)\b/gi, name: 'PA' },
+            { pattern: /\b(tographs)\b/gi, name: 'Tographs' }, // From "Tographs Anthony Volpe"
+            { pattern: /\b(uefa)\b/gi, name: 'UEFA' },
+            { pattern: /\b(women)\b/gi, name: 'Women' },
+            { pattern: /\b(champions)\b/gi, name: 'Champions' },
+            { pattern: /\b(uptown)\b/gi, name: 'Uptown' },
+            { pattern: /\b(uptowns)\b/gi, name: 'Uptowns' },
+            { pattern: /\b(rps)\b/gi, name: 'RPS' },
             
             // Topps Chrome Baseball Parallels (HIGHEST PRIORITY - add these first)
             { pattern: /\b(superfractor)\b/gi, name: 'Superfractor', priority: 3 },
