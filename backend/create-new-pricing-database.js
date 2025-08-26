@@ -1310,7 +1310,7 @@ class NewPricingDatabase {
             // Check if the potential name contains any card types that should be filtered out
             const potentialNameLower = potentialName.toLowerCase();
             const cardTypesToFilter = [
-                'huddle', 'and', 'snake', 'minnesota', 'wings', 'portrait', 'legend', 'marco', 'van', 
+                'huddle', 'and', 'snake', 'king snake', 'minnesota', 'wings', 'portrait', 'legend', 'marco', 'van', 
                 'liv', 'luck', 'lottery', 'hoops', 'origins', 'overdrive', 'pokemon', 'aquapolis', 
                 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'retro', 'sublime', 'main', 
                 'event', 'blast', 'cb', 'national', 'pride', 'nil', 'opc', 'wayne', 'gretzky', 
