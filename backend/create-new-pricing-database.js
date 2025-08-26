@@ -1092,6 +1092,11 @@ class NewPricingDatabase {
             return 'Aaron Judge';
         }
         
+        // Also check for "AARON JUDGE" (all caps) and variations
+        if (title.toLowerCase().includes('aaron judge')) {
+            return 'Aaron Judge';
+        }
+        
         // Look for "Ja'Marr Chase" in various contexts
         const jaMarrChasePattern = /\b(Ja['\s]*Marr\s+Chase)\b/gi;
         const jaMarrChaseMatch = title.match(jaMarrChasePattern);
