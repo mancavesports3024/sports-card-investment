@@ -1259,6 +1259,69 @@ class NewPricingDatabase {
             // Check if it looks like a name (reasonable length)
             let potentialName = filteredWords.slice(0, Math.min(3, filteredWords.length)).join(' ');
             
+            // Check if the entire potential name contains card types that should be filtered out
+            const cardTypePatterns = [
+                { pattern: /\b(huddle)\b/gi, name: 'Huddle' },
+                { pattern: /\b(and)\b/gi, name: 'And' },
+                { pattern: /\b(snake)\b/gi, name: 'Snake' },
+                { pattern: /\b(minnesota)\b/gi, name: 'Minnesota' },
+                { pattern: /\b(wings)\b/gi, name: 'Wings' },
+                { pattern: /\b(portrait)\b/gi, name: 'Portrait' },
+                { pattern: /\b(legend)\b/gi, name: 'Legend' },
+                { pattern: /\b(marco)\b/gi, name: 'Marco' },
+                { pattern: /\b(van)\b/gi, name: 'Van' },
+                { pattern: /\b(liv)\b/gi, name: 'LIV' },
+                { pattern: /\b(luck)\b/gi, name: 'Luck' },
+                { pattern: /\b(lottery)\b/gi, name: 'Lottery' },
+                { pattern: /\b(hoops)\b/gi, name: 'Hoops' },
+                { pattern: /\b(origins)\b/gi, name: 'Origins' },
+                { pattern: /\b(overdrive)\b/gi, name: 'Overdrive' },
+                { pattern: /\b(pokemon)\b/gi, name: 'Pokemon' },
+                { pattern: /\b(aquapolis)\b/gi, name: 'Aquapolis' },
+                { pattern: /\b(japanese)\b/gi, name: 'Japanese' },
+                { pattern: /\b(stormfront)\b/gi, name: 'Stormfront' },
+                { pattern: /\b(sword)\b/gi, name: 'Sword' },
+                { pattern: /\b(shield)\b/gi, name: 'Shield' },
+                { pattern: /\b(radiant)\b/gi, name: 'Radiant' },
+                { pattern: /\b(retro)\b/gi, name: 'Retro' },
+                { pattern: /\b(sublime)\b/gi, name: 'Sublime' },
+                { pattern: /\b(main)\b/gi, name: 'Main' },
+                { pattern: /\b(event)\b/gi, name: 'Event' },
+                { pattern: /\b(blast)\b/gi, name: 'Blast' },
+                { pattern: /\b(cb)\b/gi, name: 'CB' },
+                { pattern: /\b(national)\b/gi, name: 'National' },
+                { pattern: /\b(pride)\b/gi, name: 'Pride' },
+                { pattern: /\b(nil)\b/gi, name: 'NIL' },
+                { pattern: /\b(opc)\b/gi, name: 'OPC' },
+                { pattern: /\b(wayne)\b/gi, name: 'Wayne' },
+                { pattern: /\b(gretzky)\b/gi, name: 'Gretzky' },
+                { pattern: /\b(field)\b/gi, name: 'Field' },
+                { pattern: /\b(pa)\b/gi, name: 'PA' },
+                { pattern: /\b(tographs)\b/gi, name: 'Tographs' },
+                { pattern: /\b(uefa)\b/gi, name: 'UEFA' },
+                { pattern: /\b(women)\b/gi, name: 'Women' },
+                { pattern: /\b(champions)\b/gi, name: 'Champions' },
+                { pattern: /\b(uptown)\b/gi, name: 'Uptown' },
+                { pattern: /\b(uptowns)\b/gi, name: 'Uptowns' },
+                { pattern: /\b(rps)\b/gi, name: 'RPS' },
+                { pattern: /\b(sapphire)\b/gi, name: 'Sapphire' }
+            ];
+            
+            // Check if the potential name contains any card types that should be filtered out
+            let containsCardType = false;
+            for (const { pattern, name } of cardTypePatterns) {
+                if (pattern.test(potentialName)) {
+                    console.log(`🔍 Potential name "${potentialName}" contains card type "${name}", filtering out`);
+                    containsCardType = true;
+                    break;
+                }
+            }
+            
+            if (containsCardType) {
+                console.log(`❌ Rejected potential name "${potentialName}" due to card type content`);
+                return null;
+            }
+            
             // Normalize Jr/Jr. and Sr/Sr. suffixes
             potentialName = potentialName.replace(/\bJr\b/gi, 'Jr.').replace(/\bSr\b/gi, 'Sr.');
             
