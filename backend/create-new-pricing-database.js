@@ -1343,6 +1343,16 @@ class NewPricingDatabase {
             potentialName = potentialName.replace(/\bJaMarr Chase\b/gi, "Ja'Marr Chase");
             potentialName = potentialName.replace(/\bJa'marr Chase\b/gi, "Ja'Marr Chase");
             potentialName = potentialName.replace(/\bJAMARR CHASE\b/gi, "Ja'Marr Chase");
+
+            // Final sanitization: remove any lingering card terms from the assembled potential name
+            const bannedWithinName = new Set([
+                'sapphire','snake','king','king snake','huddle','and','portrait','legend','liv','luck','lottery','hoops','origins','overdrive','pokemon','aquapolis','japanese','stormfront','sword','shield','radiant','retro','sublime','main','event','blast','cb','national','pride','nil','opc','field','pa','tographs','uefa','women','champions','uptown','uptowns','rps'
+            ]);
+            let nameParts = potentialName.split(/\s+/).filter(p => p && !bannedWithinName.has(p.toLowerCase()));
+            // If removing banned words reduces to 2-3 tokens, prefer that
+            if (nameParts.length >= 2 && nameParts.length <= 3) {
+                potentialName = nameParts.join(' ');
+            }
             
             if (potentialName.length >= 3 && potentialName.length <= 30) {
                 if (verboseExtraction) console.log(`✅ Extracted player name: "${potentialName}" from filtered words: [${filteredWords.join(', ')}]`);
