@@ -1308,10 +1308,20 @@ class NewPricingDatabase {
             ];
             
             // Check if the potential name contains any card types that should be filtered out
+            const potentialNameLower = potentialName.toLowerCase();
+            const cardTypesToFilter = [
+                'huddle', 'and', 'snake', 'minnesota', 'wings', 'portrait', 'legend', 'marco', 'van', 
+                'liv', 'luck', 'lottery', 'hoops', 'origins', 'overdrive', 'pokemon', 'aquapolis', 
+                'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'retro', 'sublime', 'main', 
+                'event', 'blast', 'cb', 'national', 'pride', 'nil', 'opc', 'wayne', 'gretzky', 
+                'field', 'pa', 'tographs', 'uefa', 'women', 'champions', 'uptown', 'uptowns', 
+                'rps', 'sapphire'
+            ];
+            
             let containsCardType = false;
-            for (const { pattern, name } of cardTypePatterns) {
-                if (pattern.test(potentialName)) {
-                    console.log(`🔍 Potential name "${potentialName}" contains card type "${name}", filtering out`);
+            for (const cardType of cardTypesToFilter) {
+                if (potentialNameLower.includes(cardType.toLowerCase())) {
+                    console.log(`🔍 Potential name "${potentialName}" contains card type "${cardType}", filtering out`);
                     containsCardType = true;
                     break;
                 }
