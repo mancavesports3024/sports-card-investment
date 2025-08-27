@@ -3782,7 +3782,8 @@ app.post('/api/admin/test-extraction', async (req, res) => {
         const db = new NewPricingDatabase();
         await db.connect();
         
-        const testTitles = [
+        const userTitle = (req.body && req.body.testTitle) ? String(req.body.testTitle) : null;
+        const testTitles = userTitle ? [userTitle] : [
             "2023 Bowman Chrome Autographs Gold Michael Harris II auto #CRA-MH",
             "2023 Bowman - Chrome Rookie Autographs Michael Harris II #CRA-MH Gold Ref PSA 10",
             "2023 Bowman Chrome Sapphire Orange Sapphire Edition Zach Neto #10 /75",
@@ -3907,6 +3908,46 @@ app.post('/api/admin/test-extraction', async (req, res) => {
             details: error.message,
             timestamp: new Date().toISOString()
         });
+    }
+});
+
+// POST /api/admin/reextract-player-names - Re-extract player_name from title for all cards
+app.post('/api/admin/reextract-player-names', async (req, res) => {
+    try {
+        console.log('🔄 Re-extracting player names from titles...');
+
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        await db.connect();
+
+        const cards = await db.allQuery(`SELECT id, title, player_name FROM cards`);
+        let updated = 0;
+        let unchanged = 0;
+        let errors = 0;
+
+        for (const card of cards) {
+            try {
+                const extracted = db.extractPlayerName(card.title);
+                const cleaned = extracted ? db.filterTeamNamesFromPlayer(extracted) : null;
+                const finalName = cleaned ? db.capitalizePlayerName(cleaned) : null;
+
+                if (finalName && finalName !== card.player_name) {
+                    await db.runQuery('UPDATE cards SET player_name = ? WHERE id = ?', [finalName, card.id]);
+                    updated++;
+                } else {
+                    unchanged++;
+                }
+            } catch (e) {
+                errors++;
+            }
+        }
+
+        await db.close();
+
+        res.json({ success: true, updated, unchanged, errors, timestamp: new Date().toISOString() });
+    } catch (error) {
+        console.error('❌ Error re-extracting player names:', error);
+        res.status(500).json({ success: false, message: 'Error re-extracting player names', error: error.message, timestamp: new Date().toISOString() });
     }
 });
 

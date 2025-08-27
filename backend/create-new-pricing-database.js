@@ -1582,6 +1582,8 @@ class NewPricingDatabase {
             { pattern: /\b(future stars)\b/gi, name: 'Future Stars' },
             { pattern: /\b(all stars)\b/gi, name: 'All Stars' },
             { pattern: /\b(main event)\b/gi, name: 'Main Event' },
+            // Skybox Apex insert
+            { pattern: /\b(apex allies)\b/gi, name: 'Apex Allies' },
             
             // Missing card type patterns (high priority)
             { pattern: /\b(storm chasers)\b/gi, name: 'Storm Chasers' },
@@ -1692,6 +1694,7 @@ class NewPricingDatabase {
             { pattern: /\b(level)\b/gi, name: 'Level' },
             
             // Special insert types
+            { pattern: /\b(allies)\b/gi, name: 'Allies' },
             { pattern: /\b(usa basketball)\b/gi, name: 'USA Basketball' },
             { pattern: /\b(rookie kings)\b/gi, name: 'Rookie Kings' },
             { pattern: /\b(rainmakers)\b/gi, name: 'Rainmakers' },
