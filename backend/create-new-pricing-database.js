@@ -2893,12 +2893,37 @@ class NewPricingDatabase {
             return 'J.J. McCarthy';
         }
         
-        // Look for "Mccarthy" without "J.J." - assume it's "J.J. McCarthy" for consistency
-        const mccarthyPattern = /\b(Mccarthy)\b/gi;
-        const mccarthyMatch = cleanTitle.match(mccarthyPattern);
-        if (mccarthyMatch && mccarthyMatch.length > 0) {
-            return 'J.J. McCarthy';
-        }
+                        // Look for "Mccarthy" without "J.J." - assume it's "J.J. McCarthy" for consistency
+                const mccarthyPattern = /\b(Mccarthy)\b/gi;
+                const mccarthyMatch = cleanTitle.match(mccarthyPattern);
+                if (mccarthyMatch && mccarthyMatch.length > 0) {
+                    return 'J.J. McCarthy';
+                }
+                
+                // Fix Roman numeral issues (Ii -> II, Iv -> IV)
+                const romanNumeralPattern = /\b([A-Z][a-z]+)\s+(Ii|Iv)\b/gi;
+                const romanMatch = cleanTitle.match(romanNumeralPattern);
+                if (romanMatch && romanMatch.length > 0) {
+                    const match = romanMatch[0];
+                    if (match.includes('Ii')) {
+                        return match.replace('Ii', 'II');
+                    } else if (match.includes('Iv')) {
+                        return match.replace('Iv', 'IV');
+                    }
+                }
+                
+                // Fix initial spacing issues (J J -> J.J.)
+                const initialSpacingPattern = /\b([A-Z])\s+([A-Z])\s+([A-Z][a-z]+)\b/gi;
+                const initialSpacingMatch = cleanTitle.match(initialSpacingPattern);
+                if (initialSpacingMatch && initialSpacingMatch.length > 0) {
+                    const match = initialSpacingMatch[0];
+                    const fixedMatch = match.replace(/([A-Z])\s+([A-Z])/, '$1.$2.');
+                    // Special case for "J.J. Mccarthy" -> "J.J. McCarthy"
+                    if (fixedMatch.toLowerCase().includes('j.j. mccarthy')) {
+                        return 'J.J. McCarthy';
+                    }
+                    return fixedMatch;
+                }
         
         // Look for "Joe Milton III" - extract just "Joe Milton"
         const joeMiltonPattern = /\b(Joe\s+Milton)\s+III\b/gi;
@@ -3035,6 +3060,19 @@ class NewPricingDatabase {
             'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
             'super short print', 'parallel', 'insert', 'numbered', 'limited',
             'sapphire', 'sublime',
+            // Additional card terms found in 3-word analysis
+            'future', 'apex', 'allies', 'ascensions', 'authentix', 'millionaire', 'lava', 'checkerboard',
+            'sky', 'classic', 'events', 'club', 'collection', 'huddle', 'it', 'notoriety', 'phenom',
+            'and', 'starquest', 'sox', 'main', 'field', 'look', 'explosive', 'stadium', 'club',
+            'opc', 'premier', 'level', 'stratospheric', 'stars', 'stormfront', 'sword', 'shield',
+            'pokemon', 'radiant', 'charizard', 'japanese', 'brilliant', 'full', 'art', 'mimikyu',
+            'vmax', 'go', 'holo', 'world', 'champion', 'boxers', 'muhammad', 'ali', 'zone', 'busters',
+            'chasers', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'hard', 'home',
+            'royal', 'blue', 'gold', 'rainbow', 'holiday', 'yellow', 'aqua', 'silver', 'crackle',
+            'jack', 'lantern', 'ghost', 'purple', 'green', 'orange', 'red', 'vintage', 'stock',
+            'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'clear', 'witches', 'hat',
+            'bats', 'first', 'card', 'platinum', 'printing', 'plates', 'royal', 'blue', 'vintage',
+            'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat',
             // Additional card types identified by analysis
             'ice', 'lazer', 'lightboard', 'magenta', 'mt', 'shock',
             // Specific problematic terms from the cards
@@ -3104,7 +3142,15 @@ class NewPricingDatabase {
         const teamNamesAtEnd = [
             'bulls', 'lakers', 'celtics', 'warriors', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks',
             'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks',
-            'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers'
+            'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers',
+            // Additional team names found in 3-word analysis
+            'fever', 'sparks', 'ne', 'buffaloes', 'lions', 'chiefs', 'steelers', 'falcons', 'patriots', 'dolphins',
+            'reds', 'cubs', 'braves', 'padres', 'royals', 'orioles', 'mets', 'sox', 'dodgers', 'angels',
+            'yankees', 'red sox', 'white sox', 'blue jays', 'rays', 'astros', 'rangers', 'athletics', 'mariners',
+            'twins', 'indians', 'guardians', 'tigers', 'brewers', 'cardinals', 'pirates', 'rockies', 'diamondbacks',
+            'giants', 'nationals', 'marlins', 'phillies', 'mets', 'braves', 'marlins', 'expos', 'senators',
+            // Additional team names that appear in titles (be more selective)
+            'allies'
         ];
         teamNamesAtEnd.forEach(team => {
             const endPattern = new RegExp(`\\b${team}\\s*$`, 'gi');
@@ -3134,14 +3180,18 @@ class NewPricingDatabase {
         const initialMatches = cleanTitle.match(initialPattern);
         if (initialMatches && initialMatches.length > 0) {
             // Take the first match as the player name
-            return initialMatches[0].replace(/\s+/g, ' ').trim();
+            const match = initialMatches[0].replace(/\s+/g, ' ').trim();
+            // Fix spacing for initials (J J -> J.J.)
+            return match.replace(/([A-Z])\s+([A-Z])/, '$1.$2.');
         }
         
         // Also look for "J.J." or "J J" followed by a last name
         const jjPattern = /\b(J\.?\s*J\.?\s+[A-Z][a-z]+)\b/g;
         const jjMatches = cleanTitle.match(jjPattern);
         if (jjMatches && jjMatches.length > 0) {
-            return jjMatches[0].replace(/\s+/g, ' ').trim();
+            const match = jjMatches[0].replace(/\s+/g, ' ').trim();
+            // Fix spacing for initials (J J -> J.J.)
+            return match.replace(/([A-Z])\s+([A-Z])/, '$1.$2.');
         }
         
         // Step 10: Split into words and find the player name
@@ -3175,7 +3225,19 @@ class NewPricingDatabase {
             'tom brady': 'Tom Brady',
             'ja marr chase': 'Ja\'Marr Chase',
             'jamarr chase': 'Ja\'Marr Chase',
-            'ja\'marr chase': 'Ja\'Marr Chase'
+            'ja\'marr chase': 'Ja\'Marr Chase',
+            // Fix Roman numeral and initial issues found in 3-word analysis
+            'michael harris ii': 'Michael Harris II',
+            'michael harris i': 'Michael Harris II',
+            'patrick mahomes ii': 'Patrick Mahomes II',
+            'patrick mahomes i': 'Patrick Mahomes II',
+            'stetson bennett iv': 'Stetson Bennett IV',
+            'stetson bennett i': 'Stetson Bennett IV',
+            't j watt': 'T.J. Watt',
+            't.j. watt': 'T.J. Watt',
+            'j j mccarthy': 'J.J. McCarthy',
+            'elly de la': 'Elly De La Cruz',
+            'elly de la cruz': 'Elly De La Cruz'
         };
         
         const lowerPlayerName = playerName.toLowerCase();
