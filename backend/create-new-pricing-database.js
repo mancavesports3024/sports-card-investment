@@ -2484,8 +2484,13 @@ class NewPricingDatabase {
             return 'Bo Jackson';
         }
         
+        // Check for "Aaron Judge" in the original title
+        if (cleanTitle.includes('Aaron Judge') || cleanTitle.includes('AARON JUDGE')) {
+            return 'Aaron Judge';
+        }
+        
         // Check for "Judge" in the original title (from Ohtani/Judge cards)
-        if (cleanTitle.includes('Judge') && !cleanTitle.includes('Ohtani')) {
+        if (cleanTitle.includes('Judge') && !cleanTitle.includes('Ohtani') && !cleanTitle.includes('Aaron')) {
             return 'Judge';
         }
         
@@ -3155,10 +3160,14 @@ class NewPricingDatabase {
             'anthony edwards': 'Anthony Edwards',
             'brock purdy': 'Brock Purdy',
             'aaron judge': 'Aaron Judge',
+            'judge': 'Aaron Judge', // Handle case where "Aaron" was filtered
             'shohei ohtani': 'Shohei Ohtani',
             'michael jordan': 'Michael Jordan',
             'kobe bryant': 'Kobe Bryant',
-            'tom brady': 'Tom Brady'
+            'tom brady': 'Tom Brady',
+            'ja marr chase': 'Ja\'Marr Chase',
+            'jamarr chase': 'Ja\'Marr Chase',
+            'ja\'marr chase': 'Ja\'Marr Chase'
         };
         
         const lowerPlayerName = playerName.toLowerCase();
