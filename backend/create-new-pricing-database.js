@@ -3329,6 +3329,25 @@ class NewPricingDatabase {
             return knownPlayers[lowerPlayerName];
         }
         
+        // If we accidentally kept a slash-separated fragment like "Gold/Davante",
+        // drop non-name token and prefer the trailing name part
+        if (playerName.includes('/')) {
+            const parts = playerName.split('/').map(p => p.trim()).filter(Boolean);
+            // prefer the last segment
+            playerName = parts[parts.length - 1];
+        }
+
+        // If only a single token was selected but the title contains a valid
+        // next token to form a two-word name, try to expand forward
+        const playerTokens = playerName.split(/\s+/).filter(Boolean);
+        if (playerTokens.length === 1) {
+            for (let i = 0; i + 1 < words.length; i++) {
+                if (words[i].toLowerCase() === playerTokens[0].toLowerCase() && isNameLike(words[i + 1])) {
+                    playerName = words[i] + ' ' + words[i + 1];
+                }
+            }
+        }
+
         // Default capitalization
         return playerName.split(' ').map(word => 
             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
