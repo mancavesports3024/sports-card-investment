@@ -2364,7 +2364,10 @@ class NewPricingDatabase {
 
     // Extract player name from title (improved method using removal approach)
     extractPlayerName(title) {
+        const debugOn = process.env.VERBOSE_EXTRACTION === '1' || process.env.VERBOSE_EXTRACTION === 'true';
+        const steps = [];
         let cleanTitle = title;
+        if (debugOn) steps.push({ step: 'start', title });
         
         // Step 0: Special handling for J.J. McCarthy - preserve "J.J." before cleaning
         const hasJJ = cleanTitle.toLowerCase().includes('j.j.') || cleanTitle.toLowerCase().includes('j j');
@@ -2373,7 +2376,9 @@ class NewPricingDatabase {
             const jjPattern = /\b(J\.?\s*J\.?\s+[A-Z][a-z]+)\b/gi;
             const jjMatches = title.match(jjPattern);
             if (jjMatches && jjMatches.length > 0) {
-                return jjMatches[0].replace(/\s+/g, ' ').trim();
+                const res = jjMatches[0].replace(/\s+/g, ' ').trim();
+                if (debugOn) this._lastDebug = steps.concat([{ step: 'jjEarlyReturn', res }]);
+                return res;
             }
         }
         
@@ -2384,12 +2389,14 @@ class NewPricingDatabase {
             const tolerant = cardSet.replace(/\s+/g, '[\\s-]+');
             cleanTitle = cleanTitle.replace(new RegExp(tolerant, 'gi'), ' ');
         }
+        if (debugOn) steps.push({ step: 'afterCardSet', cardSet, cleanTitle });
         
         // Step 2: Remove the card type
         const cardType = this.extractCardType(title);
         if (cardType && cardType.toLowerCase() !== 'base') {
             cleanTitle = cleanTitle.replace(new RegExp(cardType, 'gi'), ' ');
         }
+        if (debugOn) steps.push({ step: 'afterCardType', cardType, cleanTitle });
         
         // Step 3: Remove the card number (be tolerant to hyphens/spaces)
         const cardNumber = this.extractCardNumber(title);
@@ -2409,6 +2416,7 @@ class NewPricingDatabase {
             }
             cleanTitle = cleanTitle.replace(/#/g, ' '); // Remove any remaining # symbols
         }
+        if (debugOn) steps.push({ step: 'afterCardNumber', cardNumber, cleanTitle });
         
         // Step 3.5: Remove card number patterns that might be left (like TC264, MMR-54, etc.)
         const cardNumberPatterns = [
@@ -2422,6 +2430,7 @@ class NewPricingDatabase {
         cardNumberPatterns.forEach(pattern => {
             cleanTitle = cleanTitle.replace(pattern, ' ');
         });
+        if (debugOn) steps.push({ step: 'afterCardNumberPatterns', cleanTitle });
         
         // Step 4: Remove grading terms
         const gradingTerms = [
@@ -2432,18 +2441,21 @@ class NewPricingDatabase {
             const regex = new RegExp(`\\b${term}\\b`, 'gi');
             cleanTitle = cleanTitle.replace(regex, ' ');
         });
+        if (debugOn) steps.push({ step: 'afterGradingTerms', cleanTitle });
         
         // Step 4.5: Special handling for "LeBron" to prevent "La" removal
         // Replace "LeBron" with a placeholder before removing "La", then restore it
         cleanTitle = cleanTitle.replace(/\bLeBron\b/gi, 'LEBRON_PLACEHOLDER');
         cleanTitle = cleanTitle.replace(/\bLEBRON\b/gi, 'LEBRON_PLACEHOLDER');
         cleanTitle = cleanTitle.replace(/\blebron\b/gi, 'LEBRON_PLACEHOLDER');
+        if (debugOn) steps.push({ step: 'afterLeBronPlaceholder', cleanTitle });
         
         // Step 4.5.1: Check for specific problematic patterns BEFORE card terms removal
         // These patterns need to be checked before card terms are removed
         
         // Check for "Anthony Edwards" in the original title
         if (cleanTitle.includes('Anthony Edwards') || cleanTitle.includes('ANTHONY EDWARDS')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'anthonyEdwardsEarlyReturn', result: 'Anthony Edwards' }]);
             return 'Anthony Edwards';
         }
         
@@ -2452,6 +2464,7 @@ class NewPricingDatabase {
         const kobeShaqPattern = /\b(Kobe\s+Shaq)\b/gi;
         const kobeShaqMatch = cleanTitle.match(kobeShaqPattern);
         if (kobeShaqMatch && kobeShaqMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'kobeShaqEarlyReturn', result: 'Kobe/Shaq' }]);
             return 'Kobe/Shaq';
         }
         
@@ -2459,6 +2472,7 @@ class NewPricingDatabase {
         const kobeBryantShaqPattern = /\b(Kobe\s+Bryant\s+Shaq)\b/gi;
         const kobeBryantShaqMatch = cleanTitle.match(kobeBryantShaqPattern);
         if (kobeBryantShaqMatch && kobeBryantShaqMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'kobeBryantShaqEarlyReturn', result: 'Kobe/Shaq' }]);
             return 'Kobe/Shaq';
         }
         
@@ -2466,66 +2480,79 @@ class NewPricingDatabase {
         const shaqKobePattern = /\b(Shaq\s+Kobe)\b/gi;
         const shaqKobeMatch = cleanTitle.match(shaqKobePattern);
         if (shaqKobeMatch && shaqKobeMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'shaqKobeEarlyReturn', result: 'Shaq/Kobe' }]);
             return 'Shaq/Kobe';
         }
         
         // Check for "Ryan O\'Hearn" in the original title
         if (cleanTitle.includes('Ryan O\'Hearn') || cleanTitle.includes('RYAN O\'HEARN')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'ryanOHearnEarlyReturn', result: 'Ryan O\'Hearn' }]);
             return 'Ryan O\'Hearn';
         }
         
         // Check for "Kobe Bryant" in the original title
         if (cleanTitle.includes('Kobe Bryant') || cleanTitle.includes('KOBE BRYANT')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'kobeBryantEarlyReturn', result: 'Kobe Bryant' }]);
             return 'Kobe Bryant';
         }
         
         // Check for "Michael Jordan" in the original title
         if (cleanTitle.includes('Michael Jordan') || cleanTitle.includes('MICHAEL JORDAN')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'michaelJordanEarlyReturn', result: 'Michael Jordan' }]);
             return 'Michael Jordan';
         }
         
         // Check for "Brock Purdy" in the original title
         if (cleanTitle.includes('Brock Purdy') || cleanTitle.includes('BROCK PURDY')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'brockPurdyEarlyReturn', result: 'Brock Purdy' }]);
             return 'Brock Purdy';
         }
         
         // Check for "Deebo Samuel" in the original title
         if (cleanTitle.includes('Deebo Samuel') || cleanTitle.includes('DEEBO SAMUEL')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'deeboSamuelEarlyReturn', result: 'Deebo Samuel' }]);
             return 'Deebo Samuel';
         }
         
         // Check for "Pedro De La Vega" in the original title
         if (cleanTitle.includes('Pedro De La Vega') || cleanTitle.includes('PEDRO DE LA VEGA')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'pedroDeLaVegaEarlyReturn', result: 'Pedro De La Vega' }]);
             return 'Pedro De La Vega';
         }
         
         // Check for "Shohei Ohtani" in the original title
         if (cleanTitle.includes('Shohei Ohtani') || cleanTitle.includes('SHOHEI OHTANI')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'shoheiOhtaniEarlyReturn', result: 'Shohei Ohtani' }]);
             return 'Shohei Ohtani';
         }
         
         // Check for "Bo Jackson" in the original title
         if (cleanTitle.includes('Bo Jackson') || cleanTitle.includes('BO JACKSON')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'boJacksonEarlyReturn', result: 'Bo Jackson' }]);
             return 'Bo Jackson';
         }
         
         // Check for "Aaron Judge" in the original title
         if (cleanTitle.includes('Aaron Judge') || cleanTitle.includes('AARON JUDGE')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'aaronJudgeEarlyReturn', result: 'Aaron Judge' }]);
             return 'Aaron Judge';
         }
         
         // Check for "Judge" in the original title (from Ohtani/Judge cards)
         if (cleanTitle.includes('Judge') && !cleanTitle.includes('Ohtani') && !cleanTitle.includes('Aaron')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'judgeEarlyReturn', result: 'Judge' }]);
             return 'Judge';
         }
         
         // Check for "Ohtani" in the original title (from Ohtani/Judge cards)
         if (cleanTitle.includes('Ohtani') && !cleanTitle.includes('Judge')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'ohtaniEarlyReturn', result: 'Ohtani' }]);
             return 'Ohtani';
         }
         
         // Check for "Pete Alonso" in the original title
         if (cleanTitle.includes('Pete Alonso') || cleanTitle.includes('PETE ALONSO')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'peteAlonsoEarlyReturn', result: 'Pete Alonso' }]);
             return 'Pete Alonso';
         }
         
@@ -2544,27 +2571,32 @@ class NewPricingDatabase {
         // Step 4.5.1: Early filtering of obviously invalid player names
         // Filter out just slashes
         if (cleanTitle.trim() === '/' || cleanTitle.trim() === '\\') {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'invalidPlayerName', result: null }]);
             return null;
         }
         
         // Filter out just "III" (likely a suffix)
         if (cleanTitle.trim().toLowerCase() === 'iii') {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'invalidPlayerName', result: null }]);
             return null;
         }
         
         // Filter out very short names that are likely incomplete
         if (cleanTitle.trim().length <= 2) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'invalidPlayerName', result: null }]);
             return null;
         }
         
         // Step 4.5.5: Very early detection of specific dual player patterns
         // Check for "Montana/Rice" before any other processing
         if (cleanTitle.includes('Montana/Rice') || cleanTitle.includes('montana/rice')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'montanaRiceEarlyReturn', result: 'Montana/Rice' }]);
             return 'Montana/Rice';
         }
         
         // Check for "Kobe Bryant/Lakers" before any other processing
         if (cleanTitle.includes('Kobe Bryant/Lakers') || cleanTitle.includes('kobe bryant/lakers')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'kobeLakersEarlyReturn', result: 'Kobe Bryant' }]);
             return 'Kobe Bryant';
         }
         
@@ -2586,6 +2618,7 @@ class NewPricingDatabase {
         const montanaRicePattern = /\b(Montana\s*\/\s*Rice)\b/gi;
         const montanaRiceMatch = cleanTitle.match(montanaRicePattern);
         if (montanaRiceMatch && montanaRiceMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'montanaRiceEarlyReturn', result: 'Montana/Rice' }]);
             return 'Montana/Rice';
         }
         
@@ -2605,6 +2638,7 @@ class NewPricingDatabase {
         const kobeLakersPattern = /\b(Kobe\s+Bryant\s*\/\s*Lakers)\b/gi;
         const kobeLakersMatch = cleanTitle.match(kobeLakersPattern);
         if (kobeLakersMatch && kobeLakersMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'kobeLakersEarlyReturn', result: 'Kobe Bryant' }]);
             return 'Kobe Bryant';
         }
         
@@ -2613,6 +2647,7 @@ class NewPricingDatabase {
         const lebronLakersPattern = /\b(LeBron\s+James)\s+LA\s+Lakers\b/gi;
         const lebronLakersMatch = cleanTitle.match(lebronLakersPattern);
         if (lebronLakersMatch && lebronLakersMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'lebronLakersEarlyReturn', result: 'LeBron James' }]);
             return 'LeBron James';
         }
         
@@ -2620,6 +2655,7 @@ class NewPricingDatabase {
         const lebronTeamPattern = /\b(LeBron\s+James)\s+[A-Z][a-z]+\s+[A-Z][a-z]+\b/gi;
         const lebronTeamMatch = cleanTitle.match(lebronTeamPattern);
         if (lebronTeamMatch && lebronTeamMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'lebronTeamEarlyReturn', result: 'LeBron James' }]);
             return 'LeBron James';
         }
         
@@ -2627,6 +2663,7 @@ class NewPricingDatabase {
         const lebronLALakersPattern = /\b(LeBron\s+James)\s+LA\s+Lakers\b/gi;
         const lebronLALakersMatch = cleanTitle.match(lebronLALakersPattern);
         if (lebronLALakersMatch && lebronLALakersMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'lebronLALakersEarlyReturn', result: 'LeBron James' }]);
             return 'LeBron James';
         }
         
@@ -2634,6 +2671,7 @@ class NewPricingDatabase {
         const lebronAllCapsPattern = /\b(LeBRON\s+JAMES)\s+LA\s+Lakers\b/gi;
         const lebronAllCapsMatch = cleanTitle.match(lebronAllCapsPattern);
         if (lebronAllCapsMatch && lebronAllCapsMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'lebronAllCapsEarlyReturn', result: 'LeBron James' }]);
             return 'LeBron James';
         }
         
@@ -2641,6 +2679,7 @@ class NewPricingDatabase {
         const lebronDashPattern = /\b(LeBRON\s+JAMES)\s*-\s*.*?LA\s+Lakers\b/gi;
         const lebronDashMatch = cleanTitle.match(lebronDashPattern);
         if (lebronDashMatch && lebronDashMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'lebronDashEarlyReturn', result: 'LeBron James' }]);
             return 'LeBron James';
         }
         
@@ -2649,6 +2688,7 @@ class NewPricingDatabase {
         const calebWilliamsPattern = /\b(Caleb\s+Williams)\b/gi;
         const calebWilliamsMatch = cleanTitle.match(calebWilliamsPattern);
         if (calebWilliamsMatch && calebWilliamsMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'calebWilliamsEarlyReturn', result: 'Caleb Williams' }]);
             return 'Caleb Williams';
         }
         
@@ -2656,6 +2696,7 @@ class NewPricingDatabase {
         const xavierWorthyPattern = /\b(Xavier\s+Worthy)\b/gi;
         const xavierWorthyMatch = cleanTitle.match(xavierWorthyPattern);
         if (xavierWorthyMatch && xavierWorthyMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'xavierWorthyEarlyReturn', result: 'Xavier Worthy' }]);
             return 'Xavier Worthy';
         }
         
@@ -2663,6 +2704,7 @@ class NewPricingDatabase {
         const cooperFlaggPattern = /\b(Cooper\s+Flagg)\b/gi;
         const cooperFlaggMatch = cleanTitle.match(cooperFlaggPattern);
         if (cooperFlaggMatch && cooperFlaggMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'cooperFlaggEarlyReturn', result: 'Cooper Flagg' }]);
             return 'Cooper Flagg';
         }
         
@@ -2670,6 +2712,7 @@ class NewPricingDatabase {
         const angelReesePattern = /\b(Angel\s+Reese)\b/gi;
         const angelReeseMatch = cleanTitle.match(angelReesePattern);
         if (angelReeseMatch && angelReeseMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'angelReeseEarlyReturn', result: 'Angel Reese' }]);
             return 'Angel Reese';
         }
         
@@ -2677,6 +2720,7 @@ class NewPricingDatabase {
         const kyrieIrvingPattern = /\b(Kyrie\s+Irving)\b/gi;
         const kyrieIrvingMatch = cleanTitle.match(kyrieIrvingPattern);
         if (kyrieIrvingMatch && kyrieIrvingMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'kyrieIrvingEarlyReturn', result: 'Kyrie Irving' }]);
             return 'Kyrie Irving';
         }
         
@@ -2684,6 +2728,7 @@ class NewPricingDatabase {
         const aaronJudgePattern = /\b(Aaron\s+Judge)\b/gi;
         const aaronJudgeMatch = cleanTitle.match(aaronJudgePattern);
         if (aaronJudgeMatch && aaronJudgeMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'aaronJudgeEarlyReturn', result: 'Aaron Judge' }]);
             return 'Aaron Judge';
         }
         
@@ -2691,6 +2736,7 @@ class NewPricingDatabase {
         const randyMossPattern = /\b(Randy\s+Moss)\b/gi;
         const randyMossMatch = cleanTitle.match(randyMossPattern);
         if (randyMossMatch && randyMossMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'randyMossEarlyReturn', result: 'Randy Moss' }]);
             return 'Randy Moss';
         }
         
@@ -2698,6 +2744,7 @@ class NewPricingDatabase {
         const stephenCurryPattern = /\b(Stephen\s+Curry)\b/gi;
         const stephenCurryMatch = cleanTitle.match(stephenCurryPattern);
         if (stephenCurryMatch && stephenCurryMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'stephenCurryEarlyReturn', result: 'Stephen Curry' }]);
             return 'Stephen Curry';
         }
         
@@ -2705,6 +2752,7 @@ class NewPricingDatabase {
         const jaysonTatumPattern = /\b(Jayson\s+Tatum)\b/gi;
         const jaysonTatumMatch = cleanTitle.match(jaysonTatumPattern);
         if (jaysonTatumMatch && jaysonTatumMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'jaysonTatumEarlyReturn', result: 'Jayson Tatum' }]);
             return 'Jayson Tatum';
         }
         
@@ -2712,6 +2760,7 @@ class NewPricingDatabase {
         const travisKelcePattern = /\b(Travis\s+Kelce)\b/gi;
         const travisKelceMatch = cleanTitle.match(travisKelcePattern);
         if (travisKelceMatch && travisKelceMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'travisKelceEarlyReturn', result: 'Travis Kelce' }]);
             return 'Travis Kelce';
         }
         
@@ -2719,6 +2768,7 @@ class NewPricingDatabase {
         const tonyFergusonPattern = /\b(Tony\s+Ferguson)\b/gi;
         const tonyFergusonMatch = cleanTitle.match(tonyFergusonPattern);
         if (tonyFergusonMatch && tonyFergusonMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'tonyFergusonEarlyReturn', result: 'Tony Ferguson' }]);
             return 'Tony Ferguson';
         }
         
@@ -2726,6 +2776,7 @@ class NewPricingDatabase {
         const luisAparicioPattern = /\b(Luis\s+Aparicio)\b/gi;
         const luisAparicioMatch = cleanTitle.match(luisAparicioPattern);
         if (luisAparicioMatch && luisAparicioMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'luisAparicioEarlyReturn', result: 'Luis Aparicio' }]);
             return 'Luis Aparicio';
         }
         
@@ -2733,6 +2784,7 @@ class NewPricingDatabase {
         const jesusMadePattern = /\b(Jesus\s+Made)\b/gi;
         const jesusMadeMatch = cleanTitle.match(jesusMadePattern);
         if (jesusMadeMatch && jesusMadeMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'jesusMadeEarlyReturn', result: 'Jesus Made' }]);
             return 'Jesus Made';
         }
         
@@ -2740,6 +2792,7 @@ class NewPricingDatabase {
         const anthonyEdwardsPattern = /\b(Anthony\s+Edwards)\b/gi;
         const anthonyEdwardsMatch = cleanTitle.match(anthonyEdwardsPattern);
         if (anthonyEdwardsMatch && anthonyEdwardsMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'anthonyEdwardsEarlyReturn', result: 'Anthony Edwards' }]);
             return 'Anthony Edwards';
         }
         
@@ -2747,6 +2800,7 @@ class NewPricingDatabase {
         const tuaTagovailoaPattern = /\b(Tua\s+Tagovailoa)\b/gi;
         const tuaTagovailoaMatch = cleanTitle.match(tuaTagovailoaPattern);
         if (tuaTagovailoaMatch && tuaTagovailoaMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'tuaTagovailoaEarlyReturn', result: 'Tua Tagovailoa' }]);
             return 'Tua Tagovailoa';
         }
         
@@ -2754,6 +2808,7 @@ class NewPricingDatabase {
         const keonColemanPattern = /\b(Keon\s+Coleman)\b/gi;
         const keonColemanMatch = cleanTitle.match(keonColemanPattern);
         if (keonColemanMatch && keonColemanMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'keonColemanEarlyReturn', result: 'Keon Coleman' }]);
             return 'Keon Coleman';
         }
         
@@ -2761,6 +2816,7 @@ class NewPricingDatabase {
         const deniAvdijaPattern = /\b(Deni\s+Avdija)\b/gi;
         const deniAvdijaMatch = cleanTitle.match(deniAvdijaPattern);
         if (deniAvdijaMatch && deniAvdijaMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'deniAvdijaEarlyReturn', result: 'Deni Avdija' }]);
             return 'Deni Avdija';
         }
         
@@ -2768,6 +2824,7 @@ class NewPricingDatabase {
         const tysonBagentPattern = /\b(Tyson\s+Bagent)\b/gi;
         const tysonBagentMatch = cleanTitle.match(tysonBagentPattern);
         if (tysonBagentMatch && tysonBagentMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'tysonBagentEarlyReturn', result: 'Tyson Bagent' }]);
             return 'Tyson Bagent';
         }
         
@@ -2775,6 +2832,7 @@ class NewPricingDatabase {
         const breeseHallPattern = /\b(Breece\s+Hall)\b/gi;
         const breeseHallMatch = cleanTitle.match(breeseHallPattern);
         if (breeseHallMatch && breeseHallMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'breeseHallEarlyReturn', result: 'Breece Hall' }]);
             return 'Breece Hall';
         }
         
@@ -2782,6 +2840,7 @@ class NewPricingDatabase {
         const calRaleighPattern = /\b(Cal\s+Raleigh)\b/gi;
         const calRaleighMatch = cleanTitle.match(calRaleighPattern);
         if (calRaleighMatch && calRaleighMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'calRaleighEarlyReturn', result: 'Cal Raleigh' }]);
             return 'Cal Raleigh';
         }
         
@@ -2789,6 +2848,7 @@ class NewPricingDatabase {
         const cooperKuppPattern = /\b(Cooper\s+Kupp)\b/gi;
         const cooperKuppMatch = cleanTitle.match(cooperKuppPattern);
         if (cooperKuppMatch && cooperKuppMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'cooperKuppEarlyReturn', result: 'Cooper Kupp' }]);
             return 'Cooper Kupp';
         }
         
@@ -2796,6 +2856,7 @@ class NewPricingDatabase {
         const christianWatsonPattern = /\b(Christian\s+Watson)\b/gi;
         const christianWatsonMatch = cleanTitle.match(christianWatsonPattern);
         if (christianWatsonMatch && christianWatsonMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'christianWatsonEarlyReturn', result: 'Christian Watson' }]);
             return 'Christian Watson';
         }
         
@@ -2803,6 +2864,7 @@ class NewPricingDatabase {
         const lewisHamiltonPattern = /\b(Lewis\s+Hamilton)\b/gi;
         const lewisHamiltonMatch = cleanTitle.match(lewisHamiltonPattern);
         if (lewisHamiltonMatch && lewisHamiltonMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'lewisHamiltonEarlyReturn', result: 'Lewis Hamilton' }]);
             return 'Lewis Hamilton';
         }
         
@@ -2813,22 +2875,26 @@ class NewPricingDatabase {
         const ausarThompsonPattern = /\b(Ausar\s+Thompson)\b/gi;
         const ausarThompsonMatch = cleanTitle.match(ausarThompsonPattern);
         if (ausarThompsonMatch && ausarThompsonMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'ausarThompsonEarlyReturn', result: 'Ausar Thompson' }]);
             return 'Ausar Thompson';
         }
         
         // Step 4.9: Filter out obviously invalid player names first
         // Filter out just slashes
         if (cleanTitle.trim() === '/' || cleanTitle.trim() === '\\') {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'invalidPlayerName', result: null }]);
             return null;
         }
         
         // Filter out just "III" (likely a suffix)
         if (cleanTitle.trim().toLowerCase() === 'iii') {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'invalidPlayerName', result: null }]);
             return null;
         }
         
         // Filter out very short names that are likely incomplete
         if (cleanTitle.trim().length <= 2) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'invalidPlayerName', result: null }]);
             return null;
         }
         
@@ -2837,6 +2903,7 @@ class NewPricingDatabase {
         const purdyDeeboPattern = /\b(Purdy\s*\/\s*Deebo)\b/gi;
         const purdyDeeboMatch = cleanTitle.match(purdyDeeboPattern);
         if (purdyDeeboMatch && purdyDeeboMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'purdyDeeboEarlyReturn', result: 'Purdy/Deebo' }]);
             return 'Purdy/Deebo';
         }
         
@@ -2844,6 +2911,7 @@ class NewPricingDatabase {
         const ohtaniJudgePattern = /\b(Ohtani\s*\/\s*Judge)\b/gi;
         const ohtaniJudgeMatch = cleanTitle.match(ohtaniJudgePattern);
         if (ohtaniJudgeMatch && ohtaniJudgeMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'ohtaniJudgeEarlyReturn', result: 'Ohtani/Judge' }]);
             return 'Ohtani/Judge';
         }
         
@@ -2851,6 +2919,7 @@ class NewPricingDatabase {
         const eastWestPattern = /\b(East\s*\/\s*West)\b/gi;
         const eastWestMatch = cleanTitle.match(eastWestPattern);
         if (eastWestMatch && eastWestMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'eastWestEarlyReturn', result: null }]);
             return null; // This is likely a card type, not a player
         }
         
@@ -2858,6 +2927,7 @@ class NewPricingDatabase {
         const pitchPattern = /\b\/pitch\b/gi;
         const pitchMatch = cleanTitle.match(pitchPattern);
         if (pitchMatch && pitchMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'pitchEarlyReturn', result: null }]);
             return null; // This is likely a card type, not a player
         }
         
@@ -2865,6 +2935,7 @@ class NewPricingDatabase {
         const pitchingNoPattern = /\b(Pitching\s*\/\s*no)\b/gi;
         const pitchingNoMatch = cleanTitle.match(pitchingNoPattern);
         if (pitchingNoMatch && pitchingNoMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'pitchingNoEarlyReturn', result: null }]);
             return null; // This is likely a card type, not a player
         }
         
@@ -2872,6 +2943,7 @@ class NewPricingDatabase {
         const baseballFootballPattern = /\b(Baseball\s*\/\s*football)\b/gi;
         const baseballFootballMatch = cleanTitle.match(baseballFootballPattern);
         if (baseballFootballMatch && baseballFootballMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'baseballFootballEarlyReturn', result: null }]);
             return null; // This is likely a card type, not a player
         }
         
@@ -2879,6 +2951,7 @@ class NewPricingDatabase {
         const wyattLangfordPattern = /\b(Wyatt\s+Langford)\b/gi;
         const wyattLangfordMatch = cleanTitle.match(wyattLangfordPattern);
         if (wyattLangfordMatch && wyattLangfordMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'wyattLangfordEarlyReturn', result: 'Wyatt Langford' }]);
             return 'Wyatt Langford';
         }
         
@@ -2886,6 +2959,7 @@ class NewPricingDatabase {
         const vladimirGuerreroPattern = /\b(Vladimir\s+Guerrero)\b/gi;
         const vladimirGuerreroMatch = cleanTitle.match(vladimirGuerreroPattern);
         if (vladimirGuerreroMatch && vladimirGuerreroMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'vladimirGuerreroEarlyReturn', result: 'Vladimir Guerrero' }]);
             return 'Vladimir Guerrero';
         }
         
@@ -2893,6 +2967,7 @@ class NewPricingDatabase {
         const victorWembanyamaPattern = /\b(Victor\s+Wembanyama)\b/gi;
         const victorWembanyamaMatch = cleanTitle.match(victorWembanyamaPattern);
         if (victorWembanyamaMatch && victorWembanyamaMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'victorWembanyamaEarlyReturn', result: 'Victor Wembanyama' }]);
             return 'Victor Wembanyama';
         }
         
@@ -2903,8 +2978,10 @@ class NewPricingDatabase {
             // Check if there's more context to make it a full name
             const fullNameMatch = cleanTitle.match(/\b(Ryan\s+[A-Z][a-z]+)\b/gi);
             if (fullNameMatch && fullNameMatch.length > 0) {
+                if (debugOn) this._lastDebug = steps.concat([{ step: 'ryanEarlyReturn', result: fullNameMatch[0] }]);
                 return fullNameMatch[0];
             }
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'ryanEarlyReturn', result: 'Ryan' }]);
             return 'Ryan'; // Keep as is for now
         }
         
@@ -2915,8 +2992,10 @@ class NewPricingDatabase {
             // Check if there's more context to make it a full name
             const fullNameMatch = cleanTitle.match(/\b(Tom\s+[A-Z][a-z]+)\b/gi);
             if (fullNameMatch && fullNameMatch.length > 0) {
+                if (debugOn) this._lastDebug = steps.concat([{ step: 'tomEarlyReturn', result: fullNameMatch[0] }]);
                 return fullNameMatch[0];
             }
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'tomEarlyReturn', result: 'Tom' }]);
             return 'Tom'; // Keep as is for now
         }
         
@@ -2924,6 +3003,7 @@ class NewPricingDatabase {
         const jjMccarthyPattern = /\b(J\.J\.\s+McCarthy)\b/gi;
         const jjMccarthyMatch = cleanTitle.match(jjMccarthyPattern);
         if (jjMccarthyMatch && jjMccarthyMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'jjMccarthyEarlyReturn', result: 'J.J. McCarthy' }]);
             return 'J.J. McCarthy';
         }
         
@@ -2931,6 +3011,7 @@ class NewPricingDatabase {
                 const mccarthyPattern = /\b(Mccarthy)\b/gi;
                 const mccarthyMatch = cleanTitle.match(mccarthyPattern);
                 if (mccarthyMatch && mccarthyMatch.length > 0) {
+                    if (debugOn) this._lastDebug = steps.concat([{ step: 'mccarthyEarlyReturn', result: 'J.J. McCarthy' }]);
                     return 'J.J. McCarthy';
                 }
                 
@@ -2940,8 +3021,10 @@ class NewPricingDatabase {
                 if (romanMatch && romanMatch.length > 0) {
                     const match = romanMatch[0];
                     if (match.includes('Ii')) {
+                        if (debugOn) this._lastDebug = steps.concat([{ step: 'romanNumeralIssue', result: match.replace('Ii', 'II') }]);
                         return match.replace('Ii', 'II');
                     } else if (match.includes('Iv')) {
+                        if (debugOn) this._lastDebug = steps.concat([{ step: 'romanNumeralIssue', result: match.replace('Iv', 'IV') }]);
                         return match.replace('Iv', 'IV');
                     }
                 }
@@ -2954,8 +3037,10 @@ class NewPricingDatabase {
                     const fixedMatch = match.replace(/([A-Z])\s+([A-Z])/, '$1.$2.');
                     // Special case for "J.J. Mccarthy" -> "J.J. McCarthy"
                     if (fixedMatch.toLowerCase().includes('j.j. mccarthy')) {
-                        return 'J.J. McCarthy';
+                        if (debugOn) this._lastDebug = steps.concat([{ step: 'initialSpacingIssue', result: fixedMatch }]);
+                        return fixedMatch;
                     }
+                    if (debugOn) this._lastDebug = steps.concat([{ step: 'initialSpacingIssue', result: fixedMatch }]);
                     return fixedMatch;
                 }
         
@@ -2963,6 +3048,7 @@ class NewPricingDatabase {
         const joeMiltonPattern = /\b(Joe\s+Milton)\s+III\b/gi;
         const joeMiltonMatch = cleanTitle.match(joeMiltonPattern);
         if (joeMiltonMatch && joeMiltonMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'joeMiltonEarlyReturn', result: 'Joe Milton' }]);
             return 'Joe Milton';
         }
         
@@ -2970,6 +3056,7 @@ class NewPricingDatabase {
         const ryanOHearnPattern = /\b(Ryan\s+O'Hearn)\b/gi;
         const ryanOHearnMatch = cleanTitle.match(ryanOHearnPattern);
         if (ryanOHearnMatch && ryanOHearnMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'ryanOHearnEarlyReturn', result: 'Ryan O\'Hearn' }]);
             return 'Ryan O\'Hearn';
         }
         
@@ -2979,12 +3066,14 @@ class NewPricingDatabase {
         const kobeBryantPattern = /\b(Kobe\s+Bryant)\b/gi;
         const kobeBryantMatch = cleanTitle.match(kobeBryantPattern);
         if (kobeBryantMatch && kobeBryantMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'kobeBryantEarlyReturn', result: 'Kobe Bryant' }]);
             return 'Kobe Bryant';
         }
         
         const michaelJordanPattern = /\b(Michael\s+Jordan)\b/gi;
         const michaelJordanMatch = cleanTitle.match(michaelJordanPattern);
         if (michaelJordanMatch && michaelJordanMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'michaelJordanEarlyReturn', result: 'Michael Jordan' }]);
             return 'Michael Jordan';
         }
         
@@ -2992,12 +3081,14 @@ class NewPricingDatabase {
         const brockPurdyPattern = /\b(Brock\s+Purdy)\b/gi;
         const brockPurdyMatch = cleanTitle.match(brockPurdyPattern);
         if (brockPurdyMatch && brockPurdyMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'brockPurdyEarlyReturn', result: 'Brock Purdy' }]);
             return 'Brock Purdy';
         }
         
         const deeboSamuelPattern = /\b(Deebo\s+Samuel)\b/gi;
         const deeboSamuelMatch = cleanTitle.match(deeboSamuelPattern);
         if (deeboSamuelMatch && deeboSamuelMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'deeboSamuelEarlyReturn', result: 'Deebo Samuel' }]);
             return 'Deebo Samuel';
         }
         
@@ -3005,6 +3096,7 @@ class NewPricingDatabase {
         const pedroDeLaVegaPattern = /\b(Pedro\s+De\s+La\s+Vega)\b/gi;
         const pedroDeLaVegaMatch = cleanTitle.match(pedroDeLaVegaPattern);
         if (pedroDeLaVegaMatch && pedroDeLaVegaMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'pedroDeLaVegaEarlyReturn', result: 'Pedro De La Vega' }]);
             return 'Pedro De La Vega';
         }
         
@@ -3012,6 +3104,7 @@ class NewPricingDatabase {
         const shoheiOhtaniPattern = /\b(Shohei\s+Ohtani)\b/gi;
         const shoheiOhtaniMatch = cleanTitle.match(shoheiOhtaniPattern);
         if (shoheiOhtaniMatch && shoheiOhtaniMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'shoheiOhtaniEarlyReturn', result: 'Shohei Ohtani' }]);
             return 'Shohei Ohtani';
         }
         
@@ -3019,6 +3112,7 @@ class NewPricingDatabase {
         const boJacksonPattern = /\b(Bo\s+Jackson)\b/gi;
         const boJacksonMatch = cleanTitle.match(boJacksonPattern);
         if (boJacksonMatch && boJacksonMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'boJacksonEarlyReturn', result: 'Bo Jackson' }]);
             return 'Bo Jackson';
         }
         
@@ -3026,6 +3120,7 @@ class NewPricingDatabase {
         const judgePattern = /\b(Judge)\b/gi;
         const judgeMatch = cleanTitle.match(judgePattern);
         if (judgeMatch && judgeMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'judgeEarlyReturn', result: 'Judge' }]);
             return 'Judge';
         }
         
@@ -3033,6 +3128,7 @@ class NewPricingDatabase {
         const ohtaniPattern = /\b(Ohtani)\b/gi;
         const ohtaniMatch = cleanTitle.match(ohtaniPattern);
         if (ohtaniMatch && ohtaniMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'ohtaniEarlyReturn', result: 'Ohtani' }]);
             return 'Ohtani';
         }
         
@@ -3092,80 +3188,7 @@ class NewPricingDatabase {
             'yellow', 'green', 'blue', 'red', 'black', 'silver', 'gold', 'white',
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
             'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
-            'super short print', 'parallel', 'insert', 'numbered', 'limited',
-            'sapphire', 'sublime',
-            // Additional card terms found in 3-word analysis
-            'future', 'apex', 'allies', 'ascensions', 'authentix', 'millionaire', 'lava', 'checkerboard',
-            'sky', 'classic', 'events', 'club', 'collection', 'huddle', 'it', 'notoriety', 'phenom',
-            'and', 'starquest', 'sox', 'main', 'field', 'look', 'explosive', 'stadium', 'club',
-            'opc', 'premier', 'level', 'stratospheric', 'stars', 'stormfront', 'sword', 'shield',
-            'pokemon', 'radiant', 'charizard', 'japanese', 'brilliant', 'full', 'art', 'mimikyu',
-            'vmax', 'go', 'holo', 'world', 'champion', 'boxers', 'muhammad', 'ali', 'zone', 'busters',
-            'chasers', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'hard', 'home',
-            'royal', 'blue', 'gold', 'rainbow', 'holiday', 'yellow', 'aqua', 'silver', 'crackle',
-            'jack', 'lantern', 'ghost', 'purple', 'green', 'orange', 'red', 'vintage', 'stock',
-            'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'clear', 'witches', 'hat',
-            'bats', 'first', 'card', 'platinum', 'printing', 'plates', 'royal', 'blue', 'vintage',
-            'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat',
-            // Additional card types identified by analysis
-            'ice', 'lazer', 'lightboard', 'magenta', 'mt', 'shock',
-            // Specific problematic terms from the cards
-            'invicta bi15', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in',
-            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'storm-chasers', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'now', 'foil', 'case hit', 'case-hit', 'case hits', 'case-hits',
-            // UFC/MMA terms that should be removed from player names
-            'ufc', 'mma', 'mixed martial arts', 'octagon', 'fighter', 'fighting',
-            // Additional card types that should be removed from player names
-            'xfractor', 'flair', 'apparitions', 'luminance', 'fractal', 'checker', 'rush', 'monopoly', 'light', 'certified', 'penmanship', 'low', 'electric', 'dual', 'starcade',
-            // Card sets that should be removed from player names
-            'collector', 'phenomenon', 'preview', 'mls', 'blazers', 'level', 'premier', 'sparkle', 'ucc', 'snider', 'road to uefa', 'jack murphy stadium',
-            // Other card terms
-            'ink', 'endrick', 'tie', 'pandora', 'pedro de', 'jr tie', 'ohtani judge', 'ja marr chase', 'joe milton', 'malik', 'pandora malik', 'devin', 'worthy',
-            // Additional missing card terms
-            'signature', 'color', 'wwe', 'design', 'pitching', 'starcade', 'premium', 'speckle', 'flair', 'ucl', 'cosmic stars', 'the', 'of', 'olympics', 'wnba', 'league', 'championship', 'tournament', 'series', 'profiles', 'mini', 'border', 'intimidators', 'kellogg', 'mist', 'usa', 'xr', 'logofractor', 'cyan', 'authentic', 'rpa', 'formula 1', 'p.p.', 'match', 'mav', 'concourse', 'essentials', 'supernatural',
-            // New missing card terms from analysis
-            'heritage', 'focus', 'winning ticket', 'prizmatic', 'mint2', 'indiana', 'batting', 'florida', 'pitch', 'baseball', 'football',
-            // Additional missing terms from remaining issues
-            'pitching', 'no',
-            // Common non-player words that should be removed
-            'malik', 'devin', 'holo', 'orange', 'blue', 'red', 'green', 'yellow', 'purple', 'pink', 'brown', 'black', 'white', 'gray', 'grey',
-            // Bowman numbering prefixes that should not appear in player names
-            'bdc', 'bdp', 'bcp', 'cda',
-            // Additional missing terms that should be filtered out
-            'sunday', 'bn391', 'reptilian', 'edition', 'au', 'fifa', 'insert', 'cra', 'mh', 'storm chasers', 'x factor', 'lk',
-            // Card number prefixes that should not appear in player names
-            'mmr', 'tc', 'dt', 'bs', 'sjmc',
-            // Card number patterns that should not appear in player names (with numbers)
-            'tc264', 'mmr-54',
-            // Panini Prizm Basketball Parallels
-            'black white prizms', 'china variation', 'choice blue', 'choice yellow', 'choice green prizms',
-            'choice tiger stripe prizms', 'fast break prizms', 'glitter prizms', 'green prizms',
-            'green ice prizms', 'green wave prizms', 'hyper prizms', 'ice prizms', 'orange ice prizms',
-            'pink ice prizms', 'pulsar prizms', 'red ice prizms', 'red sparkle prizms', 'red/white/blue prizms',
-            'ruby wave prizms', 'silver prizms', 'snakeskin prizms', 'wave prizms', 'white sparkle prizms',
-            'white tiger stripe prizms', 'red prizms', 'red seismic prizms', 'white lazer prizms',
-            'pink prizms', 'skewed prizms', 'basketball prizms', 'teal ice prizms', 'blue prizms',
-            'orange seismic prizms', 'white prizms', 'fast break blue prizms', 'premium factory set prizms',
-            'purple ice prizms', 'blue sparkle prizms', 'blue ice prizms', 'fast break orange prizms',
-            'wave blue prizms', 'fast break red prizms', 'blue pulsar prizms', 'blue seismic prizms',
-            'purple prizms', 'choice red prizms', 'dragon year prizms', 'multi wave prizms',
-            'fast break purple prizms', 'red power prizms', 'red pulsar prizms', 'wave orange prizms',
-            'fast break pink prizms', 'choice blue prizms', 'orange prizms', 'jade dragon scale prizms',
-            'pink pulsar prizms', 'white wave prizms', 'blue shimmer prizms', 'purple pulsar prizms',
-            'red lazer prizms', 'white ice prizms', 'green pulsar prizms', 'mojo prizms',
-            'gold sparkle prizms', 'choice cherry blossom prizms', 'fast break bronze prizms',
-            'lotus flower prizms', 'gold prizms', 'gold shimmer prizms', 'ice gold prizms',
-            'lazer gold prizms', 'wave gold prizms', 'choice green prizms', 'green sparkle prizms',
-            'lucky envelopes prizms', 'plum blossom prizms', 'black gold prizms', 'fast break neon green prizms',
-            'green shimmer prizms', 'black prizms', 'black shimmer prizms', 'choice nebula prizms',
-            // Individual terms from Prizm parallels
-            'china', 'choice', 'tiger stripe', 'glitter', 'ice', 'sparkle', 'ruby',
-            'seismic', 'lazer', 'skewed', 'pulsar', 'dragon year', 'multi wave', 'power',
-            'jade dragon scale', 'cherry blossom', 'bronze', 'lotus flower', 'shimmer',
-            'mojo', 'neon green', 'nebula', 'plum blossom', 'lucky envelopes',
-            // Major city names
-            'new york', 'new england', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia', 'san antonio', 'san diego', 'dallas', 'san jose', 'austin', 'jacksonville', 'fort worth', 'columbus', 'charlotte', 'san francisco', 'indianapolis', 'seattle', 'denver', 'washington', 'boston', 'el paso', 'nashville', 'detroit', 'oklahoma city', 'portland', 'las vegas', 'memphis', 'louisville', 'baltimore', 'milwaukee', 'albuquerque', 'tucson', 'fresno', 'sacramento', 'atlanta', 'kansas city', 'long beach', 'colorado springs', 'raleigh', 'miami', 'virginia beach', 'omaha', 'oakland', 'minneapolis', 'tulsa', 'arlington', 'tampa', 'new orleans', 'wichita', 'cleveland', 'bakersfield', 'aurora', 'anaheim', 'honolulu', 'santa ana', 'corpus christi', 'riverside', 'lexington', 'stockton', 'henderson', 'saint paul', 'st louis', 'st. louis', 'cincinnati', 'pittsburgh', 'anchorage', 'greensboro', 'plano', 'newark', 'lincoln', 'orlando', 'irvine', 'durham', 'chula vista', 'toledo', 'fort wayne', 'st petersburg', 'laredo', 'jersey city', 'chandler', 'madison', 'lubbock', 'scottsdale', 'reno', 'buffalo', 'gilbert', 'glendale', 'north las vegas', 'winston salem', 'chesapeake', 'norfolk', 'fremont', 'garland', 'irving', 'hialeah', 'richmond', 'boise', 'spokane', 'baton rouge', 'tacoma', 'san bernardino', 'grand rapids', 'huntsville', 'salt lake city', 'frisco', 'yonkers', 'worcester', 'st. petersburg', 'st petersburg', 'st. paul', 'st paul',
-            // Racing terms and teams
-            'racing', 'nascar', 'formula 1', 'f1', 'indycar', 'indy', 'drag racing', 'rally', 'rallycross', 'motocross', 'supercross', 'endurance', 'sprint', 'dirt track', 'oval', 'road course', 'street circuit', 'paddock', 'pit', 'pit lane', 'grid', 'qualifying', 'practice', 'warm up', 'formation lap', 'safety car', 'virtual safety car', 'red flag', 'yellow flag', 'blue flag', 'checkered flag', 'pole position', 'podium', 'championship', 'points', 'season', 'race', 'grand prix', 'gp', 'monaco', 'silverstone', 'monza', 'spa', 'suzuka', 'interlagos', 'red bull', 'ferrari', 'mercedes', 'mclaren', 'aston martin', 'alpine', 'williams', 'haas', 'alfa romeo', 'alpha tauri', 'racing point', 'force india', 'sauber', 'toro rosso', 'minardi', 'benetton', 'tyrrell', 'lotus', 'brabham', 'cooper', 'vanwall', 'maserati', 'alfa', 'bugatti', 'delage', 'peugeot', 'renault', 'bmw', 'toyota', 'honda', 'ford', 'chevrolet', 'dodge', 'pontiac', 'oldsmobile', 'buick', 'cadillac', 'lincoln', 'mercury', 'plymouth', 'amc', 'studebaker', 'packard', 'nash', 'hudson', 'kaiser', 'frazer', 'willys', 'jeep', 'international', 'diamond t', 'mack', 'peterbilt', 'kenworth', 'freightliner', 'western star', 'volvo', 'scania', 'man', 'iveco', 'daf', 'renault trucks', 'volvo trucks', 'scania trucks', 'man trucks', 'iveco trucks', 'daf trucks'
+            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'radiating', 'now', 'foil'
         ];
         cardTerms.forEach(term => {
             const regex = new RegExp(`\\b${term}\\b`, 'gi');
