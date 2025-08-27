@@ -2452,7 +2452,7 @@ class NewPricingDatabase {
         
         // Step 4: Remove grading terms
         const gradingTerms = [
-            'psa', '10', 'gem', 'mint', 'gem mint', 'psa 10', 'psa10',
+            'psa', '10', 'gem', 'mint', 'mt', 'gem mint', 'psa 10', 'psa10',
             'bgs', 'beckett', 'sgc', 'csg', 'hga', 'gma', 'graded', 'ungraded'
         ];
         gradingTerms.forEach(term => {
