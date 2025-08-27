@@ -3858,10 +3858,13 @@ app.post('/api/admin/test-extraction', async (req, res) => {
             const isAutograph = db.isAutographCard(testTitle);
             const sport = db.detectSportFromKeywords(testTitle);
             
-            // Test player name extraction
+            // Test player name extraction with debug info
             const playerName = db.extractPlayerName(testTitle);
             const cleanPlayerName = playerName ? db.filterTeamNamesFromPlayer(playerName) : null;
             const finalPlayerName = cleanPlayerName ? db.capitalizePlayerName(cleanPlayerName) : null;
+            
+            // Get debug information if available
+            const debugSteps = db.getLastExtractionDebug();
             
             // Build summary title
             let summaryTitle = '';
@@ -3887,7 +3890,8 @@ app.post('/api/admin/test-extraction', async (req, res) => {
                     playerName,
                     cleanPlayerName,
                     finalPlayerName,
-                    summaryTitle
+                    summaryTitle,
+                    debugSteps: debugSteps.length > 0 ? debugSteps : undefined
                 }
             });
         }

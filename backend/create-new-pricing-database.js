@@ -3223,11 +3223,14 @@ class NewPricingDatabase {
         
         // Normalize slashes before tokenizing so "Gold/Davante" becomes separate tokens
         cleanTitle = cleanTitle.replace(/[\/]+/g, ' ').replace(/\s+/g, ' ').trim();
+        if (debugOn) steps.push({ step: 'afterSlashNormalization', cleanTitle });
 
         // Step 10: Split into words and find the player name
         const words = cleanTitle.split(' ').filter(word => word.length > 1);
+        if (debugOn) steps.push({ step: 'tokens', words });
         
         if (words.length === 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'emptyTokensReturn', result: null }]);
             return null;
         }
         
@@ -3276,12 +3279,14 @@ class NewPricingDatabase {
         else {
             playerName = candidate;
         }
+        if (debugOn) steps.push({ step: 'candidateSelected', playerName });
 
         // Fallback to first 1–3 words if no candidate windows found
         if (!playerName) {
             const playerNameWords = words.slice(0, Math.min(3, words.length));
             playerName = playerNameWords.join(' ');
         }
+        if (debugOn) steps.push({ step: 'afterFallback', playerName });
         
         // Normalize slash fragments and try to expand single token to two-word name
         if (playerName.includes('/')) {
@@ -3296,6 +3301,7 @@ class NewPricingDatabase {
                 }
             }
         }
+        if (debugOn) steps.push({ step: 'expandedSingleToken', playerName });
 
         // Capitalize properly but preserve original case for known players
         const knownPlayers = {
@@ -3343,13 +3349,20 @@ class NewPricingDatabase {
         
         const lowerPlayerName = playerName.toLowerCase();
         if (knownPlayers[lowerPlayerName]) {
-            return knownPlayers[lowerPlayerName];
+            const result = knownPlayers[lowerPlayerName];
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'knownPlayersHit', lowerPlayerName, result }]);
+            return result;
         }
         
-        // Default capitalization
-        return playerName.split(' ').map(word => 
+        const finalResult = playerName.split(' ').map(word => 
             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         ).join(' ');
+        if (debugOn) this._lastDebug = steps.concat([{ step: 'final', finalResult }]);
+        return finalResult;
+    }
+
+    getLastExtractionDebug() {
+        return this._lastDebug || [];
     }
 
     extractCardNumber(title) {
