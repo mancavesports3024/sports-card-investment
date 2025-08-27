@@ -3225,9 +3225,36 @@ class NewPricingDatabase {
             return null;
         }
         
-        // Take the first 1-3 words as the player name
-        const playerNameWords = words.slice(0, Math.min(3, words.length));
-        const playerName = playerNameWords.join(' ');
+        // Prefer the best contiguous 2–3 word span anywhere in the title
+        let playerName = '';
+        const isNameLike = (w) => {
+            if (!w) return false;
+            const lw = w.toLowerCase();
+            // simple name-like token: letters with optional internal hyphen/apostrophe
+            return /^[a-z]+(?:[-'][a-z]+)*$/.test(lw) && lw.length > 1;
+        };
+
+        // Gather all 3-word windows first, then 2-word windows, choose the last plausible one
+        let candidate = null;
+        for (let size of [3, 2]) {
+            candidate = null;
+            for (let i = 0; i + size <= words.length; i++) {
+                const window = words.slice(i, i + size);
+                if (window.every(isNameLike)) {
+                    candidate = window.join(' ');
+                }
+            }
+            if (candidate) {
+                playerName = candidate;
+                break;
+            }
+        }
+
+        // Fallback to first 1–3 words if no candidate windows found
+        if (!playerName) {
+            const playerNameWords = words.slice(0, Math.min(3, words.length));
+            playerName = playerNameWords.join(' ');
+        }
         
         // Capitalize properly but preserve original case for known players
         const knownPlayers = {
@@ -3262,6 +3289,10 @@ class NewPricingDatabase {
             'j j mccarthy': 'J.J. McCarthy',
             'elly de la': 'Elly De La Cruz',
             'elly de la cruz': 'Elly De La Cruz',
+            // Single-name and short-name mappings to full names
+            'yoshinobu': 'Yoshinobu Yamamoto',
+            'yoshinobu yamamoto': 'Yoshinobu Yamamoto',
+            'davante': 'Davante Adams',
             // Handle individual player names from dual cards
             'kobe': 'Kobe Bryant',
             'shaq': 'Shaquille O\'Neal',
@@ -3418,6 +3449,8 @@ class NewPricingDatabase {
             // Handle special cases
             if (word === 'jr' || word === 'sr') return word.toUpperCase();
             if (word === 'ii' || word === 'iii' || word === 'iv') return word.toUpperCase();
+            // Preserve dotted initials like "j.j." -> "J.J."
+            if (/^[a-z]\.[a-z]\.$/.test(word)) return word.toUpperCase();
             
             // Capitalize first letter
             return word.charAt(0).toUpperCase() + word.slice(1);
@@ -3496,6 +3529,9 @@ class NewPricingDatabase {
                 result = resultWords.join(' ');
             }
         }
+        
+        // Fix common surname prefixes like "Mc" (e.g., Mccarthy -> McCarthy)
+        result = result.replace(/\bMc([a-z])/g, (match, p1) => 'Mc' + p1.toUpperCase());
         
         return result;
     }
