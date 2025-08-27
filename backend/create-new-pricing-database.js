@@ -1343,6 +1343,20 @@ class NewPricingDatabase {
         if ((cleanTitle.includes('topps') && (cleanTitle.includes('uefa cc') || cleanTitle.includes('uefa club'))) && cleanTitle.includes('chrome')) {
             return 'Topps UEFA Club Competitions Chrome';
         }
+        // Sapphire card sets (premium editions) - place before generic Topps Chrome
+        if (cleanTitle.includes('topps chrome football sapphire')) {
+            return 'Topps Chrome Football Sapphire';
+        }
+        if (cleanTitle.includes('topps chrome baseball sapphire')) {
+            return 'Topps Chrome Baseball Sapphire';
+        }
+        if (cleanTitle.includes('topps chrome sapphire')) {
+            return 'Topps Chrome Sapphire';
+        }
+        // Handle cases where there are other words between "chrome" and "sapphire" (like UCL)
+        if (cleanTitle.includes('topps chrome') && cleanTitle.includes('sapphire')) {
+            return 'Topps Chrome Sapphire';
+        }
         if (cleanTitle.includes('topps chrome')) {
             return 'Topps Chrome';
         }
