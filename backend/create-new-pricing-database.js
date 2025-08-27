@@ -1399,6 +1399,10 @@ class NewPricingDatabase {
         if (cleanTitle.includes('topps chrome sapphire')) {
             return 'Topps Chrome Sapphire';
         }
+        // Handle cases where there are other words between "chrome" and "sapphire" (like UCL)
+        if (cleanTitle.includes('topps chrome') && cleanTitle.includes('sapphire')) {
+            return 'Topps Chrome Sapphire';
+        }
         if (cleanTitle.includes('bowman chrome sapphire') ||
             (cleanTitle.includes('bowman') && cleanTitle.includes('sapphire') && cleanTitle.includes('chrome'))) {
             return 'Bowman Chrome Sapphire';
