@@ -2893,6 +2893,13 @@ class NewPricingDatabase {
             return 'J.J. McCarthy';
         }
         
+        // Look for "Mccarthy" without "J.J." - assume it's "J.J. McCarthy" for consistency
+        const mccarthyPattern = /\b(Mccarthy)\b/gi;
+        const mccarthyMatch = cleanTitle.match(mccarthyPattern);
+        if (mccarthyMatch && mccarthyMatch.length > 0) {
+            return 'J.J. McCarthy';
+        }
+        
         // Look for "Joe Milton III" - extract just "Joe Milton"
         const joeMiltonPattern = /\b(Joe\s+Milton)\s+III\b/gi;
         const joeMiltonMatch = cleanTitle.match(joeMiltonPattern);
@@ -3027,6 +3034,7 @@ class NewPricingDatabase {
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
             'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
             'super short print', 'parallel', 'insert', 'numbered', 'limited',
+            'sapphire', 'sublime',
             // Additional card types identified by analysis
             'ice', 'lazer', 'lightboard', 'magenta', 'mt', 'shock',
             // Specific problematic terms from the cards
