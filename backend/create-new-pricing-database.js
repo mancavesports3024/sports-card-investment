@@ -3431,7 +3431,8 @@ class NewPricingDatabase {
             cleanName = cleanName.replace(regex, '');
         });
         
-        // Clean up extra spaces
+        // Remove stray slashes and clean up spaces
+        cleanName = cleanName.replace(/[\/]+/g, ' ');
         cleanName = cleanName.replace(/\s+/g, ' ').trim();
         
         return cleanName;
@@ -3441,6 +3442,10 @@ class NewPricingDatabase {
     capitalizePlayerName(playerName) {
         if (!playerName) return null;
         
+        // Normalize stray slashes first
+        playerName = playerName.replace(/[\/]+/g, ' ');
+        playerName = playerName.replace(/\s+/g, ' ').trim();
+
         // Convert to lowercase first
         const lowerName = playerName.toLowerCase();
         
