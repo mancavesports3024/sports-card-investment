@@ -1,6 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const { ImprovedCardExtraction } = require('./improved-card-extraction.js');
+const NewPricingDatabase = require('./create-new-pricing-database.js');
 
 class DatabasePlayerNameFixer {
     constructor() {
@@ -10,7 +10,7 @@ class DatabasePlayerNameFixer {
             : path.join(__dirname, 'data', 'new-scorecard.db');
         
         this.db = new sqlite3.Database(dbPath);
-        this.extractor = new ImprovedCardExtraction();
+        this.extractor = new NewPricingDatabase();
         this.stats = {
             total: 0,
             updated: 0,

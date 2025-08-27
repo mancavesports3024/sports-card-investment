@@ -1,5 +1,5 @@
 const https = require('https');
-const { ImprovedCardExtraction } = require('./improved-card-extraction.js');
+const NewPricingDatabase = require('./create-new-pricing-database.js');
 
 const RAILWAY_URL = 'https://web-production-9efa.up.railway.app';
 
@@ -44,7 +44,7 @@ async function makeRequest(path, method = 'GET', data = null) {
 class RailwayPlayerNameExtractor {
     constructor() {
         this.API_BASE_URL = RAILWAY_URL;
-        this.extractor = new ImprovedCardExtraction();
+        this.extractor = new NewPricingDatabase();
         this.batchSize = 50;
         this.fixedCount = 0;
         this.errorCount = 0;
@@ -105,7 +105,7 @@ class RailwayPlayerNameExtractor {
                 return;
             }
 
-            // Extract player name using ImprovedCardExtraction
+            // Extract player name using NewPricingDatabase
             const extractedPlayerName = this.extractor.extractPlayerName(title);
             
             if (!extractedPlayerName || extractedPlayerName.trim() === '') {
