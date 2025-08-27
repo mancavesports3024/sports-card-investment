@@ -3221,6 +3221,9 @@ class NewPricingDatabase {
             return match.replace(/([A-Z])\s+([A-Z])/, '$1.$2.');
         }
         
+        // Normalize slashes before tokenizing so "Gold/Davante" becomes separate tokens
+        cleanTitle = cleanTitle.replace(/[\/]+/g, ' ').replace(/\s+/g, ' ').trim();
+
         // Step 10: Split into words and find the player name
         const words = cleanTitle.split(' ').filter(word => word.length > 1);
         
