@@ -3230,11 +3230,19 @@ class NewPricingDatabase {
         
         // Prefer the best contiguous 2–3 word span anywhere in the title
         let playerName = '';
+        const stopWords = new Set([
+            'rc','sp','ssp','pop','psa','bgs','sgc','hga','auto','autograph','autographs',
+            'prizm','prism','optic','donruss','select','mosaic','chrome','topps','bowman','panini',
+            'king','kings','sunday','main','event','gold','silver','orange','purple','pink','blue','green','red','black','aqua','teal','rainbow',
+            'lazer','laser','wave','disco','refractor','parallel','insert','numbered','limited',
+            'sublime','shimmer','scripts','storm','zone','reactive','reprint','snake','ghost',
+            'foil','holo','velocity','lazer','lazer','nebula','mojo','checkerboard','dazzle'
+        ]);
         const isNameLike = (w) => {
             if (!w) return false;
             const lw = w.toLowerCase();
             // simple name-like token: letters with optional internal hyphen/apostrophe
-            return /^[a-z]+(?:[-'][a-z]+)*$/.test(lw) && lw.length > 1;
+            return /^[a-z]+(?:[-'][a-z]+)*$/.test(lw) && lw.length > 1 && !stopWords.has(lw);
         };
 
         // Gather all 3-word windows first, then 2-word windows, choose the last plausible one
