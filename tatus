@@ -312,3 +312,13 @@
  TAB ...................................... Complete filename & cycle.
  SHIFT-TAB ...................... ESC-TAB   Complete filename & reverse cycle.
  ctrl-L ................................... Complete filename, list all.
+[33m7a6fa53[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Replace complex extractPlayerName function with simple, comprehensive filtering implementation
+[33m47c0eb4[m Add comprehensive card filtering terms documentation
+[33m399c152[m Simplify player name extraction: Remove complex multi-stage filtering and prepare for single comprehensive approach
+[33mfac0527[m Start simplifying player name extraction: Remove special cases for Aaron Judge and Ja'Marr Chase
+[33m09f7313[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fix Aaron Judge extraction: Add comprehensive pattern matching for all variations including all caps
+[33m14022da[m Add detailed debugging to player name filtering to identify why filtering is not working
+[33ma97e032[m Improve player name filtering: Add more robust regex and word-by-word filtering with verbose debugging
+[33m4b5d1f3[m Fix player name filtering logic: Change from rejecting names to filtering out card types, add comprehensive filtering terms, and add special handling for Ja'Marr Chase
+[33m31ef463[m Fix player name extraction issues: Add special handling for Aaron Judge, add missing filtering terms (EL, HE13, catching, kaboom), and remove wayne/gretzky from filtering
+[33m35ef648[m Add missing filtering terms from 3-word player name analysis - starquest, sox, texas, longhorns, minnesota, wings, atl, buffaloes, la, mars, ne, sun, lunar, fireworks, kaboom, hoops, field, euro, main, pokemon, japanese, stormfront, sword, shield, radiant, sublime, luck, lottery, national, pride, opc, wayne, gretzky, stadium
