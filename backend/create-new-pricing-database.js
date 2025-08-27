@@ -3404,7 +3404,9 @@ class NewPricingDatabase {
             'kobe': 'Kobe Bryant',
             'shaq': 'Shaquille O\'Neal',
             'shaquille': 'Shaquille O\'Neal',
-            'shaquille oneal': 'Shaquille O\'Neal'
+            'shaquille oneal': 'Shaquille O\'Neal',
+            'michael penix jr': 'Michael Penix Jr',
+            'penix jr': 'Michael Penix Jr'
         };
         
         const lowerPlayerName = playerName.toLowerCase();
