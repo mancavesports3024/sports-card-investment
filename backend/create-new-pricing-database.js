@@ -2469,6 +2469,10 @@ class NewPricingDatabase {
         cleanTitle = cleanTitle.replace(/\bucl\b/gi, ' ');
         if (debugOn) steps.push({ step: 'afterUCLRemoval', cleanTitle });
         
+        // Step 4.7: Remove Preview (simple approach - just remove it)
+        cleanTitle = cleanTitle.replace(/\bpreview\b/gi, ' ');
+        if (debugOn) steps.push({ step: 'afterPreviewRemoval', cleanTitle });
+        
         // Step 4.5: Special handling for "LeBron" to prevent "La" removal
         // Replace "LeBron" with a placeholder before removing "La", then restore it
         cleanTitle = cleanTitle.replace(/\bLeBron\b/gi, 'LEBRON_PLACEHOLDER');
