@@ -3272,7 +3272,7 @@ class NewPricingDatabase {
             'king','kings','sunday','main','event','gold','silver','orange','purple','pink','blue','green','red','black','aqua','teal','rainbow',
             'lazer','laser','wave','disco','refractor','parallel','insert','numbered','limited',
             'sublime','shimmer','scripts','storm','zone','reactive','reprint','snake','ghost',
-            'foil','holo','velocity','lazer','lazer','nebula','mojo','checkerboard','dazzle'
+            'foil','holo','velocity','lazer','lazer','nebula','mojo','checkerboard','dazzle','sapphire'
         ]);
         const isNameLike = (w) => {
             if (!w) return false;
