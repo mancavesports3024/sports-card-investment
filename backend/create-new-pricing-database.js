@@ -2531,7 +2531,14 @@ class NewPricingDatabase {
         
         // Check for "Tom Brady" in the original title
         if (cleanTitle.includes('Tom Brady') || cleanTitle.includes('TOM BRADY')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'tomBradyEarlyReturn', result: 'Tom Brady' }]);
             return 'Tom Brady';
+        }
+        
+        // Check for "Davante Adams" in the original title
+        if (cleanTitle.includes('Davante Adams') || cleanTitle.includes('DAVANTE ADAMS')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'davanteAdamsEarlyReturn', result: 'Davante Adams' }]);
+            return 'Davante Adams';
         }
         
         // Step 4.5.1: Early filtering of obviously invalid player names
