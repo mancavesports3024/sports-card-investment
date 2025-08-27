@@ -2444,6 +2444,28 @@ class NewPricingDatabase {
             return 'Anthony Edwards';
         }
         
+        // Check for dual player cards without explicit "/" separator
+        // Look for "Kobe Shaq" pattern (Kobe Bryant + Shaquille O'Neal)
+        const kobeShaqPattern = /\b(Kobe\s+Shaq)\b/gi;
+        const kobeShaqMatch = cleanTitle.match(kobeShaqPattern);
+        if (kobeShaqMatch && kobeShaqMatch.length > 0) {
+            return 'Kobe/Shaq';
+        }
+        
+        // Look for "Kobe Bryant Shaq" pattern
+        const kobeBryantShaqPattern = /\b(Kobe\s+Bryant\s+Shaq)\b/gi;
+        const kobeBryantShaqMatch = cleanTitle.match(kobeBryantShaqPattern);
+        if (kobeBryantShaqMatch && kobeBryantShaqMatch.length > 0) {
+            return 'Kobe/Shaq';
+        }
+        
+        // Look for "Shaq Kobe" pattern
+        const shaqKobePattern = /\b(Shaq\s+Kobe)\b/gi;
+        const shaqKobeMatch = cleanTitle.match(shaqKobePattern);
+        if (shaqKobeMatch && shaqKobeMatch.length > 0) {
+            return 'Shaq/Kobe';
+        }
+        
         // Check for "Ryan O\'Hearn" in the original title
         if (cleanTitle.includes('Ryan O\'Hearn') || cleanTitle.includes('RYAN O\'HEARN')) {
             return 'Ryan O\'Hearn';
@@ -2535,6 +2557,8 @@ class NewPricingDatabase {
         if (cleanTitle.includes('Kobe Bryant/Lakers') || cleanTitle.includes('kobe bryant/lakers')) {
             return 'Kobe Bryant';
         }
+        
+
         
         // Step 4.6: Early detection of dual player cards with "/" separator
         // Look for patterns like "Montana/Rice" or "Player1/Player2" BEFORE removing card terms
@@ -3237,7 +3261,12 @@ class NewPricingDatabase {
             't.j. watt': 'T.J. Watt',
             'j j mccarthy': 'J.J. McCarthy',
             'elly de la': 'Elly De La Cruz',
-            'elly de la cruz': 'Elly De La Cruz'
+            'elly de la cruz': 'Elly De La Cruz',
+            // Handle individual player names from dual cards
+            'kobe': 'Kobe Bryant',
+            'shaq': 'Shaquille O\'Neal',
+            'shaquille': 'Shaquille O\'Neal',
+            'shaquille oneal': 'Shaquille O\'Neal'
         };
         
         const lowerPlayerName = playerName.toLowerCase();
