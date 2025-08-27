@@ -2780,7 +2780,7 @@ class NewPricingDatabase {
         
         // Look for "Travis Kelce" in various contexts
         const travisKelcePattern = /\b(Travis\s+Kelce)\b/gi;
-        const travisKelceMatch = cleanTitle.match(travisKelcePattern);
+ no        const travisKelceMatch = cleanTitle.match(travisKelcePattern);
         if (travisKelceMatch && travisKelceMatch.length > 0) {
             if (debugOn) this._lastDebug = steps.concat([{ step: 'travisKelceEarlyReturn', result: 'Travis Kelce' }]);
             return 'Travis Kelce';
@@ -3210,7 +3210,82 @@ class NewPricingDatabase {
             'yellow', 'green', 'blue', 'red', 'black', 'silver', 'gold', 'white',
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
             'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
-            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'radiating', 'now', 'foil'
+            'super short print', 'parallel', 'insert', 'numbered', 'limited',
+            'sapphire', 'sublime',
+            // Additional card terms found in 3-word analysis
+            'future', 'apex', 'allies', 'ascensions', 'authentix', 'millionaire', 'lava', 'checkerboard',
+            'sky', 'classic', 'events', 'club', 'collection', 'huddle', 'it', 'notoriety', 'phenom',
+            'and', 'starquest', 'sox', 'main', 'field', 'look', 'explosive', 'stadium', 'club',
+            'opc', 'premier', 'level', 'stratospheric', 'stars', 'stormfront', 'sword', 'shield',
+            'pokemon', 'radiant', 'charizard', 'japanese', 'brilliant', 'full', 'art', 'mimikyu',
+            'vmax', 'go', 'holo', 'world', 'champion', 'boxers', 'muhammad', 'ali', 'zone', 'busters',
+            'chasers', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'hard', 'home',
+            'royal', 'blue', 'gold', 'rainbow', 'holiday', 'yellow', 'aqua', 'silver', 'crackle',
+            'jack', 'lantern', 'ghost', 'purple', 'green', 'orange', 'red', 'vintage', 'stock',
+            'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'clear', 'witches', 'hat',
+            'bats', 'first', 'card', 'platinum', 'printing', 'plates', 'royal', 'blue', 'vintage',
+            'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat',
+            // Additional card types identified by analysis
+            'ice', 'lazer', 'lightboard', 'magenta', 'mt', 'shock',
+            // Specific problematic terms from the cards
+            'invicta bi15', 'bi15', 'ra jca', 'ra', 'jca', 'caedm', 'in',
+            'night', 'cosmic stars', 'cosmic', 'all-etch', 'all etch', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'storm-chasers', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'now', 'foil', 'case hit', 'case-hit', 'case hits', 'case-hits',
+            // UFC/MMA terms that should be removed from player names
+            'ufc', 'mma', 'mixed martial arts', 'octagon', 'fighter', 'fighting',
+            // Additional card types that should be removed from player names
+            'xfractor', 'flair', 'apparitions', 'luminance', 'fractal', 'checker', 'rush', 'monopoly', 'light', 'certified', 'penmanship', 'low', 'electric', 'dual', 'starcade',
+            // Card sets that should be removed from player names
+            'collector', 'phenomenon', 'preview', 'mls', 'blazers', 'level', 'premier', 'sparkle', 'ucc', 'snider', 'road to uefa', 'jack murphy stadium',
+            // Other card terms
+            'ink', 'endrick', 'tie', 'pandora', 'pedro de', 'jr tie', 'ohtani judge', 'ja marr chase', 'joe milton', 'malik', 'pandora malik', 'devin', 'worthy',
+            // Additional missing card terms
+            'signature', 'color', 'wwe', 'design', 'pitching', 'starcade', 'premium', 'speckle', 'flair', 'ucl', 'cosmic stars', 'the', 'of', 'olympics', 'wnba', 'league', 'championship', 'tournament', 'series', 'profiles', 'mini', 'border', 'intimidators', 'kellogg', 'mist', 'usa', 'xr', 'logofractor', 'cyan', 'authentic', 'rpa', 'formula 1', 'p.p.', 'match', 'mav', 'concourse', 'essentials', 'supernatural',
+            // New missing card terms from analysis
+            'heritage', 'focus', 'winning ticket', 'prizmatic', 'mint2', 'indiana', 'batting', 'florida', 'pitch', 'baseball', 'football',
+            // Additional missing terms from remaining issues
+            'pitching', 'no',
+            // Common non-player words that should be removed
+            'malik', 'devin', 'holo', 'orange', 'blue', 'red', 'green', 'yellow', 'purple', 'pink', 'brown', 'black', 'white', 'gray', 'grey',
+            // Bowman numbering prefixes that should not appear in player names
+            'bdc', 'bdp', 'bcp', 'cda',
+            // Additional missing terms that should be filtered out
+            'sunday', 'bn391', 'reptilian', 'edition', 'au', 'fifa', 'insert', 'cra', 'mh', 'storm chasers', 'x factor', 'lk',
+            // Card number prefixes that should not appear in player names
+            'mmr', 'tc', 'dt', 'bs', 'sjmc',
+            // Card number patterns that should not appear in player names (with numbers)
+            'tc264', 'mmr-54',
+            // Panini Prizm Basketball Parallels
+            'black white prizms', 'china variation', 'choice blue', 'choice yellow', 'choice green prizms',
+            'choice tiger stripe prizms', 'fast break prizms', 'glitter prizms', 'green prizms',
+            'green ice prizms', 'green wave prizms', 'hyper prizms', 'ice prizms', 'orange ice prizms',
+            'pink ice prizms', 'pulsar prizms', 'red ice prizms', 'red sparkle prizms', 'red/white/blue prizms',
+            'ruby wave prizms', 'silver prizms', 'snakeskin prizms', 'wave prizms', 'white sparkle prizms',
+            'white tiger stripe prizms', 'red prizms', 'red seismic prizms', 'white lazer prizms',
+            'pink prizms', 'skewed prizms', 'basketball prizms', 'teal ice prizms', 'blue prizms',
+            'orange seismic prizms', 'white prizms', 'fast break blue prizms', 'premium factory set prizms',
+            'purple ice prizms', 'blue sparkle prizms', 'blue ice prizms', 'fast break orange prizms',
+            'wave blue prizms', 'fast break red prizms', 'blue pulsar prizms', 'blue seismic prizms',
+            'purple prizms', 'choice red prizms', 'dragon year prizms', 'multi wave prizms',
+            'fast break purple prizms', 'red power prizms', 'red pulsar prizms', 'wave orange prizms',
+            'fast break pink prizms', 'choice blue prizms', 'orange prizms', 'jade dragon scale prizms',
+            'pink pulsar prizms', 'white wave prizms', 'blue shimmer prizms', 'purple pulsar prizms',
+            'red lazer prizms', 'white ice prizms', 'green pulsar prizms', 'mojo prizms',
+            'gold sparkle prizms', 'choice cherry blossom prizms', 'fast break bronze prizms',
+            'lotus flower prizms', 'gold prizms', 'gold shimmer prizms', 'ice gold prizms',
+            'lazer gold prizms', 'wave gold prizms', 'choice green prizms', 'green sparkle prizms',
+            'lucky envelopes prizms', 'plum blossom prizms', 'black gold prizms', 'fast break neon green prizms',
+            'green shimmer prizms', 'black prizms', 'black shimmer prizms', 'choice nebula prizms',
+            // Individual terms from Prizm parallels
+            'china', 'choice', 'tiger stripe', 'glitter', 'ice', 'sparkle', 'ruby',
+            'seismic', 'lazer', 'skewed', 'pulsar', 'dragon year', 'multi wave', 'power',
+            'jade dragon scale', 'cherry blossom', 'bronze', 'lotus flower', 'shimmer',
+            'mojo', 'neon green', 'nebula', 'plum blossom', 'lucky envelopes',
+            // Major city names
+            'new york', 'new england', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia', 'san antonio', 'san diego', 'dallas', 'san jose', 'austin', 'jacksonville', 'fort worth', 'columbus', 'charlotte', 'san francisco', 'indianapolis', 'seattle', 'denver', 'washington', 'boston', 'el paso', 'nashville', 'detroit', 'oklahoma city', 'portland', 'las vegas', 'memphis', 'louisville', 'baltimore', 'milwaukee', 'albuquerque', 'tucson', 'fresno', 'sacramento', 'atlanta', 'kansas city', 'long beach', 'colorado springs', 'raleigh', 'miami', 'virginia beach', 'omaha', 'oakland', 'minneapolis', 'tulsa', 'arlington', 'tampa', 'new orleans', 'wichita', 'cleveland', 'bakersfield', 'aurora', 'anaheim', 'honolulu', 'santa ana', 'corpus christi', 'riverside', 'lexington', 'stockton', 'henderson', 'saint paul', 'st louis', 'st. louis', 'cincinnati', 'pittsburgh', 'anchorage', 'greensboro', 'plano', 'newark', 'lincoln', 'orlando', 'irvine', 'durham', 'chula vista', 'toledo', 'fort wayne', 'st petersburg', 'laredo', 'jersey city', 'chandler', 'madison', 'lubbock', 'scottsdale', 'reno', 'buffalo', 'gilbert', 'glendale', 'north las vegas', 'winston salem', 'chesapeake', 'norfolk', 'fremont', 'garland', 'irving', 'hialeah', 'richmond', 'boise', 'spokane', 'baton rouge', 'tacoma', 'san bernardino', 'grand rapids', 'huntsville', 'salt lake city', 'frisco', 'yonkers', 'worcester', 'st. petersburg', 'st petersburg', 'st. paul', 'st paul',
+            // Racing terms and teams
+            'racing', 'nascar', 'formula 1', 'f1', 'indycar', 'indy', 'drag racing', 'rally', 'rallycross', 'motocross', 'supercross', 'endurance', 'sprint', 'dirt track', 'oval', 'road course', 'street circuit', 'paddock', 'pit', 'pit lane', 'grid', 'qualifying', 'practice', 'warm up', 'formation lap', 'safety car', 'virtual safety car', 'red flag', 'yellow flag', 'blue flag', 'checkered flag', 'pole position', 'podium', 'championship', 'points', 'season', 'race', 'grand prix', 'gp', 'monaco', 'silverstone', 'monza', 'spa', 'suzuka', 'interlagos', 'red bull', 'ferrari', 'mercedes', 'mclaren', 'aston martin', 'alpine', 'williams', 'haas', 'alfa romeo', 'alpha tauri', 'racing point', 'force india', 'sauber', 'toro rosso', 'minardi', 'benetton', 'tyrrell', 'lotus', 'brabham', 'cooper', 'vanwall', 'maserati', 'alfa', 'bugatti', 'delage', 'peugeot', 'renault', 'bmw', 'toyota', 'honda', 'ford', 'chevrolet', 'dodge', 'pontiac', 'oldsmobile', 'buick', 'cadillac', 'lincoln', 'mercury', 'plymouth', 'amc', 'studebaker', 'packard', 'nash', 'hudson', 'kaiser', 'frazer', 'willys', 'jeep', 'international', 'diamond t', 'mack', 'peterbilt', 'kenworth', 'freightliner', 'western star', 'volvo', 'scania', 'man', 'iveco', 'daf', 'renault trucks', 'volvo trucks', 'scania trucks', 'man trucks', 'iveco trucks', 'daf trucks',
+            // Soccer/Football specific terms
+            'ucl', 'uefa', 'champions league', 'bundesliga', 'premier league', 'la liga', 'serie a', 'ligue 1', 'eredivisie', 'primeira liga', 'scottish premiership', 'super lig', 'russian premier league', 'ukrainian premier league', 'belgian first division', 'austrian bundesliga', 'swiss super league', 'norwegian eliteserien', 'swedish allsvenskan', 'danish superliga', 'finnish veikkausliiga', 'polish ekstraklasa', 'czech first league', 'hungarian nemzeti bajnoksag', 'romanian liga 1', 'bulgarian first league', 'croatian first football league', 'serbian superliga', 'slovenian prva liga', 'montenegrin first league', 'kosovo superleague', 'albanian superliga', 'macedonian first football league', 'bosnian premier league', 'herzegovinian premier league', 'slovak first football league', 'luxembourg national division', 'liechtenstein football cup', 'malta premier league', 'cyprus first division', 'greek super league', 'turkish super lig', 'israeli premier league', 'lebanese premier league', 'syrian premier league', 'jordanian premier league', 'iraqi premier league', 'iranian persian gulf pro league', 'afghan premier league', 'pakistani premier league', 'indian super league', 'bangladeshi premier league', 'sri lankan premier league', 'nepali national league', 'bhutan premier league', 'maldives premier league', 'myanmar national league', 'thai league 1', 'vietnamese v league 1', 'laos premier league', 'cambodian premier league', 'malaysian super league', 'singapore premier league', 'indonesian liga 1', 'filipino premier league', 'brunei premier league', 'east timor premier league', 'papua new guinea premier league', 'fiji premier league', 'vanuatu premier league', 'new caledonia premier league', 'tahiti premier league', 'samoa premier league', 'tonga premier league', 'cook islands premier league', 'niue premier league', 'tokelau premier league', 'tuvalu premier league', 'nauru premier league', 'kiribati premier league', 'marshall islands premier league', 'micronesia premier league', 'palau premier league', 'guam premier league', 'northern mariana islands premier league', 'american samoa premier league', 'hawaii premier league', 'alaska premier league', 'puerto rico premier league', 'us virgin islands premier league', 'british virgin islands premier league', 'anguilla premier league', 'saint kitts and nevis premier league', 'antigua and barbuda premier league', 'montserrat premier league', 'guadeloupe premier league', 'martinique premier league', 'saint lucia premier league', 'saint vincent and the grenadines premier league', 'grenada premier league', 'barbados premier league', 'trinidad and tobago premier league', 'guyana premier league', 'suriname premier league', 'french guiana premier league', 'brazilian serie a', 'argentine primera division', 'chilean primera division', 'uruguayan primera division', 'paraguayan primera division', 'bolivian primera division', 'peruvian primera division', 'ecuadorian primera division', 'colombian primera a', 'venezuelan primera division', 'panamanian primera division', 'costa rican primera division', 'nicaraguan primera division', 'honduran primera division', 'el salvadoran primera division', 'guatemalan primera division', 'belize premier league', 'mexican liga mx', 'canadian premier league', 'usl championship', 'north american soccer league', 'major league soccer', 'us open cup', 'canadian championship', 'concacaf champions league', 'copa libertadores', 'copa sudamericana', 'recopa sudamericana', 'copa america', 'gold cup', 'caribbean cup', 'central american cup', 'south american cup', 'african cup of nations', 'asian cup', 'oceanian nations cup', 'european championship', 'world cup', 'olympics', 'fifa', 'uefa', 'concacaf', 'conmebol', 'caf', 'afc', 'ofc', 'uefa euro', 'copa america', 'africa cup of nations', 'asian cup', 'oceanian nations cup', 'gold cup', 'caribbean cup', 'central american cup', 'south american cup', 'world cup qualifiers', 'euro qualifiers', 'copa america qualifiers', 'africa cup of nations qualifiers', 'asian cup qualifiers', 'oceanian nations cup qualifiers', 'gold cup qualifiers', 'caribbean cup qualifiers', 'central american cup qualifiers', 'south american cup qualifiers'
         ];
         cardTerms.forEach(term => {
             const regex = new RegExp(`\\b${term}\\b`, 'gi');
