@@ -1228,11 +1228,11 @@ class NewPricingDatabase {
         if (cleanTitle.includes('panini donruss optic')) {
             return 'Panini Donruss Optic';
         }
+        if (cleanTitle.includes('donruss optic preview')) {
+            return 'Donruss Optic Preview';
+        }
         if (cleanTitle.includes('donruss optic')) {
             return 'Donruss Optic';
-        }
-        if (cleanTitle.includes('panini donruss')) {
-            return 'Panini Donruss';
         }
         if (cleanTitle.includes('panini absolute')) {
             return 'Panini Absolute';
