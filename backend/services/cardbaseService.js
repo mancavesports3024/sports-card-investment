@@ -377,31 +377,13 @@ class CardBaseService {
     }
 
     /**
-     * Extract player name from title
+     * Extract player name from title using the main database's simplified function
      */
     extractPlayerName(title) {
-        // Common patterns for player names
-        const patterns = [
-            // Pattern: Year Brand Set Player Name
-            /(\d{4})\s+[A-Za-z\s]+\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+?)(?=\s+#|\s+auto|\s+autograph|\s+rc|\s+rookie|\s*$)/i,
-            // Pattern: Player Name at the end
-            /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+?)(?=\s+#|\s+auto|\s+autograph|\s+rc|\s+rookie|\s*$)/i,
-            // Pattern: Player Name after "AU" or "RC"
-            /(?:AU|RC)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+?)(?=\s+#|\s*$)/i
-        ];
-
-        for (const pattern of patterns) {
-            const match = title.match(pattern);
-            if (match && match[1]) {
-                const playerName = match[1].trim();
-                // Filter out common non-player words
-                if (playerName.length > 2 && !this.isCommonCardTerm(playerName)) {
-                    return playerName;
-                }
-            }
-        }
-
-        return null;
+        // Use the main database's simplified player extraction function
+        const NewPricingDatabase = require('../create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        return db.extractPlayerName(title);
     }
 
     /**
