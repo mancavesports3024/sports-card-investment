@@ -3245,9 +3245,18 @@ class NewPricingDatabase {
             return /^[a-z]+(?:[-'][a-z]+)*$/.test(lw) && lw.length > 1 && !stopWords.has(lw);
         };
 
-        // Gather all 3-word windows first, then 2-word windows, choose the last plausible one
+        // First, strongly prefer any clean two-word person-like pair (e.g., "Davante Adams")
         let candidate = null;
-        for (let size of [3, 2]) {
+        for (let i = 0; i + 2 <= words.length; i++) {
+            const w1 = words[i];
+            const w2 = words[i + 1];
+            if (isNameLike(w1) && isNameLike(w2)) {
+                candidate = w1 + ' ' + w2;
+            }
+        }
+        if (!candidate) {
+            // Otherwise, gather all 3-word windows first, then 2-word windows, choose the last plausible one
+            for (let size of [3, 2]) {
             candidate = null;
             for (let i = 0; i + size <= words.length; i++) {
                 const window = words.slice(i, i + size);
@@ -3259,6 +3268,8 @@ class NewPricingDatabase {
                 playerName = candidate;
                 break;
             }
+        } else {
+            playerName = candidate;
         }
 
         // Fallback to first 1–3 words if no candidate windows found
