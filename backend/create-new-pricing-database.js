@@ -3775,4 +3775,4 @@ if (require.main === module) {
     main();
 }
 
-module.exports = NewPricingDatabas
+module.exports = NewPricingDatabase;
