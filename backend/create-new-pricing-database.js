@@ -2461,6 +2461,10 @@ class NewPricingDatabase {
         });
         if (debugOn) steps.push({ step: 'afterGradingTerms', cleanTitle });
         
+        // Step 4.5: Remove Sapphire (simple approach - just remove it)
+        cleanTitle = cleanTitle.replace(/\bsapphire\b/gi, ' ');
+        if (debugOn) steps.push({ step: 'afterSapphireRemoval', cleanTitle });
+        
         // Step 4.5: Special handling for "LeBron" to prevent "La" removal
         // Replace "LeBron" with a placeholder before removing "La", then restore it
         cleanTitle = cleanTitle.replace(/\bLeBron\b/gi, 'LEBRON_PLACEHOLDER');
