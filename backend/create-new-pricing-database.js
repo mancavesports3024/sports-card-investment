@@ -3268,7 +3268,9 @@ class NewPricingDatabase {
                 playerName = candidate;
                 break;
             }
-        } else {
+        }
+        }
+        else {
             playerName = candidate;
         }
 
