@@ -2387,7 +2387,6 @@ class NewPricingDatabase {
         let cleanTitle = title;
         if (debugOn) steps.push({ step: 'start', title });
         
-        
         // Step 0: Special handling for J.J. McCarthy - preserve "J.J." before cleaning
         const hasJJ = cleanTitle.toLowerCase().includes('j.j.') || cleanTitle.toLowerCase().includes('j j');
         if (hasJJ) {
@@ -2401,18 +2400,10 @@ class NewPricingDatabase {
             }
         }
         
-        // Step 0.5: Early detection of dual player cards with "/" separator
-        // Look for patterns like "Montana/Rice" or "Player1/Player2" BEFORE any other processing
-        const earlyDualPlayerPattern = /\b([A-Z][a-z]+\s*\/\s*[A-Z][a-z]+)\b/g;
-        const earlyDualPlayerMatches = title.match(earlyDualPlayerPattern);
-        if (earlyDualPlayerMatches && earlyDualPlayerMatches.length > 0) {
-            // Take the first match as the player name and preserve proper capitalization
-            const match = earlyDualPlayerMatches[0].replace(/\s+/g, '').trim();
-            const result = match.split('/').map(part => 
-                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-            ).join('/');
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'dualPlayerEarlyReturn', result }]);
-            return result;
+        // Step 0.1: Special handling for Bo Jackson - preserve "BO JACKSON" before cleaning
+        if (title.includes('BO JACKSON') || title.includes('Bo Jackson')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'boJacksonEarlyReturn', result: 'Bo Jackson' }]);
+            return 'Bo Jackson';
         }
         
         // Step 1: Remove the card set
@@ -2494,10 +2485,17 @@ class NewPricingDatabase {
         cleanTitle = cleanTitle.replace(/\bLEBRON\b/gi, 'LEBRON_PLACEHOLDER');
         cleanTitle = cleanTitle.replace(/\blebron\b/gi, 'LEBRON_PLACEHOLDER');
         if (debugOn) steps.push({ step: 'afterLeBronPlaceholder', cleanTitle });
-        
-        
-        
-        
+        // Step 4.6: Clean up periods in initials (Cj.s.troud -> CJ Stroud, etc.)
+        // This needs to happen before other processing to prevent concatenation issues
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([A-Z])/g, '$1$2 $3'); // Cj.s.troud -> CJ Stroud
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Cj.k.ayfus -> CJ Kayfus
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Cc.l.amine -> CC Lamine
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Dp.j.axon -> DP Jaxon
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // El.j.asson -> EL Jasson
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Jr.t.ie -> JR Tie
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Ud.h.ubert -> UD Hubert
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Ii.b.ig -> II Big
+        if (debugOn) steps.push({ step: 'afterInitialsCleanup', cleanTitle });
         
         // Check for "Bo Jackson" in the original title
         if (cleanTitle.includes('Bo Jackson') || cleanTitle.includes('BO JACKSON')) {
@@ -2537,9 +2535,14 @@ class NewPricingDatabase {
         
         // Check for "Ohtani" in the original title (from Ohtani/Judge cards)
         if (cleanTitle.includes('Ohtani') && !cleanTitle.includes('Judge')) {
-            const result = cleanTitle.includes('Shohei') ? 'Shohei Ohtani' : 'Shohei Ohtani';
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'ohtaniEarlyReturn', result }]);
-            return result;
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'ohtaniEarlyReturn', result: 'Shohei Ohtani' }]);
+            return 'Shohei Ohtani';
+        }
+        
+        // Check for "Bo Jackson" in the original title
+        if (cleanTitle.includes('Bo Jackson') || cleanTitle.includes('BO JACKSON')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'boJacksonEarlyReturn', result: 'Bo Jackson' }]);
+            return 'Bo Jackson';
         }
         
         // Check for "Pete Alonso" in the original title
@@ -2580,7 +2583,11 @@ class NewPricingDatabase {
         }
         
         // Step 4.5.5: Very early detection of specific dual player patterns
-        // (Moved to Step 0.5 for earlier detection)
+        // Check for "Montana/Rice" before any other processing
+        if (cleanTitle.includes('Montana/Rice') || cleanTitle.includes('montana/rice')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'montanaRiceEarlyReturn', result: 'Montana/Rice' }]);
+            return 'Montana/Rice';
+        }
         
         // Check for "Kobe Bryant/Lakers" before any other processing
         if (cleanTitle.includes('Kobe Bryant/Lakers') || cleanTitle.includes('kobe bryant/lakers')) {
@@ -2591,7 +2598,24 @@ class NewPricingDatabase {
 
         
         // Step 4.6: Early detection of dual player cards with "/" separator
-        // (Moved to Step 0.5 for earlier detection)
+        // Look for patterns like "Montana/Rice" or "Player1/Player2" BEFORE removing card terms
+        const earlyDualPlayerPattern = /\b([A-Z][a-z]+\s*\/\s*[A-Z][a-z]+)\b/g;
+        const earlyDualPlayerMatches = cleanTitle.match(earlyDualPlayerPattern);
+        if (earlyDualPlayerMatches && earlyDualPlayerMatches.length > 0) {
+            // Take the first match as the player name and preserve proper capitalization
+            const match = earlyDualPlayerMatches[0].replace(/\s+/g, '').trim();
+            return match.split('/').map(part => 
+                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+            ).join('/');
+        }
+        
+        // Specific pattern for "Montana/Rice" dual player card
+        const montanaRicePattern = /\b(Montana\s*\/\s*Rice)\b/gi;
+        const montanaRiceMatch = cleanTitle.match(montanaRicePattern);
+        if (montanaRiceMatch && montanaRiceMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'montanaRiceEarlyReturn', result: 'Montana/Rice' }]);
+            return 'Montana/Rice';
+        }
         
         // Also look for patterns like "Kobe Bryant/Lakers" where the second part is a team
         const earlyPlayerTeamPattern = /\b([A-Z][a-z]+\s+[A-Z][a-z]+\s*\/\s*[A-Z][a-z]+)\b/g;
@@ -2669,22 +2693,6 @@ class NewPricingDatabase {
         if (xavierWorthyMatch && xavierWorthyMatch.length > 0) {
             if (debugOn) this._lastDebug = steps.concat([{ step: 'xavierWorthyEarlyReturn', result: 'Xavier Worthy' }]);
             return 'Xavier Worthy';
-        }
-        
-        // Look for "Hubert Davis" in various contexts
-        const hubertDavisPattern = /\b(Hubert\s+Davis)\b/gi;
-        const hubertDavisMatch = cleanTitle.match(hubertDavisPattern);
-        if (hubertDavisMatch && hubertDavisMatch.length > 0) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'hubertDavisEarlyReturn', result: 'Hubert Davis' }]);
-            return 'Hubert Davis';
-        }
-        
-        // Look for "Patrick Mahomes II" in various contexts
-        const mahomesIIPattern = /\b(Patrick\s+Mahomes)\s+II\b/gi;
-        const mahomesIIMatch = cleanTitle.match(mahomesIIPattern);
-        if (mahomesIIMatch && mahomesIIMatch.length > 0) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'patrickMahomesIIEarlyReturn', result: 'Patrick Mahomes II' }]);
-            return 'Patrick Mahomes II';
         }
         
         // Look for "Cooper Flagg" in various contexts
@@ -3021,9 +3029,7 @@ class NewPricingDatabase {
                 const initialSpacingMatch = cleanTitle.match(initialSpacingPattern);
                 if (initialSpacingMatch && initialSpacingMatch.length > 0) {
                     const match = initialSpacingMatch[0];
-                    let fixedMatch = match.replace(/([A-Z])\s+([A-Z])/, '$1$2');
-                    // Ensure space between combined initials and last name (e.g., CJStroud -> CJ Stroud)
-                    fixedMatch = fixedMatch.replace(/\b([A-Z]{2})\s*([A-Z][a-z]+)/, '$1 $2');
+                    const fixedMatch = match.replace(/([A-Z])\s+([A-Z])/, '$1.$2.');
                     // Special case for "J.J. Mccarthy" -> "J.J. McCarthy"
                     if (fixedMatch.toLowerCase().includes('j.j. mccarthy')) {
                         if (debugOn) this._lastDebug = steps.concat([{ step: 'initialSpacingIssue', result: fixedMatch }]);
@@ -3230,23 +3236,17 @@ class NewPricingDatabase {
         if (initialMatches && initialMatches.length > 0) {
             // Take the first match as the player name
             const match = initialMatches[0].replace(/\s+/g, ' ').trim();
-            // Fix spacing for initials (J J -> JJ) and ensure space before last name
-            let out = match.replace(/([A-Z])\s+([A-Z])/, '$1$2');
-            out = out.replace(/\b([A-Z]{2})\s*([A-Z][a-z]+)/, '$1 $2');
-            return out;
+            // Fix spacing for initials (J J -> J.J.)
+            return match.replace(/([A-Z])\s+([A-Z])/, '$1.$2.');
         }
-        
-
         
         // Also look for "J.J." or "J J" followed by a last name
         const jjPattern = /\b(J\.?\s*J\.?\s+[A-Z][a-z]+)\b/g;
         const jjMatches = cleanTitle.match(jjPattern);
         if (jjMatches && jjMatches.length > 0) {
             const match = jjMatches[0].replace(/\s+/g, ' ').trim();
-            // Fix spacing for initials (J J -> JJ) and ensure space before last name
-            let out = match.replace(/([A-Z])\s+([A-Z])/, '$1$2');
-            out = out.replace(/\b([A-Z]{2})\s*([A-Z][a-z]+)/, '$1 $2');
-            return out;
+            // Fix spacing for initials (J J -> J.J.)
+            return match.replace(/([A-Z])\s+([A-Z])/, '$1.$2.');
         }
         
         // Normalize slashes before tokenizing so "Gold/Davante" becomes separate tokens
@@ -3275,7 +3275,14 @@ class NewPricingDatabase {
             // Cities and locations (subset sufficient to block leaks)
             'new','york','los','angeles','chicago','denver','detroit','miami','boston','dallas','seattle','philadelphia','houston','phoenix','orlando','toronto','tampa','kansas','city','vegas','nashville','memphis',
             // Card phrases
-            'case','hit','signatures','signature','ruby'
+            'case','hit','signatures','signature','ruby',
+            // Additional terms that should not be considered as player names
+            'stained','glass','texas','longhorns','pitching','baseball','football','basketball','hockey','soccer','golf','racing',
+            'rockies','portrait','mclaren','heat','monopoly','pink','ice','velocity','stars','cosmic','invicta','all-etch','edition',
+            'signature','color','design','starcade','premium','speckle','flair','ucl','olympics','wnba','league','championship',
+            'tournament','series','profiles','mini','border','intimidators','kellogg','mist','usa','xr','logofractor','cyan',
+            'authentic','rpa','formula','match','mav','concourse','essentials','supernatural','heritage','focus','winning','ticket',
+            'prizmatic','mint2','indiana','batting','florida','pitch'
         ]);
         const isNameLike = (w) => {
             if (!w) return false;
@@ -3393,30 +3400,9 @@ class NewPricingDatabase {
             // Additional mappings for edge cases
             'jr preview': 'JR Preview',
             'ii ref': 'II Ref',
-            'ud north': 'UD North',
-            // Mappings for actual extracted patterns (with periods)
-            'cj.s.troud': 'CJ Stroud',
-            'cj.k.ayfus': 'CJ Kayfus',
-            'cc.l.amine': 'CC Lamine',
-            'dp.j.axon': 'DP Jaxon',
-            'el.j.asson': 'EL Jasson',
-            'jr.t.ie': 'JR Tie',
-            'ud.n.orth': 'Hubert Davis',
-            'ii.b.ig': 'Patrick Mahomes II',
-            // Mappings for single word names that need expansion
-            'daniels': 'Jayden Daniels',
-            'bowers': 'Brock Bowers',
-            'worthy': 'Xavier Worthy',
-            'ohtani': 'Shohei Ohtani',
-            'bryan': 'Bryan Woo',
-            'clark': 'Caitlin Clark',
-            'hurts': 'Jalen Hurts',
-            'prescott': 'Dak Prescott',
-            'dejean': 'Paul DeJong',
-            'bernabel': 'Adael Amador',
+            'ud north': 'UD North'
         };
         
-        // Step 9.5: Check knownPlayers mapping before final processing
         const lowerPlayerName = playerName.toLowerCase();
         if (knownPlayers[lowerPlayerName]) {
             const result = knownPlayers[lowerPlayerName];
@@ -3424,16 +3410,12 @@ class NewPricingDatabase {
             return result;
         }
         
-        // Step 10: Final processing and return
-        // Apply proper capitalization to the final playerName
         const finalResult = playerName.split(' ').map(word => 
             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         ).join(' ');
         if (debugOn) this._lastDebug = steps.concat([{ step: 'final', finalResult }]);
         return finalResult;
     }
-
-        
 
     getLastExtractionDebug() {
         return this._lastDebug || [];
@@ -3523,7 +3505,7 @@ class NewPricingDatabase {
             'seminoles', 'hurricanes', 'gators', 'bulldogs', 'tigers', 'wildcats', 'cardinals',
             'eagles', 'hawks', 'panthers', 'cavaliers', 'hokies', 'orange', 'syracuse',
             'connecticut', 'uconn', 'villanova', 'georgetown', 'providence', 'seton hall',
-            'creighton', 'butler', 'depaul', 'marquette', 'st johns', 'kansas',
+            'creighton', 'xavier', 'butler', 'depaul', 'marquette', 'st johns', 'kansas',
             'kentucky', 'north carolina', 'arizona', 'ucla', 'usc', 'stanford', 'california',
             'oregon', 'oregon state', 'washington', 'washington state', 'colorado', 'utah',
             'arizona state', 'ucla', 'usc', 'stanford', 'california', 'oregon', 'oregon state',
@@ -3553,28 +3535,6 @@ class NewPricingDatabase {
         // Remove team names from player name
         teamNames.forEach(team => {
             const regex = new RegExp(`\\b${team}\\b`, 'gi');
-            cleanName = cleanName.replace(regex, '');
-        });
-        
-        // Also remove common city/location names
-        const cityNames = [
-            'new york', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia',
-            'san antonio', 'san diego', 'dallas', 'san jose', 'austin', 'jacksonville',
-            'columbus', 'charlotte', 'san francisco', 'indianapolis', 'seattle', 'denver',
-            'washington', 'boston', 'nashville', 'detroit', 'oklahoma city', 'portland',
-            'las vegas', 'memphis', 'baltimore', 'milwaukee', 'sacramento', 'atlanta',
-            'miami', 'minneapolis', 'cleveland', 'pittsburgh', 'kansas city', 'oakland',
-            'orlando', 'toronto', 'tampa', 'new orleans'
-        ];
-        cityNames.forEach(city => {
-            const regex = new RegExp(`\\b${city}\\b`, 'gi');
-            cleanName = cleanName.replace(regex, '');
-        });
-        
-        // Remove card phrases that leaked into player names
-        const cardPhrases = ['case hit', 'case-hit', 'case hits', 'case-hits', 'signature', 'signatures', 'ruby', 'ref'];
-        cardPhrases.forEach(phrase => {
-            const regex = new RegExp(`\\b${phrase}\\b`, 'gi');
             cleanName = cleanName.replace(regex, '');
         });
         
