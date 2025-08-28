@@ -3514,8 +3514,7 @@ class NewPricingDatabase {
             cleanName = cleanName.replace(regex, '');
         });
         
-        // Remove stray slashes and clean up spaces
-        cleanName = cleanName.replace(/[\/]+/g, ' ');
+        // Clean up spaces but preserve slashes for dual player names like "Montana/Rice"
         cleanName = cleanName.replace(/\s+/g, ' ').trim();
         
         return cleanName;
