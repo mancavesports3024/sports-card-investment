@@ -3278,7 +3278,11 @@ class NewPricingDatabase {
             'lazer','laser','wave','disco','refractor','parallel','insert','numbered','limited',
             'sublime','shimmer','scripts','storm','zone','reactive','reprint','snake','ghost',
             'foil','holo','velocity','lazer','lazer','nebula','mojo','checkerboard','dazzle','sapphire','speckle','prizmatic','lunar','glow',
-            'preview','shock','purple','ice','tie','dye','big','campus','ref','north','carolina','basketball','autographs','au'
+            'preview','shock','purple','ice','tie','dye','big','campus','ref','north','carolina','basketball','autographs','au',
+            // Cities and locations (subset sufficient to block leaks)
+            'new','york','los','angeles','chicago','denver','detroit','miami','boston','dallas','seattle','philadelphia','houston','phoenix','orlando','toronto','tampa','kansas','city','vegas','nashville','memphis',
+            // Card phrases
+            'case','hit','signatures','signature','ruby'
         ]);
         const isNameLike = (w) => {
             if (!w) return false;
@@ -3556,6 +3560,28 @@ class NewPricingDatabase {
         // Remove team names from player name
         teamNames.forEach(team => {
             const regex = new RegExp(`\\b${team}\\b`, 'gi');
+            cleanName = cleanName.replace(regex, '');
+        });
+        
+        // Also remove common city/location names
+        const cityNames = [
+            'new york', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia',
+            'san antonio', 'san diego', 'dallas', 'san jose', 'austin', 'jacksonville',
+            'columbus', 'charlotte', 'san francisco', 'indianapolis', 'seattle', 'denver',
+            'washington', 'boston', 'nashville', 'detroit', 'oklahoma city', 'portland',
+            'las vegas', 'memphis', 'baltimore', 'milwaukee', 'sacramento', 'atlanta',
+            'miami', 'minneapolis', 'cleveland', 'pittsburgh', 'kansas city', 'oakland',
+            'orlando', 'toronto', 'tampa', 'new orleans'
+        ];
+        cityNames.forEach(city => {
+            const regex = new RegExp(`\\b${city}\\b`, 'gi');
+            cleanName = cleanName.replace(regex, '');
+        });
+        
+        // Remove card phrases that leaked into player names
+        const cardPhrases = ['case hit', 'case-hit', 'case hits', 'case-hits', 'signature', 'signatures', 'ruby', 'ref'];
+        cardPhrases.forEach(phrase => {
+            const regex = new RegExp(`\\b${phrase}\\b`, 'gi');
             cleanName = cleanName.replace(regex, '');
         });
         
