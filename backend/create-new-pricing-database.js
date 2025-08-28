@@ -2406,6 +2406,12 @@ class NewPricingDatabase {
             return 'Bo Jackson';
         }
         
+        // Step 0.2: Special handling for DJ Lagway - preserve "DJ LAGWAY" before cleaning
+        if (title.includes('DJ LAGWAY') || title.includes('DJ Lagway')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'djLagwayEarlyReturn', result: 'DJ Lagway' }]);
+            return 'DJ Lagway';
+        }
+        
         // Step 1: Remove the card set
         const cardSet = this.extractCardSet(title);
         if (cardSet) {
@@ -2487,14 +2493,15 @@ class NewPricingDatabase {
         if (debugOn) steps.push({ step: 'afterLeBronPlaceholder', cleanTitle });
         // Step 4.6: Clean up periods in initials (Cj.s.troud -> CJ Stroud, etc.)
         // This needs to happen before other processing to prevent concatenation issues
-        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([A-Z])/g, '$1$2 $3'); // Cj.s.troud -> CJ Stroud
-        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Cj.k.ayfus -> CJ Kayfus
-        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Cc.l.amine -> CC Lamine
-        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Dp.j.axon -> DP Jaxon
-        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // El.j.asson -> EL Jasson
-        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Jr.t.ie -> JR Tie
-        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Ud.h.ubert -> UD Hubert
-        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Ii.b.ig -> II Big
+        // Only apply to patterns with periods, not to normal initials like "DJ"
+        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([A-Z])/g, '$1$2 $3'); // Cj.s.troud -> CJ Stroud
+        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([a-z]+)/g, '$1$2 $3'); // Cj.k.ayfus -> CJ Kayfus
+        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([a-z]+)/g, '$1$2 $3'); // Cc.l.amine -> CC Lamine
+        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([a-z]+)/g, '$1$2 $3'); // Dp.j.axon -> DP Jaxon
+        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([a-z]+)/g, '$1$2 $3'); // El.j.asson -> EL Jasson
+        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([a-z]+)/g, '$1$2 $3'); // Jr.t.ie -> JR Tie
+        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([a-z]+)/g, '$1$2 $3'); // Ud.h.ubert -> UD Hubert
+        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([a-z]+)/g, '$1$2 $3'); // Ii.b.ig -> II Big
         if (debugOn) steps.push({ step: 'afterInitialsCleanup', cleanTitle });
         
         // Check for "Bo Jackson" in the original title
