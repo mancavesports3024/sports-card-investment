@@ -2412,6 +2412,12 @@ class NewPricingDatabase {
             return 'DJ Lagway';
         }
         
+        // Step 0.3: Special handling for Bijan Robinson - preserve "Bijan Robinson" before cleaning
+        if (title.includes('Bijan Robinson')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'bijanRobinsonEarlyReturn', result: 'Bijan Robinson' }]);
+            return 'Bijan Robinson';
+        }
+        
         // Step 1: Remove the card set
         const cardSet = this.extractCardSet(title);
         if (cardSet) {
@@ -3280,7 +3286,7 @@ class NewPricingDatabase {
             'foil','holo','velocity','lazer','lazer','nebula','mojo','checkerboard','dazzle','sapphire','speckle','prizmatic','lunar','glow',
             'preview','shock','purple','ice','tie','dye','big','campus','ref','north','carolina','basketball','autographs','au',
             // Cities and locations (subset sufficient to block leaks)
-            'new','york','los','angeles','chicago','denver','detroit','miami','boston','dallas','seattle','philadelphia','houston','phoenix','orlando','toronto','tampa','kansas','city','vegas','nashville','memphis',
+            'new','york','los','angeles','chicago','denver','detroit','miami','boston','dallas','seattle','philadelphia','houston','phoenix','orlando','toronto','tampa','kansas','city','vegas','nashville','memphis','atlanta',
             // Card phrases
             'case','hit','signatures','signature','ruby',
             // Additional terms that should not be considered as player names
