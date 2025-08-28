@@ -2580,6 +2580,12 @@ class NewPricingDatabase {
             return 'Jacob Misiorowski';
         }
         
+        // Check for "Jared McCain" in the original title
+        if (cleanTitle.includes('Jared McCain') || cleanTitle.includes('JARED MCCAIN')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'jaredMcCainEarlyReturn', result: 'Jared McCain' }]);
+            return 'Jared McCain';
+        }
+        
         // Check for "Judge" in the original title (from Ohtani/Judge cards)
         if (cleanTitle.includes('Judge') && !cleanTitle.includes('Ohtani') && !cleanTitle.includes('Aaron')) {
             if (debugOn) this._lastDebug = steps.concat([{ step: 'judgeEarlyReturn', result: 'Judge' }]);
