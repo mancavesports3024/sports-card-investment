@@ -3525,8 +3525,7 @@ class NewPricingDatabase {
     capitalizePlayerName(playerName) {
         if (!playerName) return null;
         
-        // Normalize stray slashes first
-        playerName = playerName.replace(/[\/]+/g, ' ');
+        // Normalize spacing but preserve slashes for dual player names like "Montana/Rice"
         playerName = playerName.replace(/\s+/g, ' ').trim();
 
         // Convert to lowercase first
