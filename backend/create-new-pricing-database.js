@@ -2473,6 +2473,14 @@ class NewPricingDatabase {
         cleanTitle = cleanTitle.replace(/\bpreview\b/gi, ' ');
         if (debugOn) steps.push({ step: 'afterPreviewRemoval', cleanTitle });
         
+        // Step 4.8: Clean up periods in initials (C.J. -> CJ, etc.)
+        // This needs to happen before other processing to prevent "Cj.s.troud" issues
+        cleanTitle = cleanTitle.replace(/\b([A-Z])\.([A-Z])\./g, '$1$2'); // C.J. -> CJ
+        cleanTitle = cleanTitle.replace(/\b([A-Z])\.([A-Z])/g, '$1$2'); // C.J -> CJ
+        cleanTitle = cleanTitle.replace(/\b([A-Z])\s+([A-Z])\./g, '$1$2'); // C J. -> CJ
+        cleanTitle = cleanTitle.replace(/\b([A-Z])\s+([A-Z])/g, '$1$2'); // C J -> CJ
+        if (debugOn) steps.push({ step: 'afterInitialsCleanup', cleanTitle });
+        
         // Step 4.5: Special handling for "LeBron" to prevent "La" removal
         // Replace "LeBron" with a placeholder before removing "La", then restore it
         cleanTitle = cleanTitle.replace(/\bLeBron\b/gi, 'LEBRON_PLACEHOLDER');
@@ -3227,13 +3235,13 @@ class NewPricingDatabase {
             // Card types that should be removed from player names
             'flash', 'fifa', 'velocity', 'scope', 'hyper', 'optic', 'mosaic', 'select', 'finest',
             'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua',
-            'woo', 'draft', 'red/white/blue', 'tf1', 'all-etch', 'night',
+            'draft', 'red/white/blue', 'tf1', 'all-etch', 'night',
             'cosmic stars', 'cosmic', 'all etch', 'stars', 'splash', 'rising', 'best',
             'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric',
             'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'downtown', 'real one',
             'clear cut', 'variation', 'logo', 'pulsar', 'snakeskin', 'dragon scale',
             'tie-dye', 'disco', 'neon', 'camo', 'bronze', 'teal', 'pink', 'purple', 'orange',
-            'yellow', 'green', 'blue', 'red', 'black', 'silver', 'gold', 'white',
+            'yellow', 'green', 'blue', 'black', 'silver', 'gold', 'white',
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
             'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
             'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'radiating', 'now', 'foil', 'ucl', 'preview', 'shock', 'design', 'speckle', 'prizmatic', 'lunar glow'
