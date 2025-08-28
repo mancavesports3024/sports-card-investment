@@ -2480,7 +2480,9 @@ class NewPricingDatabase {
         cleanTitle = cleanTitle.replace(/\blebron\b/gi, 'LEBRON_PLACEHOLDER');
         if (debugOn) steps.push({ step: 'afterLeBronPlaceholder', cleanTitle });
         
-        ]);
+        // Check for "Bo Jackson" in the original title
+        if (cleanTitle.includes('Bo Jackson') || cleanTitle.includes('BO JACKSON')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'boJacksonEarlyReturn', result: 'Bo Jackson' }]);
             return 'Bo Jackson';
         }
         
@@ -3312,7 +3314,7 @@ class NewPricingDatabase {
             'lebron': 'LeBron',
             'lebron james': 'LeBron James',
             'j.j. mccarthy': 'J.J. McCarthy',
-            'ryan ohearn': 'Ryan O'Hearn',
+            'ryan ohearn': 'Ryan O\'Hearn',
             'pedro de la vega': 'Pedro De La Vega',
             'xavier worthy': 'Xavier Worthy',
             'caleb williams': 'Caleb Williams',
@@ -3323,9 +3325,9 @@ class NewPricingDatabase {
             'michael jordan': 'Michael Jordan',
             'kobe bryant': 'Kobe Bryant',
             'tom brady': 'Tom Brady',
-            'ja marr chase': 'Ja'Marr Chase',
-            'jamarr chase': 'Ja'Marr Chase',
-            'ja'marr chase': 'Ja'Marr Chase',
+            'ja marr chase': 'Ja\'Marr Chase',
+            'jamarr chase': 'Ja\'Marr Chase',
+            'ja\'marr chase': 'Ja\'Marr Chase',
             'michael harris ii': 'Michael Harris II',
             'patrick mahomes ii': 'Patrick Mahomes II',
             't j watt': 'T.J. Watt',
@@ -3335,8 +3337,8 @@ class NewPricingDatabase {
             'yoshinobu yamamoto': 'Yoshinobu Yamamoto',
             'davante adams': 'Davante Adams',
             'kobe': 'Kobe Bryant',
-            'shaq': 'Shaquille O'Neal',
-            'shaquille': 'Shaquille O'Neal',
+            'shaq': 'Shaquille O\'Neal',
+            'shaquille': 'Shaquille O\'Neal',
             'michael penix jr': 'Michael Penix Jr',
             'penix jr': 'Michael Penix Jr'
         };
@@ -3707,5 +3709,4 @@ if (require.main === module) {
     main();
 }
 
-module.exports = NewPricingDatabase;/ /   T e s t   c o m m e n t  
- 
+module.exports = NewPricingDatabase;
