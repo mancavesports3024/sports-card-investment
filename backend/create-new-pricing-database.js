@@ -2469,17 +2469,9 @@ class NewPricingDatabase {
         cleanTitle = cleanTitle.replace(/\bucl\b/gi, ' ');
         if (debugOn) steps.push({ step: 'afterUCLRemoval', cleanTitle });
         
-        // Step 4.7: Remove Preview (simple approach - just remove it)
-        cleanTitle = cleanTitle.replace(/\bpreview\b/gi, ' ');
-        if (debugOn) steps.push({ step: 'afterPreviewRemoval', cleanTitle });
         
-        // Step 4.8: Clean up periods in initials (C.J. -> CJ, etc.)
-        // This needs to happen before other processing to prevent "Cj.s.troud" issues
-        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\./g, '$1$2'); // C.J. -> CJ
-        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])/g, '$1$2'); // C.J -> CJ
-        cleanTitle = cleanTitle.replace(/([A-Z])\s+([A-Z])\./g, '$1$2'); // C J. -> CJ
-        cleanTitle = cleanTitle.replace(/([A-Z])\s+([A-Z])/g, '$1$2'); // C J -> CJ
-        if (debugOn) steps.push({ step: 'afterInitialsCleanup', cleanTitle });
+        
+        
         
         // Step 4.5: Special handling for "LeBron" to prevent "La" removal
         // Replace "LeBron" with a placeholder before removing "La", then restore it
@@ -2488,85 +2480,7 @@ class NewPricingDatabase {
         cleanTitle = cleanTitle.replace(/\blebron\b/gi, 'LEBRON_PLACEHOLDER');
         if (debugOn) steps.push({ step: 'afterLeBronPlaceholder', cleanTitle });
         
-        // Step 4.5.1: Check for specific problematic patterns BEFORE card terms removal
-        // These patterns need to be checked before card terms are removed
-        
-        // Check for "Anthony Edwards" in the original title
-        if (cleanTitle.includes('Anthony Edwards') || cleanTitle.includes('ANTHONY EDWARDS')) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'anthonyEdwardsEarlyReturn', result: 'Anthony Edwards' }]);
-            return 'Anthony Edwards';
-        }
-        
-        // Check for dual player cards without explicit "/" separator
-        // Look for "Kobe Shaq" pattern (Kobe Bryant + Shaquille O'Neal)
-        const kobeShaqPattern = /\b(Kobe\s+Shaq)\b/gi;
-        const kobeShaqMatch = cleanTitle.match(kobeShaqPattern);
-        if (kobeShaqMatch && kobeShaqMatch.length > 0) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'kobeShaqEarlyReturn', result: 'Kobe/Shaq' }]);
-            return 'Kobe/Shaq';
-        }
-        
-        // Look for "Kobe Bryant Shaq" pattern
-        const kobeBryantShaqPattern = /\b(Kobe\s+Bryant\s+Shaq)\b/gi;
-        const kobeBryantShaqMatch = cleanTitle.match(kobeBryantShaqPattern);
-        if (kobeBryantShaqMatch && kobeBryantShaqMatch.length > 0) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'kobeBryantShaqEarlyReturn', result: 'Kobe/Shaq' }]);
-            return 'Kobe/Shaq';
-        }
-        
-        // Look for "Shaq Kobe" pattern
-        const shaqKobePattern = /\b(Shaq\s+Kobe)\b/gi;
-        const shaqKobeMatch = cleanTitle.match(shaqKobePattern);
-        if (shaqKobeMatch && shaqKobeMatch.length > 0) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'shaqKobeEarlyReturn', result: 'Shaq/Kobe' }]);
-            return 'Shaq/Kobe';
-        }
-        
-        // Check for "Ryan O\'Hearn" in the original title
-        if (cleanTitle.includes('Ryan O\'Hearn') || cleanTitle.includes('RYAN O\'HEARN')) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'ryanOHearnEarlyReturn', result: 'Ryan O\'Hearn' }]);
-            return 'Ryan O\'Hearn';
-        }
-        
-        // Check for "Kobe Bryant" in the original title
-        if (cleanTitle.includes('Kobe Bryant') || cleanTitle.includes('KOBE BRYANT')) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'kobeBryantEarlyReturn', result: 'Kobe Bryant' }]);
-            return 'Kobe Bryant';
-        }
-        
-        // Check for "Michael Jordan" in the original title
-        if (cleanTitle.includes('Michael Jordan') || cleanTitle.includes('MICHAEL JORDAN')) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'michaelJordanEarlyReturn', result: 'Michael Jordan' }]);
-            return 'Michael Jordan';
-        }
-        
-        // Check for "Brock Purdy" in the original title
-        if (cleanTitle.includes('Brock Purdy') || cleanTitle.includes('BROCK PURDY')) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'brockPurdyEarlyReturn', result: 'Brock Purdy' }]);
-            return 'Brock Purdy';
-        }
-        
-        // Check for "Deebo Samuel" in the original title
-        if (cleanTitle.includes('Deebo Samuel') || cleanTitle.includes('DEEBO SAMUEL')) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'deeboSamuelEarlyReturn', result: 'Deebo Samuel' }]);
-            return 'Deebo Samuel';
-        }
-        
-        // Check for "Pedro De La Vega" in the original title
-        if (cleanTitle.includes('Pedro De La Vega') || cleanTitle.includes('PEDRO DE LA VEGA')) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'pedroDeLaVegaEarlyReturn', result: 'Pedro De La Vega' }]);
-            return 'Pedro De La Vega';
-        }
-        
-        // Check for "Shohei Ohtani" in the original title
-        if (cleanTitle.includes('Shohei Ohtani') || cleanTitle.includes('SHOHEI OHTANI')) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'shoheiOhtaniEarlyReturn', result: 'Shohei Ohtani' }]);
-            return 'Shohei Ohtani';
-        }
-        
-        // Check for "Bo Jackson" in the original title
-        if (cleanTitle.includes('Bo Jackson') || cleanTitle.includes('BO JACKSON')) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'boJacksonEarlyReturn', result: 'Bo Jackson' }]);
+        ]);
             return 'Bo Jackson';
         }
         
@@ -3189,62 +3103,65 @@ class NewPricingDatabase {
         }
         
         // Step 5: Remove other common card terms
-        const cardTerms = [
-            'rookie', 'rookies', 'rc', 'yg', 'young guns', '1st', 'first', 'prospect', 'debut',
-            'auto', 'autograph', 'autographs', 'on card', 'sticker', 'patch', 'relic', 'memorabilia',
-            'parallel', 'insert', 'base', 'sp', 'ssp', 'short print', 'super short print',
-            'parallel', 'insert', 'base', 'holo', 'holographic', 'chrome', 'prizm',
-            'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
-            'wave', 'velocity', 'scope', 'hyper', 'optic', 'mosaic', 'select', 'finest',
-            'bowman', 'topps', 'panini', 'donruss', 'optic', 'mosaic', 'select', 'finest',
-            'chronicles', 'picks', 'prospects', 'obsidian', 'contenders', 'instant', 'update', 'courtside', 'jersey', 'international', 'impact',
+                const cardTerms = [
+            // Card types
+            'rookie', 'rc', 'yg', 'auto', 'autograph', 'patch', 'relic', 'parallel', 'insert', 'base', 'sp', 'ssp',
+            'holo', 'holographic', 'chrome', 'prizm', 'prizms', 'refractor', 'fractor', 'prism', 'die-cut', 'wave', 'velocity', 'scope', 'hyper',
+            'optic', 'mosaic', 'select', 'finest', 'bowman', 'topps', 'panini', 'donruss', 'chronicles', 'obsidian',
+            'contenders', 'instant', 'update', 'courtside', 'jersey', 'international', 'impact', 'university', 'draft',
+            'stars', 'cosmic', 'invicta', 'all-etch', 'edition', 'signature', 'color', 'design', 'pitching', 'starcade',
+            'premium', 'speckle', 'flair', 'ucl', 'olympics', 'wnba', 'league', 'championship', 'tournament', 'series',
+            'profiles', 'mini', 'border', 'intimidators', 'kellogg', 'mist', 'usa', 'xr', 'logofractor', 'cyan',
+            'authentic', 'rpa', 'formula 1', 'p.p.', 'match', 'mav', 'concourse', 'concourses', 'essentials', 'supernatural',
+            'heritage', 'focus', 'winning ticket', 'prizmatic', 'mint2', 'indiana', 'batting', 'florida', 'pitch',
             'baseball', 'football', 'basketball', 'hockey', 'soccer', 'golf', 'racing',
-            'rookie card', 'university', 'draft', 'stars', 'cosmic', 'invicta', 'all-etch', 'edition',
-            'gold', 'silver', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink',
-            'bronze', 'white', 'teal', 'neon', 'camo', 'tie-dye', 'disco', 'dragon scale',
-            'snakeskin', 'pulsar', 'logo', 'variation', 'clear cut', 'real one', 'downtown',
-            'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric',
-            'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'splash', 'rising', 'best',
+            
+            // Colors
+            'gold', 'silver', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'bronze', 'white',
+            'teal', 'neon', 'camo', 'tie-dye', 'disco', 'dragon scale', 'snakeskin', 'pulsar', 'logo', 'variation',
+            'clear cut', 'real one', 'downtown', 'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania',
+            'geometric', 'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'splash', 'rising', 'best',
             'independence day', 'father\'s day', 'mother\'s day', 'memorial day',
-            'mvp', 'hof', 'nfl', 'mlb', 'nba', 'nhl', 'debut', 'card', 'rated', 'chrome', 'university',
-            'vikings', 'hof', 'brewers', 'bears', 'pirates', 'cardinals', 'dodgers', 'yankees',
-            'red sox', 'cubs', 'white sox', 'braves', 'mets', 'phillies', 'nationals', 'marlins',
-            'rays', 'blue jays', 'orioles', 'indians', 'guardians', 'tigers', 'royals', 'twins',
-            'astros', 'rangers', 'athletics', 'mariners', 'angels', 'giants', 'padres', 'rockies',
-            'diamondbacks', 'reds', 'pirates', 'cardinals', 'brewers', 'cubs', 'white sox',
-            'packers', 'bears', 'lions', 'vikings', 'cowboys', 'eagles', 'giants', 'redskins',
-            'commanders', 'patriots', 'pats', 'steelers', 'bills', 'dolphins', 'jets', 'bengals',
-            'browns', 'ravens', 'texans', 'colts', 'jaguars', 'titans', 'broncos', 'chargers',
-            'raiders', 'chiefs', '49ers', 'seahawks', 'cardinals', 'rams', 'saints', 'buccaneers', 'la lakers',
-            'falcons', 'panthers', 'la lakers', 'lakers',
-            // College/school names
-            'duke', 'mavericks', 'blue devils', 'tar heels', 'wolfpack', 'demon deacons',
-            'seminoles', 'hurricanes', 'gators', 'bulldogs', 'tigers', 'wildcats', 'cardinals',
-            'eagles', 'hawks', 'panthers', 'cavaliers', 'hokies', 'orange', 'syracuse',
-            'connecticut', 'uconn', 'villanova', 'georgetown', 'providence', 'seton hall',
-            'creighton', 'xavier', 'butler', 'depaul', 'marquette', 'st johns', 'kansas',
-            'kentucky', 'north carolina', 'arizona', 'ucla', 'usc', 'stanford', 'california',
-            'oregon', 'oregon state', 'washington', 'washington state', 'colorado', 'utah',
-            'arizona state', 'ucla', 'usc', 'stanford', 'california', 'oregon', 'oregon state',
-            'washington', 'washington state', 'colorado', 'utah', 'arizona state',
-            // Soccer team names
-            'liverpool', 'manchester united', 'manchester city', 'arsenal', 'chelsea',
-            'tottenham', 'barcelona', 'real madrid', 'bayern munich', 'psg', 'juventus',
-            'ac milan', 'inter milan', 'ajax', 'porto', 'benfica', 'celtic', 'rangers',
-            'fc', 'united', 'city', 'athletic', 'sporting', 'dynamo', 'spartak', 'zenit',
-            // Card types that should be removed from player names
-            'flash', 'fifa', 'velocity', 'scope', 'hyper', 'optic', 'mosaic', 'select', 'finest',
-            'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua',
-            'draft', 'red/white/blue', 'tf1', 'all-etch', 'night',
-            'cosmic stars', 'cosmic', 'all etch', 'stars', 'splash', 'rising', 'best',
-            'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric',
-            'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'downtown', 'real one',
-            'clear cut', 'variation', 'logo', 'pulsar', 'snakeskin', 'dragon scale',
-            'tie-dye', 'disco', 'neon', 'camo', 'bronze', 'teal', 'pink', 'purple', 'orange',
-            'yellow', 'green', 'blue', 'black', 'silver', 'gold', 'white',
-            'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
-            'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
-            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'radiating', 'now', 'foil', 'ucl', 'preview', 'shock', 'design', 'speckle', 'prizmatic', 'lunar glow'
+            
+            // Team names (comprehensive list)
+            'a\'s', 'athletics', 'vikings', 'cardinals', 'eagles', 'falcons', 'ravens', 'bills', 'panthers', 'bears',
+            'bengals', 'browns', 'cowboys', 'broncos', 'lions', 'packers', 'texans', 'colts', 'jaguars', 'chiefs',
+            'raiders', 'chargers', 'rams', 'dolphins', 'patriots', 'saints', 'giants', 'jets', 'steelers', '49ers',
+            'seahawks', 'buccaneers', 'titans', 'commanders', 'bulls', 'lakers', 'celtics', 'warriors', 'heat',
+            'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks',
+            'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz',
+            'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'brewers', 'pirates', 'dodgers',
+            'yankees', 'red sox', 'cubs', 'white sox', 'braves', 'mets', 'phillies', 'nationals', 'marlins', 'rays',
+            'blue jays', 'orioles', 'indians', 'guardians', 'tigers', 'royals', 'twins', 'astros', 'rangers',
+            'mariners', 'angels', 'giants', 'padres', 'rockies', 'diamondbacks', 'reds', 'new england', 'la',
+            'sounders', 'timbers', 'whitecaps', 'impact', 'toronto fc', 'vancouver whitecaps', 'seattle sounders',
+            'portland timbers', 'montreal impact', 'atlanta united', 'orlando city', 'nyc fc', 'la galaxy',
+            'chicago fire', 'columbus crew', 'dc united', 'houston dynamo', 'fc dallas', 'sporting kc',
+            'minnesota united', 'real salt lake', 'colorado rapids', 'san jose earthquakes', 'philadelphia union',
+            'new england revolution', 'montreal cf', 'toronto fc', 'vancouver whitecaps', 'seattle sounders fc',
+            'portland timbers fc', 'atlanta united fc', 'orlando city sc', 'new york city fc', 'la galaxy fc',
+            'chicago fire fc', 'columbus crew sc', 'dc united fc', 'houston dynamo fc', 'fc dallas sc',
+            'sporting kansas city', 'minnesota united fc', 'real salt lake fc', 'colorado rapids fc',
+            'san jose earthquakes fc', 'philadelphia union fc', 'new england revolution fc',
+            
+            // Card number prefixes
+            'bdc', 'bdp', 'bcp', 'cda', 'mmr', 'tc', 'dt', 'bs', 'sjmc',
+            
+            // Other terms
+            'mvp', 'hof', 'nfl', 'mlb', 'nba', 'nhl', 'debut', 'card', 'rated', 'chrome', 'university', 'ufc', 'mma',
+            'mixed martial arts', 'octagon', 'fighter', 'fighting', 'wwe', 'nascar', 'indycar', 'indy', 'drag racing',
+            'rally', 'rallycross', 'motocross', 'supercross', 'endurance', 'sprint', 'dirt track', 'oval', 'road course',
+            'street circuit', 'paddock', 'pit', 'pit lane', 'grid', 'qualifying', 'practice', 'warm up', 'formation lap',
+            'safety car', 'virtual safety car', 'red flag', 'yellow flag', 'blue flag', 'checkered flag', 'pole position',
+            'podium', 'championship', 'points', 'season', 'race', 'grand prix', 'gp', 'monaco', 'silverstone', 'monza',
+            'spa', 'suzuka', 'interlagos', 'red bull', 'ferrari', 'mercedes', 'mclaren', 'aston martin', 'alpine',
+            'williams', 'haas', 'alfa romeo', 'alpha tauri', 'racing point', 'force india', 'sauber', 'toro rosso',
+            'minardi', 'benetton', 'tyrrell', 'lotus', 'brabham', 'cooper', 'vanwall', 'maserati', 'alfa', 'bugatti',
+            'delage', 'peugeot', 'renault', 'bmw', 'toyota', 'honda', 'ford', 'chevrolet', 'dodge', 'pontiac',
+            'oldsmobile', 'buick', 'cadillac', 'lincoln', 'mercury', 'plymouth', 'amc', 'studebaker', 'packard', 'nash',
+            'hudson', 'kaiser', 'frazer', 'willys', 'jeep', 'international', 'diamond t', 'mack', 'peterbilt', 'kenworth',
+            'freightliner', 'western star', 'volvo', 'scania', 'man', 'iveco', 'daf', 'renault trucks', 'volvo trucks',
+            'scania trucks', 'man trucks', 'iveco trucks', 'daf trucks'
         ];
         cardTerms.forEach(term => {
             const regex = new RegExp(`\\b${term}\\b`, 'gi');
@@ -3390,53 +3307,38 @@ class NewPricingDatabase {
         if (debugOn) steps.push({ step: 'expandedSingleToken', playerName });
 
         // Capitalize properly but preserve original case for known players
+                // Capitalize properly but preserve original case for known players
         const knownPlayers = {
             'lebron': 'LeBron',
             'lebron james': 'LeBron James',
             'j.j. mccarthy': 'J.J. McCarthy',
-            'ryan ohearn': 'Ryan O\'Hearn',
+            'ryan ohearn': 'Ryan O'Hearn',
             'pedro de la vega': 'Pedro De La Vega',
-            'pedro de vega': 'Pedro De La Vega', // Handle case where "La" was filtered
             'xavier worthy': 'Xavier Worthy',
             'caleb williams': 'Caleb Williams',
             'anthony edwards': 'Anthony Edwards',
             'brock purdy': 'Brock Purdy',
             'aaron judge': 'Aaron Judge',
-            'judge': 'Aaron Judge', // Handle case where "Aaron" was filtered
             'shohei ohtani': 'Shohei Ohtani',
             'michael jordan': 'Michael Jordan',
             'kobe bryant': 'Kobe Bryant',
             'tom brady': 'Tom Brady',
-            'ja marr chase': 'Ja\'Marr Chase',
-            'jamarr chase': 'Ja\'Marr Chase',
-            'ja\'marr chase': 'Ja\'Marr Chase',
-            // Fix Roman numeral and initial issues found in 3-word analysis
+            'ja marr chase': 'Ja'Marr Chase',
+            'jamarr chase': 'Ja'Marr Chase',
+            'ja'marr chase': 'Ja'Marr Chase',
             'michael harris ii': 'Michael Harris II',
-            'michael harris i': 'Michael Harris II',
             'patrick mahomes ii': 'Patrick Mahomes II',
-            'patrick mahomes i': 'Patrick Mahomes II',
-            'stetson bennett iv': 'Stetson Bennett IV',
-            'stetson bennett i': 'Stetson Bennett IV',
             't j watt': 'T.J. Watt',
             't.j. watt': 'T.J. Watt',
             'j j mccarthy': 'J.J. McCarthy',
-            'elly de la': 'Elly De La Cruz',
             'elly de la cruz': 'Elly De La Cruz',
-            // Single-name and short-name mappings to full names
-            'yoshinobu': 'Yoshinobu Yamamoto',
             'yoshinobu yamamoto': 'Yoshinobu Yamamoto',
-            'davante': 'Davante Adams',
-            // Handle individual player names from dual cards
+            'davante adams': 'Davante Adams',
             'kobe': 'Kobe Bryant',
-            'shaq': 'Shaquille O\'Neal',
-            'shaquille': 'Shaquille O\'Neal',
-            'shaquille oneal': 'Shaquille O\'Neal',
+            'shaq': 'Shaquille O'Neal',
+            'shaquille': 'Shaquille O'Neal',
             'michael penix jr': 'Michael Penix Jr',
-            'penix jr': 'Michael Penix Jr',
-            'michael penix jr.': 'Michael Penix Jr',
-            'penix jr.': 'Michael Penix Jr',
-            'ryan ohearn': 'Ryan O\'Hearn',
-            'ryan o hearn': 'Ryan O\'Hearn'
+            'penix jr': 'Michael Penix Jr'
         };
         
         const lowerPlayerName = playerName.toLowerCase();
