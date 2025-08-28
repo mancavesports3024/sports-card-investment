@@ -2475,10 +2475,10 @@ class NewPricingDatabase {
         
         // Step 4.8: Clean up periods in initials (C.J. -> CJ, etc.)
         // This needs to happen before other processing to prevent "Cj.s.troud" issues
-        cleanTitle = cleanTitle.replace(/\b([A-Z])\.([A-Z])\./g, '$1$2'); // C.J. -> CJ
-        cleanTitle = cleanTitle.replace(/\b([A-Z])\.([A-Z])/g, '$1$2'); // C.J -> CJ
-        cleanTitle = cleanTitle.replace(/\b([A-Z])\s+([A-Z])\./g, '$1$2'); // C J. -> CJ
-        cleanTitle = cleanTitle.replace(/\b([A-Z])\s+([A-Z])/g, '$1$2'); // C J -> CJ
+        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\./g, '$1$2'); // C.J. -> CJ
+        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])/g, '$1$2'); // C.J -> CJ
+        cleanTitle = cleanTitle.replace(/([A-Z])\s+([A-Z])\./g, '$1$2'); // C J. -> CJ
+        cleanTitle = cleanTitle.replace(/([A-Z])\s+([A-Z])/g, '$1$2'); // C J -> CJ
         if (debugOn) steps.push({ step: 'afterInitialsCleanup', cleanTitle });
         
         // Step 4.5: Special handling for "LeBron" to prevent "La" removal
