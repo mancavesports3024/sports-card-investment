@@ -3707,4 +3707,5 @@ if (require.main === module) {
     main();
 }
 
-module.exports = NewPricingDatabase;
+module.exports = NewPricingDatabase;/ /   T e s t   c o m m e n t  
+ 
