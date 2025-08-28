@@ -3523,7 +3523,7 @@ class NewPricingDatabase {
             'seminoles', 'hurricanes', 'gators', 'bulldogs', 'tigers', 'wildcats', 'cardinals',
             'eagles', 'hawks', 'panthers', 'cavaliers', 'hokies', 'orange', 'syracuse',
             'connecticut', 'uconn', 'villanova', 'georgetown', 'providence', 'seton hall',
-            'creighton', 'xavier', 'butler', 'depaul', 'marquette', 'st johns', 'kansas',
+            'creighton', 'butler', 'depaul', 'marquette', 'st johns', 'kansas',
             'kentucky', 'north carolina', 'arizona', 'ucla', 'usc', 'stanford', 'california',
             'oregon', 'oregon state', 'washington', 'washington state', 'colorado', 'utah',
             'arizona state', 'ucla', 'usc', 'stanford', 'california', 'oregon', 'oregon state',
