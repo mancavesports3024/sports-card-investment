@@ -156,13 +156,21 @@ class PlayerNameAnalyzer {
             return { isProblematic: true, reason: `Single word that's likely not a player name: "${name}"` };
         }
         
-        // Check for very short names (less than 3 characters)
-        if (name.length < 3) {
+        // Check for very short names (less than 2 characters)
+        if (name.length < 2) {
             return { isProblematic: true, reason: `Too short: "${name}" (${name.length} chars)` };
         }
         
+        // Allow 2-3 character names that are likely legitimate (like "JR", "II")
+        const legitimateShortNames = ['jr', 'ii', 'iii', 'iv'];
+        if (name.length <= 3 && legitimateShortNames.includes(name)) {
+            return { isProblematic: false, reason: 'Valid short name' };
+        }
+        
         // Check for names that are all lowercase and very short (likely incomplete)
-        if (name === name.toLowerCase() && name.length < 5) {
+        // But allow legitimate short names
+        const legitimateLowercaseNames = ['jr', 'ii', 'iii', 'iv', 'ryan', 'mars', 'tait', 'the'];
+        if (name === name.toLowerCase() && name.length < 5 && !legitimateLowercaseNames.includes(name)) {
             return { isProblematic: true, reason: `All lowercase and too short: "${name}"` };
         }
         
@@ -171,9 +179,35 @@ class PlayerNameAnalyzer {
             return { isProblematic: true, reason: `Contains numbers: "${name}"` };
         }
         
-        // Check for names with special characters (except apostrophes and hyphens)
-        if (/[^a-z\s'\-]/.test(name)) {
+        // Check for names with special characters (except apostrophes, hyphens, and periods)
+        // Allow periods for dotted initials like "J.J. McCarthy"
+        // But exclude names that are just artifacts like ".r.ef"
+        const specialCharRegex = /[^a-z\s'\-\.]/;
+        if (specialCharRegex.test(name)) {
+            // Special case: allow dotted initials like "J.J. McCarthy"
+            if (/^[a-z]+\.[a-z]+\.\s+[a-z]+$/.test(name)) {
+                return { isProblematic: false, reason: 'Valid dotted initials' };
+            }
+            // Special case: allow single periods in names (like "O'Connor")
+            if (/^[a-z]+'[a-z]+$/.test(name)) {
+                return { isProblematic: false, reason: 'Valid name with apostrophe' };
+            }
             return { isProblematic: true, reason: `Contains special characters: "${name}"` };
+        }
+        
+        // Allow common suffixes like II, III, IV, JR, SR
+        const commonSuffixes = ['ii', 'iii', 'iv', 'jr', 'sr'];
+        const words = name.split(/\s+/);
+        const lastWord = words[words.length - 1];
+        
+        // If it's a single word and it's a common suffix, it's problematic
+        if (words.length === 1 && commonSuffixes.includes(lastWord)) {
+            return { isProblematic: true, reason: `Too short: "${name}" (${name.length} chars)` };
+        }
+        
+        // If it's a multi-word name ending with a common suffix, it's valid
+        if (words.length > 1 && commonSuffixes.includes(lastWord)) {
+            return { isProblematic: false, reason: 'Valid player name with suffix' };
         }
         
         return { isProblematic: false, reason: 'Valid player name' };
