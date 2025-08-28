@@ -2683,14 +2683,6 @@ class NewPricingDatabase {
             return 'Xavier Worthy';
         }
         
-        // Look for "Malik Nabers" in various contexts
-        const malikNabersPattern = /\b(Malik\s+Nabers)\b/gi;
-        const malikNabersMatch = cleanTitle.match(malikNabersPattern);
-        if (malikNabersMatch && malikNabersMatch.length > 0) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'malikNabersEarlyReturn', result: 'Malik Nabers' }]);
-            return 'Malik Nabers';
-        }
-        
         // Look for "Cooper Flagg" in various contexts
         const cooperFlaggPattern = /\b(Cooper\s+Flagg)\b/gi;
         const cooperFlaggMatch = cleanTitle.match(cooperFlaggPattern);
@@ -3334,7 +3326,7 @@ class NewPricingDatabase {
             'lebron': 'LeBron',
             'lebron james': 'LeBron James',
             'j.j. mccarthy': 'J.J. McCarthy',
-            'ryan ohearn': 'Ryan O'Hearn',
+            'ryan ohearn': 'Ryan O\'Hearn',
             'pedro de la vega': 'Pedro De La Vega',
             'xavier worthy': 'Xavier Worthy',
             'caleb williams': 'Caleb Williams',
@@ -3345,9 +3337,9 @@ class NewPricingDatabase {
             'michael jordan': 'Michael Jordan',
             'kobe bryant': 'Kobe Bryant',
             'tom brady': 'Tom Brady',
-            'ja marr chase': 'Ja'Marr Chase',
-            'jamarr chase': 'Ja'Marr Chase',
-            'ja'marr chase': 'Ja'Marr Chase',
+            'ja marr chase': 'Ja\'Marr Chase',
+            'jamarr chase': 'Ja\'Marr Chase',
+            'ja\'marr chase': 'Ja\'Marr Chase',
             'michael harris ii': 'Michael Harris II',
             'patrick mahomes ii': 'Patrick Mahomes II',
             't j watt': 'T.J. Watt',
@@ -3357,8 +3349,8 @@ class NewPricingDatabase {
             'yoshinobu yamamoto': 'Yoshinobu Yamamoto',
             'davante adams': 'Davante Adams',
             'kobe': 'Kobe Bryant',
-            'shaq': 'Shaquille O'Neal',
-            'shaquille': 'Shaquille O'Neal',
+            'shaq': 'Shaquille O\'Neal',
+            'shaquille': 'Shaquille O\'Neal',
             'michael penix jr': 'Michael Penix Jr',
             'penix jr': 'Michael Penix Jr',
             // New mappings for single word names
