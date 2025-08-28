@@ -2568,6 +2568,18 @@ class NewPricingDatabase {
             return 'Aaron Judge';
         }
         
+        // Check for "Josue De Paula" in the original title
+        if (cleanTitle.includes('Josue De Paula') || cleanTitle.includes('JOSUE DE PAULA')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'josueDePaulaEarlyReturn', result: 'Josue De Paula' }]);
+            return 'Josue De Paula';
+        }
+        
+        // Check for "Jacob Misiorowski" in the original title
+        if (cleanTitle.includes('Jacob Misiorowski') || cleanTitle.includes('JACOB MISIOROWSKI')) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'jacobMisiorowskiEarlyReturn', result: 'Jacob Misiorowski' }]);
+            return 'Jacob Misiorowski';
+        }
+        
         // Check for "Judge" in the original title (from Ohtani/Judge cards)
         if (cleanTitle.includes('Judge') && !cleanTitle.includes('Ohtani') && !cleanTitle.includes('Aaron')) {
             if (debugOn) this._lastDebug = steps.concat([{ step: 'judgeEarlyReturn', result: 'Judge' }]);
