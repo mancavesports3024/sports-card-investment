@@ -2401,6 +2401,20 @@ class NewPricingDatabase {
             }
         }
         
+        // Step 0.5: Early detection of dual player cards with "/" separator
+        // Look for patterns like "Montana/Rice" or "Player1/Player2" BEFORE any other processing
+        const earlyDualPlayerPattern = /\b([A-Z][a-z]+\s*\/\s*[A-Z][a-z]+)\b/g;
+        const earlyDualPlayerMatches = title.match(earlyDualPlayerPattern);
+        if (earlyDualPlayerMatches && earlyDualPlayerMatches.length > 0) {
+            // Take the first match as the player name and preserve proper capitalization
+            const match = earlyDualPlayerMatches[0].replace(/\s+/g, '').trim();
+            const result = match.split('/').map(part => 
+                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+            ).join('/');
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'dualPlayerEarlyReturn', result }]);
+            return result;
+        }
+        
         // Step 1: Remove the card set
         const cardSet = this.extractCardSet(title);
         if (cardSet) {
@@ -2566,11 +2580,7 @@ class NewPricingDatabase {
         }
         
         // Step 4.5.5: Very early detection of specific dual player patterns
-        // Check for "Montana/Rice" before any other processing
-        if (cleanTitle.includes('Montana/Rice') || cleanTitle.includes('montana/rice')) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'montanaRiceEarlyReturn', result: 'Montana/Rice' }]);
-            return 'Montana/Rice';
-        }
+        // (Moved to Step 0.5 for earlier detection)
         
         // Check for "Kobe Bryant/Lakers" before any other processing
         if (cleanTitle.includes('Kobe Bryant/Lakers') || cleanTitle.includes('kobe bryant/lakers')) {
@@ -2581,24 +2591,7 @@ class NewPricingDatabase {
 
         
         // Step 4.6: Early detection of dual player cards with "/" separator
-        // Look for patterns like "Montana/Rice" or "Player1/Player2" BEFORE removing card terms
-        const earlyDualPlayerPattern = /\b([A-Z][a-z]+\s*\/\s*[A-Z][a-z]+)\b/g;
-        const earlyDualPlayerMatches = cleanTitle.match(earlyDualPlayerPattern);
-        if (earlyDualPlayerMatches && earlyDualPlayerMatches.length > 0) {
-            // Take the first match as the player name and preserve proper capitalization
-            const match = earlyDualPlayerMatches[0].replace(/\s+/g, '').trim();
-            return match.split('/').map(part => 
-                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-            ).join('/');
-        }
-        
-        // Specific pattern for "Montana/Rice" dual player card
-        const montanaRicePattern = /\b(Montana\s*\/\s*Rice)\b/gi;
-        const montanaRiceMatch = cleanTitle.match(montanaRicePattern);
-        if (montanaRiceMatch && montanaRiceMatch.length > 0) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'montanaRiceEarlyReturn', result: 'Montana/Rice' }]);
-            return 'Montana/Rice';
-        }
+        // (Moved to Step 0.5 for earlier detection)
         
         // Also look for patterns like "Kobe Bryant/Lakers" where the second part is a team
         const earlyPlayerTeamPattern = /\b([A-Z][a-z]+\s+[A-Z][a-z]+\s*\/\s*[A-Z][a-z]+)\b/g;
