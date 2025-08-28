@@ -2400,24 +2400,6 @@ class NewPricingDatabase {
             }
         }
         
-        // Step 0.1: Special handling for Bo Jackson - preserve "BO JACKSON" before cleaning
-        if (title.includes('BO JACKSON') || title.includes('Bo Jackson')) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'boJacksonEarlyReturn', result: 'Bo Jackson' }]);
-            return 'Bo Jackson';
-        }
-        
-        // Step 0.2: Special handling for DJ Lagway - preserve "DJ LAGWAY" before cleaning
-        if (title.includes('DJ LAGWAY') || title.includes('DJ Lagway')) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'djLagwayEarlyReturn', result: 'DJ Lagway' }]);
-            return 'DJ Lagway';
-        }
-        
-        // Step 0.3: Special handling for Bijan Robinson - preserve "Bijan Robinson" before cleaning
-        if (title.includes('Bijan Robinson')) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'bijanRobinsonEarlyReturn', result: 'Bijan Robinson' }]);
-            return 'Bijan Robinson';
-        }
-        
         // Step 1: Remove the card set
         const cardSet = this.extractCardSet(title);
         if (cardSet) {
@@ -2499,15 +2481,14 @@ class NewPricingDatabase {
         if (debugOn) steps.push({ step: 'afterLeBronPlaceholder', cleanTitle });
         // Step 4.6: Clean up periods in initials (Cj.s.troud -> CJ Stroud, etc.)
         // This needs to happen before other processing to prevent concatenation issues
-        // Only apply to patterns with periods, not to normal initials like "DJ"
-        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([A-Z])/g, '$1$2 $3'); // Cj.s.troud -> CJ Stroud
-        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([a-z]+)/g, '$1$2 $3'); // Cj.k.ayfus -> CJ Kayfus
-        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([a-z]+)/g, '$1$2 $3'); // Cc.l.amine -> CC Lamine
-        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([a-z]+)/g, '$1$2 $3'); // Dp.j.axon -> DP Jaxon
-        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([a-z]+)/g, '$1$2 $3'); // El.j.asson -> EL Jasson
-        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([a-z]+)/g, '$1$2 $3'); // Jr.t.ie -> JR Tie
-        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([a-z]+)/g, '$1$2 $3'); // Ud.h.ubert -> UD Hubert
-        cleanTitle = cleanTitle.replace(/([A-Z])\.([A-Z])\.([a-z]+)/g, '$1$2 $3'); // Ii.b.ig -> II Big
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([A-Z])/g, '$1$2 $3'); // Cj.s.troud -> CJ Stroud
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Cj.k.ayfus -> CJ Kayfus
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Cc.l.amine -> CC Lamine
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Dp.j.axon -> DP Jaxon
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // El.j.asson -> EL Jasson
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Jr.t.ie -> JR Tie
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Ud.h.ubert -> UD Hubert
+        cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([a-z]+)/g, '$1$2 $3'); // Ii.b.ig -> II Big
         if (debugOn) steps.push({ step: 'afterInitialsCleanup', cleanTitle });
         
         // Check for "Bo Jackson" in the original title
@@ -2548,14 +2529,8 @@ class NewPricingDatabase {
         
         // Check for "Ohtani" in the original title (from Ohtani/Judge cards)
         if (cleanTitle.includes('Ohtani') && !cleanTitle.includes('Judge')) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'ohtaniEarlyReturn', result: 'Shohei Ohtani' }]);
-            return 'Shohei Ohtani';
-        }
-        
-        // Check for "Bo Jackson" in the original title
-        if (cleanTitle.includes('Bo Jackson') || cleanTitle.includes('BO JACKSON')) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'boJacksonEarlyReturn', result: 'Bo Jackson' }]);
-            return 'Bo Jackson';
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'ohtaniEarlyReturn', result: 'Ohtani' }]);
+            return 'Ohtani';
         }
         
         // Check for "Pete Alonso" in the original title
@@ -3291,19 +3266,7 @@ class NewPricingDatabase {
             'king','kings','sunday','main','event','gold','silver','orange','purple','pink','blue','green','red','black','aqua','teal','rainbow',
             'lazer','laser','wave','disco','refractor','parallel','insert','numbered','limited',
             'sublime','shimmer','scripts','storm','zone','reactive','reprint','snake','ghost',
-            'foil','holo','velocity','lazer','lazer','nebula','mojo','checkerboard','dazzle','sapphire','speckle','prizmatic','lunar','glow',
-            'preview','shock','purple','ice','tie','dye','big','campus','ref','north','carolina','basketball','autographs','au',
-            // Cities and locations (subset sufficient to block leaks)
-            'new','york','los','angeles','chicago','denver','detroit','miami','boston','dallas','seattle','philadelphia','houston','phoenix','orlando','toronto','tampa','kansas','city','vegas','nashville','memphis','atlanta',
-            // Card phrases
-            'case','hit','signatures','signature','ruby',
-            // Additional terms that should not be considered as player names
-            'stained','glass','texas','longhorns','pitching','baseball','football','basketball','hockey','soccer','golf','racing',
-            'rockies','portrait','mclaren','heat','monopoly','pink','ice','velocity','stars','cosmic','invicta','all-etch','edition',
-            'signature','color','design','starcade','premium','speckle','flair','ucl','olympics','wnba','league','championship',
-            'tournament','series','profiles','mini','border','intimidators','kellogg','mist','usa','xr','logofractor','cyan',
-            'authentic','rpa','formula','match','mav','concourse','essentials','supernatural','heritage','focus','winning','ticket',
-            'prizmatic','mint2','indiana','batting','florida','pitch'
+            'foil','holo','velocity','lazer','lazer','nebula','mojo','checkerboard','dazzle','sapphire','speckle','prizmatic','lunar','glow'
         ]);
         const isNameLike = (w) => {
             if (!w) return false;
@@ -3371,7 +3334,7 @@ class NewPricingDatabase {
             'lebron': 'LeBron',
             'lebron james': 'LeBron James',
             'j.j. mccarthy': 'J.J. McCarthy',
-            'ryan ohearn': 'Ryan O\'Hearn',
+            'ryan ohearn': 'Ryan O'Hearn',
             'pedro de la vega': 'Pedro De La Vega',
             'xavier worthy': 'Xavier Worthy',
             'caleb williams': 'Caleb Williams',
@@ -3382,9 +3345,9 @@ class NewPricingDatabase {
             'michael jordan': 'Michael Jordan',
             'kobe bryant': 'Kobe Bryant',
             'tom brady': 'Tom Brady',
-            'ja marr chase': 'Ja\'Marr Chase',
-            'jamarr chase': 'Ja\'Marr Chase',
-            'ja\'marr chase': 'Ja\'Marr Chase',
+            'ja marr chase': 'Ja'Marr Chase',
+            'jamarr chase': 'Ja'Marr Chase',
+            'ja'marr chase': 'Ja'Marr Chase',
             'michael harris ii': 'Michael Harris II',
             'patrick mahomes ii': 'Patrick Mahomes II',
             't j watt': 'T.J. Watt',
@@ -3394,8 +3357,8 @@ class NewPricingDatabase {
             'yoshinobu yamamoto': 'Yoshinobu Yamamoto',
             'davante adams': 'Davante Adams',
             'kobe': 'Kobe Bryant',
-            'shaq': 'Shaquille O\'Neal',
-            'shaquille': 'Shaquille O\'Neal',
+            'shaq': 'Shaquille O'Neal',
+            'shaquille': 'Shaquille O'Neal',
             'michael penix jr': 'Michael Penix Jr',
             'penix jr': 'Michael Penix Jr',
             // New mappings for single word names
@@ -3526,7 +3489,7 @@ class NewPricingDatabase {
             'seminoles', 'hurricanes', 'gators', 'bulldogs', 'tigers', 'wildcats', 'cardinals',
             'eagles', 'hawks', 'panthers', 'cavaliers', 'hokies', 'orange', 'syracuse',
             'connecticut', 'uconn', 'villanova', 'georgetown', 'providence', 'seton hall',
-            'creighton', 'butler', 'depaul', 'marquette', 'st johns', 'kansas',
+            'creighton', 'xavier', 'butler', 'depaul', 'marquette', 'st johns', 'kansas',
             'kentucky', 'north carolina', 'arizona', 'ucla', 'usc', 'stanford', 'california',
             'oregon', 'oregon state', 'washington', 'washington state', 'colorado', 'utah',
             'arizona state', 'ucla', 'usc', 'stanford', 'california', 'oregon', 'oregon state',
@@ -3548,7 +3511,7 @@ class NewPricingDatabase {
             'yellow', 'green', 'blue', 'red', 'black', 'silver', 'gold', 'white',
             'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
             'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
-            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'radiating', 'now', 'foil', 'ucl', 'preview', 'shock', 'design', 'cb-mns', 'cb mns', 'cbms'
+            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'radiating', 'now', 'foil', 'ucl', 'preview', 'shock', 'design'
         ];
         
         let cleanName = playerName;
