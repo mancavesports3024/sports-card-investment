@@ -2479,7 +2479,7 @@ class NewPricingDatabase {
         cleanTitle = cleanTitle.replace(/\bLEBRON\b/gi, 'LEBRON_PLACEHOLDER');
         cleanTitle = cleanTitle.replace(/\blebron\b/gi, 'LEBRON_PLACEHOLDER');
         if (debugOn) steps.push({ step: 'afterLeBronPlaceholder', cleanTitle });
-        
+
         // Step 4.5.5: Early detection of specific player patterns (before initials cleanup)
         // Look for "Rashee Rice" in various contexts
         const rasheeRicePattern = /\b(Rashee\s+Rice)\b/gi;
@@ -2488,7 +2488,7 @@ class NewPricingDatabase {
             if (debugOn) this._lastDebug = steps.concat([{ step: 'rasheeRiceEarlyReturn', result: 'Rashee Rice' }]);
             return 'Rashee Rice';
         }
-        
+
         // Look for "Malik Nabers" in various contexts
         const malikNabersPattern = /\b(Malik\s+Nabers)\b/gi;
         const malikNabersMatch = cleanTitle.match(malikNabersPattern);
@@ -2496,7 +2496,7 @@ class NewPricingDatabase {
             if (debugOn) this._lastDebug = steps.concat([{ step: 'malikNabersEarlyReturn', result: 'Malik Nabers' }]);
             return 'Malik Nabers';
         }
-        
+
         // Step 4.6: Clean up periods in initials (Cj.s.troud -> CJ Stroud, etc.)
         // This needs to happen before other processing to prevent concatenation issues
         cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([A-Z])/g, '$1$2 $3'); // Cj.s.troud -> CJ Stroud
@@ -2700,8 +2700,6 @@ class NewPricingDatabase {
             if (debugOn) this._lastDebug = steps.concat([{ step: 'xavierWorthyEarlyReturn', result: 'Xavier Worthy' }]);
             return 'Xavier Worthy';
         }
-        
-
         
         // Look for "Cooper Flagg" in various contexts
         const cooperFlaggPattern = /\b(Cooper\s+Flagg)\b/gi;
@@ -3534,7 +3532,8 @@ class NewPricingDatabase {
             cleanName = cleanName.replace(regex, '');
         });
         
-        // Clean up spaces but preserve slashes for dual player names like "Montana/Rice"
+        // Remove stray slashes and clean up spaces
+        cleanName = cleanName.replace(/[\/]+/g, ' ');
         cleanName = cleanName.replace(/\s+/g, ' ').trim();
         
         return cleanName;
@@ -3544,14 +3543,15 @@ class NewPricingDatabase {
     capitalizePlayerName(playerName) {
         if (!playerName) return null;
         
-        // Normalize spacing but preserve slashes for dual player names like "Montana/Rice"
+        // Normalize stray slashes first
+        playerName = playerName.replace(/[\/]+/g, ' ');
         playerName = playerName.replace(/\s+/g, ' ').trim();
 
         // Convert to lowercase first
         const lowerName = playerName.toLowerCase();
         
-        // Handle special cases for hyphens, apostrophes, and slashes
-        const words = lowerName.split(/[\s\-'\/]/);
+        // Handle special cases for hyphens and apostrophes
+        const words = lowerName.split(/[\s\-']/);
         const capitalizedWords = words.map(word => {
             if (word.length === 0) return word;
             
@@ -3568,17 +3568,15 @@ class NewPricingDatabase {
         // Reconstruct with proper separators
         let result = capitalizedWords.join(' ');
         
-        // Restore hyphens, apostrophes, and slashes
+        // Restore hyphens and apostrophes
         const originalName = playerName;
         const hyphenPositions = [];
         const apostrophePositions = [];
-        const slashPositions = [];
         
-        // Find positions of hyphens, apostrophes, and slashes in original name
+        // Find positions of hyphens and apostrophes in original name
         for (let i = 0; i < originalName.length; i++) {
             if (originalName[i] === '-') hyphenPositions.push(i);
             if (originalName[i] === "'") apostrophePositions.push(i);
-            if (originalName[i] === '/') slashPositions.push(i);
         }
         
         // Restore hyphens
@@ -3588,8 +3586,8 @@ class NewPricingDatabase {
             
             // Find the corresponding words in our result
             const resultWords = result.split(' ');
-            const beforeWords = beforeHyphen.split(/[\s\-'\/]/);
-            const afterWords = afterHyphen.split(/[\s\-'\/]/);
+            const beforeWords = beforeHyphen.split(/[\s\-']/);
+            const afterWords = afterHyphen.split(/[\s\-']/);
             
             // Find where to insert the hyphen
             let beforeIndex = -1;
@@ -3618,8 +3616,8 @@ class NewPricingDatabase {
             
             // Find the corresponding words in our result
             const resultWords = result.split(' ');
-            const beforeWords = beforeApostrophe.split(/[\s\-'\/]/);
-            const afterWords = afterApostrophe.split(/[\s\-'\/]/);
+            const beforeWords = beforeApostrophe.split(/[\s\-']/);
+            const afterWords = afterApostrophe.split(/[\s\-']/);
             
             // Find where to insert the apostrophe
             let beforeIndex = -1;
@@ -3636,36 +3634,6 @@ class NewPricingDatabase {
             
             if (beforeIndex !== -1 && afterIndex !== -1 && afterIndex === beforeIndex + 1) {
                 resultWords[beforeIndex] = resultWords[beforeIndex] + "'" + resultWords[afterIndex];
-                resultWords.splice(afterIndex, 1);
-                result = resultWords.join(' ');
-            }
-        }
-        
-        // Restore slashes
-        for (const pos of slashPositions) {
-            const beforeSlash = originalName.substring(0, pos).trim();
-            const afterSlash = originalName.substring(pos + 1).trim();
-            
-            // Find the corresponding words in our result
-            const resultWords = result.split(' ');
-            const beforeWords = beforeSlash.split(/[\s\-'\/]/);
-            const afterWords = afterSlash.split(/[\s\-'\/]/);
-            
-            // Find where to insert the slash
-            let beforeIndex = -1;
-            let afterIndex = -1;
-            
-            for (let i = 0; i < resultWords.length; i++) {
-                if (beforeWords.includes(resultWords[i].toLowerCase())) {
-                    beforeIndex = i;
-                }
-                if (afterWords.includes(resultWords[i].toLowerCase())) {
-                    afterIndex = i;
-                }
-            }
-            
-            if (beforeIndex !== -1 && afterIndex !== -1 && afterIndex === beforeIndex + 1) {
-                resultWords[beforeIndex] = resultWords[beforeIndex] + '/' + resultWords[afterIndex];
                 resultWords.splice(afterIndex, 1);
                 result = resultWords.join(' ');
             }
@@ -3795,5 +3763,4 @@ if (require.main === module) {
     main();
 }
 
-module.exports = NewPricingDatabase;#   D e p l o y m e n t   v e r i f i c a t i o n  
- 
+module.exports = NewPricingDatabase;
