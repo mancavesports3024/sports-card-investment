@@ -2479,6 +2479,24 @@ class NewPricingDatabase {
         cleanTitle = cleanTitle.replace(/\bLEBRON\b/gi, 'LEBRON_PLACEHOLDER');
         cleanTitle = cleanTitle.replace(/\blebron\b/gi, 'LEBRON_PLACEHOLDER');
         if (debugOn) steps.push({ step: 'afterLeBronPlaceholder', cleanTitle });
+        
+        // Step 4.5.5: Early detection of specific player patterns (before initials cleanup)
+        // Look for "Rashee Rice" in various contexts
+        const rasheeRicePattern = /\b(Rashee\s+Rice)\b/gi;
+        const rasheeRiceMatch = cleanTitle.match(rasheeRicePattern);
+        if (rasheeRiceMatch && rasheeRiceMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'rasheeRiceEarlyReturn', result: 'Rashee Rice' }]);
+            return 'Rashee Rice';
+        }
+        
+        // Look for "Malik Nabers" in various contexts
+        const malikNabersPattern = /\b(Malik\s+Nabers)\b/gi;
+        const malikNabersMatch = cleanTitle.match(malikNabersPattern);
+        if (malikNabersMatch && malikNabersMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'malikNabersEarlyReturn', result: 'Malik Nabers' }]);
+            return 'Malik Nabers';
+        }
+        
         // Step 4.6: Clean up periods in initials (Cj.s.troud -> CJ Stroud, etc.)
         // This needs to happen before other processing to prevent concatenation issues
         cleanTitle = cleanTitle.replace(/([A-Z]).([A-Z]).([A-Z])/g, '$1$2 $3'); // Cj.s.troud -> CJ Stroud
@@ -2683,21 +2701,7 @@ class NewPricingDatabase {
             return 'Xavier Worthy';
         }
         
-        // Look for "Malik Nabers" in various contexts
-        const malikNabersPattern = /\b(Malik\s+Nabers)\b/gi;
-        const malikNabersMatch = cleanTitle.match(malikNabersPattern);
-        if (malikNabersMatch && malikNabersMatch.length > 0) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'malikNabersEarlyReturn', result: 'Malik Nabers' }]);
-            return 'Malik Nabers';
-        }
-        
-        // Look for "Rashee Rice" in various contexts
-        const rasheeRicePattern = /\b(Rashee\s+Rice)\b/gi;
-        const rasheeRiceMatch = cleanTitle.match(rasheeRicePattern);
-        if (rasheeRiceMatch && rasheeRiceMatch.length > 0) {
-            if (debugOn) this._lastDebug = steps.concat([{ step: 'rasheeRiceEarlyReturn', result: 'Rashee Rice' }]);
-            return 'Rashee Rice';
-        }
+
         
         // Look for "Cooper Flagg" in various contexts
         const cooperFlaggPattern = /\b(Cooper\s+Flagg)\b/gi;
