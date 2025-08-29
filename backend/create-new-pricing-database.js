@@ -2683,6 +2683,22 @@ class NewPricingDatabase {
             return 'Xavier Worthy';
         }
         
+        // Look for "Malik Nabers" in various contexts
+        const malikNabersPattern = /\b(Malik\s+Nabers)\b/gi;
+        const malikNabersMatch = cleanTitle.match(malikNabersPattern);
+        if (malikNabersMatch && malikNabersMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'malikNabersEarlyReturn', result: 'Malik Nabers' }]);
+            return 'Malik Nabers';
+        }
+        
+        // Look for "Rashee Rice" in various contexts
+        const rasheeRicePattern = /\b(Rashee\s+Rice)\b/gi;
+        const rasheeRiceMatch = cleanTitle.match(rasheeRicePattern);
+        if (rasheeRiceMatch && rasheeRiceMatch.length > 0) {
+            if (debugOn) this._lastDebug = steps.concat([{ step: 'rasheeRiceEarlyReturn', result: 'Rashee Rice' }]);
+            return 'Rashee Rice';
+        }
+        
         // Look for "Cooper Flagg" in various contexts
         const cooperFlaggPattern = /\b(Cooper\s+Flagg)\b/gi;
         const cooperFlaggMatch = cleanTitle.match(cooperFlaggPattern);
