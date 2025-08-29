@@ -3795,4 +3795,5 @@ if (require.main === module) {
     main();
 }
 
-module.exports = NewPricingDatabase;
+module.exports = NewPricingDatabase;#   D e p l o y m e n t   v e r i f i c a t i o n  
+ 
