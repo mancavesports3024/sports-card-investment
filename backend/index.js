@@ -3915,40 +3915,27 @@ app.post('/api/admin/test-extraction', async (req, res) => {
     }
 });
 
-// POST /api/admin/reextract-player-names - Re-extract player_name from title for all cards
+// POST /api/admin/reextract-player-names - Re-extract player_name from title for all cards using new centralized system
 app.post('/api/admin/reextract-player-names', async (req, res) => {
     try {
-        console.log('🔄 Re-extracting player names from titles...');
+        console.log('🔄 Re-extracting player names from titles using new centralized system...');
 
-        const NewPricingDatabase = require('./create-new-pricing-database.js');
-        const db = new NewPricingDatabase();
-        await db.connect();
+        const RailwayPlayerExtractor = require('./railway-player-extraction.js');
+        const extractor = new RailwayPlayerExtractor();
+        
+        await extractor.connect();
+        await extractor.updateAllPlayerNames();
+        await extractor.close();
 
-        const cards = await db.allQuery(`SELECT id, title, player_name FROM cards`);
-        let updated = 0;
-        let unchanged = 0;
-        let errors = 0;
-
-        for (const card of cards) {
-            try {
-                const extracted = db.extractPlayerName(card.title);
-                const cleaned = extracted ? db.filterTeamNamesFromPlayer(extracted) : null;
-                const finalName = cleaned ? db.capitalizePlayerName(cleaned) : null;
-
-                if (finalName && finalName !== card.player_name) {
-                    await db.runQuery('UPDATE cards SET player_name = ? WHERE id = ?', [finalName, card.id]);
-                    updated++;
-                } else {
-                    unchanged++;
-                }
-            } catch (e) {
-                errors++;
-            }
-        }
-
-        await db.close();
-
-        res.json({ success: true, updated, unchanged, errors, timestamp: new Date().toISOString() });
+        res.json({ 
+            success: true, 
+            updated: extractor.stats.updated, 
+            unchanged: extractor.stats.unchanged, 
+            errors: extractor.stats.errors,
+            empty: extractor.stats.empty,
+            total: extractor.stats.total,
+            timestamp: new Date().toISOString() 
+        });
     } catch (error) {
         console.error('❌ Error re-extracting player names:', error);
         res.status(500).json({ success: false, message: 'Error re-extracting player names', error: error.message, timestamp: new Date().toISOString() });
