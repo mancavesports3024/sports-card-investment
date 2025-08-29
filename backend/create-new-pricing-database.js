@@ -3190,7 +3190,10 @@ class NewPricingDatabase {
             'oldsmobile', 'buick', 'cadillac', 'lincoln', 'mercury', 'plymouth', 'amc', 'studebaker', 'packard', 'nash',
             'hudson', 'kaiser', 'frazer', 'willys', 'jeep', 'international', 'diamond t', 'mack', 'peterbilt', 'kenworth',
             'freightliner', 'western star', 'volvo', 'scania', 'man', 'iveco', 'daf', 'renault trucks', 'volvo trucks',
-            'scania trucks', 'man trucks', 'iveco trucks', 'daf trucks'
+            'scania trucks', 'man trucks', 'iveco trucks', 'daf trucks',
+            
+            // Additional terms from stopWords that were missing
+            'case hit', 'signatures', 'wings', 'cb-mns', 'los angeles', 'texas longhorns'
         ];
         cardTerms.forEach(term => {
             const regex = new RegExp(`\\b${term}\\b`, 'gi');
