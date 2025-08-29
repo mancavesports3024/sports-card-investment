@@ -5791,3 +5791,34 @@ app.get('/api/admin/find-3-word-player-names', async (req, res) => {
     }
 });
 
+// POST /api/admin/update-player-names-centralized - Update all player names using new centralized system
+app.post('/api/admin/update-player-names-centralized', async (req, res) => {
+    try {
+        console.log('🚀 Starting player name update with new centralized SimplePlayerExtractor...');
+        
+        const RailwayPlayerExtractor = require('./railway-player-extraction.js');
+        const extractor = new RailwayPlayerExtractor();
+        
+        await extractor.connect();
+        await extractor.updateAllPlayerNames();
+        await extractor.close();
+        
+        console.log('✅ Centralized player name update completed successfully');
+        res.json({ 
+            success: true, 
+            message: 'Centralized player name update completed successfully',
+            stats: extractor.stats,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Centralized player name update failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Centralized player name update failed', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
