@@ -5,19 +5,18 @@
  * using the new centralized SimplePlayerExtractor system.
  */
 
-const { Pool } = require('pg');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 const SimplePlayerExtractor = require('./simple-player-extraction.js');
 
 class RailwayPlayerExtractor {
     constructor() {
-        // Connect to Railway PostgreSQL database
-        this.pool = new Pool({
-            connectionString: process.env.DATABASE_URL,
-            ssl: {
-                rejectUnauthorized: false
-            }
-        });
+        // Connect to Railway SQLite database
+        const dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH
+            ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'new-scorecard.db')
+            : path.join(__dirname, 'data', 'new-scorecard.db');
         
+        this.db = new sqlite3.Database(dbPath);
         this.extractor = new SimplePlayerExtractor();
         this.stats = {
             total: 0,
@@ -29,78 +28,95 @@ class RailwayPlayerExtractor {
     }
 
     async connect() {
-        try {
-            const client = await this.pool.connect();
-            console.log('✅ Connected to Railway PostgreSQL database');
-            client.release();
-        } catch (error) {
-            console.error('❌ Failed to connect to database:', error.message);
-            throw error;
-        }
+        return new Promise((resolve, reject) => {
+            this.db.get("SELECT 1", (err) => {
+                if (err) {
+                    console.error('❌ Failed to connect to database:', err.message);
+                    reject(err);
+                } else {
+                    console.log('✅ Connected to Railway SQLite database');
+                    resolve();
+                }
+            });
+        });
     }
 
     async close() {
-        await this.pool.end();
-        console.log('✅ Database connection closed');
+        return new Promise((resolve) => {
+            this.db.close((err) => {
+                if (err) {
+                    console.error('❌ Error closing database:', err.message);
+                } else {
+                    console.log('✅ Database connection closed');
+                }
+                resolve();
+            });
+        });
     }
 
     // Ensure player_name column exists
     async ensurePlayerNameColumn() {
         console.log('🔍 Checking if player_name column exists...');
         
-        try {
-            const client = await this.pool.connect();
-            
-            // Check if player_name column exists
-            const result = await client.query(`
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name = 'cards' 
-                AND column_name = 'player_name'
-            `);
-            
-            if (result.rows.length === 0) {
-                console.log('➕ Adding player_name column to cards table...');
-                await client.query(`
-                    ALTER TABLE cards 
-                    ADD COLUMN player_name TEXT
-                `);
-                console.log('✅ player_name column added successfully');
-            } else {
-                console.log('✅ player_name column already exists');
-            }
-            
-            client.release();
-        } catch (error) {
-            console.error('❌ Error ensuring player_name column:', error.message);
-            throw error;
-        }
+        return new Promise((resolve, reject) => {
+            this.db.get("PRAGMA table_info(cards)", (err, rows) => {
+                if (err) {
+                    console.error('❌ Error checking table schema:', err.message);
+                    reject(err);
+                    return;
+                }
+                
+                // Check if player_name column exists
+                this.db.all("PRAGMA table_info(cards)", (err, columns) => {
+                    if (err) {
+                        console.error('❌ Error getting table info:', err.message);
+                        reject(err);
+                        return;
+                    }
+                    
+                    const hasPlayerNameColumn = columns.some(col => col.name === 'player_name');
+                    
+                    if (!hasPlayerNameColumn) {
+                        console.log('➕ Adding player_name column to cards table...');
+                        this.db.run("ALTER TABLE cards ADD COLUMN player_name TEXT", (err) => {
+                            if (err) {
+                                console.error('❌ Error adding player_name column:', err.message);
+                                reject(err);
+                            } else {
+                                console.log('✅ player_name column added successfully');
+                                resolve();
+                            }
+                        });
+                    } else {
+                        console.log('✅ player_name column already exists');
+                        resolve();
+                    }
+                });
+            });
+        });
     }
 
     // Get all cards that need player name updating
     async getCardsToUpdate() {
         console.log('🔍 Fetching cards for player name updating...');
         
-        try {
-            const client = await this.pool.connect();
-            
-            const result = await client.query(`
+        return new Promise((resolve, reject) => {
+            this.db.all(`
                 SELECT id, title, summary_title, player_name, sport 
                 FROM cards 
                 WHERE title IS NOT NULL 
                 AND title != ''
                 ORDER BY created_at DESC
-            `);
-            
-            client.release();
-            
-            console.log(`📊 Found ${result.rows.length} cards to process`);
-            return result.rows;
-            
-        } catch (error) {
-            console.error('❌ Error fetching cards:', error.message);
-            throw error;
-        }
+            `, (err, rows) => {
+                if (err) {
+                    console.error('❌ Error fetching cards:', err.message);
+                    reject(err);
+                } else {
+                    console.log(`📊 Found ${rows.length} cards to process`);
+                    resolve(rows);
+                }
+            });
+        });
     }
 
     // Process a single card
@@ -108,38 +124,32 @@ class RailwayPlayerExtractor {
         try {
             console.log(`\n🔍 Processing card ID ${card.id}:`);
             console.log(`   Title: ${card.title}`);
-            console.log(`   Current player_name: ${card.player_name || 'NULL'}`);
             
-            // Extract player name using new centralized system
+            // Extract player name using the centralized system
             const extractedPlayerName = this.extractor.extractPlayerName(card.title);
             
+            console.log(`   Extracted: "${extractedPlayerName}"`);
+            console.log(`   Current: "${card.player_name || 'NULL'}"`);
+            
+            // Check if player name is empty
             if (!extractedPlayerName || extractedPlayerName.trim() === '') {
-                console.log(`   ❌ No player name extracted`);
+                console.log(`   ⚠️  No player name extracted - keeping current value`);
                 this.stats.empty++;
                 return;
             }
             
-            console.log(`   ✅ Extracted player name: ${extractedPlayerName}`);
-            
-            // Check if the player name actually changed
-            if (card.player_name && extractedPlayerName.toLowerCase() === card.player_name.toLowerCase()) {
-                console.log(`   ⏭️ Player name unchanged`);
+            // Check if player name has changed
+            if (card.player_name === extractedPlayerName) {
+                console.log(`   ✅ No change needed`);
                 this.stats.unchanged++;
-                return;
+            } else {
+                // Update the player name in the database
+                await this.updatePlayerName(card.id, extractedPlayerName);
+                console.log(`   ✅ Updated player name`);
+                this.stats.updated++;
             }
             
-            // Update the database
-            const client = await this.pool.connect();
-            await client.query(`
-                UPDATE cards 
-                SET player_name = $1, last_updated = CURRENT_TIMESTAMP 
-                WHERE id = $2
-            `, [extractedPlayerName, card.id]);
-            
-            client.release();
-            
-            console.log(`   ✅ Updated: "${card.player_name || 'NULL'}" → "${extractedPlayerName}"`);
-            this.stats.updated++;
+            this.stats.total++;
             
         } catch (error) {
             console.error(`   ❌ Error processing card ${card.id}:`, error.message);
@@ -147,55 +157,64 @@ class RailwayPlayerExtractor {
         }
     }
 
-    // Process all cards
-    async updateAllPlayerNames() {
-        console.log('🚀 Starting player name update process with new centralized system on Railway...\n');
-        
-        try {
-            await this.ensurePlayerNameColumn();
-            const cards = await this.getCardsToUpdate();
-            this.stats.total = cards.length;
-            
-            console.log(`📋 Processing ${cards.length} cards with new SimplePlayerExtractor...\n`);
-            
-            for (let i = 0; i < cards.length; i++) {
-                const card = cards[i];
-                console.log(`\n${'='.repeat(60)}`);
-                console.log(`Card ${i + 1} of ${cards.length}`);
-                console.log(`${'='.repeat(60)}`);
-                
-                await this.processCard(card);
-                
-                // Progress indicator
-                if ((i + 1) % 10 === 0) {
-                    console.log(`\n📊 Progress: ${i + 1}/${cards.length} cards processed`);
-                    console.log(`   Updated: ${this.stats.updated}`);
-                    console.log(`   Unchanged: ${this.stats.unchanged}`);
-                    console.log(`   Empty: ${this.stats.empty}`);
-                    console.log(`   Errors: ${this.stats.errors}`);
+    // Update player name in database
+    async updatePlayerName(cardId, playerName) {
+        return new Promise((resolve, reject) => {
+            this.db.run(
+                "UPDATE cards SET player_name = ? WHERE id = ?",
+                [playerName, cardId],
+                function(err) {
+                    if (err) {
+                        console.error(`   ❌ Error updating card ${cardId}:`, err.message);
+                        reject(err);
+                    } else {
+                        resolve();
+                    }
                 }
+            );
+        });
+    }
+
+    // Update all player names
+    async updateAllPlayerNames() {
+        try {
+            console.log('🚀 Starting player name update with new centralized system...');
+            
+            // Ensure player_name column exists
+            await this.ensurePlayerNameColumn();
+            
+            // Get all cards to update
+            const cards = await this.getCardsToUpdate();
+            
+            if (cards.length === 0) {
+                console.log('📊 No cards found to process');
+                return;
             }
             
+            console.log(`📊 Processing ${cards.length} cards...`);
+            
+            // Process each card
+            for (const card of cards) {
+                await this.processCard(card);
+            }
+            
+            console.log('\n✅ Player name update completed!');
             this.printFinalStats();
             
         } catch (error) {
-            console.error('❌ Error in updateAllPlayerNames:', error);
+            console.error('❌ Error updating player names:', error.message);
+            throw error;
         }
     }
 
     // Print final statistics
     printFinalStats() {
-        console.log(`\n${'='.repeat(60)}`);
-        console.log('🎯 FINAL STATISTICS - RAILWAY PRODUCTION DATABASE');
-        console.log(`${'='.repeat(60)}`);
-        console.log(`📊 Total cards processed: ${this.stats.total}`);
-        console.log(`✅ Player names updated: ${this.stats.updated}`);
-        console.log(`⏭️ Player names unchanged: ${this.stats.unchanged}`);
-        console.log(`❌ Empty extractions: ${this.stats.empty}`);
-        console.log(`❌ Errors: ${this.stats.errors}`);
-        console.log(`📈 Success rate: ${((this.stats.updated / this.stats.total) * 100).toFixed(1)}%`);
-        console.log(`📈 Extraction rate: ${(((this.stats.updated + this.stats.unchanged) / this.stats.total) * 100).toFixed(1)}%`);
-        console.log(`${'='.repeat(60)}`);
+        console.log('\n📊 Final Statistics:');
+        console.log(`   Total cards processed: ${this.stats.total}`);
+        console.log(`   Cards updated: ${this.stats.updated}`);
+        console.log(`   Cards unchanged: ${this.stats.unchanged}`);
+        console.log(`   Cards with no player name: ${this.stats.empty}`);
+        console.log(`   Errors: ${this.stats.errors}`);
     }
 }
 
@@ -207,7 +226,7 @@ async function main() {
         await extractor.connect();
         await extractor.updateAllPlayerNames();
     } catch (error) {
-        console.error('❌ Main execution error:', error);
+        console.error('❌ Script failed:', error.message);
         process.exit(1);
     } finally {
         await extractor.close();
@@ -216,7 +235,7 @@ async function main() {
 
 // Run if called directly
 if (require.main === module) {
-    main().catch(console.error);
+    main();
 }
 
 module.exports = RailwayPlayerExtractor;
