@@ -58,8 +58,8 @@ class SimplePlayerExtractor {
             'red wings', 'blackhawks', 'bruins', 'rangers', 'maple leafs', 'canadiens', 'senators', 'sabres', 'lightning', 'capitals', 'flyers', 'devils', 'islanders', 'penguins', 'blue jackets', 'hurricanes', 'predators', 'blues', 'wild', 'avalanche', 'stars', 'oilers', 'flames', 'canucks', 'sharks', 'ducks', 'golden knights', 'coyotes', 'jets', 'kraken',
             
             // College Teams (Comprehensive)
-            'duke', 'blue devils', 'tar heels', 'wolfpack', 'demon deacons', 'seminoles', 'hurricanes', 'gators', 'bulldogs', 'tigers', 'wildcats', 'cardinals', 'eagles', 'hawks', 'panthers', 'cavaliers', 'hokies', 'orange', 'syracuse', 'connecticut', 'uconn', 'villanova', 'georgetown', 'providence', 'seton hall', 'creighton', 'butler', 'depaul', 'marquette', 'st johns', 'kansas', 'kentucky', 'north carolina', 'arizona', 'ucla', 'usc', 'stanford', 'california', 'oregon', 'oregon state', 'washington', 'washington state', 'colorado', 'utah', 'arizona state', 'longhorns', 'rockies', 'ohio state buckeyes', 'buckeyes',
-            'duke', 'blue devils', 'tar heels', 'wolfpack', 'demon deacons', 'seminoles', 'hurricanes', 'gators', 'bulldogs', 'wildcats', 'hokies', 'orange', 'syracuse', 'connecticut', 'uconn', 'villanova', 'georgetown', 'providence', 'seton hall', 'creighton', 'butler', 'depaul', 'marquette', 'st johns', 'kansas', 'kentucky', 'north carolina', 'arizona', 'ucla', 'usc', 'stanford', 'california', 'oregon', 'oregon state', 'washington', 'washington state', 'colorado', 'utah', 'arizona state', 'minnesota', 'longhorns', 'texas longhorns', 'trojans', 'ohio state buckeyes', 'buckeyes',
+            'duke', 'blue devils', 'tar heels', 'wolfpack', 'demon deacons', 'seminoles', 'hurricanes', 'gators', 'bulldogs', 'tigers', 'wildcats', 'cardinals', 'eagles', 'hawks', 'panthers', 'cavaliers', 'hokies', 'orange', 'syracuse', 'connecticut', 'uconn', 'villanova', 'georgetown', 'providence', 'seton hall', 'creighton', 'butler', 'depaul', 'marquette', 'st johns', 'kansas', 'kentucky', 'north carolina', 'arizona', 'ucla', 'usc', 'stanford', 'california', 'oregon', 'oregon state', 'washington', 'washington state', 'colorado', 'utah', 'arizona state', 'longhorns', 'rockies',
+            'duke', 'blue devils', 'tar heels', 'wolfpack', 'demon deacons', 'seminoles', 'hurricanes', 'gators', 'bulldogs', 'wildcats', 'hokies', 'orange', 'syracuse', 'connecticut', 'uconn', 'villanova', 'georgetown', 'providence', 'seton hall', 'creighton', 'butler', 'depaul', 'marquette', 'st johns', 'kansas', 'kentucky', 'north carolina', 'arizona', 'ucla', 'usc', 'stanford', 'california', 'oregon', 'oregon state', 'washington', 'washington state', 'colorado', 'utah', 'arizona state', 'minnesota', 'longhorns', 'texas longhorns', 'trojans',
             
             // Soccer Teams (Comprehensive)
             'liverpool', 'manchester united', 'manchester city', 'arsenal', 'chelsea', 'tottenham', 'barcelona', 'real madrid', 'bayern munich', 'psg', 'juventus', 'ac milan', 'inter milan', 'ajax', 'porto', 'benfica', 'celtic', 'rangers', 'fc', 'united', 'city', 'athletic', 'sporting', 'dynamo', 'spartak', 'zenit',
@@ -71,9 +71,6 @@ class SimplePlayerExtractor {
             
             // League abbreviations
             'nfl', 'mlb', 'nba', 'nhl', 'ufc', 'mma', 'mixed martial arts', 'octagon', 'fighter', 'fighting', 'wwe', 'nascar', 'indycar', 'indy', 'f1', 'formula 1', 'formula1', 'wrestling', 'pokemon', 'wnba', 'usa basketball', 'usa football', 'usa baseball', 'golf', 'racing', 'olympics', 'championship', 'tournament', 'league',
-            
-            // Individual Team Names (Comprehensive)
-            'cardinals', 'eagles', 'falcons', 'ravens', 'bills', 'panthers', 'bears', 'bengals', 'browns', 'cowboys', 'broncos', 'lions', 'packers', 'texans', 'colts', 'jaguars', 'chiefs', 'raiders', 'chargers', 'rams', 'dolphins', 'vikings', 'patriots', 'saints', 'giants', 'jets', 'steelers', '49ers', 'seahawks', 'buccaneers', 'titans', 'commanders', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'athletics', 'mariners', 'angels', 'dodgers', 'giants', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls', 'ducks', 'coyotes', 'bruins', 'sabres', 'flames', 'hurricanes', 'blackhawks', 'avalanche', 'blue jackets', 'stars', 'red wings', 'oilers', 'panthers', 'wild', 'canadiens', 'predators', 'devils', 'islanders', 'rangers', 'senators', 'flyers', 'penguins', 'sharks', 'kraken', 'blues', 'lightning', 'maple leafs', 'canucks', 'golden knights', 'capitals', 'jets',
             
             // Additional terms
             'signatures', 'wings', 'case hit', 'cb-mns', 'mvp', 'hof', 'debut'
@@ -131,6 +128,22 @@ class SimplePlayerExtractor {
         return cleaned;
     }
 
+    // Remove special characters that shouldn't be in player names
+    removeSpecialCharacters(title) {
+        return title
+            .replace(/[()\[\]{}]/g, ' ') // Remove parentheses and brackets
+            .replace(/[-–—]/g, ' ') // Remove hyphens and dashes
+            .replace(/[^\w\s]/g, ' ') // Remove any other non-word, non-space characters
+            .replace(/[\u{1F600}-\u{1F64F}]/gu, ' ') // Remove emojis (Unicode ranges for emojis)
+            .replace(/[\u{1F300}-\u{1F5FF}]/gu, ' ') // Remove miscellaneous symbols and pictographs
+            .replace(/[\u{1F680}-\u{1F6FF}]/gu, ' ') // Remove transport and map symbols
+            .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, ' ') // Remove regional indicator symbols
+            .replace(/[\u{2600}-\u{26FF}]/gu, ' ') // Remove miscellaneous symbols
+            .replace(/[\u{2700}-\u{27BF}]/gu, ' ') // Remove dingbats
+            .replace(/\s+/g, ' ') // Normalize spaces
+            .trim();
+    }
+
     // Remove card numbers and patterns
     removeCardNumbers(title) {
         return title
@@ -177,6 +190,10 @@ class SimplePlayerExtractor {
         // Step 6: Remove card numbers
         cleaned = this.removeCardNumbers(cleaned);
         console.log(`   After removing card numbers: "${cleaned}"`);
+        
+        // Step 7: Remove special characters and emojis
+        cleaned = this.removeSpecialCharacters(cleaned);
+        console.log(`   After removing special characters: "${cleaned}"`);
         
         // Clean up extra spaces and return whatever is left
         const result = cleaned.replace(/\s+/g, ' ').trim();
