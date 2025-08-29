@@ -895,12 +895,10 @@ class NewPricingDatabase {
             // Add player name (but not if it's already in the card set)
             if (playerName && cardSet && !cardSet.toLowerCase().includes(playerName.toLowerCase())) {
                 if (summaryTitle) summaryTitle += ' ';
-                const cleanPlayerName = this.filterTeamNamesFromPlayer(playerName);
-                summaryTitle += this.capitalizePlayerName(cleanPlayerName);
+                summaryTitle += this.capitalizePlayerName(playerName);
             } else if (playerName && !cardSet) {
                 if (summaryTitle) summaryTitle += ' ';
-                const cleanPlayerName = this.filterTeamNamesFromPlayer(playerName);
-                summaryTitle += this.capitalizePlayerName(cleanPlayerName);
+                summaryTitle += this.capitalizePlayerName(playerName);
             }
             
             // Add "auto" if it's an autograph
@@ -3271,12 +3269,39 @@ class NewPricingDatabase {
         // Prefer the best contiguous 2–3 word span anywhere in the title
         let playerName = '';
         const stopWords = new Set([
+            // Card terms and grading
             'rc','sp','ssp','pop','psa','bgs','sgc','hga','auto','autograph','autographs',
             'prizm','prism','optic','donruss','select','mosaic','chrome','topps','bowman','panini',
             'king','kings','sunday','main','event','gold','silver','orange','purple','pink','blue','green','red','black','aqua','teal','rainbow',
             'lazer','laser','wave','disco','refractor','parallel','insert','numbered','limited',
             'sublime','shimmer','scripts','storm','zone','reactive','reprint','snake','ghost',
-            'foil','holo','velocity','lazer','lazer','nebula','mojo','checkerboard','dazzle','sapphire','speckle','prizmatic','lunar','glow'
+            'foil','holo','velocity','lazer','lazer','nebula','mojo','checkerboard','dazzle','sapphire','speckle','prizmatic','lunar','glow',
+            'mvp', 'hof', 'nfl', 'mlb', 'nba', 'nhl', 'debut', 'rookie', 'rc', 'yg', 'gem', 'mint', 'ssp', 'holo', 'velocity', 'notoriety', 'card', 'rated', '1st', 'first', 'chrome', 'university', 'clear cut', 'premier', 'opc', 's d', 'nfl football', '3-d',
+            'flash', 'fifa', 'scope', 'hyper', 'finest', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'woo', 'draft', 'red/white/blue', 'tf1', 'all-etch', 'night', 'cosmic stars', 'all etch', 'stars', 'splash', 'rising', 'best', 'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric', 'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'downtown', 'real one', 'variation', 'logo', 'pulsar', 'snakeskin', 'dragon scale', 'tie-dye', 'neon', 'camo', 'bronze', 'holographic', 'short print', 'super short print', 'au', 'edition', 'ref', 'reptilian', 'chasers', 'busters', 'dallas', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'foilboard', 'rookies', 'radiating', 'now', 'foil', 'ucl', 'preview', 'shock', 'design',
+            
+            // NFL Teams
+            'a\'s', 'athletics', 'vikings', 'cardinals', 'eagles', 'falcons', 'ravens', 'bills', 'panthers', 'bears', 'bengals', 'browns', 'cowboys', 'broncos', 'lions', 'packers', 'texans', 'colts', 'jaguars', 'chiefs', 'raiders', 'chargers', 'rams', 'dolphins', 'patriots', 'saints', 'giants', 'jets', 'steelers', '49ers', 'seahawks', 'buccaneers', 'titans', 'commanders', 'ny giants', 'redskins',
+            
+            // MLB Teams
+            'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs',
+            
+            // NBA Teams
+            'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls',
+            
+            // NHL Teams
+            'red wings', 'blackhawks', 'bruins', 'rangers', 'maple leafs', 'canadiens', 'senators', 'sabres', 'lightning', 'capitals', 'flyers', 'devils', 'islanders', 'penguins', 'blue jackets', 'hurricanes', 'predators', 'blues', 'wild', 'avalanche', 'stars', 'oilers', 'flames', 'canucks', 'sharks', 'ducks', 'golden knights', 'coyotes', 'jets', 'kraken',
+            
+            // College/school names
+            'duke', 'blue devils', 'tar heels', 'wolfpack', 'demon deacons', 'seminoles', 'hurricanes', 'gators', 'bulldogs', 'wildcats', 'hokies', 'orange', 'syracuse', 'connecticut', 'uconn', 'villanova', 'georgetown', 'providence', 'seton hall', 'creighton', 'xavier', 'butler', 'depaul', 'marquette', 'st johns', 'kansas', 'kentucky', 'north carolina', 'arizona', 'ucla', 'usc', 'stanford', 'california', 'oregon', 'oregon state', 'washington', 'washington state', 'colorado', 'utah', 'arizona state', 'minnesota', 'longhorns',
+            
+            // Soccer team names
+            'liverpool', 'manchester united', 'manchester city', 'arsenal', 'chelsea', 'tottenham', 'barcelona', 'real madrid', 'bayern munich', 'psg', 'juventus', 'ac milan', 'inter milan', 'ajax', 'porto', 'benfica', 'celtic', 'rangers', 'fc', 'united', 'city', 'athletic', 'sporting', 'dynamo', 'spartak', 'zenit',
+            
+            // City names and locations
+            'chicago','denver','houston','miami','philadelphia','detroit','los','angeles','texas','montana',
+            
+            // Additional terms that should be filtered
+            'signatures','wings','case','hit','ruby','baseball','football','cb-mns'
         ]);
         const isNameLike = (w) => {
             if (!w) return false;
@@ -3478,66 +3503,7 @@ class NewPricingDatabase {
         return null;
     }
 
-    // Filter out team names from player name
-    filterTeamNamesFromPlayer(playerName) {
-        if (!playerName) return null;
-        
-        // List of team names to filter out
-        const teamNames = [
-            // NFL Teams
-            'a\'s', 'athletics', 'vikings', 'cardinals', 'eagles', 'falcons', 'ravens', 'bills', 'panthers', 'bears', 'bengals', 'browns', 'cowboys', 'broncos', 'lions', 'packers', 'texans', 'colts', 'jaguars', 'chiefs', 'raiders', 'chargers', 'rams', 'dolphins', 'patriots', 'saints', 'giants', 'jets', 'steelers', '49ers', 'seahawks', 'buccaneers', 'titans', 'commanders', 'ny giants', 'redskins',
-            // MLB Teams
-            'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'cardinals',
-            // NBA Teams
-            'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls',
-            // NHL Teams
-            'red wings', 'blackhawks', 'bruins', 'rangers', 'maple leafs', 'canadiens', 'senators', 'sabres', 'lightning', 'capitals', 'flyers', 'devils', 'islanders', 'penguins', 'blue jackets', 'hurricanes', 'predators', 'blues', 'wild', 'avalanche', 'stars', 'oilers', 'flames', 'canucks', 'sharks', 'ducks', 'golden knights', 'coyotes', 'jets', 'kraken',
-            // Additional terms that should be filtered
-            'mvp', 'hof', 'nfl', 'mlb', 'nba', 'nhl', 'debut', 'rookie', 'rc', 'yg', 'psa', 'gem', 'mint', 'ssp', 'holo', 'velocity', 'notoriety', 'card', 'rated', '1st', 'first', 'chrome', 'university', 'minnesota', 'oilers', 'kings', 'clear cut', 'premier', 'opc', 's d', 'nfl football', '3-d', 'cardinals', 'rams', 'vikings', 'browns', 'chiefs', 'giants', 'eagles', 'cowboys', 'falcons', 'panthers', 'steelers', 'patriots', 'saints', 'jets', 'bills', 'dolphins', 'texans', 'colts', 'jaguars', 'titans', 'broncos', 'raiders', 'chargers', 'seahawks', '49ers', 'cardinals', 'buccaneers', 'commanders', 'redskins', 'packers', 'bears', 'lions', 'bengals', 'ravens', 'browns', 'steelers', 'titans', 'jaguars', 'colts', 'texans', 'chiefs', 'raiders', 'broncos', 'chargers', 'cowboys', 'giants', 'eagles', 'redskins', 'commanders', 'bears', 'lions', 'packers', 'vikings', 'falcons', 'panthers', 'saints', 'buccaneers', 'rams', 'seahawks', '49ers', 'cardinals', 'yankees', 'red sox', 'blue jays', 'orioles', 'rays', 'white sox', 'indians', 'guardians', 'tigers', 'twins', 'royals', 'astros', 'rangers', 'mariners', 'angels', 'dodgers', 'padres', 'rockies', 'diamondbacks', 'braves', 'marlins', 'mets', 'phillies', 'nationals', 'pirates', 'reds', 'brewers', 'cubs', 'cardinals', 'lakers', 'warriors', 'celtics', 'heat', 'knicks', 'nets', 'raptors', '76ers', 'hawks', 'hornets', 'wizards', 'magic', 'pacers', 'bucks', 'cavaliers', 'pistons', 'rockets', 'mavericks', 'spurs', 'grizzlies', 'pelicans', 'thunder', 'jazz', 'nuggets', 'timberwolves', 'trail blazers', 'kings', 'suns', 'clippers', 'bulls',
-            // College/school names
-            'duke', 'mavericks', 'blue devils', 'tar heels', 'wolfpack', 'demon deacons',
-            'seminoles', 'hurricanes', 'gators', 'bulldogs', 'tigers', 'wildcats', 'cardinals',
-            'eagles', 'hawks', 'panthers', 'cavaliers', 'hokies', 'orange', 'syracuse',
-            'connecticut', 'uconn', 'villanova', 'georgetown', 'providence', 'seton hall',
-            'creighton', 'xavier', 'butler', 'depaul', 'marquette', 'st johns', 'kansas',
-            'kentucky', 'north carolina', 'arizona', 'ucla', 'usc', 'stanford', 'california',
-            'oregon', 'oregon state', 'washington', 'washington state', 'colorado', 'utah',
-            'arizona state', 'ucla', 'usc', 'stanford', 'california', 'oregon', 'oregon state',
-            'washington', 'washington state', 'colorado', 'utah', 'arizona state',
-            // Soccer team names
-            'liverpool', 'manchester united', 'manchester city', 'arsenal', 'chelsea',
-            'tottenham', 'barcelona', 'real madrid', 'bayern munich', 'psg', 'juventus',
-            'ac milan', 'inter milan', 'ajax', 'porto', 'benfica', 'celtic', 'rangers',
-            'fc', 'united', 'city', 'athletic', 'sporting', 'dynamo', 'spartak', 'zenit',
-            // Card types that should be removed from player names
-            'flash', 'fifa', 'velocity', 'scope', 'hyper', 'optic', 'mosaic', 'select', 'finest',
-            'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua',
-            'woo', 'draft', 'red/white/blue', 'tf1', 'all-etch', 'night',
-            'cosmic stars', 'cosmic', 'all etch', 'stars', 'splash', 'rising', 'best',
-            'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric',
-            'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'downtown', 'real one',
-            'clear cut', 'variation', 'logo', 'pulsar', 'snakeskin', 'dragon scale',
-            'tie-dye', 'disco', 'neon', 'camo', 'bronze', 'teal', 'pink', 'purple', 'orange',
-            'yellow', 'green', 'blue', 'red', 'black', 'silver', 'gold', 'white',
-            'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
-            'holo', 'holographic', 'prizm', 'chrome', 'base', 'sp', 'ssp', 'short print',
-            'super short print', 'parallel', 'insert', 'numbered', 'limited', 'au', 'auto', 'autograph', 'autographs', 'edition', 'sublime', 'shimmer', 'scripts', 'ref', 'reptilian', 'storm', 'zone', 'sunday', 'pop', 'chasers', 'busters', 'reactive', 'reprint', 'king', 'dallas', 'snake', 'rainbow', 'go hard go', 'go hard go home', 'home', 'royal blue', 'gold rainbow', 'holiday', 'yellow', 'aqua', 'silver crackle', 'yellow rainbow', 'jack o lantern', 'ghost', 'gold', 'blue holo', 'purple holo', 'green crackle', 'orange crackle', 'red crackle', 'vintage stock', 'independence day', 'black', 'fathers day', 'mothers day', 'mummy', 'yellow crackle', 'memorial day', 'black cat', 'clear', 'witches hat', 'bats', 'first card', 'platinum', 'printing plates', 'royal', 'blue', 'vintage', 'stock', 'independence', 'day', 'fathers', 'mothers', 'memorial', 'cat', 'witches', 'hat', 'lantern', 'crackle', 'holo', 'foilboard', 'rookies', 'radiating', 'now', 'foil', 'ucl', 'preview', 'shock', 'design'
-        ];
-        
-        let cleanName = playerName;
-        
-        // Remove team names from player name
-        teamNames.forEach(team => {
-            const regex = new RegExp(`\\b${team}\\b`, 'gi');
-            cleanName = cleanName.replace(regex, '');
-        });
-        
-        // Remove stray slashes and clean up spaces
-        cleanName = cleanName.replace(/[\/]+/g, ' ');
-        cleanName = cleanName.replace(/\s+/g, ' ').trim();
-        
-        return cleanName;
-    }
+
 
     // Capitalize player name properly (e.g., "JOSH KURODA GRAUER" -> "Josh Kuroda-Grauer")
     capitalizePlayerName(playerName) {
