@@ -3530,8 +3530,8 @@ class NewPricingDatabase {
         // Convert to lowercase first
         const lowerName = playerName.toLowerCase();
         
-        // Handle special cases for hyphens and apostrophes
-        const words = lowerName.split(/[\s\-']/);
+        // Handle special cases for hyphens, apostrophes, and slashes
+        const words = lowerName.split(/[\s\-'\/]/);
         const capitalizedWords = words.map(word => {
             if (word.length === 0) return word;
             
@@ -3548,15 +3548,17 @@ class NewPricingDatabase {
         // Reconstruct with proper separators
         let result = capitalizedWords.join(' ');
         
-        // Restore hyphens and apostrophes
+        // Restore hyphens, apostrophes, and slashes
         const originalName = playerName;
         const hyphenPositions = [];
         const apostrophePositions = [];
+        const slashPositions = [];
         
-        // Find positions of hyphens and apostrophes in original name
+        // Find positions of hyphens, apostrophes, and slashes in original name
         for (let i = 0; i < originalName.length; i++) {
             if (originalName[i] === '-') hyphenPositions.push(i);
             if (originalName[i] === "'") apostrophePositions.push(i);
+            if (originalName[i] === '/') slashPositions.push(i);
         }
         
         // Restore hyphens
@@ -3566,8 +3568,8 @@ class NewPricingDatabase {
             
             // Find the corresponding words in our result
             const resultWords = result.split(' ');
-            const beforeWords = beforeHyphen.split(/[\s\-']/);
-            const afterWords = afterHyphen.split(/[\s\-']/);
+            const beforeWords = beforeHyphen.split(/[\s\-'\/]/);
+            const afterWords = afterHyphen.split(/[\s\-'\/]/);
             
             // Find where to insert the hyphen
             let beforeIndex = -1;
@@ -3596,8 +3598,8 @@ class NewPricingDatabase {
             
             // Find the corresponding words in our result
             const resultWords = result.split(' ');
-            const beforeWords = beforeApostrophe.split(/[\s\-']/);
-            const afterWords = afterApostrophe.split(/[\s\-']/);
+            const beforeWords = beforeApostrophe.split(/[\s\-'\/]/);
+            const afterWords = afterApostrophe.split(/[\s\-'\/]/);
             
             // Find where to insert the apostrophe
             let beforeIndex = -1;
@@ -3614,6 +3616,36 @@ class NewPricingDatabase {
             
             if (beforeIndex !== -1 && afterIndex !== -1 && afterIndex === beforeIndex + 1) {
                 resultWords[beforeIndex] = resultWords[beforeIndex] + "'" + resultWords[afterIndex];
+                resultWords.splice(afterIndex, 1);
+                result = resultWords.join(' ');
+            }
+        }
+        
+        // Restore slashes
+        for (const pos of slashPositions) {
+            const beforeSlash = originalName.substring(0, pos).trim();
+            const afterSlash = originalName.substring(pos + 1).trim();
+            
+            // Find the corresponding words in our result
+            const resultWords = result.split(' ');
+            const beforeWords = beforeSlash.split(/[\s\-'\/]/);
+            const afterWords = afterSlash.split(/[\s\-'\/]/);
+            
+            // Find where to insert the slash
+            let beforeIndex = -1;
+            let afterIndex = -1;
+            
+            for (let i = 0; i < resultWords.length; i++) {
+                if (beforeWords.includes(resultWords[i].toLowerCase())) {
+                    beforeIndex = i;
+                }
+                if (afterWords.includes(resultWords[i].toLowerCase())) {
+                    afterIndex = i;
+                }
+            }
+            
+            if (beforeIndex !== -1 && afterIndex !== -1 && afterIndex === beforeIndex + 1) {
+                resultWords[beforeIndex] = resultWords[beforeIndex] + '/' + resultWords[afterIndex];
                 resultWords.splice(afterIndex, 1);
                 result = resultWords.join(' ');
             }
