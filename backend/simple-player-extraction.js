@@ -37,8 +37,8 @@ class SimplePlayerExtractor {
             'blue ice', 'gold', 'silver', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'bronze', 'white', 'teal', 'neon', 'camo', 'tie-dye', 'disco', 'dragon scale', 'snakeskin', 'pulsar', 'logo', 'variation',
             'numbered', 'limited', 'platinum', 'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'aqua', 'lime', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet', 'coral', 'apricot', 'tangerine', 'amber', 'golden', 'metallic', 'copper', 'cream', 'ivory', 'beige', 'khaki', 'olive', 'turquoise', 'magenta', 'fuchsia',
             
-            // Special Features
-            'jersey', 'memorabilia', 'on card', 'sticker', 'prospect', 'prospects', 'draft', '1st', 'first', 'young guns', 'debut', 'hof', 'cert', 'certificate', 'population', 'hit', 'case', 'independence day', 'father\'s day', 'mother\'s day', 'memorial day', 'mvp', 'card', 'cards', 'ro', 'picks', 'prospects', 'no huddle', 'color blast'
+                         // Special Features
+             'jersey', 'memorabilia', 'on card', 'sticker', 'prospect', 'prospects', 'draft', '1st', 'first', 'young guns', 'debut', 'hof', 'cert', 'certificate', 'population', 'hit', 'case', 'independence day', 'father\'s day', 'mother\'s day', 'memorial day', 'mvp', 'card', 'cards', 'ro', 'picks', 'prospects', 'no huddle', 'color blast', 'stratospheric'
         ];
 
         // Team, league, city, and sport terms - Updated with comprehensive list
