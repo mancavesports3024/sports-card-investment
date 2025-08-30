@@ -39,7 +39,7 @@ class SimplePlayerExtractor {
             'numbered', 'limited', 'platinum', 'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'aqua', 'lime', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet', 'coral', 'apricot', 'tangerine', 'amber', 'golden', 'metallic', 'copper', 'cream', 'ivory', 'beige', 'khaki', 'olive', 'turquoise', 'magenta', 'fuchsia',
             
             // Special Features
-            'jersey', 'memorabilia', 'on card', 'sticker', 'prospect', 'prospects', 'draft', '1st', 'first', 'young guns', 'debut', 'hof', 'cert', 'certificate', 'population', 'hit', 'case', 'independence day', 'father\'s day', 'mother\'s day', 'memorial day', 'mvp', 'card', 'cards', 'ro', 'picks', 'prospects', 'no huddle'
+            'jersey', 'memorabilia', 'on card', 'sticker', 'prospect', 'prospects', 'draft', '1st', 'first', 'young guns', 'debut', 'hof', 'cert', 'certificate', 'population', 'hit', 'case', 'independence day', 'father\'s day', 'mother\'s day', 'memorial day', 'mvp', 'card', 'cards', 'ro', 'picks', 'prospects', 'no huddle', 'color blast'
         ];
 
         // Team, league, city, and sport terms - Updated with comprehensive list
@@ -157,6 +157,7 @@ class SimplePlayerExtractor {
             .replace(/#\d+[A-Za-z]+[-\dA-Za-z]*/g, ' ') // #74TF-1, etc.
             .replace(/#[A-Za-z]+\d+[-\dA-Za-z]*/g, ' ') // #CPA-WJ, etc.
             .replace(/\b(BD[A-Z]?\d+)\b/g, ' ') // BDP123, BDC456, etc.
+            .replace(/\b(CB-[A-Z]+)\b/g, ' ') // CB-MNS, etc.
             .replace(/\b(CDA-[A-Z]+)\b/g, ' ') // CDA-LK, etc.
             .replace(/\b(CRA-[A-Z]+)\b/g, ' ') // CRA-AJ, CRA-BP, etc.
             .replace(/\b([A-Z]{2,}\d+)\b/g, ' ') // DT36, DT1, etc.
