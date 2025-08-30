@@ -24,7 +24,7 @@ class SimplePlayerExtractor {
             'starquest', 'sox', 'texas', 'longhorns', 'minnesota', 'wings', 'atl', 'buffaloes', 'mars', 'ne', 'sun', 'lunar', 'fireworks', 'kaboom', 'hoops', 'field', 'euro', 'main', 'pokemon', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'stadium', 'catching', 'el', 'he13',
             
             // Additional Card Set/Type Terms from 3-word Analysis
-            'apex', 'composite', 'courtside', 'dp', 'etch', 'iconic', 'lane', 'notoriety', 'radiating', 'royalty', 'sepia', 'ud', 'zenith', 'dazzle', 'electricity', 'gear', 'tf', 'geo', 'mavs', 'crystallized', 'cracked', 'mojo', 'choice', 'persona', 'hype', 'illumination', 'elevate', 'choice', 'ba', 'xrc', 'tri', 'no', 'cj', 'hb', 'bdc', 'rg', 'sb', 'hr', 'tj', 'wj', 'q0902', 'shadow', 'impact', 'la', 'av', 'dc', 'mns', 'ny', 'tf', 'cc', 'mj', 'se', 'true', 'aces', 'overhead', 'pinstripe', 'power', 'medal', 'metal', 'rainmakers', 'phenom', 'pandora', 'uptowns', 'uptown', 'scope', 'wave', 'disco', 'pink', 'blue', 'red', 'green', 'silver', 'gold', 'orange', 'purple', 'yellow', 'aqua', 'teal', 'bronze', 'white', 'black', 'camo', 'neon', 'tie-dye', 'snakeskin', 'dragon scale', 'pulsar', 'logo', 'variation', 'numbered', 'limited', 'platinum', 'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'lime', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet', 'coral', 'apricot', 'tangerine', 'amber', 'golden', 'metallic', 'copper', 'cream', 'ivory', 'beige', 'khaki', 'olive', 'turquoise', 'magenta', 'fuchsia'
+            'apex', 'composite', 'courtside', 'dp', 'etch', 'iconic', 'lane', 'notoriety', 'radiating', 'royalty', 'sepia', 'ud', 'zenith', 'dazzle', 'electricity', 'gear', 'tf', 'geo', 'mavs', 'crystallized', 'cracked', 'mojo', 'choice', 'persona', 'hype', 'illumination', 'elevate', 'choice', 'ba', 'xrc', 'tri', 'no', 'cj', 'hb', 'bdc', 'rg', 'sb', 'hr', 'tj', 'wj', 'q0902', 'shadow', 'impact', 'la', 'av', 'dc', 'mns', 'ny', 'tf', 'cc', 'mj', 'se', 'true', 'aces', 'overhead', 'pinstripe', 'power', 'medal', 'metal', 'rainmakers', 'phenom', 'pandora', 'uptowns', 'uptown', 'scope', 'wave', 'disco', 'pink', 'blue', 'red', 'green', 'silver', 'gold', 'orange', 'purple', 'yellow', 'aqua', 'teal', 'bronze', 'white', 'black', 'camo', 'neon', 'tie-dye', 'snakeskin', 'dragon scale', 'pulsar', 'logo', 'variation', 'numbered', 'limited', 'platinum', 'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'lime', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet', 'coral', 'apricot', 'tangerine', 'amber', 'golden', 'metallic', 'copper', 'cream', 'ivory', 'beige', 'khaki', 'olive', 'turquoise', 'magenta', 'fuchsia', 'tf'
         ];
 
         // Card type terms - Updated with comprehensive list
@@ -137,6 +137,7 @@ class SimplePlayerExtractor {
             .replace(/[()\[\]{}]/g, ' ') // Remove parentheses and brackets
             .replace(/[-–—]/g, ' ') // Remove hyphens and dashes
             .replace(/[''′]/g, ' ') // Remove apostrophes and similar characters
+            .replace(/[čć]/g, 'c') // Replace special c characters with regular c
             .replace(/[^\w\s]/g, ' ') // Remove any other non-word, non-space characters
             .replace(/[\u{1F600}-\u{1F64F}]/gu, ' ') // Remove emojis (Unicode ranges for emojis)
             .replace(/[\u{1F300}-\u{1F5FF}]/gu, ' ') // Remove miscellaneous symbols and pictographs
@@ -145,6 +146,7 @@ class SimplePlayerExtractor {
             .replace(/[\u{2600}-\u{26FF}]/gu, ' ') // Remove miscellaneous symbols
             .replace(/[\u{2700}-\u{27BF}]/gu, ' ') // Remove dingbats
             .replace(/\b\s*s\s*\b/g, ' ') // Remove standalone 's' characters (from apostrophe-s)
+            .replace(/\b\s*o\s*\b/g, ' ') // Remove standalone 'o' characters (from O's)
             .replace(/\s+/g, ' ') // Normalize spaces
             .trim();
     }
@@ -155,6 +157,7 @@ class SimplePlayerExtractor {
             .replace(/#\d+/g, ' ') // #123, #456, etc.
             .replace(/#[A-Za-z]+[-\dA-Za-z]*/g, ' ') // #BDC-168, #CDA-LK, etc.
             .replace(/#\d+[A-Za-z]+[-\dA-Za-z]*/g, ' ') // #74TF-1, etc.
+            .replace(/#\d+[A-Za-z]+\d+[-\dA-Za-z]*/g, ' ') // #74TF-1, etc.
             .replace(/#[A-Za-z]+\d+[-\dA-Za-z]*/g, ' ') // #CPA-WJ, etc.
             .replace(/\b(BD[A-Z]?\d+)\b/g, ' ') // BDP123, BDC456, etc.
             .replace(/\b(CB-[A-Z]+)\b/g, ' ') // CB-MNS, etc.
