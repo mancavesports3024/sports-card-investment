@@ -21,7 +21,10 @@ class SimplePlayerExtractor {
             'sunday', 'bn391', 'reptilian', 'edition', 'au', 'fifa', 'insert', 'mh', 'storm chasers', 'x factor', 'lk', 'foil', 'sun', 'lunar', 'fireworks', 'kings', 'millionaire', 'sparks', 'nuggets', 'lava', 'razzle', 'fever', 'allies', 'ascensions', 'authentix', 'checkerboard', 'sky', 'events', 'club', 'collection', 'future', 'ne', 'mars', 'atl', 'tmc', 'blast', 'cb', 'vision', 'buffaloes', 'explosive', 'look', 'iv', 'image', 'tographs', 'champions', 'catching', 'el', 'he13',
             
             // Additional Terms from 3-word Player Name Analysis
-            'starquest', 'sox', 'texas', 'longhorns', 'minnesota', 'wings', 'atl', 'buffaloes', 'mars', 'ne', 'sun', 'lunar', 'fireworks', 'kaboom', 'hoops', 'field', 'euro', 'main', 'pokemon', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'stadium', 'catching', 'el', 'he13'
+            'starquest', 'sox', 'texas', 'longhorns', 'minnesota', 'wings', 'atl', 'buffaloes', 'mars', 'ne', 'sun', 'lunar', 'fireworks', 'kaboom', 'hoops', 'field', 'euro', 'main', 'pokemon', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'stadium', 'catching', 'el', 'he13',
+            
+            // Additional Card Set/Type Terms from 3-word Analysis
+            'apex', 'composite', 'courtside', 'dp', 'etch', 'iconic', 'lane', 'notoriety', 'radiating', 'royalty', 'sepia', 'ud', 'zenith', 'dazzle', 'electricity', 'gear', 'tf', 'geo', 'mavs', 'crystallized', 'cracked', 'mojo', 'choice', 'persona', 'hype', 'illumination', 'elevate', 'choice', 'ba', 'xrc', 'tri', 'no', 'cj', 'hb', 'bdc', 'rg', 'sb', 'hr', 'tj', 'wj', 'q0902'
         ];
 
         // Card type terms - Updated with comprehensive list
@@ -133,6 +136,7 @@ class SimplePlayerExtractor {
         return title
             .replace(/[()\[\]{}]/g, ' ') // Remove parentheses and brackets
             .replace(/[-–—]/g, ' ') // Remove hyphens and dashes
+            .replace(/[''′]/g, ' ') // Remove apostrophes and similar characters
             .replace(/[^\w\s]/g, ' ') // Remove any other non-word, non-space characters
             .replace(/[\u{1F600}-\u{1F64F}]/gu, ' ') // Remove emojis (Unicode ranges for emojis)
             .replace(/[\u{1F300}-\u{1F5FF}]/gu, ' ') // Remove miscellaneous symbols and pictographs
@@ -140,6 +144,7 @@ class SimplePlayerExtractor {
             .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, ' ') // Remove regional indicator symbols
             .replace(/[\u{2600}-\u{26FF}]/gu, ' ') // Remove miscellaneous symbols
             .replace(/[\u{2700}-\u{27BF}]/gu, ' ') // Remove dingbats
+            .replace(/\b\s*s\s*\b/g, ' ') // Remove standalone 's' characters (from apostrophe-s)
             .replace(/\s+/g, ' ') // Normalize spaces
             .trim();
     }
