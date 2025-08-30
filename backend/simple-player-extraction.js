@@ -149,6 +149,8 @@ class SimplePlayerExtractor {
             .replace(/\b\s*o\s*\b/g, ' ') // Remove standalone 'o' characters (from O's)
             .replace(/\bs\b/g, ' ') // Remove standalone 's' characters (from apostrophe-s)
             .replace(/\bo\b/g, ' ') // Remove standalone 'o' characters (from O's)
+            .replace(/\bS\b/g, ' ') // Remove standalone 'S' characters (from apostrophe-S)
+            .replace(/\bO\b/g, ' ') // Remove standalone 'O' characters (from O's)
             .replace(/\s+/g, ' ') // Normalize spaces
             .trim();
     }
@@ -162,6 +164,7 @@ class SimplePlayerExtractor {
             .replace(/#\d+[A-Za-z]+\d+[-\dA-Za-z]*/g, ' ') // #74TF-1, etc.
             .replace(/#\d+[A-Za-z]+[-\d]*/g, ' ') // #74TF-1, etc. (simpler pattern)
             .replace(/#74TF-\d+/g, ' ') // Specific pattern for #74TF-1
+            .replace(/\bTF\b/g, ' ') // Remove standalone TF
             .replace(/#[A-Za-z]+\d+[-\dA-Za-z]*/g, ' ') // #CPA-WJ, etc.
             .replace(/\b(BD[A-Z]?\d+)\b/g, ' ') // BDP123, BDC456, etc.
             .replace(/\b(CB-[A-Z]+)\b/g, ' ') // CB-MNS, etc.
