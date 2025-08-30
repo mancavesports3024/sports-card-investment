@@ -38,7 +38,7 @@ class SimplePlayerExtractor {
             'numbered', 'limited', 'platinum', 'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'aqua', 'lime', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet', 'coral', 'apricot', 'tangerine', 'amber', 'golden', 'metallic', 'copper', 'cream', 'ivory', 'beige', 'khaki', 'olive', 'turquoise', 'magenta', 'fuchsia',
             
                          // Special Features
-             'jersey', 'memorabilia', 'on card', 'sticker', 'prospect', 'prospects', 'draft', '1st', 'first', 'young guns', 'debut', 'hof', 'cert', 'certificate', 'population', 'hit', 'case', 'independence day', 'father\'s day', 'mother\'s day', 'memorial day', 'mvp', 'card', 'cards', 'ro', 'picks', 'prospects', 'no huddle', 'color blast', 'stratospheric', 'box set', '3-d'
+             'jersey', 'memorabilia', 'on card', 'sticker', 'prospect', 'prospects', 'draft', '1st', 'first', 'young guns', 'debut', 'hof', 'cert', 'certificate', 'population', 'hit', 'case', 'independence day', 'father\'s day', 'mother\'s day', 'memorial day', 'mvp', 'card', 'cards', 'ro', 'picks', 'prospects', 'no huddle', 'color blast', 'stratospheric', 'box set', '3-d', 'portals', 'firestorm'
         ];
 
         // Team, league, city, and sport terms - Updated with comprehensive list
@@ -198,12 +198,38 @@ class SimplePlayerExtractor {
              // Restore "De La" in names
              .replace(/\bElly\s+De\s+Cruz\b/gi, 'Elly De La Cruz')
              
+             // Restore hyphens in compound names
+             .replace(/\bPete\s+Crow\s+Armstrong\b/gi, 'Pete Crow-Armstrong')
+             .replace(/\bShai\s+Gilgeous\s+Alexander\b/gi, 'Shai Gilgeous-Alexander')
+             .replace(/\bJaxon\s+Smith\s+Njigba\b/gi, 'Jaxon Smith-Njigba')
+             
              // Remove standalone "O" from "O's" issue
              .replace(/\bO\s*$/gi, '')
              
              // Normalize spaces
              .replace(/\s+/g, ' ')
              .trim();
+     }
+
+     // Normalize capitalization in player names
+     normalizeCapitalization(title) {
+         return title
+             // Convert all caps to proper case
+             .replace(/\b([A-Z])([A-Z]+)\b/g, (match, first, rest) => {
+                 // Keep common abbreviations in caps
+                 if (['JR', 'SR', 'II', 'III', 'IV'].includes(match)) {
+                     return match;
+                 }
+                 // Convert to proper case
+                 return first + rest.toLowerCase();
+             })
+             // Handle special cases for proper names
+             .replace(/\bMc([a-z])/g, (match, letter) => 'Mc' + letter.toUpperCase())
+             .replace(/\bMac([a-z])/g, (match, letter) => 'Mac' + letter.toUpperCase())
+             .replace(/\bO\'([a-z])/g, (match, letter) => 'O\'' + letter.toUpperCase())
+             .replace(/\bDe\'([a-z])/g, (match, letter) => 'De\'' + letter.toUpperCase())
+             .replace(/\bVan\s+([a-z])/g, (match, letter) => 'Van ' + letter.toUpperCase())
+             .replace(/\bVon\s+([a-z])/g, (match, letter) => 'Von ' + letter.toUpperCase());
      }
 
     // Main extraction function - ONLY the 6 steps you requested
@@ -241,6 +267,10 @@ class SimplePlayerExtractor {
          // Step 8: Restore apostrophes and hyphens in player names
          cleaned = this.restorePunctuation(cleaned);
          console.log(`   After restoring punctuation: "${cleaned}"`);
+         
+         // Step 9: Normalize capitalization
+         cleaned = this.normalizeCapitalization(cleaned);
+         console.log(`   After normalizing capitalization: "${cleaned}"`);
          
          // Clean up extra spaces and return whatever is left
          const result = cleaned.replace(/\s+/g, ' ').trim();
