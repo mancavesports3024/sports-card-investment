@@ -168,6 +168,8 @@ class SimplePlayerExtractor {
              .replace(/\b(CB-[A-Z]+)\b/g, ' ') // CB-MNS, etc.
              .replace(/\b(CDA-[A-Z]+)\b/g, ' ') // CDA-LK, etc.
              .replace(/\b(CRA-[A-Z]+)\b/g, ' ') // CRA-AJ, CRA-BP, etc.
+             .replace(/\b(CPA-[A-Z]+)\b/g, ' ') // CPA-CJ, CPA-WJ, etc.
+             .replace(/\bCj\b/g, ' ') // Remove standalone Cj from card numbers
              .replace(/\b([A-Z]{2,}\d+)\b/g, ' ') // DT36, DT1, etc.
              .replace(/\b(BS\d+)\b/g, ' ') // BS3, BS5, etc.
              .replace(/\b(TC\d+)\b/g, ' ') // TC264, etc.
@@ -241,10 +243,6 @@ class SimplePlayerExtractor {
          // Step 8: Restore apostrophes and hyphens in player names
          cleaned = this.restorePunctuation(cleaned);
          console.log(`   After restoring punctuation: "${cleaned}"`);
-         
-         // Step 9: Normalize capitalization
-         cleaned = this.normalizeCapitalization(cleaned);
-         console.log(`   After normalizing capitalization: "${cleaned}"`);
          
          // Clean up extra spaces and return whatever is left
          const result = cleaned.replace(/\s+/g, ' ').trim();
