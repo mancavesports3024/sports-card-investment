@@ -154,6 +154,8 @@ class SimplePlayerExtractor {
         return title
             .replace(/#\d+/g, ' ') // #123, #456, etc.
             .replace(/#[A-Za-z]+[-\dA-Za-z]*/g, ' ') // #BDC-168, #CDA-LK, etc.
+            .replace(/#\d+[A-Za-z]+[-\dA-Za-z]*/g, ' ') // #74TF-1, etc.
+            .replace(/#[A-Za-z]+\d+[-\dA-Za-z]*/g, ' ') // #CPA-WJ, etc.
             .replace(/\b(BD[A-Z]?\d+)\b/g, ' ') // BDP123, BDC456, etc.
             .replace(/\b(CDA-[A-Z]+)\b/g, ' ') // CDA-LK, etc.
             .replace(/\b(CRA-[A-Z]+)\b/g, ' ') // CRA-AJ, CRA-BP, etc.
