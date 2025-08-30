@@ -3924,7 +3924,28 @@ app.post('/api/admin/reextract-player-names', async (req, res) => {
         const extractor = new RailwayPlayerExtractor();
         
         await extractor.connect();
-        await extractor.updateAllPlayerNames();
+        
+        // Process in smaller batches to avoid timeouts
+        const batchSize = 50;
+        const cards = await extractor.getCardsToUpdate();
+        const totalCards = cards.length;
+        
+        console.log(`📊 Processing ${totalCards} cards in batches of ${batchSize}...`);
+        
+        let processedCount = 0;
+        for (let i = 0; i < cards.length; i += batchSize) {
+            const batch = cards.slice(i, i + batchSize);
+            console.log(`🔄 Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(totalCards/batchSize)} (${batch.length} cards)...`);
+            
+            for (const card of batch) {
+                await extractor.processCard(card);
+                processedCount++;
+            }
+            
+            // Progress update
+            console.log(`📊 Progress: ${processedCount}/${totalCards} cards processed`);
+        }
+        
         await extractor.close();
 
         res.json({ 
