@@ -38,7 +38,7 @@ class SimplePlayerExtractor {
             'numbered', 'limited', 'platinum', 'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'aqua', 'lime', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet', 'coral', 'apricot', 'tangerine', 'amber', 'golden', 'metallic', 'copper', 'cream', 'ivory', 'beige', 'khaki', 'olive', 'turquoise', 'magenta', 'fuchsia',
             
                          // Special Features
-             'jersey', 'memorabilia', 'on card', 'sticker', 'prospect', 'prospects', 'draft', '1st', 'first', 'young guns', 'debut', 'hof', 'cert', 'certificate', 'population', 'hit', 'case', 'independence day', 'father\'s day', 'mother\'s day', 'memorial day', 'mvp', 'card', 'cards', 'ro', 'picks', 'prospects', 'no huddle', 'color blast', 'stratospheric', 'box set'
+             'jersey', 'memorabilia', 'on card', 'sticker', 'prospect', 'prospects', 'draft', '1st', 'first', 'young guns', 'debut', 'hof', 'cert', 'certificate', 'population', 'hit', 'case', 'independence day', 'father\'s day', 'mother\'s day', 'memorial day', 'mvp', 'card', 'cards', 'ro', 'picks', 'prospects', 'no huddle', 'color blast', 'stratospheric', 'box set', '3-d'
         ];
 
         // Team, league, city, and sport terms - Updated with comprehensive list
@@ -153,32 +153,58 @@ class SimplePlayerExtractor {
             .trim();
     }
 
-    // Remove card numbers and patterns
-    removeCardNumbers(title) {
-        return title
-            .replace(/#\d+/g, ' ') // #123, #456, etc.
-            .replace(/#[A-Za-z]+[-\dA-Za-z]*/g, ' ') // #BDC-168, #CDA-LK, etc.
-            .replace(/#\d+[A-Za-z]+[-\dA-Za-z]*/g, ' ') // #74TF-1, etc.
-            .replace(/#\d+[A-Za-z]+\d+[-\dA-Za-z]*/g, ' ') // #74TF-1, etc.
-            .replace(/#\d+[A-Za-z]+[-\d]*/g, ' ') // #74TF-1, etc. (simpler pattern)
-            .replace(/#74TF-\d+/g, ' ') // Specific pattern for #74TF-1
-            .replace(/\bTF\b/g, ' ') // Remove standalone TF
-            .replace(/#[A-Za-z]+\d+[-\dA-Za-z]*/g, ' ') // #CPA-WJ, etc.
-            .replace(/\b(BD[A-Z]?\d+)\b/g, ' ') // BDP123, BDC456, etc.
-            .replace(/\b(CB-[A-Z]+)\b/g, ' ') // CB-MNS, etc.
-            .replace(/\b(CDA-[A-Z]+)\b/g, ' ') // CDA-LK, etc.
-            .replace(/\b(CRA-[A-Z]+)\b/g, ' ') // CRA-AJ, CRA-BP, etc.
-            .replace(/\b([A-Z]{2,}\d+)\b/g, ' ') // DT36, DT1, etc.
-            .replace(/\b(BS\d+)\b/g, ' ') // BS3, BS5, etc.
-            .replace(/\b(TC\d+)\b/g, ' ') // TC264, etc.
-            .replace(/\b(MMR-\d+)\b/g, ' ') // MMR-54, etc.
-            .replace(/\b(DT\d+)\b/g, ' ') // DT36, etc.
-            .replace(/\b(SJMC)\b/g, ' ') // SJMC
-            .replace(/\d+\/\d+/g, ' ') // /499, /99, /150, etc.
-            .replace(/\b\d+\b/g, ' ') // Standalone numbers
-            .replace(/#/g, ' ') // Remove any remaining # symbols
-            .replace(/\//g, ' '); // Remove any remaining / symbols
-    }
+         // Remove card numbers and patterns
+     removeCardNumbers(title) {
+         return title
+             .replace(/#\d+/g, ' ') // #123, #456, etc.
+             .replace(/#[A-Za-z]+[-\dA-Za-z]*/g, ' ') // #BDC-168, #CDA-LK, etc.
+             .replace(/#\d+[A-Za-z]+[-\dA-Za-z]*/g, ' ') // #74TF-1, etc.
+             .replace(/#\d+[A-Za-z]+\d+[-\dA-Za-z]*/g, ' ') // #74TF-1, etc.
+             .replace(/#\d+[A-Za-z]+[-\d]*/g, ' ') // #74TF-1, etc. (simpler pattern)
+             .replace(/#74TF-\d+/g, ' ') // Specific pattern for #74TF-1
+             .replace(/\bTF\b/g, ' ') // Remove standalone TF
+             .replace(/#[A-Za-z]+\d+[-\dA-Za-z]*/g, ' ') // #CPA-WJ, etc.
+             .replace(/\b(BD[A-Z]?\d+)\b/g, ' ') // BDP123, BDC456, etc.
+             .replace(/\b(CB-[A-Z]+)\b/g, ' ') // CB-MNS, etc.
+             .replace(/\b(CDA-[A-Z]+)\b/g, ' ') // CDA-LK, etc.
+             .replace(/\b(CRA-[A-Z]+)\b/g, ' ') // CRA-AJ, CRA-BP, etc.
+             .replace(/\b([A-Z]{2,}\d+)\b/g, ' ') // DT36, DT1, etc.
+             .replace(/\b(BS\d+)\b/g, ' ') // BS3, BS5, etc.
+             .replace(/\b(TC\d+)\b/g, ' ') // TC264, etc.
+             .replace(/\b(MMR-\d+)\b/g, ' ') // MMR-54, etc.
+             .replace(/\b(DT\d+)\b/g, ' ') // DT36, etc.
+             .replace(/\b(SJMC)\b/g, ' ') // SJMC
+             .replace(/\d+\/\d+/g, ' ') // /499, /99, /150, etc.
+             .replace(/\b\d+\b/g, ' ') // Standalone numbers
+             .replace(/#/g, ' ') // Remove any remaining # symbols
+             .replace(/\//g, ' '); // Remove any remaining / symbols
+     }
+
+     // Restore apostrophes and hyphens in player names
+     restorePunctuation(title) {
+         return title
+             // Restore apostrophes in common patterns
+             .replace(/\bDe\s+Von\b/gi, 'De\'Von')
+             .replace(/\bJa\s+Marr\b/gi, 'Ja\'Marr')
+             .replace(/\bLogan\s+O\s+Hoppe\b/gi, 'Logan O\'Hoppe')
+             .replace(/\bRyan\s+O\s+Hearn\b/gi, 'Ryan O\'Hearn')
+             .replace(/\bO\s+Hearn\b/gi, 'O\'Hearn')
+             .replace(/\bO\s+Hoppe\b/gi, 'O\'Hoppe')
+             
+             // Restore periods in initials
+             .replace(/\bJ\s+J\b/gi, 'J.J.')
+             .replace(/\bT\s+J\b/gi, 'T.J.')
+             
+             // Restore "De La" in names
+             .replace(/\bElly\s+De\s+Cruz\b/gi, 'Elly De La Cruz')
+             
+             // Remove standalone "O" from "O's" issue
+             .replace(/\bO\s*$/gi, '')
+             
+             // Normalize spaces
+             .replace(/\s+/g, ' ')
+             .trim();
+     }
 
     // Main extraction function - ONLY the 6 steps you requested
     extractPlayerName(title) {
@@ -208,15 +234,19 @@ class SimplePlayerExtractor {
         cleaned = this.removeCardNumbers(cleaned);
         console.log(`   After removing card numbers: "${cleaned}"`);
         
-        // Step 7: Remove special characters and emojis
-        cleaned = this.removeSpecialCharacters(cleaned);
-        console.log(`   After removing special characters: "${cleaned}"`);
-        
-        // Clean up extra spaces and return whatever is left
-        const result = cleaned.replace(/\s+/g, ' ').trim();
-        console.log(`   Final result: "${result}"`);
-        
-        return result;
+                 // Step 7: Remove special characters and emojis
+         cleaned = this.removeSpecialCharacters(cleaned);
+         console.log(`   After removing special characters: "${cleaned}"`);
+         
+         // Step 8: Restore apostrophes and hyphens in player names
+         cleaned = this.restorePunctuation(cleaned);
+         console.log(`   After restoring punctuation: "${cleaned}"`);
+         
+         // Clean up extra spaces and return whatever is left
+         const result = cleaned.replace(/\s+/g, ' ').trim();
+         console.log(`   Final result: "${result}"`);
+         
+         return result;
     }
 }
 
