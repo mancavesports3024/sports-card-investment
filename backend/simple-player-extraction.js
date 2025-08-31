@@ -281,6 +281,10 @@ class SimplePlayerExtractor {
         cleaned = this.removeTeamLeagueCityTerms(cleaned);
         console.log(`   After removing team/league/city terms: "${cleaned}"`);
         
+        // Step 4.5: Handle dual player patterns and complex cases (BEFORE removing team terms)
+        cleaned = this.removeDualPlayerPatterns(cleaned);
+        console.log(`   After removing dual player patterns: "${cleaned}"`);
+        
         // Step 5: Remove grading terms
         cleaned = this.removeGradingTerms(cleaned);
         console.log(`   After removing grading terms: "${cleaned}"`);
@@ -289,21 +293,17 @@ class SimplePlayerExtractor {
         cleaned = this.removeCardNumbers(cleaned);
         console.log(`   After removing card numbers: "${cleaned}"`);
         
-                 // Step 7: Remove special characters and emojis
-         cleaned = this.removeSpecialCharacters(cleaned);
-         console.log(`   After removing special characters: "${cleaned}"`);
-         
-         // Step 8: Handle dual player patterns and complex cases
-         cleaned = this.removeDualPlayerPatterns(cleaned);
-         console.log(`   After removing dual player patterns: "${cleaned}"`);
-         
-         // Step 9: Restore apostrophes and hyphens in player names
-         cleaned = this.restorePunctuation(cleaned);
-         console.log(`   After restoring punctuation: "${cleaned}"`);
-         
-         // Step 10: Normalize capitalization
-         cleaned = this.normalizeCapitalization(cleaned);
-         console.log(`   After normalizing capitalization: "${cleaned}"`);
+        // Step 7: Remove special characters and emojis
+        cleaned = this.removeSpecialCharacters(cleaned);
+        console.log(`   After removing special characters: "${cleaned}"`);
+        
+        // Step 8: Restore apostrophes and hyphens in player names
+        cleaned = this.restorePunctuation(cleaned);
+        console.log(`   After restoring punctuation: "${cleaned}"`);
+        
+        // Step 9: Normalize capitalization
+        cleaned = this.normalizeCapitalization(cleaned);
+        console.log(`   After normalizing capitalization: "${cleaned}"`);
          
          // Clean up extra spaces and return whatever is left
          const result = cleaned.replace(/\s+/g, ' ').trim();
