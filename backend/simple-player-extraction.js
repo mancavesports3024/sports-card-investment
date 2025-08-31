@@ -165,13 +165,15 @@ class SimplePlayerExtractor {
              // Remove dual player patterns (keep first player)
              .replace(/\b(Brock Purdy)\s+(Deebo Samuel)\b/gi, '$1')
              .replace(/\b(Kobe Bryant)\s+(Michael Jordan)\s+(East West)\b/gi, '$1')
-             .replace(/\b(Cassius Clay)\s+(World Champion Boxers)\s+(Muhammad Ali)\b/gi, '$1')
+             .replace(/\b(Cassius Clay)\s+(World Champion Boxers)\s+(Muhammad Ali)\b/gi, '$3')
              .replace(/\b(Randy Moss)\s+(Helmet Heroes)\s+(hh)\b/gi, '$1')
              .replace(/\b(Patrick Mahomes II)\s+(Big Man on Campus)\b/gi, '$1')
              // Remove "One One" pattern
              .replace(/\bOne\s+One\b/gi, ' ')
              // Remove "E X2001" pattern
              .replace(/\bE\s+X2001\b/gi, ' ')
+             // Remove "Slania Stamps" pattern
+             .replace(/\b(Slania Stamps)\s+(Cassius Clay)\s+(World Champion Boxers)\s+(Muhammad Ali)\b/gi, '$4')
              .replace(/\s+/g, ' ') // Normalize spaces
              .trim();
      }
