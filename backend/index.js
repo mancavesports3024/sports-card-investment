@@ -5799,6 +5799,100 @@ app.get('/api/admin/find-3-word-player-names', async (req, res) => {
     }
 });
 
+// GET /api/admin/analyze-player-name-word-counts - Analyze player names by word count
+app.get('/api/admin/analyze-player-name-word-counts', async (req, res) => {
+    try {
+        console.log('🔍 Analyzing player names by word count...');
+        
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        // Get all cards from the database
+        const cards = await db.allQuery(`
+            SELECT id, title, player_name, summary_title 
+            FROM cards 
+            WHERE player_name IS NOT NULL AND player_name != ''
+        `);
+        
+        // Analyze word counts
+        const wordCountAnalysis = {};
+        const cardsByWordCount = {};
+        
+        cards.forEach(card => {
+            const playerName = card.player_name || '';
+            const wordCount = playerName.trim().split(/\s+/).filter(word => word.length > 0).length;
+            
+            // Initialize if not exists
+            if (!wordCountAnalysis[wordCount]) {
+                wordCountAnalysis[wordCount] = {
+                    count: 0,
+                    uniqueNames: new Set(),
+                    examples: []
+                };
+            }
+            if (!cardsByWordCount[wordCount]) {
+                cardsByWordCount[wordCount] = [];
+            }
+            
+            // Count cards
+            wordCountAnalysis[wordCount].count++;
+            wordCountAnalysis[wordCount].uniqueNames.add(playerName);
+            
+            // Add example (limit to 5 per word count)
+            if (wordCountAnalysis[wordCount].examples.length < 5) {
+                wordCountAnalysis[wordCount].examples.push(playerName);
+            }
+            
+            // Add card to list
+            cardsByWordCount[wordCount].push({
+                id: card.id,
+                title: card.title,
+                player_name: playerName,
+                summary_title: card.summary_title || 'NULL'
+            });
+        });
+        
+        // Convert Sets to arrays and format results
+        const formattedAnalysis = {};
+        Object.keys(wordCountAnalysis).forEach(wordCount => {
+            const analysis = wordCountAnalysis[wordCount];
+            formattedAnalysis[wordCount] = {
+                totalCards: analysis.count,
+                uniquePlayerNames: analysis.uniqueNames.size,
+                examples: Array.from(analysis.uniqueNames).slice(0, 10), // Show up to 10 unique names
+                sampleCards: cardsByWordCount[wordCount].slice(0, 5) // Show up to 5 sample cards
+            };
+        });
+        
+        await db.close();
+        
+        res.json({
+            success: true,
+            message: 'Player name word count analysis',
+            totalCardsAnalyzed: cards.length,
+            analysis: formattedAnalysis,
+            summary: {
+                oneWordNames: formattedAnalysis['1'] || { totalCards: 0, uniquePlayerNames: 0 },
+                twoWordNames: formattedAnalysis['2'] || { totalCards: 0, uniquePlayerNames: 0 },
+                threeWordNames: formattedAnalysis['3'] || { totalCards: 0, uniquePlayerNames: 0 },
+                fourPlusWordNames: Object.keys(formattedAnalysis)
+                    .filter(count => parseInt(count) >= 4)
+                    .reduce((sum, count) => sum + formattedAnalysis[count].totalCards, 0)
+            },
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error analyzing player name word counts:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error analyzing player name word counts',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // POST /api/admin/update-player-names-centralized - Update all player names using new centralized system
 app.post('/api/admin/update-player-names-centralized', async (req, res) => {
     try {
