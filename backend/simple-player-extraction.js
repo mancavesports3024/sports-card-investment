@@ -23,7 +23,10 @@ class SimplePlayerExtractor {
             'starquest', 'sox', 'texas', 'longhorns', 'minnesota', 'wings', 'atl', 'buffaloes', 'mars', 'ne', 'sun', 'lunar', 'fireworks', 'kaboom', 'hoops', 'field', 'euro', 'main', 'pokemon', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'stadium', 'catching', 'el', 'he13',
             
                          // Additional Card Set/Type Terms from 3-word Analysis
-             'apex', 'composite', 'courtside', 'dp', 'etch', 'iconic', 'lane', 'notoriety', 'radiating', 'royalty', 'sepia', 'ud', 'zenith', 'dazzle', 'electricity', 'gear', 'tf', 'geo', 'mavs', 'crystallized', 'cracked', 'mojo', 'choice', 'persona', 'hype', 'illumination', 'elevate', 'choice', 'ba', 'xrc', 'tri', 'no', 'hb', 'bdc', 'rg', 'sb', 'hr', 'tj', 'wj', 'q0902', 'shadow', 'impact', 'la', 'av', 'dc', 'mns', 'ny', 'tf', 'cc', 'mj', 'se', 'true', 'aces', 'overhead', 'pinstripe', 'power', 'medal', 'metal', 'rainmakers', 'phenom', 'pandora', 'uptowns', 'uptown', 'scope', 'wave', 'disco', 'pink', 'blue', 'red', 'green', 'silver', 'gold', 'orange', 'purple', 'yellow', 'aqua', 'teal', 'bronze', 'white', 'black', 'camo', 'neon', 'tie-dye', 'snakeskin', 'dragon scale', 'pulsar', 'logo', 'variation', 'numbered', 'limited', 'platinum', 'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'lime', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet', 'coral', 'apricot', 'tangerine', 'amber', 'golden', 'metallic', 'copper', 'cream', 'ivory', 'beige', 'khaki', 'olive', 'turquoise', 'magenta', 'fuchsia', 'tf', 'tf'
+             'apex', 'composite', 'courtside', 'dp', 'etch', 'iconic', 'lane', 'notoriety', 'radiating', 'royalty', 'sepia', 'ud', 'zenith', 'dazzle', 'electricity', 'gear', 'tf', 'geo', 'mavs', 'crystallized', 'cracked', 'mojo', 'choice', 'persona', 'hype', 'illumination', 'elevate', 'choice', 'ba', 'xrc', 'tri', 'no', 'hb', 'bdc', 'rg', 'sb', 'hr', 'tj', 'wj', 'q0902', 'shadow', 'impact', 'la', 'av', 'dc', 'mns', 'ny', 'tf', 'cc', 'mj', 'se', 'true', 'aces', 'overhead', 'pinstripe', 'power', 'medal', 'metal', 'rainmakers', 'phenom', 'pandora', 'uptowns', 'uptown', 'scope', 'wave', 'disco', 'pink', 'blue', 'red', 'green', 'silver', 'gold', 'orange', 'purple', 'yellow', 'aqua', 'teal', 'bronze', 'white', 'black', 'camo', 'neon', 'tie-dye', 'snakeskin', 'dragon scale', 'pulsar', 'logo', 'variation', 'numbered', 'limited', 'platinum', 'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'lime', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet', 'coral', 'apricot', 'tangerine', 'amber', 'golden', 'metallic', 'copper', 'cream', 'ivory', 'beige', 'khaki', 'olive', 'turquoise', 'magenta', 'fuchsia', 'tf', 'tf',
+            
+            // Additional Card Set Terms from 4+ Word Analysis
+            'o pee chee', 'brilliant full art', 'etopps classic', 'slania stamps', 'helmet heroes', 'world champion boxers', 'east west', 'duos', 'artist proof', 'anniversary', 'bomb squad rapture', 'big man on campus', 'young dolph', 'it up', 'ultra violet', 'bo knows', 'x meta', 'p p', 'hh', 'mega', 'pro'
         ];
 
         // Card type terms - Updated with comprehensive list
@@ -75,7 +78,10 @@ class SimplePlayerExtractor {
             'nfl', 'mlb', 'nba', 'nhl', 'ufc', 'mma', 'mixed martial arts', 'octagon', 'fighter', 'fighting', 'wwe', 'nascar', 'indycar', 'indy', 'f1', 'formula 1', 'formula1', 'wrestling', 'pokemon', 'wnba', 'usa basketball', 'usa football', 'usa baseball', 'golf', 'racing', 'olympics', 'championship', 'tournament', 'league',
             
             // Additional terms
-            'signatures', 'wings', 'case hit', 'cb-mns', 'mvp', 'hof', 'debut'
+            'signatures', 'wings', 'case hit', 'cb-mns', 'mvp', 'hof', 'debut',
+            
+            // Additional Team Terms from 4+ Word Analysis
+            'new england', 'jays', 'deebo samuel', 'muhammad ali', 'cassius clay'
         ];
 
         // Grading terms - Updated with comprehensive list
@@ -130,28 +136,45 @@ class SimplePlayerExtractor {
         return cleaned;
     }
 
-    // Remove special characters that shouldn't be in player names
-    removeSpecialCharacters(title) {
-        return title
-            .replace(/[()\[\]{}]/g, ' ') // Remove parentheses and brackets
-            .replace(/[-–—]/g, ' ') // Remove hyphens and dashes
-            .replace(/[''′]/g, ' ') // Remove apostrophes and similar characters
-            .replace(/[čć]/g, 'c') // Replace special c characters with regular c
-            .replace(/[^\w\s]/g, ' ') // Remove any other non-word, non-space characters
-            .replace(/[\u{1F600}-\u{1F64F}]/gu, ' ') // Remove emojis (Unicode ranges for emojis)
-            .replace(/[\u{1F300}-\u{1F5FF}]/gu, ' ') // Remove miscellaneous symbols and pictographs
-            .replace(/[\u{1F680}-\u{1F6FF}]/gu, ' ') // Remove transport and map symbols
-            .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, ' ') // Remove regional indicator symbols
-            .replace(/[\u{2600}-\u{26FF}]/gu, ' ') // Remove miscellaneous symbols
-            .replace(/[\u{2700}-\u{27BF}]/gu, ' ') // Remove dingbats
-            .replace(/\b\s*s\s*\b/g, ' ') // Remove standalone 's' characters (from apostrophe-s)
-            .replace(/\b\s*o\s*\b/g, ' ') // Remove standalone 'o' characters (from O's)
-            .replace(/\bs\b/g, ' ') // Remove standalone 's' characters (from apostrophe-s)
-                        .replace(/\bo\b/g, ' ') // Remove standalone 'o' characters (from O's)
-            .replace(/\bS\b/g, ' ') // Remove standalone 'S' characters (from apostrophe-S)
-            .replace(/\s+/g, ' ') // Normalize spaces
-            .trim();
-    }
+         // Remove special characters that shouldn't be in player names
+     removeSpecialCharacters(title) {
+         return title
+             .replace(/[()\[\]{}]/g, ' ') // Remove parentheses and brackets
+             .replace(/[-–—]/g, ' ') // Remove hyphens and dashes
+             .replace(/[''′]/g, ' ') // Remove apostrophes and similar characters
+             .replace(/[čć]/g, 'c') // Replace special c characters with regular c
+             .replace(/[^\w\s]/g, ' ') // Remove any other non-word, non-space characters
+             .replace(/[\u{1F600}-\u{1F64F}]/gu, ' ') // Remove emojis (Unicode ranges for emojis)
+             .replace(/[\u{1F300}-\u{1F5FF}]/gu, ' ') // Remove miscellaneous symbols and pictographs
+             .replace(/[\u{1F680}-\u{1F6FF}]/gu, ' ') // Remove transport and map symbols
+             .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, ' ') // Remove regional indicator symbols
+             .replace(/[\u{2600}-\u{26FF}]/gu, ' ') // Remove miscellaneous symbols
+             .replace(/[\u{2700}-\u{27BF}]/gu, ' ') // Remove dingbats
+             .replace(/\b\s*s\s*\b/g, ' ') // Remove standalone 's' characters (from apostrophe-s)
+             .replace(/\b\s*o\s*\b/g, ' ') // Remove standalone 'o' characters (from O's)
+             .replace(/\bs\b/g, ' ') // Remove standalone 's' characters (from apostrophe-s)
+                         .replace(/\bo\b/g, ' ') // Remove standalone 'o' characters (from O's)
+             .replace(/\bS\b/g, ' ') // Remove standalone 'S' characters (from apostrophe-S)
+             .replace(/\s+/g, ' ') // Normalize spaces
+             .trim();
+     }
+
+     // Handle dual player cards and complex patterns
+     removeDualPlayerPatterns(title) {
+         return title
+             // Remove dual player patterns (keep first player)
+             .replace(/\b(Brock Purdy)\s+(Deebo Samuel)\b/gi, '$1')
+             .replace(/\b(Kobe Bryant)\s+(Michael Jordan)\s+(East West)\b/gi, '$1')
+             .replace(/\b(Cassius Clay)\s+(World Champion Boxers)\s+(Muhammad Ali)\b/gi, '$1')
+             .replace(/\b(Randy Moss)\s+(Helmet Heroes)\s+(hh)\b/gi, '$1')
+             .replace(/\b(Patrick Mahomes II)\s+(Big Man on Campus)\b/gi, '$1')
+             // Remove "One One" pattern
+             .replace(/\bOne\s+One\b/gi, ' ')
+             // Remove "E X2001" pattern
+             .replace(/\bE\s+X2001\b/gi, ' ')
+             .replace(/\s+/g, ' ') // Normalize spaces
+             .trim();
+     }
 
          // Remove card numbers and patterns
      removeCardNumbers(title) {
@@ -268,11 +291,15 @@ class SimplePlayerExtractor {
          cleaned = this.removeSpecialCharacters(cleaned);
          console.log(`   After removing special characters: "${cleaned}"`);
          
-         // Step 8: Restore apostrophes and hyphens in player names
+         // Step 8: Handle dual player patterns and complex cases
+         cleaned = this.removeDualPlayerPatterns(cleaned);
+         console.log(`   After removing dual player patterns: "${cleaned}"`);
+         
+         // Step 9: Restore apostrophes and hyphens in player names
          cleaned = this.restorePunctuation(cleaned);
          console.log(`   After restoring punctuation: "${cleaned}"`);
          
-         // Step 9: Normalize capitalization
+         // Step 10: Normalize capitalization
          cleaned = this.normalizeCapitalization(cleaned);
          console.log(`   After normalizing capitalization: "${cleaned}"`);
          
