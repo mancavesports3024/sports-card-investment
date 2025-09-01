@@ -1667,6 +1667,65 @@ app.post('/api/update-prices', async (req, res) => {
   }
 });
 
+// Test endpoint for price updater (read-only, no changes)
+app.post('/api/test-price-updater', async (req, res) => {
+  try {
+    const { batchSize = 3 } = req.body; // Default to 3 cards for testing
+    console.log(`🧪 Starting price updater test with batch size: ${batchSize}`);
+    
+    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+    const updater = new FastSQLitePriceUpdater();
+    
+    await updater.connect();
+    
+    // Get cards that need updates
+    const cards = await updater.getCardsNeedingUpdates(batchSize);
+    
+    if (cards.length === 0) {
+      await updater.db.close();
+      return res.json({ 
+        success: true, 
+        message: 'No cards need updates',
+        cards: []
+      });
+    }
+    
+    // Test first card only to avoid overwhelming 130point
+    const testCard = cards[0];
+    console.log(`🧪 Testing with card: ${testCard.summaryTitle || testCard.title}`);
+    
+    const priceData = await updater.searchCardPrices(testCard);
+    await updater.db.close();
+    
+    res.json({
+      success: true,
+      message: 'Price updater test completed',
+      testCard: {
+        id: testCard.id,
+        title: testCard.title,
+        summaryTitle: testCard.summaryTitle,
+        sport: testCard.sport
+      },
+      searchResults: {
+        raw: {
+          count: priceData?.raw?.count || 0,
+          avgPrice: priceData?.raw?.avgPrice || 0,
+          sampleResults: priceData?.raw?.sales?.slice(0, 3) || []
+        },
+        psa9: {
+          count: priceData?.psa9?.count || 0,
+          avgPrice: priceData?.psa9?.avgPrice || 0,
+          sampleResults: priceData?.psa9?.sales?.slice(0, 3) || []
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Price updater test error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Cron Job Status endpoint
 app.get('/api/cron-status', async (req, res) => {
   try {
