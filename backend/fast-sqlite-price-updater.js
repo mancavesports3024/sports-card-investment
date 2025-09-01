@@ -8,8 +8,10 @@ const NewPricingDatabase = require('./create-new-pricing-database.js');
 
 class FastSQLitePriceUpdater {
     constructor() {
-        // Use the Railway database path (same as other scripts)
-        this.dbPath = path.join(__dirname, 'data', 'new-scorecard.db');
+        // Use Railway volume mount path if available (production), otherwise use local path
+        this.dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH 
+            ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'new-scorecard.db')
+            : path.join(__dirname, 'data', 'new-scorecard.db');
         this.db = null;
     }
 
