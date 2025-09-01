@@ -29,7 +29,7 @@ class SimplePlayerExtractor {
             'o pee chee', 'o-pee-chee', 'brilliant full art', 'etopps classic', 'slania stamps', 'helmet heroes', 'world champion boxers', 'east west', 'duos', 'artist proof', 'anniversary', 'bomb squad rapture', 'big man on campus', 'young dolph', 'it up', 'ultra violet', 'bo knows', 'x meta', 'p p', 'hh', 'mega', 'pro', 'hh',
             
             // Additional Card Set Terms from Remaining 4+ Word Analysis
-            'throwback thursday', 'greetings winter', 'synergy', 'tint', '30th', 'dye', 'prodigies', 'year one', 'vmax', 'star', 'ultra violet', 'vmax', 'e x2001', 'e-x2001', 'x meta', 'p p'
+            'throwback thursday', 'greetings winter', 'synergy', 'tint', '30th', 'dye', 'prodigies', 'year one', 'vmax', 'star', 'ultra violet', 'vmax', 'e x2001', 'e-x2001', 'x meta', 'p p', 'x vision', 'p.p.', 'x vision', 'x meta'
         ];
 
         // Card type terms - Updated with comprehensive list
@@ -44,7 +44,7 @@ class SimplePlayerExtractor {
             'numbered', 'limited', 'platinum', 'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'aqua', 'lime', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet', 'coral', 'apricot', 'tangerine', 'amber', 'golden', 'metallic', 'copper', 'cream', 'ivory', 'beige', 'khaki', 'olive', 'turquoise', 'magenta', 'fuchsia',
             
                          // Special Features
-             'jersey', 'memorabilia', 'on card', 'sticker', 'prospect', 'prospects', 'draft', '1st', 'first', 'young guns', 'debut', 'hof', 'cert', 'certificate', 'population', 'hit', 'case', 'independence day', 'father\'s day', 'mother\'s day', 'memorial day', 'mvp', 'card', 'cards', 'ro', 'picks', 'prospects', 'no huddle', 'color blast', 'stratospheric', 'box set', '3-d', 'portals', 'firestorm', 'sga', 'brilliant full art', 'ultraviolet'
+             'jersey', 'memorabilia', 'on card', 'sticker', 'prospect', 'prospects', 'draft', '1st', 'first', 'young guns', 'debut', 'hof', 'cert', 'certificate', 'population', 'hit', 'case', 'independence day', 'father\'s day', 'mother\'s day', 'memorial day', 'mvp', 'card', 'cards', 'ro', 'picks', 'prospects', 'no huddle', 'color blast', 'stratospheric', 'box set', '3-d', 'portals', 'firestorm', 'sga', 'brilliant full art', 'ultraviolet', 'full art'
         ];
 
         // Team, league, city, and sport terms - Updated with comprehensive list
@@ -83,8 +83,8 @@ class SimplePlayerExtractor {
             // Additional terms
             'signatures', 'wings', 'case hit', 'cb-mns', 'mvp', 'hof', 'debut',
             
-            // Additional Team Terms from 4+ Word Analysis
-            'new england', 'jays', 'deebo samuel', 'muhammad ali', 'cassius clay'
+                         // Additional Team Terms from 4+ Word Analysis
+             'new england', 'jays', 'deebo samuel', 'muhammad ali', 'cassius clay', 'brilliant'
         ];
 
         // Grading terms - Updated with comprehensive list
@@ -178,9 +178,11 @@ class SimplePlayerExtractor {
                            // Remove "East West" pattern
               .replace(/\bEast\s+West\b/gi, ' ')
               // Remove "Slania Stamps" pattern
-              .replace(/\b(Slania Stamps)\s+(Cassius Clay)\s+(World Champion Boxers)\s+(Muhammad Ali)\b/gi, '$4')
+              .replace(/\b(Slania Stamps)\s+(Cassius Clay)\s+(World Champion Boxers)\s+(Muhammad Ali)\b/gi, 'Muhammad Ali')
               // Remove "Kobe Bryant Michael Jordan East West" pattern
-              .replace(/\b(Kobe Bryant)\s+(Michael Jordan)\s+(East West)\b/gi, '$1')
+              .replace(/\b(Kobe Bryant)\s*[-]?\s*(Michael Jordan)\s*[-]?\s*(East West)\b/gi, '$1')
+              // Remove "P P" pattern
+              .replace(/\bP\s+P\b/gi, ' ')
              .replace(/\s+/g, ' ') // Normalize spaces
              .trim();
      }
