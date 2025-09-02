@@ -1,8 +1,8 @@
 const axios = require('axios');
 const qs = require('querystring');
 
-// Try the main website endpoint instead of the backend API
-const ONEPOINT_URL = 'https://130point.com/sales/';
+// Use the backend API endpoint that was working
+const ONEPOINT_URL = 'https://back.130point.com/sales/';
 
 class OnePointService {
     constructor() {
@@ -29,8 +29,12 @@ class OnePointService {
             console.log(`🔍 130pointService DEBUG: Query contains commas: ${keywords.includes(',')}`);
             console.log(`🔍 130pointService DEBUG: Query contains minus signs: ${keywords.includes('-')}`);
 
-            // Make GET request to the main website (this was working before)
-            const response = await axios.get(`${ONEPOINT_URL}?query=${encodeURIComponent(keywords)}`, {
+            // Make POST request to the backend API with form data
+            const formData = qs.stringify({ 
+                query: keywords
+            });
+
+            const response = await axios.post(ONEPOINT_URL, formData, {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
