@@ -78,10 +78,17 @@ class FastSQLitePriceUpdater {
         }
         summaryTitle = String(summaryTitle || '').trim();
 
-        // Use the full summary title - this is what works on 130point.com
+        // Create specific search strategies for raw vs graded cards
+        const strategies = [
+            // Strategy 1: Raw cards (exclude grading terms + add negative keywords)
+            summaryTitle.replace(/\b(PSA|BGS|SGC|CGC)\s*\d+/gi, '').replace(/\b(GEM|MINT|MT|NM|VG|G)\b/gi, '').trim() + ' -(psa, bgs, sgc, cgc, graded, slab)',
+            // Strategy 2: Original summary title (fallback)
+            summaryTitle
+        ];
+
         return {
             identifier: summaryTitle,
-            strategies: [summaryTitle]
+            strategies: strategies
         };
     }
 
