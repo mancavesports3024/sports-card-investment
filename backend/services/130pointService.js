@@ -33,6 +33,37 @@ class OnePointService {
             const formattedQuery = keywords.replace(/\s+/g, '+');
             console.log(`🔍 130pointService DEBUG: Formatted query: "${formattedQuery}"`);
 
+            // Step 1: Preload cookies by visiting the sales page (simulate browser session)
+            const preloadHeaders = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'gzip, deflate, br, zstd',
+                'Connection': 'keep-alive',
+                'Referer': 'https://130point.com/',
+            };
+
+            let cookieHeader = '';
+            try {
+                const preload = await axios.get('https://130point.com/sales/', {
+                    headers: preloadHeaders,
+                    timeout: 15000
+                });
+                const setCookie = preload.headers?.['set-cookie'];
+                if (Array.isArray(setCookie) && setCookie.length > 0) {
+                    // Build simple Cookie header: take name=value pairs
+                    cookieHeader = setCookie
+                        .map(c => (c || '').split(';')[0])
+                        .filter(Boolean)
+                        .join('; ');
+                    console.log(`🔍 130pointService DEBUG: Built Cookie header with ${setCookie.length} entries`);
+                } else {
+                    console.log('🔍 130pointService DEBUG: No Set-Cookie received from preload');
+                }
+            } catch (preErr) {
+                console.log('🔍 130pointService DEBUG: Preload GET failed, continuing without cookies:', preErr?.message);
+            }
+
             // Make POST request to the backend API with form data (include required fields)
             const formData = qs.stringify({ 
                 query: formattedQuery,
@@ -40,21 +71,26 @@ class OnePointService {
                 subcat: -1
             });
 
+            const postHeaders = {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+                'Accept': '*/*',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'gzip, deflate, br, zstd',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Origin': 'https://130point.com',
+                'Referer': 'https://130point.com/',
+                'Connection': 'keep-alive',
+                'Sec-Fetch-Dest': 'empty',
+                'Sec-Fetch-Mode': 'cors',
+                'Sec-Fetch-Site': 'same-site'
+            };
+            if (cookieHeader) {
+                postHeaders['Cookie'] = cookieHeader;
+            }
+
             const response = await axios.post(ONEPOINT_URL, formData, {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
-                    'Accept': '*/*',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                    'Accept-Encoding': 'gzip, deflate, br, zstd',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Origin': 'https://130point.com',
-                    'Referer': 'https://130point.com/',
-                    'Connection': 'keep-alive',
-                    'Sec-Fetch-Dest': 'empty',
-                    'Sec-Fetch-Mode': 'cors',
-                    'Sec-Fetch-Site': 'same-site'
-                },
+                headers: postHeaders,
                 timeout: 30000
             });
 
