@@ -58,6 +58,9 @@ class OnePointService {
             this.lastRequestTime = Date.now();
 
             if (response.status === 200) {
+                console.log(`🔍 130pointService DEBUG: Response status: ${response.status}`);
+                console.log(`🔍 130pointService DEBUG: Response data length: ${response.data ? response.data.length : 'undefined'}`);
+                console.log(`🔍 130pointService DEBUG: Response data preview: ${response.data ? response.data.substring(0, 500) : 'undefined'}`);
                 return this.parseSearchResults(response.data);
             } else {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -70,12 +73,17 @@ class OnePointService {
 
     parseSearchResults(html) {
         try {
+            console.log(`🔍 130pointService DEBUG: parseSearchResults called with HTML length: ${html ? html.length : 'undefined'}`);
+            console.log(`🔍 130pointService DEBUG: HTML preview: ${html ? html.substring(0, 1000) : 'undefined'}`);
+            
             const results = [];
             
             // Look for the sales data table
             const tableMatch = html.match(/<table[^>]*class="[^"]*sales-table[^"]*"[^>]*>([\s\S]*?)<\/table>/i);
             if (!tableMatch) {
-                console.log('No sales table found in HTML');
+                console.log('🔍 130pointService DEBUG: No sales table found in HTML');
+                console.log(`🔍 130pointService DEBUG: HTML contains 'table': ${html ? html.includes('table') : 'undefined'}`);
+                console.log(`🔍 130pointService DEBUG: HTML contains 'sales-table': ${html ? html.includes('sales-table') : 'undefined'}`);
                 return results;
             }
 
