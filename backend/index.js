@@ -1727,6 +1727,63 @@ app.post('/api/test-price-updater', async (req, res) => {
   }
 });
 
+// Test endpoint for specific card (read-only, no changes)
+app.post('/api/test-specific-card', async (req, res) => {
+  try {
+    const { cardId } = req.body;
+    console.log(`🧪 Testing specific card with ID: ${cardId}`);
+    
+    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+    const updater = new FastSQLitePriceUpdater();
+    
+    await updater.connect();
+    
+    // Get the specific card
+    const card = await updater.getCardById(cardId);
+    
+    if (!card) {
+      await updater.db.close();
+      return res.json({ 
+        success: false, 
+        message: 'Card not found',
+        cardId: cardId
+      });
+    }
+    
+    console.log(`🧪 Testing with card: ${card.summaryTitle || card.title}`);
+    
+    const priceData = await updater.searchCardPrices(card);
+    await updater.db.close();
+    
+    res.json({
+      success: true,
+      message: 'Specific card test completed',
+      testCard: {
+        id: card.id,
+        title: card.title,
+        summaryTitle: card.summaryTitle,
+        sport: card.sport
+      },
+      searchResults: {
+        raw: {
+          count: priceData?.raw?.count || 0,
+          avgPrice: priceData?.raw?.avgPrice || 0,
+          sampleResults: priceData?.raw?.sales?.slice(0, 3) || []
+        },
+        psa9: {
+          count: priceData?.psa9?.count || 0,
+          avgPrice: priceData?.psa9?.avgPrice || 0,
+          sampleResults: priceData?.psa9?.sales?.slice(0, 3) || []
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Specific card test error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Cron Job Status endpoint
 app.get('/api/cron-status', async (req, res) => {
   try {
