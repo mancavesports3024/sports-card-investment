@@ -1,8 +1,8 @@
 const axios = require('axios');
 const qs = require('querystring');
 
-// Use the backend API endpoint that actually processes searches
-const ONEPOINT_URL = 'https://back.130point.com/sales/';
+// Try the main website endpoint instead of the backend API
+const ONEPOINT_URL = 'https://130point.com/sales/';
 
 class OnePointService {
     constructor() {
@@ -23,22 +23,14 @@ class OnePointService {
 
             console.log(`🔍 130pointService DEBUG: Original keywords: "${keywords}"`);
             
-            // Format the query exactly like the browser does
-            // Replace spaces with + and let the form encoding handle the rest
-            const formattedQuery = keywords.replace(/\s+/g, '+');
-            
-            console.log(`🔍 130pointService DEBUG: Formatted query: "${formattedQuery}"`);
-            console.log(`🔍 130pointService DEBUG: Formatted query contains negative keywords: ${formattedQuery.includes('-(psa, bgs, sgc, cgc, graded, slab)')}`);
-            console.log(`🔍 130pointService DEBUG: Formatted query contains parentheses: ${formattedQuery.includes('(')}`);
-            console.log(`🔍 130pointService DEBUG: Formatted query contains commas: ${formattedQuery.includes(',')}`);
-            console.log(`🔍 130pointService DEBUG: Formatted query contains minus signs: ${formattedQuery.includes('-')}`);
+            console.log(`🔍 130pointService DEBUG: Original keywords: "${keywords}"`);
+            console.log(`🔍 130pointService DEBUG: Query contains negative keywords: ${keywords.includes('-(psa, bgs, sgc, cgc, graded, slab)')}`);
+            console.log(`🔍 130pointService DEBUG: Query contains parentheses: ${keywords.includes('(')}`);
+            console.log(`🔍 130pointService DEBUG: Query contains commas: ${keywords.includes(',')}`);
+            console.log(`🔍 130pointService DEBUG: Query contains minus signs: ${keywords.includes('-')}`);
 
-            // Make POST request to the backend API with exact same headers as browser
-            const formData = qs.stringify({ 
-                query: formattedQuery
-            });
-
-            const response = await axios.post(ONEPOINT_URL, formData, {
+            // Make GET request to the main website (this was working before)
+            const response = await axios.get(`${ONEPOINT_URL}?query=${encodeURIComponent(keywords)}`, {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
@@ -78,39 +70,49 @@ class OnePointService {
             
             const results = [];
             
-            // Look for the sales data table
-            const tableMatch = html.match(/<table[^>]*class="[^"]*sales-table[^"]*"[^>]*>([\s\S]*?)<\/table>/i);
+            // Look for the sales data table - the actual class is 'sold_data-simple'
+            const tableMatch = html.match(/<table[^>]*class="[^"]*sold_data-simple[^"]*"[^>]*>([\s\S]*?)<\/table>/i);
             if (!tableMatch) {
                 console.log('🔍 130pointService DEBUG: No sales table found in HTML');
                 console.log(`🔍 130pointService DEBUG: HTML contains 'table': ${html ? html.includes('table') : 'undefined'}`);
-                console.log(`🔍 130pointService DEBUG: HTML contains 'sales-table': ${html ? html.includes('sales-table') : 'undefined'}`);
+                console.log(`🔍 130pointService DEBUG: HTML contains 'sold_data-simple': ${html ? html.includes('sold_data-simple') : 'undefined'}`);
                 return results;
             }
 
             const tableHtml = tableMatch[1];
             
-            // Extract rows from the table body
-            const rowMatches = tableHtml.match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi);
+            // Extract rows from the table body - look for rows with ID 'rowsold_dataTable'
+            const rowMatches = tableHtml.match(/<tr[^>]*id=['"]rowsold_dataTable['"][^>]*>([\s\S]*?)<\/tr>/gi);
             if (!rowMatches) {
-                console.log('No rows found in sales table');
+                console.log('🔍 130pointService DEBUG: No data rows found in sales table');
+                console.log(`🔍 130pointService DEBUG: HTML contains 'rowsold_dataTable': ${tableHtml ? tableHtml.includes('rowsold_dataTable') : 'undefined'}`);
                 return results;
             }
 
-            // Skip header row and process data rows
-            for (let i = 1; i < rowMatches.length; i++) {
+            console.log(`🔍 130pointService DEBUG: Found ${rowMatches.length} data rows`);
+
+            // Process each data row
+            for (let i = 0; i < rowMatches.length; i++) {
                 const row = rowMatches[i];
                 
-                // Extract title, price, and date from the row
-                const titleMatch = row.match(/<td[^>]*>([\s\S]*?)<\/td>/i);
-                const priceMatch = row.match(/<td[^>]*>\s*\$([\d,]+\.?\d*)\s*<\/td>/i);
-                const dateMatch = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi);
+                // Extract title from the second td (Item Details)
+                const titleMatch = row.match(/<b>Item Title: <\/b><a[^>]*>([^<]+)<\/a>/i);
+                const priceMatch = row.match(/<b>Sale Price: <\/b>[^<]*<span[^>]*>([^<]+)<\/span>/i) || 
+                                   row.match(/<b>Sale Price: <\/b><a[^>]*><span[^>]*>([^<]+)<\/span>/i);
+                const dateMatch = row.match(/<b>Sale Date: <\/b>([^<]+)/i);
                 
-                if (titleMatch && priceMatch) {
+                if (titleMatch) {
                     const title = this.cleanHtml(titleMatch[1]);
-                    const price = parseFloat(priceMatch[1].replace(/,/g, ''));
-                    const date = dateMatch && dateMatch.length > 2 ? this.cleanHtml(dateMatch[2]) : '';
+                    let price = 0;
                     
-                    if (title && !isNaN(price)) {
+                    if (priceMatch) {
+                        const priceText = this.cleanHtml(priceMatch[1]);
+                        price = parseFloat(priceText.replace(/[^\d.]/g, ''));
+                    }
+                    
+                    const date = dateMatch ? this.cleanHtml(dateMatch[1]) : '';
+                    
+                    if (title && !isNaN(price) && price > 0) {
                         results.push({
                             title: title,
                             price: price,
