@@ -279,9 +279,56 @@ class OnePointService {
             const pageContent = await page.content();
             console.log(`🔍 130pointService HEADLESS: Got page content, length: ${pageContent.length}`);
             
-            // Parse the results
-            const parsedResults = this.parseSearchResults(pageContent);
-            console.log(`🔍 130pointService HEADLESS: Parsed ${parsedResults.length} results`);
+            // Try to find results using page selectors first
+            let parsedResults = [];
+            try {
+                // Look for the sales table on the page
+                const salesTable = await page.locator('.sold_data-simple').first();
+                if (await salesTable.count() > 0) {
+                    console.log('🔍 130pointService HEADLESS: Found sales table, extracting results...');
+                    
+                    // Extract all rows from the table
+                    const rows = await salesTable.locator('tr').all();
+                    console.log(`🔍 130pointService HEADLESS: Found ${rows.length} rows in table`);
+                    
+                    for (let i = 1; i < rows.length; i++) { // Skip header row
+                        try {
+                            const row = rows[i];
+                            const cells = await row.locator('td').all();
+                            
+                            if (cells.length >= 3) {
+                                const title = await cells[1].textContent();
+                                const priceText = await cells[2].textContent();
+                                const date = await cells[3].textContent();
+                                
+                                if (title && priceText) {
+                                    const cleanTitle = title.trim();
+                                    const cleanPrice = parseFloat(priceText.replace(/[^\d.]/g, ''));
+                                    
+                                    if (cleanTitle && !isNaN(cleanPrice) && cleanPrice > 0) {
+                                        parsedResults.push({
+                                            title: cleanTitle,
+                                            price: cleanPrice,
+                                            date: date ? date.trim() : ''
+                                        });
+                                    }
+                                }
+                            }
+                        } catch (rowError) {
+                            console.log(`🔍 130pointService HEADLESS: Error processing row ${i}:`, rowError.message);
+                        }
+                    }
+                    
+                    console.log(`🔍 130pointService HEADLESS: Extracted ${parsedResults.length} results from table`);
+                } else {
+                    console.log('🔍 130pointService HEADLESS: No sales table found, trying HTML parsing...');
+                    // Fallback to HTML parsing
+                    parsedResults = this.parseSearchResults(pageContent);
+                }
+            } catch (extractionError) {
+                console.log('🔍 130pointService HEADLESS: Error extracting from page, falling back to HTML parsing:', extractionError.message);
+                parsedResults = this.parseSearchResults(pageContent);
+            }
             
             return { 
                 rawHtml: pageContent, 
