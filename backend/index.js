@@ -6270,14 +6270,45 @@ app.post('/api/debug-130point-html', async (req, res) => {
         
         const response = await service.search130pointWithHeadlessBrowser(searchQuery);
         
+        // Search for specific patterns in the HTML
+        const html = response.rawHtml;
+        const patterns = {
+            sold_data_simple: html.includes('sold_data-simple'),
+            table: html.includes('<table'),
+            tr: html.includes('<tr'),
+            td: html.includes('<td'),
+            'Item Title': html.includes('Item Title'),
+            'Sale Price': html.includes('Sale Price'),
+            'Sale Date': html.includes('Sale Date'),
+            'No results found': html.includes('No results found'),
+            'No sales data': html.includes('No sales data')
+        };
+        
+        // Find the position of key elements
+        const soldDataPos = html.indexOf('sold_data-simple');
+        const tablePos = html.indexOf('<table');
+        const noResultsPos = html.indexOf('No results found');
+        
+        // Get context around key positions
+        const soldDataContext = soldDataPos > -1 ? html.substring(soldDataPos - 100, soldDataPos + 500) : 'Not found';
+        const tableContext = tablePos > -1 ? html.substring(tablePos - 50, tablePos + 300) : 'Not found';
+        
         res.json({
             success: true,
             searchQuery: searchQuery,
             htmlLength: response.rawHtml.length,
-            htmlPreview: response.rawHtml.substring(0, 2000),
+            patterns: patterns,
+            positions: {
+                sold_data_simple: soldDataPos,
+                table: tablePos,
+                noResults: noResultsPos
+            },
+            context: {
+                sold_data_simple: soldDataContext,
+                table: tableContext
+            },
             parsedCount: response.parsedResults.length
         });
-        
     } catch (error) {
         console.error('❌ Debug HTML error:', error);
         res.status(500).json({ success: false, error: error.message });
