@@ -103,19 +103,25 @@ class EbayResearchService {
             console.log(`🔍 EbayResearchService: Searching: ${keywords}`);
             console.log(`🔍 EbayResearchService: URL: ${url}`);
 
+            // Use the exact headers from the working browser request
             const response = await axios.get(url, {
                 headers: {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
                     'Accept': '*/*',
                     'Accept-Language': 'en-US,en;q=0.9',
+                    'Accept-Encoding': 'gzip, deflate, br, zstd',
                     'Cache-Control': 'no-cache',
                     'Pragma': 'no-cache',
-                    'X-Requested-With': 'XMLHttpRequest',
+                    'Priority': 'u=1, i',
                     'Referer': `${this.baseUrl}/sh/research`,
-                    'Cookie': this.cookies
+                    'Cookie': this.cookies,
+                    'Connection': 'keep-alive',
+                    'Sec-Fetch-Dest': 'empty',
+                    'Sec-Fetch-Mode': 'cors',
+                    'Sec-Fetch-Site': 'same-origin',
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
-                timeout: 30000,
-                decompress: false
+                timeout: 30000
             });
 
             if (response.data.error) {
