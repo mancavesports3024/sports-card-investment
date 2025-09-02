@@ -33,7 +33,7 @@ function randomDelay(min, max) {
 const formatSearchQuery = (keywords) => {
   return keywords
     .replace(/\s+/g, '+') // Replace spaces with +
-    .replace(/[^\w\s+]/g, '') // Remove special characters except +
+    .replace(/[^\w\s+\-\(\)\,]/g, '') // Remove special characters except +, -, (, ), and ,
     .toLowerCase();
 };
 
