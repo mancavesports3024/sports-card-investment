@@ -80,8 +80,8 @@ class FastSQLitePriceUpdater {
 
         // Create specific search strategies for raw vs graded cards
         const strategies = [
-            // Strategy 1: Raw cards (exclude grading terms + add negative keywords)
-            summaryTitle.replace(/\b(PSA|BGS|SGC|CGC)\s*\d+/gi, '').replace(/\b(GEM|MINT|MT|NM|VG|G)\b/gi, '').trim() + ' -(psa, bgs, sgc, cgc, graded, slab)',
+            // Strategy 1: Base strategy (exclude grading terms, no negative keywords yet)
+            summaryTitle.replace(/\b(PSA|BGS|SGC|CGC)\s*\d+/gi, '').replace(/\b(GEM|MINT|MT|NM|VG|G)\b/gi, '').trim(),
             // Strategy 2: Original summary title (fallback)
             summaryTitle
         ];
@@ -106,8 +106,8 @@ class FastSQLitePriceUpdater {
                 
                 console.log(`\n🔍 DEBUG: Testing strategy "${strategy}"`);
                 
-                // Search for raw cards
-                const rawQuery = strategy;
+                // Search for raw cards (add negative keywords to exclude graded cards)
+                const rawQuery = strategy + ' -(psa, bgs, sgc, cgc, graded, slab)';
                 console.log(`🔍 DEBUG: Raw search query: "${rawQuery}"`);
                 const tempRawResults = await search130point(rawQuery, 20);
                 console.log(`🔍 DEBUG: Raw search found ${tempRawResults.length} results before filtering`);
