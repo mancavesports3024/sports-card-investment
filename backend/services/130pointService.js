@@ -28,10 +28,14 @@ class OnePointService {
             console.log(`🔍 130pointService DEBUG: Query contains parentheses: ${keywords.includes('(')}`);
             console.log(`🔍 130pointService DEBUG: Query contains commas: ${keywords.includes(',')}`);
             console.log(`🔍 130pointService DEBUG: Query contains minus signs: ${keywords.includes('-')}`);
+            
+            // Match browser form encoding: spaces as '+'
+            const formattedQuery = keywords.replace(/\s+/g, '+');
+            console.log(`🔍 130pointService DEBUG: Formatted query: "${formattedQuery}"`);
 
             // Make POST request to the backend API with form data (include required fields)
             const formData = qs.stringify({ 
-                query: keywords,
+                query: formattedQuery,
                 type: 2,
                 subcat: -1
             });
