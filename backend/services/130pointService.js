@@ -283,34 +283,47 @@ class OnePointService {
             let parsedResults = [];
             try {
                 // Look for the sales table on the page
+                console.log('🔍 130pointService HEADLESS: Looking for sales table...');
                 const salesTable = await page.locator('.sold_data-simple').first();
-                if (await salesTable.count() > 0) {
+                const tableCount = await salesTable.count();
+                console.log(`🔍 130pointService HEADLESS: Found ${tableCount} sales tables`);
+                
+                if (tableCount > 0) {
                     console.log('🔍 130pointService HEADLESS: Found sales table, extracting results...');
                     
                     // Extract all rows from the table
                     const rows = await salesTable.locator('tr').all();
                     console.log(`🔍 130pointService HEADLESS: Found ${rows.length} rows in table`);
                     
-                    for (let i = 1; i < rows.length; i++) { // Skip header row
+                    // Log the first few rows to see the structure
+                    for (let i = 0; i < Math.min(3, rows.length); i++) {
                         try {
                             const row = rows[i];
-                            const cells = await row.locator('td').all();
+                            const rowText = await row.textContent();
+                            console.log(`🔍 130pointService HEADLESS: Row ${i} text: ${rowText?.substring(0, 100)}`);
                             
-                            if (cells.length >= 3) {
-                                const title = await cells[1].textContent();
-                                const priceText = await cells[2].textContent();
-                                const date = await cells[3].textContent();
+                            if (i > 0) { // Skip header row for actual extraction
+                                const cells = await row.locator('td').all();
+                                console.log(`🔍 130pointService HEADLESS: Row ${i} has ${cells.length} cells`);
                                 
-                                if (title && priceText) {
-                                    const cleanTitle = title.trim();
-                                    const cleanPrice = parseFloat(priceText.replace(/[^\d.]/g, ''));
+                                if (cells.length >= 3) {
+                                    const title = await cells[1].textContent();
+                                    const priceText = await cells[2].textContent();
+                                    const date = await cells[3].textContent();
                                     
-                                    if (cleanTitle && !isNaN(cleanPrice) && cleanPrice > 0) {
-                                        parsedResults.push({
-                                            title: cleanTitle,
-                                            price: cleanPrice,
-                                            date: date ? date.trim() : ''
-                                        });
+                                    console.log(`🔍 130pointService HEADLESS: Row ${i} - Title: ${title}, Price: ${priceText}, Date: ${date}`);
+                                    
+                                    if (title && priceText) {
+                                        const cleanTitle = title.trim();
+                                        const cleanPrice = parseFloat(priceText.replace(/[^\d.]/g, ''));
+                                        
+                                        if (cleanTitle && !isNaN(cleanPrice) && cleanPrice > 0) {
+                                            parsedResults.push({
+                                                title: cleanTitle,
+                                                price: cleanPrice,
+                                                date: date ? date.trim() : ''
+                                            });
+                                        }
                                     }
                                 }
                             }
