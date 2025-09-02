@@ -40,7 +40,7 @@ class OnePointService {
                 'Accept-Language': 'en-US,en;q=0.9',
                 'Accept-Encoding': 'gzip, deflate, br, zstd',
                 'Connection': 'keep-alive',
-                'Referer': 'https://130point.com/',
+                'Referer': 'https://130point.com/sales/',
             };
 
             let cookieHeader = '';
@@ -79,7 +79,7 @@ class OnePointService {
                 'Accept-Encoding': 'gzip, deflate, br, zstd',
                 'X-Requested-With': 'XMLHttpRequest',
                 'Origin': 'https://130point.com',
-                'Referer': 'https://130point.com/',
+                'Referer': 'https://130point.com/sales/',
                 'Connection': 'keep-alive',
                 'Sec-Fetch-Dest': 'empty',
                 'Sec-Fetch-Mode': 'cors',
