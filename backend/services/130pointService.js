@@ -130,6 +130,25 @@ class OnePointService {
             .replace(/&quot;/g, '"') // Replace &quot; with "
             .trim();
     }
+
+    async check130pointStatus() {
+        try {
+            // Test the service with a simple query
+            const testResults = await this.search130point('baseball card');
+            return {
+                success: true,
+                status: 200,
+                message: '130point service is working',
+                testResultsCount: testResults.length
+            };
+        } catch (error) {
+            return {
+                success: false,
+                status: 500,
+                error: error.message
+            };
+        }
+    }
 }
 
 module.exports = OnePointService; 

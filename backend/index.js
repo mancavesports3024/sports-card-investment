@@ -1799,6 +1799,31 @@ app.post('/api/test-specific-card', async (req, res) => {
   }
 });
 
+// Test endpoint for direct 130point service testing
+app.post('/api/test-130point-direct', async (req, res) => {
+  try {
+    const { searchQuery } = req.body;
+    console.log(`🧪 Testing 130point service directly with query: "${searchQuery}"`);
+    
+    const OnePointService = require('./services/130pointService.js');
+    const service = new OnePointService();
+    
+    const results = await service.search130point(searchQuery);
+    
+    res.json({
+      success: true,
+      message: 'Direct 130point test completed',
+      searchQuery: searchQuery,
+      results: results,
+      count: results.length
+    });
+    
+  } catch (error) {
+    console.error('❌ Direct 130point test error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Cron Job Status endpoint
 app.get('/api/cron-status', async (req, res) => {
   try {

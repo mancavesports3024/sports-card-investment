@@ -1,15 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const ebayService = require('../services/ebayService');
-const onepointService = require('../services/130pointService');
+const OnePointService = require('../services/130pointService');
 const ebayScraperService = require('../services/ebayScraperService');
 const searchHistoryService = require('../services/searchHistoryService');
 const cacheService = require('../services/cacheService');
 const { getEbayApiUsage } = require('../services/ebayService');
-const point130Service = require('../services/130pointService');
 const getCardBaseService = require('../services/getCardBaseService');
 const fs = require('fs').promises;
 const path = require('path');
+
+// Initialize 130point service
+const point130Service = new OnePointService();
 
 // Helper to add EPN tracking parameters to eBay URLs
 function addEbayTracking(url) {
@@ -823,7 +825,7 @@ router.get('/test-130point', async (req, res) => {
   try {
     console.log('🧪 Testing 130point service...');
     
-    const testResult = await onepointService.search130point('baseball card', 2);
+    const testResult = await point130Service.search130point('baseball card', 2);
     
     res.json({
       success: true,
@@ -873,7 +875,7 @@ router.get('/rate-limits', async (req, res) => {
   try {
     const [rateLimits, onepointStatus] = await Promise.allSettled([
       ebayService.checkRateLimits(),
-      onepointService.check130pointStatus()
+      point130Service.check130pointStatus()
     ]);
     
     // Format the response for better readability
