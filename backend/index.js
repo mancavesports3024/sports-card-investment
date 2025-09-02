@@ -6321,44 +6321,31 @@ app.post('/api/test-ebay-research', async (req, res) => {
         const { searchQuery } = req.body;
         console.log(`🧪 Testing eBay research API with query: "${searchQuery}"`);
         
-        // Build the eBay research API URL
-        const now = Date.now();
-        const ninetyDaysAgo = now - (90 * 24 * 60 * 60 * 1000);
+        const EbayResearchService = require('./services/ebayResearchService.js');
+        const ebayService = new EbayResearchService();
         
-        const ebayUrl = `https://www.ebay.com/sh/research/api/search?marketplace=EBAY-US&keywords=${encodeURIComponent(searchQuery)}&dayRange=90&endDate=${now}&startDate=${ninetyDaysAgo}&offset=0&limit=50&tabName=SOLD&tz=America%2FChicago&modules=searchV2Filter`;
-        
-        console.log(`🔍 eBay Research URL: ${ebayUrl}`);
-        
-        // Make the request to eBay
-        const response = await fetch(ebayUrl, {
-            method: 'GET',
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
-                'Accept': '*/*',
-                'Accept-Language': 'en-US,en;q=0.9',
-                'Accept-Encoding': 'gzip, deflate, br, zstd',
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache',
-                'Sec-Fetch-Dest': 'empty',
-                'Sec-Fetch-Mode': 'cors',
-                'Sec-Fetch-Site': 'same-origin',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        // Test the connection first
+        const connectionTest = await ebayService.testConnection();
+        if (!connectionTest.success) {
+            return res.status(500).json({
+                success: false,
+                error: 'eBay connection failed',
+                details: connectionTest
+            });
         }
         
-        const data = await response.json();
+        // Now search for the specific query
+        const searchResult = await ebayService.searchSoldItems(searchQuery, {
+            dayRange: 90,
+            limit: 50,
+            offset: 0
+        });
         
         res.json({
             success: true,
             searchQuery: searchQuery,
-            ebayUrl: ebayUrl,
-            responseStatus: response.status,
-            responseHeaders: Object.fromEntries(response.headers.entries()),
-            data: data
+            connectionTest: connectionTest,
+            searchResult: searchResult
         });
         
     } catch (error) {
