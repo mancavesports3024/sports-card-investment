@@ -1,5 +1,6 @@
 const axios = require('axios');
 const qs = require('querystring');
+const { chromium } = require('playwright');
 
 // Use the backend API endpoint that was working
 const ONEPOINT_URL = 'https://back.130point.com/sales/';
@@ -220,6 +221,90 @@ class OnePointService {
                 status: 500,
                 error: error.message
             };
+        }
+    }
+
+    // Headless browser fallback for when regular API calls fail
+    async search130pointWithHeadlessBrowser(keywords) {
+        let browser = null;
+        let page = null;
+        
+        try {
+            console.log(`🔍 130pointService HEADLESS: Starting headless browser search for: "${keywords}"`);
+            
+            // Launch browser with specific flags for Railway environment
+            browser = await chromium.launch({
+                headless: true,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--disable-gpu'
+                ]
+            });
+            
+            const context = await browser.newContext({
+                userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+                viewport: { width: 1280, height: 720 }
+            });
+            
+            page = await context.newPage();
+            
+            // Navigate to the main sales page first
+            console.log('🔍 130pointService HEADLESS: Loading main sales page...');
+            await page.goto('https://130point.com/sales/', { waitUntil: 'networkidle' });
+            
+            // Wait a moment for any dynamic content
+            await page.waitForTimeout(2000);
+            
+            // Navigate to the search results page
+            const searchUrl = `https://130point.com/sales/?q=${encodeURIComponent(keywords)}`;
+            console.log(`🔍 130pointService HEADLESS: Searching: ${searchUrl}`);
+            await page.goto(searchUrl, { waitUntil: 'networkidle' });
+            
+            // Wait for results to load
+            await page.waitForTimeout(3000);
+            
+            // Check if we have results
+            const noResultsText = await page.locator('text=No results found').count();
+            if (noResultsText > 0) {
+                console.log('🔍 130pointService HEADLESS: No results found in headless browser');
+                return { rawHtml: '<div>No results found</div>', parsedResults: [], requestUrl: searchUrl, requestMethod: 'GET' };
+            }
+            
+            // Get the page content
+            const pageContent = await page.content();
+            console.log(`🔍 130pointService HEADLESS: Got page content, length: ${pageContent.length}`);
+            
+            // Parse the results
+            const parsedResults = this.parseSearchResults(pageContent);
+            console.log(`🔍 130pointService HEADLESS: Parsed ${parsedResults.length} results`);
+            
+            return { 
+                rawHtml: pageContent, 
+                parsedResults, 
+                requestUrl: searchUrl, 
+                requestMethod: 'GET' 
+            };
+            
+        } catch (error) {
+            console.error('🔍 130pointService HEADLESS: Error in headless browser search:', error.message);
+            return { 
+                rawHtml: `<div>Error: ${error.message}</div>`, 
+                parsedResults: [], 
+                requestUrl: 'headless-fallback', 
+                requestMethod: 'GET' 
+            };
+        } finally {
+            if (page) {
+                await page.close();
+            }
+            if (browser) {
+                await browser.close();
+            }
         }
     }
 }

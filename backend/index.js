@@ -6198,3 +6198,64 @@ app.get('/api/test-recent-prices', async (req, res) => {
     }
 });
 
+// Test endpoint for headless browser fallback
+app.post('/api/test-130point-headless', async (req, res) => {
+    try {
+        const { searchQuery } = req.body;
+        console.log(`🧪 Testing 130point headless browser fallback with query: "${searchQuery}"`);
+        
+        const OnePointService = require('./services/130pointService.js');
+        const service = new OnePointService();
+        
+        let rawResponse = null;
+        let parsedResults = [];
+        let requestDetails = {};
+        
+        try {
+            const startTime = Date.now();
+            const response = await service.search130pointWithHeadlessBrowser(searchQuery);
+            const endTime = Date.now();
+            
+            rawResponse = response.rawHtml;
+            parsedResults = response.parsedResults;
+            requestDetails = {
+                url: response.requestUrl,
+                method: response.requestMethod,
+                durationMs: endTime - startTime
+            };
+        } catch (error) {
+            console.error('❌ Headless browser test error during search:', error);
+            return res.status(500).json({ success: false, error: error.message });
+        }
+        
+        // Analyze raw HTML for debugging
+        const htmlContains = {
+            table: rawResponse ? rawResponse.includes('table') : false,
+            sold_data_simple: rawResponse ? rawResponse.includes('sold_data-simple') : false,
+            itemTitle: rawResponse ? rawResponse.includes('Item Title') : false,
+            salePrice: rawResponse ? rawResponse.includes('Sale Price') : false,
+        };
+        
+        res.json({
+            success: true,
+            searchQuery: searchQuery,
+            method: 'headless-browser-fallback',
+            request: requestDetails,
+            response: {
+                status: 200,
+                length: rawResponse ? rawResponse.length : 0,
+                contains: htmlContains,
+                preview: rawResponse ? rawResponse.substring(0, 500) : 'No raw response data'
+            },
+            parsed: {
+                count: parsedResults.length,
+                sample: parsedResults.slice(0, 3)
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Headless browser test error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
