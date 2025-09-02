@@ -2,6 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const sqlite3 = require('sqlite3').verbose();
 require('dotenv').config();
 
 // Helper function to get Central Time timestamp
