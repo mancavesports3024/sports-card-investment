@@ -9,7 +9,7 @@
     "build": "npm rebuild sqlite3",
     "sitemap": "node generate-sitemap.js",
     "postdeploy": "npm run sitemap",
-    "postinstall": "npm rebuild sqlite3"
+    "postinstall": "npm rebuild sqlite3 && npx playwright install chromium"
   },
   "engines": {
     "node": ">=18.0.0"
