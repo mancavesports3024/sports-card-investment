@@ -6259,3 +6259,28 @@ app.post('/api/test-130point-headless', async (req, res) => {
     }
 });
 
+// Debug endpoint to see raw HTML from headless browser
+app.post('/api/debug-130point-html', async (req, res) => {
+    try {
+        const { searchQuery } = req.body;
+        console.log(`🔍 DEBUG: Getting raw HTML for query: "${searchQuery}"`);
+        
+        const OnePointService = require('./services/130pointService.js');
+        const service = new OnePointService();
+        
+        const response = await service.search130pointWithHeadlessBrowser(searchQuery);
+        
+        res.json({
+            success: true,
+            searchQuery: searchQuery,
+            htmlLength: response.rawHtml.length,
+            htmlPreview: response.rawHtml.substring(0, 2000),
+            parsedCount: response.parsedResults.length
+        });
+        
+    } catch (error) {
+        console.error('❌ Debug HTML error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
