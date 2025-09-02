@@ -68,6 +68,14 @@ async function search130point(keywords, numSales = 10) {
     // Use the raw search string for the POST payload
     // Format query: replace spaces with +
     const formattedQuery = keywords.replace(/\s+/g, '+');
+    console.log(`🔍 130pointService DEBUG: Original keywords: "${keywords}"`);
+    console.log(`🔍 130pointService DEBUG: Formatted query: "${formattedQuery}"`);
+    console.log(`🔍 130pointService DEBUG: Formatted query length: ${formattedQuery.length}`);
+    console.log(`🔍 130pointService DEBUG: Formatted query contains negative keywords: ${formattedQuery.includes('-(psa,+bgs,+sgc,+cgc,+graded,+slab)')}`);
+    console.log(`🔍 130pointService DEBUG: Formatted query contains parentheses: ${formattedQuery.includes('(') && formattedQuery.includes(')')}`);
+    console.log(`🔍 130pointService DEBUG: Formatted query contains commas: ${formattedQuery.includes(',')}`);
+    console.log(`🔍 130pointService DEBUG: Formatted query contains minus: ${formattedQuery.includes('-')}`);
+    
     const formData = qs.stringify({
       query: formattedQuery,
       sort: 'EndTimeSoonest',

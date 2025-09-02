@@ -109,16 +109,35 @@ class FastSQLitePriceUpdater {
                 // Search for raw cards (add negative keywords to exclude graded cards)
                 const rawQuery = strategy + ' -(psa, bgs, sgc, cgc, graded, slab)';
                 console.log(`🔍 DEBUG: Raw search query: "${rawQuery}"`);
+                console.log(`🔍 DEBUG: Raw query length: ${rawQuery.length}`);
+                console.log(`🔍 DEBUG: Raw query contains negative keywords: ${rawQuery.includes('-(psa, bgs, sgc, cgc, graded, slab)')}`);
+                console.log(`🔍 DEBUG: Raw query contains parentheses: ${rawQuery.includes('(') && rawQuery.includes(')')}`);
+                console.log(`🔍 DEBUG: Raw query contains commas: ${rawQuery.includes(',')}`);
+                console.log(`🔍 DEBUG: Raw query contains minus: ${rawQuery.includes('-')}`);
                 const tempRawResults = await search130point(rawQuery, 20);
                 console.log(`🔍 DEBUG: Raw search found ${tempRawResults.length} results before filtering`);
+                console.log(`🔍 DEBUG: Raw search returned ${tempRawResults.length} results from 130point`);
                 
                 // Debug filtering for raw results
                 if (tempRawResults.length > 0) {
                     console.log(`🔍 DEBUG: Raw query "${rawQuery}" → First result "${tempRawResults[0].title}"`);
+                    console.log(`🔍 DEBUG: First result contains PSA: ${tempRawResults[0].title.toLowerCase().includes('psa')}`);
+                    console.log(`🔍 DEBUG: First result contains BGS: ${tempRawResults[0].title.toLowerCase().includes('bgs')}`);
+                    console.log(`🔍 DEBUG: First result contains SGC: ${tempRawResults[0].title.toLowerCase().includes('sgc')}`);
                 }
                 
-                // For now, accept all raw results (we can add filtering later if needed)
-                const filteredRaw = tempRawResults;
+                // Filter out graded cards from raw results (since negative keywords don't work via API)
+                const filteredRaw = tempRawResults.filter(result => {
+                    const title = result.title.toLowerCase();
+                    return !title.includes('psa') && 
+                           !title.includes('bgs') && 
+                           !title.includes('sgc') && 
+                           !title.includes('cgc') && 
+                           !title.includes('graded') && 
+                           !title.includes('slab');
+                });
+                
+                console.log(`🔍 DEBUG: Raw results filtered from ${tempRawResults.length} to ${filteredRaw.length} (excluded graded cards)`);
                 
                 // Search for PSA 9 cards
                 const psa9Query = `${strategy} PSA 9`;
