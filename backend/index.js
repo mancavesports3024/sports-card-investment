@@ -5996,10 +5996,10 @@ app.get('/api/test-recent-prices', async (req, res) => {
         // Get the most recent cards that were updated
         const query = `
             SELECT id, title, raw_average_price, psa9_average_price, psa10_price, 
-                   last_price_update, sport
+                   last_updated, sport
             FROM cards 
-            WHERE last_price_update IS NOT NULL 
-            ORDER BY last_price_update DESC 
+            WHERE last_updated IS NOT NULL 
+            ORDER BY last_updated DESC 
             LIMIT 10
         `;
         
@@ -6009,11 +6009,19 @@ app.get('/api/test-recent-prices', async (req, res) => {
                 console.error('Database error:', err);
                 return res.status(500).json({ error: 'Database error' });
             }
-            res.json({ 
-                success: true, 
-                recent_updates: rows,
-                count: rows.length 
-            });
+                            res.json({ 
+                    success: true, 
+                    recent_updates: rows.map(row => ({
+                        id: row.id,
+                        title: row.title,
+                        raw_average_price: row.raw_average_price,
+                        psa9_average_price: row.psa9_average_price,
+                        psa10_price: row.psa10_price,
+                        last_price_update: row.last_updated,
+                        sport: row.sport
+                    })),
+                    count: rows.length 
+                });
         });
     } catch (error) {
         console.error('Error:', error);
