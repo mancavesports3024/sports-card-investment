@@ -6315,3 +6315,59 @@ app.post('/api/debug-130point-html', async (req, res) => {
     }
 });
 
+// Test endpoint for eBay research API
+app.post('/api/test-ebay-research', async (req, res) => {
+    try {
+        const { searchQuery } = req.body;
+        console.log(`🧪 Testing eBay research API with query: "${searchQuery}"`);
+        
+        // Build the eBay research API URL
+        const now = Date.now();
+        const ninetyDaysAgo = now - (90 * 24 * 60 * 60 * 1000);
+        
+        const ebayUrl = `https://www.ebay.com/sh/research/api/search?marketplace=EBAY-US&keywords=${encodeURIComponent(searchQuery)}&dayRange=90&endDate=${now}&startDate=${ninetyDaysAgo}&offset=0&limit=50&tabName=SOLD&tz=America%2FChicago&modules=searchV2Filter`;
+        
+        console.log(`🔍 eBay Research URL: ${ebayUrl}`);
+        
+        // Make the request to eBay
+        const response = await fetch(ebayUrl, {
+            method: 'GET',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+                'Accept': '*/*',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'gzip, deflate, br, zstd',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Sec-Fetch-Dest': 'empty',
+                'Sec-Fetch-Mode': 'cors',
+                'Sec-Fetch-Site': 'same-origin',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        res.json({
+            success: true,
+            searchQuery: searchQuery,
+            ebayUrl: ebayUrl,
+            responseStatus: response.status,
+            responseHeaders: Object.fromEntries(response.headers.entries()),
+            data: data
+        });
+        
+    } catch (error) {
+        console.error('❌ eBay research API test error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message,
+            searchQuery: req.body.searchQuery || 'unknown'
+        });
+    }
+});
+
