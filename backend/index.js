@@ -5983,3 +5983,40 @@ app.post('/api/admin/update-player-names-centralized', async (req, res) => {
     }
 });
 
+// Test endpoint to check recent price updates
+app.get('/api/test-recent-prices', async (req, res) => {
+    try {
+        const dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH
+            ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'new-scorecard.db')
+            : path.join(__dirname, 'data', 'new-scorecard.db');
+        
+        const db = new sqlite3.Database(dbPath);
+        
+        // Get the most recent cards that were updated
+        const query = `
+            SELECT id, title, raw_average_price, psa9_average_price, psa10_price, 
+                   last_price_update, sport
+            FROM cards 
+            WHERE last_price_update IS NOT NULL 
+            ORDER BY last_price_update DESC 
+            LIMIT 10
+        `;
+        
+        db.all(query, [], (err, rows) => {
+            db.close();
+            if (err) {
+                console.error('Database error:', err);
+                return res.status(500).json({ error: 'Database error' });
+            }
+            res.json({ 
+                success: true, 
+                recent_updates: rows,
+                count: rows.length 
+            });
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
