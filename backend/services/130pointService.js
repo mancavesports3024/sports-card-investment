@@ -74,22 +74,38 @@ class OnePointService {
             
             const results = [];
             
-            // Look for the sales data table - the actual class is 'sold_data-simple'
-            const tableMatch = html.match(/<table[^>]*class="[^"]*sold_data-simple[^"]*"[^>]*>([\s\S]*?)<\/table>/i);
+            // Look for any table that might contain sales data
+            let tableMatch = html.match(/<table[^>]*class="[^"]*sold_data-simple[^"]*"[^>]*>([\s\S]*?)<\/table>/i);
+            if (!tableMatch) {
+                // Try alternative table classes
+                tableMatch = html.match(/<table[^>]*class="[^"]*sold_data[^"]*"[^>]*>([\s\S]*?)<\/table>/i);
+            }
+            if (!tableMatch) {
+                // Try to find any table with sales-related content
+                tableMatch = html.match(/<table[^>]*>([\s\S]*?Item Title[^]*?)<\/table>/i);
+            }
+            
             if (!tableMatch) {
                 console.log('🔍 130pointService DEBUG: No sales table found in HTML');
                 console.log(`🔍 130pointService DEBUG: HTML contains 'table': ${html ? html.includes('table') : 'undefined'}`);
                 console.log(`🔍 130pointService DEBUG: HTML contains 'sold_data-simple': ${html ? html.includes('sold_data-simple') : 'undefined'}`);
+                console.log(`🔍 130pointService DEBUG: HTML contains 'Item Title': ${html ? html.includes('Item Title') : 'undefined'}`);
+                console.log(`🔍 130pointService DEBUG: HTML contains 'Sale Price': ${html ? html.includes('Sale Price') : 'undefined'}`);
                 return results;
             }
 
             const tableHtml = tableMatch[1];
             
-            // Extract rows from the table body - look for rows with ID 'rowsold_dataTable'
-            const rowMatches = tableHtml.match(/<tr[^>]*id=['"]rowsold_dataTable['"][^>]*>([\s\S]*?)<\/tr>/gi);
+            // Extract rows from the table body - look for rows with ID 'rowsold_dataTable' or any row with item details
+            let rowMatches = tableHtml.match(/<tr[^>]*id=['"]rowsold_dataTable['"][^>]*>([\s\S]*?)<\/tr>/gi);
+            if (!rowMatches) {
+                // Try to find any row that contains item title
+                rowMatches = tableHtml.match(/<tr[^>]*>([\s\S]*?Item Title[^]*?)<\/tr>/gi);
+            }
             if (!rowMatches) {
                 console.log('🔍 130pointService DEBUG: No data rows found in sales table');
                 console.log(`🔍 130pointService DEBUG: HTML contains 'rowsold_dataTable': ${tableHtml ? tableHtml.includes('rowsold_dataTable') : 'undefined'}`);
+                console.log(`🔍 130pointService DEBUG: HTML contains 'Item Title': ${tableHtml ? tableHtml.includes('Item Title') : 'undefined'}`);
                 return results;
             }
 
