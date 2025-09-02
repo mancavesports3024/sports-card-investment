@@ -263,31 +263,51 @@ class OnePointService {
             // Wait a moment for any dynamic content
             await page.waitForTimeout(3000);
             
-            // Navigate to the search results page
-            const searchUrl = `https://130point.com/sales/?q=${encodeURIComponent(keywords)}`;
-            console.log(`🔍 130pointService HEADLESS: Searching: ${searchUrl}`);
-            await page.goto(searchUrl, { 
-                waitUntil: 'domcontentloaded',
-                timeout: 60000 
-            });
+            // Instead of navigating to search URL, fill out the search form
+            console.log('🔍 130pointService HEADLESS: Filling search form...');
             
-            // Wait for results to load with a more reliable approach
-            await page.waitForTimeout(5000);
-            
-            // Try to wait for the sales table to appear
+            // Wait for the search form to be available
             try {
-                await page.waitForSelector('.sold_data-simple', { timeout: 10000 });
-                console.log('🔍 130pointService HEADLESS: Sales table found, waiting for content...');
-                await page.waitForTimeout(2000);
-            } catch (selectorError) {
-                console.log('🔍 130pointService HEADLESS: Sales table selector not found, continuing anyway...');
+                await page.waitForSelector('input[name="query"]', { timeout: 10000 });
+                console.log('🔍 130pointService HEADLESS: Search form found');
+                
+                // Fill in the search query
+                await page.fill('input[name="query"]', keywords);
+                console.log(`🔍 130pointService HEADLESS: Filled search query: "${keywords}"`);
+                
+                // Submit the form
+                await page.click('input[type="submit"]');
+                console.log('🔍 130pointService HEADLESS: Submitted search form');
+                
+                // Wait for results to load
+                await page.waitForTimeout(5000);
+                
+                // Try to wait for the sales table to appear
+                try {
+                    await page.waitForSelector('.sold_data-simple', { timeout: 15000 });
+                    console.log('🔍 130pointService HEADLESS: Sales table found, waiting for content...');
+                    await page.waitForTimeout(3000);
+                } catch (selectorError) {
+                    console.log('🔍 130pointService HEADLESS: Sales table selector not found, continuing anyway...');
+                }
+                
+            } catch (formError) {
+                console.log('🔍 130pointService HEADLESS: Search form not found, trying direct URL approach...');
+                // Fallback to direct URL approach
+                const searchUrl = `https://130point.com/sales/?q=${encodeURIComponent(keywords)}`;
+                console.log(`🔍 130pointService HEADLESS: Navigating to: ${searchUrl}`);
+                await page.goto(searchUrl, { 
+                    waitUntil: 'domcontentloaded',
+                    timeout: 60000 
+                });
+                await page.waitForTimeout(5000);
             }
             
             // Check if we have results
             const noResultsText = await page.locator('text=No results found').count();
             if (noResultsText > 0) {
                 console.log('🔍 130pointService HEADLESS: No results found in headless browser');
-                return { rawHtml: '<div>No results found</div>', parsedResults: [], requestUrl: searchUrl, requestMethod: 'GET' };
+                return { rawHtml: '<div>No results found</div>', parsedResults: [], requestUrl: 'headless-fallback', requestMethod: 'GET' };
             }
             
             // Get the page content
@@ -361,7 +381,7 @@ class OnePointService {
             return { 
                 rawHtml: pageContent, 
                 parsedResults, 
-                requestUrl: searchUrl, 
+                requestUrl: 'headless-fallback', 
                 requestMethod: 'GET' 
             };
             
