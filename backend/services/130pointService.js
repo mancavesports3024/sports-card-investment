@@ -255,18 +255,33 @@ class OnePointService {
             
             // Navigate to the main sales page first
             console.log('🔍 130pointService HEADLESS: Loading main sales page...');
-            await page.goto('https://130point.com/sales/', { waitUntil: 'networkidle' });
+            await page.goto('https://130point.com/sales/', { 
+                waitUntil: 'domcontentloaded',
+                timeout: 60000 
+            });
             
             // Wait a moment for any dynamic content
-            await page.waitForTimeout(2000);
+            await page.waitForTimeout(3000);
             
             // Navigate to the search results page
             const searchUrl = `https://130point.com/sales/?q=${encodeURIComponent(keywords)}`;
             console.log(`🔍 130pointService HEADLESS: Searching: ${searchUrl}`);
-            await page.goto(searchUrl, { waitUntil: 'networkidle' });
+            await page.goto(searchUrl, { 
+                waitUntil: 'domcontentloaded',
+                timeout: 60000 
+            });
             
-            // Wait for results to load
-            await page.waitForTimeout(3000);
+            // Wait for results to load with a more reliable approach
+            await page.waitForTimeout(5000);
+            
+            // Try to wait for the sales table to appear
+            try {
+                await page.waitForSelector('.sold_data-simple', { timeout: 10000 });
+                console.log('🔍 130pointService HEADLESS: Sales table found, waiting for content...');
+                await page.waitForTimeout(2000);
+            } catch (selectorError) {
+                console.log('🔍 130pointService HEADLESS: Sales table selector not found, continuing anyway...');
+            }
             
             // Check if we have results
             const noResultsText = await page.locator('text=No results found').count();
