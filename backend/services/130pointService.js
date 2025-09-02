@@ -2,8 +2,8 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const qs = require('qs'); // npm install qs
 
-// 130point.com search endpoint
-const ONEPOINT_URL = 'https://back.130point.com/cards/';
+// 130point.com search endpoint - use main website instead of backend API
+const ONEPOINT_URL = 'https://130point.com/sales/';
 
 // Rate limiting for 130point scraping
 let lastRequestTime = 0;
@@ -65,38 +65,23 @@ async function search130point(keywords, numSales = 10) {
     }
     lastRequestTime = Date.now();
 
-    // Use the raw search string for the POST payload
-    // Format query: replace spaces with +
-    const formattedQuery = keywords.replace(/\s+/g, '+');
+    // Use the raw search string for the main website search
+    // Keep original formatting (spaces, negative keywords, etc.) since main website supports them
     console.log(`🔍 130pointService DEBUG: Original keywords: "${keywords}"`);
-    console.log(`🔍 130pointService DEBUG: Formatted query: "${formattedQuery}"`);
-    console.log(`🔍 130pointService DEBUG: Formatted query length: ${formattedQuery.length}`);
-    console.log(`🔍 130pointService DEBUG: Formatted query contains negative keywords: ${formattedQuery.includes('-(psa,+bgs,+sgc,+cgc,+graded,+slab)')}`);
-    console.log(`🔍 130pointService DEBUG: Formatted query contains parentheses: ${formattedQuery.includes('(') && formattedQuery.includes(')')}`);
-    console.log(`🔍 130pointService DEBUG: Formatted query contains commas: ${formattedQuery.includes(',')}`);
-    console.log(`🔍 130pointService DEBUG: Formatted query contains minus: ${formattedQuery.includes('-')}`);
+    console.log(`🔍 130pointService DEBUG: Using main website search with original formatting`);
     
-    const formData = qs.stringify({
-      query: formattedQuery,
-      sort: 'EndTimeSoonest',
-      tab_id: 1,
-      tz: 'America/Chicago',
-      width: 721,
-      height: 695,
-      mp: 'all',
-      tk: 'dc848953a13185261a89'
-    });
+    // For main website, we'll use a GET request with query parameters
+    const searchUrl = `${ONEPOINT_URL}?q=${encodeURIComponent(keywords)}`;
+    console.log(`🔍 130pointService DEBUG: Search URL: "${searchUrl}"`);
     
-    // Make POST request to 130point
-    const response = await axios.post(ONEPOINT_URL, formData, {
+    // Make GET request to main 130point website
+    const response = await axios.get(searchUrl, {
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         'User-Agent': getRandomUserAgent(),
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
         'Accept-Encoding': 'gzip, deflate',
         'Connection': 'keep-alive',
-        'Origin': 'https://130point.com',
         'Referer': 'https://130point.com/',
       },
       timeout: 10000
