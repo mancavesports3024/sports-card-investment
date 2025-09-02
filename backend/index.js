@@ -1808,12 +1808,16 @@ app.post('/api/test-130point-direct', async (req, res) => {
     const OnePointService = require('./services/130pointService.js');
     const service = new OnePointService();
     
+    // Get raw response for debugging
+    const rawResponse = await service.getRawResponse(searchQuery);
     const results = await service.search130point(searchQuery);
     
     res.json({
       success: true,
       message: 'Direct 130point test completed',
       searchQuery: searchQuery,
+      rawResponseLength: rawResponse ? rawResponse.length : 0,
+      rawResponsePreview: rawResponse ? rawResponse.substring(0, 1000) : 'No response',
       results: results,
       count: results.length
     });
@@ -1821,6 +1825,74 @@ app.post('/api/test-130point-direct', async (req, res) => {
   } catch (error) {
     console.error('❌ Direct 130point test error:', error);
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Test endpoint to fetch raw HTML from 130point and also parse it
+app.post('/api/test-130point-raw', async (req, res) => {
+  try {
+    const { searchQuery } = req.body;
+    if (!searchQuery) {
+      return res.status(400).json({ success: false, error: 'Missing searchQuery' });
+    }
+
+    const axios = require('axios');
+    const qs = require('querystring');
+    const OnePointService = require('./services/130pointService.js');
+    const service = new OnePointService();
+
+    const ONEPOINT_URL = 'https://back.130point.com/sales/';
+    const formData = qs.stringify({ query: searchQuery });
+
+    const startTs = Date.now();
+    const resp = await axios.post(ONEPOINT_URL, formData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+        'Accept': '*/*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br, zstd',
+        'Origin': 'https://130point.com',
+        'Referer': 'https://130point.com/',
+        'Connection': 'keep-alive',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-site'
+      },
+      timeout: 30000
+    });
+    const durationMs = Date.now() - startTs;
+
+    const html = resp?.data || '';
+    const parsed = service.parseSearchResults(html) || [];
+
+    res.json({
+      success: true,
+      searchQuery,
+      request: {
+        url: ONEPOINT_URL,
+        method: 'POST',
+        durationMs
+      },
+      response: {
+        status: resp?.status || null,
+        length: typeof html === 'string' ? html.length : null,
+        contains: {
+          table: typeof html === 'string' ? html.includes('<table') : null,
+          sold_data_simple: typeof html === 'string' ? html.includes('sold_data-simple') : null,
+          itemTitle: typeof html === 'string' ? html.includes('Item Title') : null,
+          salePrice: typeof html === 'string' ? html.includes('Sale Price') : null
+        },
+        preview: typeof html === 'string' ? html.substring(0, 1500) : null
+      },
+      parsed: {
+        count: parsed.length,
+        sample: parsed.slice(0, 5)
+      }
+    });
+  } catch (error) {
+    console.error('❌ test-130point-raw error:', error?.message || error);
+    res.status(500).json({ success: false, error: error?.message || 'Unknown error' });
   }
 });
 
