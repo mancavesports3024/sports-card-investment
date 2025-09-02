@@ -13,7 +13,7 @@ class EbayResearchService {
         try {
             console.log('🔍 EbayResearchService: Getting valid eBay cookies...');
             
-            // First, visit the main eBay page to get initial cookies
+            // First, get cookies from the main eBay page
             const mainResponse = await axios.get(this.baseUrl, {
                 headers: {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
@@ -53,12 +53,65 @@ class EbayResearchService {
                 const newCookies = researchPageResponse.headers['set-cookie']
                     .map(cookie => cookie.split(';')[0]);
                 
-                // Merge new cookies with existing ones
+                // Merge new cookies with existing ones, avoiding duplicates
                 const existingCookies = this.cookies ? this.cookies.split('; ') : [];
                 const allCookies = [...existingCookies, ...newCookies];
-                this.cookies = allCookies.join('; ');
                 
+                // Remove duplicates while preserving order
+                const uniqueCookies = [];
+                const seen = new Set();
+                for (const cookie of allCookies) {
+                    const cookieName = cookie.split('=')[0];
+                    if (!seen.has(cookieName)) {
+                        seen.add(cookieName);
+                        uniqueCookies.push(cookie);
+                    }
+                }
+                
+                this.cookies = uniqueCookies.join('; ');
                 console.log(`🔍 EbayResearchService: Updated cookies: ${this.cookies.substring(0, 100)}...`);
+            }
+
+            // Also try to get cookies from the actual API endpoint to ensure we have all necessary ones
+            try {
+                const apiTestResponse = await axios.get(`${this.researchUrl}?marketplace=EBAY-US&keywords=test&dayRange=7&limit=1`, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+                        'Accept': '*/*',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        'Accept-Encoding': 'gzip, deflate, br, zstd',
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache',
+                        'Referer': `${this.baseUrl}/sh/research`,
+                        'Cookie': this.cookies
+                    },
+                    timeout: 30000
+                });
+
+                // Update cookies if we get new ones from the API
+                if (apiTestResponse.headers['set-cookie']) {
+                    const apiCookies = apiTestResponse.headers['set-cookie']
+                        .map(cookie => cookie.split(';')[0]);
+                    
+                    const existingCookies = this.cookies ? this.cookies.split('; ') : [];
+                    const allCookies = [...existingCookies, ...apiCookies];
+                    
+                    // Remove duplicates while preserving order
+                    const uniqueCookies = [];
+                    const seen = new Set();
+                    for (const cookie of allCookies) {
+                        const cookieName = cookie.split('=')[0];
+                        if (!seen.has(cookieName)) {
+                            seen.add(cookieName);
+                            uniqueCookies.push(cookie);
+                        }
+                    }
+                    
+                    this.cookies = uniqueCookies.join('; ');
+                    console.log(`🔍 EbayResearchService: Final cookies after API test: ${this.cookies.substring(0, 100)}...`);
+                }
+            } catch (apiError) {
+                console.log('🔍 EbayResearchService: API test failed (expected for test query), continuing with current cookies');
             }
 
             this.lastCookieRefresh = Date.now();
