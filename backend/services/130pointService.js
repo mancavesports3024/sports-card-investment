@@ -29,9 +29,11 @@ class OnePointService {
             console.log(`🔍 130pointService DEBUG: Query contains commas: ${keywords.includes(',')}`);
             console.log(`🔍 130pointService DEBUG: Query contains minus signs: ${keywords.includes('-')}`);
 
-            // Make POST request to the backend API with form data
+            // Make POST request to the backend API with form data (include required fields)
             const formData = qs.stringify({ 
-                query: keywords
+                query: keywords,
+                type: 2,
+                subcat: -1
             });
 
             const response = await axios.post(ONEPOINT_URL, formData, {
