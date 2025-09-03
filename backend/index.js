@@ -6402,3 +6402,56 @@ app.get('/api/test-collectibles-service', async (req, res) => {
     }
 });
 
+// Test endpoint for authenticated Collectibles card details
+app.post('/api/test-collectibles-authenticated', async (req, res) => {
+    try {
+        const { email, password, variationId, cardSlug } = req.body;
+        
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                error: 'Email and password are required for authentication'
+            });
+        }
+
+        console.log(`🔐 Testing authenticated Collectibles service for user: ${email}`);
+        
+        const CollectiblesCardDetailService = require('./services/collectiblesCardDetailService.js');
+        const collectiblesService = new CollectiblesCardDetailService();
+        
+        // Step 1: Authenticate
+        console.log('🔐 Step 1: Authenticating...');
+        const authResult = await collectiblesService.authenticate(email, password);
+        
+        if (!authResult.success) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authentication failed',
+                details: authResult
+            });
+        }
+
+        console.log('🔐 Authentication successful, now fetching card details...');
+        
+        // Step 2: Get card details (now authenticated)
+        const cardDetails = await collectiblesService.getCardDetails(
+            variationId || '21763861', 
+            cardSlug || 'ci-2024-topps-update-us50-jackson-holliday'
+        );
+        
+        res.json({
+            success: true,
+            authentication: authResult,
+            cardDetails: cardDetails
+        });
+        
+    } catch (error) {
+        console.error('❌ Authenticated Collectibles test error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            request: req.body
+        });
+    }
+});
+
