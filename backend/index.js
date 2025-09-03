@@ -6455,3 +6455,58 @@ app.post('/api/test-collectibles-authenticated', async (req, res) => {
     }
 });
 
+// Test endpoint for eBay scraper service
+app.get('/api/test-ebay-scraper', async (req, res) => {
+    try {
+        console.log('🧪 Testing eBay scraper service...');
+        
+        const EbayScraperService = require('./services/ebayScraperService.js');
+        const ebayService = new EbayScraperService();
+        
+        const result = await ebayService.testService();
+        
+        res.json({
+            success: true,
+            testResult: result
+        });
+        
+    } catch (error) {
+        console.error('❌ eBay scraper test error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Search endpoint for eBay card pricing
+app.post('/api/ebay-card-search', async (req, res) => {
+    try {
+        const { searchTerm, sport, maxResults = 50 } = req.body;
+        
+        if (!searchTerm) {
+            return res.status(400).json({
+                success: false,
+                error: 'Search term is required'
+            });
+        }
+
+        console.log(`🔍 eBay search request: ${searchTerm} (sport: ${sport || 'any'})`);
+        
+        const EbayScraperService = require('./services/ebayScraperService.js');
+        const ebayService = new EbayScraperService();
+        
+        const result = await ebayService.getCardPricingSummary(searchTerm, sport, maxResults);
+        
+        res.json(result);
+        
+    } catch (error) {
+        console.error('❌ eBay card search error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            request: req.body
+        });
+    }
+});
+
