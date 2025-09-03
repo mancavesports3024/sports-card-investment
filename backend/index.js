@@ -6320,10 +6320,8 @@ app.post('/api/test-ebay-research', async (req, res) => {
     try {
         const { searchQuery } = req.body;
         console.log(`🧪 Testing eBay research API with query: "${searchQuery}"`);
-        
         const EbayResearchService = require('./services/ebayResearchService.js');
         const ebayService = new EbayResearchService();
-        
         // Test the connection first
         const connectionTest = await ebayService.testConnection();
         if (!connectionTest.success) {
@@ -6333,27 +6331,73 @@ app.post('/api/test-ebay-research', async (req, res) => {
                 details: connectionTest
             });
         }
-        
         // Now search for the specific query
         const searchResult = await ebayService.searchSoldItems(searchQuery, {
             dayRange: 90,
             limit: 50,
             offset: 0
         });
-        
         res.json({
             success: true,
             searchQuery: searchQuery,
             connectionTest: connectionTest,
             searchResult: searchResult
         });
-        
     } catch (error) {
         console.error('❌ eBay research API test error:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             error: error.message,
             searchQuery: req.body.searchQuery || 'unknown'
+        });
+    }
+});
+
+// Test endpoint for Collectibles card detail service
+app.post('/api/test-collectibles-card-details', async (req, res) => {
+    try {
+        const { variationId, cardSlug } = req.body;
+        console.log(`🧪 Testing Collectibles card detail service with variation ID: ${variationId}, slug: ${cardSlug || 'none'}`);
+        
+        const CollectiblesCardDetailService = require('./services/collectiblesCardDetailService.js');
+        const collectiblesService = new CollectiblesCardDetailService();
+        
+        const result = await collectiblesService.getCardDetails(variationId, cardSlug);
+        
+        res.json({
+            success: true,
+            request: { variationId, cardSlug },
+            result: result
+        });
+    } catch (error) {
+        console.error('❌ Collectibles card detail test error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            request: req.body
+        });
+    }
+});
+
+// Test endpoint for Collectibles service (using the test card)
+app.get('/api/test-collectibles-service', async (req, res) => {
+    try {
+        console.log('🧪 Testing Collectibles service with default test card...');
+        
+        const CollectiblesCardDetailService = require('./services/collectiblesCardDetailService.js');
+        const collectiblesService = new CollectiblesCardDetailService();
+        
+        const result = await collectiblesService.testService();
+        
+        res.json({
+            success: true,
+            testResult: result
+        });
+    } catch (error) {
+        console.error('❌ Collectibles service test error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
     }
 });
