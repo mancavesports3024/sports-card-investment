@@ -6573,3 +6573,79 @@ app.get('/api/test-ebay-scraper-debug', async (req, res) => {
     }
 });
 
+// PSA 10 specific card search endpoint
+app.post('/api/psa10-search', async (req, res) => {
+    try {
+        const { searchTerm, sport, maxResults = 20 } = req.body;
+        
+        if (!searchTerm) {
+            return res.status(400).json({
+                success: false,
+                error: 'Search term is required'
+            });
+        }
+
+        // Ensure PSA 10 is in the search
+        const psa10SearchTerm = searchTerm.includes('PSA 10') ? searchTerm : `PSA 10 ${searchTerm}`;
+        
+        console.log(`🔍 PSA 10 search request: ${psa10SearchTerm} (sport: ${sport || 'any'})`);
+        
+        const EbayScraperService = require('./services/ebayScraperService.js');
+        const ebayService = new EbayScraperService();
+        
+        const result = await ebayService.searchSoldCards(psa10SearchTerm, sport, maxResults);
+        
+        if (!result.success) {
+            return res.status(500).json(result);
+        }
+
+        // Filter and clean the PSA 10 data
+        const psa10Data = result.results
+            .filter(item => {
+                // Filter out unrealistic prices (PSA 10s are typically $50+)
+                return item.numericPrice >= 50 && item.numericPrice <= 50000;
+            })
+            .map(item => ({
+                title: item.title.substring(0, 100), // Clean up title
+                price: item.price,
+                numericPrice: item.numericPrice,
+                itemUrl: item.itemUrl,
+                sport: item.sport,
+                grade: 'PSA 10',
+                soldDate: item.soldDate
+            }))
+            .sort((a, b) => b.numericPrice - a.numericPrice); // Sort by price (highest first)
+
+        // Calculate PSA 10 summary
+        const validPrices = psa10Data.map(item => item.numericPrice);
+        const summary = {
+            totalCards: psa10Data.length,
+            averagePrice: validPrices.length > 0 ? Math.round(validPrices.reduce((a, b) => a + b, 0) / validPrices.length) : 0,
+            minPrice: validPrices.length > 0 ? Math.min(...validPrices) : 0,
+            maxPrice: validPrices.length > 0 ? Math.max(...validPrices) : 0,
+            medianPrice: validPrices.length > 0 ? Math.round(validPrices.sort((a, b) => a - b)[Math.floor(validPrices.length / 2)]) : 0
+        };
+
+        res.json({
+            success: true,
+            searchTerm: psa10SearchTerm,
+            sport: sport,
+            summary: summary,
+            cards: psa10Data,
+            rawData: {
+                totalResults: result.totalResults,
+                filteredResults: psa10Data.length,
+                method: result.method
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ PSA 10 search error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            request: req.body
+        });
+    }
+});
+
