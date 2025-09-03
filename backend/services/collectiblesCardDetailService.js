@@ -441,15 +441,72 @@ class CollectiblesCardDetailService {
             };
 
             console.log('🧪 Testing CollectiblesCardDetailService...');
-            const result = await this.getCardDetails(testCard.variationId, testCard.slug);
             
+            // First try without authentication to see what we can get
+            console.log('🧪 Trying unauthenticated access first...');
+            const unauthenticatedResult = await this.getCardDetailsUnauthenticated(testCard.variationId, testCard.slug);
+            
+            // Then try with authentication if available
+            let authenticatedResult = null;
+            if (this.isAuthenticated) {
+                console.log('🧪 Trying authenticated access...');
+                authenticatedResult = await this.getCardDetails(testCard.variationId, testCard.slug);
+            }
+
             return {
                 success: true,
                 testCard: testCard,
-                result: result
+                unauthenticated: unauthenticatedResult,
+                authenticated: authenticatedResult,
+                isAuthenticated: this.isAuthenticated
             };
 
         } catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    /**
+     * Try to get card details without authentication (using CardBase API)
+     */
+    async getCardDetailsUnauthenticated(catalogItemVariationId, cardSlug = null) {
+        try {
+            console.log(`🔍 CollectiblesCardDetailService: Trying unauthenticated access for variation ID: ${catalogItemVariationId}`);
+            
+            const results = {
+                variationId: catalogItemVariationId,
+                cardSlug: cardSlug,
+                approaches: {}
+            };
+
+            // Try CardBase API first (might not require authentication)
+            try {
+                const apiData = await this.getCardBaseData(catalogItemVariationId);
+                results.approaches.cardBaseApi = apiData;
+            } catch (error) {
+                console.log(`❌ CardBase API approach failed: ${error.message}`);
+                results.approaches.cardBaseApi = { error: error.message };
+            }
+
+            // Try mobile API
+            try {
+                const mobileData = await this.getMobileApiData(catalogItemVariationId);
+                results.approaches.mobileApi = mobileData;
+            } catch (error) {
+                console.log(`❌ Mobile API approach failed: ${error.message}`);
+                results.approaches.mobileApi = { error: error.message };
+            }
+
+            return {
+                success: true,
+                data: results
+            };
+
+        } catch (error) {
+            console.error('❌ CollectiblesCardDetailService: Error in unauthenticated access:', error.message);
             return {
                 success: false,
                 error: error.message
