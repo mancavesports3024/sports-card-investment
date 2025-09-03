@@ -6510,3 +6510,66 @@ app.post('/api/ebay-card-search', async (req, res) => {
     }
 });
 
+// Test endpoint for eBay scraper service with detailed debugging
+app.get('/api/test-ebay-scraper-debug', async (req, res) => {
+    try {
+        console.log('🧪 Testing eBay scraper service with detailed debugging...');
+
+        const EbayScraperService = require('./services/ebayScraperService.js');
+        const ebayService = new EbayScraperService();
+
+        // Initialize browser first
+        const browserInitialized = await ebayService.initializeBrowser();
+        if (!browserInitialized) {
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to initialize browser'
+            });
+        }
+
+        // Test with a simple search
+        const testSearch = 'Jackson Holliday 2023 Bowman Chrome Draft';
+        console.log(`🔍 Testing search: ${testSearch}`);
+
+        const result = await ebayService.searchSoldCards(testSearch, 'baseball', 10);
+
+        // Get additional debug info
+        let debugInfo = {};
+        try {
+            if (ebayService.page) {
+                debugInfo.pageTitle = await ebayService.page.title();
+                debugInfo.pageUrl = ebayService.page.url();
+                debugInfo.pageContentLength = (await ebayService.page.content()).length;
+                
+                // Try to get some basic page info
+                debugInfo.bodyTextLength = await ebayService.page.evaluate(() => {
+                    return document.body ? document.body.innerText.length : 0;
+                });
+                
+                debugInfo.hasSoldItems = await ebayService.page.evaluate(() => {
+                    return document.body ? document.body.innerText.includes('sold') : false;
+                });
+            }
+        } catch (debugError) {
+            debugInfo.debugError = debugError.message;
+        }
+
+        // Close browser
+        await ebayService.closeBrowser();
+
+        res.json({
+            success: true,
+            testSearch: testSearch,
+            result: result,
+            debugInfo: debugInfo
+        });
+
+    } catch (error) {
+        console.error('❌ eBay scraper debug test error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+

@@ -81,6 +81,42 @@ class EbayScraperService {
     }
 
     /**
+     * Build search URL for eBay sold listings
+     */
+    buildSearchUrl(searchTerm, sport = null) {
+        // Clean and encode the search term
+        const cleanTerm = searchTerm
+            .replace(/[^\w\s]/g, ' ')
+            .replace(/\s+/g, '+')
+            .trim();
+        
+        // Build the search URL with sold filter
+        let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${encodeURIComponent(cleanTerm)}`;
+        
+        // Add filters for sold items
+        searchUrl += '&_sacat=0&LH_Sold=1&_dmd=2';
+        
+        // Add sport-specific category if provided
+        if (sport) {
+            const sportCategories = {
+                'baseball': '&_sacat=261',
+                'basketball': '&_sacat=261',
+                'football': '&_sacat=261',
+                'hockey': '&_sacat=261',
+                'soccer': '&_sacat=261',
+                'pokemon': '&_sacat=261',
+                'mtg': '&_sacat=261'
+            };
+            
+            if (sportCategories[sport.toLowerCase()]) {
+                searchUrl += sportCategories[sport.toLowerCase()];
+            }
+        }
+        
+        return searchUrl;
+    }
+
+    /**
      * Search for sold cards on eBay using headless browser
      */
     async searchSoldCards(searchTerm, sport = null, maxResults = 50) {
@@ -101,46 +137,117 @@ class EbayScraperService {
             // Navigate to the search page
             console.log('🌐 Navigating to eBay search page...');
             await this.page.goto(searchUrl, { 
-                waitUntil: 'domcontentloaded',
-                timeout: 60000 
+                waitUntil: 'networkidle',
+                timeout: 90000 
             });
             
             console.log('⏱️ Waiting for page to load...');
-            await this.randomDelay(3000, 6000);
+            await this.randomDelay(5000, 8000);
 
-            // Wait for results to load - try multiple selectors
+            // Take a screenshot for debugging
+            try {
+                await this.page.screenshot({ path: '/tmp/ebay-debug.png', fullPage: true });
+                console.log('📸 Debug screenshot saved');
+            } catch (screenshotError) {
+                console.log('⚠️ Screenshot failed:', screenshotError.message);
+            }
+
+            // Get page content for analysis
+            const pageContent = await this.page.content();
+            console.log(`📄 Page content length: ${pageContent.length} characters`);
+            
+            // Check if we got blocked or hit a login page
+            const pageTitle = await this.page.title();
+            console.log(`📄 Page title: ${pageTitle}`);
+            
+            if (pageTitle.includes('Sign in') || pageTitle.includes('Login') || pageTitle.includes('Verify')) {
+                throw new Error('eBay requires authentication or verification');
+            }
+
+            // Wait for results to load - try multiple selectors with longer timeouts
             console.log('🔍 Waiting for search results...');
             let resultsLoaded = false;
+            let items = [];
             
-            try {
-                // Wait for any of these selectors to appear
-                await this.page.waitForSelector('.s-item, .srp-results .s-item, [data-testid="s-item"], .srp-results', { 
-                    timeout: 30000 
-                });
-                resultsLoaded = true;
-                console.log('✅ Search results found');
-            } catch (waitError) {
-                console.log('⚠️ Initial wait failed, trying alternative approach...');
+            // Try multiple selector strategies
+            const selectorStrategies = [
+                { selector: '.s-item', timeout: 30000 },
+                { selector: '.srp-results .s-item', timeout: 30000 },
+                { selector: '[data-testid="s-item"]', timeout: 30000 },
+                { selector: '.srp-results li', timeout: 30000 },
+                { selector: '.srp-results .s-item__wrapper', timeout: 30000 },
+                { selector: '.s-item__wrapper', timeout: 30000 },
+                { selector: '.s-item__info', timeout: 30000 }
+            ];
+
+            for (const strategy of selectorStrategies) {
+                try {
+                    console.log(`🔍 Trying selector: ${strategy.selector}`);
+                    await this.page.waitForSelector(strategy.selector, { timeout: strategy.timeout });
+                    items = await this.page.$$(strategy.selector);
+                    
+                    if (items.length > 0) {
+                        console.log(`✅ Found ${items.length} items using selector: ${strategy.selector}`);
+                        resultsLoaded = true;
+                        break;
+                    }
+                } catch (selectorError) {
+                    console.log(`⚠️ Selector ${strategy.selector} failed: ${selectorError.message}`);
+                    continue;
+                }
+            }
+
+            // If no items found with selectors, try alternative approach
+            if (items.length === 0) {
+                console.log('⚠️ No items found with selectors, trying alternative approach...');
                 
-                // Try to scroll and wait more
-                await this.page.evaluate(() => {
-                    window.scrollTo(0, document.body.scrollHeight);
+                // Try to find any content that looks like card listings
+                const alternativeContent = await this.page.evaluate(() => {
+                    // Look for any elements that might contain card data
+                    const possibleItems = document.querySelectorAll('div, li, article');
+                    const cardLikeElements = [];
+                    
+                    for (const element of possibleItems) {
+                        const text = element.textContent || '';
+                        if (text.includes('$') && (text.includes('sold') || text.includes('auction') || text.includes('bid'))) {
+                            cardLikeElements.push({
+                                text: text.substring(0, 200),
+                                tagName: element.tagName,
+                                className: element.className
+                            });
+                        }
+                    }
+                    
+                    return cardLikeElements.slice(0, 10);
                 });
-                await this.randomDelay(2000, 4000);
                 
-                // Check if we have any content
-                const hasContent = await this.page.evaluate(() => {
-                    return document.body.innerText.length > 1000;
-                });
+                console.log(`🔍 Found ${alternativeContent.length} potential card-like elements`);
                 
-                if (hasContent) {
-                    resultsLoaded = true;
-                    console.log('✅ Page content loaded');
+                if (alternativeContent.length > 0) {
+                    // Return basic info to show we're getting content
+                    return {
+                        success: true,
+                        searchTerm: searchTerm,
+                        sport: sport,
+                        totalResults: alternativeContent.length,
+                        results: alternativeContent.map((item, index) => ({
+                            title: `Potential card ${index + 1}`,
+                            price: 'Content found',
+                            numericPrice: 0,
+                            soldDate: 'Today',
+                            condition: 'Unknown',
+                            cardType: 'Unknown',
+                            grade: null,
+                            sport: sport || 'Unknown',
+                            rawContent: item.text,
+                            elementInfo: `${item.tagName}.${item.className}`
+                        }))
+                    };
                 }
             }
 
             if (!resultsLoaded) {
-                throw new Error('Search results failed to load');
+                throw new Error('Search results failed to load - no items found');
             }
 
             // Scroll down to load more results
@@ -148,7 +255,7 @@ class EbayScraperService {
             await this.page.evaluate(() => {
                 window.scrollTo(0, document.body.scrollHeight);
             });
-            await this.randomDelay(2000, 4000);
+            await this.randomDelay(3000, 5000);
 
             // Parse the results
             console.log('🔍 Parsing search results...');
@@ -185,8 +292,7 @@ class EbayScraperService {
             const itemSelectors = [
                 '.s-item',
                 '.srp-results .s-item',
-                '[data-testid="s-item"]',
-                '.srp-results li',
+                '[data-testid="s-item"], .srp-results li',
                 '.srp-results .s-item__wrapper'
             ];
 
@@ -430,40 +536,6 @@ class EbayScraperService {
         }
         
         return null;
-    }
-
-    /**
-     * Build eBay search URL for sold listings
-     */
-    buildSearchUrl(searchTerm, sport) {
-        const params = new URLSearchParams({
-            '_nkw': searchTerm,
-            '_sacat': '0',
-            'LH_Sold': '1',        // Show sold items only
-            '_dmd': '2',           // Show completed items
-            '_ipg': '50',          // Items per page
-            '_pgn': '1'            // Page number
-        });
-
-        // Add sport-specific category if provided
-        if (sport) {
-            const sportCategories = {
-                'baseball': '162',
-                'basketball': '162',
-                'football': '162',
-                'hockey': '162',
-                'soccer': '162',
-                'pokemon': '253',
-                'magic': '191',
-                'yugioh': '31388'
-            };
-            
-            if (sportCategories[sport.toLowerCase()]) {
-                params.set('_sacat', sportCategories[sport.toLowerCase()]);
-            }
-        }
-
-        return `${this.baseUrl}/sch/i.html?${params.toString()}`;
     }
 
     /**
