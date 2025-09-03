@@ -1,95 +1,88 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
+const { chromium } = require('playwright');
 
 class EbayScraperService {
     constructor() {
         this.baseUrl = 'https://www.ebay.com';
-        this.userAgents = [
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0'
-        ];
-        this.currentUserAgent = 0;
-        this.sessionCookies = '';
-        this.requestDelay = 2000; // 2 seconds between requests
-        this.lastRequestTime = 0;
+        this.browser = null;
+        this.context = null;
+        this.page = null;
     }
 
     /**
-     * Get a random user agent to avoid detection
+     * Initialize the headless browser
      */
-    getRandomUserAgent() {
-        this.currentUserAgent = (this.currentUserAgent + 1) % this.userAgents.length;
-        return this.userAgents[this.currentUserAgent];
-    }
-
-    /**
-     * Add delay between requests to appear more human-like
-     */
-    async addDelay() {
-        const now = Date.now();
-        const timeSinceLastRequest = now - this.lastRequestTime;
-        
-        if (timeSinceLastRequest < this.requestDelay) {
-            const delayNeeded = this.requestDelay - timeSinceLastRequest;
-            await new Promise(resolve => setTimeout(resolve, delayNeeded));
-        }
-        
-        this.lastRequestTime = Date.now();
-    }
-
-    /**
-     * Initialize session by visiting eBay homepage
-     */
-    async initializeSession() {
+    async initializeBrowser() {
         try {
-            console.log('🔐 Initializing eBay session...');
+            console.log('🌐 Initializing headless browser...');
             
-            const response = await axios.get(this.baseUrl, {
-                headers: {
-                    'User-Agent': this.getRandomUserAgent(),
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                    'Accept-Encoding': 'gzip, deflate, br',
-                    'Cache-Control': 'no-cache',
-                    'Pragma': 'no-cache',
-                    'Sec-Fetch-Dest': 'document',
-                    'Sec-Fetch-Mode': 'navigate',
-                    'Sec-Fetch-Site': 'none',
-                    'Upgrade-Insecure-Requests': '1'
-                },
-                timeout: 30000
+            this.browser = await chromium.launch({
+                headless: true,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--disable-gpu'
+                ]
             });
 
-            // Extract cookies from response
-            if (response.headers['set-cookie']) {
-                this.sessionCookies = response.headers['set-cookie']
-                    .map(cookie => cookie.split(';')[0])
-                    .join('; ');
-                console.log('🔐 Session initialized with cookies');
-            }
+            this.context = await this.browser.newContext({
+                userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                viewport: { width: 1920, height: 1080 },
+                locale: 'en-US',
+                timezoneId: 'America/New_York'
+            });
 
+            this.page = await this.context.newPage();
+            
+            // Set extra headers to appear more human-like
+            await this.page.setExtraHTTPHeaders({
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            });
+
+            console.log('✅ Browser initialized successfully');
             return true;
+            
         } catch (error) {
-            console.error('❌ Failed to initialize eBay session:', error.message);
+            console.error('❌ Failed to initialize browser:', error.message);
             return false;
         }
     }
 
     /**
-     * Search for sold cards on eBay
-     * @param {string} searchTerm - Card name to search for
-     * @param {string} sport - Sport type (optional)
-     * @param {number} maxResults - Maximum number of results to return
-     * @returns {Object} Search results with pricing data
+     * Close the browser
+     */
+    async closeBrowser() {
+        try {
+            if (this.page) await this.page.close();
+            if (this.context) await this.context.close();
+            if (this.browser) await this.browser.close();
+            console.log('🔒 Browser closed');
+        } catch (error) {
+            console.error('❌ Error closing browser:', error.message);
+        }
+    }
+
+    /**
+     * Add random delay to appear more human-like
+     */
+    async randomDelay(min = 1000, max = 3000) {
+        const delay = Math.floor(Math.random() * (max - min + 1)) + min;
+        await new Promise(resolve => setTimeout(resolve, delay));
+    }
+
+    /**
+     * Search for sold cards on eBay using headless browser
      */
     async searchSoldCards(searchTerm, sport = null, maxResults = 50) {
         try {
-            await this.addDelay();
-            
-            if (!this.sessionCookies) {
-                await this.initializeSession();
+            if (!this.browser) {
+                await this.initializeBrowser();
             }
 
             console.log(`🔍 Searching eBay for sold cards: ${searchTerm}`);
@@ -98,27 +91,21 @@ class EbayScraperService {
             const searchUrl = this.buildSearchUrl(searchTerm, sport);
             console.log(`🔍 Search URL: ${searchUrl}`);
 
-            const response = await axios.get(searchUrl, {
-                headers: {
-                    'User-Agent': this.getRandomUserAgent(),
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                    'Accept-Encoding': 'gzip, deflate, br',
-                    'Cache-Control': 'no-cache',
-                    'Pragma': 'no-cache',
-                    'Cookie': this.sessionCookies,
-                    'Referer': this.baseUrl,
-                    'Sec-Fetch-Dest': 'document',
-                    'Sec-Fetch-Mode': 'navigate',
-                    'Sec-Fetch-Site': 'same-origin',
-                    'Upgrade-Insecure-Requests': '1'
-                },
-                timeout: 30000
-            });
+            // Navigate to the search page
+            await this.page.goto(searchUrl, { waitUntil: 'networkidle' });
+            await this.randomDelay(2000, 4000);
 
-            // Parse the HTML response
-            const $ = cheerio.load(response.data);
-            const results = this.parseSearchResults($, maxResults);
+            // Wait for results to load
+            await this.page.waitForSelector('.s-item', { timeout: 30000 });
+            
+            // Scroll down to load more results
+            await this.page.evaluate(() => {
+                window.scrollTo(0, document.body.scrollHeight);
+            });
+            await this.randomDelay(1000, 2000);
+
+            // Parse the results
+            const results = await this.parseSearchResults(maxResults);
 
             console.log(`✅ Found ${results.length} sold listings for "${searchTerm}"`);
             
@@ -175,62 +162,78 @@ class EbayScraperService {
     }
 
     /**
-     * Parse eBay search results HTML
+     * Parse eBay search results using page selectors
      */
-    parseSearchResults($, maxResults) {
-        const results = [];
-        
-        // Find all sold item listings
-        $('.s-item').each((index, element) => {
-            if (results.length >= maxResults) return false;
+    async parseSearchResults(maxResults) {
+        try {
+            const results = [];
             
-            try {
-                const $item = $(element);
-                
-                // Extract basic item info
-                const title = $item.find('.s-item__title').text().trim();
-                const price = $item.find('.s-item__price').text().trim();
-                const soldDate = $item.find('.s-item__title--tagblock .POSITIVE').text().trim();
-                const condition = $item.find('.SECONDARY_INFO').text().trim();
-                const imageUrl = $item.find('.s-item__image-img').attr('src');
-                const itemUrl = $item.find('.s-item__link').attr('href');
-                
-                // Skip if no title or price
-                if (!title || !price || title === 'Shop on eBay') return;
-                
-                // Parse price
-                const priceMatch = price.match(/[\$£€]?([\d,]+\.?\d*)/);
-                const numericPrice = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : null;
-                
-                // Extract card details from title
-                const cardDetails = this.extractCardDetails(title);
-                
-                // Determine card type and grade
-                const cardType = this.determineCardType(title, condition);
-                const grade = this.extractGrade(title, condition);
-                
-                const result = {
-                    title: title,
-                    price: price,
-                    numericPrice: numericPrice,
-                    soldDate: soldDate,
-                    condition: condition,
-                    imageUrl: imageUrl,
-                    itemUrl: itemUrl,
-                    cardDetails: cardDetails,
-                    cardType: cardType,
-                    grade: grade,
-                    sport: cardDetails.sport
-                };
-                
-                results.push(result);
-                
-            } catch (error) {
-                console.log(`⚠️ Error parsing item ${index}:`, error.message);
+            // Get all item listings
+            const items = await this.page.$$('.s-item');
+            console.log(`🔍 Found ${items.length} items on page`);
+
+            for (let i = 0; i < Math.min(items.length, maxResults); i++) {
+                try {
+                    const item = items[i];
+                    
+                    // Extract basic item info using page selectors
+                    const title = await item.$eval('.s-item__title', el => el.textContent?.trim() || '');
+                    const price = await item.$eval('.s-item__price', el => el.textContent?.trim() || '');
+                    const soldDate = await item.$eval('.s-item__title--tagblock .POSITIVE', el => el.textContent?.trim() || '');
+                    const condition = await item.$eval('.SECONDARY_INFO', el => el.textContent?.trim() || '');
+                    
+                    // Skip if no title or price, or if it's a "Shop on eBay" item
+                    if (!title || !price || title === 'Shop on eBay' || title.includes('Shop on eBay')) {
+                        continue;
+                    }
+
+                    // Extract image URL
+                    const imageElement = await item.$('.s-item__image-img');
+                    const imageUrl = imageElement ? await imageElement.getAttribute('src') : null;
+
+                    // Extract item URL
+                    const linkElement = await item.$('.s-item__link');
+                    const itemUrl = linkElement ? await linkElement.getAttribute('href') : null;
+
+                    // Parse price
+                    const priceMatch = price.match(/[\$£€]?([\d,]+\.?\d*)/);
+                    const numericPrice = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : null;
+                    
+                    // Extract card details from title
+                    const cardDetails = this.extractCardDetails(title);
+                    
+                    // Determine card type and grade
+                    const cardType = this.determineCardType(title, condition);
+                    const grade = this.extractGrade(title, condition);
+                    
+                    const result = {
+                        title: title,
+                        price: price,
+                        numericPrice: numericPrice,
+                        soldDate: soldDate,
+                        condition: condition,
+                        imageUrl: imageUrl,
+                        itemUrl: itemUrl,
+                        cardDetails: cardDetails,
+                        cardType: cardType,
+                        grade: grade,
+                        sport: cardDetails.sport
+                    };
+                    
+                    results.push(result);
+                    
+                } catch (itemError) {
+                    console.log(`⚠️ Error parsing item ${i}:`, itemError.message);
+                    continue;
+                }
             }
-        });
-        
-        return results;
+            
+            return results;
+            
+        } catch (error) {
+            console.error('❌ Error parsing search results:', error.message);
+            return [];
+        }
     }
 
     /**
