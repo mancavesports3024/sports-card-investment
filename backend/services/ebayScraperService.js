@@ -1,4 +1,5 @@
 const { chromium } = require('playwright');
+const axios = require('axios');
 
 class EbayScraperService {
     constructor() {
@@ -6,6 +7,53 @@ class EbayScraperService {
         this.browser = null;
         this.context = null;
         this.page = null;
+        this.userAgents = [
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        ];
+        this.currentUserAgent = 0;
+    }
+
+    /**
+     * Get a random user agent to avoid detection
+     */
+    getRandomUserAgent() {
+        this.currentUserAgent = (this.currentUserAgent + 1) % this.userAgents.length;
+        return this.userAgents[this.currentUserAgent];
+    }
+
+    /**
+     * Try direct HTTP request first as fallback
+     */
+    async tryDirectHttpRequest(searchUrl) {
+        try {
+            console.log('🌐 Trying direct HTTP request as fallback...');
+            
+            const response = await axios.get(searchUrl, {
+                headers: {
+                    'User-Agent': this.getRandomUserAgent(),
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Accept-Encoding': 'gzip, deflate, br',
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache',
+                    'Sec-Fetch-Dest': 'document',
+                    'Sec-Fetch-Mode': 'navigate',
+                    'Sec-Fetch-Site': 'none',
+                    'Upgrade-Insecure-Requests': '1',
+                    'Referer': 'https://www.ebay.com/'
+                },
+                timeout: 30000
+            });
+
+            console.log(`✅ Direct HTTP request successful (${response.data.length} characters)`);
+            return response.data;
+            
+        } catch (error) {
+            console.log(`⚠️ Direct HTTP request failed: ${error.message}`);
+            return null;
+        }
     }
 
     /**
@@ -117,22 +165,48 @@ class EbayScraperService {
     }
 
     /**
-     * Search for sold cards on eBay using headless browser
+     * Search for sold cards on eBay using headless browser with fallback
      */
     async searchSoldCards(searchTerm, sport = null, maxResults = 50) {
         try {
+            console.log(`🔍 Searching eBay for sold cards: ${searchTerm}`);
+            
+            // Build search URL for sold listings
+            const searchUrl = this.buildSearchUrl(searchTerm, sport);
+            console.log(`🔍 Search URL: ${searchUrl}`);
+
+            // Try direct HTTP request first (faster and less likely to be blocked)
+            console.log('🌐 Trying direct HTTP request first...');
+            const htmlContent = await this.tryDirectHttpRequest(searchUrl);
+            
+            if (htmlContent) {
+                console.log('✅ Direct HTTP request successful, parsing HTML...');
+                const results = this.parseHtmlForCards(htmlContent, maxResults);
+                
+                if (results.length > 0) {
+                    console.log(`✅ Found ${results.length} cards via direct HTTP request`);
+                    return {
+                        success: true,
+                        searchTerm: searchTerm,
+                        sport: sport,
+                        totalResults: results.length,
+                        results: results,
+                        method: 'direct_http'
+                    };
+                } else {
+                    console.log('⚠️ Direct HTTP request returned no results, trying headless browser...');
+                }
+            }
+
+            // Fallback to headless browser if direct request fails or returns no results
+            console.log('🌐 Falling back to headless browser...');
+            
             if (!this.browser) {
                 const initialized = await this.initializeBrowser();
                 if (!initialized) {
                     throw new Error('Failed to initialize browser');
                 }
             }
-
-            console.log(`🔍 Searching eBay for sold cards: ${searchTerm}`);
-            
-            // Build search URL for sold listings
-            const searchUrl = this.buildSearchUrl(searchTerm, sport);
-            console.log(`🔍 Search URL: ${searchUrl}`);
 
             // Navigate to the search page
             console.log('🌐 Navigating to eBay search page...');
@@ -241,7 +315,8 @@ class EbayScraperService {
                             sport: sport || 'Unknown',
                             rawContent: item.text,
                             elementInfo: `${item.tagName}.${item.className}`
-                        }))
+                        })),
+                        method: 'headless_browser_alternative'
                     };
                 }
             }
@@ -268,7 +343,8 @@ class EbayScraperService {
                 searchTerm: searchTerm,
                 sport: sport,
                 totalResults: results.length,
-                results: results
+                results: results,
+                method: 'headless_browser'
             };
 
         } catch (error) {
@@ -410,6 +486,111 @@ class EbayScraperService {
         } catch (error) {
             console.error('❌ Error parsing search results:', error.message);
             return [];
+        }
+    }
+
+    /**
+     * Parse HTML content for card data using regex patterns
+     */
+    parseHtmlForCards(html, maxResults) {
+        try {
+            console.log('🔍 Parsing HTML for card data...');
+            const results = [];
+            
+            // Look for sold item patterns in the HTML
+            const soldItemPatterns = [
+                /<div[^>]*class="[^"]*s-item[^"]*"[^>]*>([\s\S]*?)<\/div>/gi,
+                /<li[^>]*class="[^"]*s-item[^"]*"[^>]*>([\s\S]*?)<\/li>/gi,
+                /<div[^>]*class="[^"]*s-item__wrapper[^"]*"[^>]*>([\s\S]*?)<\/div>/gi
+            ];
+
+            let match;
+            for (const pattern of soldItemPatterns) {
+                while ((match = pattern.exec(html)) !== null && results.length < maxResults) {
+                    try {
+                        const itemHtml = match[1];
+                        const itemData = this.extractItemDataFromHtml(itemHtml);
+                        
+                        if (itemData && itemData.title && itemData.price) {
+                            results.push(itemData);
+                        }
+                    } catch (itemError) {
+                        console.log(`⚠️ Error parsing item: ${itemError.message}`);
+                        continue;
+                    }
+                }
+            }
+
+            console.log(`🔍 Parsed ${results.length} items from HTML`);
+            return results;
+            
+        } catch (error) {
+            console.error('❌ Error parsing HTML:', error.message);
+            return [];
+        }
+    }
+
+    /**
+     * Extract data from a single item's HTML
+     */
+    extractItemDataFromHtml(itemHtml) {
+        try {
+            // Extract title
+            const titleMatch = itemHtml.match(/<span[^>]*class="[^"]*s-item__title[^"]*"[^>]*>([^<]+)<\/span>/i);
+            const title = titleMatch ? titleMatch[1].trim() : '';
+            
+            // Skip "Shop on eBay" items
+            if (!title || title === 'Shop on eBay' || title.includes('Shop on eBay')) {
+                return null;
+            }
+
+            // Extract price
+            const priceMatch = itemHtml.match(/<span[^>]*class="[^"]*s-item__price[^"]*"[^>]*>([^<]+)<\/span>/i);
+            const price = priceMatch ? priceMatch[1].trim() : '';
+            
+            // Extract sold date
+            const soldMatch = itemHtml.match(/<span[^>]*class="[^"]*POSITIVE[^"]*"[^>]*>([^<]+)<\/span>/i);
+            const soldDate = soldMatch ? soldMatch[1].trim() : '';
+            
+            // Extract condition
+            const conditionMatch = itemHtml.match(/<span[^>]*class="[^"]*SECONDARY_INFO[^"]*"[^>]*>([^<]+)<\/span>/i);
+            const condition = conditionMatch ? conditionMatch[1].trim() : '';
+
+            // Extract image URL
+            const imgMatch = itemHtml.match(/<img[^>]*class="[^"]*s-item__image-img[^"]*"[^>]*src="([^"]+)"/i);
+            const imageUrl = imgMatch ? imgMatch[1] : '';
+
+            // Extract item URL
+            const linkMatch = itemHtml.match(/<a[^>]*class="[^"]*s-item__link[^"]*"[^>]*href="([^"]+)"/i);
+            const itemUrl = linkMatch ? linkMatch[1] : '';
+
+            // Parse price to numeric value
+            const numericPrice = this.parsePrice(price);
+            
+            // Extract card details
+            const cardDetails = this.extractCardDetails(title);
+            
+            // Determine card type and grade
+            const cardType = this.determineCardType(title, condition);
+            const grade = this.extractGrade(title, condition);
+
+            return {
+                title: title,
+                price: price,
+                numericPrice: numericPrice,
+                soldDate: soldDate,
+                condition: condition,
+                imageUrl: imageUrl,
+                itemUrl: itemUrl,
+                cardDetails: cardDetails,
+                cardType: cardType,
+                grade: grade,
+                sport: cardDetails.sport
+            };
+
+        } catch (error) {
+            console.log(`⚠️ Error extracting item data: ${error.message}`);
+            return null;
         }
     }
 
