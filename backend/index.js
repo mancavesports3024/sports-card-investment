@@ -6649,3 +6649,175 @@ app.post('/api/psa10-search', async (req, res) => {
     }
 });
 
+// Comprehensive card addition endpoint - PSA 10 first, then raw and PSA 9
+app.post('/api/add-comprehensive-card', async (req, res) => {
+    try {
+        const { searchTerm, sport, maxResults = 20 } = req.body;
+        
+        if (!searchTerm) {
+            return res.status(400).json({
+                success: false,
+                error: 'Search term is required'
+            });
+        }
+
+        console.log(`🔍 Comprehensive card addition: ${searchTerm} (sport: ${sport || 'any'})`);
+        
+        const EbayScraperService = require('./services/ebayScraperService.js');
+        const ebayService = new EbayScraperService();
+        
+        // Step 1: Get PSA 10 cards first
+        const psa10SearchTerm = searchTerm.includes('PSA 10') ? searchTerm : `PSA 10 ${searchTerm}`;
+        const psa10Result = await ebayService.searchSoldCards(psa10SearchTerm, sport, maxResults);
+        
+        if (!psa10Result.success || psa10Result.results.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'No PSA 10 cards found'
+            });
+        }
+
+        // Filter PSA 10 cards ($50+)
+        const psa10Cards = psa10Result.results
+            .filter(item => item.numericPrice >= 50 && item.numericPrice <= 50000)
+            .map(item => ({
+                title: item.title.substring(0, 200),
+                price: item.price,
+                numericPrice: item.numericPrice,
+                itemUrl: item.itemUrl,
+                sport: item.sport,
+                grade: 'PSA 10',
+                soldDate: item.soldDate,
+                ebayItemId: item.rawData?.itemId || null
+            }));
+
+        if (psa10Cards.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'No PSA 10 cards meet price criteria ($50+)'
+            });
+        }
+
+        // Step 2: Generate summary title from first PSA 10 card
+        const firstPsa10Card = psa10Cards[0];
+        const summaryTitle = generateSummaryTitle(firstPsa10Card.title, firstPsa10Card.sport);
+        
+        console.log(`📝 Generated summary title: ${summaryTitle}`);
+
+        // Step 3: Search for raw cards using summary title + negative keywords
+        const rawSearchTerm = `${summaryTitle} -(psa, sgc, bgs, cgc, tag, beckett, hga, csg)`;
+        const rawResult = await ebayService.searchSoldCards(rawSearchTerm, sport, Math.min(maxResults, 10));
+        
+        const rawCards = rawResult.success ? rawResult.results
+            .filter(item => item.numericPrice >= 10 && item.numericPrice <= 50000)
+            .map(item => ({
+                title: item.title.substring(0, 200),
+                price: item.price,
+                numericPrice: item.numericPrice,
+                itemUrl: item.itemUrl,
+                sport: item.sport,
+                grade: 'Raw',
+                soldDate: item.soldDate,
+                ebayItemId: item.rawData?.itemId || null
+            })) : [];
+
+        // Step 4: Search for PSA 9 cards using summary title
+        const psa9SearchTerm = `${summaryTitle} PSA 9`;
+        const psa9Result = await ebayService.searchSoldCards(psa9SearchTerm, sport, Math.min(maxResults, 10));
+        
+        const psa9Cards = psa9Result.success ? psa9Result.results
+            .filter(item => item.numericPrice >= 25 && item.numericPrice <= 50000)
+            .map(item => ({
+                title: item.title.substring(0, 200),
+                price: item.price,
+                numericPrice: item.numericPrice,
+                itemUrl: item.itemUrl,
+                sport: item.sport,
+                grade: 'PSA 9',
+                soldDate: item.soldDate,
+                ebayItemId: item.rawData?.itemId || null
+            })) : [];
+
+        // Step 5: Prepare comprehensive results
+        const comprehensiveResults = {
+            summaryTitle: summaryTitle,
+            searchTerm: searchTerm,
+            sport: sport,
+            psa10: {
+                count: psa10Cards.length,
+                cards: psa10Cards,
+                averagePrice: psa10Cards.length > 0 ? 
+                    Math.round(psa10Cards.reduce((a, b) => a + b.numericPrice, 0) / psa10Cards.length) : 0
+            },
+            psa9: {
+                count: psa9Cards.length,
+                cards: psa9Cards,
+                averagePrice: psa9Cards.length > 0 ? 
+                    Math.round(psa9Cards.reduce((a, b) => a + b.numericPrice, 0) / psa9Cards.length) : 0
+            },
+            raw: {
+                count: rawCards.length,
+                cards: rawCards,
+                averagePrice: rawCards.length > 0 ? 
+                    Math.round(rawCards.reduce((a, b) => a + b.numericPrice, 0) / rawCards.length) : 0
+            }
+        };
+
+        // Step 6: Calculate multipliers if we have both PSA 10 and raw
+        if (comprehensiveResults.psa10.count > 0 && comprehensiveResults.raw.count > 0) {
+            const psa10Avg = comprehensiveResults.psa10.averagePrice;
+            const rawAvg = comprehensiveResults.raw.averagePrice;
+            if (rawAvg > 0) {
+                comprehensiveResults.multiplier = Math.round((psa10Avg / rawAvg) * 100) / 100;
+            }
+        }
+
+        res.json({
+            success: true,
+            message: 'Comprehensive card data collected successfully',
+            data: comprehensiveResults,
+            searchDetails: {
+                psa10Search: psa10SearchTerm,
+                rawSearch: rawSearchTerm,
+                psa9Search: psa9SearchTerm,
+                method: psa10Result.method
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Comprehensive card addition error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            request: req.body
+        });
+    }
+});
+
+// Helper function to generate summary title
+function generateSummaryTitle(title, sport) {
+    // Remove common grading and condition terms
+    let summary = title
+        .replace(/PSA\s+\d+/gi, '')
+        .replace(/SGC\s+\d+/gi, '')
+        .replace(/BGS\s+\d+/gi, '')
+        .replace(/CGC\s+\d+/gi, '')
+        .replace(/TAG\s+\d+/gi, '')
+        .replace(/Beckett\s+\d+/gi, '')
+        .replace(/HGA\s+\d+/gi, '')
+        .replace(/CSG\s+\d+/gi, '')
+        .replace(/GEM\s+MT/gi, '')
+        .replace(/MINT\s+\d+/gi, '')
+        .replace(/Graded/gi, '')
+        .replace(/Card/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    
+    // Add sport context if not present
+    if (sport && !summary.toLowerCase().includes(sport.toLowerCase())) {
+        summary = `${summary} ${sport}`;
+    }
+    
+    return summary;
+}
+
