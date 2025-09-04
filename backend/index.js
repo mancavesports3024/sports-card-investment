@@ -7031,21 +7031,16 @@ function extractCardComponents(title, sport) {
     return components;
 }
 
-// Build a structured summary title from components
+// Build a structured summary title from components (following existing standard)
 function buildSummaryTitle(components) {
-    let parts = [];
+    const parts = [];
     
-    // Player name (if available)
-    if (components.playerName) {
-        parts.push(components.playerName);
-    }
-    
-    // Year
+    // 1. Year (if available)
     if (components.year) {
         parts.push(components.year.toString());
     }
     
-    // Brand + Set
+    // 2. Card Set (Brand + Set combined, if available)
     if (components.brand !== 'Unknown') {
         if (components.setName && components.setName !== 'Base') {
             parts.push(`${components.brand} ${components.setName}`);
@@ -7054,36 +7049,56 @@ function buildSummaryTitle(components) {
         }
     }
     
-    // Card type (if not base)
+    // 3. Card Type (if available and not "Base")
     if (components.cardType && components.cardType !== 'Base') {
         parts.push(components.cardType);
     }
     
-    // Card number
+    // 4. Player Name (if available)
+    if (components.playerName) {
+        parts.push(capitalizePlayerName(components.playerName));
+    }
+    
+    // 5. Auto designation (if it's an autograph)
+    if (components.isAutograph) {
+        parts.push('auto');
+    }
+    
+    // 6. Card Number (if available)
     if (components.cardNumber) {
         parts.push(components.cardNumber);
     }
     
-    // Print run
+    // 7. Print Run (if available)
     if (components.printRun) {
         parts.push(components.printRun);
     }
     
-    // Special flags
-    if (components.isRookie) {
-        parts.push('RC');
-    }
+    // Join components and clean up
+    let summaryTitle = parts.join(' ').trim();
     
-    if (components.isAutograph) {
-        parts.push('AUTO');
-    }
+    // Clean up any extra spaces
+    summaryTitle = summaryTitle.replace(/\s+/g, ' ');
     
-    // Sport
-    if (components.sport && components.sport !== 'unknown') {
-        parts.push(components.sport);
-    }
+    // Remove any trailing punctuation
+    summaryTitle = summaryTitle.replace(/[.,;!?]+$/, '');
     
-    return parts.join(' ');
+    return summaryTitle;
+}
+
+// Helper function to capitalize player name (from existing standard)
+function capitalizePlayerName(playerName) {
+    if (!playerName) return '';
+    
+    return playerName
+        .split(' ')
+        .map(word => {
+            if (word.length <= 2) {
+                return word.toUpperCase(); // For initials like "JJ"
+            }
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        })
+        .join(' ');
 }
 
 // POST /api/admin/run-ebay-fast-batch-pull - Run the eBay fast batch pull
