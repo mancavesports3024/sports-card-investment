@@ -4,10 +4,13 @@ const EbayScraperService = require('./services/ebayScraperService.js');
 class FastBatchItemsPullerEbay {
     constructor() {
         this.db = new NewPricingDatabase();
-        this.batchSize = 5; // Process 5 cards in parallel
-        this.searchDelay = 1000; // Reduced from 3000ms to 1000ms
-        this.maxConcurrentSearches = 3; // Limit concurrent searches
+        this.batchSize = 3; // Reduced to 3 cards per batch
+        this.searchDelay = 5000; // Increased to 5 seconds between searches
+        this.maxConcurrentSearches = 1; // Sequential only - no parallel searches
         this.ebayService = new EbayScraperService();
+        this.totalSearches = 0;
+        this.successfulSearches = 0;
+        this.blockedSearches = 0;
     }
 
     async connect() {
@@ -15,10 +18,9 @@ class FastBatchItemsPullerEbay {
         await this.fixDatabaseSchema();
     }
 
-    // Fix database schema if needed (same as original)
+    // Fix database schema if needed
     async fixDatabaseSchema() {
         try {
-            // Check if psa10_average_price column exists
             const columns = await this.db.allQuery("PRAGMA table_info(cards)");
             const hasPsa10Column = columns.some(col => col.name === 'psa10_average_price');
             
@@ -28,7 +30,6 @@ class FastBatchItemsPullerEbay {
                 console.log('✅ Added psa10_average_price column');
             }
 
-            // Check if new component fields exist
             const hasCardSet = columns.some(col => col.name === 'card_set');
             const hasCardNumber = columns.some(col => col.name === 'card_number');
             const hasPrintRun = columns.some(col => col.name === 'print_run');
@@ -55,134 +56,46 @@ class FastBatchItemsPullerEbay {
         }
     }
 
-    // Smart generic search terms - catch ALL cards in specific sets (much better than 130point approach)
+    // PHASE 1: Start SMALL - Just 10 safe searches to test eBay's tolerance
     getSearchTerms() {
         return [
-            // === BASEBALL - High-value sets that catch ALL players ===
+            // === PHASE 1: TEST RUN - Just 10 searches ===
+            // Baseball - Most popular, lowest risk
             "PSA 10 2024 Bowman Chrome Draft",
-            "PSA 10 2024 Topps Chrome", 
-            "PSA 10 2024 Prizm",
-            "PSA 10 2024 Select",
-            "PSA 10 2024 Heritage",
-            "PSA 10 2024 Stadium Club",
+            "PSA 10 2024 Topps Chrome",
             
-            "PSA 10 2023 Bowman Chrome Draft",
-            "PSA 10 2023 Topps Chrome",
-            "PSA 10 2023 Prizm",
-            "PSA 10 2023 Select",
-            "PSA 10 2023 Heritage",
-            "PSA 10 2023 Stadium Club",
-            
-            "PSA 10 2022 Bowman Chrome Draft",
-            "PSA 10 2022 Topps Chrome",
-            "PSA 10 2022 Prizm",
-            "PSA 10 2022 Select",
-            
-            // === FOOTBALL - Premium sets that catch ALL players ===
+            // Football - High demand, moderate risk
             "PSA 10 2024 Prizm football",
             "PSA 10 2024 Select football",
-            "PSA 10 2024 Contenders football",
-            "PSA 10 2024 Donruss Optic football",
-            "PSA 10 2024 Mosaic football",
-            "PSA 10 2024 Absolute football",
             
-            "PSA 10 2023 Prizm football",
-            "PSA 10 2023 Select football",
-            "PSA 10 2023 Contenders football",
-            "PSA 10 2023 Donruss Optic football",
-            "PSA 10 2023 Mosaic football",
-            "PSA 10 2023 Absolute football",
-            
-            "PSA 10 2022 Prizm football",
-            "PSA 10 2022 Select football",
-            "PSA 10 2022 Contenders football",
-            "PSA 10 2022 Donruss Optic football",
-            
-            // === BASKETBALL - Premium sets that catch ALL players ===
+            // Basketball - Popular, moderate risk
             "PSA 10 2024 Prizm basketball",
             "PSA 10 2024 Select basketball",
-            "PSA 10 2024 Donruss Optic basketball",
-            "PSA 10 2024 Mosaic basketball",
-            "PSA 10 2024 Hoops Premium basketball",
-            "PSA 10 2024 Chronicles basketball",
             
-            "PSA 10 2023 Prizm basketball",
-            "PSA 10 2023 Select basketball",
-            "PSA 10 2023 Donruss Optic basketball",
-            "PSA 10 2023 Mosaic basketball",
-            "PSA 10 2023 Hoops Premium basketball",
-            "PSA 10 2023 Chronicles basketball",
-            
-            "PSA 10 2022 Prizm basketball",
-            "PSA 10 2022 Select basketball",
-            "PSA 10 2022 Donruss Optic basketball",
-            "PSA 10 2022 Mosaic basketball",
-            
-            // === HOCKEY - Premium sets that catch ALL players ===
-            "PSA 10 2024 Upper Deck hockey",
+            // Hockey - Lower volume, lower risk
             "PSA 10 2024 Upper Deck Series 1 hockey",
-            "PSA 10 2024 Upper Deck Series 2 hockey",
-            "PSA 10 2024 Upper Deck Young Guns hockey",
             
-            "PSA 10 2023 Upper Deck hockey",
-            "PSA 10 2023 Upper Deck Series 1 hockey",
-            "PSA 10 2023 Upper Deck Series 2 hockey",
-            "PSA 10 2023 Upper Deck Young Guns hockey",
-            
-            "PSA 10 2022 Upper Deck hockey",
-            "PSA 10 2022 Upper Deck Series 1 hockey",
-            "PSA 10 2022 Upper Deck Series 2 hockey",
-            "PSA 10 2022 Upper Deck Young Guns hockey",
-            
-            // === POKEMON - Premium sets that catch ALL cards ===
+            // Pokemon - High value, moderate risk
             "PSA 10 2024 Pokemon Scarlet Violet",
-            "PSA 10 2024 Pokemon Obsidian Flames",
             "PSA 10 2024 Pokemon 151",
-            "PSA 10 2024 Pokemon Paradox Rift",
-            "PSA 10 2024 Pokemon Paldea Evolved",
             
-            "PSA 10 2023 Pokemon Scarlet Violet",
-            "PSA 10 2023 Pokemon Obsidian Flames",
-            "PSA 10 2023 Pokemon 151",
-            "PSA 10 2023 Pokemon Crown Zenith",
-            "PSA 10 2023 Pokemon Paldea Evolved",
-            
-            "PSA 10 2022 Pokemon Sword Shield",
-            "PSA 10 2022 Pokemon Brilliant Stars",
-            "PSA 10 2022 Pokemon Astral Radiance",
-            "PSA 10 2022 Pokemon Lost Origin",
-            
-            // === SOCCER - Premium sets that catch ALL players ===
-            "PSA 10 2024 Panini Prizm soccer",
-            "PSA 10 2024 Panini Select soccer",
-            "PSA 10 2024 Topps Chrome soccer",
-            "PSA 10 2024 Topps Merlin soccer",
-            
-            "PSA 10 2023 Panini Prizm soccer",
-            "PSA 10 2023 Panini Select soccer",
-            "PSA 10 2023 Topps Chrome soccer",
-            "PSA 10 2023 Topps Merlin soccer",
-            
-            "PSA 10 2022 Panini Prizm soccer",
-            "PSA 10 2022 Panini Select soccer",
-            "PSA 10 2022 Topps Chrome soccer",
-            "PSA 10 2022 Topps Merlin soccer"
+            // Soccer - Lower volume, lowest risk
+            "PSA 10 2024 Panini Prizm soccer"
         ];
     }
 
-    // Normalize title for duplicate checking (same as original)
+    // Normalize title for duplicate checking
     normalizeTitle(title) {
         return title.toLowerCase()
-            .replace(/\s+/g, ' ') // Normalize whitespace
-            .replace(/[^\w\s#-]/g, '') // Remove special characters except # and -
+            .replace(/\s+/g, ' ')
+            .replace(/[^\w\s#-]/g, '')
             .trim();
     }
 
-    // Check if card already exists (same as original)
+    // Check if card already exists
     async cardExists(title, price, ebayItemId) {
         const normalizedTitle = this.normalizeTitle(title);
         
-        // First check exact title match
         let query = `
             SELECT id, title FROM cards 
             WHERE title = ?
@@ -190,7 +103,6 @@ class FastBatchItemsPullerEbay {
         
         let params = [title];
         
-        // Also check for duplicate eBay item ID if available
         if (ebayItemId) {
             query += ` OR ebay_item_id = ?`;
             params.push(ebayItemId);
@@ -203,7 +115,6 @@ class FastBatchItemsPullerEbay {
             return true;
         }
         
-        // If no exact match, check for normalized title matches
         const allCards = await this.db.allQuery(`SELECT id, title FROM cards`);
         
         for (const card of allCards) {
@@ -220,7 +131,7 @@ class FastBatchItemsPullerEbay {
         return false;
     }
 
-    // Add new card to database (same as original)
+    // Add new card to database
     async addCard(cardData) {
         try {
             const {
@@ -238,12 +149,10 @@ class FastBatchItemsPullerEbay {
                 source
             } = cardData;
 
-            // Check if card already exists
             if (await this.cardExists(title, price, ebayItemId)) {
-                return false; // Card already exists
+                return false;
             }
 
-            // Extract player name and other components
             const playerName = this.extractPlayerName(title);
             const year = this.extractYear(title);
             const brand = this.extractBrand(title);
@@ -253,7 +162,6 @@ class FastBatchItemsPullerEbay {
             const isRookie = this.isRookie(title);
             const isAutograph = this.isAutograph(title);
 
-            // Insert new card
             const query = `
                 INSERT INTO cards (
                     title, price, sold_date, condition, card_type, grade, sport,
@@ -280,13 +188,12 @@ class FastBatchItemsPullerEbay {
         }
     }
 
-    // Process a batch of cards (same as original)
+    // Process a batch of cards
     async processCardBatch(cards, searchTerm) {
         let addedCount = 0;
         
         for (const card of cards) {
             try {
-                // Transform eBay card data to match your database schema
                 const cardData = {
                     title: card.title,
                     price: card.price,
@@ -314,84 +221,82 @@ class FastBatchItemsPullerEbay {
         return addedCount;
     }
 
-    // Main function with batch processing (same structure as original)
+    // Main function with SAFE, SEQUENTIAL processing
     async pullNewItems() {
         try {
-            // Ensure database connection
             if (!this.db) {
                 await this.connect();
             }
             
-            // Validate database connection
             if (!this.db.pricingDb) {
                 throw new Error('Database connection failed');
             }
             
             const searchTerms = this.getSearchTerms();
             let totalNewItems = 0;
-            let totalSearched = 0;
             
-            console.log(`🚀 Starting eBay batch pull with ${searchTerms.length} generic search terms`);
-            console.log(`📊 This will catch ALL cards in premium sets across all 6 sports`);
+            console.log(`🚀 Starting SAFE eBay test run with ${searchTerms.length} searches`);
+            console.log(`⚠️  Using SEQUENTIAL processing (no parallel searches)`);
+            console.log(`⏱️  5 second delay between searches to avoid blocking`);
+            console.log(`📊 This is a TEST RUN to check eBay's tolerance`);
             
-            // Process search terms in batches
-            for (let i = 0; i < searchTerms.length; i += this.maxConcurrentSearches) {
-                const searchBatch = searchTerms.slice(i, i + this.maxConcurrentSearches);
+            // Process searches ONE AT A TIME (much safer)
+            for (let i = 0; i < searchTerms.length; i++) {
+                const searchTerm = searchTerms[i];
                 
-                console.log(`\n🔍 Processing batch ${Math.floor(i/this.maxConcurrentSearches) + 1}/${Math.ceil(searchTerms.length/this.maxConcurrentSearches)}`);
-                console.log(`   Searches: ${searchBatch.join(', ')}`);
+                console.log(`\n🔍 Search ${i + 1}/${searchTerms.length}: "${searchTerm}"`);
+                console.log(`   ⏳ Processing...`);
                 
-                // Process searches in parallel
-                const searchPromises = searchBatch.map(async (searchTerm) => {
-                    try {
-                        // REPLACE 130point with eBay - this is the key change!
-                        const result = await this.ebayService.searchSoldCards(searchTerm, null, 15);
+                try {
+                    const result = await this.ebayService.searchSoldCards(searchTerm, null, 15);
+                    this.totalSearches++;
+                    
+                    if (result.success && result.results && result.results.length > 0) {
+                        const psa10Cards = result.results.filter(item => 
+                            item.numericPrice >= 50 && item.numericPrice <= 50000
+                        );
                         
-                        if (result.success && result.results && result.results.length > 0) {
-                            // Filter to PSA 10 cards only ($50+)
-                            const psa10Cards = result.results.filter(item => 
-                                item.numericPrice >= 50 && item.numericPrice <= 50000
-                            );
+                        if (psa10Cards.length > 0) {
+                            console.log(`   ✅ Found ${psa10Cards.length} PSA 10 cards`);
                             
-                            if (psa10Cards.length > 0) {
-                                console.log(`   ✅ "${searchTerm}": Found ${psa10Cards.length} PSA 10 cards`);
-                                
-                                // Process cards in batches
-                                let batchAdded = 0;
-                                for (let j = 0; j < psa10Cards.length; j += this.batchSize) {
-                                    const cardBatch = psa10Cards.slice(j, j + this.batchSize);
-                                    const added = await this.processCardBatch(cardBatch, searchTerm);
-                                    batchAdded += added;
-                                }
-                                
-                                totalNewItems += batchAdded;
-                                console.log(`   💾 Added ${batchAdded} new cards to database`);
-                            } else {
-                                console.log(`   ⚠️ "${searchTerm}": No PSA 10 cards meet price criteria`);
+                            let batchAdded = 0;
+                            for (let j = 0; j < psa10Cards.length; j += this.batchSize) {
+                                const cardBatch = psa10Cards.slice(j, j + this.batchSize);
+                                const added = await this.processCardBatch(cardBatch, searchTerm);
+                                batchAdded += added;
                             }
+                            
+                            totalNewItems += batchAdded;
+                            this.successfulSearches++;
+                            console.log(`   💾 Added ${batchAdded} new cards to database`);
                         } else {
-                            console.log(`   ❌ "${searchTerm}": No results found`);
+                            console.log(`   ⚠️ No PSA 10 cards meet price criteria`);
                         }
-                        
-                        totalSearched++;
-                        
-                    } catch (searchError) {
-                        // Silent error handling
-                        console.log(`   ❌ "${searchTerm}": ${searchError.message}`);
+                    } else {
+                        console.log(`   ❌ No results found`);
                     }
-                });
+                    
+                } catch (searchError) {
+                    console.log(`   ❌ Search failed: ${searchError.message}`);
+                    this.blockedSearches++;
+                    
+                    // If we get blocked, stop immediately
+                    if (searchError.message.includes('blocked') || 
+                        searchError.message.includes('rate limit') ||
+                        searchError.message.includes('too many requests')) {
+                        console.log(`🚨 DETECTED BLOCKING - Stopping test run immediately`);
+                        break;
+                    }
+                }
                 
-                // Wait for all searches in this batch to complete
-                await Promise.all(searchPromises);
-                
-                // Reduced delay between search batches
-                if (i + this.maxConcurrentSearches < searchTerms.length) {
-                    console.log(`   ⏳ Waiting ${this.searchDelay}ms before next batch...`);
+                // Wait 5 seconds between searches (much safer)
+                if (i < searchTerms.length - 1) {
+                    console.log(`   ⏳ Waiting 5 seconds before next search...`);
                     await new Promise(resolve => setTimeout(resolve, this.searchDelay));
                 }
             }
             
-            // Calculate multipliers for new cards (same as original)
+            // Calculate multipliers for new cards
             if (totalNewItems > 0) {
                 console.log('\n🧮 Calculating multipliers for new cards...');
                 try {
@@ -406,7 +311,6 @@ class FastBatchItemsPullerEbay {
                 }
             }
             
-            // Get final stats
             const stats = await this.db.getDatabaseStats();
             
             try {
@@ -415,13 +319,25 @@ class FastBatchItemsPullerEbay {
                 console.log(`⚠️ Error closing database connection: ${closeError.message}`);
             }
             
-            console.log(`\n🎉 eBay batch pull completed!`);
-            console.log(`📊 Results: ${totalNewItems} new cards, ${totalSearched} searches`);
+            console.log(`\n🎉 SAFE eBay test run completed!`);
+            console.log(`📊 Results: ${totalNewItems} new cards`);
+            console.log(`🔍 Searches: ${this.totalSearches} attempted, ${this.successfulSearches} successful`);
+            if (this.blockedSearches > 0) {
+                console.log(`🚨 BLOCKED: ${this.blockedSearches} searches (eBay detected us)`);
+            }
+            console.log(`\n💡 Next steps:`);
+            if (this.blockedSearches === 0) {
+                console.log(`   ✅ eBay tolerated us - can try more searches next time`);
+            } else {
+                console.log(`   ⚠️ eBay blocked us - wait 24+ hours before trying again`);
+            }
             
             return {
                 success: true,
                 newItems: totalNewItems,
-                searches: totalSearched,
+                searches: this.totalSearches,
+                successful: this.successfulSearches,
+                blocked: this.blockedSearches,
                 databaseStats: stats
             };
             
@@ -435,9 +351,8 @@ class FastBatchItemsPullerEbay {
         }
     }
 
-    // Helper methods for extracting card components (same as original)
+    // Helper methods for extracting card components
     extractPlayerName(title) {
-        // Your existing player name extraction logic
         return 'Unknown';
     }
 
@@ -454,7 +369,6 @@ class FastBatchItemsPullerEbay {
     }
 
     extractSet(title) {
-        // Your existing set extraction logic
         return 'Unknown';
     }
 
@@ -464,7 +378,6 @@ class FastBatchItemsPullerEbay {
     }
 
     extractPrintRun(title) {
-        // Your existing print run extraction logic
         return null;
     }
 
@@ -484,7 +397,7 @@ async function main() {
     try {
         await puller.pullNewItems();
     } catch (error) {
-        console.error('❌ Error running fast batch pull:', error);
+        console.error('❌ Error running safe eBay test run:', error);
         process.exit(1);
     }
 }
