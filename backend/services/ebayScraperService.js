@@ -181,7 +181,7 @@ class EbayScraperService {
             
             if (htmlContent) {
                 console.log('✅ Direct HTTP request successful, parsing HTML...');
-                const results = this.parseHtmlForCards(htmlContent, maxResults);
+                const results = this.parseHtmlForCards(htmlContent, maxResults, searchTerm, sport);
                 
                 if (results.length > 0) {
                     console.log(`✅ Found ${results.length} cards via direct HTTP request`);
@@ -492,7 +492,7 @@ class EbayScraperService {
     /**
      * Parse HTML content for card data using updated patterns for eBay's new structure
      */
-    parseHtmlForCards(html, maxResults) {
+    parseHtmlForCards(html, maxResults, searchTerm = null, sport = null) {
         try {
             console.log('🔍 Parsing HTML for card data with updated patterns...');
             const results = [];
@@ -534,24 +534,83 @@ class EbayScraperService {
             
             console.log(`🔍 Found ${prices.length} potential prices in HTML`);
             
-            // Look for card titles (search around the search term)
-            const searchTerm = 'Jackson Holliday 2023 Bowman Chrome Draft';
-            const titlePattern = new RegExp(`([^<>]{20,100}${searchTerm.split(' ').join('[^<>]*')}[^<>]{20,100})`, 'gi');
-            const titles = html.match(titlePattern) || [];
+            // Look for REAL card titles - search for text that looks like card titles
+            // Pattern: Look for text that contains card-related keywords and isn't HTML
+            const titlePatterns = [
+                /<span[^>]*class="[^"]*s-item__title[^"]*"[^>]*>([^<]+)<\/span>/gi,
+                /<h3[^>]*class="[^"]*s-item__title[^"]*"[^>]*>([^<]+)<\/h3>/gi,
+                /<a[^>]*class="[^"]*s-item__link[^"]*"[^>]*>([^<]+)<\/a>/gi,
+                /"title":"([^"]{10,100})"/gi,
+                /"name":"([^"]{10,100})"/gi
+            ];
             
-            console.log(`🔍 Found ${titles.length} potential titles in HTML`);
+            let titles = [];
+            for (const pattern of titlePatterns) {
+                const found = html.match(pattern) || [];
+                // Extract the actual title text from the matches
+                const extractedTitles = found.map(match => {
+                    const titleMatch = match.match(/[>]([^<]+)[<]/);
+                    return titleMatch ? titleMatch[1].trim() : match.replace(/<[^>]*>/g, '').trim();
+                }).filter(title => title.length > 10 && !title.includes('Shop on eBay'));
+                titles = titles.concat(extractedTitles);
+            }
+            
+            // Remove duplicates and filter out non-card titles
+            titles = [...new Set(titles)].filter(title => {
+                const lowerTitle = title.toLowerCase();
+                return title.length > 10 && 
+                       title.length < 200 &&
+                       !lowerTitle.includes('shop on ebay') &&
+                       !lowerTitle.includes('sponsored') &&
+                       !lowerTitle.includes('advertisement') &&
+                       (lowerTitle.includes('card') || 
+                        lowerTitle.includes('psa') || 
+                        lowerTitle.includes('bowman') || 
+                        lowerTitle.includes('topps') ||
+                        lowerTitle.includes('prizm') ||
+                        lowerTitle.includes('select') ||
+                        lowerTitle.includes('upper deck') ||
+                        lowerTitle.includes('pokemon') ||
+                        lowerTitle.includes('football') ||
+                        lowerTitle.includes('basketball') ||
+                        lowerTitle.includes('hockey') ||
+                        lowerTitle.includes('soccer') ||
+                        lowerTitle.includes('baseball'));
+            });
+            
+            console.log(`🔍 Found ${titles.length} potential card titles in HTML`);
+            
+            // If we still don't have good titles, try to extract from the search term context
+            if (titles.length === 0 && searchTerm) {
+                console.log(`🔍 No titles found, trying to extract from search term: ${searchTerm}`);
+                // Look for text that contains parts of the search term
+                const searchWords = searchTerm.split(' ').filter(word => word.length > 2);
+                const contextPattern = new RegExp(`([^<>]{20,150}${searchWords.join('[^<>]*')}[^<>]{20,150})`, 'gi');
+                const contextMatches = html.match(contextPattern) || [];
+                
+                titles = contextMatches.map(match => {
+                    // Clean up the extracted text
+                    return match.replace(/<[^>]*>/g, '')
+                              .replace(/[^\w\s\-\.#]/g, ' ')
+                              .replace(/\s+/g, ' ')
+                              .trim()
+                              .substring(0, 100);
+                }).filter(title => title.length > 20);
+                
+                console.log(`🔍 Extracted ${titles.length} titles from search term context`);
+            }
             
             // Create results from what we found
             for (let i = 0; i < Math.min(maxResults, Math.max(itemIds.length, images.length, prices.length)); i++) {
                 const result = {
-                    title: titles[i] ? titles[i].substring(0, 100) : `Card ${i + 1}`,
+                    title: titles[i] || `Card ${i + 1} - ${searchTerm || 'Unknown'}`,
                     price: prices[i] || 'Price not found',
                     numericPrice: prices[i] ? parseFloat(prices[i].replace(/[\$,]/g, '')) : 0,
                     soldDate: 'Recently sold',
                     condition: 'Unknown',
                     cardType: 'Unknown',
                     grade: null,
-                    sport: 'baseball',
+                    sport: sport || this.detectSportFromTitle(titles[i] || '', searchTerm || ''),
                     imageUrl: images[i] || '',
                     itemUrl: itemIds[i] ? `https://www.ebay.com/itm/${itemIds[i]}` : '',
                     rawData: {
@@ -572,6 +631,23 @@ class EbayScraperService {
             console.error('❌ Error parsing HTML:', error.message);
             return [];
         }
+    }
+
+    /**
+     * Detect sport from title and search term
+     */
+    detectSportFromTitle(title, searchTerm) {
+        const text = `${title} ${searchTerm}`.toLowerCase();
+        
+        if (text.includes('football') || text.includes('nfl')) return 'football';
+        if (text.includes('basketball') || text.includes('nba')) return 'basketball';
+        if (text.includes('hockey') || text.includes('nhl')) return 'hockey';
+        if (text.includes('soccer') || text.includes('mls')) return 'soccer';
+        if (text.includes('pokemon') || text.includes('tcg')) return 'pokemon';
+        if (text.includes('baseball') || text.includes('mlb')) return 'baseball';
+        
+        // Default to baseball only if we're confident
+        return 'unknown';
     }
 
     /**
