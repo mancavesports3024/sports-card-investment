@@ -6822,29 +6822,41 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
                 } else {
                     console.log('🆕 Adding new card to database...');
                     
-                    // Extract year from summary title
-                    const yearMatch = comprehensiveResults.summaryTitle.match(/(19|20)\d{2}/);
-                    const cardYear = yearMatch ? parseInt(yearMatch[0]) : 2024; // Default to 2024
-                    
-                    // Add new card to database
-                    await db.runQuery(`
-                        INSERT INTO cards (
-                            title, summary_title, sport, year,
-                            psa10_price, psa9_average_price, raw_average_price, multiplier,
-                            search_term, source, created_at, last_updated
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-                    `, [
-                        comprehensiveResults.summaryTitle, // Use summary as main title
-                        comprehensiveResults.summaryTitle,
-                        sport || 'unknown',
-                        cardYear,
-                        psa10Price,
-                        psa9Price, 
-                        rawPrice,
-                        comprehensiveResults.multiplier,
-                        searchTerm,
-                        'ebay_comprehensive'
-                    ]);
+                                // Extract all card components from the title
+            const cardComponents = extractCardComponents(comprehensiveResults.summaryTitle, sport);
+            
+            // Build a proper summary title from extracted components
+            const properSummaryTitle = buildSummaryTitle(cardComponents);
+            
+            // Add new card to database with all extracted fields
+            await db.runQuery(`
+                INSERT INTO cards (
+                    title, summary_title, sport, year,
+                    player_name, brand, set_name, card_type, card_number, print_run,
+                    is_rookie, is_autograph,
+                    psa10_price, psa9_average_price, raw_average_price, multiplier,
+                    search_term, source, created_at, last_updated
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+            `, [
+                comprehensiveResults.summaryTitle, // Original cleaned title
+                properSummaryTitle, // Structured summary title
+                cardComponents.sport,
+                cardComponents.year,
+                cardComponents.playerName,
+                cardComponents.brand,
+                cardComponents.setName,
+                cardComponents.cardType,
+                cardComponents.cardNumber,
+                cardComponents.printRun,
+                cardComponents.isRookie ? 1 : 0,
+                cardComponents.isAutograph ? 1 : 0,
+                psa10Price,
+                psa9Price, 
+                rawPrice,
+                comprehensiveResults.multiplier,
+                searchTerm,
+                'ebay_comprehensive'
+            ]);
                     
                     console.log(`✅ Added new card: ${comprehensiveResults.summaryTitle}`);
                 }
@@ -6879,7 +6891,7 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
     }
 });
 
-// Helper function to generate summary title
+// Helper function to generate summary title (legacy)
 function generateSummaryTitle(title, sport) {
     // Remove common grading and condition terms
     let summary = title
@@ -6904,6 +6916,171 @@ function generateSummaryTitle(title, sport) {
     }
     
     return summary;
+}
+
+// Extract all card components from title
+function extractCardComponents(title, sport) {
+    const components = {
+        playerName: '',
+        year: null,
+        brand: '',
+        setName: '',
+        cardType: 'Base',
+        cardNumber: '',
+        printRun: '',
+        isRookie: false,
+        isAutograph: false,
+        sport: sport || 'unknown'
+    };
+    
+    // Extract year
+    const yearMatch = title.match(/(19|20)\d{2}/);
+    components.year = yearMatch ? parseInt(yearMatch[0]) : 2024;
+    
+    // Extract brand
+    if (title.toLowerCase().includes('topps')) components.brand = 'Topps';
+    else if (title.toLowerCase().includes('panini')) components.brand = 'Panini';
+    else if (title.toLowerCase().includes('bowman')) components.brand = 'Bowman';
+    else if (title.toLowerCase().includes('upper deck')) components.brand = 'Upper Deck';
+    else if (title.toLowerCase().includes('donruss')) components.brand = 'Donruss';
+    else if (title.toLowerCase().includes('leaf')) components.brand = 'Leaf';
+    else components.brand = 'Unknown';
+    
+    // Extract set name
+    if (title.toLowerCase().includes('chrome')) {
+        if (title.toLowerCase().includes('draft')) components.setName = 'Chrome Draft';
+        else if (title.toLowerCase().includes('sapphire')) components.setName = 'Chrome Sapphire';
+        else components.setName = 'Chrome';
+    } else if (title.toLowerCase().includes('prizm')) {
+        components.setName = 'Prizm';
+    } else if (title.toLowerCase().includes('select')) {
+        components.setName = 'Select';
+    } else if (title.toLowerCase().includes('optic')) {
+        components.setName = 'Optic';
+    } else if (title.toLowerCase().includes('mosaic')) {
+        components.setName = 'Mosaic';
+    } else if (title.toLowerCase().includes('heritage')) {
+        components.setName = 'Heritage';
+    } else {
+        components.setName = 'Base';
+    }
+    
+    // Extract card type/parallel
+    if (title.toLowerCase().includes('refractor')) {
+        if (title.toLowerCase().includes('gold')) components.cardType = 'Gold Refractor';
+        else if (title.toLowerCase().includes('orange')) components.cardType = 'Orange Refractor';
+        else if (title.toLowerCase().includes('red')) components.cardType = 'Red Refractor';
+        else if (title.toLowerCase().includes('blue')) components.cardType = 'Blue Refractor';
+        else if (title.toLowerCase().includes('green')) components.cardType = 'Green Refractor';
+        else if (title.toLowerCase().includes('silver')) components.cardType = 'Silver Refractor';
+        else if (title.toLowerCase().includes('sapphire')) components.cardType = 'Sapphire Refractor';
+        else components.cardType = 'Refractor';
+    } else if (title.toLowerCase().includes('prizm')) {
+        if (title.toLowerCase().includes('silver')) components.cardType = 'Silver Prizm';
+        else if (title.toLowerCase().includes('gold')) components.cardType = 'Gold Prizm';
+        else components.cardType = 'Prizm';
+    } else if (title.toLowerCase().includes('parallel')) {
+        components.cardType = 'Parallel';
+    }
+    
+    // Extract card number
+    const cardNumberMatch = title.match(/#(\d+)/);
+    components.cardNumber = cardNumberMatch ? `#${cardNumberMatch[1]}` : '';
+    
+    // Extract print run
+    const printRunMatch = title.match(/\/(\d+)/);
+    components.printRun = printRunMatch ? `/${printRunMatch[1]}` : '';
+    
+    // Check for rookie
+    components.isRookie = title.toLowerCase().includes('rookie') || 
+                         title.toLowerCase().includes(' rc ') ||
+                         title.toLowerCase().includes(' rc)') ||
+                         title.toLowerCase().includes('(rc');
+    
+    // Check for autograph
+    components.isAutograph = title.toLowerCase().includes('auto') || 
+                            title.toLowerCase().includes('signature') ||
+                            title.toLowerCase().includes('signed');
+    
+    // Extract player name (this is the tricky part)
+    // Look for player names at the beginning of the title
+    const words = title.split(' ');
+    const playerWords = [];
+    
+    // Common non-player words to stop at
+    const stopWords = ['psa', 'sgc', 'bgs', 'cgc', '2024', '2023', '2022', '2021', 
+                      'topps', 'panini', 'bowman', 'upper', 'deck', 'donruss', 'leaf',
+                      'chrome', 'prizm', 'select', 'optic', 'mosaic', 'heritage',
+                      'refractor', 'parallel', 'rookie', 'auto', 'autograph'];
+    
+    for (let i = 0; i < Math.min(words.length, 4); i++) {
+        const word = words[i].toLowerCase().replace(/[^\w]/g, '');
+        if (stopWords.includes(word) || /^\d+$/.test(word)) {
+            break;
+        }
+        if (word.length > 1) {
+            playerWords.push(words[i]);
+        }
+    }
+    
+    components.playerName = playerWords.join(' ').replace(/[^\w\s'-]/g, '').trim();
+    
+    return components;
+}
+
+// Build a structured summary title from components
+function buildSummaryTitle(components) {
+    let parts = [];
+    
+    // Player name (if available)
+    if (components.playerName) {
+        parts.push(components.playerName);
+    }
+    
+    // Year
+    if (components.year) {
+        parts.push(components.year.toString());
+    }
+    
+    // Brand + Set
+    if (components.brand !== 'Unknown') {
+        if (components.setName && components.setName !== 'Base') {
+            parts.push(`${components.brand} ${components.setName}`);
+        } else {
+            parts.push(components.brand);
+        }
+    }
+    
+    // Card type (if not base)
+    if (components.cardType && components.cardType !== 'Base') {
+        parts.push(components.cardType);
+    }
+    
+    // Card number
+    if (components.cardNumber) {
+        parts.push(components.cardNumber);
+    }
+    
+    // Print run
+    if (components.printRun) {
+        parts.push(components.printRun);
+    }
+    
+    // Special flags
+    if (components.isRookie) {
+        parts.push('RC');
+    }
+    
+    if (components.isAutograph) {
+        parts.push('AUTO');
+    }
+    
+    // Sport
+    if (components.sport && components.sport !== 'unknown') {
+        parts.push(components.sport);
+    }
+    
+    return parts.join(' ');
 }
 
 // POST /api/admin/run-ebay-fast-batch-pull - Run the eBay fast batch pull
