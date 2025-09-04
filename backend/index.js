@@ -59,6 +59,9 @@ const {
 // Import NewPricingDatabase for admin endpoints
 const NewPricingDatabase = require('./create-new-pricing-database.js');
 
+// Import the centralized player name extraction system
+const SimplePlayerExtractor = require('./simple-player-extraction.js');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -7011,7 +7014,6 @@ function extractCardComponents(title, sport) {
                             title.toLowerCase().includes('signed');
     
     // Use the centralized player name extraction system
-    const SimplePlayerExtractor = require('./simple-player-extraction.js');
     const extractor = new SimplePlayerExtractor();
     components.playerName = extractor.extractPlayerName(title);
     
