@@ -6775,68 +6775,86 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
         // Step 7: STORE the data in the database (this was missing!)
         console.log('💾 Storing comprehensive card data in database...');
         
-        const NewPricingDatabase = require('./create-new-pricing-database.js');
-        const db = new NewPricingDatabase();
-        await db.connect();
+        // Validate pricing data first (handle database constraints)
+        const psa10Price = comprehensiveResults.psa10.averagePrice || 0;
+        const psa9Price = comprehensiveResults.psa9.averagePrice || 0;
+        const rawPrice = comprehensiveResults.raw.averagePrice || 0;
         
-        // Check if this card already exists in database
-        const existingCard = await db.getQuery(
-            `SELECT id FROM cards WHERE title = ? OR summary_title = ? LIMIT 1`,
-            [comprehensiveResults.summaryTitle, comprehensiveResults.summaryTitle]
-        );
-        
-        if (existingCard) {
-            console.log('⚠️ Card already exists in database, updating prices...');
-            
-            // Update existing card with new pricing data
-            await db.runQuery(`
-                UPDATE cards SET 
-                    psa10_price = ?,
-                    psa9_average_price = ?,
-                    raw_average_price = ?,
-                    multiplier = ?,
-                    last_updated = datetime('now')
-                WHERE id = ?
-            `, [
-                comprehensiveResults.psa10.averagePrice,
-                comprehensiveResults.psa9.averagePrice, 
-                comprehensiveResults.raw.averagePrice,
-                comprehensiveResults.multiplier,
-                existingCard.id
-            ]);
-            
-            console.log(`✅ Updated existing card: ${comprehensiveResults.summaryTitle}`);
+        // Skip storage if data doesn't make business sense
+        if (rawPrice > psa10Price && psa10Price > 0) {
+            console.log('⚠️ Skipping database storage: Raw price higher than PSA 10 price (data anomaly)');
+            console.log(`   PSA 10: $${psa10Price}, Raw: $${rawPrice}`);
+        } else if (psa10Price === 0) {
+            console.log('⚠️ Skipping database storage: No PSA 10 price data available');
         } else {
-            console.log('🆕 Adding new card to database...');
-            
-            // Extract year from summary title
-            const yearMatch = comprehensiveResults.summaryTitle.match(/(19|20)\d{2}/);
-            const cardYear = yearMatch ? parseInt(yearMatch[0]) : 2024; // Default to 2024
-            
-            // Add new card to database
-            await db.runQuery(`
-                INSERT INTO cards (
-                    title, summary_title, sport, year,
-                    psa10_price, psa9_average_price, raw_average_price, multiplier,
-                    search_term, source, created_at, last_updated
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-            `, [
-                comprehensiveResults.summaryTitle, // Use summary as main title
-                comprehensiveResults.summaryTitle,
-                sport || 'unknown',
-                cardYear,
-                comprehensiveResults.psa10.averagePrice,
-                comprehensiveResults.psa9.averagePrice, 
-                comprehensiveResults.raw.averagePrice,
-                comprehensiveResults.multiplier,
-                searchTerm,
-                'ebay_comprehensive'
-            ]);
-            
-            console.log(`✅ Added new card: ${comprehensiveResults.summaryTitle}`);
+            try {
+                const NewPricingDatabase = require('./create-new-pricing-database.js');
+                const db = new NewPricingDatabase();
+                await db.connect();
+                
+                // Check if this card already exists in database
+                const existingCard = await db.getQuery(
+                    `SELECT id FROM cards WHERE title = ? OR summary_title = ? LIMIT 1`,
+                    [comprehensiveResults.summaryTitle, comprehensiveResults.summaryTitle]
+                );
+                
+                if (existingCard) {
+                    console.log('⚠️ Card already exists in database, updating prices...');
+                    
+                    // Update existing card with new pricing data
+                    await db.runQuery(`
+                        UPDATE cards SET 
+                            psa10_price = ?,
+                            psa9_average_price = ?,
+                            raw_average_price = ?,
+                            multiplier = ?,
+                            last_updated = datetime('now')
+                        WHERE id = ?
+                    `, [
+                        psa10Price,
+                        psa9Price, 
+                        rawPrice,
+                        comprehensiveResults.multiplier,
+                        existingCard.id
+                    ]);
+                    
+                    console.log(`✅ Updated existing card: ${comprehensiveResults.summaryTitle}`);
+                } else {
+                    console.log('🆕 Adding new card to database...');
+                    
+                    // Extract year from summary title
+                    const yearMatch = comprehensiveResults.summaryTitle.match(/(19|20)\d{2}/);
+                    const cardYear = yearMatch ? parseInt(yearMatch[0]) : 2024; // Default to 2024
+                    
+                    // Add new card to database
+                    await db.runQuery(`
+                        INSERT INTO cards (
+                            title, summary_title, sport, year,
+                            psa10_price, psa9_average_price, raw_average_price, multiplier,
+                            search_term, source, created_at, last_updated
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+                    `, [
+                        comprehensiveResults.summaryTitle, // Use summary as main title
+                        comprehensiveResults.summaryTitle,
+                        sport || 'unknown',
+                        cardYear,
+                        psa10Price,
+                        psa9Price, 
+                        rawPrice,
+                        comprehensiveResults.multiplier,
+                        searchTerm,
+                        'ebay_comprehensive'
+                    ]);
+                    
+                    console.log(`✅ Added new card: ${comprehensiveResults.summaryTitle}`);
+                }
+                
+                await db.close();
+            } catch (dbError) {
+                console.error('❌ Database storage error:', dbError.message);
+                console.log('📊 Continuing with data collection despite storage issue...');
+            }
         }
-        
-        await db.close();
 
         res.json({
             success: true,
