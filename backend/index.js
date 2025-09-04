@@ -6809,17 +6809,22 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
         } else {
             console.log('🆕 Adding new card to database...');
             
+            // Extract year from summary title
+            const yearMatch = comprehensiveResults.summaryTitle.match(/(19|20)\d{2}/);
+            const cardYear = yearMatch ? parseInt(yearMatch[0]) : 2024; // Default to 2024
+            
             // Add new card to database
             await db.runQuery(`
                 INSERT INTO cards (
-                    title, summary_title, sport, 
+                    title, summary_title, sport, year,
                     psa10_price, psa9_average_price, raw_average_price, multiplier,
                     search_term, source, created_at, last_updated
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
             `, [
                 comprehensiveResults.summaryTitle, // Use summary as main title
                 comprehensiveResults.summaryTitle,
                 sport || 'unknown',
+                cardYear,
                 comprehensiveResults.psa10.averagePrice,
                 comprehensiveResults.psa9.averagePrice, 
                 comprehensiveResults.raw.averagePrice,
