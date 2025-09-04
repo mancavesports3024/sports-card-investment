@@ -6716,7 +6716,7 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
         
         // Add -auto to exclude autographs if this is not an autograph card
         const autoExclusion = cardComponents.isAutograph ? '' : ' -auto';
-        const rawSearchTerm = `"${cleanSummaryForRaw}" -psa -sgc -bgs -cgc -tag -beckett -hga -csg${autoExclusion}`;
+        const rawSearchTerm = `${cleanSummaryForRaw} -psa -sgc -bgs -cgc -tag -beckett -hga -csg${autoExclusion}`;
         const rawResult = await ebayService.searchSoldCards(rawSearchTerm, sport, Math.min(maxResults, 10));
         
         const rawCards = rawResult.success ? rawResult.results
@@ -6735,7 +6735,7 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
         // Step 4: Search for PSA 9 cards using summary title
         // Add -auto to exclude autographs if this is not an autograph card
         const psa9AutoExclusion = cardComponents.isAutograph ? '' : ' -auto';
-        const psa9SearchTerm = `"${summaryTitle}" PSA 9${psa9AutoExclusion}`;
+        const psa9SearchTerm = `${summaryTitle} PSA 9${psa9AutoExclusion}`;
         const psa9Result = await ebayService.searchSoldCards(psa9SearchTerm, sport, Math.min(maxResults, 10));
         
         const psa9Cards = psa9Result.success ? psa9Result.results
