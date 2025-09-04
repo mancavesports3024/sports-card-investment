@@ -29,7 +29,7 @@ class SimplePlayerExtractor {
             'o pee chee', 'o-pee-chee', 'brilliant full art', 'etopps classic', 'slania stamps', 'helmet heroes', 'world champion boxers', 'east west', 'duos', 'artist proof', 'anniversary', 'bomb squad rapture', 'big man on campus', 'young dolph', 'it up', 'ultra violet', 'bo knows', 'x meta', 'p p', 'hh', 'mega', 'pro', 'hh',
             
             // Additional Card Set Terms from Remaining 4+ Word Analysis
-            'throwback thursday', 'greetings winter', 'synergy', 'tint', '30th', 'dye', 'prodigies', 'year one', 'vmax', 'star', 'ultra violet', 'vmax', 'e x2001', 'e-x2001', 'x meta', 'p p', 'x vision', 'p.p.', 'x vision', 'x meta'
+            'throwback thursday', 'greetings winter', 'synergy', 'tint', '30th', 'dye', 'prodigies', 'year one', 'vmax', 'star', 'ultra violet', 'vmax', 'e x2001', 'e-x2001', 'x meta', 'p p', 'x vision', 'p.p.', 'x vision', 'x meta', 'selections'
         ];
 
         // Card type terms - Updated with comprehensive list
