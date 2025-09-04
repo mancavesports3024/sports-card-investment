@@ -7010,28 +7010,10 @@ function extractCardComponents(title, sport) {
                             title.toLowerCase().includes('signature') ||
                             title.toLowerCase().includes('signed');
     
-    // Extract player name (this is the tricky part)
-    // Look for player names at the beginning of the title
-    const words = title.split(' ');
-    const playerWords = [];
-    
-    // Common non-player words to stop at
-    const stopWords = ['psa', 'sgc', 'bgs', 'cgc', '2024', '2023', '2022', '2021', 
-                      'topps', 'panini', 'bowman', 'upper', 'deck', 'donruss', 'leaf',
-                      'chrome', 'prizm', 'select', 'optic', 'mosaic', 'heritage',
-                      'refractor', 'parallel', 'rookie', 'auto', 'autograph'];
-    
-    for (let i = 0; i < Math.min(words.length, 4); i++) {
-        const word = words[i].toLowerCase().replace(/[^\w]/g, '');
-        if (stopWords.includes(word) || /^\d+$/.test(word)) {
-            break;
-        }
-        if (word.length > 1) {
-            playerWords.push(words[i]);
-        }
-    }
-    
-    components.playerName = playerWords.join(' ').replace(/[^\w\s'-]/g, '').trim();
+    // Use the centralized player name extraction system
+    const SimplePlayerExtractor = require('./simple-player-extraction.js');
+    const extractor = new SimplePlayerExtractor();
+    components.playerName = extractor.extractPlayerName(title);
     
     return components;
 }
