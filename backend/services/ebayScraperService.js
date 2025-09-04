@@ -535,23 +535,78 @@ class EbayScraperService {
             console.log(`🔍 Found ${prices.length} potential prices in HTML`);
             
             // Look for REAL card titles - search for text that looks like card titles
-            // Pattern: Look for text that contains card-related keywords and isn't HTML
+            // Enhanced patterns to get actual card titles
             const titlePatterns = [
+                // eBay item title spans
                 /<span[^>]*class="[^"]*s-item__title[^"]*"[^>]*>([^<]+)<\/span>/gi,
                 /<h3[^>]*class="[^"]*s-item__title[^"]*"[^>]*>([^<]+)<\/h3>/gi,
-                /<a[^>]*class="[^"]*s-item__link[^"]*"[^>]*>([^<]+)<\/a>/gi,
-                /"title":"([^"]{10,100})"/gi,
-                /"name":"([^"]{10,100})"/gi
+                // Link titles with actual card names
+                /<a[^>]*title="([^"]{20,150})"[^>]*>/gi,
+                // JSON-style titles but clean them up
+                /"title":"([^"]{20,150})"/gi,
+                // Alternative JSON patterns
+                /"name":"([^"]{15,100})"/gi,
+                // Card-specific patterns that contain PSA, player names, etc.
+                />([\w\s]{10,100}(?:PSA|SGC|BGS)[\w\s\d]{10,100})</gi,
+                // Look for specific card terms
+                />([^<]{15,120}(?:Bowman|Topps|Prizm|Select|Chrome|Draft)[\w\s\d#\/\-]{10,120})</gi
             ];
             
             let titles = [];
             for (const pattern of titlePatterns) {
                 const found = html.match(pattern) || [];
-                // Extract the actual title text from the matches
+                // Extract and clean the actual title text
                 const extractedTitles = found.map(match => {
-                    const titleMatch = match.match(/[>]([^<]+)[<]/);
-                    return titleMatch ? titleMatch[1].trim() : match.replace(/<[^>]*>/g, '').trim();
-                }).filter(title => title.length > 10 && !title.includes('Shop on eBay'));
+                    // Try different extraction methods
+                    let title = '';
+                    
+                    // For HTML tag matches, extract content between > and <
+                    const htmlMatch = match.match(/[>]([^<]+)[<]/);
+                    if (htmlMatch) {
+                        title = htmlMatch[1].trim();
+                    } else {
+                        // For quoted matches, extract the quoted content
+                        const quotedMatch = match.match(/"([^"]+)"/);
+                        if (quotedMatch) {
+                            title = quotedMatch[1].trim();
+                        } else {
+                            // Fallback: remove all HTML and quotes
+                            title = match.replace(/<[^>]*>/g, '').replace(/['"]/g, '').trim();
+                        }
+                    }
+                    
+                    // Clean up the title
+                    title = title
+                        .replace(/&amp;/g, '&')
+                        .replace(/&lt;/g, '<')
+                        .replace(/&gt;/g, '>')
+                        .replace(/&quot;/g, '"')
+                        .replace(/\+/g, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                    
+                    return title;
+                }).filter(title => {
+                    return title.length > 15 && 
+                           title.length < 200 &&
+                           !title.includes('Shop on eBay') &&
+                           !title.includes('Your shopping destination') &&
+                           !title.includes('electronics and accessories') &&
+                           !title.includes('sponsored') &&
+                           // Must contain card-related terms
+                           (title.toLowerCase().includes('psa') ||
+                            title.toLowerCase().includes('sgc') ||
+                            title.toLowerCase().includes('bgc') ||
+                            title.toLowerCase().includes('bowman') ||
+                            title.toLowerCase().includes('topps') ||
+                            title.toLowerCase().includes('prizm') ||
+                            title.toLowerCase().includes('select') ||
+                            title.toLowerCase().includes('chrome') ||
+                            title.toLowerCase().includes('draft') ||
+                            title.toLowerCase().includes('card') ||
+                            title.toLowerCase().includes('rookie') ||
+                            title.toLowerCase().includes('auto'));
+                });
                 titles = titles.concat(extractedTitles);
             }
             
