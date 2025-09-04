@@ -6707,10 +6707,10 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
         
         console.log(`📝 Generated structured summary title: ${summaryTitle}`);
 
-        // Step 3: Search for raw cards using clean summary title
+        // Step 3: Search for raw cards using comprehensive negative keywords
         // Create a cleaner search term without complex punctuation  
         const cleanSummaryForRaw = summaryTitle.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
-        const rawSearchTerm = cleanSummaryForRaw;
+        const rawSearchTerm = `${cleanSummaryForRaw} -psa -sgc -bgs -cgc -tag -beckett -hga -csg`;
         const rawResult = await ebayService.searchSoldCards(rawSearchTerm, sport, Math.min(maxResults, 10));
         
         const rawCards = rawResult.success ? rawResult.results
