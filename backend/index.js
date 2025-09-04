@@ -6772,10 +6772,72 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
             }
         }
 
+        // Step 7: STORE the data in the database (this was missing!)
+        console.log('💾 Storing comprehensive card data in database...');
+        
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        // Check if this card already exists in database
+        const existingCard = await db.getQuery(
+            `SELECT id FROM cards WHERE title = ? OR summary_title = ? LIMIT 1`,
+            [comprehensiveResults.summaryTitle, comprehensiveResults.summaryTitle]
+        );
+        
+        if (existingCard) {
+            console.log('⚠️ Card already exists in database, updating prices...');
+            
+            // Update existing card with new pricing data
+            await db.runQuery(`
+                UPDATE cards SET 
+                    psa10_price = ?,
+                    psa9_average_price = ?,
+                    raw_average_price = ?,
+                    multiplier = ?,
+                    last_updated = datetime('now')
+                WHERE id = ?
+            `, [
+                comprehensiveResults.psa10.averagePrice,
+                comprehensiveResults.psa9.averagePrice, 
+                comprehensiveResults.raw.averagePrice,
+                comprehensiveResults.multiplier,
+                existingCard.id
+            ]);
+            
+            console.log(`✅ Updated existing card: ${comprehensiveResults.summaryTitle}`);
+        } else {
+            console.log('🆕 Adding new card to database...');
+            
+            // Add new card to database
+            await db.runQuery(`
+                INSERT INTO cards (
+                    title, summary_title, sport, 
+                    psa10_price, psa9_average_price, raw_average_price, multiplier,
+                    search_term, source, created_at, last_updated
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+            `, [
+                comprehensiveResults.summaryTitle, // Use summary as main title
+                comprehensiveResults.summaryTitle,
+                sport || 'unknown',
+                comprehensiveResults.psa10.averagePrice,
+                comprehensiveResults.psa9.averagePrice, 
+                comprehensiveResults.raw.averagePrice,
+                comprehensiveResults.multiplier,
+                searchTerm,
+                'ebay_comprehensive'
+            ]);
+            
+            console.log(`✅ Added new card: ${comprehensiveResults.summaryTitle}`);
+        }
+        
+        await db.close();
+
         res.json({
             success: true,
-            message: 'Comprehensive card data collected successfully',
+            message: 'Comprehensive card data collected and stored successfully',
             data: comprehensiveResults,
+            stored: existingCard ? 'updated' : 'created',
             searchDetails: {
                 psa10Search: psa10SearchTerm,
                 rawSearch: rawSearchTerm,
