@@ -6860,7 +6860,7 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
             success: true,
             message: 'Comprehensive card data collected and stored successfully',
             data: comprehensiveResults,
-            stored: existingCard ? 'updated' : 'created',
+            stored: 'processed',
             searchDetails: {
                 psa10Search: psa10SearchTerm,
                 rawSearch: rawSearchTerm,
