@@ -6698,14 +6698,19 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
             });
         }
 
-        // Step 2: Generate summary title from first PSA 10 card
+        // Step 2: Generate structured summary title from first PSA 10 card
         const firstPsa10Card = psa10Cards[0];
-        const summaryTitle = generateSummaryTitle(firstPsa10Card.title, firstPsa10Card.sport);
         
-        console.log(`📝 Generated summary title: ${summaryTitle}`);
+        // Extract card components and build proper summary title
+        const cardComponents = extractCardComponents(firstPsa10Card.title, firstPsa10Card.sport);
+        const summaryTitle = buildSummaryTitle(cardComponents);
+        
+        console.log(`📝 Generated structured summary title: ${summaryTitle}`);
 
-        // Step 3: Search for raw cards using summary title + negative keywords
-        const rawSearchTerm = `${summaryTitle} -(psa, sgc, bgs, cgc, tag, beckett, hga, csg)`;
+        // Step 3: Search for raw cards using simpler, more effective search
+        // Create a cleaner search term without complex punctuation
+        const cleanSummaryForRaw = summaryTitle.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+        const rawSearchTerm = `${cleanSummaryForRaw} -psa -sgc -graded -beckett`;
         const rawResult = await ebayService.searchSoldCards(rawSearchTerm, sport, Math.min(maxResults, 10));
         
         const rawCards = rawResult.success ? rawResult.results
