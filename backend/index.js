@@ -6821,3 +6821,30 @@ function generateSummaryTitle(title, sport) {
     return summary;
 }
 
+// POST /api/admin/run-ebay-fast-batch-pull - Run the eBay fast batch pull
+app.post('/api/admin/run-ebay-fast-batch-pull', async (req, res) => {
+    try {
+        console.log('🚀 Starting eBay fast batch pull...');
+        
+        const { FastBatchItemsPullerEbay } = require('./fast-batch-pull-ebay.js');
+        const puller = new FastBatchItemsPullerEbay();
+        
+        const result = await puller.pullNewItems();
+        
+        res.json({
+            success: true,
+            message: 'eBay fast batch pull completed successfully',
+            data: result,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error running eBay fast batch pull:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
