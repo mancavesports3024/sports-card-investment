@@ -6784,6 +6784,9 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
         if (rawPrice > psa10Price && psa10Price > 0) {
             console.log('⚠️ Skipping database storage: Raw price higher than PSA 10 price (data anomaly)');
             console.log(`   PSA 10: $${psa10Price}, Raw: $${rawPrice}`);
+        } else if (psa9Price > psa10Price && psa10Price > 0) {
+            console.log('⚠️ Skipping database storage: PSA 9 price higher than PSA 10 price (data anomaly)');
+            console.log(`   PSA 10: $${psa10Price}, PSA 9: $${psa9Price}`);
         } else if (psa10Price === 0) {
             console.log('⚠️ Skipping database storage: No PSA 10 price data available');
         } else {
