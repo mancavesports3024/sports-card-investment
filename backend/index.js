@@ -6746,7 +6746,8 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
                 ebayItemId: item.rawData?.itemId || null
             }));
         
-        const psa9Cards = allCards
+        // First try to get PSA 9 from comprehensive search
+        let psa9Cards = allCards
             .filter(item => {
                 const title = item.title.toLowerCase();
                 // PSA 9: must contain "psa 9" but not "psa 10"
@@ -6770,6 +6771,27 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
                 soldDate: item.soldDate,
                 ebayItemId: item.rawData?.itemId || null
             }));
+        
+        // If comprehensive search didn't find PSA 9 cards, do a dedicated PSA 9 search
+        if (psa9Cards.length === 0) {
+            console.log(`🔍 No PSA 9 found in comprehensive search, trying dedicated PSA 9 search`);
+            const autoExclusion = cardComponents.isAutograph ? '' : ' -auto';
+            const psa9SearchTerm = `${summaryTitle} PSA 9${autoExclusion}`;
+            const psa9Result = await ebayService.searchSoldCards(psa9SearchTerm, sport, 10, 'PSA 9', cardComponents.isAutograph, cardComponents.printRun);
+            
+            psa9Cards = psa9Result.success ? psa9Result.results
+                .filter(item => item.numericPrice >= 25 && item.numericPrice <= 50000)
+                .map(item => ({
+                    title: item.title.substring(0, 200),
+                    price: item.price,
+                    numericPrice: item.numericPrice,
+                    itemUrl: item.itemUrl,
+                    sport: item.sport,
+                    grade: 'PSA 9',
+                    soldDate: item.soldDate,
+                    ebayItemId: item.rawData?.itemId || null
+                })) : [];
+        }
         
         console.log(`🔍 Filtered results: ${rawCards.length} Raw, ${psa9Cards.length} PSA 9`);
 
