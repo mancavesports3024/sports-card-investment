@@ -103,6 +103,12 @@ class EbayScraperService {
         // Add filters for sold items (match working eBay format)
         searchUrl += '&_sacat=0&LH_Complete=1&LH_Sold=1';
         
+        // Debug logging to see exact search terms and URLs
+        console.log(`🔍 DEBUG - Original search term: "${searchTerm}"`);
+        console.log(`🔍 DEBUG - Cleaned search term: "${cleanTerm}"`);
+        console.log(`🔍 DEBUG - Encoded search term: "${encodeURIComponent(cleanTerm)}"`);
+        console.log(`🔍 DEBUG - Final search URL: ${searchUrl}`);
+        
         // Add sport-specific category if provided
         if (sport) {
             const sportCategories = {
