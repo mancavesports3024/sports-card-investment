@@ -1,6 +1,6 @@
 const axios = require('axios');
 const qs = require('querystring');
-const { chromium } = require('playwright');
+// Playwright removed - 130point service uses direct HTTP only
 
 // Use the backend API endpoint that was working
 const ONEPOINT_URL = 'https://back.130point.com/sales/';
@@ -47,6 +47,7 @@ class OnePointService {
             let cookieHeader = '';
             try {
                 const preload = await axios.get('https://130point.com/sales/', {
+       
                     headers: preloadHeaders,
                     timeout: 15000
                 });
@@ -224,34 +225,15 @@ class OnePointService {
         }
     }
 
-    // Headless browser fallback for when regular API calls fail
+    // Headless browser fallback disabled - using direct HTTP only
     async search130pointWithHeadlessBrowser(keywords) {
-        let browser = null;
-        let page = null;
-        
-        try {
-            console.log(`🔍 130pointService HEADLESS: Starting headless browser search for: "${keywords}"`);
-            
-            // Launch browser with specific flags for Railway environment
-            browser = await chromium.launch({
-                headless: true,
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-accelerated-2d-canvas',
-                    '--no-first-run',
-                    '--no-zygote',
-                    '--disable-gpu'
-                ]
-            });
-            
-            const context = await browser.newContext({
-                userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
-                viewport: { width: 1280, height: 720 }
-            });
-            
-            page = await context.newPage();
+        console.log(`🔍 130pointService: Headless browser search disabled for: "${keywords}"`);
+        return { 
+            rawHtml: '<div>Headless browser search disabled</div>', 
+            parsedResults: [], 
+            requestUrl: 'headless-disabled', 
+            requestMethod: 'GET' 
+        };
             
             // Navigate to the main sales page first
             console.log('🔍 130pointService HEADLESS: Loading main sales page...');
