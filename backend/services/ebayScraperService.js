@@ -476,10 +476,10 @@ class EbayScraperService {
                 return (title.includes('psa 9') || title.includes('psa-9')) && 
                        !title.includes('psa 10') && !title.includes('psa-10');
             } else if (expectedGrade === 'Raw') {
-                // Must NOT contain any grading company terms
+                // Must NOT contain any grading company terms (be more specific to avoid excluding raw condition descriptions)
                 const gradingTerms = [
                     'psa', 'sgc', 'bgs', 'cgc', 'tag', 'beckett', 'hga', 'csg',
-                    'graded', 'gem mint', 'mint', 'near mint', 'nm-mt'
+                    'graded', 'psa 10', 'psa 9', 'psa 8', 'gem mt', 'psa gem'
                 ];
                 return !gradingTerms.some(term => title.includes(term));
             }
@@ -533,8 +533,8 @@ class EbayScraperService {
             const matches = title.match(printRunPattern);
             
             if (!matches) {
-                // If no print run found and target has no print run, keep it
-                return !targetPrintRun;
+                // If no print run found, keep it regardless (could be base card vs parallel)
+                return true;
             }
             
             // Check if any found print run matches the target
