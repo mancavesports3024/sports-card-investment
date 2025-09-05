@@ -6734,7 +6734,7 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
 
         // Step 4: Search for PSA 9 cards using summary title
         // Add -auto to exclude autographs if this is not an autograph card
-        const psa9AutoExclusion = cardComponents.isAutograph ? '' : ' -auto';
+        const psa9AutoExclusion = cardComponents.isAutograph ? '' : ' -auto';  
         const psa9SearchTerm = `${summaryTitle} PSA 9${psa9AutoExclusion}`;
         const psa9Result = await ebayService.searchSoldCards(psa9SearchTerm, sport, Math.min(maxResults, 10));
         

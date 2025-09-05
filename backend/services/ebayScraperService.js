@@ -141,8 +141,8 @@ class EbayScraperService {
         // Build the search URL with sold filter
         let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${encodeURIComponent(cleanTerm)}`;
         
-        // Add filters for sold items
-        searchUrl += '&_sacat=0&LH_Sold=1&_dmd=2';
+        // Add filters for sold items (match working eBay format)
+        searchUrl += '&_sacat=0&LH_Complete=1&LH_Sold=1';
         
         // Add sport-specific category if provided
         if (sport) {
@@ -537,24 +537,37 @@ class EbayScraperService {
             // Look for REAL card titles - search for text that looks like card titles
             // Enhanced patterns to get actual card titles
             const titlePatterns = [
-                // eBay item title spans
+                // Modern eBay item title patterns (updated 2024)
                 /<span[^>]*class="[^"]*s-item__title[^"]*"[^>]*>([^<]+)<\/span>/gi,
                 /<h3[^>]*class="[^"]*s-item__title[^"]*"[^>]*>([^<]+)<\/h3>/gi,
-                // Link titles with actual card names
-                /<a[^>]*title="([^"]{20,150})"[^>]*>/gi,
-                // JSON-style titles but clean them up
-                /"title":"([^"]{20,150})"/gi,
-                // Alternative JSON patterns
-                /"name":"([^"]{15,100})"/gi,
-                // Card-specific patterns that contain PSA, player names, etc.
-                />([\w\s]{10,100}(?:PSA|SGC|BGS)[\w\s\d]{10,100})</gi,
-                // Look for specific card terms
-                />([^<]{15,120}(?:Bowman|Topps|Prizm|Select|Chrome|Draft)[\w\s\d#\/\-]{10,120})</gi
+                /<h3[^>]*class="[^"]*it-ttl[^"]*"[^>]*>([^<]+)<\/h3>/gi,
+                // Link titles with actual card names  
+                /<a[^>]*title="([^"]{20,200})"[^>]*>/gi,
+                /<a[^>]*aria-label="([^"]{20,200})"[^>]*>/gi,
+                // Updated JSON patterns for modern eBay
+                /"title":"([^"]{15,200})"/gi,
+                /"name":"([^"]{15,150})"/gi,
+                /"listingTitle":"([^"]{15,200})"/gi,
+                // Card-specific content patterns
+                />([\w\s\d#\/\-]{15,150}(?:2024|2023|2022)[\w\s\d#\/\-]{5,100}(?:Bowman|Topps|Prizm|Chrome|Draft|PSA|SGC|BGS)[\w\s\d#\/\-]{5,100})</gi,
+                // Look for Griffin or other player names
+                />([\w\s\d#\/\-]{10,150}(?:Griffin|Konnor)[\w\s\d#\/\-]{10,150}(?:Bowman|Chrome|Draft|Sapphire|Refractor)[\w\s\d#\/\-]{5,100})</gi,
+                // General card patterns
+                />([^<]{15,150}(?:Bowman|Topps|Prizm|Select|Chrome|Draft)[\w\s\d#\/\-]{10,150})</gi
             ];
             
             let titles = [];
-            for (const pattern of titlePatterns) {
+            console.log(`🔍 Trying ${titlePatterns.length} title patterns...`);
+            
+            for (let i = 0; i < titlePatterns.length; i++) {
+                const pattern = titlePatterns[i];
                 const found = html.match(pattern) || [];
+                console.log(`   Pattern ${i + 1}: Found ${found.length} matches`);
+                
+                if (found.length > 0) {
+                    console.log(`   First match: ${found[0].substring(0, 100)}...`);
+                }
+                
                 // Extract and clean the actual title text
                 const extractedTitles = found.map(match => {
                     // Try different extraction methods
