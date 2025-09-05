@@ -10,8 +10,8 @@ const getCardBaseService = require('../services/getCardBaseService');
 const fs = require('fs').promises;
 const path = require('path');
 
-// Initialize 130point service
-const point130Service = new OnePointService();
+// Initialize 130point service - DISABLED
+// const point130Service = new OnePointService();
 
 // Helper to add EPN tracking parameters to eBay URLs
 function addEbayTracking(url) {
@@ -825,7 +825,8 @@ router.get('/test-130point', async (req, res) => {
   try {
     console.log('🧪 Testing 130point service...');
     
-    const testResult = await point130Service.search130point('baseball card', 2);
+    // const testResult = await point130Service.search130point('baseball card', 2); // DISABLED
+    const testResult = [];
     
     res.json({
       success: true,
@@ -875,7 +876,8 @@ router.get('/rate-limits', async (req, res) => {
   try {
     const [rateLimits, onepointStatus] = await Promise.allSettled([
       ebayService.checkRateLimits(),
-      point130Service.check130pointStatus()
+      // point130Service.check130pointStatus() // DISABLED
+      Promise.resolve({ success: false, message: '130point disabled' })
     ]);
     
     // Format the response for better readability
@@ -973,7 +975,8 @@ router.get('/', async (req, res) => {
     // ]);
     // TEMP: Log when using 130point as the primary data source
     console.log(`[130POINT] Using 130point service for sold items search: "${searchQuery}" at ${new Date().toISOString()}`);
-    const point130Cards = await point130Service.search130point(searchQuery, 100);
+    // const point130Cards = await point130Service.search130point(searchQuery, 100); // DISABLED
+    const point130Cards = [];
     let allCards = point130Cards;
     // let allCards = [];
     // if (ebayApiCards.status === 'fulfilled') {
@@ -1148,7 +1151,8 @@ router.post('/', async (req, res) => {
     // ]);
 
     console.log(`[130POINT] Using 130point service for sold items search: "${searchQuery}" at ${new Date().toISOString()}`);
-    let allCards = await point130Service.search130point(searchQuery, 500);
+    // let allCards = await point130Service.search130point(searchQuery, 500); // DISABLED
+    let allCards = [];
 
     // Filter out sealed products and hobby boxes (more precise filtering)
     const filteredCards = allCards.filter(card => {
@@ -2662,7 +2666,8 @@ router.get('/card-set-analysis', async (req, res) => {
     console.log(`[CARD SET ANALYSIS] Analyzing card set: "${searchQuery}" at ${new Date().toISOString()}`);
     
     // Fetch more data for comprehensive analysis
-    const point130Cards = await point130Service.search130point(searchQuery, parseInt(limit) * 2);
+    // const point130Cards = await point130Service.search130point(searchQuery, parseInt(limit) * 2); // DISABLED
+    const point130Cards = [];
     let allCards = point130Cards;
 
     // Filter out sealed products and hobby boxes (more precise filtering)
