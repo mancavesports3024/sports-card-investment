@@ -523,8 +523,6 @@ class EbayScraperService {
      * Filter cards to match print run - only keep cards with same print run
      */
     filterByPrintRun(cards, targetPrintRun) {
-        if (!targetPrintRun) return cards;
-        
         return cards.filter(card => {
             const title = card.title.toLowerCase();
             
@@ -532,12 +530,17 @@ class EbayScraperService {
             const printRunPattern = /\/(\d+)/g;
             const matches = title.match(printRunPattern);
             
-            if (!matches) {
-                // If no print run found, keep it regardless (could be base card vs parallel)
-                return true;
+            if (!targetPrintRun) {
+                // If target has no print run, only keep cards with no print run (base cards only)
+                return !matches;
             }
             
-            // Check if any found print run matches the target
+            if (!matches) {
+                // If target has print run but card doesn't, exclude it
+                return false;
+            }
+            
+            // Both have print runs - must match exactly
             return matches.some(match => {
                 const foundPrintRun = match.toLowerCase();
                 return foundPrintRun === targetPrintRun.toLowerCase();
