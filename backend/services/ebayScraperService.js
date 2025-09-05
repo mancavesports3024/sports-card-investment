@@ -91,9 +91,9 @@ class EbayScraperService {
      * Build search URL for eBay sold listings
      */
     buildSearchUrl(searchTerm, sport = null) {
-        // Clean and encode the search term
+        // Clean and encode the search term (preserve hyphens for negative keywords)
         const cleanTerm = searchTerm
-            .replace(/[^\w\s]/g, ' ')
+            .replace(/[^\w\s\-]/g, ' ')  // Preserve hyphens for negative keywords
             .replace(/\s+/g, '+')
             .trim();
         
