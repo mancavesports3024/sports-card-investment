@@ -134,7 +134,7 @@ class EbayScraperService {
     /**
      * Search for sold cards on eBay using headless browser with fallback
      */
-    async searchSoldCards(searchTerm, sport = null, maxResults = 50) {
+    async searchSoldCards(searchTerm, sport = null, maxResults = 50, expectedGrade = null, originalIsAutograph = false, targetPrintRun = null) {
         try {
             console.log(`🔍 Searching eBay for sold cards: ${searchTerm}`);
             
@@ -148,7 +148,7 @@ class EbayScraperService {
             
             if (htmlContent) {
                 console.log('✅ Direct HTTP request successful, parsing HTML...');
-                const results = this.parseHtmlForCards(htmlContent, maxResults, searchTerm, sport);
+                const results = this.parseHtmlForCards(htmlContent, maxResults, searchTerm, sport, expectedGrade, false, originalIsAutograph, targetPrintRun);
                 
                 if (results.length > 0) {
                     console.log(`✅ Found ${results.length} cards via direct HTTP request`);
@@ -459,7 +459,93 @@ class EbayScraperService {
     /**
      * Parse HTML content for card data using updated patterns for eBay's new structure
      */
-    parseHtmlForCards(html, maxResults, searchTerm = null, sport = null) {
+    /**
+     * Filter cards by grade to ensure accuracy
+     */
+    filterCardsByGrade(cards, expectedGrade) {
+        if (!expectedGrade) return cards;
+        
+        return cards.filter(card => {
+            const title = card.title.toLowerCase();
+            
+            if (expectedGrade === 'PSA 10') {
+                // Must contain "psa 10" or "psa-10" 
+                return title.includes('psa 10') || title.includes('psa-10');
+            } else if (expectedGrade === 'PSA 9') {
+                // Must contain "psa 9" or "psa-9" but not "psa 10"
+                return (title.includes('psa 9') || title.includes('psa-9')) && 
+                       !title.includes('psa 10') && !title.includes('psa-10');
+            } else if (expectedGrade === 'Raw') {
+                // Must NOT contain any grading company terms
+                const gradingTerms = [
+                    'psa', 'sgc', 'bgs', 'cgc', 'tag', 'beckett', 'hga', 'csg',
+                    'graded', 'gem mint', 'mint', 'near mint', 'nm-mt'
+                ];
+                return !gradingTerms.some(term => title.includes(term));
+            }
+            
+            return true; // Default: no filtering
+        });
+    }
+
+    /**
+     * Filter cards to remove autographs from non-autograph searches
+     */
+    filterOutAutographs(cards, shouldRemoveAutos) {
+        if (!shouldRemoveAutos) return cards;
+        
+        return cards.filter(card => {
+            const title = card.title.toLowerCase();
+            const autoTerms = [
+                'auto', 'autograph', 'autographed', 'signed', 'signature'
+            ];
+            return !autoTerms.some(term => title.includes(term));
+        });
+    }
+
+    /**
+     * Filter cards to match autograph status - if original is auto, keep autos; if not auto, exclude autos
+     */
+    filterByAutographStatus(cards, originalIsAutograph) {
+        return cards.filter(card => {
+            const title = card.title.toLowerCase();
+            const autoTerms = [
+                'auto', 'autograph', 'autographed', 'signed', 'signature'
+            ];
+            const hasAuto = autoTerms.some(term => title.includes(term));
+            
+            // If original is autograph, keep autograph cards; if not, exclude them
+            return originalIsAutograph ? hasAuto : !hasAuto;
+        });
+    }
+
+    /**
+     * Filter cards to match print run - only keep cards with same print run
+     */
+    filterByPrintRun(cards, targetPrintRun) {
+        if (!targetPrintRun) return cards;
+        
+        return cards.filter(card => {
+            const title = card.title.toLowerCase();
+            
+            // Look for print run patterns like /50, /99, /199, etc.
+            const printRunPattern = /\/(\d+)/g;
+            const matches = title.match(printRunPattern);
+            
+            if (!matches) {
+                // If no print run found and target has no print run, keep it
+                return !targetPrintRun;
+            }
+            
+            // Check if any found print run matches the target
+            return matches.some(match => {
+                const foundPrintRun = match.toLowerCase();
+                return foundPrintRun === targetPrintRun.toLowerCase();
+            });
+        });
+    }
+
+    parseHtmlForCards(html, maxResults, searchTerm = null, sport = null, expectedGrade = null, shouldRemoveAutos = false, originalIsAutograph = false, targetPrintRun = null) {
         try {
             console.log('🔍 Parsing HTML for card data with updated patterns...');
             const results = [];
@@ -660,7 +746,34 @@ class EbayScraperService {
             }
             
             console.log(`🔍 Created ${results.length} results from HTML parsing`);
-            return results;
+            
+            // Apply grade filtering
+            let filteredResults = this.filterCardsByGrade(results, expectedGrade);
+            if (expectedGrade) {
+                console.log(`🔍 Grade filtering (${expectedGrade}): ${results.length} → ${filteredResults.length} results`);
+            }
+            
+            // Apply autograph status filtering (match original card's auto status)
+            const beforeAutoFilter = filteredResults.length;
+            filteredResults = this.filterByAutographStatus(filteredResults, originalIsAutograph);
+            if (beforeAutoFilter !== filteredResults.length) {
+                console.log(`🔍 Auto status filtering (${originalIsAutograph ? 'keep autos' : 'exclude autos'}): ${beforeAutoFilter} → ${filteredResults.length} results`);
+            }
+            
+            // Apply print run filtering
+            const beforePrintRunFilter = filteredResults.length;
+            filteredResults = this.filterByPrintRun(filteredResults, targetPrintRun);
+            if (targetPrintRun && beforePrintRunFilter !== filteredResults.length) {
+                console.log(`🔍 Print run filtering (${targetPrintRun}): ${beforePrintRunFilter} → ${filteredResults.length} results`);
+            }
+            
+            // Legacy autograph filtering (for backward compatibility)
+            filteredResults = this.filterOutAutographs(filteredResults, shouldRemoveAutos);
+            if (shouldRemoveAutos) {
+                console.log(`🔍 Legacy auto filtering: ${results.length} → ${filteredResults.length} results`);
+            }
+            
+            return filteredResults;
             
         } catch (error) {
             console.error('❌ Error parsing HTML:', error.message);

@@ -6596,7 +6596,7 @@ app.post('/api/psa10-search', async (req, res) => {
         const EbayScraperService = require('./services/ebayScraperService.js');
         const ebayService = new EbayScraperService();
         
-        const result = await ebayService.searchSoldCards(psa10SearchTerm, sport, maxResults);
+        const result = await ebayService.searchSoldCards(psa10SearchTerm, sport, maxResults, 'PSA 10');
         
         if (!result.success) {
             return res.status(500).json(result);
@@ -6671,7 +6671,7 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
         
         // Step 1: Get PSA 10 cards first
         const psa10SearchTerm = searchTerm.includes('PSA 10') ? searchTerm : `PSA 10 ${searchTerm}`;
-        const psa10Result = await ebayService.searchSoldCards(psa10SearchTerm, sport, maxResults);
+        const psa10Result = await ebayService.searchSoldCards(psa10SearchTerm, sport, maxResults, 'PSA 10');
         
         if (!psa10Result.success || psa10Result.results.length === 0) {
             return res.status(404).json({
@@ -6717,7 +6717,7 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
         // Add -auto to exclude autographs if this is not an autograph card
         const autoExclusion = cardComponents.isAutograph ? '' : ' -auto';
         const rawSearchTerm = `${cleanSummaryForRaw} -psa -sgc -bgs -cgc -tag -beckett -hga -csg${autoExclusion}`;
-        const rawResult = await ebayService.searchSoldCards(rawSearchTerm, sport, Math.min(maxResults, 10));
+        const rawResult = await ebayService.searchSoldCards(rawSearchTerm, sport, Math.min(maxResults, 10), 'Raw', cardComponents.isAutograph, cardComponents.printRun);
         
         const rawCards = rawResult.success ? rawResult.results
             .filter(item => item.numericPrice >= 10 && item.numericPrice <= 50000)
@@ -6736,7 +6736,7 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
         // Add -auto to exclude autographs if this is not an autograph card
         const psa9AutoExclusion = cardComponents.isAutograph ? '' : ' -auto';  
         const psa9SearchTerm = `${summaryTitle} PSA 9${psa9AutoExclusion}`;
-        const psa9Result = await ebayService.searchSoldCards(psa9SearchTerm, sport, Math.min(maxResults, 10));
+        const psa9Result = await ebayService.searchSoldCards(psa9SearchTerm, sport, Math.min(maxResults, 10), 'PSA 9', cardComponents.isAutograph, cardComponents.printRun);
         
         const psa9Cards = psa9Result.success ? psa9Result.results
             .filter(item => item.numericPrice >= 25 && item.numericPrice <= 50000)
