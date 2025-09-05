@@ -91,14 +91,16 @@ class EbayScraperService {
      * Build search URL for eBay sold listings
      */
     buildSearchUrl(searchTerm, sport = null) {
-        // Clean and encode the search term (preserve hyphens for negative keywords)
+        // Clean and encode the search term (preserve negative keywords properly)
+        // Replace spaces with + but handle negative keywords specially
         const cleanTerm = searchTerm
             .replace(/[^\w\s\-]/g, ' ')  // Preserve hyphens for negative keywords
-            .replace(/\s+/g, '+')
-            .trim();
+            .trim()
+            .replace(/\s+/g, '+')        // Replace spaces with +
+            .replace(/\+(-)/g, '+$1');   // Ensure negative keywords stay as "+-psa" format
         
-        // Build the search URL with sold filter
-        let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${encodeURIComponent(cleanTerm)}`;
+        // Build the search URL with sold filter (don't encode + signs)
+        let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}`;
         
         // Add filters for sold items (match working eBay format)
         searchUrl += '&_sacat=0&LH_Complete=1&LH_Sold=1';
