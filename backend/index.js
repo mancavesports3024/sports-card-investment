@@ -6710,17 +6710,31 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
         
         console.log(`📝 Generated structured summary title: ${summaryTitle}`);
 
-        // Step 3: Search for raw cards using comprehensive negative keywords
-        // Create a cleaner search term without complex punctuation  
-        const cleanSummaryForRaw = summaryTitle.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+        // Step 3: Single comprehensive search using summary title to get ALL grades
+        // This approach finds more cards by using the specific parallel info (like "Sapphire Refractor")
+        console.log(`🔍 Using single comprehensive search strategy with summary title: ${summaryTitle}`);
         
-        // Add -auto to exclude autographs if this is not an autograph card
-        const autoExclusion = cardComponents.isAutograph ? '' : ' -auto';
-        const rawSearchTerm = `${cleanSummaryForRaw} -psa -sgc -bgs -cgc -tag -beckett -hga -csg${autoExclusion}`;
-        const rawResult = await ebayService.searchSoldCards(rawSearchTerm, sport, Math.min(maxResults, 10), 'Raw', cardComponents.isAutograph, cardComponents.printRun);
+        const comprehensiveSearchTerm = summaryTitle;
+        const comprehensiveResult = await ebayService.searchSoldCards(comprehensiveSearchTerm, sport, maxResults * 2); // Get more results to filter
         
-        const rawCards = rawResult.success ? rawResult.results
-            .filter(item => item.numericPrice >= 10 && item.numericPrice <= 50000)
+        const allCards = comprehensiveResult.success ? comprehensiveResult.results : [];
+        console.log(`🔍 Found ${allCards.length} total cards from comprehensive search`);
+        
+        // Filter results by grade using our post-filtering
+        const rawCards = allCards
+            .filter(item => {
+                const title = item.title.toLowerCase();
+                // Raw: exclude grading companies
+                const gradingTerms = ['psa', 'sgc', 'bgs', 'cgc', 'tag', 'beckett', 'hga', 'csg', 'graded'];
+                const hasGrading = gradingTerms.some(term => title.includes(term));
+                
+                // Also check autograph status if needed
+                const autoTerms = ['auto', 'autograph', 'autographed', 'signed', 'signature'];
+                const hasAuto = autoTerms.some(term => title.includes(term));
+                const autoMatch = cardComponents.isAutograph ? hasAuto : !hasAuto;
+                
+                return !hasGrading && autoMatch && item.numericPrice >= 10 && item.numericPrice <= 50000;
+            })
             .map(item => ({
                 title: item.title.substring(0, 200),
                 price: item.price,
@@ -6730,16 +6744,22 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
                 grade: 'Raw',
                 soldDate: item.soldDate,
                 ebayItemId: item.rawData?.itemId || null
-            })) : [];
-
-        // Step 4: Search for PSA 9 cards using summary title
-        // Add -auto to exclude autographs if this is not an autograph card
-        const psa9AutoExclusion = cardComponents.isAutograph ? '' : ' -auto';  
-        const psa9SearchTerm = `${summaryTitle} PSA 9${psa9AutoExclusion}`;
-        const psa9Result = await ebayService.searchSoldCards(psa9SearchTerm, sport, Math.min(maxResults, 10), 'PSA 9', cardComponents.isAutograph, cardComponents.printRun);
+            }));
         
-        const psa9Cards = psa9Result.success ? psa9Result.results
-            .filter(item => item.numericPrice >= 25 && item.numericPrice <= 50000)
+        const psa9Cards = allCards
+            .filter(item => {
+                const title = item.title.toLowerCase();
+                // PSA 9: must contain "psa 9" but not "psa 10"
+                const isPsa9 = (title.includes('psa 9') || title.includes('psa-9')) && 
+                              !title.includes('psa 10') && !title.includes('psa-10');
+                
+                // Check autograph status if needed
+                const autoTerms = ['auto', 'autograph', 'autographed', 'signed', 'signature'];
+                const hasAuto = autoTerms.some(term => title.includes(term));
+                const autoMatch = cardComponents.isAutograph ? hasAuto : !hasAuto;
+                
+                return isPsa9 && autoMatch && item.numericPrice >= 25 && item.numericPrice <= 50000;
+            })
             .map(item => ({
                 title: item.title.substring(0, 200),
                 price: item.price,
@@ -6749,7 +6769,9 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
                 grade: 'PSA 9',
                 soldDate: item.soldDate,
                 ebayItemId: item.rawData?.itemId || null
-            })) : [];
+            }));
+        
+        console.log(`🔍 Filtered results: ${rawCards.length} Raw, ${psa9Cards.length} PSA 9`);
 
         // Step 5: Prepare comprehensive results
         const comprehensiveResults = {
@@ -6891,9 +6913,9 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
             stored: 'processed',
             searchDetails: {
                 psa10Search: psa10SearchTerm,
-                rawSearch: rawSearchTerm,
-                psa9Search: psa9SearchTerm,
-                method: psa10Result.method
+                comprehensiveSearch: comprehensiveSearchTerm,
+                method: psa10Result.method,
+                strategy: 'single_comprehensive_search'
             }
         });
         
