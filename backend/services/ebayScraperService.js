@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+// Playwright removed to reduce deployment size - using direct HTTP only
 const axios = require('axios');
 
 class EbayScraperService {
@@ -60,49 +60,8 @@ class EbayScraperService {
      * Initialize the headless browser with Railway-compatible settings
      */
     async initializeBrowser() {
-        try {
-            console.log('🌐 Initializing headless browser for Railway...');
-            
-            this.browser = await chromium.launch({
-                headless: true,
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-accelerated-2d-canvas',
-                    '--no-first-run',
-                    '--no-zygote',
-                    '--disable-gpu',
-                    '--disable-web-security',
-                    '--disable-features=VizDisplayCompositor'
-                ]
-            });
-
-            this.context = await this.browser.newContext({
-                userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                viewport: { width: 1920, height: 1080 },
-                locale: 'en-US',
-                timezoneId: 'America/New_York',
-                ignoreHTTPSErrors: true
-            });
-
-            this.page = await this.context.newPage();
-            
-            // Set extra headers to appear more human-like
-            await this.page.setExtraHTTPHeaders({
-                'Accept-Language': 'en-US,en;q=0.9',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
-            });
-
-            console.log('✅ Browser initialized successfully for Railway');
-            return true;
-            
-        } catch (error) {
-            console.error('❌ Failed to initialize browser:', error.message);
-            return false;
-        }
+        console.log('ℹ️ Browser initialization skipped - using direct HTTP only');
+        return true;
     }
 
     /**

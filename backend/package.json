@@ -9,7 +9,7 @@
     "build": "npm rebuild sqlite3",
     "sitemap": "node generate-sitemap.js",
     "postdeploy": "npm run sitemap",
-    "postinstall": "npm rebuild sqlite3 && npx playwright install chromium"
+    "postinstall": "npm rebuild sqlite3"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -30,7 +30,6 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "pg": "^8.16.3",
-    "playwright": "^1.40.1",
     "puppeteer": "^24.11.2",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
