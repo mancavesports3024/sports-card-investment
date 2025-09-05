@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const ebayService = require('../services/ebayService');
-const OnePointService = require('../services/130pointService');
+// const OnePointService = require('../services/130pointService'); // Disabled - 130point no longer working
 const ebayScraperService = require('../services/ebayScraperService');
 const searchHistoryService = require('../services/searchHistoryService');
 const cacheService = require('../services/cacheService');
