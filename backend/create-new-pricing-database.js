@@ -3422,7 +3422,10 @@ class NewPricingDatabase {
             // Additional mappings for edge cases
             'jr preview': 'JR Preview',
             'ii ref': 'II Ref',
-            'ud north': 'UD North'
+            'ud north': 'UD North',
+            // ROY capitalization fix
+            'nick kurtz roy': 'Nick Kurtz ROY',
+            'roy': 'ROY'
         };
         
         const lowerPlayerName = playerName.toLowerCase();
@@ -3432,9 +3435,15 @@ class NewPricingDatabase {
             return result;
         }
         
-        const finalResult = playerName.split(' ').map(word => 
+        let finalResult = playerName.split(' ').map(word => 
             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         ).join(' ');
+        
+        // Fix common abbreviations that should be capitalized AFTER formatting
+        finalResult = finalResult.replace(/\bRoy\b/g, 'ROY'); // Rookie of the Year
+        finalResult = finalResult.replace(/\bMvp\b/g, 'MVP'); // Most Valuable Player  
+        finalResult = finalResult.replace(/\bHof\b/g, 'HOF'); // Hall of Fame
+        
         if (debugOn) this._lastDebug = steps.concat([{ step: 'final', finalResult }]);
         return finalResult;
     }
