@@ -733,10 +733,10 @@ class EbayScraperService {
                 
                 // Try to find eBay listing containers and extract title-price pairs from each section
                 const listingPatterns = [
-                    // eBay search result item containers
-                    /<div[^>]*class="[^"]*s-item[^"]*"[^>]*>(.*?)<\/div>/gis,
-                    /<li[^>]*class="[^"]*srp-result[^"]*"[^>]*>(.*?)<\/li>/gis,
-                    /<div[^>]*class="[^"]*it-row[^"]*"[^>]*>(.*?)<\/div>/gis
+                    // Complete eBay listing containers that include both title and price
+                    /<div[^>]*class="[^"]*s-item__wrapper[^"]*"[^>]*>((?:(?!<div[^>]*class="[^"]*s-item__wrapper).)*)<\/div>/gis,
+                    /<div[^>]*data-testid="[^"]*item[^"]*"[^>]*>(.*?)<\/div>(?=\s*<div[^>]*data-testid="[^"]*item|$)/gis,
+                    /<li[^>]*class="[^"]*srp-result[^"]*"[^>]*>(.*?)<\/li>/gis
                 ];
                 
                 console.log(`🔍 DEBUG: Trying section-based parsing...`);
