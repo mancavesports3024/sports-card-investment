@@ -7114,9 +7114,16 @@ function capitalizePlayerName(playerName) {
 app.post('/api/admin/run-ebay-fast-batch-pull', async (req, res) => {
     try {
         console.log('🚀 Starting eBay fast batch pull...');
+        console.log('🔍 Checking environment variables...');
+        console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'Found' : 'NOT FOUND');
+        console.log('RAILWAY_VOLUME_MOUNT_PATH:', process.env.RAILWAY_VOLUME_MOUNT_PATH ? 'Found' : 'NOT FOUND');
         
         const { FastBatchItemsPullerEbay } = require('./fast-batch-pull-ebay.js');
         const puller = new FastBatchItemsPullerEbay();
+        
+        // Ensure connection before running
+        await puller.connect();
+        console.log('✅ Database connection established');
         
         const result = await puller.pullNewItems();
         
@@ -7129,9 +7136,11 @@ app.post('/api/admin/run-ebay-fast-batch-pull', async (req, res) => {
         
     } catch (error) {
         console.error('❌ Error running eBay fast batch pull:', error);
+        console.error('❌ Full error details:', error);
         res.status(500).json({
             success: false,
             error: error.message,
+            details: error.stack,
             timestamp: new Date().toISOString()
         });
     }
