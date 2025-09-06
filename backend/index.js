@@ -7274,6 +7274,43 @@ app.post('/api/admin/update-psa9-raw-prices', async (req, res) => {
     }
 });
 
+// POST /api/admin/remove-duplicates - Remove duplicate cards from database
+app.post('/api/admin/remove-duplicates', async (req, res) => {
+    try {
+        console.log('🚀 Starting duplicate removal...');
+        
+        const DuplicateRemover = require('./remove-current-duplicates.js');
+        const remover = new DuplicateRemover();
+        
+        const result = await remover.removeDuplicates();
+        
+        if (result.success) {
+            res.json({
+                success: true,
+                message: 'Duplicate removal completed successfully',
+                data: {
+                    keptCards: result.keptCount,
+                    removedCards: result.removedCount
+                }
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                message: 'Duplicate removal failed',
+                error: result.error
+            });
+        }
+        
+    } catch (error) {
+        console.error('❌ Error removing duplicates:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error removing duplicates',
+            error: error.message
+        });
+    }
+});
+
 // Debug endpoint to check card pricing data
 app.get('/api/admin/debug-cards', async (req, res) => {
     try {

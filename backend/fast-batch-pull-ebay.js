@@ -86,6 +86,18 @@ class FastBatchItemsPullerEbay {
         ];
     }
 
+    // Extract card identity for smart deduplication
+    extractCardIdentity(title) {
+        const components = this.db.extractCardComponents(title);
+        return {
+            playerName: components.playerName?.toLowerCase().trim() || '',
+            cardNumber: components.cardNumber?.toLowerCase().trim() || '',
+            year: components.year || '',
+            cardSet: components.cardSet?.toLowerCase().trim() || '',
+            cardType: components.cardType?.toLowerCase().trim() || ''
+        };
+    }
+
     // Normalize title for duplicate checking
     normalizeTitle(title) {
         return title.toLowerCase()
@@ -94,15 +106,10 @@ class FastBatchItemsPullerEbay {
             .trim();
     }
 
-    // Check if card already exists
+    // Smart duplicate checking based on card identity
     async cardExists(title, price, ebayItemId) {
-        const normalizedTitle = this.normalizeTitle(title);
-        
-        let query = `
-            SELECT id, title FROM cards 
-            WHERE title = ?
-        `;
-        
+        // First check exact title match and eBay item ID
+        let query = `SELECT id, title FROM cards WHERE title = ?`;
         let params = [title];
         
         if (ebayItemId) {
@@ -117,9 +124,45 @@ class FastBatchItemsPullerEbay {
             return true;
         }
         
-        const allCards = await this.db.allQuery(`SELECT id, title FROM cards`);
+        // Smart deduplication based on card identity
+        const newCardIdentity = this.extractCardIdentity(title);
         
-        for (const card of allCards) {
+        // Only proceed with smart dedup if we have key identifiers
+        if (newCardIdentity.playerName && newCardIdentity.cardNumber && newCardIdentity.year) {
+            const allCards = await this.db.allQuery(`
+                SELECT id, title, player_name, card_number, year, card_set, card_type 
+                FROM cards 
+                WHERE year = ? AND player_name IS NOT NULL AND card_number IS NOT NULL
+            `, [newCardIdentity.year]);
+            
+            for (const card of allCards) {
+                const existingIdentity = {
+                    playerName: card.player_name?.toLowerCase().trim() || '',
+                    cardNumber: card.card_number?.toLowerCase().trim() || '',
+                    year: card.year || '',
+                    cardSet: card.card_set?.toLowerCase().trim() || '',
+                    cardType: card.card_type?.toLowerCase().trim() || ''
+                };
+                
+                // Check if this is the same card (same player, number, year)
+                if (existingIdentity.playerName === newCardIdentity.playerName &&
+                    existingIdentity.cardNumber === newCardIdentity.cardNumber &&
+                    existingIdentity.year === newCardIdentity.year) {
+                    
+                    console.log(`🔄 Found smart duplicate:`);
+                    console.log(`   Existing: "${card.title}"`);
+                    console.log(`   New: "${title}"`);
+                    console.log(`   Identity: ${newCardIdentity.playerName} | ${newCardIdentity.cardNumber} | ${newCardIdentity.year}`);
+                    return true;
+                }
+            }
+        }
+        
+        // Fallback to normalized title checking for cards without clear identity
+        const normalizedTitle = this.normalizeTitle(title);
+        const allTitles = await this.db.allQuery(`SELECT id, title FROM cards`);
+        
+        for (const card of allTitles) {
             const cardNormalized = this.normalizeTitle(card.title);
             if (cardNormalized === normalizedTitle) {
                 console.log(`⚠️ Found duplicate with normalized title match:`);
