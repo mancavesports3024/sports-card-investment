@@ -165,17 +165,23 @@ class FastBatchItemsPullerEbay {
             const isAutograph = this.isAutograph(title);
             const extractedCardType = this.extractCardType(title);
 
+            // Generate summary title from extracted components
+            const summaryTitle = this.generateSummaryTitle({
+                year, brand, set, extractedCardType, playerName, 
+                cardNumber, printRun, isRookie, isAutograph
+            });
+
             const query = `
                 INSERT INTO cards (
-                    title, psa10_price, condition, card_type, grade, sport,
+                    title, summary_title, psa10_price, condition, card_type, grade, sport,
                     image_url, ebay_item_id, search_term, source,
                     player_name, year, brand, card_set, card_number, print_run,
                     is_rookie, is_autograph, created_at, last_updated
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
             `;
 
             const params = [
-                title, price, condition, extractedCardType, grade, sport,
+                title, summaryTitle, price, condition, extractedCardType, grade, sport,
                 imageUrl, ebayItemId, searchTerm, source,
                 playerName, year, brand, set, cardNumber, printRun,
                 isRookie, isAutograph
@@ -354,6 +360,62 @@ class FastBatchItemsPullerEbay {
             }
             throw error;
         }
+    }
+
+    // Generate summary title from extracted components
+    generateSummaryTitle(components) {
+        const { year, brand, set, extractedCardType, playerName, cardNumber, printRun, isRookie, isAutograph } = components;
+        
+        const parts = [];
+        
+        // Add year if available
+        if (year && year !== 'Unknown') {
+            parts.push(year);
+        }
+        
+        // Add brand and set if available
+        if (brand && brand !== 'Unknown') {
+            parts.push(brand);
+        }
+        if (set && set !== 'Unknown') {
+            parts.push(set);
+        }
+        
+        // Add card type if available and not "Base"
+        if (extractedCardType && extractedCardType !== 'Unknown' && extractedCardType.toLowerCase() !== 'base') {
+            parts.push(extractedCardType);
+        }
+        
+        // Add player name if available
+        if (playerName && playerName !== 'Unknown') {
+            parts.push(playerName);
+        }
+        
+        // Add auto designation if it's an autograph
+        if (isAutograph) {
+            parts.push('auto');
+        }
+        
+        // Add card number if available
+        if (cardNumber && cardNumber !== 'Unknown') {
+            parts.push(cardNumber);
+        }
+        
+        // Add print run if available  
+        if (printRun && printRun !== 'Unknown') {
+            parts.push(printRun);
+        }
+        
+        // Join all parts and clean up
+        let summaryTitle = parts.join(' ').trim();
+        
+        // Clean up extra spaces
+        summaryTitle = summaryTitle.replace(/\s+/g, ' ');
+        
+        // Remove any trailing punctuation
+        summaryTitle = summaryTitle.replace(/[.,;!?]+$/, '');
+        
+        return summaryTitle || null;
     }
 
     // Helper methods for extracting card components using centralized system
