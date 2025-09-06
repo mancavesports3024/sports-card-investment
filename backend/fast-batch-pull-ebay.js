@@ -167,16 +167,16 @@ class FastBatchItemsPullerEbay {
 
             const query = `
                 INSERT INTO cards (
-                    title, price, sold_date, condition, card_type, grade, sport,
-                    image_url, item_url, ebay_item_id, search_term, source,
-                    player_name, year, brand, set_name, card_number, print_run,
+                    title, psa10_price, sold_date, condition, card_type, grade, sport,
+                    image_url, ebay_item_id, search_term, source,
+                    player_name, year, brand, cardset, card_number, print_run,
                     is_rookie, is_autograph, created_at, last_updated
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
             `;
 
             const params = [
                 title, price, soldDate, condition, extractedCardType, grade, sport,
-                imageUrl, itemUrl, ebayItemId, searchTerm, source,
+                imageUrl, ebayItemId, searchTerm, source,
                 playerName, year, brand, set, cardNumber, printRun,
                 isRookie, isAutograph
             ];
@@ -359,8 +359,7 @@ class FastBatchItemsPullerEbay {
     // Helper methods for extracting card components using centralized system
     extractPlayerName(title) {
         try {
-            const extracted = this.extractor.extractFromTitle(title);
-            return extracted.playerName || 'Unknown';
+            return this.extractor.extractPlayerName(title) || 'Unknown';
         } catch (error) {
             console.log(`⚠️ Error extracting player name from "${title}": ${error.message}`);
             return 'Unknown';
@@ -368,25 +367,17 @@ class FastBatchItemsPullerEbay {
     }
 
     extractYear(title) {
-        try {
-            const extracted = this.extractor.extractFromTitle(title);
-            return extracted.year || null;
-        } catch (error) {
-            const yearMatch = title.match(/(19|20)\d{2}/);
-            return yearMatch ? parseInt(yearMatch[0]) : null;
-        }
+        const yearMatch = title.match(/(19|20)\d{2}/);
+        return yearMatch ? parseInt(yearMatch[0]) : null;
     }
 
     extractBrand(title) {
-        try {
-            const extracted = this.extractor.extractFromTitle(title);
-            return extracted.brand || 'Unknown';
-        } catch (error) {
-            if (title.toLowerCase().includes('panini')) return 'Panini';
-            if (title.toLowerCase().includes('topps')) return 'Topps';
-            if (title.toLowerCase().includes('upper deck')) return 'Upper Deck';
-            return 'Unknown';
-        }
+        if (title.toLowerCase().includes('panini')) return 'Panini';
+        if (title.toLowerCase().includes('topps')) return 'Topps';
+        if (title.toLowerCase().includes('upper deck')) return 'Upper Deck';
+        if (title.toLowerCase().includes('bowman')) return 'Bowman';
+        if (title.toLowerCase().includes('donruss')) return 'Donruss';
+        return 'Unknown';
     }
 
     extractSet(title) {
