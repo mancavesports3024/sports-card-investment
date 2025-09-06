@@ -26,9 +26,18 @@ class DuplicateRemover {
 
     // Extract card identity for comparison
     extractCardIdentity(card) {
+        // Normalize card number by removing hyphens, spaces, and # symbols
+        let normalizedCardNumber = '';
+        if (card.card_number) {
+            normalizedCardNumber = card.card_number
+                .toLowerCase()
+                .replace(/[#\-\s]/g, '') // Remove #, hyphens, and spaces
+                .trim();
+        }
+        
         return {
             playerName: card.player_name?.toLowerCase().trim() || '',
-            cardNumber: card.card_number?.toLowerCase().trim() || '',
+            cardNumber: normalizedCardNumber,
             year: card.year || '',
             cardSet: card.card_set?.toLowerCase().trim() || '',
             cardType: card.card_type?.toLowerCase().trim() || ''
