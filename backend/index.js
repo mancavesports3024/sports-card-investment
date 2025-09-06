@@ -7282,10 +7282,10 @@ app.get('/api/admin/debug-cards', async (req, res) => {
         await db.connect();
         
         // First check if cards table exists and get count
-        const count = await db.runQuery('SELECT COUNT(*) as total FROM cards', []);
+        const count = await db.getQuery('SELECT COUNT(*) as total FROM cards', []);
         console.log('🔍 DEBUG - Total cards in database:', count);
         
-        const cards = await db.runQuery(`
+        const cards = await db.allQuery(`
             SELECT id, title, summary_title, player_name, sport, 
                    psa10_price, psa9_average_price, raw_average_price, created_at
             FROM cards 

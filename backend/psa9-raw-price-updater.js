@@ -30,7 +30,7 @@ class PSA9RawPriceUpdater {
             LIMIT ?
         `;
         
-        return await this.db.runQuery(query, [limit]);
+        return await this.db.allQuery(query, [limit]);
     }
 
     // Generate search term from card data
