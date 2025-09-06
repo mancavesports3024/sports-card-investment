@@ -120,6 +120,12 @@ class EbayScraperService {
             
             // Add PSA as professional grader (URL encoded)
             searchUrl += '&Professional%2520Grader=Professional%2520Sports%2520Authenticator%2520%2528PSA%2529';
+        } else if (expectedGrade === 'Raw') {
+            // Add raw (non-graded) card specific filters
+            searchUrl += '&_oaa=1';      // Additional eBay filter
+            searchUrl += '&rt=nc';       // Additional eBay filter
+            searchUrl += '&Graded=No';   // Explicitly exclude graded cards
+            searchUrl += '&_dcat=261328'; // Sports trading card singles category
         }
         
         // Debug logging to see exact search terms and URLs
@@ -128,8 +134,8 @@ class EbayScraperService {
         console.log(`🔍 DEBUG - Cleaned search term: "${cleanTerm}"`);
         console.log(`🔍 DEBUG - Final search URL: ${searchUrl}`);
         
-        // Add sport-specific category if provided (but not if we already added graded category)
-        if (sport && !(expectedGrade === 'PSA 10' || expectedGrade === 'PSA 9')) {
+        // Add sport-specific category if provided (but not if we already added _dcat=261328)
+        if (sport && !(expectedGrade === 'PSA 10' || expectedGrade === 'PSA 9' || expectedGrade === 'Raw')) {
             const sportCategories = {
                 'baseball': '&_sacat=261',
                 'basketball': '&_sacat=261',
