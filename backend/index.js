@@ -6710,57 +6710,28 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
         
         console.log(`📝 Generated structured summary title: ${summaryTitle}`);
 
-        // Step 3: Single comprehensive search using summary title to get ALL grades
-        // This approach finds more cards by using the specific parallel info (like "Sapphire Refractor")
-        console.log(`🔍 Using single comprehensive search strategy with summary title: ${summaryTitle}`);
+        // Step 3: Use three dedicated searches with specific eBay filters
+        console.log(`🔍 Using three dedicated search strategy with eBay filters for: ${summaryTitle}`);
         
-        const comprehensiveSearchTerm = summaryTitle;
-        const comprehensiveResult = await ebayService.searchSoldCards(comprehensiveSearchTerm, sport, maxResults * 2); // Get more results to filter
-        
-        const allCards = comprehensiveResult.success ? comprehensiveResult.results : [];
-        console.log(`🔍 Found ${allCards.length} total cards from comprehensive search`);
-        
-        // Filter results by grade using our post-filtering
-        const rawCards = allCards
-            .filter(item => {
-                const title = item.title.toLowerCase();
-                // Raw: exclude grading companies
-                const gradingTerms = ['psa', 'sgc', 'bgs', 'cgc', 'tag', 'beckett', 'hga', 'csg', 'graded'];
-                const hasGrading = gradingTerms.some(term => title.includes(term));
-                
-                // Also check autograph status if needed
-                const autoTerms = ['auto', 'autograph', 'autographed', 'signed', 'signature'];
-                const hasAuto = autoTerms.some(term => title.includes(term));
-                const autoMatch = cardComponents.isAutograph ? hasAuto : !hasAuto;
-                
-                return !hasGrading && autoMatch && item.numericPrice >= 10 && item.numericPrice <= 50000;
-            })
+        // Search 1: PSA 10 with graded filters (Graded=Yes, Grade=10, PSA, Autographed=No)
+        const psa10DedicatedResult = await ebayService.searchSoldCards(summaryTitle, sport, maxResults, 'PSA 10', cardComponents.isAutograph, cardComponents.printRun);
+        const psa10DedicatedCards = psa10DedicatedResult.success ? psa10DedicatedResult.results
+            .filter(item => item.numericPrice >= 50 && item.numericPrice <= 50000)
             .map(item => ({
                 title: item.title.substring(0, 200),
                 price: item.price,
                 numericPrice: item.numericPrice,
                 itemUrl: item.itemUrl,
                 sport: item.sport,
-                grade: 'Raw',
+                grade: 'PSA 10',
                 soldDate: item.soldDate,
                 ebayItemId: item.rawData?.itemId || null
-            }));
+            })) : [];
         
-        // First try to get PSA 9 from comprehensive search
-        let psa9Cards = allCards
-            .filter(item => {
-                const title = item.title.toLowerCase();
-                // PSA 9: must contain "psa 9" but not "psa 10"
-                const isPsa9 = (title.includes('psa 9') || title.includes('psa-9')) && 
-                              !title.includes('psa 10') && !title.includes('psa-10');
-                
-                // Check autograph status if needed
-                const autoTerms = ['auto', 'autograph', 'autographed', 'signed', 'signature'];
-                const hasAuto = autoTerms.some(term => title.includes(term));
-                const autoMatch = cardComponents.isAutograph ? hasAuto : !hasAuto;
-                
-                return isPsa9 && autoMatch && item.numericPrice >= 25 && item.numericPrice <= 50000;
-            })
+        // Search 2: PSA 9 with graded filters (Graded=Yes, Grade=9, PSA, Autographed=No)
+        const psa9DedicatedResult = await ebayService.searchSoldCards(summaryTitle, sport, maxResults, 'PSA 9', cardComponents.isAutograph, cardComponents.printRun);
+        const psa9DedicatedCards = psa9DedicatedResult.success ? psa9DedicatedResult.results
+            .filter(item => item.numericPrice >= 25 && item.numericPrice <= 50000)
             .map(item => ({
                 title: item.title.substring(0, 200),
                 price: item.price,
@@ -6770,28 +6741,27 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
                 grade: 'PSA 9',
                 soldDate: item.soldDate,
                 ebayItemId: item.rawData?.itemId || null
-            }));
+            })) : [];
         
-        // If comprehensive search didn't find PSA 9 cards, do a dedicated PSA 9 search
-        if (psa9Cards.length === 0) {
-            console.log(`🔍 No PSA 9 found in comprehensive search, trying dedicated PSA 9 search`);
-            const autoExclusion = cardComponents.isAutograph ? '' : ' -auto';
-            const psa9SearchTerm = `${summaryTitle} PSA 9${autoExclusion}`;
-            const psa9Result = await ebayService.searchSoldCards(psa9SearchTerm, sport, 10, 'PSA 9', cardComponents.isAutograph, cardComponents.printRun);
-            
-            psa9Cards = psa9Result.success ? psa9Result.results
-                .filter(item => item.numericPrice >= 25 && item.numericPrice <= 50000)
-                .map(item => ({
-                    title: item.title.substring(0, 200),
-                    price: item.price,
-                    numericPrice: item.numericPrice,
-                    itemUrl: item.itemUrl,
-                    sport: item.sport,
-                    grade: 'PSA 9',
-                    soldDate: item.soldDate,
-                    ebayItemId: item.rawData?.itemId || null
-                })) : [];
-        }
+        // Search 3: Raw with raw filters (Graded=No, Autographed=No)
+        const rawDedicatedResult = await ebayService.searchSoldCards(summaryTitle, sport, maxResults, 'Raw', cardComponents.isAutograph, cardComponents.printRun);
+        const rawDedicatedCards = rawDedicatedResult.success ? rawDedicatedResult.results
+            .filter(item => item.numericPrice >= 10 && item.numericPrice <= 50000)
+            .map(item => ({
+                title: item.title.substring(0, 200),
+                price: item.price,
+                numericPrice: item.numericPrice,
+                itemUrl: item.itemUrl,
+                sport: item.sport,
+                grade: 'Raw',
+                soldDate: item.soldDate,
+                ebayItemId: item.rawData?.itemId || null
+            })) : [];
+        
+        // Use the dedicated search results instead of the original PSA 10 search
+        const psa10Cards = psa10DedicatedCards.length > 0 ? psa10DedicatedCards : psa10Cards;
+        const psa9Cards = psa9DedicatedCards;
+        const rawCards = rawDedicatedCards;
         
         console.log(`🔍 Filtered results: ${rawCards.length} Raw, ${psa9Cards.length} PSA 9`);
 

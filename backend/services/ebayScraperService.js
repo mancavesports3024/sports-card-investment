@@ -90,7 +90,7 @@ class EbayScraperService {
     /**
      * Build search URL for eBay sold listings
      */
-    buildSearchUrl(searchTerm, sport = null, expectedGrade = null) {
+    buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = false) {
         // Clean and encode the search term (preserve negative keywords properly)
         // Replace spaces with + but handle negative keywords specially
         const cleanTerm = searchTerm
@@ -107,7 +107,8 @@ class EbayScraperService {
         
         // Add graded card specific filters
         if (expectedGrade === 'PSA 10' || expectedGrade === 'PSA 9') {
-            searchUrl += '&Graded=Yes';  // Only graded cards
+            searchUrl += '&_oaa=1';       // Additional eBay filter for graded cards
+            searchUrl += '&Graded=Yes';   // Only graded cards
             searchUrl += '&_dcat=261328'; // Sports trading card singles category
             searchUrl += '&rt=nc';        // Additional eBay filter
             
@@ -120,12 +121,26 @@ class EbayScraperService {
             
             // Add PSA as professional grader (URL encoded)
             searchUrl += '&Professional%2520Grader=Professional%2520Sports%2520Authenticator%2520%2528PSA%2529';
+            
+            // Add autographed filter based on card type
+            if (originalIsAutograph) {
+                searchUrl += '&Autographed=Yes';
+            } else {
+                searchUrl += '&Autographed=No';
+            }
         } else if (expectedGrade === 'Raw') {
             // Add raw (non-graded) card specific filters
             searchUrl += '&_oaa=1';      // Additional eBay filter
             searchUrl += '&rt=nc';       // Additional eBay filter
             searchUrl += '&Graded=No';   // Explicitly exclude graded cards
             searchUrl += '&_dcat=261328'; // Sports trading card singles category
+            
+            // Add autographed filter based on card type
+            if (originalIsAutograph) {
+                searchUrl += '&Autographed=Yes';
+            } else {
+                searchUrl += '&Autographed=No';
+            }
         }
         
         // Debug logging to see exact search terms and URLs
