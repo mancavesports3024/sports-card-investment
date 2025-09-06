@@ -416,56 +416,50 @@ class FastBatchItemsPullerEbay {
     generateSummaryTitle(components) {
         const { year, brand, set, extractedCardType, playerName, cardNumber, printRun, isRookie, isAutograph } = components;
         
-        const parts = [];
+        let summaryTitle = '';
         
-        // Add year if available
+        // Start with year (matching rebuild tool format)
         if (year && year !== 'Unknown') {
-            parts.push(year);
+            summaryTitle += year;
         }
         
-        // Add brand and set if available (avoid duplication)
-        if (brand && brand !== 'Unknown' && set && set !== 'Unknown') {
-            // If set already includes the brand, just use the set
-            if (set.toLowerCase().includes(brand.toLowerCase())) {
-                parts.push(set);
-            } else {
-                // Otherwise add both brand and set
-                parts.push(brand);
-                parts.push(set);
-            }
-        } else if (brand && brand !== 'Unknown') {
-            parts.push(brand);
-        } else if (set && set !== 'Unknown') {
-            parts.push(set);
+        // Add card set (use the full set name, matching rebuild tool logic)
+        if (set && set !== 'Unknown') {
+            if (summaryTitle) summaryTitle += ' ';
+            summaryTitle += set;
         }
         
-        // Add card type if available and not "Base"
+        // Add card type (colors, parallels, etc.) - but skip "Base"  
         if (extractedCardType && extractedCardType !== 'Unknown' && extractedCardType.toLowerCase() !== 'base') {
-            parts.push(extractedCardType);
+            if (summaryTitle) summaryTitle += ' ';
+            summaryTitle += extractedCardType;
         }
         
-        // Add player name if available
+        // Add player name
         if (playerName && playerName !== 'Unknown') {
-            parts.push(playerName);
+            if (summaryTitle) summaryTitle += ' ';
+            summaryTitle += playerName;
         }
         
-        // Add auto designation if it's an autograph
+        // Add "auto" if it's an autograph
         if (isAutograph) {
-            parts.push('auto');
+            if (summaryTitle) summaryTitle += ' ';
+            summaryTitle += 'auto';
         }
         
-        // Add card number if available
+        // Add card number (normalize format like rebuild tool)
         if (cardNumber && cardNumber !== 'Unknown') {
-            parts.push(cardNumber);
+            if (summaryTitle) summaryTitle += ' ';
+            // Remove any leading '#' and normalize
+            let cleanCardNumber = String(cardNumber).trim().replace(/^#\s*/, '');
+            summaryTitle += cleanCardNumber;
         }
         
-        // Add print run if available  
+        // Add print run if available
         if (printRun && printRun !== 'Unknown') {
-            parts.push(printRun);
+            if (summaryTitle) summaryTitle += ' ';
+            summaryTitle += printRun;
         }
-        
-        // Join all parts and clean up
-        let summaryTitle = parts.join(' ').trim();
         
         // Clean up extra spaces
         summaryTitle = summaryTitle.replace(/\s+/g, ' ');
