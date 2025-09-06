@@ -624,10 +624,23 @@ class EbayScraperService {
             
             // Create results from what we found
             for (let i = 0; i < Math.min(maxResults, Math.max(itemIds.length, images.length, prices.length)); i++) {
+                // Get the price and validate it's reasonable for the grade
+                let price = prices[i] || 'Price not found';
+                let numericPrice = prices[i] ? parseFloat(prices[i].replace(/[\$,]/g, '')) : 0;
+                
+                // Price validation based on expected grade to catch parsing errors
+                if (expectedGrade === 'PSA 9' && numericPrice > 1000) {
+                    console.log(`⚠️ Price validation: PSA 9 price $${numericPrice} seems too high, skipping this result`);
+                    continue;
+                } else if (expectedGrade === 'Raw' && numericPrice > 800) {
+                    console.log(`⚠️ Price validation: Raw price $${numericPrice} seems too high, skipping this result`);
+                    continue;
+                }
+                
                 const result = {
                     title: titles[i] || `Card ${i + 1} - ${searchTerm || 'Unknown'}`,
-                    price: prices[i] || 'Price not found',
-                    numericPrice: prices[i] ? parseFloat(prices[i].replace(/[\$,]/g, '')) : 0,
+                    price: price,
+                    numericPrice: numericPrice,
                     soldDate: 'Recently sold',
                     condition: 'Unknown',
                     cardType: 'Unknown',
