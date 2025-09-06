@@ -733,10 +733,12 @@ class EbayScraperService {
                 
                 // Try to find eBay listing containers and extract title-price pairs from each section
                 const listingPatterns = [
-                    // Complete eBay listing containers that include both title and price
-                    /<div[^>]*class="[^"]*s-item__wrapper[^"]*"[^>]*>((?:(?!<div[^>]*class="[^"]*s-item__wrapper).)*)<\/div>/gis,
-                    /<div[^>]*data-testid="[^"]*item[^"]*"[^>]*>(.*?)<\/div>(?=\s*<div[^>]*data-testid="[^"]*item|$)/gis,
-                    /<li[^>]*class="[^"]*srp-result[^"]*"[^>]*>(.*?)<\/li>/gis
+                    // Try multiple approaches to find complete listing containers
+                    /<div[^>]*class="[^"]*s-item__wrapper[^"]*"[^>]*>(.*?)<\/div>(?=\s*<div[^>]*class="[^"]*s-item__wrapper|$)/gis,
+                    /<div[^>]*class="[^"]*s-item[^"]*"[^>]*>(?=.*?title)(?=.*?price)(.*?)<\/div>/gis,
+                    /<li[^>]*class="[^"]*srp-result[^"]*"[^>]*>(.*?)<\/li>/gis,
+                    // Fallback to original patterns for compatibility
+                    /<div[^>]*class="[^"]*s-item[^"]*"[^>]*>(.*?)<\/div>/gis
                 ];
                 
                 console.log(`🔍 DEBUG: Trying section-based parsing...`);
@@ -746,6 +748,11 @@ class EbayScraperService {
                     const sections = html.match(pattern) || [];
                     
                     console.log(`🔍 DEBUG: Pattern ${patternIndex + 1} found ${sections.length} sections`);
+                    
+                    if (sections.length === 0) {
+                        console.log(`🔍 DEBUG: Pattern ${patternIndex + 1} found no sections, trying next pattern...`);
+                        continue;
+                    }
                     
                     if (sections.length > 0) {
                         // COMPREHENSIVE DEBUGGING: Process sections to extract title-price pairs
