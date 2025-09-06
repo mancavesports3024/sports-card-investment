@@ -76,8 +76,8 @@ class FastBatchItemsPullerEbay {
             { searchTerm: "2024 Upper Deck Series 1", sport: "Hockey" },
             
             // Pokemon - High value, moderate risk
-            { searchTerm: "2024 Pokemon Scarlet Violet", sport: null },
-            { searchTerm: "2024 Pokemon 151", sport: null },
+            { searchTerm: "Pokemon Scarlet Violet", sport: null },
+            { searchTerm: "Pokemon 151", sport: null },
             
             // Soccer - Lower volume, lowest risk
             { searchTerm: "2024 Panini Prizm", sport: "Soccer" }
@@ -250,7 +250,7 @@ class FastBatchItemsPullerEbay {
                 console.log(`   ⏳ Processing...`);
                 
                 try {
-                    const result = await this.ebayService.searchSoldCards(searchTerm, sport, 15, 'PSA 10');
+                    const result = await this.ebayService.searchSoldCards(searchTerm, sport, 50, 'PSA 10');
                     this.totalSearches++;
                     
                     if (result.success && result.results && result.results.length > 0) {

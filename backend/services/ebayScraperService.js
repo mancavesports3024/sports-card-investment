@@ -52,7 +52,7 @@ class EbayScraperService {
         return searchUrl;
     }
 
-    async searchSoldCards(searchTerm, sport = null, maxResults = 20, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null) {
+    async searchSoldCards(searchTerm, sport = null, maxResults = 50, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null) {
         try {
             const searchUrl = this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph);
             console.log(`🔍 Search URL: ${searchUrl}`);
@@ -104,7 +104,7 @@ class EbayScraperService {
     parseHtmlForCards(html, maxResults, searchTerm = null, sport = null, expectedGrade = null, shouldRemoveAutos = false, originalIsAutograph = false, targetPrintRun = null) {
         try {
             const finalResults = [];
-            const maxResultsNum = parseInt(maxResults) || 20;
+            const maxResultsNum = parseInt(maxResults) || 50;
             
             console.log(`🔍 Parsing HTML for card data with proximity-based correlation...`);
             
