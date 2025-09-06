@@ -20,20 +20,20 @@ class EbayScraperService {
         // Clean and encode the search term (preserve negative keywords properly)
         const cleanTerm = searchTerm.replace(/[^\w\s\-\+]/g, ' ').replace(/\s+/g, '+');
         
-        let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&LH_Complete=1&LH_Sold=1`;
+        let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1`;
         
         // Add grade-specific parameters
         if (expectedGrade === 'PSA 10' || expectedGrade === 'PSA 9') {
-            searchUrl += '&_oaa=1&Graded=Yes&_dcat=261328&rt=nc';
+            searchUrl += '&Graded=Yes&_dcat=261328&rt=nc';
             
             if (expectedGrade === 'PSA 10') {
-                searchUrl += '&Grade=10';
+                searchUrl += '&Grade=10&_udlo=50&_udhi=5000';  // Price range for PSA 10s
             } else {
-                searchUrl += '&Grade=9';
+                searchUrl += '&Grade=9&_udlo=25&_udhi=2500';   // Price range for PSA 9s
             }
             searchUrl += '&Professional%2520Grader=Professional%2520Sports%2520Authenticator%2520%2528PSA%2529';
         } else if (expectedGrade === 'Raw') {
-            searchUrl += '&_oaa=1&rt=nc&Graded=No&_dcat=261328';
+            searchUrl += '&rt=nc&Graded=No&_dcat=261328&_udlo=10&_udhi=1000';  // Price range for Raw
         }
         
         // Only add autographed filter when explicitly specified
