@@ -167,15 +167,15 @@ class FastBatchItemsPullerEbay {
 
             const query = `
                 INSERT INTO cards (
-                    title, psa10_price, sold_date, condition, card_type, grade, sport,
+                    title, psa10_price, condition, card_type, grade, sport,
                     image_url, ebay_item_id, search_term, source,
-                    player_name, year, brand, cardset, card_number, print_run,
+                    player_name, year, brand, card_set, card_number, print_run,
                     is_rookie, is_autograph, created_at, last_updated
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
             `;
 
             const params = [
-                title, price, soldDate, condition, extractedCardType, grade, sport,
+                title, price, condition, extractedCardType, grade, sport,
                 imageUrl, ebayItemId, searchTerm, source,
                 playerName, year, brand, set, cardNumber, printRun,
                 isRookie, isAutograph
