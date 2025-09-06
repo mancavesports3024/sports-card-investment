@@ -7350,5 +7350,47 @@ app.get('/api/admin/debug-cards', async (req, res) => {
     }
 });
 
+// Debug endpoint to find specific duplicates
+app.get('/api/admin/debug-duplicates', async (req, res) => {
+    try {
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        // Look for Cam Caminiti cards
+        const camCards = await db.allQuery(`
+            SELECT id, title, player_name, year, card_set, summary_title
+            FROM cards 
+            WHERE player_name LIKE '%Cam%Caminiti%' OR title LIKE '%Cam%Caminiti%'
+            ORDER BY id
+        `);
+        
+        // Look for Nick Kurtz cards  
+        const nickCards = await db.allQuery(`
+            SELECT id, title, player_name, year, card_set, summary_title
+            FROM cards 
+            WHERE player_name LIKE '%Nick%Kurtz%' OR title LIKE '%Nick%Kurtz%'
+            ORDER BY id
+        `);
+        
+        await db.close();
+        
+        res.json({
+            success: true,
+            message: 'Debug duplicate data retrieved',
+            camCaminiti: camCards,
+            nickKurtz: nickCards
+        });
+        
+    } catch (error) {
+        console.error('❌ Error in debug duplicates:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error retrieving debug duplicate data',
+            error: error.message
+        });
+    }
+});
+
 module.exports = app;
 
