@@ -3304,7 +3304,7 @@ class NewPricingDatabase {
             'chicago','denver','houston','miami','philadelphia','detroit','los','angeles','texas','montana',
             
             // Additional terms that should be filtered
-            'signatures','wings','case','hit','ruby','baseball','football','cb-mns'
+            'signatures','wings','case','hit','ruby','baseball','football','cb-mns','sapphire'
         ]);
         const isNameLike = (w) => {
             if (!w) return false;
