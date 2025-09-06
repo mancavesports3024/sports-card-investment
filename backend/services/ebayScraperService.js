@@ -36,6 +36,11 @@ class EbayScraperService {
             searchUrl += '&rt=nc&Graded=No&_dcat=261328&_udlo=10&_udhi=1000';  // Price range for Raw
         }
         
+        // Add sport filter if specified
+        if (sport) {
+            searchUrl += `&Sport=${encodeURIComponent(sport)}`;
+        }
+        
         // Only add autographed filter when explicitly specified
         if (originalIsAutograph === true) {
             searchUrl += '&Autographed=Yes';

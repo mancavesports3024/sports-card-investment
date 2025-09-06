@@ -61,26 +61,26 @@ class FastBatchItemsPullerEbay {
         return [
             // === PHASE 1: TEST RUN - Just 10 searches ===
             // Baseball - Most popular, lowest risk
-            "PSA 10 2024 Bowman Chrome Draft",
-            "PSA 10 2024 Topps Chrome",
+            { searchTerm: "2024 Bowman Chrome Draft", sport: "Baseball" },
+            { searchTerm: "2024 Topps Chrome", sport: "Baseball" },
             
             // Football - High demand, moderate risk
-            "PSA 10 2024 Prizm football",
-            "PSA 10 2024 Select football",
+            { searchTerm: "2024 Prizm", sport: "Football" },
+            { searchTerm: "2024 Select", sport: "Football" },
             
             // Basketball - Popular, moderate risk
-            "PSA 10 2024 Prizm basketball",
-            "PSA 10 2024 Select basketball",
+            { searchTerm: "2024 Prizm", sport: "Basketball" },
+            { searchTerm: "2024 Select", sport: "Basketball" },
             
             // Hockey - Lower volume, lower risk
-            "PSA 10 2024 Upper Deck Series 1 hockey",
+            { searchTerm: "2024 Upper Deck Series 1", sport: "Hockey" },
             
             // Pokemon - High value, moderate risk
-            "PSA 10 2024 Pokemon Scarlet Violet",
-            "PSA 10 2024 Pokemon 151",
+            { searchTerm: "2024 Pokemon Scarlet Violet", sport: null },
+            { searchTerm: "2024 Pokemon 151", sport: null },
             
             // Soccer - Lower volume, lowest risk
-            "PSA 10 2024 Panini Prizm soccer"
+            { searchTerm: "2024 Panini Prizm", sport: "Soccer" }
         ];
     }
 
@@ -242,13 +242,15 @@ class FastBatchItemsPullerEbay {
             
             // Process searches ONE AT A TIME (much safer)
             for (let i = 0; i < searchTerms.length; i++) {
-                const searchTerm = searchTerms[i];
+                const searchConfig = searchTerms[i];
+                const searchTerm = searchConfig.searchTerm;
+                const sport = searchConfig.sport;
                 
-                console.log(`\n🔍 Search ${i + 1}/${searchTerms.length}: "${searchTerm}"`);
+                console.log(`\n🔍 Search ${i + 1}/${searchTerms.length}: "${searchTerm}" (${sport || 'No sport filter'})`);
                 console.log(`   ⏳ Processing...`);
                 
                 try {
-                    const result = await this.ebayService.searchSoldCards(searchTerm, null, 15);
+                    const result = await this.ebayService.searchSoldCards(searchTerm, sport, 15, 'PSA 10');
                     this.totalSearches++;
                     
                     if (result.success && result.results && result.results.length > 0) {
