@@ -7239,5 +7239,40 @@ app.post('/api/admin/backup-and-clear-database', async (req, res) => {
     }
 });
 
+// PSA 9 and Raw price updater endpoint
+app.post('/api/admin/update-psa9-raw-prices', async (req, res) => {
+    try {
+        console.log('💰 Starting PSA 9 and Raw price update...');
+        
+        const PSA9RawPriceUpdater = require('./psa9-raw-price-updater.js');
+        const updater = new PSA9RawPriceUpdater();
+        
+        // Get options from request body
+        const { limit = 50, delayMs = 2000 } = req.body;
+        
+        console.log(`⚙️ Configuration: limit=${limit}, delay=${delayMs}ms`);
+        
+        // Run the price updater
+        const result = await updater.updatePrices({ limit, delayMs });
+        
+        console.log('✅ PSA 9 and Raw price update completed successfully');
+        
+        res.json({
+            success: true,
+            message: 'PSA 9 and Raw price update completed successfully',
+            data: result
+        });
+        
+    } catch (error) {
+        console.error('❌ Error in PSA 9/Raw price updater:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            details: error.stack,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 module.exports = app;
 
