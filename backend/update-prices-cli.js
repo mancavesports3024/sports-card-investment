@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * CLI script to update PSA 9 and Raw prices for existing PSA 10 cards
+ * CLI script to update PSA 10, PSA 9 and Raw average prices for cards
  * 
  * Usage:
  *   node update-prices-cli.js                     # Update 50 cards with 2s delay
@@ -21,8 +21,8 @@ async function main() {
     const delayMs = args.includes('--delay') ? 
         parseInt(args[args.indexOf('--delay') + 1]) || 2000 : 2000;
     
-    console.log('🚀 PSA 9 and Raw Price Updater');
-    console.log('================================\n');
+    console.log('🚀 PSA 10, PSA 9 and Raw Price Updater');
+    console.log('=======================================\n');
     console.log(`⚙️ Configuration:`);
     console.log(`   Limit: ${limit} cards`);
     console.log(`   Delay: ${delayMs}ms between requests\n`);

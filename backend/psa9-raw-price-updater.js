@@ -17,15 +17,15 @@ class PSA9RawPriceUpdater {
         }
     }
 
-    // Get cards that need PSA 9 and Raw prices
+    // Get cards that need PSA 10, PSA 9 and Raw prices
     async getCardsNeedingPrices(limit = 50) {
         const query = `
             SELECT id, title, summary_title, player_name, sport, psa10_price, 
                    psa9_average_price, raw_average_price, created_at
             FROM cards 
-            WHERE (psa9_average_price IS NULL OR psa9_average_price = 0 OR 
+            WHERE (psa10_price IS NULL OR psa10_price = 0 OR 
+                   psa9_average_price IS NULL OR psa9_average_price = 0 OR 
                    raw_average_price IS NULL OR raw_average_price = 0)
-              AND psa10_price > 0
             ORDER BY created_at DESC 
             LIMIT ?
         `;
@@ -52,7 +52,7 @@ class PSA9RawPriceUpdater {
         return searchTerm;
     }
 
-    // Search for PSA 9 and Raw prices for a single card
+    // Search for PSA 10, PSA 9 and Raw prices for a single card
     async searchCardPrices(card) {
         const searchTerm = this.generateSearchTerm(card);
         if (!searchTerm) {
@@ -63,6 +63,14 @@ class PSA9RawPriceUpdater {
         console.log(`🔍 Searching prices for: "${searchTerm}"`);
         
         try {
+            // Search for PSA 10 cards (for average)
+            const psa10Results = await this.ebayService.searchSoldCards(
+                searchTerm, 
+                card.sport, 
+                20, 
+                'PSA 10'
+            );
+            
             // Search for PSA 9 cards
             const psa9Results = await this.ebayService.searchSoldCards(
                 searchTerm, 
@@ -78,6 +86,19 @@ class PSA9RawPriceUpdater {
                 20, 
                 'Raw'
             );
+            
+            // Process PSA 10 results
+            let psa10Prices = [];
+            if (psa10Results.success && psa10Results.results) {
+                psa10Prices = psa10Results.results
+                    .filter(result => {
+                        const title = result.title.toLowerCase();
+                        return title.includes('psa 10') && 
+                               result.numericPrice >= 50 && 
+                               result.numericPrice <= 5000;
+                    })
+                    .map(result => result.numericPrice);
+            }
             
             // Process PSA 9 results
             let psa9Prices = [];
@@ -110,17 +131,22 @@ class PSA9RawPriceUpdater {
             }
             
             // Calculate averages
+            const psa10Average = psa10Prices.length > 0 ? 
+                psa10Prices.reduce((sum, price) => sum + price, 0) / psa10Prices.length : 0;
             const psa9Average = psa9Prices.length > 0 ? 
                 psa9Prices.reduce((sum, price) => sum + price, 0) / psa9Prices.length : 0;
             const rawAverage = rawPrices.length > 0 ? 
                 rawPrices.reduce((sum, price) => sum + price, 0) / rawPrices.length : 0;
             
+            console.log(`   💰 PSA 10: $${psa10Average.toFixed(2)} (${psa10Prices.length} cards)`);
             console.log(`   💰 PSA 9: $${psa9Average.toFixed(2)} (${psa9Prices.length} cards)`);
             console.log(`   💰 Raw: $${rawAverage.toFixed(2)} (${rawPrices.length} cards)`);
             
             return {
+                psa10Average: Math.round(psa10Average * 100) / 100,
                 psa9Average: Math.round(psa9Average * 100) / 100,
                 rawAverage: Math.round(rawAverage * 100) / 100,
+                psa10Count: psa10Prices.length,
                 psa9Count: psa9Prices.length,
                 rawCount: rawPrices.length
             };
@@ -135,13 +161,15 @@ class PSA9RawPriceUpdater {
     async updateCardPrices(cardId, prices) {
         const query = `
             UPDATE cards 
-            SET psa9_average_price = ?, 
+            SET psa10_price = ?,
+                psa9_average_price = ?, 
                 raw_average_price = ?,
                 last_updated = datetime('now')
             WHERE id = ?
         `;
         
         await this.db.runQuery(query, [
+            prices.psa10Average,
             prices.psa9Average, 
             prices.rawAverage, 
             cardId
@@ -163,11 +191,11 @@ class PSA9RawPriceUpdater {
         await this.db.runQuery(query, [cardId]);
     }
 
-    // Main function to update PSA 9 and Raw prices
+    // Main function to update PSA 10, PSA 9 and Raw prices
     async updatePrices(options = {}) {
         const { limit = 50, delayMs = 2000 } = options;
         
-        console.log('🚀 Starting PSA 9 and Raw price update...\n');
+        console.log('🚀 Starting PSA 10, PSA 9 and Raw price update...\n');
         
         try {
             await this.connect();
@@ -197,8 +225,8 @@ class PSA9RawPriceUpdater {
                         updated++;
                         
                         // Calculate and show multiplier if we have data
-                        if (prices.rawAverage > 0 && card.psa10_price > 0) {
-                            const multiplier = (card.psa10_price / prices.rawAverage).toFixed(2);
+                        if (prices.rawAverage > 0 && prices.psa10Average > 0) {
+                            const multiplier = (prices.psa10Average / prices.rawAverage).toFixed(2);
                             console.log(`   📊 Multiplier: ${multiplier}x`);
                         }
                         
