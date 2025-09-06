@@ -16,7 +16,7 @@ class EbayScraperService {
         return this.userAgents[this.currentUserAgent];
     }
 
-    buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = false) {
+    buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = null) {
         // Clean and encode the search term (preserve negative keywords properly)
         const cleanTerm = searchTerm.replace(/[^\w\s\-\+]/g, ' ').replace(/\s+/g, '+');
         
@@ -36,17 +36,18 @@ class EbayScraperService {
             searchUrl += '&_oaa=1&rt=nc&Graded=No&_dcat=261328';
         }
         
-        // Add autographed filter
-        if (originalIsAutograph) {
+        // Only add autographed filter when explicitly specified
+        if (originalIsAutograph === true) {
             searchUrl += '&Autographed=Yes';
-        } else {
+        } else if (originalIsAutograph === false) {
             searchUrl += '&Autographed=No';
         }
+        // If originalIsAutograph is null, don't add any autograph filter (for general searches)
         
         return searchUrl;
     }
 
-    async searchSoldCards(searchTerm, sport = null, maxResults = 20, expectedGrade = null, originalIsAutograph = false, targetPrintRun = null) {
+    async searchSoldCards(searchTerm, sport = null, maxResults = 20, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null) {
         try {
             const searchUrl = this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph);
             console.log(`🔍 Search URL: ${searchUrl}`);
