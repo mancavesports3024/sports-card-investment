@@ -1808,7 +1808,6 @@ class NewPricingDatabase {
             { pattern: /\b(reptilian)\b/gi, name: 'Reptilian' },
             { pattern: /\b(sunday)\b/gi, name: 'Sunday' },
             { pattern: /\b(bn391)\b/gi, name: 'BN391' },
-            { pattern: /\b(bdc)\b/gi, name: 'BDC' },
             { pattern: /\b(edition)\b/gi, name: 'Edition' },
             { pattern: /\b(au)\b/gi, name: 'AU' },
             { pattern: /\b(insert)\b/gi, name: 'Insert' },
@@ -2267,11 +2266,11 @@ class NewPricingDatabase {
                 cardType = cardType.replace(/\bedition\b/gi, '').trim();
             }
             
-            // Remove "Sapphire" from card_type if it's already in the card set
+            // Only remove "Sapphire" from card_type if it's clearly part of a set name like "Sapphire Prizm"
             if (cardType && cardType.toLowerCase().includes('sapphire')) {
                 const titleLower = title.toLowerCase();
-                if (titleLower.includes('sapphire')) {
-                    // Sapphire is a card set, not a card type - remove it from card type
+                // Only remove if it's combined with other set indicators, not standalone
+                if (titleLower.includes('sapphire prizm') || titleLower.includes('sapphire chrome')) {
                     cardType = cardType.replace(/\bsapphire\b/gi, '').trim();
                 }
             }
@@ -3453,6 +3452,8 @@ class NewPricingDatabase {
             /#([A-Za-z]+[-\dA-Za-z]+)/g,
             // Card numbers with letters like #17hh
             /#(\d+[A-Za-z]+)/g,
+            // Bowman Draft card numbers with hyphens (BDC-20, BDP-15, etc.)
+            /\b(BD[A-Z]?-\d+)\b/g,
             // Bowman Draft card numbers (BDP, BDC, CDA, etc.)
             /\b(BD[A-Z]?\d+)\b/g,
             // Bowman Draft card numbers with letters (CDA-LK, etc.)

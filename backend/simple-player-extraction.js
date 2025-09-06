@@ -37,7 +37,7 @@ class SimplePlayerExtractor {
             // Basic Card Types
             'rookie', 'rc', 'yg', 'auto', 'autograph', 'autographs', 'au', 'patch', 'relic', 'parallel', 'insert', 'base', 'sp', 'ssp', 'short print', 'super short print',
             'holo', 'holographic', 'refractor', 'fractor', 'x-fractor', 'prism', 'die-cut', 'die cut', 'wave', 'velocity', 'scope', 'hyper', 'cracked ice', 'stained glass',
-            'sapphire', 'clear cut', 'real one', 'downtown', 'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric', 'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'splash', 'rising', 'best',
+            'clear cut', 'real one', 'downtown', 'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric', 'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'splash', 'rising', 'best',
             // Special card types
             'manga', 'snapshots', 'zebra', 'g2u',
             
