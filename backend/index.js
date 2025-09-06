@@ -7176,7 +7176,7 @@ app.post('/api/admin/backup-and-clear-database', async (req, res) => {
         
         // Get current database stats
         const stats = await db.runQuery('SELECT COUNT(*) as total FROM cards', []);
-        const totalCards = stats[0].total;
+        const totalCards = stats && stats[0] ? stats[0].total : 0;
         
         console.log(`📊 Current database contains ${totalCards} cards`);
         
@@ -7215,7 +7215,7 @@ app.post('/api/admin/backup-and-clear-database', async (req, res) => {
         
         // Verify clearing
         const newStats = await db.runQuery('SELECT COUNT(*) as total FROM cards', []);
-        const remainingCards = newStats[0].total;
+        const remainingCards = newStats && newStats[0] ? newStats[0].total : 0;
         
         console.log(`✅ Database cleared! ${totalCards} cards removed, ${remainingCards} remaining`);
         
