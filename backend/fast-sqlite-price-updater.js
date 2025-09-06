@@ -2,7 +2,7 @@ require('dotenv').config();
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
-const { search130point } = require('./services/130pointService');
+const EbayScraperService = require('./services/ebayScraperService');
 // Use the sport detection from the main database class
 const NewPricingDatabase = require('./create-new-pricing-database.js');
 
@@ -114,9 +114,10 @@ class FastSQLitePriceUpdater {
                 console.log(`🔍 DEBUG: Raw query contains parentheses: ${rawQuery.includes('(') && rawQuery.includes(')')}`);
                 console.log(`🔍 DEBUG: Raw query contains commas: ${rawQuery.includes(',')}`);
                 console.log(`🔍 DEBUG: Raw query contains minus: ${rawQuery.includes('-')}`);
-                const tempRawResults = await search130point(rawQuery, 20);
+                const ebayService = new EbayScraperService();
+                const tempRawResults = await ebayService.searchSoldCards(rawQuery, null, 20, 'Raw');
                 console.log(`🔍 DEBUG: Raw search found ${tempRawResults.length} results before filtering`);
-                console.log(`🔍 DEBUG: Raw search returned ${tempRawResults.length} results from 130point`);
+                console.log(`🔍 DEBUG: Raw search returned ${tempRawResults.length} results from eBay`);
                 
                 // Debug filtering for raw results
                 if (tempRawResults.length > 0) {
@@ -141,7 +142,7 @@ class FastSQLitePriceUpdater {
                 
                 // Search for PSA 9 cards
                 const psa9Query = `${strategy} PSA 9`;
-                const tempPsa9Results = await search130point(psa9Query, 20);
+                const tempPsa9Results = await ebayService.searchSoldCards(strategy, null, 20, 'PSA 9');
                 
                 // Debug filtering for PSA 9 results
                 if (tempPsa9Results.length > 0) {

@@ -1,5 +1,5 @@
 const NewPricingDatabase = require('./create-new-pricing-database.js');
-const { search130point } = require('./services/130pointService');
+const EbayScraperService = require('./services/ebayScraperService');
 
 class FastBatchItemsPuller {
     constructor() {
@@ -305,7 +305,8 @@ class FastBatchItemsPuller {
                 // Process searches in parallel
                 const searchPromises = searchBatch.map(async (searchTerm) => {
                     try {
-                        const results = await search130point(searchTerm, 15);
+                        const ebayService = new EbayScraperService();
+                        const results = await ebayService.searchSoldCards(searchTerm, null, 15, 'PSA 10');
                         
                         if (results && results.length > 0) {
                             // Process cards in batches

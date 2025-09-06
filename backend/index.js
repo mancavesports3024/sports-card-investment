@@ -1808,12 +1808,13 @@ app.post('/api/test-130point-direct', async (req, res) => {
     const { searchQuery } = req.body;
     console.log(`🧪 Testing 130point service directly with query: "${searchQuery}"`);
     
-    const OnePointService = require('./services/130pointService.js');
-    const service = new OnePointService();
+    // 130pointService removed - no longer using 130point
+    console.log('❌ 130point service disabled - endpoint deprecated');
     
-    // Get raw response for debugging
-    const rawResponse = await service.getRawResponse(searchQuery);
-    const results = await service.search130point(searchQuery);
+    // 130point service removed - return empty response
+    const rawResponse = '130point service disabled';
+    // 130point service removed - return empty results
+    const results = [];
     
     res.json({
       success: true,
@@ -1841,8 +1842,8 @@ app.post('/api/test-130point-raw', async (req, res) => {
 
     const axios = require('axios');
     const qs = require('querystring');
-    const OnePointService = require('./services/130pointService.js');
-    const service = new OnePointService();
+    // 130pointService removed - no longer using 130point
+    console.log('❌ 130point service disabled - endpoint deprecated');
 
     const ONEPOINT_URL = 'https://back.130point.com/sales/';
     const formData = qs.stringify({ query: searchQuery });
@@ -6216,7 +6217,8 @@ app.post('/api/test-130point-headless', async (req, res) => {
         
         try {
             const startTime = Date.now();
-            const response = await service.search130pointWithHeadlessBrowser(searchQuery);
+            // 130point service removed - return empty response
+            const response = { rawHtml: '<div>130point service disabled</div>', parsedResults: [] };
             const endTime = Date.now();
             
             rawResponse = response.rawHtml;
@@ -6268,10 +6270,11 @@ app.post('/api/debug-130point-html', async (req, res) => {
         const { searchQuery } = req.body;
         console.log(`🔍 DEBUG: Getting raw HTML for query: "${searchQuery}"`);
         
-        const OnePointService = require('./services/130pointService.js');
-        const service = new OnePointService();
+        // 130pointService removed - no longer using 130point
+        console.log('❌ 130point service disabled - endpoint deprecated');
         
-        const response = await service.search130pointWithHeadlessBrowser(searchQuery);
+        // 130point service removed - return empty response
+        const response = { rawHtml: '<div>130point service disabled</div>', parsedResults: [] };
         
         // Search for specific patterns in the HTML
         const html = response.rawHtml;
