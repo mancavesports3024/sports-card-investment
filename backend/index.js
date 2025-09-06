@@ -7281,6 +7281,10 @@ app.get('/api/admin/debug-cards', async (req, res) => {
         const db = new NewPricingDatabase();
         await db.connect();
         
+        // First check if cards table exists and get count
+        const count = await db.runQuery('SELECT COUNT(*) as total FROM cards', []);
+        console.log('🔍 DEBUG - Total cards in database:', count);
+        
         const cards = await db.runQuery(`
             SELECT id, title, summary_title, player_name, sport, 
                    psa10_price, psa9_average_price, raw_average_price, created_at
@@ -7289,11 +7293,14 @@ app.get('/api/admin/debug-cards', async (req, res) => {
             LIMIT 5
         `, []);
         
+        console.log('🔍 DEBUG - Query returned:', cards);
+        
         await db.close();
         
         res.json({
             success: true,
             message: 'Debug card data retrieved',
+            totalCards: count,
             cards: cards
         });
         
