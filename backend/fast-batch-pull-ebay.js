@@ -382,8 +382,9 @@ class FastBatchItemsPullerEbay {
 
     extractSet(title) {
         try {
-            const extracted = this.extractor.extractFromTitle(title);
-            return extracted.setName || 'Unknown';
+            const NewPricingDatabase = require('./create-new-pricing-database.js');
+            const db = new NewPricingDatabase();
+            return db.extractCardSet(title) || 'Unknown';
         } catch (error) {
             console.log(`⚠️ Error extracting set from "${title}": ${error.message}`);
             return 'Unknown';
@@ -392,8 +393,9 @@ class FastBatchItemsPullerEbay {
 
     extractCardNumber(title) {
         try {
-            const extracted = this.extractor.extractFromTitle(title);
-            return extracted.cardNumber || null;
+            const NewPricingDatabase = require('./create-new-pricing-database.js');
+            const db = new NewPricingDatabase();
+            return db.extractCardNumber(title) || null;
         } catch (error) {
             const numberMatch = title.match(/#(\d+)/);
             return numberMatch ? `#${numberMatch[1]}` : null;
@@ -401,39 +403,30 @@ class FastBatchItemsPullerEbay {
     }
 
     extractPrintRun(title) {
-        try {
-            const extracted = this.extractor.extractFromTitle(title);
-            return extracted.printRun || null;
-        } catch (error) {
-            return null;
-        }
+        const printMatch = title.match(/\/(\d+)/);
+        return printMatch ? `/${printMatch[1]}` : null;
     }
 
     isRookie(title) {
-        try {
-            const extracted = this.extractor.extractFromTitle(title);
-            return extracted.isRookie ? 1 : 0;
-        } catch (error) {
-            return title.toLowerCase().includes('rookie') || title.toLowerCase().includes('rc') ? 1 : 0;
-        }
+        return (title.toLowerCase().includes('rookie') ||
+               title.toLowerCase().includes('rc') ||
+               title.toLowerCase().includes('1st')) ? 1 : 0;
     }
 
     isAutograph(title) {
-        try {
-            const extracted = this.extractor.extractFromTitle(title);
-            return extracted.isAutograph ? 1 : 0;
-        } catch (error) {
-            return title.toLowerCase().includes('auto') || title.toLowerCase().includes('autograph') ? 1 : 0;
-        }
+        return (title.toLowerCase().includes('auto') ||
+               title.toLowerCase().includes('autograph') ||
+               title.toLowerCase().includes('signed')) ? 1 : 0;
     }
 
     extractCardType(title) {
         try {
-            const extracted = this.extractor.extractFromTitle(title);
-            return extracted.cardType || 'Unknown';
+            const NewPricingDatabase = require('./create-new-pricing-database.js');
+            const db = new NewPricingDatabase();
+            return db.extractCardType(title) || 'Base';
         } catch (error) {
             console.log(`⚠️ Error extracting card type from "${title}": ${error.message}`);
-            return 'Unknown';
+            return 'Base';
         }
     }
 }
