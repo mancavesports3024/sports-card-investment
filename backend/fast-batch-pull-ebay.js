@@ -423,11 +423,19 @@ class FastBatchItemsPullerEbay {
             parts.push(year);
         }
         
-        // Add brand and set if available
-        if (brand && brand !== 'Unknown') {
+        // Add brand and set if available (avoid duplication)
+        if (brand && brand !== 'Unknown' && set && set !== 'Unknown') {
+            // If set already includes the brand, just use the set
+            if (set.toLowerCase().includes(brand.toLowerCase())) {
+                parts.push(set);
+            } else {
+                // Otherwise add both brand and set
+                parts.push(brand);
+                parts.push(set);
+            }
+        } else if (brand && brand !== 'Unknown') {
             parts.push(brand);
-        }
-        if (set && set !== 'Unknown') {
+        } else if (set && set !== 'Unknown') {
             parts.push(set);
         }
         
