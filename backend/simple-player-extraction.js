@@ -39,7 +39,7 @@ class SimplePlayerExtractor {
             'holo', 'holographic', 'refractor', 'fractor', 'x-fractor', 'prism', 'die-cut', 'die cut', 'wave', 'velocity', 'scope', 'hyper', 'cracked ice', 'stained glass',
             'sapphire', 'clear cut', 'real one', 'downtown', 'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric', 'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'splash', 'rising', 'best',
             // Special card types
-            'manga',
+            'manga', 'snapshots', 'zebra', 'g2u',
             
             // Colors and Parallels
             'blue ice', 'gold', 'silver', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'bronze', 'white', 'teal', 'neon', 'camo', 'tie-dye', 'disco', 'dragon scale', 'snakeskin', 'pulsar', 'logo', 'variation',
@@ -148,6 +148,8 @@ class SimplePlayerExtractor {
          // Remove special characters that shouldn't be in player names
      removeSpecialCharacters(title) {
          return title
+             .replace(/\bQ\d+\b/g, ' ') // Remove PSA cert numbers like Q4078
+             .replace(/\b\d{1,2}[A-Z]\b/g, ' ') // Remove cert codes like 10A
              .replace(/[()\[\]{}]/g, ' ') // Remove parentheses and brackets
              .replace(/[-–—]/g, ' ') // Remove hyphens and dashes
              .replace(/[''′]/g, ' ') // Remove apostrophes and similar characters
