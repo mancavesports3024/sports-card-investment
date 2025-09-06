@@ -38,6 +38,8 @@ class SimplePlayerExtractor {
             'rookie', 'rc', 'yg', 'auto', 'autograph', 'autographs', 'au', 'patch', 'relic', 'parallel', 'insert', 'base', 'sp', 'ssp', 'short print', 'super short print',
             'holo', 'holographic', 'refractor', 'fractor', 'x-fractor', 'prism', 'die-cut', 'die cut', 'wave', 'velocity', 'scope', 'hyper', 'cracked ice', 'stained glass',
             'sapphire', 'clear cut', 'real one', 'downtown', 'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric', 'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'splash', 'rising', 'best',
+            // Special card types
+            'manga',
             
             // Colors and Parallels
             'blue ice', 'gold', 'silver', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'bronze', 'white', 'teal', 'neon', 'camo', 'tie-dye', 'disco', 'dragon scale', 'snakeskin', 'pulsar', 'logo', 'variation',
@@ -69,9 +71,11 @@ class SimplePlayerExtractor {
             'duke', 'blue devils', 'tar heels', 'wolfpack', 'demon deacons', 'seminoles', 'hurricanes', 'gators', 'bulldogs', 'tigers', 'wildcats', 'cardinals', 'eagles', 'hawks', 'panthers', 'cavaliers', 'hokies', 'orange', 'syracuse', 'connecticut', 'uconn', 'villanova', 'georgetown', 'providence', 'seton hall', 'creighton', 'butler', 'depaul', 'marquette', 'st johns', 'kansas', 'kentucky', 'north carolina', 'arizona', 'ucla', 'usc', 'stanford', 'california', 'oregon', 'oregon state', 'washington', 'washington state', 'colorado', 'utah', 'arizona state', 'longhorns', 'rockies',
             'duke', 'blue devils', 'tar heels', 'wolfpack', 'demon deacons', 'seminoles', 'hurricanes', 'gators', 'bulldogs', 'wildcats', 'hokies', 'orange', 'syracuse', 'connecticut', 'uconn', 'villanova', 'georgetown', 'providence', 'seton hall', 'creighton', 'butler', 'depaul', 'marquette', 'st johns', 'kansas', 'kentucky', 'north carolina', 'arizona', 'ucla', 'usc', 'stanford', 'california', 'oregon', 'oregon state', 'washington', 'washington state', 'colorado', 'utah', 'arizona state', 'minnesota', 'longhorns', 'texas longhorns', 'trojans',
             
-            // Soccer Teams (Comprehensive)
+            // Soccer Teams and Tournaments (Comprehensive)
             'liverpool', 'manchester united', 'manchester city', 'arsenal', 'chelsea', 'tottenham', 'barcelona', 'real madrid', 'bayern munich', 'psg', 'juventus', 'ac milan', 'inter milan', 'ajax', 'porto', 'benfica', 'celtic', 'rangers', 'fc', 'united', 'city', 'athletic', 'sporting', 'dynamo', 'spartak', 'zenit',
             'liverpool', 'manchester united', 'manchester city', 'arsenal', 'chelsea', 'tottenham', 'barcelona', 'real madrid', 'bayern munich', 'psg', 'juventus', 'ac milan', 'inter milan', 'ajax', 'porto', 'benfica', 'celtic', 'rangers', 'fc', 'united', 'city', 'athletic', 'sporting', 'dynamo', 'spartak', 'zenit',
+            // Soccer tournaments and competitions
+            'copa america', 'world cup', 'uefa', 'champions league', 'premier league', 'la liga', 'serie a', 'bundesliga', 'ligue 1', 'mls', 'conmebol',
             
             // City Names (Comprehensive)
             'new york', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia', 'san antonio', 'san diego', 'dallas', 'san jose', 'austin', 'jacksonville', 'fort worth', 'columbus', 'charlotte', 'san francisco', 'indianapolis', 'seattle', 'denver', 'washington', 'boston', 'el paso', 'nashville', 'detroit', 'oklahoma city', 'portland', 'las vegas', 'memphis', 'louisville', 'baltimore', 'milwaukee', 'albuquerque', 'tucson', 'fresno', 'sacramento', 'atlanta', 'long beach', 'colorado springs', 'miami', 'virginia beach', 'omaha', 'oakland', 'minneapolis', 'tulsa', 'arlington', 'tampa', 'new orleans', 'wichita', 'cleveland', 'bakersfield', 'aurora', 'anaheim', 'honolulu', 'santa ana', 'corpus christi', 'riverside', 'lexington', 'stockton', 'henderson', 'saint paul', 'st. louis', 'st louis', 'fort wayne', 'jersey city', 'chula vista', 'orlando', 'chandler', 'laredo', 'norfolk', 'lubbock', 'madison', 'durham', 'garland', 'glendale', 'hialeah', 'reno', 'baton rouge', 'irvine', 'chesapeake', 'irving', 'scottsdale', 'north las vegas', 'fremont', 'gilbert', 'san bernardino', 'boise', 'birmingham', 'rochester', 'spokane', 'montgomery', 'des moines', 'modesto', 'fayetteville', 'tacoma', 'shreveport', 'fontana', 'oxnard', 'aurora', 'moreno valley', 'yuma', 'glendale', 'huntington beach', 'mckinney', 'montgomery', 'augusta', 'columbus', 'amarillo', 'little rock', 'akron', 'durham', 'worcester', 'mesa', 'colorado springs', 'springfield', 'grand rapids', 'overland park', 'billings', 'salem', 'baton rouge', 'dayton', 'provo', 'sioux falls', 'waco', 'lakewood', 'chandler', 'paso', 'mckinney', 'laredo', 'durham', 'lewisville', 'chandler', 'glendale', 'gilbert', 'rochester', 'scottsdale', 'norfolk', 'chesapeake', 'garland', 'irving', 'north las vegas', 'fremont', 'irvine', 'san bernardino', 'birmingham', 'spokane', 'rochester', 'montgomery', 'des moines', 'modesto', 'fayetteville', 'tacoma', 'shreveport', 'fontana', 'oxnard', 'moreno valley', 'yuma', 'huntington beach', 'augusta', 'amarillo', 'little rock', 'akron', 'worcester', 'springfield', 'grand rapids', 'overland park', 'billings', 'salem', 'dayton', 'provo', 'sioux falls', 'waco', 'lakewood', 'lewisville',
@@ -90,7 +94,9 @@ class SimplePlayerExtractor {
         // Grading terms - Updated with comprehensive list
         this.gradingTerms = [
             'psa', 'bgs', 'beckett', 'gem', 'mint', 'near mint', 'excellent', 'very good', 'good', 'fair', 'poor', 'gem mint', 'mt',
-            '10', '9', '8', '7', '6', '5', '4', '3', '2', '1', 'gem mint', 'psa 10', 'psa9', 'psa8', 'psa7', 'psa6', 'psa5', 'psa4', 'psa3', 'psa2', 'psa1', 'sgc', 'csg', 'hga', 'gma', 'graded', 'ungraded', 'pop', 'pop report', 'cert', 'certificate', 'population'
+            '10', '9', '8', '7', '6', '5', '4', '3', '2', '1', 'gem mint', 'psa 10', 'psa9', 'psa8', 'psa7', 'psa6', 'psa5', 'psa4', 'psa3', 'psa2', 'psa1', 'sgc', 'csg', 'hga', 'gma', 'graded', 'ungraded', 'pop', 'pop report', 'cert', 'certificate', 'population',
+            // eBay listing terms
+            'read', 'case hit', 'ssp', 'hit'
         ];
     }
 
