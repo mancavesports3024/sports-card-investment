@@ -7274,5 +7274,37 @@ app.post('/api/admin/update-psa9-raw-prices', async (req, res) => {
     }
 });
 
+// Debug endpoint to check card pricing data
+app.get('/api/admin/debug-cards', async (req, res) => {
+    try {
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        const cards = await db.runQuery(`
+            SELECT id, title, summary_title, player_name, sport, 
+                   psa10_price, psa9_average_price, raw_average_price, created_at
+            FROM cards 
+            ORDER BY created_at DESC 
+            LIMIT 5
+        `, []);
+        
+        await db.close();
+        
+        res.json({
+            success: true,
+            message: 'Debug card data retrieved',
+            cards: cards
+        });
+        
+    } catch (error) {
+        console.error('❌ Error in debug cards:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 module.exports = app;
 
