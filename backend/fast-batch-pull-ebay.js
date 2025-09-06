@@ -187,6 +187,13 @@ class FastBatchItemsPullerEbay {
                 isRookie, isAutograph
             ];
 
+            // Debug logging
+            console.log(`🔍 DEBUG - Adding card: "${title.substring(0, 30)}..."`);
+            console.log(`🔍 DEBUG - Price: ${price}`);
+            console.log(`🔍 DEBUG - Sport: ${sport}`);
+            console.log(`🔍 DEBUG - Player: ${playerName}`);
+            console.log(`🔍 DEBUG - Params count: ${params.length}`);
+            
             await this.db.runQuery(query, params);
             console.log(`✅ Added new card: ${title.substring(0, 50)}...`);
             return true;
