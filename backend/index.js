@@ -6946,8 +6946,11 @@ function generateSummaryTitle(title, sport) {
     return summary;
 }
 
-// Extract all card components from title
+// Extract all card components from title using proven extraction system
 function extractCardComponents(title, sport) {
+    // Use the working extraction system from NewPricingDatabase
+    const NewPricingDatabase = require('./create-new-pricing-database.js');
+    const db = new NewPricingDatabase();
     const components = {
         playerName: '',
         year: null,
@@ -6974,41 +6977,55 @@ function extractCardComponents(title, sport) {
     else if (title.toLowerCase().includes('leaf')) components.brand = 'Leaf';
     else components.brand = 'Unknown';
     
-    // Extract set name
-    if (title.toLowerCase().includes('chrome')) {
-        if (title.toLowerCase().includes('draft')) components.setName = 'Chrome Draft';
-        else if (title.toLowerCase().includes('sapphire')) components.setName = 'Chrome Sapphire';
-        else components.setName = 'Chrome';
-    } else if (title.toLowerCase().includes('prizm')) {
-        components.setName = 'Prizm';
-    } else if (title.toLowerCase().includes('select')) {
-        components.setName = 'Select';
-    } else if (title.toLowerCase().includes('optic')) {
-        components.setName = 'Optic';
-    } else if (title.toLowerCase().includes('mosaic')) {
-        components.setName = 'Mosaic';
-    } else if (title.toLowerCase().includes('heritage')) {
-        components.setName = 'Heritage';
+    // Extract set name using the sophisticated extraction from NewPricingDatabase
+    const extractedCardSet = db.extractCardSet(title);
+    if (extractedCardSet && extractedCardSet !== 'Base') {
+        components.setName = extractedCardSet;
+        console.log(`🎯 Extracted card set: "${extractedCardSet}" from "${title}"`);
     } else {
-        components.setName = 'Base';
+        // Fallback to basic set detection
+        if (title.toLowerCase().includes('chrome')) {
+            if (title.toLowerCase().includes('draft')) components.setName = 'Chrome Draft';
+            else if (title.toLowerCase().includes('sapphire')) components.setName = 'Chrome Sapphire';
+            else components.setName = 'Chrome';
+        } else if (title.toLowerCase().includes('prizm')) {
+            components.setName = 'Prizm';
+        } else if (title.toLowerCase().includes('select')) {
+            components.setName = 'Select';
+        } else if (title.toLowerCase().includes('optic')) {
+            components.setName = 'Optic';
+        } else if (title.toLowerCase().includes('mosaic')) {
+            components.setName = 'Mosaic';
+        } else if (title.toLowerCase().includes('heritage')) {
+            components.setName = 'Heritage';
+        } else {
+            components.setName = 'Base';
+        }
     }
     
-    // Extract card type/parallel
-    if (title.toLowerCase().includes('refractor')) {
-        if (title.toLowerCase().includes('gold')) components.cardType = 'Gold Refractor';
-        else if (title.toLowerCase().includes('orange')) components.cardType = 'Orange Refractor';
-        else if (title.toLowerCase().includes('red')) components.cardType = 'Red Refractor';
-        else if (title.toLowerCase().includes('blue')) components.cardType = 'Blue Refractor';
-        else if (title.toLowerCase().includes('green')) components.cardType = 'Green Refractor';
-        else if (title.toLowerCase().includes('silver')) components.cardType = 'Silver Refractor';
-        else if (title.toLowerCase().includes('sapphire')) components.cardType = 'Sapphire Refractor';
-        else components.cardType = 'Refractor';
-    } else if (title.toLowerCase().includes('prizm')) {
-        if (title.toLowerCase().includes('silver')) components.cardType = 'Silver Prizm';
-        else if (title.toLowerCase().includes('gold')) components.cardType = 'Gold Prizm';
-        else components.cardType = 'Prizm';
-    } else if (title.toLowerCase().includes('parallel')) {
-        components.cardType = 'Parallel';
+    // Extract card type using the sophisticated extraction from NewPricingDatabase
+    const extractedCardType = db.extractCardType(title);
+    if (extractedCardType && extractedCardType !== 'Base') {
+        components.cardType = extractedCardType;
+        console.log(`🎯 Extracted card type: "${extractedCardType}" from "${title}"`);
+    } else {
+        // Fallback to basic card type detection
+        if (title.toLowerCase().includes('refractor')) {
+            if (title.toLowerCase().includes('gold')) components.cardType = 'Gold Refractor';
+            else if (title.toLowerCase().includes('orange')) components.cardType = 'Orange Refractor';
+            else if (title.toLowerCase().includes('red')) components.cardType = 'Red Refractor';
+            else if (title.toLowerCase().includes('blue')) components.cardType = 'Blue Refractor';
+            else if (title.toLowerCase().includes('green')) components.cardType = 'Green Refractor';
+            else if (title.toLowerCase().includes('silver')) components.cardType = 'Silver Refractor';
+            else if (title.toLowerCase().includes('sapphire')) components.cardType = 'Sapphire Refractor';
+            else components.cardType = 'Refractor';
+        } else if (title.toLowerCase().includes('prizm')) {
+            if (title.toLowerCase().includes('silver')) components.cardType = 'Silver Prizm';
+            else if (title.toLowerCase().includes('gold')) components.cardType = 'Gold Prizm';
+            else components.cardType = 'Prizm';
+        } else if (title.toLowerCase().includes('parallel')) {
+            components.cardType = 'Parallel';
+        }
     }
     
     // Extract card number

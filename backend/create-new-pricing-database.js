@@ -1894,6 +1894,7 @@ class NewPricingDatabase {
             { pattern: /\b(orange raywave refractor)\b/gi, name: 'Orange Raywave Refractor', priority: 3 },
             { pattern: /\b(orange wave ref)\b/gi, name: 'Orange Wave Refractor', priority: 3 },
             { pattern: /\b(orange wave refractor)\b/gi, name: 'Orange Wave Refractor', priority: 3 },
+            { pattern: /\b(orange wave prizm)\b/gi, name: 'Orange Wave Prizm', priority: 3 },
             { pattern: /\b(gold lava refractor)\b/gi, name: 'Gold Lava Refractor', priority: 3 },
             { pattern: /\b(gold raywave refractor)\b/gi, name: 'Gold Raywave Refractor', priority: 3 },
             { pattern: /\b(gold wave ref)\b/gi, name: 'Gold Wave Refractor', priority: 3 },
