@@ -623,26 +623,85 @@ class EbayScraperService {
             }
             
             // Try to extract structured data from eBay's JSON data instead of HTML scraping
-            const structuredDataPattern = /"listingAuction":\s*{[^}]*"currentPrice":\s*{\s*"value":\s*([0-9.]+)[^}]*"convertedFromValue":\s*([0-9.]+)[^}]*}[^}]*"itemId":\s*"([^"]+)"[^}]*"title":\s*"([^"]+)"/gi;
+            console.log(`🔍 DEBUG: Starting structured JSON extraction...`);
+            console.log(`🔍 DEBUG: HTML length: ${html.length} characters`);
+            
+            // Try multiple JSON patterns to find eBay's data structure
+            const jsonPatterns = [
+                // Pattern 1: Original listingAuction format
+                /"listingAuction":\s*{[^}]*"currentPrice":\s*{\s*"value":\s*([0-9.]+)[^}]*"convertedFromValue":\s*([0-9.]+)[^}]*}[^}]*"itemId":\s*"([^"]+)"[^}]*"title":\s*"([^"]+)"/gi,
+                
+                // Pattern 2: Alternative price format
+                /"itemId":\s*"([^"]+)"[^}]*"title":\s*"([^"]+)"[^}]*"price":\s*{\s*"value":\s*([0-9.]+)/gi,
+                
+                // Pattern 3: Simple price-title-itemId format
+                /"price":\s*"?\$?([0-9,.]+)"?[^}]*"title":\s*"([^"]+)"[^}]*"itemId":\s*"([^"]+)"/gi,
+                
+                // Pattern 4: Sold listing format
+                /"soldPrice":\s*"?\$?([0-9,.]+)"?[^}]*"title":\s*"([^"]+)"[^}]*"itemId":\s*"([^"]+)"/gi,
+                
+                // Pattern 5: Look for our specific item 365770463030
+                /"itemId":\s*"365770463030"[^}]*"title":\s*"([^"]+)"[^}]*(?:"price"|"soldPrice"|"currentPrice").*?([0-9.]+)/gi
+            ];
+            
             const jsonResults = [];
             
-            let jsonMatch;
-            while ((jsonMatch = structuredDataPattern.exec(html)) !== null) {
-                const [, currentPrice, convertedPrice, itemId, title] = jsonMatch;
-                const numericPrice = parseFloat(currentPrice || convertedPrice);
+            for (let i = 0; i < jsonPatterns.length; i++) {
+                console.log(`🔍 DEBUG: Trying JSON pattern ${i + 1}...`);
+                const pattern = jsonPatterns[i];
                 
-                if (numericPrice > 1 && numericPrice < 50000 && title && title.length > 10) {
-                    jsonResults.push({
-                        title: title.replace(/\\"/g, '"').replace(/&quot;/g, '"'),
-                        price: `$${numericPrice.toFixed(2)}`,
-                        numericPrice: numericPrice,
-                        itemId: itemId,
-                        source: 'structured_json'
-                    });
+                let jsonMatch;
+                let patternResults = [];
+                
+                while ((jsonMatch = pattern.exec(html)) !== null) {
+                    console.log(`🔍 DEBUG: Pattern ${i + 1} match:`, jsonMatch.slice(0, 5));
+                    
+                    let title, price, itemId;
+                    
+                    if (i === 0) { // Original pattern
+                        const [, currentPrice, convertedPrice, id, t] = jsonMatch;
+                        title = t;
+                        price = parseFloat(currentPrice || convertedPrice);
+                        itemId = id;
+                    } else if (i === 1) { // Alternative
+                        const [, id, t, p] = jsonMatch;
+                        title = t;
+                        price = parseFloat(p);
+                        itemId = id;
+                    } else if (i === 2 || i === 3) { // Simple formats
+                        const [, p, t, id] = jsonMatch;
+                        title = t;
+                        price = parseFloat(p.replace(/,/g, ''));
+                        itemId = id;
+                    } else if (i === 4) { // Specific item
+                        const [, t, p] = jsonMatch;
+                        title = t;
+                        price = parseFloat(p);
+                        itemId = "365770463030";
+                    }
+                    
+                    if (price > 1 && price < 50000 && title && title.length > 10) {
+                        const result = {
+                            title: title.replace(/\\"/g, '"').replace(/&quot;/g, '"'),
+                            price: `$${price.toFixed(2)}`,
+                            numericPrice: price,
+                            itemId: itemId,
+                            source: `structured_json_pattern_${i + 1}`
+                        };
+                        patternResults.push(result);
+                        
+                        // Special logging for our problem item
+                        if (itemId === "365770463030") {
+                            console.log(`🎯 DEBUG: Found target item 365770463030 with pattern ${i + 1}:`, result);
+                        }
+                    }
                 }
+                
+                console.log(`🔍 DEBUG: Pattern ${i + 1} found ${patternResults.length} results`);
+                jsonResults.push(...patternResults);
             }
             
-            console.log(`🔍 Found ${jsonResults.length} structured JSON results`);
+            console.log(`🔍 DEBUG: Total structured JSON results: ${jsonResults.length}`);
             
             // If we got structured data, use that; otherwise fall back to HTML parsing
             let finalResults = [];
@@ -671,12 +730,39 @@ class EbayScraperService {
             } else {
                 // Fall back to HTML parsing with index matching
                 console.log(`⚠️ No structured data found, falling back to HTML parsing`);
+                console.log(`🔍 DEBUG: HTML parsing arrays - titles: ${titles.length}, prices: ${prices.length}, itemIds: ${itemIds.length}`);
+                console.log(`🔍 DEBUG: First 5 titles:`, titles.slice(0, 5));
+                console.log(`🔍 DEBUG: First 5 prices:`, prices.slice(0, 5));
+                console.log(`🔍 DEBUG: First 5 itemIds:`, itemIds.slice(0, 5));
+                
+                // Look for our specific item in the arrays
+                const targetItemIndex = itemIds.indexOf("365770463030");
+                if (targetItemIndex !== -1) {
+                    console.log(`🎯 DEBUG: Found target item 365770463030 at index ${targetItemIndex}`);
+                    console.log(`🎯 DEBUG: Title at that index: "${titles[targetItemIndex]}"`);
+                    console.log(`🎯 DEBUG: Price at that index: "${prices[targetItemIndex]}"`);
+                }
                 
                 for (let i = 0; i < Math.min(maxResults, Math.max(itemIds.length, images.length, prices.length)); i++) {
+                    const title = titles[i] || `Card ${i + 1} - ${searchTerm || 'Unknown'}`;
+                    const price = prices[i] || 'Price not found';
+                    const numericPrice = prices[i] ? parseFloat(prices[i].replace(/[\$,]/g, '')) : 0;
+                    
+                    // Debug logging for each result
+                    console.log(`🔍 DEBUG: Result ${i}: title="${title.substring(0, 50)}...", price="${price}", itemId="${itemIds[i] || 'none'}"`);
+                    
+                    // Special attention to our problem item
+                    if (itemIds[i] === "365770463030") {
+                        console.log(`🎯 DEBUG: Building result for target item 365770463030:`);
+                        console.log(`🎯 DEBUG: - Title: "${title}"`);
+                        console.log(`🎯 DEBUG: - Price: "${price}"`);
+                        console.log(`🎯 DEBUG: - NumericPrice: ${numericPrice}`);
+                    }
+                    
                     const result = {
-                        title: titles[i] || `Card ${i + 1} - ${searchTerm || 'Unknown'}`,
-                        price: prices[i] || 'Price not found',
-                        numericPrice: prices[i] ? parseFloat(prices[i].replace(/[\$,]/g, '')) : 0,
+                        title: title,
+                        price: price,
+                        numericPrice: numericPrice,
                         soldDate: 'Recently sold',
                         condition: 'Unknown',
                         cardType: 'Unknown',
