@@ -749,52 +749,105 @@ class EbayScraperService {
                     
                     if (sections.length > 0) {
                         // Process each section to extract title-price pairs
+                        console.log(`🔍 DEBUG: Processing ${sections.length} sections for title-price extraction...`);
+                        
                         for (let i = 0; i < Math.min(maxResults, sections.length); i++) {
                             const section = sections[i];
+                            console.log(`🔍 DEBUG: Processing section ${i + 1}/${sections.length} (${section.length} chars)`);
                             
                             // Extract itemId from this section
-                            const itemIdMatch = section.match(/(?:itemId|\/itm\/)[":\s]*(\d+)/);
-                            const itemId = itemIdMatch ? itemIdMatch[1] : null;
+                            const itemIdMatches = [
+                                /(?:itemId|\/itm\/)[":\s]*(\d+)/,
+                                /itm\/(\d+)/,
+                                /"itemId":"(\d+)"/,
+                                /data-itemid="(\d+)"/i
+                            ];
                             
-                            // Extract title from this section  
+                            let itemId = null;
+                            for (const pattern of itemIdMatches) {
+                                const match = section.match(pattern);
+                                if (match) {
+                                    itemId = match[1];
+                            break;
+                          }
+                            }
+                            console.log(`🔍 DEBUG: Section ${i + 1} itemId: ${itemId || 'not found'}`);
+                            
+                            // Extract title from this section with enhanced patterns
                             const titlePatterns = [
+                                // HTML element patterns
                                 /<h3[^>]*>([^<]+)</i,
-                                /title="([^"]{20,200})"/i,
-                                /aria-label="([^"]{20,200})"/i,
-                                />([^<]{20,200}(?:Bowman|Topps|Prizm|Chrome|Draft|PSA|SGC)[\w\s\d#\/\-]{10,100})</i
+                                /<span[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)</i,
+                                /<a[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)</a>/i,
+                                
+                                // Attribute patterns
+                                /title="([^"]{15,200})"/i,
+                                /aria-label="([^"]{15,200})"/i,
+                                /alt="([^"]{15,200})"/i,
+                                
+                                // Text patterns with card keywords
+                                />([^<]{15,200}(?:Bowman|Topps|Prizm|Chrome|Draft|PSA|SGC|Konnor|Griffin)[\w\s\d#\/\-]{10,150})</i,
+                                />([^<]{15,200}(?:2024|2023|2022)[\w\s\d#\/\-]{10,150}(?:Bowman|Chrome|Draft)[\w\s\d#\/\-]{5,100})</i,
+                                
+                                // JSON patterns
+                                /"title":"([^"]{15,200})"/i,
+                                /"name":"([^"]{15,150})"/i
                             ];
                             
                             let title = null;
-                            for (const titlePattern of titlePatterns) {
-                                const titleMatch = section.match(titlePattern);
-                                if (titleMatch && titleMatch[1] && titleMatch[1].length > 15) {
-                                    title = titleMatch[1].trim().replace(/\s+/g, ' ');
-                                    break;
-                                }
+                            let titlePattern = null;
+                            for (let tp = 0; tp < titlePatterns.length; tp++) {
+                                const titleMatch = section.match(titlePatterns[tp]);
+                                if (titleMatch && titleMatch[1] && titleMatch[1].length > 10) {
+                                    title = titleMatch[1].trim()
+                                        .replace(/\s+/g, ' ')
+                                        .replace(/&quot;/g, '"')
+                                        .replace(/&#39;/g, "'")
+                                        .replace(/&amp;/g, '&');
+                                    titlePattern = tp + 1;
+                            break;
+                          }
                             }
+                            console.log(`🔍 DEBUG: Section ${i + 1} title: "${title ? title.substring(0, 60) + '...' : 'not found'}" (pattern ${titlePattern || 'none'})`);
                             
-                            // Extract price from this same section
+                            // Extract price from this same section with enhanced patterns
                             const pricePatterns = [
-                                /\$[\d,]+\.?\d*/,
-                                /[\$£€]?[\d,]+\.?\d*/
+                                // Standard price patterns
+                                /\$[\d,]+\.?\d*/g,
+                                /[\$£€][\d,]+\.?\d*/g,
+                                
+                                // Specific price element patterns
+                                /class="[^"]*price[^"]*"[^>]*>[\s]*\$?([\d,]+\.?\d*)/i,
+                                /class="[^"]*amount[^"]*"[^>]*>[\s]*\$?([\d,]+\.?\d*)/i,
+                                
+                                // JSON price patterns
+                                /"price":"?\$?([\d,]+\.?\d*)"/i,
+                                /"amount":"?\$?([\d,]+\.?\d*)"/i,
+                                /"value":([\d,]+\.?\d*)/i
                             ];
                             
                             let price = null;
-                            for (const pricePattern of pricePatterns) {
-                                const priceMatch = section.match(pricePattern);
-                                if (priceMatch) {
-                                    const foundPrice = priceMatch[0];
-                                    const numericValue = parseFloat(foundPrice.replace(/[\$,]/g, ''));
-                                    if (numericValue > 1 && numericValue < 50000) {
-                                        price = foundPrice;
-                                        break;
-                                    }
+                            let pricePattern = null;
+                            for (let pp = 0; pp < pricePatterns.length; pp++) {
+                                const priceMatches = section.match(pricePatterns[pp]);
+                                if (priceMatches) {
+                                    for (const priceMatch of priceMatches) {
+                                        const cleanPrice = priceMatch.replace(/[^\d.]/g, '');
+                                        const numericValue = parseFloat(cleanPrice);
+                                        if (numericValue > 1 && numericValue < 50000) {
+                                            price = `$${numericValue.toFixed(2)}`;
+                                            pricePattern = pp + 1;
+                              break;
+                            }
+                          }
+                                    if (price) break;
                                 }
                             }
+                            console.log(`🔍 DEBUG: Section ${i + 1} price: "${price || 'not found'}" (pattern ${pricePattern || 'none'})`);
                             
-                            // Only create result if we found both title and price in the same section
-                            if (title && price && title.length > 15) {
-                                const numericPrice = parseFloat(price.replace(/[\$,]/g, ''));
+                            // Lower validation requirements and create result if we have title and either price or itemId
+                            if (title && title.length > 10 && (price || itemId)) {
+                                const numericPrice = price ? parseFloat(price.replace(/[\$,]/g, '')) : 0;
                                 
                                 // Special debug for our target item
                                 if (itemId === "365770463030") {
@@ -806,7 +859,7 @@ class EbayScraperService {
                                 
                                 const result = {
                                     title: title,
-                                    price: price,
+                                    price: price || 'Price not found',
                                     numericPrice: numericPrice,
                                     soldDate: 'Recently sold',
                                     condition: 'Unknown',
@@ -830,10 +883,10 @@ class EbayScraperService {
                         // If we found results with this pattern, use them
                         if (finalResults.length > 0) {
                             console.log(`✅ Section-based parsing found ${finalResults.length} results with pattern ${patternIndex + 1}`);
-                            break;
+                          break;
                         }
+                      }
                     }
-                }
                 
                 // If section-based parsing failed, fall back to the old array method
                 if (finalResults.length === 0) {
@@ -948,11 +1001,11 @@ class EbayScraperService {
             const conditionMatch = itemHtml.match(/<span[^>]*class="[^"]*SECONDARY_INFO[^"]*"[^>]*>([^<]+)<\/span>/i);
             const condition = conditionMatch ? conditionMatch[1].trim() : '';
 
-            // Extract image URL
+                  // Extract image URL
             const imgMatch = itemHtml.match(/<img[^>]*class="[^"]*s-item__image-img[^"]*"[^>]*src="([^"]+)"/i);
             const imageUrl = imgMatch ? imgMatch[1] : '';
 
-            // Extract item URL
+                  // Extract item URL
             const linkMatch = itemHtml.match(/<a[^>]*class="[^"]*s-item__link[^"]*"[^>]*href="([^"]+)"/i);
             const itemUrl = linkMatch ? linkMatch[1] : '';
 
@@ -967,12 +1020,12 @@ class EbayScraperService {
             const grade = this.extractGrade(title, condition);
 
             return {
-                title: title,
+                      title: title,
                 price: price,
                 numericPrice: numericPrice,
                 soldDate: soldDate,
                 condition: condition,
-                imageUrl: imageUrl,
+                      imageUrl: imageUrl,
                 itemUrl: itemUrl,
                 cardDetails: cardDetails,
                 cardType: cardType,
@@ -980,7 +1033,7 @@ class EbayScraperService {
                 sport: cardDetails.sport
             };
 
-        } catch (error) {
+                } catch (error) {
             console.log(`⚠️ Error extracting item data: ${error.message}`);
             return null;
         }
@@ -1019,7 +1072,7 @@ class EbayScraperService {
         for (const sport of sports) {
             if (titleLower.includes(sport)) {
                 details.sport = sport;
-                break;
+            break;
             }
         }
         
@@ -1043,9 +1096,9 @@ class EbayScraperService {
         for (const set of sets) {
             if (titleLower.includes(set)) {
                 details.set = set;
-                break;
-            }
-        }
+      break;
+    }
+  }
         
         // Extract card number
         const numberMatch = title.match(/#(\d+)/);
@@ -1127,8 +1180,8 @@ class EbayScraperService {
             
             // Calculate averages for each grade
             const pricingSummary = this.calculatePricingSummary(groupedResults);
-            
-            return {
+    
+    return {
                 success: true,
                 searchTerm: searchTerm,
                 sport: sport,
@@ -1137,11 +1190,11 @@ class EbayScraperService {
                 rawData: searchResults.results
             };
             
-        } catch (error) {
+  } catch (error) {
             console.error('❌ Failed to get pricing summary:', error.message);
-            return {
-                success: false,
-                error: error.message,
+    return {
+      success: false,
+      error: error.message,
                 searchTerm: searchTerm
             };
         }
@@ -1223,16 +1276,16 @@ class EbayScraperService {
             // Test with a popular card
             const testSearch = '2023 Bowman Chrome Draft Jackson Holliday';
             const result = await this.getCardPricingSummary(testSearch, 'baseball');
-            
-            return {
-                success: true,
+    
+    return {
+      success: true,
                 testSearch: testSearch,
                 result: result
-            };
-            
-        } catch (error) {
-            return {
-                success: false,
+    };
+    
+  } catch (error) {
+    return {
+      success: false,
                 error: error.message
             };
         }
