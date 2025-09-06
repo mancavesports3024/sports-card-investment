@@ -6588,15 +6588,13 @@ app.post('/api/psa10-search', async (req, res) => {
             });
         }
 
-        // Ensure PSA 10 is in the search
-        const psa10SearchTerm = searchTerm.includes('PSA 10') ? searchTerm : `PSA 10 ${searchTerm}`;
-        
-        console.log(`🔍 PSA 10 search request: ${psa10SearchTerm} (sport: ${sport || 'any'})`);
+        // Grade=10 filter now handles PSA 10 requirement - no need to add to search term
+        console.log(`🔍 PSA 10 search request: ${searchTerm} (sport: ${sport || 'any'})`);
         
         const EbayScraperService = require('./services/ebayScraperService.js');
         const ebayService = new EbayScraperService();
         
-        const result = await ebayService.searchSoldCards(psa10SearchTerm, sport, maxResults, 'PSA 10');
+        const result = await ebayService.searchSoldCards(searchTerm, sport, maxResults, 'PSA 10');
         
         if (!result.success) {
             return res.status(500).json(result);
@@ -6669,9 +6667,8 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
         const EbayScraperService = require('./services/ebayScraperService.js');
         const ebayService = new EbayScraperService();
         
-        // Step 1: Get PSA 10 cards first
-        const psa10SearchTerm = searchTerm.includes('PSA 10') ? searchTerm : `PSA 10 ${searchTerm}`;
-        const psa10Result = await ebayService.searchSoldCards(psa10SearchTerm, sport, maxResults, 'PSA 10');
+        // Step 1: Get PSA 10 cards first (Grade=10 filter handles PSA 10 requirement)
+        const psa10Result = await ebayService.searchSoldCards(searchTerm, sport, maxResults, 'PSA 10');
         
         if (!psa10Result.success || psa10Result.results.length === 0) {
             return res.status(404).json({
