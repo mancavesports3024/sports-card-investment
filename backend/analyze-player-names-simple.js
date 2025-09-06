@@ -123,7 +123,7 @@ class PlayerNameAnalyzer {
             'rookie', 'auto', 'autograph', 'signature', 'graded', 'psa', 'gem', 'mint',
             'holo', 'refractor', 'numbered', 'print', 'run', 'edition', 'variation',
             'insert', 'parallel', 'rainbow', 'gold', 'silver', 'bronze', 'platinum',
-            'diamond', 'emerald', 'sapphire', 'ruby', 'amethyst', 'onyx', 'obsidian',
+            'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'obsidian',
             'case hit', 'storm chasers', 'winning ticket', 'focus', 'supernatural',
             'pitching', 'batting', 'fielding', 'running', 'throwing', 'catching',
             'chicago', 'detroit', 'new york', 'los angeles', 'boston', 'philadelphia',
