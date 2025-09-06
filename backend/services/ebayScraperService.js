@@ -90,7 +90,7 @@ class EbayScraperService {
     /**
      * Build search URL for eBay sold listings
      */
-    buildSearchUrl(searchTerm, sport = null) {
+    buildSearchUrl(searchTerm, sport = null, expectedGrade = null) {
         // Clean and encode the search term (preserve negative keywords properly)
         // Replace spaces with + but handle negative keywords specially
         const cleanTerm = searchTerm
@@ -105,14 +105,31 @@ class EbayScraperService {
         // Add filters for sold items (match working eBay format)
         searchUrl += '&_sacat=0&LH_Complete=1&LH_Sold=1';
         
+        // Add graded card specific filters
+        if (expectedGrade === 'PSA 10' || expectedGrade === 'PSA 9') {
+            searchUrl += '&Graded=Yes';  // Only graded cards
+            searchUrl += '&_dcat=261328'; // Sports trading card singles category
+            searchUrl += '&rt=nc';        // Additional eBay filter
+            
+            // Add specific grade filter
+            if (expectedGrade === 'PSA 10') {
+                searchUrl += '&Grade=10';
+            } else if (expectedGrade === 'PSA 9') {
+                searchUrl += '&Grade=9';
+            }
+            
+            // Add PSA as professional grader (URL encoded)
+            searchUrl += '&Professional%2520Grader=Professional%2520Sports%2520Authenticator%2520%2528PSA%2529';
+        }
+        
         // Debug logging to see exact search terms and URLs
         console.log(`🔍 DEBUG - Original search term: "${searchTerm}"`);
+        console.log(`🔍 DEBUG - Expected grade: "${expectedGrade}"`);
         console.log(`🔍 DEBUG - Cleaned search term: "${cleanTerm}"`);
-        console.log(`🔍 DEBUG - Encoded search term: "${encodeURIComponent(cleanTerm)}"`);
         console.log(`🔍 DEBUG - Final search URL: ${searchUrl}`);
         
-        // Add sport-specific category if provided
-        if (sport) {
+        // Add sport-specific category if provided (but not if we already added graded category)
+        if (sport && !(expectedGrade === 'PSA 10' || expectedGrade === 'PSA 9')) {
             const sportCategories = {
                 'baseball': '&_sacat=261',
                 'basketball': '&_sacat=261',
@@ -139,7 +156,7 @@ class EbayScraperService {
             console.log(`🔍 Searching eBay for sold cards: ${searchTerm}`);
             
             // Build search URL for sold listings
-            const searchUrl = this.buildSearchUrl(searchTerm, sport);
+            const searchUrl = this.buildSearchUrl(searchTerm, sport, expectedGrade);
             console.log(`🔍 Search URL: ${searchUrl}`);
 
             // Try direct HTTP request first (faster and less likely to be blocked)
