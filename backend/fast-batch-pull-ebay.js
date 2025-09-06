@@ -1,5 +1,6 @@
 const NewPricingDatabase = require('./create-new-pricing-database.js');
 const EbayScraperService = require('./services/ebayScraperService.js');
+const SimplePlayerExtractor = require('./simple-player-extraction.js');
 
 class FastBatchItemsPullerEbay {
     constructor() {
@@ -8,6 +9,7 @@ class FastBatchItemsPullerEbay {
         this.searchDelay = 5000; // Increased to 5 seconds between searches
         this.maxConcurrentSearches = 1; // Sequential only - no parallel searches
         this.ebayService = new EbayScraperService();
+        this.extractor = new SimplePlayerExtractor();
         this.totalSearches = 0;
         this.successfulSearches = 0;
         this.blockedSearches = 0;
@@ -161,6 +163,7 @@ class FastBatchItemsPullerEbay {
             const printRun = this.extractPrintRun(title);
             const isRookie = this.isRookie(title);
             const isAutograph = this.isAutograph(title);
+            const extractedCardType = this.extractCardType(title);
 
             const query = `
                 INSERT INTO cards (
@@ -172,7 +175,7 @@ class FastBatchItemsPullerEbay {
             `;
 
             const params = [
-                title, price, soldDate, condition, cardType, grade, sport,
+                title, price, soldDate, condition, extractedCardType, grade, sport,
                 imageUrl, itemUrl, ebayItemId, searchTerm, source,
                 playerName, year, brand, set, cardNumber, printRun,
                 isRookie, isAutograph
@@ -353,42 +356,94 @@ class FastBatchItemsPullerEbay {
         }
     }
 
-    // Helper methods for extracting card components
+    // Helper methods for extracting card components using centralized system
     extractPlayerName(title) {
-        return 'Unknown';
+        try {
+            const extracted = this.extractor.extractFromTitle(title);
+            return extracted.playerName || 'Unknown';
+        } catch (error) {
+            console.log(`⚠️ Error extracting player name from "${title}": ${error.message}`);
+            return 'Unknown';
+        }
     }
 
     extractYear(title) {
-        const yearMatch = title.match(/(19|20)\d{2}/);
-        return yearMatch ? parseInt(yearMatch[0]) : null;
+        try {
+            const extracted = this.extractor.extractFromTitle(title);
+            return extracted.year || null;
+        } catch (error) {
+            const yearMatch = title.match(/(19|20)\d{2}/);
+            return yearMatch ? parseInt(yearMatch[0]) : null;
+        }
     }
 
     extractBrand(title) {
-        if (title.toLowerCase().includes('panini')) return 'Panini';
-        if (title.toLowerCase().includes('topps')) return 'Topps';
-        if (title.toLowerCase().includes('upper deck')) return 'Upper Deck';
-        return 'Unknown';
+        try {
+            const extracted = this.extractor.extractFromTitle(title);
+            return extracted.brand || 'Unknown';
+        } catch (error) {
+            if (title.toLowerCase().includes('panini')) return 'Panini';
+            if (title.toLowerCase().includes('topps')) return 'Topps';
+            if (title.toLowerCase().includes('upper deck')) return 'Upper Deck';
+            return 'Unknown';
+        }
     }
 
     extractSet(title) {
-        return 'Unknown';
+        try {
+            const extracted = this.extractor.extractFromTitle(title);
+            return extracted.setName || 'Unknown';
+        } catch (error) {
+            console.log(`⚠️ Error extracting set from "${title}": ${error.message}`);
+            return 'Unknown';
+        }
     }
 
     extractCardNumber(title) {
-        const numberMatch = title.match(/#(\d+)/);
-        return numberMatch ? `#${numberMatch[1]}` : null;
+        try {
+            const extracted = this.extractor.extractFromTitle(title);
+            return extracted.cardNumber || null;
+        } catch (error) {
+            const numberMatch = title.match(/#(\d+)/);
+            return numberMatch ? `#${numberMatch[1]}` : null;
+        }
     }
 
     extractPrintRun(title) {
-        return null;
+        try {
+            const extracted = this.extractor.extractFromTitle(title);
+            return extracted.printRun || null;
+        } catch (error) {
+            return null;
+        }
     }
 
     isRookie(title) {
-        return title.toLowerCase().includes('rookie') || title.toLowerCase().includes('rc') ? 1 : 0;
+        try {
+            const extracted = this.extractor.extractFromTitle(title);
+            return extracted.isRookie ? 1 : 0;
+        } catch (error) {
+            return title.toLowerCase().includes('rookie') || title.toLowerCase().includes('rc') ? 1 : 0;
+        }
     }
 
     isAutograph(title) {
-        return title.toLowerCase().includes('auto') || title.toLowerCase().includes('autograph') ? 1 : 0;
+        try {
+            const extracted = this.extractor.extractFromTitle(title);
+            return extracted.isAutograph ? 1 : 0;
+        } catch (error) {
+            return title.toLowerCase().includes('auto') || title.toLowerCase().includes('autograph') ? 1 : 0;
+        }
+    }
+
+    extractCardType(title) {
+        try {
+            const extracted = this.extractor.extractFromTitle(title);
+            return extracted.cardType || 'Unknown';
+        } catch (error) {
+            console.log(`⚠️ Error extracting card type from "${title}": ${error.message}`);
+            return 'Unknown';
+        }
     }
 }
 
