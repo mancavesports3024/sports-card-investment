@@ -748,15 +748,25 @@ class EbayScraperService {
                     console.log(`🔍 DEBUG: Pattern ${patternIndex + 1} found ${sections.length} sections`);
                     
                     if (sections.length > 0) {
-                        // Process sections to extract title-price pairs (reduced logging for performance)
-                        console.log(`🔍 DEBUG: Processing ${sections.length} sections for title-price extraction...`);
+                        // COMPREHENSIVE DEBUGGING: Process sections to extract title-price pairs
+                        console.log(`🔍 COMPREHENSIVE DEBUG: Processing ${sections.length} sections for title-price extraction...`);
+                        
+                        let validExtractions = 0;
+                        let debugSampleSections = Math.min(3, sections.length); // Show first 3 sections in detail
                         
                         for (let i = 0; i < Math.min(maxResults, sections.length); i++) {
                             const section = sections[i];
+                            const isDebugSection = i < debugSampleSections;
+                            const isTargetItemSection = section.includes("365770463030");
                             
                             try {
-                                // Extract itemId from this section
-                                const itemIdMatches = [
+                                if (isDebugSection || isTargetItemSection) {
+                                    console.log(`\n🔍 SECTION ${i + 1} ANALYSIS (${section.length} chars):`);
+                                    console.log(`📄 Sample content: "${section.substring(0, 500)}..."`);
+                                }
+                                
+                                // Extract itemId from this section with detailed testing
+                                const itemIdPatterns = [
                                     /(?:itemId|\/itm\/)[":\s]*(\d+)/,
                                     /itm\/(\d+)/,
                                     /"itemId":"(\d+)"/,
@@ -764,15 +774,21 @@ class EbayScraperService {
                                 ];
                                 
                                 let itemId = null;
-                                for (const pattern of itemIdMatches) {
-                                    const match = section.match(pattern);
+                                let itemIdPattern = null;
+                                for (let ip = 0; ip < itemIdPatterns.length; ip++) {
+                                    const match = section.match(itemIdPatterns[ip]);
                                     if (match) {
                                         itemId = match[1];
+                                        itemIdPattern = ip + 1;
                                         break;
                                     }
                                 }
                                 
-                                // Extract title from this section with enhanced patterns
+                                if (isDebugSection || isTargetItemSection) {
+                                    console.log(`🆔 ItemId: "${itemId || 'NOT FOUND'}" (pattern ${itemIdPattern || 'none'})`);
+                                }
+                                
+                                // Extract title from this section with detailed pattern testing
                                 const titlePatterns = [
                                     // HTML element patterns
                                     /<h3[^>]*>([^<]+)/i,
@@ -794,19 +810,39 @@ class EbayScraperService {
                                 ];
                                 
                                 let title = null;
+                                let titlePattern = null;
+                                let titleMatches = [];
+                                
                                 for (let tp = 0; tp < titlePatterns.length; tp++) {
                                     const titleMatch = section.match(titlePatterns[tp]);
-                                    if (titleMatch && titleMatch[1] && titleMatch[1].length > 10) {
-                                        title = titleMatch[1].trim()
-                                            .replace(/\s+/g, ' ')
-                                            .replace(/&quot;/g, '"')
-                                            .replace(/&#39;/g, "'")
-                                            .replace(/&amp;/g, '&');
-                                        break;
+                                    if (titleMatch && titleMatch[1]) {
+                                        titleMatches.push({
+                                            pattern: tp + 1,
+                                            match: titleMatch[1].substring(0, 60) + '...',
+                                            length: titleMatch[1].length,
+                                            valid: titleMatch[1].length > 10
+                                        });
+                                        
+                                        if (!title && titleMatch[1].length > 10) {
+                                            title = titleMatch[1].trim()
+                                                .replace(/\s+/g, ' ')
+                                                .replace(/&quot;/g, '"')
+                                                .replace(/&#39;/g, "'")
+                                                .replace(/&amp;/g, '&');
+                                            titlePattern = tp + 1;
+                                        }
                                     }
                                 }
                                 
-                                // Extract price from this same section with enhanced patterns
+                                if (isDebugSection || isTargetItemSection) {
+                                    console.log(`📝 Title matches found: ${titleMatches.length}`);
+                                    titleMatches.forEach(tm => {
+                                        console.log(`   Pattern ${tm.pattern}: "${tm.match}" (${tm.length} chars, valid: ${tm.valid})`);
+                                    });
+                                    console.log(`📝 Selected title: "${title ? title.substring(0, 60) + '...' : 'NOT FOUND'}" (pattern ${titlePattern || 'none'})`);
+                                }
+                                
+                                // Extract price from this same section with detailed pattern testing
                                 const pricePatterns = [
                                     // Standard price patterns
                                     /\$[\d,]+\.?\d*/g,
@@ -823,26 +859,61 @@ class EbayScraperService {
                                 ];
                                 
                                 let price = null;
+                                let pricePattern = null;
+                                let priceMatches = [];
+                                
                                 for (let pp = 0; pp < pricePatterns.length; pp++) {
-                                    const priceMatches = section.match(pricePatterns[pp]);
-                                    if (priceMatches) {
-                                        for (const priceMatch of priceMatches) {
-                                            const cleanPrice = priceMatch.replace(/[^\d.]/g, '');
+                                    const foundPrices = section.match(pricePatterns[pp]);
+                                    if (foundPrices) {
+                                        for (const foundPrice of foundPrices) {
+                                            const cleanPrice = foundPrice.replace(/[^\d.]/g, '');
                                             const numericValue = parseFloat(cleanPrice);
-                                            if (numericValue > 1 && numericValue < 50000) {
+                                            const valid = numericValue > 1 && numericValue < 50000;
+                                            
+                                            priceMatches.push({
+                                                pattern: pp + 1,
+                                                match: foundPrice,
+                                                numeric: numericValue,
+                                                valid: valid
+                                            });
+                                            
+                                            if (!price && valid) {
                                                 price = `$${numericValue.toFixed(2)}`;
-                                                break;
+                                                pricePattern = pp + 1;
                                             }
                                         }
-                                        if (price) break;
                                     }
                                 }
                                 
-                                // Only log for our target item to reduce noise
+                                if (isDebugSection || isTargetItemSection) {
+                                    console.log(`💰 Price matches found: ${priceMatches.length}`);
+                                    priceMatches.slice(0, 5).forEach(pm => { // Show first 5 price matches
+                                        console.log(`   Pattern ${pm.pattern}: "${pm.match}" ($${pm.numeric}, valid: ${pm.valid})`);
+                                    });
+                                    console.log(`💰 Selected price: "${price || 'NOT FOUND'}" (pattern ${pricePattern || 'none'})`);
+                                }
+                                
+                                // Validation and result creation
+                                const hasValidTitle = title && title.length > 10;
+                                const hasValidPrice = price !== null;
+                                const hasItemId = itemId !== null;
+                                const passesValidation = hasValidTitle && (hasValidPrice || hasItemId);
+                                
+                                if (isDebugSection || isTargetItemSection) {
+                                    console.log(`✅ Validation: title(${hasValidTitle}) + (price(${hasValidPrice}) | itemId(${hasItemId})) = ${passesValidation}`);
+                                }
+                                
+                                if (passesValidation) {
+                                    validExtractions++;
+                                }
+                                
+                                // Special tracking for our target item
                                 if (itemId === "365770463030") {
-                                    console.log(`🎯 DEBUG: Found target item 365770463030 in section ${i + 1}:`);
-                                    console.log(`🎯 DEBUG: - Title: "${title || 'not found'}"`);
-                                    console.log(`🎯 DEBUG: - Price: "${price || 'not found'}"`);
+                                    console.log(`\n🎯 TARGET ITEM FOUND IN SECTION ${i + 1}:`);
+                                    console.log(`🎯 ItemId: ${itemId}`);
+                                    console.log(`🎯 Title: "${title || 'NOT FOUND'}"`);
+                                    console.log(`🎯 Price: "${price || 'NOT FOUND'}"`);
+                                    console.log(`🎯 Passes validation: ${passesValidation}`);
                                 }
                             
                                 // Lower validation requirements and create result if we have title and either price or itemId
@@ -875,10 +946,18 @@ class EbayScraperService {
                             }
                         }
                         
+                        // Summary of section-based parsing
+                        console.log(`\n📊 SECTION PARSING SUMMARY:`);
+                        console.log(`📊 Total sections processed: ${Math.min(maxResults, sections.length)}`);
+                        console.log(`📊 Valid extractions: ${validExtractions}`);
+                        console.log(`📊 Final results created: ${finalResults.length}`);
+                        
                         // If we found results with this pattern, use them
                         if (finalResults.length > 0) {
-                            console.log(`✅ Section-based parsing found ${finalResults.length} results with pattern ${patternIndex + 1}`);
-                          break;
+                            console.log(`✅ Section-based parsing SUCCEEDED with ${finalResults.length} results using pattern ${patternIndex + 1}`);
+                            break;
+                        } else {
+                            console.log(`❌ Section-based parsing FAILED for pattern ${patternIndex + 1} - no valid results created`);
                         }
                       }
                     }
