@@ -55,7 +55,15 @@ class EbayScraperService {
     async searchSoldCards(searchTerm, sport = null, maxResults = 50, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null) {
         try {
             const searchUrl = this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph);
+            console.log(`🔍 DEBUG - Search request: "${searchTerm}" (sport: ${sport}, grade: ${expectedGrade}, maxResults: ${maxResults})`);
             console.log(`🔍 Search URL: ${searchUrl}`);
+            
+            // Compare with the working manual URL
+            if (searchTerm === "2024 Topps Chrome" && sport === "Baseball" && expectedGrade === "PSA 10") {
+                console.log(`🎯 MANUAL URL: https://www.ebay.com/sch/i.html?_nkw=2024+Topps+Chrome&_sacat=0&_from=R40&Graded=Yes&Grade=10&LH_Complete=1&LH_Sold=1&_udlo=50&_udhi=5000&rt=nc&Sport=Baseball&_dcat=261328`);
+                console.log(`🎯 OUR URL:    ${searchUrl}`);
+                console.log(`🔍 URL COMPARISON - Checking for differences...`);
+            }
             
             // Make HTTP request
             const response = await axios.get(searchUrl, {
@@ -72,7 +80,17 @@ class EbayScraperService {
             });
 
             if (response.data) {
-                console.log('✅ Direct HTTP request successful, parsing HTML...');
+                console.log(`✅ Direct HTTP request successful (${response.data.length} characters), parsing HTML...`);
+                
+                // Debug specific search
+                if (searchTerm === "2024 Topps Chrome") {
+                    console.log(`🔍 TOPPS CHROME DEBUG - HTML content sample (first 500 chars):`);
+                    console.log(response.data.substring(0, 500));
+                    console.log(`🔍 Searching for "Topps Chrome" in HTML...`);
+                    const toppsMatches = (response.data.match(/topps chrome/gi) || []).length;
+                    console.log(`🔍 Found ${toppsMatches} instances of "Topps Chrome" in HTML`);
+                }
+                
                 const results = this.parseHtmlForCards(response.data, maxResults, searchTerm, sport, expectedGrade, false, originalIsAutograph, targetPrintRun);
                 
                 if (results.length > 0) {
@@ -108,13 +126,20 @@ class EbayScraperService {
             
             console.log(`🔍 Parsing HTML for card data with proximity-based correlation...`);
             
-            // Extract titles with positions using proven patterns
+            // Extract titles with positions using generic patterns for all searches
             const titleData = [];
             const workingTitlePatterns = [
+                // Generic patterns for all card searches
+                /<h3[^>]*>([^<]+)<\/h3>/gi,
+                /<a[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)<\/a>/gi,
+                /<span[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)<\/span>/gi,
+                /<div[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)<\/div>/gi,
+                // Legacy specific patterns (keep for backward compatibility)
                 />([^<]*(?:KONNOR GRIFFIN|Konnor Griffin)[^<]*(?:2024|Bowman|Chrome|Draft|Sapphire|PSA|Refractor)[^<]*)</gi,
                 />([^<]*(?:2024)[^<]*(?:Bowman|Chrome|Draft)[^<]*(?:KONNOR GRIFFIN|Konnor Griffin)[^<]*)</gi,
-                /<h3[^>]*>([^<]+)<\/h3>/gi,
-                /<a[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)<\/a>/gi
+                // Broad patterns for any 2024 cards
+                />([^<]*(?:2024)[^<]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon)[^<]*)</gi,
+                />([^<]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon)[^<]*(?:2024)[^<]*)</gi
             ];
             
             for (let p = 0; p < workingTitlePatterns.length; p++) {
@@ -156,6 +181,29 @@ class EbayScraperService {
             
             console.log(`🔍 Found ${titleData.length} titles, ${priceData.length} prices, ${itemIdData.length} itemIds`);
             
+            // Debug specific searches
+            if (searchTerm === "2024 Topps Chrome" || titleData.length === 0) {
+                console.log(`🔍 PARSING DEBUG for "${searchTerm}":`);
+                console.log(`   📄 HTML length: ${html.length} characters`);
+                console.log(`   🔤 Title patterns tested: ${workingTitlePatterns.length}`);
+                console.log(`   📝 Titles found: ${titleData.length}`);
+                console.log(`   💰 Prices found: ${priceData.length}`);
+                console.log(`   🆔 ItemIds found: ${itemIdData.length}`);
+                
+                if (titleData.length === 0) {
+                    console.log(`❌ NO TITLES FOUND - This explains why search fails!`);
+                    console.log(`🔍 Testing title patterns individually...`);
+                    
+                    for (let p = 0; p < workingTitlePatterns.length; p++) {
+                        const matches = [...html.matchAll(workingTitlePatterns[p])];
+                        console.log(`   Pattern ${p + 1}: Found ${matches.length} matches`);
+                        if (matches.length > 0) {
+                            console.log(`      First match: "${matches[0][1]?.substring(0, 100)}..."`);
+                        }
+                    }
+                }
+            }
+
             // Correlate by proximity within 2000 characters
             for (let i = 0; i < Math.min(maxResultsNum, titleData.length); i++) {
                 const titleInfo = titleData[i];
