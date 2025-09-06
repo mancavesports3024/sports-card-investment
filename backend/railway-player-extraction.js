@@ -8,6 +8,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const SimplePlayerExtractor = require('./simple-player-extraction.js');
+const NewPricingDatabase = require('./create-new-pricing-database.js');
 
 class RailwayPlayerExtractor {
     constructor() {
@@ -18,6 +19,7 @@ class RailwayPlayerExtractor {
         
         this.db = new sqlite3.Database(dbPath);
         this.extractor = new SimplePlayerExtractor();
+        this.pricingDb = new NewPricingDatabase();
         this.stats = {
             total: 0,
             updated: 0,
@@ -28,7 +30,8 @@ class RailwayPlayerExtractor {
     }
 
     async connect() {
-        return new Promise((resolve, reject) => {
+        // Connect to the main database
+        const dbPromise = new Promise((resolve, reject) => {
             this.db.get("SELECT 1", (err) => {
                 if (err) {
                     console.error('❌ Failed to connect to database:', err.message);
@@ -39,9 +42,22 @@ class RailwayPlayerExtractor {
                 }
             });
         });
+        
+        // Connect to the pricing database for extraction methods
+        await this.pricingDb.connect();
+        console.log('✅ Connected to pricing database for extraction methods');
+        
+        return dbPromise;
     }
 
     async close() {
+        // Close the pricing database
+        if (this.pricingDb) {
+            await this.pricingDb.close();
+            console.log('✅ Pricing database connection closed');
+        }
+        
+        // Close the main database
         return new Promise((resolve) => {
             this.db.close((err) => {
                 if (err) {
@@ -125,8 +141,8 @@ class RailwayPlayerExtractor {
             console.log(`\n🔍 Processing card ID ${card.id}:`);
             console.log(`   Title: ${card.title}`);
             
-            // Extract player name using the centralized system
-            const extractedPlayerName = this.extractor.extractPlayerName(card.title);
+            // Extract player name using the updated NewPricingDatabase system (includes sapphire fix)
+            const extractedPlayerName = this.pricingDb.extractPlayerName(card.title);
             
             console.log(`   Extracted: "${extractedPlayerName}"`);
             console.log(`   Current: "${card.player_name || 'NULL'}"`);
