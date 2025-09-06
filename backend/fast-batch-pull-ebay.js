@@ -198,7 +198,7 @@ class FastBatchItemsPullerEbay {
     }
 
     // Process a batch of cards
-    async processCardBatch(cards, searchTerm) {
+    async processCardBatch(cards, searchTerm, sport) {
         let addedCount = 0;
         
         for (const card of cards) {
@@ -210,7 +210,7 @@ class FastBatchItemsPullerEbay {
                     condition: card.condition || 'Unknown',
                     cardType: card.cardType || 'Unknown',
                     grade: card.grade || 'Unknown',
-                    sport: card.sport || 'Unknown',
+                    sport: sport || 'Unknown',
                     imageUrl: card.imageUrl || '',
                     itemUrl: card.itemUrl || '',
                     ebayItemId: card.rawData?.itemId || null,
@@ -273,7 +273,7 @@ class FastBatchItemsPullerEbay {
                             let batchAdded = 0;
                             for (let j = 0; j < psa10Cards.length; j += this.batchSize) {
                                 const cardBatch = psa10Cards.slice(j, j + this.batchSize);
-                                const added = await this.processCardBatch(cardBatch, searchTerm);
+                                const added = await this.processCardBatch(cardBatch, searchTerm, sport);
                                 batchAdded += added;
                             }
                             
