@@ -7163,3 +7163,81 @@ app.post('/api/admin/run-ebay-fast-batch-pull', async (req, res) => {
     }
 });
 
+// Backup and clear database endpoint for fresh testing
+app.post('/api/admin/backup-and-clear-database', async (req, res) => {
+    try {
+        console.log('🔄 Starting database backup and clear process...');
+        
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        
+        // Connect to database
+        await db.connect();
+        
+        // Get current database stats
+        const stats = await db.runQuery('SELECT COUNT(*) as total FROM cards', []);
+        const totalCards = stats[0].total;
+        
+        console.log(`📊 Current database contains ${totalCards} cards`);
+        
+        // Create backup with timestamp
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const backupName = `backup_before_clear_${timestamp}`;
+        
+        // Export current database to backup
+        const cards = await db.runQuery('SELECT * FROM cards ORDER BY created_at DESC', []);
+        
+        const fs = require('fs');
+        const path = require('path');
+        const backupDir = path.join(__dirname, 'data', 'backups');
+        
+        // Ensure backup directory exists
+        if (!fs.existsSync(backupDir)) {
+            fs.mkdirSync(backupDir, { recursive: true });
+        }
+        
+        const backupPath = path.join(backupDir, `${backupName}.json`);
+        
+        // Write backup file
+        fs.writeFileSync(backupPath, JSON.stringify({
+            backup_info: {
+                timestamp: new Date().toISOString(),
+                total_cards: totalCards,
+                reason: 'Backup before clearing database for fresh eBay scraper test'
+            },
+            cards: cards
+        }, null, 2));
+        
+        console.log(`💾 Backup created: ${backupPath}`);
+        
+        // Clear the database
+        await db.runQuery('DELETE FROM cards', []);
+        
+        // Verify clearing
+        const newStats = await db.runQuery('SELECT COUNT(*) as total FROM cards', []);
+        const remainingCards = newStats[0].total;
+        
+        console.log(`✅ Database cleared! ${totalCards} cards removed, ${remainingCards} remaining`);
+        
+        res.json({
+            success: true,
+            message: 'Database backup and clear completed successfully',
+            data: {
+                backup_file: backupPath,
+                cards_backed_up: totalCards,
+                cards_remaining: remainingCards,
+                backup_timestamp: timestamp
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Error in backup and clear process:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+module.exports = app;
+
