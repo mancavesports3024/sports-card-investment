@@ -972,33 +972,112 @@ class EbayScraperService {
                 // If section-based parsing failed, fall back to the old array method
                 if (finalResults.length === 0) {
                     console.log(`⚠️ Section-based parsing failed, using array-based fallback`);
-                    console.log(`🔍 DEBUG: HTML parsing arrays - titles: ${titles.length}, prices: ${prices.length}, itemIds: ${itemIds.length}`);
+                    console.log(`🔍 Using proximity-based correlation instead of misaligned arrays`);
                     
-                    for (let i = 0; i < Math.min(maxResults, Math.max(itemIds.length, titles.length, 5)); i++) {
-                        const title = titles[i] || `Card ${i + 1} - ${searchTerm || 'Unknown'}`;
-                        const price = prices[i] || 'Price not found';
-                        const numericPrice = prices[i] ? parseFloat(prices[i].replace(/[\$,]/g, '')) : 0;
-                        
-                        const result = {
-                            title: title,
-                            price: price,
-                            numericPrice: numericPrice,
-                            soldDate: 'Recently sold',
-                            condition: 'Unknown',
-                            cardType: 'Unknown',
-                            grade: null,
-                            sport: sport || this.detectSportFromTitle(title, searchTerm || ''),
-                            imageUrl: '',
-                            itemUrl: itemIds[i] ? `https://www.ebay.com/itm/${itemIds[i]}` : '',
-                            rawData: {
-                                itemId: itemIds[i] || null,
-                                source: 'array_based_fallback',
-                                foundTitles: titles.length,
-                                foundPrices: prices.length
+                    // Use proven title patterns from debug logs
+                    const workingTitlePatterns = [
+                        />([^<]*(?:KONNOR GRIFFIN|Konnor Griffin)[^<]*(?:2024|Bowman|Chrome|Draft|Sapphire|PSA|Refractor)[^<]*)</gi,
+                        />([^<]*(?:2024)[^<]*(?:Bowman|Chrome|Draft)[^<]*(?:KONNOR GRIFFIN|Konnor Griffin)[^<]*)</gi,
+                        /<h3[^>]*>([^<]+)<\/h3>/gi,
+                        /<a[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)<\/a>/gi
+                    ];
+                    
+                    // Extract titles with positions
+                    const titleData = [];
+                    for (let p = 0; p < workingTitlePatterns.length; p++) {
+                        const matches = [...htmlContent.matchAll(workingTitlePatterns[p])];
+                        matches.forEach(match => {
+                            const title = match[1].trim().replace(/\s+/g, ' ');
+                            if (title.length > 10) {
+                                titleData.push({
+                                    title: title,
+                                    position: match.index
+                                });
                             }
-                        };
+                        });
+                    }
+                    
+                    // Extract prices with positions
+                    const priceData = [];
+                    const priceMatches = [...htmlContent.matchAll(/\$[\d,]+\.?\d*/g)];
+                    priceMatches.forEach(match => {
+                        const numericPrice = parseFloat(match[0].replace(/[^\d.,]/g, '').replace(/,/g, ''));
+                        if (!isNaN(numericPrice) && numericPrice >= 1 && numericPrice <= 10000) {
+                            priceData.push({
+                                price: match[0],
+                                numericPrice: numericPrice,
+                                position: match.index
+                            });
+                        }
+                    });
+                    
+                    // Extract itemIds with positions
+                    const itemIdData = [];
+                    const itemIdMatches = [...htmlContent.matchAll(/(?:itm\/|item\/)(\d{10,})/g)];
+                    itemIdMatches.forEach(match => {
+                        itemIdData.push({
+                            itemId: match[1],
+                            position: match.index
+                        });
+                    });
+                    
+                    console.log(`🔍 Found ${titleData.length} titles, ${priceData.length} prices, ${itemIdData.length} itemIds`);
+                    
+                    // Correlate by proximity within 2000 characters
+                    for (let i = 0; i < Math.min(maxResults, titleData.length); i++) {
+                        const titleInfo = titleData[i];
                         
-                        finalResults.push(result);
+                        // Find closest price
+                        let closestPrice = null;
+                        let closestDistance = Infinity;
+                        priceData.forEach(priceInfo => {
+                            const distance = Math.abs(titleInfo.position - priceInfo.position);
+                            if (distance < 2000 && distance < closestDistance) {
+                                closestPrice = priceInfo;
+                                closestDistance = distance;
+                            }
+                        });
+                        
+                        // Find closest itemId
+                        let closestItemId = null;
+                        itemIdData.forEach(itemInfo => {
+                            const distance = Math.abs(titleInfo.position - itemInfo.position);
+                            if (distance < 2000) {
+                                closestItemId = itemInfo;
+                            }
+                        });
+                        
+                        if (closestPrice) {
+                            // Special logging for target item
+                            if (closestItemId && closestItemId.itemId === '365770463030') {
+                                console.log(`🎯 TARGET ITEM 365770463030: "${titleInfo.title}" = ${closestPrice.price} (distance: ${closestDistance})`);
+                            }
+                            
+                            const title = titleInfo.title;
+                            const price = closestPrice.price;
+                            const numericPrice = closestPrice.numericPrice;
+                        
+                            const result = {
+                                title: title,
+                                price: price,
+                                numericPrice: numericPrice,
+                                soldDate: 'Recently sold',
+                                condition: 'Unknown',
+                                cardType: 'Unknown',
+                                grade: null,
+                                sport: sport || this.detectSportFromTitle(title, searchTerm || ''),
+                                imageUrl: '',
+                                itemUrl: closestItemId ? `https://www.ebay.com/itm/${closestItemId.itemId}` : '',
+                                rawData: {
+                                    itemId: closestItemId ? closestItemId.itemId : null,
+                                    source: 'proximity_correlation',
+                                    foundTitles: titleData.length,
+                                    foundPrices: priceData.length
+                                }
+                            };
+                            
+                            finalResults.push(result);
+                        }
                     }
                 }
                 
