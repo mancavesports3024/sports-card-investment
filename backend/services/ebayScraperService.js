@@ -177,7 +177,7 @@ class EbayScraperService {
             console.log(`🔍 Searching eBay for sold cards: ${searchTerm}`);
             
             // Build search URL for sold listings
-            const searchUrl = this.buildSearchUrl(searchTerm, sport, expectedGrade);
+            const searchUrl = this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph);
             console.log(`🔍 Search URL: ${searchUrl}`);
 
             // Try direct HTTP request first (faster and less likely to be blocked)

@@ -6758,12 +6758,12 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
                 ebayItemId: item.rawData?.itemId || null
             })) : [];
         
-        // Use the dedicated search results instead of the original PSA 10 search
-        const psa10Cards = psa10DedicatedCards.length > 0 ? psa10DedicatedCards : psa10Cards;
-        const psa9Cards = psa9DedicatedCards;
-        const rawCards = rawDedicatedCards;
+        // Use the dedicated search results
+        const finalPsa10Cards = psa10DedicatedCards.length > 0 ? psa10DedicatedCards : psa10Cards;
+        const finalPsa9Cards = psa9DedicatedCards;
+        const finalRawCards = rawDedicatedCards;
         
-        console.log(`🔍 Filtered results: ${rawCards.length} Raw, ${psa9Cards.length} PSA 9`);
+        console.log(`🔍 Filtered results: ${finalRawCards.length} Raw, ${finalPsa9Cards.length} PSA 9`);
 
         // Step 5: Prepare comprehensive results
         const comprehensiveResults = {
@@ -6771,22 +6771,22 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
             searchTerm: searchTerm,
             sport: sport,
             psa10: {
-                count: psa10Cards.length,
-                cards: psa10Cards,
-                averagePrice: psa10Cards.length > 0 ? 
-                    Math.round(psa10Cards.reduce((a, b) => a + b.numericPrice, 0) / psa10Cards.length) : 0
+                count: finalPsa10Cards.length,
+                cards: finalPsa10Cards,
+                averagePrice: finalPsa10Cards.length > 0 ? 
+                    Math.round(finalPsa10Cards.reduce((a, b) => a + b.numericPrice, 0) / finalPsa10Cards.length) : 0
             },
             psa9: {
-                count: psa9Cards.length,
-                cards: psa9Cards,
-                averagePrice: psa9Cards.length > 0 ? 
-                    Math.round(psa9Cards.reduce((a, b) => a + b.numericPrice, 0) / psa9Cards.length) : 0
+                count: finalPsa9Cards.length,
+                cards: finalPsa9Cards,
+                averagePrice: finalPsa9Cards.length > 0 ? 
+                    Math.round(finalPsa9Cards.reduce((a, b) => a + b.numericPrice, 0) / finalPsa9Cards.length) : 0
             },
             raw: {
-                count: rawCards.length,
-                cards: rawCards,
-                averagePrice: rawCards.length > 0 ? 
-                    Math.round(rawCards.reduce((a, b) => a + b.numericPrice, 0) / rawCards.length) : 0
+                count: finalRawCards.length,
+                cards: finalRawCards,
+                averagePrice: finalRawCards.length > 0 ? 
+                    Math.round(finalRawCards.reduce((a, b) => a + b.numericPrice, 0) / finalRawCards.length) : 0
             }
         };
 
@@ -6904,10 +6904,11 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
             data: comprehensiveResults,
             stored: 'processed',
             searchDetails: {
-                psa10Search: psa10SearchTerm,
-                comprehensiveSearch: comprehensiveSearchTerm,
+                psa10Search: summaryTitle,
+                psa9Search: summaryTitle,
+                rawSearch: summaryTitle,
                 method: psa10Result.method,
-                strategy: 'single_comprehensive_search'
+                strategy: 'three_dedicated_searches'
             }
         });
         
