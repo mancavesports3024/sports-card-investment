@@ -728,58 +728,144 @@ class EbayScraperService {
                 }));
                 console.log(`✅ Using ${finalResults.length} structured JSON results`);
             } else {
-                // Fall back to HTML parsing with index matching
-                console.log(`⚠️ No structured data found, falling back to HTML parsing`);
-                console.log(`🔍 DEBUG: HTML parsing arrays - titles: ${titles.length}, prices: ${prices.length}, itemIds: ${itemIds.length}`);
-                console.log(`🔍 DEBUG: First 5 titles:`, titles.slice(0, 5));
-                console.log(`🔍 DEBUG: First 5 prices:`, prices.slice(0, 5));
-                console.log(`🔍 DEBUG: First 5 itemIds:`, itemIds.slice(0, 5));
+                // Fall back to section-based HTML parsing to keep title-price pairs together
+                console.log(`⚠️ No structured data found, falling back to section-based HTML parsing`);
                 
-                // Look for our specific item in the arrays
-                const targetItemIndex = itemIds.indexOf("365770463030");
-                if (targetItemIndex !== -1) {
-                    console.log(`🎯 DEBUG: Found target item 365770463030 at index ${targetItemIndex}`);
-                    console.log(`🎯 DEBUG: Title at that index: "${titles[targetItemIndex]}"`);
-                    console.log(`🎯 DEBUG: Price at that index: "${prices[targetItemIndex]}"`);
+                // Try to find eBay listing containers and extract title-price pairs from each section
+                const listingPatterns = [
+                    // eBay search result item containers
+                    /<div[^>]*class="[^"]*s-item[^"]*"[^>]*>(.*?)<\/div>/gis,
+                    /<li[^>]*class="[^"]*srp-result[^"]*"[^>]*>(.*?)<\/li>/gis,
+                    /<div[^>]*class="[^"]*it-row[^"]*"[^>]*>(.*?)<\/div>/gis
+                ];
+                
+                console.log(`🔍 DEBUG: Trying section-based parsing...`);
+                
+                for (let patternIndex = 0; patternIndex < listingPatterns.length; patternIndex++) {
+                    const pattern = listingPatterns[patternIndex];
+                    const sections = html.match(pattern) || [];
+                    
+                    console.log(`🔍 DEBUG: Pattern ${patternIndex + 1} found ${sections.length} sections`);
+                    
+                    if (sections.length > 0) {
+                        // Process each section to extract title-price pairs
+                        for (let i = 0; i < Math.min(maxResults, sections.length); i++) {
+                            const section = sections[i];
+                            
+                            // Extract itemId from this section
+                            const itemIdMatch = section.match(/(?:itemId|\/itm\/)[":\s]*(\d+)/);
+                            const itemId = itemIdMatch ? itemIdMatch[1] : null;
+                            
+                            // Extract title from this section  
+                            const titlePatterns = [
+                                /<h3[^>]*>([^<]+)</i,
+                                /title="([^"]{20,200})"/i,
+                                /aria-label="([^"]{20,200})"/i,
+                                />([^<]{20,200}(?:Bowman|Topps|Prizm|Chrome|Draft|PSA|SGC)[\w\s\d#\/\-]{10,100})</i
+                            ];
+                            
+                            let title = null;
+                            for (const titlePattern of titlePatterns) {
+                                const titleMatch = section.match(titlePattern);
+                                if (titleMatch && titleMatch[1] && titleMatch[1].length > 15) {
+                                    title = titleMatch[1].trim().replace(/\s+/g, ' ');
+                                    break;
+                                }
+                            }
+                            
+                            // Extract price from this same section
+                            const pricePatterns = [
+                                /\$[\d,]+\.?\d*/,
+                                /[\$£€]?[\d,]+\.?\d*/
+                            ];
+                            
+                            let price = null;
+                            for (const pricePattern of pricePatterns) {
+                                const priceMatch = section.match(pricePattern);
+                                if (priceMatch) {
+                                    const foundPrice = priceMatch[0];
+                                    const numericValue = parseFloat(foundPrice.replace(/[\$,]/g, ''));
+                                    if (numericValue > 1 && numericValue < 50000) {
+                                        price = foundPrice;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            // Only create result if we found both title and price in the same section
+                            if (title && price && title.length > 15) {
+                                const numericPrice = parseFloat(price.replace(/[\$,]/g, ''));
+                                
+                                // Special debug for our target item
+                                if (itemId === "365770463030") {
+                                    console.log(`🎯 DEBUG: Found target item 365770463030 in section ${i}:`);
+                                    console.log(`🎯 DEBUG: - Title from section: "${title}"`);
+                                    console.log(`🎯 DEBUG: - Price from section: "${price}"`);
+                                    console.log(`🎯 DEBUG: - NumericPrice: ${numericPrice}`);
+                                }
+                                
+                                const result = {
+                                    title: title,
+                                    price: price,
+                                    numericPrice: numericPrice,
+                                    soldDate: 'Recently sold',
+                                    condition: 'Unknown',
+                                    cardType: 'Unknown',
+                                    grade: null,
+                                    sport: sport || this.detectSportFromTitle(title, searchTerm || ''),
+                                    imageUrl: '',
+                                    itemUrl: itemId ? `https://www.ebay.com/itm/${itemId}` : '',
+                                    rawData: {
+                                        itemId: itemId,
+                                        source: `section_based_pattern_${patternIndex + 1}`,
+                                        sectionIndex: i,
+                                        foundFromSection: true
+                                    }
+                                };
+                                
+                                finalResults.push(result);
+                            }
+                        }
+                        
+                        // If we found results with this pattern, use them
+                        if (finalResults.length > 0) {
+                            console.log(`✅ Section-based parsing found ${finalResults.length} results with pattern ${patternIndex + 1}`);
+                            break;
+                        }
+                    }
                 }
                 
-                for (let i = 0; i < Math.min(maxResults, Math.max(itemIds.length, images.length, prices.length)); i++) {
-                    const title = titles[i] || `Card ${i + 1} - ${searchTerm || 'Unknown'}`;
-                    const price = prices[i] || 'Price not found';
-                    const numericPrice = prices[i] ? parseFloat(prices[i].replace(/[\$,]/g, '')) : 0;
+                // If section-based parsing failed, fall back to the old array method
+                if (finalResults.length === 0) {
+                    console.log(`⚠️ Section-based parsing failed, using array-based fallback`);
+                    console.log(`🔍 DEBUG: HTML parsing arrays - titles: ${titles.length}, prices: ${prices.length}, itemIds: ${itemIds.length}`);
                     
-                    // Debug logging for each result
-                    console.log(`🔍 DEBUG: Result ${i}: title="${title.substring(0, 50)}...", price="${price}", itemId="${itemIds[i] || 'none'}"`);
-                    
-                    // Special attention to our problem item
-                    if (itemIds[i] === "365770463030") {
-                        console.log(`🎯 DEBUG: Building result for target item 365770463030:`);
-                        console.log(`🎯 DEBUG: - Title: "${title}"`);
-                        console.log(`🎯 DEBUG: - Price: "${price}"`);
-                        console.log(`🎯 DEBUG: - NumericPrice: ${numericPrice}`);
+                    for (let i = 0; i < Math.min(maxResults, Math.max(itemIds.length, titles.length, 5)); i++) {
+                        const title = titles[i] || `Card ${i + 1} - ${searchTerm || 'Unknown'}`;
+                        const price = prices[i] || 'Price not found';
+                        const numericPrice = prices[i] ? parseFloat(prices[i].replace(/[\$,]/g, '')) : 0;
+                        
+                        const result = {
+                            title: title,
+                            price: price,
+                            numericPrice: numericPrice,
+                            soldDate: 'Recently sold',
+                            condition: 'Unknown',
+                            cardType: 'Unknown',
+                            grade: null,
+                            sport: sport || this.detectSportFromTitle(title, searchTerm || ''),
+                            imageUrl: '',
+                            itemUrl: itemIds[i] ? `https://www.ebay.com/itm/${itemIds[i]}` : '',
+                            rawData: {
+                                itemId: itemIds[i] || null,
+                                source: 'array_based_fallback',
+                                foundTitles: titles.length,
+                                foundPrices: prices.length
+                            }
+                        };
+                        
+                        finalResults.push(result);
                     }
-                    
-                    const result = {
-                        title: title,
-                        price: price,
-                        numericPrice: numericPrice,
-                        soldDate: 'Recently sold',
-                        condition: 'Unknown',
-                        cardType: 'Unknown',
-                        grade: null,
-                        sport: sport || this.detectSportFromTitle(titles[i] || '', searchTerm || ''),
-                        imageUrl: images[i] || '',
-                        itemUrl: itemIds[i] ? `https://www.ebay.com/itm/${itemIds[i]}` : '',
-                        rawData: {
-                            itemId: itemIds[i] || null,
-                            source: 'html_parsing',
-                            foundTitles: titles.length,
-                            foundPrices: prices.length,
-                            foundImages: images.length
-                        }
-                    };
-                    
-                    finalResults.push(result);
                 }
                 
                 console.log(`🔍 Created ${finalResults.length} results from HTML parsing fallback`);
