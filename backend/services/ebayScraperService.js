@@ -748,135 +748,130 @@ class EbayScraperService {
                     console.log(`🔍 DEBUG: Pattern ${patternIndex + 1} found ${sections.length} sections`);
                     
                     if (sections.length > 0) {
-                        // Process each section to extract title-price pairs
+                        // Process sections to extract title-price pairs (reduced logging for performance)
                         console.log(`🔍 DEBUG: Processing ${sections.length} sections for title-price extraction...`);
                         
                         for (let i = 0; i < Math.min(maxResults, sections.length); i++) {
                             const section = sections[i];
-                            console.log(`🔍 DEBUG: Processing section ${i + 1}/${sections.length} (${section.length} chars)`);
                             
-                            // Extract itemId from this section
-                            const itemIdMatches = [
-                                /(?:itemId|\/itm\/)[":\s]*(\d+)/,
-                                /itm\/(\d+)/,
-                                /"itemId":"(\d+)"/,
-                                /data-itemid="(\d+)"/i
-                            ];
-                            
-                            let itemId = null;
-                            for (const pattern of itemIdMatches) {
-                                const match = section.match(pattern);
-                                if (match) {
-                                    itemId = match[1];
-                            break;
-                          }
-                            }
-                            console.log(`🔍 DEBUG: Section ${i + 1} itemId: ${itemId || 'not found'}`);
-                            
-                            // Extract title from this section with enhanced patterns
-                            const titlePatterns = [
-                                // HTML element patterns
-                                /<h3[^>]*>([^<]+)</i,
-                                /<span[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)</i,
-                                /<a[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)</a>/i,
+                            try {
+                                // Extract itemId from this section
+                                const itemIdMatches = [
+                                    /(?:itemId|\/itm\/)[":\s]*(\d+)/,
+                                    /itm\/(\d+)/,
+                                    /"itemId":"(\d+)"/,
+                                    /data-itemid="(\d+)"/i
+                                ];
                                 
-                                // Attribute patterns
-                                /title="([^"]{15,200})"/i,
-                                /aria-label="([^"]{15,200})"/i,
-                                /alt="([^"]{15,200})"/i,
-                                
-                                // Text patterns with card keywords
-                                />([^<]{15,200}(?:Bowman|Topps|Prizm|Chrome|Draft|PSA|SGC|Konnor|Griffin)[\w\s\d#\/\-]{10,150})</i,
-                                />([^<]{15,200}(?:2024|2023|2022)[\w\s\d#\/\-]{10,150}(?:Bowman|Chrome|Draft)[\w\s\d#\/\-]{5,100})</i,
-                                
-                                // JSON patterns
-                                /"title":"([^"]{15,200})"/i,
-                                /"name":"([^"]{15,150})"/i
-                            ];
-                            
-                            let title = null;
-                            let titlePattern = null;
-                            for (let tp = 0; tp < titlePatterns.length; tp++) {
-                                const titleMatch = section.match(titlePatterns[tp]);
-                                if (titleMatch && titleMatch[1] && titleMatch[1].length > 10) {
-                                    title = titleMatch[1].trim()
-                                        .replace(/\s+/g, ' ')
-                                        .replace(/&quot;/g, '"')
-                                        .replace(/&#39;/g, "'")
-                                        .replace(/&amp;/g, '&');
-                                    titlePattern = tp + 1;
-                            break;
-                          }
-                            }
-                            console.log(`🔍 DEBUG: Section ${i + 1} title: "${title ? title.substring(0, 60) + '...' : 'not found'}" (pattern ${titlePattern || 'none'})`);
-                            
-                            // Extract price from this same section with enhanced patterns
-                            const pricePatterns = [
-                                // Standard price patterns
-                                /\$[\d,]+\.?\d*/g,
-                                /[\$£€][\d,]+\.?\d*/g,
-                                
-                                // Specific price element patterns
-                                /class="[^"]*price[^"]*"[^>]*>[\s]*\$?([\d,]+\.?\d*)/i,
-                                /class="[^"]*amount[^"]*"[^>]*>[\s]*\$?([\d,]+\.?\d*)/i,
-                                
-                                // JSON price patterns
-                                /"price":"?\$?([\d,]+\.?\d*)"/i,
-                                /"amount":"?\$?([\d,]+\.?\d*)"/i,
-                                /"value":([\d,]+\.?\d*)/i
-                            ];
-                            
-                            let price = null;
-                            let pricePattern = null;
-                            for (let pp = 0; pp < pricePatterns.length; pp++) {
-                                const priceMatches = section.match(pricePatterns[pp]);
-                                if (priceMatches) {
-                                    for (const priceMatch of priceMatches) {
-                                        const cleanPrice = priceMatch.replace(/[^\d.]/g, '');
-                                        const numericValue = parseFloat(cleanPrice);
-                                        if (numericValue > 1 && numericValue < 50000) {
-                                            price = `$${numericValue.toFixed(2)}`;
-                                            pricePattern = pp + 1;
-                              break;
-                            }
-                          }
-                                    if (price) break;
-                                }
-                            }
-                            console.log(`🔍 DEBUG: Section ${i + 1} price: "${price || 'not found'}" (pattern ${pricePattern || 'none'})`);
-                            
-                            // Lower validation requirements and create result if we have title and either price or itemId
-                            if (title && title.length > 10 && (price || itemId)) {
-                                const numericPrice = price ? parseFloat(price.replace(/[\$,]/g, '')) : 0;
-                                
-                                // Special debug for our target item
-                                if (itemId === "365770463030") {
-                                    console.log(`🎯 DEBUG: Found target item 365770463030 in section ${i}:`);
-                                    console.log(`🎯 DEBUG: - Title from section: "${title}"`);
-                                    console.log(`🎯 DEBUG: - Price from section: "${price}"`);
-                                    console.log(`🎯 DEBUG: - NumericPrice: ${numericPrice}`);
-                                }
-                                
-                                const result = {
-                                    title: title,
-                                    price: price || 'Price not found',
-                                    numericPrice: numericPrice,
-                                    soldDate: 'Recently sold',
-                                    condition: 'Unknown',
-                                    cardType: 'Unknown',
-                                    grade: null,
-                                    sport: sport || this.detectSportFromTitle(title, searchTerm || ''),
-                                    imageUrl: '',
-                                    itemUrl: itemId ? `https://www.ebay.com/itm/${itemId}` : '',
-                                    rawData: {
-                                        itemId: itemId,
-                                        source: `section_based_pattern_${patternIndex + 1}`,
-                                        sectionIndex: i,
-                                        foundFromSection: true
+                                let itemId = null;
+                                for (const pattern of itemIdMatches) {
+                                    const match = section.match(pattern);
+                                    if (match) {
+                                        itemId = match[1];
+                                        break;
                                     }
-                                };
+                                }
                                 
-                                finalResults.push(result);
+                                // Extract title from this section with enhanced patterns
+                                const titlePatterns = [
+                                    // HTML element patterns
+                                    /<h3[^>]*>([^<]+)/i,
+                                    /<span[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)/i,
+                                    /<a[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)<\/a>/i,
+                                    
+                                    // Attribute patterns
+                                    /title="([^"]{15,200})"/i,
+                                    /aria-label="([^"]{15,200})"/i,
+                                    /alt="([^"]{15,200})"/i,
+                                    
+                                    // Text patterns with card keywords
+                                    />([^<]{15,200}(?:Bowman|Topps|Prizm|Chrome|Draft|PSA|SGC|Konnor|Griffin)[\w\s\d#\/\-]{10,150})</i,
+                                    />([^<]{15,200}(?:2024|2023|2022)[\w\s\d#\/\-]{10,150}(?:Bowman|Chrome|Draft)[\w\s\d#\/\-]{5,100})</i,
+                                    
+                                    // JSON patterns
+                                    /"title":"([^"]{15,200})"/i,
+                                    /"name":"([^"]{15,150})"/i
+                                ];
+                                
+                                let title = null;
+                                for (let tp = 0; tp < titlePatterns.length; tp++) {
+                                    const titleMatch = section.match(titlePatterns[tp]);
+                                    if (titleMatch && titleMatch[1] && titleMatch[1].length > 10) {
+                                        title = titleMatch[1].trim()
+                                            .replace(/\s+/g, ' ')
+                                            .replace(/&quot;/g, '"')
+                                            .replace(/&#39;/g, "'")
+                                            .replace(/&amp;/g, '&');
+                                        break;
+                                    }
+                                }
+                                
+                                // Extract price from this same section with enhanced patterns
+                                const pricePatterns = [
+                                    // Standard price patterns
+                                    /\$[\d,]+\.?\d*/g,
+                                    /[\$£€][\d,]+\.?\d*/g,
+                                    
+                                    // Specific price element patterns
+                                    /class="[^"]*price[^"]*"[^>]*>[\s]*\$?([\d,]+\.?\d*)/i,
+                                    /class="[^"]*amount[^"]*"[^>]*>[\s]*\$?([\d,]+\.?\d*)/i,
+                                    
+                                    // JSON price patterns
+                                    /"price":"?\$?([\d,]+\.?\d*)"/i,
+                                    /"amount":"?\$?([\d,]+\.?\d*)"/i,
+                                    /"value":([\d,]+\.?\d*)/i
+                                ];
+                                
+                                let price = null;
+                                for (let pp = 0; pp < pricePatterns.length; pp++) {
+                                    const priceMatches = section.match(pricePatterns[pp]);
+                                    if (priceMatches) {
+                                        for (const priceMatch of priceMatches) {
+                                            const cleanPrice = priceMatch.replace(/[^\d.]/g, '');
+                                            const numericValue = parseFloat(cleanPrice);
+                                            if (numericValue > 1 && numericValue < 50000) {
+                                                price = `$${numericValue.toFixed(2)}`;
+                                                break;
+                                            }
+                                        }
+                                        if (price) break;
+                                    }
+                                }
+                                
+                                // Only log for our target item to reduce noise
+                                if (itemId === "365770463030") {
+                                    console.log(`🎯 DEBUG: Found target item 365770463030 in section ${i + 1}:`);
+                                    console.log(`🎯 DEBUG: - Title: "${title || 'not found'}"`);
+                                    console.log(`🎯 DEBUG: - Price: "${price || 'not found'}"`);
+                                }
+                            
+                                // Lower validation requirements and create result if we have title and either price or itemId
+                                if (title && title.length > 10 && (price || itemId)) {
+                                    const numericPrice = price ? parseFloat(price.replace(/[\$,]/g, '')) : 0;
+                                    
+                                    const result = {
+                                        title: title,
+                                        price: price || 'Price not found',
+                                        numericPrice: numericPrice,
+                                        soldDate: 'Recently sold',
+                                        condition: 'Unknown',
+                                        cardType: 'Unknown',
+                                        grade: null,
+                                        sport: sport || this.detectSportFromTitle(title, searchTerm || ''),
+                                        imageUrl: '',
+                                        itemUrl: itemId ? `https://www.ebay.com/itm/${itemId}` : '',
+                                        rawData: {
+                                            itemId: itemId,
+                                            source: `section_based_pattern_${patternIndex + 1}`,
+                                            sectionIndex: i,
+                                            foundFromSection: true
+                                        }
+                                    };
+                                    
+                                    finalResults.push(result);
+                                }
+                            } catch (sectionError) {
+                                console.log(`⚠️ DEBUG: Error processing section ${i + 1}: ${sectionError.message}`);
                             }
                         }
                         
