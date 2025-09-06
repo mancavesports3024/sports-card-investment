@@ -622,49 +622,87 @@ class EbayScraperService {
                 console.log(`🔍 Extracted ${titles.length} titles from search term context`);
             }
             
-            // Create results from what we found
-            for (let i = 0; i < Math.min(maxResults, Math.max(itemIds.length, images.length, prices.length)); i++) {
-                // Get the price and validate it's reasonable for the grade
-                let price = prices[i] || 'Price not found';
-                let numericPrice = prices[i] ? parseFloat(prices[i].replace(/[\$,]/g, '')) : 0;
+            // Try to extract structured data from eBay's JSON data instead of HTML scraping
+            const structuredDataPattern = /"listingAuction":\s*{[^}]*"currentPrice":\s*{\s*"value":\s*([0-9.]+)[^}]*"convertedFromValue":\s*([0-9.]+)[^}]*}[^}]*"itemId":\s*"([^"]+)"[^}]*"title":\s*"([^"]+)"/gi;
+            const jsonResults = [];
+            
+            let jsonMatch;
+            while ((jsonMatch = structuredDataPattern.exec(html)) !== null) {
+                const [, currentPrice, convertedPrice, itemId, title] = jsonMatch;
+                const numericPrice = parseFloat(currentPrice || convertedPrice);
                 
-                // Price validation based on expected grade to catch parsing errors
-                if (expectedGrade === 'PSA 9' && numericPrice > 1000) {
-                    console.log(`⚠️ Price validation: PSA 9 price $${numericPrice} seems too high, skipping this result`);
-                    continue;
-                } else if (expectedGrade === 'Raw' && numericPrice > 800) {
-                    console.log(`⚠️ Price validation: Raw price $${numericPrice} seems too high, skipping this result`);
-                    continue;
+                if (numericPrice > 1 && numericPrice < 50000 && title && title.length > 10) {
+                    jsonResults.push({
+                        title: title.replace(/\\"/g, '"').replace(/&quot;/g, '"'),
+                        price: `$${numericPrice.toFixed(2)}`,
+                        numericPrice: numericPrice,
+                        itemId: itemId,
+                        source: 'structured_json'
+                    });
                 }
-                
-                const result = {
-                    title: titles[i] || `Card ${i + 1} - ${searchTerm || 'Unknown'}`,
-                    price: price,
-                    numericPrice: numericPrice,
+            }
+            
+            console.log(`🔍 Found ${jsonResults.length} structured JSON results`);
+            
+            // If we got structured data, use that; otherwise fall back to HTML parsing
+            let finalResults = [];
+            
+            if (jsonResults.length > 0) {
+                // Use structured JSON data (more reliable)
+                finalResults = jsonResults.slice(0, maxResults).map(item => ({
+                    title: item.title,
+                    price: item.price,
+                    numericPrice: item.numericPrice,
                     soldDate: 'Recently sold',
                     condition: 'Unknown',
                     cardType: 'Unknown',
                     grade: null,
-                    sport: sport || this.detectSportFromTitle(titles[i] || '', searchTerm || ''),
-                    imageUrl: images[i] || '',
-                    itemUrl: itemIds[i] ? `https://www.ebay.com/itm/${itemIds[i]}` : '',
+                    sport: sport || this.detectSportFromTitle(item.title, searchTerm || ''),
+                    imageUrl: '',
+                    itemUrl: item.itemId ? `https://www.ebay.com/itm/${item.itemId}` : '',
                     rawData: {
-                        itemId: itemIds[i] || null,
-                        foundTitles: titles.length,
-                        foundPrices: prices.length,
-                        foundImages: images.length
+                        itemId: item.itemId,
+                        source: 'structured_json',
+                        foundTitles: jsonResults.length,
+                        foundPrices: jsonResults.length
                     }
-                };
+                }));
+                console.log(`✅ Using ${finalResults.length} structured JSON results`);
+            } else {
+                // Fall back to HTML parsing with index matching
+                console.log(`⚠️ No structured data found, falling back to HTML parsing`);
                 
-                results.push(result);
+                for (let i = 0; i < Math.min(maxResults, Math.max(itemIds.length, images.length, prices.length)); i++) {
+                    const result = {
+                        title: titles[i] || `Card ${i + 1} - ${searchTerm || 'Unknown'}`,
+                        price: prices[i] || 'Price not found',
+                        numericPrice: prices[i] ? parseFloat(prices[i].replace(/[\$,]/g, '')) : 0,
+                        soldDate: 'Recently sold',
+                        condition: 'Unknown',
+                        cardType: 'Unknown',
+                        grade: null,
+                        sport: sport || this.detectSportFromTitle(titles[i] || '', searchTerm || ''),
+                        imageUrl: images[i] || '',
+                        itemUrl: itemIds[i] ? `https://www.ebay.com/itm/${itemIds[i]}` : '',
+                        rawData: {
+                            itemId: itemIds[i] || null,
+                            source: 'html_parsing',
+                            foundTitles: titles.length,
+                            foundPrices: prices.length,
+                            foundImages: images.length
+                        }
+                    };
+                    
+                    finalResults.push(result);
+                }
+                
+                console.log(`🔍 Created ${finalResults.length} results from HTML parsing fallback`);
             }
             
-            console.log(`🔍 Created ${results.length} results from HTML parsing`);
-            
-            // Apply grade filtering
-            let filteredResults = this.filterCardsByGrade(results, expectedGrade);
+            // Apply grade filtering to final results
+            let filteredResults = this.filterCardsByGrade(finalResults, expectedGrade);
             if (expectedGrade) {
-                console.log(`🔍 Grade filtering (${expectedGrade}): ${results.length} → ${filteredResults.length} results`);
+                console.log(`🔍 Grade filtering (${expectedGrade}): ${finalResults.length} → ${filteredResults.length} results`);
             }
             
             // Apply autograph status filtering (match original card's auto status)
