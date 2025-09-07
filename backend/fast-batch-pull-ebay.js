@@ -58,30 +58,19 @@ class FastBatchItemsPullerEbay {
         }
     }
 
-    // PHASE 1: Start SMALL - Just 10 safe searches to test eBay's tolerance
+    // COMPREHENSIVE SPORT SEARCHES - One search per sport using eBay's built-in filters
     getSearchTerms() {
         return [
-            // === PHASE 1: TEST RUN - Just 10 searches ===
-            // Baseball - Most popular, lowest risk
-            { searchTerm: "2024 Bowman Chrome Draft", sport: "Baseball" },
-            { searchTerm: "2024 Topps Chrome", sport: "Baseball" },
+            // === ONE COMPREHENSIVE SEARCH PER SPORT ===
+            // Let eBay's sport filters do the work - much more comprehensive!
+            { searchTerm: "", sport: "Baseball" },     // All baseball PSA 10s $50-$5000
+            { searchTerm: "", sport: "Football" },     // All football PSA 10s $50-$5000
+            { searchTerm: "", sport: "Basketball" },   // All basketball PSA 10s $50-$5000
+            { searchTerm: "", sport: "Hockey" },       // All hockey PSA 10s $50-$5000
+            { searchTerm: "", sport: "Soccer" },       // All soccer PSA 10s $50-$5000
             
-            // Football - High demand, moderate risk
-            { searchTerm: "2024 Prizm", sport: "Football" },
-            { searchTerm: "2024 Select", sport: "Football" },
-            
-            // Basketball - Popular, moderate risk
-            { searchTerm: "2024 Prizm", sport: "Basketball" },
-            { searchTerm: "2024 Select", sport: "Basketball" },
-            
-            // Hockey - Lower volume, lower risk
-            { searchTerm: "2024 Upper Deck Series 1", sport: "Hockey" },
-            
-            // Pokemon TCG - High value, moderate risk (blank search with category filters)
-            { searchTerm: "", sport: null, cardType: "Pokemon TCG" },
-            
-            // Soccer - Lower volume, lowest risk
-            { searchTerm: "2024 Panini Prizm", sport: "Soccer" }
+            // Pokemon TCG - Special case using category filters (not a sport)
+            { searchTerm: "", sport: null, cardType: "Pokemon TCG" }
         ];
     }
 
