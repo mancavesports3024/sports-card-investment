@@ -7350,6 +7350,41 @@ app.get('/api/admin/debug-cards', async (req, res) => {
     }
 });
 
+// Debug endpoint to find player names with more than 2 words
+app.get('/api/admin/debug-multiword-names', async (req, res) => {
+    try {
+        const NewPricingDatabase = require('./create-new-pricing-database.js');
+        const db = new NewPricingDatabase();
+        await db.connect();
+        
+        // Get all player names with more than 2 words
+        const allCards = await db.allQuery(`
+            SELECT id, title, player_name, summary_title
+            FROM cards 
+            WHERE player_name IS NOT NULL 
+            AND LENGTH(player_name) - LENGTH(REPLACE(player_name, ' ', '')) + 1 > 2
+            ORDER BY player_name
+        `);
+        
+        await db.close();
+        
+        res.json({
+            success: true,
+            message: 'Multi-word player names retrieved',
+            count: allCards.length,
+            names: allCards
+        });
+        
+    } catch (error) {
+        console.error('❌ Error in debug multi-word names:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error retrieving multi-word names',
+            error: error.message
+        });
+    }
+});
+
 // Debug endpoint to find specific duplicates
 app.get('/api/admin/debug-duplicates', async (req, res) => {
     try {

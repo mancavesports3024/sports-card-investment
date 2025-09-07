@@ -19,8 +19,11 @@ class SimplePlayerExtractor {
             // Additional Missing Terms from Duplicate Files
             'sunday', 'bn391', 'reptilian', 'edition', 'au', 'fifa', 'insert', 'mh', 'storm chasers', 'x factor', 'lk', 'foil', 'sun', 'lunar', 'fireworks', 'kings', 'millionaire', 'sparks', 'nuggets', 'lava', 'razzle', 'fever', 'allies', 'ascensions', 'authentix', 'checkerboard', 'sky', 'events', 'club', 'collection', 'future', 'ne', 'mars', 'atl', 'tmc', 'blast', 'cb', 'vision', 'buffaloes', 'explosive', 'look', 'iv', 'image', 'tographs', 'champions', 'catching', 'el', 'he13',
             
-            // Additional Terms from 3-word Player Name Analysis
+            // Additional Terms from 3-word Player Name Analysis  
             'starquest', 'sox', 'texas', 'longhorns', 'minnesota', 'wings', 'atl', 'buffaloes', 'mars', 'ne', 'sun', 'lunar', 'fireworks', 'kaboom', 'hoops', 'field', 'euro', 'main', 'pokemon', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'stadium', 'catching', 'el', 'he13',
+            
+            // Country names that appear in card titles
+            'argentina', 'brazil', 'england', 'france', 'germany', 'spain', 'italy', 'portugal', 'netherlands', 'croatia',
             
                          // Additional Card Set/Type Terms from 3-word Analysis
              'apex', 'composite', 'courtside', 'dp', 'etch', 'iconic', 'lane', 'notoriety', 'radiating', 'royalty', 'sepia', 'ud', 'zenith', 'dazzle', 'electricity', 'gear', 'tf', 'geo', 'mavs', 'crystallized', 'cracked', 'mojo', 'choice', 'persona', 'hype', 'illumination', 'elevate', 'choice', 'ba', 'xrc', 'tri', 'no', 'hb', 'bdc', 'rg', 'sb', 'hr', 'tj', 'wj', 'q0902', 'shadow', 'impact', 'la', 'av', 'dc', 'mns', 'ny', 'tf', 'cc', 'mj', 'se', 'true', 'aces', 'overhead', 'pinstripe', 'power', 'medal', 'metal', 'rainmakers', 'phenom', 'pandora', 'uptowns', 'uptown', 'scope', 'wave', 'disco', 'pink', 'blue', 'red', 'green', 'silver', 'gold', 'orange', 'purple', 'yellow', 'aqua', 'teal', 'bronze', 'white', 'black', 'camo', 'neon', 'tie-dye', 'snakeskin', 'dragon scale', 'pulsar', 'logo', 'variation', 'numbered', 'limited', 'platinum', 'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'lime', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet', 'coral', 'apricot', 'tangerine', 'amber', 'golden', 'metallic', 'copper', 'cream', 'ivory', 'beige', 'khaki', 'olive', 'turquoise', 'magenta', 'fuchsia', 'tf', 'tf',
@@ -39,7 +42,7 @@ class SimplePlayerExtractor {
             'holo', 'holographic', 'refractor', 'fractor', 'x-fractor', 'prism', 'die-cut', 'die cut', 'wave', 'velocity', 'scope', 'hyper', 'cracked ice', 'stained glass',
             'clear cut', 'real one', 'downtown', 'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric', 'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'splash', 'rising', 'best',
             // Special card types
-            'manga', 'snapshots', 'zebra', 'g2u', 'negative', 'gm', 'selections',
+            'manga', 'snapshots', 'zebra', 'g2u', 'negative', 'gm', 'selections', 'landmarks',
             
             // Colors and Parallels
             'blue ice', 'gold', 'silver', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'bronze', 'white', 'teal', 'neon', 'camo', 'tie-dye', 'disco', 'dragon scale', 'snakeskin', 'pulsar', 'logo', 'variation', 'sapphire',
