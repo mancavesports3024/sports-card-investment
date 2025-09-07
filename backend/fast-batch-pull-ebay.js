@@ -1,6 +1,7 @@
 const NewPricingDatabase = require('./create-new-pricing-database.js');
 const EbayScraperService = require('./services/ebayScraperService.js');
 const SimplePlayerExtractor = require('./simple-player-extraction.js');
+const ImprovedPriceUpdater = require('./improve-price-updating.js');
 
 class FastBatchItemsPullerEbay {
     constructor() {
@@ -10,6 +11,7 @@ class FastBatchItemsPullerEbay {
         this.maxConcurrentSearches = 1; // Sequential only - no parallel searches
         this.ebayService = new EbayScraperService();
         this.extractor = new SimplePlayerExtractor();
+        this.priceUpdater = new ImprovedPriceUpdater(); // For immediate price updates
         this.totalSearches = 0;
         this.successfulSearches = 0;
         this.blockedSearches = 0;
@@ -250,6 +252,27 @@ class FastBatchItemsPullerEbay {
             
             await this.db.runQuery(query, params);
             console.log(`✅ Added new card: ${title.substring(0, 50)}...`);
+            
+            // Get the card ID of the newly inserted card
+            const getCardIdQuery = `SELECT id FROM cards WHERE title = ? AND psa10_price = ? ORDER BY id DESC LIMIT 1`;
+            const cardResult = await this.db.getQuery(getCardIdQuery, [title, price]);
+            
+            if (cardResult && summaryTitle) {
+                console.log(`🔄 Starting immediate price update for: ${summaryTitle}`);
+                try {
+                    // Use the existing 3-search price updater with summary title
+                    const priceResult = await this.priceUpdater.updateCardPrices(cardResult.id, summaryTitle);
+                    
+                    if (priceResult) {
+                        console.log(`✅ Price update completed: PSA 10 avg $${priceResult.psa10Average?.toFixed(2) || 'N/A'}, PSA 9 avg $${priceResult.psa9Average?.toFixed(2) || 'N/A'}, Raw avg $${priceResult.rawAverage?.toFixed(2) || 'N/A'}`);
+                    } else {
+                        console.log(`⚠️ Price update failed for card ${cardResult.id}`);
+                    }
+                } catch (priceError) {
+                    console.log(`⚠️ Error during price update: ${priceError.message}`);
+                }
+            }
+            
             return true;
 
         } catch (error) {
