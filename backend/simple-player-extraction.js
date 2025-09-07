@@ -22,8 +22,14 @@ class SimplePlayerExtractor {
             // Additional Terms from 3-word Player Name Analysis  
             'starquest', 'sox', 'texas', 'longhorns', 'minnesota', 'wings', 'atl', 'buffaloes', 'mars', 'ne', 'sun', 'lunar', 'fireworks', 'kaboom', 'hoops', 'field', 'euro', 'main', 'pokemon', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'stadium', 'catching', 'el', 'he13',
             
-            // Country names and abbreviations that appear in card titles
-            'argentina', 'brazil', 'england', 'france', 'germany', 'spain', 'italy', 'portugal', 'netherlands', 'croatia', 'pl', 'p l', 'usa', 'iii', 'jr', 'sr',
+            // Soccer/Football leagues and competitions
+            'premier league', 'p/l', 'epl', 'bundesliga', 'la liga', 'serie a', 'ligue 1', 'uefa', 'champions league', 'europa league', 'world cup', 'euros', 'euro 2024',
+            
+            // Country names and abbreviations that appear in card titles  
+            'argentina', 'brazil', 'england', 'france', 'germany', 'spain', 'italy', 'portugal', 'netherlands', 'croatia', 'usa', 'iii', 'jr', 'sr',
+            
+            // Single letters that appear as card terms (be careful with these)
+            'l', 'p', 'r', 's', 'x', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'm', 'n', 'o', 'q', 't', 'u', 'v', 'w', 'y', 'z',
             
                          // Additional Card Set/Type Terms from 3-word Analysis
              'apex', 'composite', 'courtside', 'dp', 'etch', 'iconic', 'lane', 'notoriety', 'radiating', 'royalty', 'sepia', 'ud', 'zenith', 'dazzle', 'electricity', 'gear', 'tf', 'geo', 'mavs', 'crystallized', 'cracked', 'mojo', 'choice', 'persona', 'hype', 'illumination', 'elevate', 'choice', 'ba', 'xrc', 'tri', 'no', 'hb', 'bdc', 'rg', 'sb', 'hr', 'tj', 'wj', 'q0902', 'shadow', 'impact', 'la', 'av', 'dc', 'mns', 'ny', 'tf', 'cc', 'mj', 'se', 'true', 'aces', 'overhead', 'pinstripe', 'power', 'medal', 'metal', 'rainmakers', 'phenom', 'pandora', 'uptowns', 'uptown', 'scope', 'wave', 'disco', 'pink', 'blue', 'red', 'green', 'silver', 'gold', 'orange', 'purple', 'yellow', 'aqua', 'teal', 'bronze', 'white', 'black', 'camo', 'neon', 'tie-dye', 'snakeskin', 'dragon scale', 'pulsar', 'logo', 'variation', 'numbered', 'limited', 'platinum', 'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'lime', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet', 'coral', 'apricot', 'tangerine', 'amber', 'golden', 'metallic', 'copper', 'cream', 'ivory', 'beige', 'khaki', 'olive', 'turquoise', 'magenta', 'fuchsia', 'tf', 'tf',
