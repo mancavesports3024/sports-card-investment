@@ -53,6 +53,9 @@ class SimplePlayerExtractor {
             // Player designations that should be removed
             'roy', 'mvp', 'hof', 'rookie of the year', 'most valuable player', 'hall of fame',
             
+            // Card levels and tiers
+            'premier level', 'premier l', 'select level', 'courtside level', 'tri-color level', 'die-cut level',
+            
             // Colors and Parallels
             'blue ice', 'gold', 'silver', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'bronze', 'white', 'teal', 'neon', 'camo', 'tie-dye', 'disco', 'dragon scale', 'snakeskin', 'pulsar', 'logo', 'variation', 'sapphire',
             'numbered', 'limited', 'platinum', 'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'aqua', 'lime', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet', 'coral', 'apricot', 'tangerine', 'amber', 'golden', 'metallic', 'copper', 'cream', 'ivory', 'beige', 'khaki', 'olive', 'turquoise', 'magenta', 'fuchsia',
