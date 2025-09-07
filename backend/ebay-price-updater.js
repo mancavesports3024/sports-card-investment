@@ -104,10 +104,19 @@ class EbayPriceUpdater {
 
         const validPrices = results
             .map(item => {
-                const price = parseFloat(item.price || item.numericPrice || 0);
+                // Handle both string prices like "$12.00" and numeric prices like "12"
+                let priceValue = item.numericPrice || item.price || 0;
+                
+                // If it's a string, remove $ and other currency symbols
+                if (typeof priceValue === 'string') {
+                    priceValue = priceValue.replace(/[$,]/g, '');
+                }
+                
+                const price = parseFloat(priceValue);
+                console.log(`       💰 Processing: "${item.price}" / "${item.numericPrice}" → ${price}`);
                 return price;
             })
-            .filter(price => price > 0);
+            .filter(price => !isNaN(price) && price > 0);
 
         console.log(`     🔍 Valid prices found: ${validPrices.length} out of ${results.length}`);
         console.log(`     🔍 Price values: [${validPrices.slice(0, 5).join(', ')}...]`);
