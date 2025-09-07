@@ -16,12 +16,12 @@ class EbayScraperService {
         return this.userAgents[this.currentUserAgent];
     }
 
-    buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = null) {
+    buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = null, cardType = null) {
         // Clean and encode the search term (preserve negative keywords properly)
         const cleanTerm = searchTerm.replace(/[^\w\s\-\+]/g, ' ').replace(/\s+/g, '+');
         
-        // Pokemon cards use different category and structure with BLANK search term
-        if (sport && sport.toLowerCase() === 'pokemon') {
+        // Pokemon TCG cards use different category and structure with BLANK search term
+        if (cardType && cardType.toLowerCase().includes('pokemon tcg')) {
             let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=&_sacat=183454&_from=R40&_sasl=comc_consignment%2C+dcsports87%2C+probstein123%2C+5_star_cards&LH_PrefLoc=1&_saslop=2&_oaa=1&Game=Pok%25C3%25A9mon%2520TCG&LH_Complete=1&LH_Sold=1`;
             
             // Add grade-specific parameters for Pokemon

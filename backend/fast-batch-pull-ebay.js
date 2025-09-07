@@ -77,9 +77,8 @@ class FastBatchItemsPullerEbay {
             // Hockey - Lower volume, lower risk
             { searchTerm: "2024 Upper Deck Series 1", sport: "Hockey" },
             
-            // Pokemon - High value, moderate risk
-            { searchTerm: "Pokemon Scarlet Violet", sport: null },
-            { searchTerm: "Pokemon 151", sport: null },
+            // Pokemon TCG - High value, moderate risk (blank search with category filters)
+            { searchTerm: "", sport: null, cardType: "Pokemon TCG" },
             
             // Soccer - Lower volume, lowest risk
             { searchTerm: "2024 Panini Prizm", sport: "Soccer" }
