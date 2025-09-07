@@ -20,6 +20,28 @@ class EbayScraperService {
         // Clean and encode the search term (preserve negative keywords properly)
         const cleanTerm = searchTerm.replace(/[^\w\s\-\+]/g, ' ').replace(/\s+/g, '+');
         
+        // Pokemon cards use different category and structure
+        if (sport && sport.toLowerCase() === 'pokemon') {
+            let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=183454&_from=R40&_sasl=comc_consignment%2C+dcsports87%2C+probstein123%2C+5_star_cards&LH_PrefLoc=1&_saslop=2&_oaa=1&Game=Pok%25C3%25A9mon%2520TCG&LH_Complete=1&LH_Sold=1`;
+            
+            // Add grade-specific parameters for Pokemon
+            if (expectedGrade === 'PSA 10' || expectedGrade === 'PSA 9') {
+                searchUrl += '&Graded=Yes&_dcat=183454';
+                
+                if (expectedGrade === 'PSA 10') {
+                    searchUrl += '&Grade=10';  // Pokemon PSA 10s
+                } else {
+                    searchUrl += '&Grade=9';   // Pokemon PSA 9s
+                }
+                searchUrl += '&Professional%2520Grader=Professional%2520Sports%2520Authenticator%2520%2528PSA%2529';
+            } else if (expectedGrade === 'Raw') {
+                searchUrl += '&Graded=No&_dcat=183454';  // Raw Pokemon cards
+            }
+            
+            return searchUrl;
+        }
+        
+        // Standard sports cards (non-Pokemon)
         let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1`;
         
         // Add grade-specific parameters
@@ -36,16 +58,18 @@ class EbayScraperService {
             searchUrl += '&rt=nc&Graded=No&_dcat=261328&_udlo=10&_udhi=1000';  // Price range for Raw
         }
         
-        // Add sport filter if specified
-        if (sport) {
+        // Add sport filter if specified (for non-Pokemon sports)
+        if (sport && sport.toLowerCase() !== 'pokemon') {
             searchUrl += `&Sport=${encodeURIComponent(sport)}`;
         }
         
-        // Only add autographed filter when explicitly specified
-        if (originalIsAutograph === true) {
-            searchUrl += '&Autographed=Yes';
-        } else if (originalIsAutograph === false) {
-            searchUrl += '&Autographed=No';
+        // Only add autographed filter when explicitly specified (doesn't apply to Pokemon)
+        if (sport && sport.toLowerCase() !== 'pokemon') {
+            if (originalIsAutograph === true) {
+                searchUrl += '&Autographed=Yes';
+            } else if (originalIsAutograph === false) {
+                searchUrl += '&Autographed=No';
+            }
         }
         // If originalIsAutograph is null, don't add any autograph filter (for general searches)
         
