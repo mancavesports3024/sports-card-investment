@@ -66,6 +66,8 @@ class EbayPriceUpdater {
             } else {
                 console.log(`   ⚠️ PSA 9 search failed. Result type: ${typeof psa9Result}, isArray: ${Array.isArray(psa9Result)}`);
                 console.log(`   🔍 Full result:`, psa9Result);
+                // Note: eBay scraper found cards but filtered them out - this is expected for some searches
+                results.psa9 = []; // Set empty array for calculation
             }
 
             // Search for raw (ungraded) cards - specify 'Raw' as grade to get Graded=No
