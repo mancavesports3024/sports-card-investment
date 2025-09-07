@@ -88,23 +88,36 @@ class FastBatchItemsPullerEbay {
 
     // Extract card identity for smart deduplication
     extractCardIdentity(title) {
-        const components = this.db.extractCardComponents(title);
+        // Use SimplePlayerExtractor for player name extraction
+        const playerName = this.extractor.extractPlayerName(title) || '';
+        
+        // For now, use simple extraction for other components
+        // This is a simplified version - card number normalization is key for deduplication
+        let cardNumber = '';
+        const cardNumberMatch = title.match(/#?([A-Z0-9\-]+)/i);
+        if (cardNumberMatch) {
+            cardNumber = cardNumberMatch[1];
+        }
         
         // Normalize card number by removing hyphens, spaces, and # symbols
         let normalizedCardNumber = '';
-        if (components.cardNumber) {
-            normalizedCardNumber = components.cardNumber
+        if (cardNumber) {
+            normalizedCardNumber = cardNumber
                 .toLowerCase()
                 .replace(/[#\-\s]/g, '') // Remove #, hyphens, and spaces
                 .trim();
         }
         
+        // Extract year
+        const yearMatch = title.match(/\b(20\d{2})\b/);
+        const year = yearMatch ? yearMatch[1] : '';
+        
         return {
-            playerName: components.playerName?.toLowerCase().trim() || '',
+            playerName: playerName.toLowerCase().trim(),
             cardNumber: normalizedCardNumber,
-            year: components.year || '',
-            cardSet: components.cardSet?.toLowerCase().trim() || '',
-            cardType: components.cardType?.toLowerCase().trim() || ''
+            year: year,
+            cardSet: '', // Simplified for now
+            cardType: '' // Simplified for now
         };
     }
 
