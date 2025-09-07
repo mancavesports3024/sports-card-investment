@@ -61,9 +61,9 @@ class EbayPriceUpdater {
                 console.log(`   ⚠️ PSA 9 search failed or returned no results`);
             }
 
-            // Search for raw (ungraded) cards
+            // Search for raw (ungraded) cards - specify 'Raw' as grade to get Graded=No
             console.log(`   📊 Searching Raw (ungraded)...`);
-            const rawResult = await this.ebayService.searchSoldCards(summaryTitle, null, 20, null, false); // No grade, not autograph
+            const rawResult = await this.ebayService.searchSoldCards(summaryTitle, null, 20, 'Raw', false); // Raw grade, not autograph
             if (rawResult.success && Array.isArray(rawResult.results)) {
                 // Filter out any graded cards from raw results
                 const filteredRaw = rawResult.results.filter(card => {
@@ -91,19 +91,36 @@ class EbayPriceUpdater {
     // Calculate average price from results
     calculateAverage(results) {
         if (!Array.isArray(results) || results.length === 0) {
+            console.log(`     🔍 No results array provided`);
             return null;
         }
 
+        console.log(`     🔍 Processing ${results.length} results for average calculation`);
+        
+        // Debug first few items to see price structure
+        results.slice(0, 3).forEach((item, index) => {
+            console.log(`     🔍 Result ${index}: price="${item.price}", numericPrice="${item.numericPrice}", title="${item.title?.substring(0, 50)}..."`);
+        });
+
         const validPrices = results
-            .map(item => parseFloat(item.price || item.numericPrice || 0))
+            .map(item => {
+                const price = parseFloat(item.price || item.numericPrice || 0);
+                return price;
+            })
             .filter(price => price > 0);
 
+        console.log(`     🔍 Valid prices found: ${validPrices.length} out of ${results.length}`);
+        console.log(`     🔍 Price values: [${validPrices.slice(0, 5).join(', ')}...]`);
+
         if (validPrices.length === 0) {
+            console.log(`     ⚠️ No valid prices found`);
             return null;
         }
 
         const average = validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length;
-        return Math.round(average * 100) / 100; // Round to 2 decimal places
+        const roundedAverage = Math.round(average * 100) / 100;
+        console.log(`     ✅ Calculated average: $${roundedAverage} from ${validPrices.length} prices`);
+        return roundedAverage;
     }
 
     // Update a single card's prices
