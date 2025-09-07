@@ -1963,42 +1963,26 @@ app.get('/api/cron-status', async (req, res) => {
   }
 });
 
-// Manual trigger for price updates
+// Manual trigger for price updates using new eBay scraper
 app.post('/api/trigger-price-update', async (req, res) => {
   try {
     res.json({
       success: true,
-      message: "Price update job triggered - running in background",
+      message: "eBay price update job triggered - running in background",
       timestamp: new Date().toISOString()
     });
     
     // Run the price update in background
     setImmediate(async () => {
       try {
-        console.log('🚀 Manual price update triggered via API...');
+        console.log('🚀 Manual eBay price update triggered via API...');
         
-        // Use the same logic as update-prices.js
-        const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
+        // Use the new clean eBay price updater
+        const EbayPriceUpdater = require('./ebay-price-updater.js');
         
-        class AutomatedPriceUpdater {
-          constructor() {
-            this.updater = new FastSQLitePriceUpdater();
-          }
-          
-          async updatePrices() {
-            console.log('=====================================');
-            console.log('🚀 Using updated FastSQLitePriceUpdater with PSA 10 support');
-            
-            // Use the updated price updater's batch processing
-            await this.updater.processBatchFast(200);
-          }
-          
-
-        }
-        
-        const automatedUpdater = new AutomatedPriceUpdater();
-        await automatedUpdater.updatePrices();
-        console.log('✅ Manual price update completed');
+        const updater = new EbayPriceUpdater();
+        await updater.updateBatch(30); // Update 30 cards per request
+        console.log('✅ Manual eBay price update completed');
       } catch (error) {
         console.error('❌ Manual price update failed:', error);
       }
