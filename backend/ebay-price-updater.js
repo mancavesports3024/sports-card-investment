@@ -54,11 +54,18 @@ class EbayPriceUpdater {
             // Search for PSA 9 cards
             console.log(`   📊 Searching PSA 9...`);
             const psa9Result = await this.ebayService.searchSoldCards(summaryTitle, null, 20, 'PSA 9');
+            console.log(`   🔍 PSA 9 Result structure:`, JSON.stringify(psa9Result, null, 2));
+            
             if (psa9Result.success && Array.isArray(psa9Result.results)) {
                 results.psa9 = psa9Result.results.slice(0, 10); // Take first 10
                 console.log(`   ✅ Found ${results.psa9.length} PSA 9 results`);
+            } else if (Array.isArray(psa9Result)) {
+                // Handle case where result is directly an array
+                results.psa9 = psa9Result.slice(0, 10);
+                console.log(`   ✅ Found ${results.psa9.length} PSA 9 results (direct array)`);
             } else {
-                console.log(`   ⚠️ PSA 9 search failed or returned no results`);
+                console.log(`   ⚠️ PSA 9 search failed. Result type: ${typeof psa9Result}, isArray: ${Array.isArray(psa9Result)}`);
+                console.log(`   🔍 Full result:`, psa9Result);
             }
 
             // Search for raw (ungraded) cards - specify 'Raw' as grade to get Graded=No
