@@ -1981,7 +1981,7 @@ app.post('/api/trigger-price-update', async (req, res) => {
         const EbayPriceUpdater = require('./ebay-price-updater.js');
         
         const updater = new EbayPriceUpdater();
-        await updater.updateBatch(30); // Update 30 cards per request
+        await updater.updateBatch(1); // Update 1 card for testing
         console.log('✅ Manual eBay price update completed');
       } catch (error) {
         console.error('❌ Manual price update failed:', error);

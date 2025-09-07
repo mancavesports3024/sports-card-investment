@@ -183,6 +183,77 @@ class EbayPriceUpdater {
         }
     }
 
+    // Test with a single card using simplified search terms
+    async testSingleCard(cardId) {
+        console.log(`🧪 Testing single card ${cardId}...`);
+        
+        try {
+            await this.connect();
+            
+            // Get the specific card
+            const query = `SELECT id, title, summary_title, sport FROM cards WHERE id = ?`;
+            const card = await this.db.getQuery(query, [cardId]);
+            
+            if (!card) {
+                console.log(`❌ Card ${cardId} not found`);
+                await this.close();
+                return null;
+            }
+            
+            console.log(`🎯 Testing card: ${card.title}`);
+            console.log(`📋 Summary title: ${card.summary_title}`);
+            
+            // Try both full summary title and simplified version
+            const fullSummary = card.summary_title;
+            const simplified = this.simplifySearchTerm(fullSummary);
+            
+            console.log(`🔍 Testing full summary: "${fullSummary}"`);
+            console.log(`🔍 Testing simplified: "${simplified}"`);
+            
+            // Test full summary
+            const fullResults = await this.searchCardPrices(fullSummary);
+            
+            // Test simplified
+            const simplifiedResults = await this.searchCardPrices(simplified);
+            
+            await this.close();
+            
+            return {
+                card: {
+                    id: card.id,
+                    title: card.title,
+                    summaryTitle: card.summary_title,
+                    sport: card.sport
+                },
+                fullSummaryResults: {
+                    psa10Count: fullResults.psa10.length,
+                    psa9Count: fullResults.psa9.length,
+                    rawCount: fullResults.raw.length
+                },
+                simplifiedResults: {
+                    psa10Count: simplifiedResults.psa10.length,
+                    psa9Count: simplifiedResults.psa9.length,
+                    rawCount: simplifiedResults.raw.length
+                }
+            };
+            
+        } catch (error) {
+            console.log(`❌ Error testing card ${cardId}: ${error.message}`);
+            await this.close();
+            throw error;
+        }
+    }
+    
+    // Simplify search terms for better eBay matching
+    simplifySearchTerm(summaryTitle) {
+        // Remove specific card codes and simplify
+        return summaryTitle
+            .replace(/\b[A-Z]{1,3}-?\d+\b/g, '') // Remove codes like UV-4, C79
+            .replace(/\b\d{4}\s+/g, '2024 ')      // Ensure year is present
+            .replace(/\s+/g, ' ')                 // Clean up spaces
+            .trim();
+    }
+
     // Update multiple cards (batch processing)
     async updateBatch(limit = 50) {
         console.log(`🚀 Starting eBay price update batch (limit: ${limit})`);
@@ -237,7 +308,7 @@ if (require.main === module) {
     (async () => {
         const updater = new EbayPriceUpdater();
         try {
-            await updater.updateBatch(20); // Update 20 cards
+            await updater.updateBatch(1); // Update 1 card for testing
         } catch (error) {
             console.error('Error running price updater:', error);
         }
