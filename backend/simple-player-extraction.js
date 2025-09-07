@@ -23,7 +23,7 @@ class SimplePlayerExtractor {
             'starquest', 'sox', 'texas', 'longhorns', 'minnesota', 'wings', 'atl', 'buffaloes', 'mars', 'ne', 'sun', 'lunar', 'fireworks', 'kaboom', 'hoops', 'field', 'euro', 'main', 'pokemon', 'japanese', 'stormfront', 'sword', 'shield', 'radiant', 'sublime', 'luck', 'lottery', 'national', 'pride', 'opc', 'stadium', 'catching', 'el', 'he13',
             
             // Country names and abbreviations that appear in card titles
-            'argentina', 'brazil', 'england', 'france', 'germany', 'spain', 'italy', 'portugal', 'netherlands', 'croatia', 'pl', 'p l', 'usa', 'iii', 'jr', 'sr', 'l',
+            'argentina', 'brazil', 'england', 'france', 'germany', 'spain', 'italy', 'portugal', 'netherlands', 'croatia', 'pl', 'p l', 'usa', 'iii', 'jr', 'sr',
             
                          // Additional Card Set/Type Terms from 3-word Analysis
              'apex', 'composite', 'courtside', 'dp', 'etch', 'iconic', 'lane', 'notoriety', 'radiating', 'royalty', 'sepia', 'ud', 'zenith', 'dazzle', 'electricity', 'gear', 'tf', 'geo', 'mavs', 'crystallized', 'cracked', 'mojo', 'choice', 'persona', 'hype', 'illumination', 'elevate', 'choice', 'ba', 'xrc', 'tri', 'no', 'hb', 'bdc', 'rg', 'sb', 'hr', 'tj', 'wj', 'q0902', 'shadow', 'impact', 'la', 'av', 'dc', 'mns', 'ny', 'tf', 'cc', 'mj', 'se', 'true', 'aces', 'overhead', 'pinstripe', 'power', 'medal', 'metal', 'rainmakers', 'phenom', 'pandora', 'uptowns', 'uptown', 'scope', 'wave', 'disco', 'pink', 'blue', 'red', 'green', 'silver', 'gold', 'orange', 'purple', 'yellow', 'aqua', 'teal', 'bronze', 'white', 'black', 'camo', 'neon', 'tie-dye', 'snakeskin', 'dragon scale', 'pulsar', 'logo', 'variation', 'numbered', 'limited', 'platinum', 'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'lime', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon', 'burgundy', 'crimson', 'scarlet', 'coral', 'apricot', 'tangerine', 'amber', 'golden', 'metallic', 'copper', 'cream', 'ivory', 'beige', 'khaki', 'olive', 'turquoise', 'magenta', 'fuchsia', 'tf', 'tf',
@@ -43,6 +43,9 @@ class SimplePlayerExtractor {
             'clear cut', 'real one', 'downtown', 'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric', 'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'splash', 'rising', 'best',
             // Special card types
             'manga', 'snapshots', 'zebra', 'g2u', 'negative', 'gm', 'selections', 'landmarks', 'astrologically', 'aligned', 'classic', 'icon', 'deep', 'space', 'en', 'fuego', 'new', 'recruits', 'peacock', 'amp', 'qb', 'quarterback', 'groovy', 'futures', 'throwback', 'suite', 'wheel', 'tiger', 'stripes', 'grizz', 'deca',
+            
+            // Player designations that should be removed
+            'roy', 'mvp', 'hof', 'rookie of the year', 'most valuable player', 'hall of fame',
             
             // Colors and Parallels
             'blue ice', 'gold', 'silver', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'bronze', 'white', 'teal', 'neon', 'camo', 'tie-dye', 'disco', 'dragon scale', 'snakeskin', 'pulsar', 'logo', 'variation', 'sapphire',
