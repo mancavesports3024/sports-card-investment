@@ -326,12 +326,13 @@ class FastBatchItemsPullerEbay {
                 const searchConfig = searchTerms[i];
                 const searchTerm = searchConfig.searchTerm;
                 const sport = searchConfig.sport;
+                const cardType = searchConfig.cardType;
                 
-                console.log(`\n🔍 Search ${i + 1}/${searchTerms.length}: "${searchTerm}" (${sport || 'No sport filter'})`);
+                console.log(`\n🔍 Search ${i + 1}/${searchTerms.length}: "${searchTerm}" (${sport || cardType || 'No filter'})`);
                 console.log(`   ⏳ Processing...`);
                 
                 try {
-                    const result = await this.ebayService.searchSoldCards(searchTerm, sport, 50, 'PSA 10');
+                    const result = await this.ebayService.searchSoldCards(searchTerm, sport, 50, 'PSA 10', cardType);
                     this.totalSearches++;
                     
                     if (result.success && result.results && result.results.length > 0) {

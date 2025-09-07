@@ -76,10 +76,10 @@ class EbayScraperService {
         return searchUrl;
     }
 
-    async searchSoldCards(searchTerm, sport = null, maxResults = 50, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null) {
+    async searchSoldCards(searchTerm, sport = null, maxResults = 50, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null, cardType = null) {
         try {
-            const searchUrl = this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph);
-            console.log(`🔍 DEBUG - Search request: "${searchTerm}" (sport: ${sport}, grade: ${expectedGrade}, maxResults: ${maxResults})`);
+            const searchUrl = this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph, cardType);
+            console.log(`🔍 DEBUG - Search request: "${searchTerm}" (sport: ${sport}, cardType: ${cardType}, grade: ${expectedGrade}, maxResults: ${maxResults})`);
             console.log(`🔍 Search URL: ${searchUrl}`);
             
             // Compare with the working manual URL
