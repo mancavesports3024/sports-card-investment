@@ -44,11 +44,19 @@ class EbayPriceUpdater {
             // Search for PSA 10 cards
             console.log(`   📊 Searching PSA 10...`);
             const psa10Result = await this.ebayService.searchSoldCards(summaryTitle, null, 20, 'PSA 10');
+            console.log(`   🔍 PSA 10 Result structure:`, JSON.stringify(psa10Result, null, 2));
+            
             if (psa10Result.success && Array.isArray(psa10Result.results)) {
                 results.psa10 = psa10Result.results.slice(0, 10); // Take first 10
                 console.log(`   ✅ Found ${results.psa10.length} PSA 10 results`);
+            } else if (Array.isArray(psa10Result)) {
+                // Handle case where result is directly an array
+                results.psa10 = psa10Result.slice(0, 10);
+                console.log(`   ✅ Found ${results.psa10.length} PSA 10 results (direct array)`);
             } else {
-                console.log(`   ⚠️ PSA 10 search failed or returned no results`);
+                console.log(`   ⚠️ PSA 10 search failed. Result type: ${typeof psa10Result}, isArray: ${Array.isArray(psa10Result)}`);
+                console.log(`   🔍 Full result:`, psa10Result);
+                results.psa10 = []; // Set empty array for calculation
             }
 
             // Search for PSA 9 cards
@@ -135,9 +143,18 @@ class EbayPriceUpdater {
             return null;
         }
 
-        const average = validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length;
+        const sum = validPrices.reduce((sum, price) => sum + price, 0);
+        const average = sum / validPrices.length;
         const roundedAverage = Math.round(average * 100) / 100;
+        
+        console.log(`     🧮 Calculation: sum=${sum}, count=${validPrices.length}, average=${average}, rounded=${roundedAverage}`);
         console.log(`     ✅ Calculated average: $${roundedAverage} from ${validPrices.length} prices`);
+        
+        if (isNaN(roundedAverage)) {
+            console.log(`     ❌ NaN detected! Sum: ${sum}, Count: ${validPrices.length}, Raw average: ${average}`);
+            return null;
+        }
+        
         return roundedAverage;
     }
 
