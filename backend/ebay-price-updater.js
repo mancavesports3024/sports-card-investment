@@ -184,6 +184,7 @@ class EbayPriceUpdater {
                     raw_average_price = ?, 
                     psa9_average_price = ?,
                     psa10_average_price = ?,
+                    psa10_price = ?,
                     multiplier = ?,
                     last_updated = datetime('now')
                 WHERE id = ?
@@ -197,7 +198,7 @@ class EbayPriceUpdater {
                 multiplier: typeof multiplier
             });
 
-            await this.db.runQuery(updateQuery, [rawAverage, psa9Average, psa10Average, multiplier, cardId]);
+            await this.db.runQuery(updateQuery, [rawAverage, psa9Average, psa10Average, psa10Average, multiplier, cardId]);
 
             console.log(`   ✅ Updated: PSA 10 $${psa10Average || 'N/A'}, PSA 9 $${psa9Average || 'N/A'}, Raw $${rawAverage || 'N/A'}, Multiplier ${multiplier || 'N/A'}x`);
 
