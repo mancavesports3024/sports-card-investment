@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { HttpsProxyAgent } = require('https-proxy-agent');
 
 class EbayScraperService {
     constructor() {
@@ -9,11 +10,39 @@ class EbayScraperService {
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0'
         ];
         this.currentUserAgent = 0;
+        
+        // ProxyMesh configuration
+        this.proxyServers = [
+            'us-ca.proxymesh.com:31280',
+            'us-il.proxymesh.com:31280', 
+            'us-ny.proxymesh.com:31280',
+            'us-fl.proxymesh.com:31280',
+            'us-wa.proxymesh.com:31280'
+        ];
+        this.currentProxyIndex = 0;
+        this.useProxy = process.env.PROXYMESH_USERNAME && process.env.PROXYMESH_PASSWORD;
+        
+        if (this.useProxy) {
+            console.log('🌐 ProxyMesh enabled with', this.proxyServers.length, 'servers');
+        }
     }
 
     getRandomUserAgent() {
         this.currentUserAgent = (this.currentUserAgent + 1) % this.userAgents.length;
         return this.userAgents[this.currentUserAgent];
+    }
+    
+    getNextProxy() {
+        if (!this.useProxy) return null;
+        
+        const proxy = this.proxyServers[this.currentProxyIndex];
+        this.currentProxyIndex = (this.currentProxyIndex + 1) % this.proxyServers.length;
+        
+        const username = process.env.PROXYMESH_USERNAME;
+        const password = process.env.PROXYMESH_PASSWORD;
+        const proxyUrl = `http://${username}:${password}@${proxy}`;
+        
+        return new HttpsProxyAgent(proxyUrl);
     }
 
     buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = null, cardType = null) {
@@ -89,8 +118,8 @@ class EbayScraperService {
                 console.log(`🔍 URL COMPARISON - Checking for differences...`);
             }
             
-            // Make HTTP request
-            const response = await axios.get(searchUrl, {
+            // Make HTTP request with optional proxy
+            const requestConfig = {
                 headers: {
                     'User-Agent': this.getRandomUserAgent(),
                     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -101,7 +130,16 @@ class EbayScraperService {
                     'Upgrade-Insecure-Requests': '1'
                 },
                 timeout: 30000
-            });
+            };
+            
+            // Add proxy if configured
+            const proxyAgent = this.getNextProxy();
+            if (proxyAgent) {
+                requestConfig.httpsAgent = proxyAgent;
+                console.log('🌐 Using ProxyMesh server...');
+            }
+            
+            const response = await axios.get(searchUrl, requestConfig);
 
             if (response.data) {
                 console.log(`✅ Direct HTTP request successful (${response.data.length} characters), parsing HTML...`);
@@ -153,17 +191,22 @@ class EbayScraperService {
             // Extract titles with positions using generic patterns for all searches
             const titleData = [];
             const workingTitlePatterns = [
-                // Generic patterns for all card searches
+                // 2024/2025 eBay HTML structure - modern span-based patterns
+                /<span[^>]*>([^<]*(?:2024|2023|2022)[^<]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon|Panini)[^<]*)</gi,
+                /<span[^>]*>([^<]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon|Panini)[^<]*(?:2024|2023|2022)[^<]*)</gi,
+                // JSON-like data structures that eBay now uses
+                /"title"\s*:\s*"([^"]*(?:2024|2023|2022)[^"]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon|Panini)[^"]*)"/gi,
+                /"([^"]*(?:2024|2023|2022)[^"]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon|Panini)[^"]*(?:PSA|BGS|SGC|Raw)[^"]*)"/gi,
+                // Alt attributes for images
+                /alt\s*=\s*["']([^"']*(?:2024|2023|2022)[^"']*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon|Panini)[^"']*)["']/gi,
+                // Div content patterns (modern eBay structure)
+                /<div[^>]*>([^<]*(?:2024|2023|2022)[^<]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon|Panini)[^<]*)</gi,
+                // Aria-label attributes
+                /aria-label\s*=\s*["']([^"']*(?:2024|2023|2022)[^"']*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon|Panini)[^"']*)["']/gi,
+                // Legacy patterns (keep for backward compatibility)
                 /<h3[^>]*>([^<]+)<\/h3>/gi,
                 /<a[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)<\/a>/gi,
-                /<span[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)<\/span>/gi,
-                /<div[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)<\/div>/gi,
-                // Legacy specific patterns (keep for backward compatibility)
-                />([^<]*(?:KONNOR GRIFFIN|Konnor Griffin)[^<]*(?:2024|Bowman|Chrome|Draft|Sapphire|PSA|Refractor)[^<]*)</gi,
-                />([^<]*(?:2024)[^<]*(?:Bowman|Chrome|Draft)[^<]*(?:KONNOR GRIFFIN|Konnor Griffin)[^<]*)</gi,
-                // Broad patterns for any 2024 cards
-                />([^<]*(?:2024)[^<]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon)[^<]*)</gi,
-                />([^<]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon)[^<]*(?:2024)[^<]*)</gi
+                />([^<]*(?:2024|2023)[^<]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon)[^<]*)</gi
             ];
             
             for (let p = 0; p < workingTitlePatterns.length; p++) {

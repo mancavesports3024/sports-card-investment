@@ -20,11 +20,11 @@ class CardChecker {
             
             // Get cards that need improvement
             const cardsNeedingImprovement = await this.db.getCardsForTitleImprovement(10, 0);
-            console.log(`📋 Cards needing improvement: ${cardsNeedingImprovement.length}`);
+            console.log(`📋 ${cardsNeedingImprovement.length}`);
             
             // Get cards with specific issues
             const cardsWithIssues = await this.db.getCardsWithTitleIssues(10, 0);
-            console.log(`🚨 Cards with title issues: ${cardsWithIssues.length}`);
+            console.log(${cardsWithIssues.length}`);
             
             if (cardsWithIssues.length > 0) {
                 console.log('\n📝 Sample cards with title issues:');

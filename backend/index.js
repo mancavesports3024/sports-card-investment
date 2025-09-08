@@ -6141,6 +6141,29 @@ app.post('/api/admin/update-player-names-centralized', async (req, res) => {
     }
 });
 
+// Get Railway server IP for ProxyMesh setup
+app.get('/api/get-server-ip', async (req, res) => {
+    try {
+        const axios = require('axios');
+        const response = await axios.get('https://api.ipify.org?format=json');
+        
+        res.json({
+            success: true,
+            serverIP: response.data.ip,
+            message: `Add this IP (${response.data.ip}) to your ProxyMesh dashboard under 'Add an IP or Hostname'`,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Error getting server IP:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Test endpoint to find and update specific Messi cards
 app.get('/api/test-messi-cards', async (req, res) => {
     try {
