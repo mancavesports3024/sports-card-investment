@@ -44,38 +44,31 @@ class EbayPriceUpdater {
             // Search for PSA 10 cards
             console.log(`   📊 Searching PSA 10...`);
             const psa10Result = await this.ebayService.searchSoldCards(summaryTitle, null, 20, 'PSA 10');
-            console.log(`   🔍 PSA 10 Result structure:`, JSON.stringify(psa10Result, null, 2));
             
             if (psa10Result.success && Array.isArray(psa10Result.results)) {
-                results.psa10 = psa10Result.results.slice(0, 10); // Take first 10
+                results.psa10 = psa10Result.results.slice(0, 10);
                 console.log(`   ✅ Found ${results.psa10.length} PSA 10 results`);
             } else if (Array.isArray(psa10Result)) {
-                // Handle case where result is directly an array
                 results.psa10 = psa10Result.slice(0, 10);
-                console.log(`   ✅ Found ${results.psa10.length} PSA 10 results (direct array)`);
+                console.log(`   ✅ Found ${results.psa10.length} PSA 10 results`);
             } else {
-                console.log(`   ⚠️ PSA 10 search failed. Result type: ${typeof psa10Result}, isArray: ${Array.isArray(psa10Result)}`);
-                console.log(`   🔍 Full result:`, psa10Result);
-                results.psa10 = []; // Set empty array for calculation
+                console.log(`   ⚠️ PSA 10 search returned no results`);
+                results.psa10 = [];
             }
 
             // Search for PSA 9 cards
             console.log(`   📊 Searching PSA 9...`);
             const psa9Result = await this.ebayService.searchSoldCards(summaryTitle, null, 20, 'PSA 9');
-            console.log(`   🔍 PSA 9 Result structure:`, JSON.stringify(psa9Result, null, 2));
             
             if (psa9Result.success && Array.isArray(psa9Result.results)) {
-                results.psa9 = psa9Result.results.slice(0, 10); // Take first 10
+                results.psa9 = psa9Result.results.slice(0, 10);
                 console.log(`   ✅ Found ${results.psa9.length} PSA 9 results`);
             } else if (Array.isArray(psa9Result)) {
-                // Handle case where result is directly an array
                 results.psa9 = psa9Result.slice(0, 10);
-                console.log(`   ✅ Found ${results.psa9.length} PSA 9 results (direct array)`);
+                console.log(`   ✅ Found ${results.psa9.length} PSA 9 results`);
             } else {
-                console.log(`   ⚠️ PSA 9 search failed. Result type: ${typeof psa9Result}, isArray: ${Array.isArray(psa9Result)}`);
-                console.log(`   🔍 Full result:`, psa9Result);
-                // Note: eBay scraper found cards but filtered them out - this is expected for some searches
-                results.psa9 = []; // Set empty array for calculation
+                console.log(`   ⚠️ PSA 9 search returned no results`);
+                results.psa9 = [];
             }
 
             // Search for raw (ungraded) cards - specify 'Raw' as grade to get Graded=No
@@ -108,16 +101,8 @@ class EbayPriceUpdater {
     // Calculate average price from results
     calculateAverage(results) {
         if (!Array.isArray(results) || results.length === 0) {
-            console.log(`     🔍 No results array provided`);
             return null;
         }
-
-        console.log(`     🔍 Processing ${results.length} results for average calculation`);
-        
-        // Debug first few items to see price structure
-        results.slice(0, 3).forEach((item, index) => {
-            console.log(`     🔍 Result ${index}: price="${item.price}", numericPrice="${item.numericPrice}", title="${item.title?.substring(0, 50)}..."`);
-        });
 
         const validPrices = results
             .map(item => {
@@ -129,33 +114,18 @@ class EbayPriceUpdater {
                     priceValue = priceValue.replace(/[$,]/g, '');
                 }
                 
-                const price = parseFloat(priceValue);
-                console.log(`       💰 Processing: "${item.price}" / "${item.numericPrice}" → ${price}`);
-                return price;
+                return parseFloat(priceValue);
             })
             .filter(price => !isNaN(price) && price > 0);
 
-        console.log(`     🔍 Valid prices found: ${validPrices.length} out of ${results.length}`);
-        console.log(`     🔍 Price values: [${validPrices.slice(0, 5).join(', ')}...]`);
-
         if (validPrices.length === 0) {
-            console.log(`     ⚠️ No valid prices found`);
             return null;
         }
 
-        const sum = validPrices.reduce((sum, price) => sum + price, 0);
-        const average = sum / validPrices.length;
+        const average = validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length;
         const roundedAverage = Math.round(average * 100) / 100;
         
-        console.log(`     🧮 Calculation: sum=${sum}, count=${validPrices.length}, average=${average}, rounded=${roundedAverage}`);
-        console.log(`     ✅ Calculated average: $${roundedAverage} from ${validPrices.length} prices`);
-        
-        if (isNaN(roundedAverage)) {
-            console.log(`     ❌ NaN detected! Sum: ${sum}, Count: ${validPrices.length}, Raw average: ${average}`);
-            return null;
-        }
-        
-        return roundedAverage;
+        return isNaN(roundedAverage) ? null : roundedAverage;
     }
 
     // Update a single card's prices
@@ -189,14 +159,6 @@ class EbayPriceUpdater {
                     last_updated = datetime('now')
                 WHERE id = ?
             `;
-
-            console.log(`   🔍 Database values before update:`, {rawAverage, psa9Average, psa10Average, multiplier, cardId});
-            console.log(`   🔍 Value types:`, {
-                rawAverage: typeof rawAverage, 
-                psa9Average: typeof psa9Average, 
-                psa10Average: typeof psa10Average, 
-                multiplier: typeof multiplier
-            });
 
             await this.db.runQuery(updateQuery, [rawAverage, psa9Average, psa10Average, psa10Average, multiplier, cardId]);
 
