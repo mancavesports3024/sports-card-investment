@@ -15,13 +15,13 @@ class EbayPriceUpdater {
         await this.db.close();
     }
 
-    // Get cards that need price updates (missing PSA 9 or raw prices)
+    // Get cards that need price updates (missing any PSA 10, PSA 9, or raw prices)
     async getCardsNeedingUpdates(limit = 50) {
         const query = `
             SELECT id, title, summary_title, sport
             FROM cards 
             WHERE 
-                (raw_average_price IS NULL OR psa9_average_price IS NULL)
+                (raw_average_price IS NULL OR psa9_average_price IS NULL OR psa10_average_price IS NULL OR psa10_price IS NULL)
                 AND summary_title IS NOT NULL 
                 AND summary_title != ''
             ORDER BY id DESC
