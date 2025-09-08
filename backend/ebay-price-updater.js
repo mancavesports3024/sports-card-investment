@@ -189,6 +189,14 @@ class EbayPriceUpdater {
                 WHERE id = ?
             `;
 
+            console.log(`   🔍 Database values before update:`, {rawAverage, psa9Average, psa10Average, multiplier, cardId});
+            console.log(`   🔍 Value types:`, {
+                rawAverage: typeof rawAverage, 
+                psa9Average: typeof psa9Average, 
+                psa10Average: typeof psa10Average, 
+                multiplier: typeof multiplier
+            });
+
             await this.db.runQuery(updateQuery, [rawAverage, psa9Average, psa10Average, multiplier, cardId]);
 
             console.log(`   ✅ Updated: PSA 10 $${psa10Average || 'N/A'}, PSA 9 $${psa9Average || 'N/A'}, Raw $${rawAverage || 'N/A'}, Multiplier ${multiplier || 'N/A'}x`);
