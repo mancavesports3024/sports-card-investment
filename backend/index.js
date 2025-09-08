@@ -6141,6 +6141,53 @@ app.post('/api/admin/update-player-names-centralized', async (req, res) => {
     }
 });
 
+// Test endpoint to find and update specific Messi cards
+app.get('/api/test-messi-cards', async (req, res) => {
+    try {
+        const dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH
+            ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'new-scorecard.db')
+            : path.join(__dirname, 'data', 'new-scorecard.db');
+        
+        const db = new sqlite3.Database(dbPath);
+        
+        // Search for Messi cards
+        const query = `
+            SELECT id, title, summary_title, psa10_price, psa10_average_price, psa9_average_price, raw_average_price
+            FROM cards 
+            WHERE title LIKE '%Messi%' OR summary_title LIKE '%Messi%'
+            ORDER BY id DESC
+            LIMIT 10
+        `;
+        
+        db.all(query, [], (err, rows) => {
+            db.close();
+            
+            if (err) {
+                console.error('Database error:', err);
+                return res.status(500).json({ 
+                    success: false, 
+                    error: err.message 
+                });
+            }
+            
+            res.json({
+                success: true,
+                messiCards: rows,
+                count: rows.length,
+                timestamp: new Date().toISOString()
+            });
+        });
+        
+    } catch (error) {
+        console.error('Error finding Messi cards:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Test endpoint to check recent price updates
 app.get('/api/test-recent-prices', async (req, res) => {
     try {
