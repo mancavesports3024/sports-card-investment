@@ -6141,6 +6141,79 @@ app.post('/api/admin/update-player-names-centralized', async (req, res) => {
     }
 });
 
+// Debug 402 errors on Railway
+app.get('/api/debug-402-errors', async (req, res) => {
+    try {
+        const EbayScraperService = require('./services/ebayScraperService.js');
+        const ebayService = new EbayScraperService();
+        
+        const debugInfo = {
+            proxyConfig: {
+                usernameSet: !!process.env.PROXYMESH_USERNAME,
+                passwordSet: !!process.env.PROXYMESH_PASSWORD,
+                usingProxy: ebayService.useProxy,
+                proxyServers: ebayService.proxyServers.length
+            },
+            testResults: {}
+        };
+        
+        // Test a simple eBay request that was causing 402 errors
+        const testUrl = 'https://www.ebay.com/sch/i.html?_nkw=2024+Bowman+Chrome&_sacat=0&LH_Complete=1&LH_Sold=1&Graded=Yes&Grade=9&_dcat=261328';
+        
+        try {
+            const axios = require('axios');
+            const proxyAgent = ebayService.getNextProxy();
+            
+            const requestConfig = {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                },
+                timeout: 15000
+            };
+            
+            if (proxyAgent) {
+                requestConfig.httpsAgent = proxyAgent;
+                debugInfo.testResults.usingProxyForTest = true;
+            } else {
+                debugInfo.testResults.usingProxyForTest = false;
+            }
+            
+            const response = await axios.get(testUrl, requestConfig);
+            
+            debugInfo.testResults.status = response.status;
+            debugInfo.testResults.contentLength = response.data.length;
+            debugInfo.testResults.isCaptcha = response.data.includes('Pardon Our Interruption');
+            debugInfo.testResults.hasEbayContent = response.data.includes('2024');
+            debugInfo.testResults.success = true;
+            
+        } catch (error) {
+            debugInfo.testResults.success = false;
+            debugInfo.testResults.error = error.message;
+            debugInfo.testResults.status = error.response?.status;
+            debugInfo.testResults.statusText = error.response?.statusText;
+            
+            if (error.response?.status === 402) {
+                debugInfo.testResults.is402Error = true;
+                debugInfo.testResults.responseBody = error.response?.data?.substring(0, 500);
+            }
+        }
+        
+        res.json({
+            success: true,
+            debugInfo,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Error in 402 debug:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Get Railway server IP for ProxyMesh setup
 app.get('/api/get-server-ip', async (req, res) => {
     try {
