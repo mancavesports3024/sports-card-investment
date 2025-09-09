@@ -6141,6 +6141,224 @@ app.post('/api/admin/update-player-names-centralized', async (req, res) => {
     }
 });
 
+// Check ProxyMesh limits and usage
+app.get('/api/check-proxymesh-limits', async (req, res) => {
+    try {
+        const axios = require('axios');
+        const { HttpsProxyAgent } = require('https-proxy-agent');
+        
+        const username = process.env.PROXYMESH_USERNAME;
+        const password = process.env.PROXYMESH_PASSWORD;
+        
+        const results = {
+            credentials: {
+                usernameSet: !!username,
+                username: username || 'Not set'
+            },
+            serverTests: [],
+            rateLimitTest: {
+                maxSuccessfulRequests: 0,
+                rateLimitHit: false
+            }
+        };
+        
+        if (!username || !password) {
+            return res.json({
+                success: false,
+                error: 'ProxyMesh credentials not configured',
+                results
+            });
+        }
+        
+        const proxyServers = [
+            'us-ca.proxymesh.com:31280',
+            'us-il.proxymesh.com:31280', 
+            'us-ny.proxymesh.com:31280'
+        ];
+        
+        // Test each server
+        for (let i = 0; i < proxyServers.length; i++) {
+            const server = proxyServers[i];
+            
+            try {
+                const proxyUrl = `http://${username}:${password}@${server}`;
+                const httpsAgent = new HttpsProxyAgent(proxyUrl);
+                
+                const startTime = Date.now();
+                const response = await axios.get('https://httpbin.org/ip', {
+                    httpsAgent: httpsAgent,
+                    timeout: 8000
+                });
+                const duration = Date.now() - startTime;
+                
+                results.serverTests.push({
+                    server,
+                    success: true,
+                    duration,
+                    ip: JSON.parse(response.data).origin
+                });
+                
+            } catch (error) {
+                results.serverTests.push({
+                    server,
+                    success: false,
+                    error: error.message,
+                    status: error.response?.status,
+                    is402: error.response?.status === 402
+                });
+            }
+        }
+        
+        // Test rate limit with rapid requests
+        if (results.serverTests.some(test => test.success)) {
+            const workingServer = results.serverTests.find(test => test.success);
+            const proxyUrl = `http://${username}:${password}@${workingServer.server}`;
+            
+            for (let i = 1; i <= 5; i++) {
+                try {
+                    const httpsAgent = new HttpsProxyAgent(proxyUrl);
+                    await axios.get('https://httpbin.org/status/200', {
+                        httpsAgent: httpsAgent,
+                        timeout: 5000
+                    });
+                    
+                    results.rateLimitTest.maxSuccessfulRequests = i;
+                    
+                } catch (error) {
+                    if (error.response?.status === 402) {
+                        results.rateLimitTest.rateLimitHit = true;
+                        results.rateLimitTest.rateLimitAt = i;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        res.json({
+            success: true,
+            results,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Error checking ProxyMesh limits:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// Find exact ProxyMesh rate limit that causes 402 errors
+app.get('/api/find-proxymesh-limit', async (req, res) => {
+    try {
+        const axios = require('axios');
+        const { HttpsProxyAgent } = require('https-proxy-agent');
+        
+        const username = process.env.PROXYMESH_USERNAME;
+        const password = process.env.PROXYMESH_PASSWORD;
+        
+        if (!username || !password) {
+            return res.status(400).json({ error: 'ProxyMesh credentials not configured' });
+        }
+        
+        const results = {
+            testStarted: new Date().toISOString(),
+            proxyServer: 'us-ca.proxymesh.com:31280',
+            requests: [],
+            limitFound: false,
+            estimatedLimit: null
+        };
+        
+        const proxyUrl = `http://${username}:${password}@us-ca.proxymesh.com:31280`;
+        const httpsAgent = new HttpsProxyAgent(proxyUrl);
+        
+        // Test rapid requests with timestamps to find exact limit
+        console.log('🔍 Testing rapid requests to find exact rate limit...');
+        
+        for (let i = 1; i <= 20; i++) {
+            const requestStart = Date.now();
+            
+            try {
+                // Use a lightweight test endpoint
+                await axios.get('https://httpbin.org/status/200', {
+                    httpsAgent: httpsAgent,
+                    timeout: 10000
+                });
+                
+                const duration = Date.now() - requestStart;
+                results.requests.push({
+                    requestNumber: i,
+                    timestamp: new Date().toISOString(),
+                    success: true,
+                    duration: duration,
+                    timeSinceStart: Date.now() - new Date(results.testStarted).getTime()
+                });
+                
+                console.log(`   Request ${i}: ✅ (${duration}ms)`);
+                
+                // No delay - test maximum rate
+                
+            } catch (error) {
+                const duration = Date.now() - requestStart;
+                const timeSinceStart = Date.now() - new Date(results.testStarted).getTime();
+                
+                results.requests.push({
+                    requestNumber: i,
+                    timestamp: new Date().toISOString(),
+                    success: false,
+                    error: error.message,
+                    status: error.response?.status,
+                    duration: duration,
+                    timeSinceStart: timeSinceStart
+                });
+                
+                console.log(`   Request ${i}: ❌ ${error.message}`);
+                
+                if (error.response?.status === 402) {
+                    results.limitFound = true;
+                    results.limitHitAt = i;
+                    results.timeToLimit = timeSinceStart;
+                    results.estimatedLimit = `${i-1} requests in ${Math.round(timeSinceStart/1000)} seconds`;
+                    
+                    console.log(`   🚨 RATE LIMIT HIT! Limit appears to be ${i-1} requests in ${Math.round(timeSinceStart/1000)} seconds`);
+                    break;
+                }
+            }
+        }
+        
+        // Calculate successful requests per time period
+        const successfulRequests = results.requests.filter(r => r.success);
+        if (successfulRequests.length > 1) {
+            const totalTime = successfulRequests[successfulRequests.length - 1].timeSinceStart;
+            const requestsPerSecond = (successfulRequests.length / totalTime) * 1000;
+            const requestsPerMinute = requestsPerSecond * 60;
+            
+            results.analysis = {
+                successfulRequests: successfulRequests.length,
+                totalTestTime: Math.round(totalTime),
+                requestsPerSecond: Math.round(requestsPerSecond * 10) / 10,
+                requestsPerMinute: Math.round(requestsPerMinute)
+            };
+        }
+        
+        res.json({
+            success: true,
+            results,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Error finding ProxyMesh limit:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Test 402 error reproduction and retry logic
 app.get('/api/test-402-reproduction', async (req, res) => {
     try {
