@@ -139,7 +139,34 @@ class EbayScraperService {
                 console.log('🌐 Using ProxyMesh server...');
             }
             
-            const response = await axios.get(searchUrl, requestConfig);
+            // Retry logic for 402 errors
+            let response;
+            let attempt = 1;
+            const maxAttempts = 3;
+            
+            while (attempt <= maxAttempts) {
+                try {
+                    response = await axios.get(searchUrl, requestConfig);
+                    break; // Success, exit retry loop
+                    
+                } catch (error) {
+                    if (error.response?.status === 402 && attempt < maxAttempts) {
+                        console.log(`⚠️ 402 Payment Required (attempt ${attempt}/${maxAttempts}). Retrying in ${attempt * 5} seconds...`);
+                        await new Promise(resolve => setTimeout(resolve, attempt * 5000)); // Exponential backoff
+                        
+                        // Get a different proxy for retry
+                        const newProxyAgent = this.getNextProxy();
+                        if (newProxyAgent) {
+                            requestConfig.httpsAgent = newProxyAgent;
+                            console.log('🔄 Using different ProxyMesh server for retry...');
+                        }
+                        
+                        attempt++;
+                    } else {
+                        throw error; // Re-throw if not 402 or max attempts reached
+                    }
+                }
+            }
 
             if (response.data) {
                 console.log(`✅ Direct HTTP request successful (${response.data.length} characters), parsing HTML...`);

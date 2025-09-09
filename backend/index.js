@@ -6141,6 +6141,108 @@ app.post('/api/admin/update-player-names-centralized', async (req, res) => {
     }
 });
 
+// Test 402 error reproduction and retry logic
+app.get('/api/test-402-reproduction', async (req, res) => {
+    try {
+        const EbayScraperService = require('./services/ebayScraperService.js');
+        const ebayService = new EbayScraperService();
+        
+        const testResults = {
+            configuration: {
+                usingProxy: ebayService.useProxy,
+                proxyServers: ebayService.proxyServers.length
+            },
+            tests: []
+        };
+        
+        // Test the exact search that was failing
+        const searchTerm = "2024 Bowman Chrome Draft Bdc Cam Caminiti #BDC-20";
+        
+        console.log('🧪 Testing PSA 9 search that caused 402 error...');
+        try {
+            const psa9Result = await ebayService.searchSoldCards(searchTerm, null, 20, 'PSA 9');
+            testResults.tests.push({
+                type: 'PSA 9 Search',
+                success: psa9Result.success,
+                resultsCount: psa9Result.results ? psa9Result.results.length : 0,
+                error: psa9Result.error || null
+            });
+        } catch (error) {
+            testResults.tests.push({
+                type: 'PSA 9 Search',
+                success: false,
+                error: error.message,
+                status: error.response?.status,
+                is402: error.response?.status === 402
+            });
+        }
+        
+        // Wait between tests
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        console.log('🧪 Testing Raw search that caused 402 error...');
+        try {
+            const rawResult = await ebayService.searchSoldCards(searchTerm, null, 20, 'Raw');
+            testResults.tests.push({
+                type: 'Raw Search',
+                success: rawResult.success,
+                resultsCount: rawResult.results ? rawResult.results.length : 0,
+                error: rawResult.error || null
+            });
+        } catch (error) {
+            testResults.tests.push({
+                type: 'Raw Search',
+                success: false,
+                error: error.message,
+                status: error.response?.status,
+                is402: error.response?.status === 402
+            });
+        }
+        
+        // Test rapid requests to trigger quota
+        console.log('🚀 Testing rapid requests to trigger quota limit...');
+        for (let i = 1; i <= 3; i++) {
+            try {
+                const testResult = await ebayService.searchSoldCards("2024 Topps Chrome", "Baseball", 5, 'PSA 10');
+                testResults.tests.push({
+                    type: `Rapid Request ${i}`,
+                    success: testResult.success,
+                    resultsCount: testResult.results ? testResult.results.length : 0
+                });
+            } catch (error) {
+                testResults.tests.push({
+                    type: `Rapid Request ${i}`,
+                    success: false,
+                    error: error.message,
+                    status: error.response?.status,
+                    is402: error.response?.status === 402
+                });
+                
+                if (error.response?.status === 402) {
+                    testResults.quotaLimitHit = true;
+                    break;
+                }
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+        res.json({
+            success: true,
+            testResults,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Error in 402 reproduction test:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Debug 402 errors on Railway
 app.get('/api/debug-402-errors', async (req, res) => {
     try {
