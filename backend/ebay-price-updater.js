@@ -56,6 +56,10 @@ class EbayPriceUpdater {
                 results.psa10 = [];
             }
 
+            // Delay to avoid ProxyMesh quota limits
+            console.log(`   ⏳ Waiting 3 seconds to avoid quota limits...`);
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
             // Search for PSA 9 cards
             console.log(`   📊 Searching PSA 9...`);
             const psa9Result = await this.ebayService.searchSoldCards(summaryTitle, null, 20, 'PSA 9');
@@ -70,6 +74,10 @@ class EbayPriceUpdater {
                 console.log(`   ⚠️ PSA 9 search returned no results`);
                 results.psa9 = [];
             }
+
+            // Delay to avoid ProxyMesh quota limits
+            console.log(`   ⏳ Waiting 3 seconds to avoid quota limits...`);
+            await new Promise(resolve => setTimeout(resolve, 3000));
 
             // Search for raw (ungraded) cards - specify 'Raw' as grade to get Graded=No
             console.log(`   📊 Searching Raw (ungraded)...`);
