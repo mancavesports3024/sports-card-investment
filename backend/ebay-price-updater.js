@@ -57,8 +57,8 @@ class EbayPriceUpdater {
             }
 
             // Delay to avoid ProxyMesh quota limits
-            console.log(`   ⏳ Waiting 3 seconds to avoid quota limits...`);
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            console.log(`   ⏳ Waiting 5 seconds to avoid quota limits...`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
 
             // Search for PSA 9 cards
             console.log(`   📊 Searching PSA 9...`);
@@ -76,8 +76,8 @@ class EbayPriceUpdater {
             }
 
             // Delay to avoid ProxyMesh quota limits
-            console.log(`   ⏳ Waiting 3 seconds to avoid quota limits...`);
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            console.log(`   ⏳ Waiting 5 seconds to avoid quota limits...`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
 
             // Search for raw (ungraded) cards - specify 'Raw' as grade to get Graded=No
             console.log(`   📊 Searching Raw (ungraded)...`);
@@ -155,20 +155,40 @@ class EbayPriceUpdater {
                 multiplier = Math.round((psa10Average / rawAverage) * 100) / 100;
             }
 
-            // Update database
-            const updateQuery = `
-                UPDATE cards 
-                SET 
-                    raw_average_price = ?, 
-                    psa9_average_price = ?,
-                    psa10_average_price = ?,
-                    psa10_price = ?,
-                    multiplier = ?,
-                    last_updated = datetime('now')
-                WHERE id = ?
-            `;
+            // Build dynamic update query - only update fields with new data
+            const updates = [];
+            const params = [];
+            
+            if (rawAverage !== null) {
+                updates.push('raw_average_price = ?');
+                params.push(rawAverage);
+            }
+            
+            if (psa9Average !== null) {
+                updates.push('psa9_average_price = ?');
+                params.push(psa9Average);
+            }
+            
+            if (psa10Average !== null) {
+                updates.push('psa10_average_price = ?', 'psa10_price = ?');
+                params.push(psa10Average, psa10Average);
+            }
+            
+            if (multiplier !== null) {
+                updates.push('multiplier = ?');
+                params.push(multiplier);
+            }
 
-            await this.db.runQuery(updateQuery, [rawAverage, psa9Average, psa10Average, psa10Average, multiplier, cardId]);
+            // Only update if we have new data
+            if (updates.length > 0) {
+                updates.push('last_updated = datetime(\'now\')');
+                params.push(cardId);
+                
+                const updateQuery = `UPDATE cards SET ${updates.join(', ')} WHERE id = ?`;
+                await this.db.runQuery(updateQuery, params);
+            } else {
+                console.log(`   ⚠️ No new price data found - preserving existing prices`);
+            }
 
             console.log(`   ✅ Updated: PSA 10 $${psa10Average || 'N/A'}, PSA 9 $${psa9Average || 'N/A'}, Raw $${rawAverage || 'N/A'}, Multiplier ${multiplier || 'N/A'}x`);
 
@@ -260,7 +280,7 @@ class EbayPriceUpdater {
     }
 
     // Update multiple cards (batch processing)
-    async updateBatch(limit = 50) {
+    async updateBatch(limit = 1) {
         console.log(`🚀 Starting eBay price update batch (limit: ${limit})`);
         
         try {
