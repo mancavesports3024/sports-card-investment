@@ -6250,6 +6250,129 @@ app.get('/api/check-proxymesh-limits', async (req, res) => {
     }
 });
 
+// Test each ProxyMesh server individually to find which ones cause 402 errors
+app.get('/api/test-each-proxy-server', async (req, res) => {
+    try {
+        const axios = require('axios');
+        const { HttpsProxyAgent } = require('https-proxy-agent');
+        
+        const username = process.env.PROXYMESH_USERNAME;
+        const password = process.env.PROXYMESH_PASSWORD;
+        
+        if (!username || !password) {
+            return res.status(400).json({ error: 'ProxyMesh credentials not configured' });
+        }
+        
+        const proxyServers = [
+            'us-ca.proxymesh.com:31280',
+            'us-il.proxymesh.com:31280', 
+            'us-ny.proxymesh.com:31280',
+            'us-fl.proxymesh.com:31280',
+            'us-wa.proxymesh.com:31280'
+        ];
+        
+        const results = {
+            testStarted: new Date().toISOString(),
+            serverTests: []
+        };
+        
+        // Test each server with eBay search that was causing 402 errors
+        const problemSearchUrl = 'https://www.ebay.com/sch/i.html?_nkw=2024+Bowman+Chrome+Draft+Bdc+Cam+Caminiti+BDC-20&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1&Graded=Yes&_dcat=261328&rt=nc&Grade=9&_udlo=25&_udhi=2500&Professional%2520Grader=Professional%2520Sports%2520Authenticator%2520%2528PSA%2529';
+        
+        console.log('🧪 Testing each ProxyMesh server with eBay search that caused 402 errors...');
+        
+        for (let i = 0; i < proxyServers.length; i++) {
+            const server = proxyServers[i];
+            const serverResult = {
+                serverNumber: i + 1,
+                serverAddress: server,
+                timestamp: new Date().toISOString()
+            };
+            
+            console.log(`\n--- Testing server ${i + 1}: ${server} ---`);
+            
+            try {
+                const proxyUrl = `http://${username}:${password}@${server}`;
+                const httpsAgent = new HttpsProxyAgent(proxyUrl);
+                
+                const startTime = Date.now();
+                const response = await axios.get(problemSearchUrl, {
+                    httpsAgent: httpsAgent,
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        'Accept-Language': 'en-US,en;q=0.5',
+                        'Accept-Encoding': 'gzip, deflate, br',
+                        'DNT': '1',
+                        'Connection': 'keep-alive',
+                        'Upgrade-Insecure-Requests': '1'
+                    },
+                    timeout: 15000
+                });
+                
+                const duration = Date.now() - startTime;
+                
+                serverResult.success = true;
+                serverResult.responseStatus = response.status;
+                serverResult.responseSize = response.data.length;
+                serverResult.duration = duration;
+                serverResult.isCaptcha = response.data.includes('Pardon Our Interruption');
+                serverResult.hasEbayContent = response.data.includes('eBay');
+                
+                console.log(`   ✅ Server ${i + 1}: SUCCESS (${duration}ms, ${response.data.length} chars)`);
+                console.log(`      CAPTCHA: ${serverResult.isCaptcha}, eBay Content: ${serverResult.hasEbayContent}`);
+                
+            } catch (error) {
+                serverResult.success = false;
+                serverResult.error = error.message;
+                serverResult.status = error.response?.status;
+                serverResult.statusText = error.response?.statusText;
+                serverResult.is402 = error.response?.status === 402;
+                
+                console.log(`   ❌ Server ${i + 1}: ${error.message}`);
+                if (error.response?.status === 402) {
+                    console.log(`      🚨 402 ERROR on this specific server!`);
+                    serverResult.responseBody = error.response?.data?.substring(0, 300);
+                }
+            }
+            
+            results.serverTests.push(serverResult);
+            
+            // Small delay between server tests
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+        
+        // Summary
+        const workingServers = results.serverTests.filter(s => s.success);
+        const failingServers = results.serverTests.filter(s => !s.success);
+        const servers402 = results.serverTests.filter(s => s.is402);
+        
+        results.summary = {
+            totalServers: proxyServers.length,
+            workingServers: workingServers.length,
+            failingServers: failingServers.length,
+            servers402: servers402.length,
+            recommendation: servers402.length > 0 ? 
+                `Avoid servers: ${servers402.map(s => s.serverAddress).join(', ')}` :
+                'All servers working - 402 errors likely from request rate or eBay detection'
+        };
+        
+        res.json({
+            success: true,
+            results,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Error testing proxy servers:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Find exact ProxyMesh rate limit that causes 402 errors
 app.get('/api/find-proxymesh-limit', async (req, res) => {
     try {
