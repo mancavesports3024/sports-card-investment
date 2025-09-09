@@ -11,13 +11,9 @@ class EbayScraperService {
         ];
         this.currentUserAgent = 0;
         
-        // ProxyMesh configuration
+        // ProxyMesh configuration - only use authorized server for basic plan
         this.proxyServers = [
-            'us-ca.proxymesh.com:31280',
-            'us-il.proxymesh.com:31280', 
-            'us-ny.proxymesh.com:31280',
-            'us-fl.proxymesh.com:31280',
-            'us-wa.proxymesh.com:31280'
+            'us-ca.proxymesh.com:31280'  // Only server authorized for basic plan
         ];
         this.currentProxyIndex = 0;
         this.useProxy = process.env.PROXYMESH_USERNAME && process.env.PROXYMESH_PASSWORD;
