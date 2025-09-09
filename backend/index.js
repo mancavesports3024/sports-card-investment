@@ -6250,6 +6250,95 @@ app.get('/api/check-proxymesh-limits', async (req, res) => {
     }
 });
 
+// Debug HTML content when no titles are found
+app.get('/api/debug-html-content', async (req, res) => {
+    try {
+        const EbayScraperService = require('./services/ebayScraperService.js');
+        const ebayService = new EbayScraperService();
+        const axios = require('axios');
+        const { HttpsProxyAgent } = require('https-proxy-agent');
+        
+        const searchTerm = "2024 Topps Chrome Negative Refractor Juan Soto #150";
+        const searchUrl = ebayService.buildSearchUrl(searchTerm, null, 'PSA 10');
+        
+        const username = process.env.PROXYMESH_USERNAME;
+        const password = process.env.PROXYMESH_PASSWORD;
+        const proxyUrl = `http://${username}:${password}@us-ca.proxymesh.com:31280`;
+        const httpsAgent = new HttpsProxyAgent(proxyUrl);
+        
+        const response = await axios.get(searchUrl, {
+            httpsAgent: httpsAgent,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1'
+            },
+            timeout: 30000
+        });
+        
+        const html = response.data;
+        
+        const analysis = {
+            searchTerm,
+            searchUrl,
+            htmlLength: html.length,
+            firstChars: html.substring(0, 500),
+            contentChecks: {
+                containsEbay: html.includes('eBay'),
+                containsSearchResults: html.includes('Search results'),
+                containsCaptcha: html.includes('Pardon Our Interruption'),
+                contains2024: html.includes('2024'),
+                containsJuanSoto: html.includes('Juan Soto'),
+                containsPSA: html.includes('PSA'),
+                containsSold: html.includes('sold'),
+                containsDollar: html.includes('$')
+            },
+            htmlStructure: {
+                h3Tags: (html.match(/<h3/gi) || []).length,
+                spanTags: (html.match(/<span/gi) || []).length,
+                divTags: (html.match(/<div/gi) || []).length,
+                aTags: (html.match(/<a/gi) || []).length
+            },
+            patternTests: []
+        };
+        
+        // Test patterns
+        const patterns = [
+            { name: 'span with 2024', pattern: /<span[^>]*>[^<]*2024[^<]*<\/span>/gi },
+            { name: 'div with 2024', pattern: /<div[^>]*>[^<]*2024[^<]*<\/div>/gi },
+            { name: 'a with 2024', pattern: /<a[^>]*>[^<]*2024[^<]*<\/a>/gi },
+            { name: 'title attributes', pattern: /title\s*=\s*["'][^"']*2024[^"']*["']/gi }
+        ];
+        
+        patterns.forEach(pattern => {
+            const matches = [...html.matchAll(pattern.pattern)];
+            analysis.patternTests.push({
+                name: pattern.name,
+                matchCount: matches.length,
+                samples: matches.slice(0, 2).map(m => m[0].substring(0, 80))
+            });
+        });
+        
+        res.json({
+            success: true,
+            analysis,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Error debugging HTML content:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Test each ProxyMesh server individually to find which ones cause 402 errors
 app.get('/api/test-each-proxy-server', async (req, res) => {
     try {
