@@ -7141,7 +7141,8 @@ app.get('/api/test-ebay-scraper', async (req, res) => {
         const EbayScraperService = require('./services/ebayScraperService.js');
         const ebayService = new EbayScraperService();
         
-        const result = await ebayService.testService();
+        // Test our new search strategy with Topps brand
+        const result = await ebayService.searchSoldCards("Topps", null, 10, null, null, null, null);
         
         res.json({
             success: true,
