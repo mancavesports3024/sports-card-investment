@@ -63,16 +63,18 @@ class FastBatchItemsPullerEbay {
     // COMPREHENSIVE SPORT SEARCHES - One search per sport using eBay's built-in filters
     getSearchTerms() {
         return [
-            // === ONE COMPREHENSIVE SEARCH PER SPORT ===
-            // Let eBay's sport filters do the work - much more comprehensive!
-            { searchTerm: "", sport: "Baseball" },     // All baseball PSA 10s $50-$5000
-            { searchTerm: "", sport: "Football" },     // All football PSA 10s $50-$5000
-            { searchTerm: "", sport: "Basketball" },   // All basketball PSA 10s $50-$5000
-            { searchTerm: "", sport: "Hockey" },       // All hockey PSA 10s $50-$5000
-            { searchTerm: "", sport: "Soccer" },       // All soccer PSA 10s $50-$5000
+            // === 5 BRAND SEARCHES - NO GRADE FILTERS ===
+            // Search for major card brands, let eBay's year/sport filters narrow results
+            // Remove grade filters to get ALL grades (PSA 10, PSA 9, Raw) in one search
+            
+            // Major Sports Card Brands
+            { searchTerm: "Topps", sport: null },        // All Topps cards across all sports/years
+            { searchTerm: "Bowman", sport: null },       // All Bowman cards across all sports/years  
+            { searchTerm: "Panini", sport: null },       // All Panini cards across all sports/years
+            { searchTerm: "Upper Deck", sport: null },   // All Upper Deck cards across all sports/years
             
             // Pokemon TCG - Special case using category filters (not a sport)
-            { searchTerm: "", sport: null, cardType: "Pokemon TCG" }
+            { searchTerm: "Pokemon", sport: null, cardType: "Pokemon TCG" }
         ];
     }
 
@@ -344,16 +346,18 @@ class FastBatchItemsPullerEbay {
                 console.log(`   ⏳ Processing...`);
                 
                 try {
-                    const result = await this.ebayService.searchSoldCards(searchTerm, sport, 50, 'PSA 10', cardType);
+                    // Remove grade filter to get ALL grades (PSA 10, PSA 9, Raw) in one search
+                    const result = await this.ebayService.searchSoldCards(searchTerm, sport, 50, null, cardType);
                     this.totalSearches++;
                     
                     if (result.success && result.results && result.results.length > 0) {
+                        // Filter for PSA 10 cards in price range, but keep all other grades for processing
                         const psa10Cards = result.results.filter(item => 
                             item.numericPrice >= 50 && item.numericPrice <= 50000
                         );
                         
                         if (psa10Cards.length > 0) {
-                            console.log(`   ✅ Found ${psa10Cards.length} PSA 10 cards`);
+                            console.log(`   ✅ Found ${psa10Cards.length} PSA 10 cards (${result.results.length} total cards)`);
                             
                             let batchAdded = 0;
                             for (let j = 0; j < psa10Cards.length; j += this.batchSize) {
