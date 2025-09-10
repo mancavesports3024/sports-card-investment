@@ -3,6 +3,14 @@ const NewPricingDatabase = require('./create-new-pricing-database.js');
 class SummaryTitleGenerator {
     constructor() {
         this.db = new NewPricingDatabase();
+        this.initialized = false;
+    }
+
+    async initialize() {
+        if (!this.initialized) {
+            await this.db.connect();
+            this.initialized = true;
+        }
     }
 
     /**
@@ -65,6 +73,7 @@ class SummaryTitleGenerator {
      */
     async updateAllSummaryTitles() {
         try {
+            await this.initialize();
             console.log('🔄 Updating summary titles for all cards...');
             
             // Get all cards
@@ -111,6 +120,7 @@ class SummaryTitleGenerator {
      */
     async updateCardSummaryTitle(cardId) {
         try {
+            await this.initialize();
             const card = await this.db.getQuery('SELECT * FROM cards WHERE id = ?', [cardId]);
             
             if (!card) {
@@ -178,6 +188,7 @@ class SummaryTitleGenerator {
      */
     async testGenerator() {
         try {
+            await this.initialize();
             console.log('🧪 Testing summary title generator...\n');
             
             // Get a few sample cards
