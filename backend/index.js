@@ -258,6 +258,27 @@ async function initializeServer() {
   // Healthcheck route for Railway
   app.get('/', (req, res) => res.send('OK'));
   
+  // Test endpoint to show current search terms
+  app.get('/api/test-search-terms', (req, res) => {
+    try {
+      const FastBatchPull = require('./fast-batch-pull-ebay.js');
+      const batchPull = new FastBatchPull();
+      const searchTerms = batchPull.getSearchTerms();
+      res.json({
+        success: true,
+        searchTerms: searchTerms,
+        count: searchTerms.length,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Health check endpoint for Railway deployment
   app.get('/api/health', (req, res) => {
     res.json({
