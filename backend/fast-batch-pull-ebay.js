@@ -1,7 +1,7 @@
 const NewPricingDatabase = require('./create-new-pricing-database.js');
 const EbayScraperService = require('./services/ebayScraperService.js');
 const SimplePlayerExtractor = require('./simple-player-extraction.js');
-const ImprovedPriceUpdater = require('./improve-price-updating.js');
+const EbayPriceUpdater = require('./ebay-price-updater.js');
 
 class FastBatchItemsPullerEbay {
     constructor() {
@@ -11,7 +11,7 @@ class FastBatchItemsPullerEbay {
         this.maxConcurrentSearches = 1; // Sequential only - no parallel searches
         this.ebayService = new EbayScraperService();
         this.extractor = new SimplePlayerExtractor();
-        this.priceUpdater = new ImprovedPriceUpdater(); // For immediate price updates
+        this.priceUpdater = new EbayPriceUpdater(); // For immediate price updates
         this.totalSearches = 0;
         this.successfulSearches = 0;
         this.blockedSearches = 0;
