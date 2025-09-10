@@ -299,6 +299,28 @@ async function initializeServer() {
     }
   });
 
+  app.get('/api/show-sample-summary-titles', async (req, res) => {
+    try {
+      const SummaryTitleGenerator = require('./summary-title-generator.js');
+      const generator = new SummaryTitleGenerator();
+      
+      await generator.initialize();
+      const sampleCards = await generator.allQuery('SELECT id, title, summary_title, player_name, year, card_set, card_number, card_type, print_run FROM cards LIMIT 10');
+      
+      res.json({
+        success: true,
+        sampleCards: sampleCards,
+        count: sampleCards.length
+      });
+    } catch (error) {
+      console.error('Error showing sample summary titles:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
   // Test endpoint to show current search terms
   app.get('/api/test-search-terms', (req, res) => {
     try {
