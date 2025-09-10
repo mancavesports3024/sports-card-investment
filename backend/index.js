@@ -258,6 +258,47 @@ async function initializeServer() {
   // Healthcheck route for Railway
   app.get('/', (req, res) => res.send('OK'));
   
+  // Summary title generator endpoints
+  app.get('/api/test-summary-generator', async (req, res) => {
+    try {
+      const SummaryTitleGenerator = require('./summary-title-generator.js');
+      const generator = new SummaryTitleGenerator();
+      
+      await generator.testGenerator();
+      
+      res.json({
+        success: true,
+        message: 'Summary title generator test completed - check server logs'
+      });
+    } catch (error) {
+      console.error('Error testing summary generator:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
+  app.post('/api/update-summary-titles', async (req, res) => {
+    try {
+      const SummaryTitleGenerator = require('./summary-title-generator.js');
+      const generator = new SummaryTitleGenerator();
+      
+      await generator.updateAllSummaryTitles();
+      
+      res.json({
+        success: true,
+        message: 'All summary titles updated successfully'
+      });
+    } catch (error) {
+      console.error('Error updating summary titles:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
   // Test endpoint to show current search terms
   app.get('/api/test-search-terms', (req, res) => {
     try {

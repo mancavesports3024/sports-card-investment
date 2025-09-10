@@ -867,53 +867,50 @@ class NewPricingDatabase {
                 printRun = '/' + printRunMatch[1];
             }
             
-            // Build summary title from components
+            // Build summary title in new format: Player Year Brand Card# Variation PrintRun
             let summaryTitle = '';
             
             // Check if it's an autograph card
             const isAuto = cardData.title.toLowerCase().includes('auto');
             
-            // Start with year
+            // 1. Start with Player Name
+            if (playerName) {
+                summaryTitle += this.capitalizePlayerName(playerName);
+            }
+            
+            // 2. Add Year
             if (year) {
+                if (summaryTitle) summaryTitle += ' ';
                 summaryTitle += year;
             }
             
-            // Add card set (cleaned of sport names)
+            // 3. Add Brand (card set cleaned of sport names)
             if (cardSet) {
                 if (summaryTitle) summaryTitle += ' ';
                 const cleanedCardSet = this.cleanSportNamesFromCardSet(cardSet);
                 summaryTitle += cleanedCardSet;
             }
             
-            // Add card type (colors, parallels, etc.) - but exclude "Base" (comes BEFORE player)
-            const normalizedCardType = cardType ? this.normalizeCardType(cardType, cardSet) : null;
-            if (normalizedCardType && normalizedCardType.toLowerCase() !== 'base') {
-                if (summaryTitle) summaryTitle += ' ';
-                summaryTitle += normalizedCardType;
-            }
-
-            // Add player name (but not if it's already in the card set)
-            if (playerName && cardSet && !cardSet.toLowerCase().includes(playerName.toLowerCase())) {
-                if (summaryTitle) summaryTitle += ' ';
-                summaryTitle += this.capitalizePlayerName(playerName);
-            } else if (playerName && !cardSet) {
-                if (summaryTitle) summaryTitle += ' ';
-                summaryTitle += this.capitalizePlayerName(playerName);
-            }
-            
-            // Add "auto" if it's an autograph
-            if (isAuto) {
-                if (summaryTitle) summaryTitle += ' ';
-                summaryTitle += 'auto';
-            }
-            
-            // Add card number
+            // 4. Add Card Number
             if (cardNumber) {
                 if (summaryTitle) summaryTitle += ' ';
                 summaryTitle += cardNumber;
             }
             
-            // Add print run
+            // 5. Add Variation (card type/parallels, but exclude "Base")
+            const normalizedCardType = cardType ? this.normalizeCardType(cardType, cardSet) : null;
+            if (normalizedCardType && normalizedCardType.toLowerCase() !== 'base') {
+                if (summaryTitle) summaryTitle += ' ';
+                summaryTitle += normalizedCardType;
+            }
+            
+            // 6. Add "auto" if it's an autograph (part of variation)
+            if (isAuto) {
+                if (summaryTitle) summaryTitle += ' ';
+                summaryTitle += 'auto';
+            }
+            
+            // 7. Add Print Run
             if (printRun) {
                 if (summaryTitle) summaryTitle += ' ';
                 summaryTitle += printRun;
