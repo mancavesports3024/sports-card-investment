@@ -13,6 +13,18 @@ class SummaryTitleGenerator {
         }
     }
 
+    async allQuery(sql, params = []) {
+        return new Promise((resolve, reject) => {
+            this.db.pricingDb.all(sql, params, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+
     /**
      * Generate summary title in format: Player Year Brand Card# Variation PrintRun
      * @param {Object} card - Card object from database
@@ -77,7 +89,7 @@ class SummaryTitleGenerator {
             console.log('🔄 Updating summary titles for all cards...');
             
             // Get all cards
-            const cards = await this.db.getQuery('SELECT * FROM cards');
+            const cards = await this.allQuery('SELECT * FROM cards');
             console.log(`📊 Found ${cards.length} cards to update`);
 
             let updated = 0;
@@ -192,7 +204,7 @@ class SummaryTitleGenerator {
             console.log('🧪 Testing summary title generator...\n');
             
             // Get a few sample cards
-            const sampleCards = await this.db.getQuery('SELECT * FROM cards LIMIT 5');
+            const sampleCards = await this.allQuery('SELECT * FROM cards LIMIT 5');
             
             for (const card of sampleCards) {
                 const newTitle = this.generateSummaryTitle(card);
