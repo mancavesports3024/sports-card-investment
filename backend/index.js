@@ -1742,21 +1742,14 @@ app.post('/api/test-specific-card', async (req, res) => {
     await updater.connect();
     
     // Get the specific card directly from database
-    const card = await new Promise((resolve, reject) => {
-      const query = `
-        SELECT id, title, summary_title as summaryTitle, sport, notes as filterInfo, 
-               raw_average_price as rawAveragePrice, psa9_average_price as psa9AveragePrice, psa10_price as psa10Price, last_updated as lastUpdated
-        FROM cards 
-        WHERE id = ?
-      `;
-      
-      try {
-        const row = await updater.db.getQuery(query, [cardId]);
-        resolve(row);
-      } catch (err) {
-        reject(err);
-      }
-    });
+    const query = `
+      SELECT id, title, summary_title as summaryTitle, sport, notes as filterInfo, 
+             raw_average_price as rawAveragePrice, psa9_average_price as psa9AveragePrice, psa10_price as psa10Price, last_updated as lastUpdated
+      FROM cards 
+      WHERE id = ?
+    `;
+    
+    const card = await updater.db.getQuery(query, [cardId]);
     
     if (!card) {
       await updater.db.close();
