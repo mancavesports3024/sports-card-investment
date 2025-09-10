@@ -1417,8 +1417,8 @@ const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standar
   app.get('/api/recent-cards', async (req, res) => {
     try {
       const limit = parseInt(req.query.limit) || 50;
-      const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-      const updater = new FastSQLitePriceUpdater();
+      const EbayPriceUpdater = require('./ebay-price-updater.js');
+      const updater = new EbayPriceUpdater();
       
       await updater.connect();
       
@@ -1648,8 +1648,8 @@ app.post('/api/update-prices', async (req, res) => {
     console.log(`🚀 Starting SQLite price update with batch size: ${batchSize}`);
     
     // Import and run the SQLite price updater
-    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-    const updater = new FastSQLitePriceUpdater();
+    const EbayPriceUpdater = require('./ebay-price-updater.js');
+    const updater = new EbayPriceUpdater();
     
     // Start the update process
     await updater.processBatch(batchSize);
@@ -1677,8 +1677,8 @@ app.post('/api/test-price-updater', async (req, res) => {
     const { batchSize = 3 } = req.body; // Default to 3 cards for testing
     console.log(`🧪 Starting price updater test with batch size: ${batchSize}`);
     
-    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-    const updater = new FastSQLitePriceUpdater();
+    const EbayPriceUpdater = require('./ebay-price-updater.js');
+    const updater = new EbayPriceUpdater();
     
     await updater.connect();
     
@@ -1736,8 +1736,8 @@ app.post('/api/test-specific-card', async (req, res) => {
     const { cardId } = req.body;
     console.log(`🧪 Testing specific card with ID: ${cardId}`);
     
-    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-    const updater = new FastSQLitePriceUpdater();
+    const EbayPriceUpdater = require('./ebay-price-updater.js');
+    const updater = new EbayPriceUpdater();
     
     await updater.connect();
     
@@ -2319,8 +2319,8 @@ app.get('/api/price-data', async (req, res) => {
   try {
     console.log('📊 Fetching price data from SQLite database...');
     
-    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-    const updater = new FastSQLitePriceUpdater();
+    const EbayPriceUpdater = require('./ebay-price-updater.js');
+    const updater = new EbayPriceUpdater();
     await updater.connect();
     
     // Get all cards with their price data
@@ -2404,8 +2404,8 @@ app.post('/api/add-cards', async (req, res) => {
     
     console.log(`📊 Processing ${cards.length} cards...`);
     
-    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-    const updater = new FastSQLitePriceUpdater();
+    const EbayPriceUpdater = require('./ebay-price-updater.js');
+    const updater = new EbayPriceUpdater();
     await updater.connect();
     
     let inserted = 0;
@@ -2499,8 +2499,8 @@ app.get('/api/sample-summary-titles', async (req, res) => {
   try {
     console.log('🔍 Sampling summary titles from production database...');
     
-    const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-    const updater = new FastSQLitePriceUpdater();
+    const EbayPriceUpdater = require('./ebay-price-updater.js');
+    const updater = new EbayPriceUpdater();
     await updater.connect();
     
     // Get various samples of summary titles
@@ -3145,8 +3145,8 @@ app.post('/api/admin/update-prices', async (req, res) => {
     try {
         console.log('🔄 Starting price updates on Railway...');
         
-        const FastSQLitePriceUpdater = require('./fast-sqlite-price-updater.js');
-        const updater = new FastSQLitePriceUpdater();
+        const EbayPriceUpdater = require('./ebay-price-updater.js');
+        const updater = new EbayPriceUpdater();
         
         await updater.connect();
         await updater.processBatchFast(50); // Process 50 cards
