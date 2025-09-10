@@ -261,7 +261,7 @@ async function initializeServer() {
   // Test endpoint to show current search terms
   app.get('/api/test-search-terms', (req, res) => {
     try {
-      const FastBatchItemsPullerEbay = require('./fast-batch-pull-ebay.js');
+      const { FastBatchItemsPullerEbay } = require('./fast-batch-pull-ebay.js');
       const batchPull = new FastBatchItemsPullerEbay();
       const searchTerms = batchPull.getSearchTerms();
       res.json({
