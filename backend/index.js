@@ -1750,13 +1750,12 @@ app.post('/api/test-specific-card', async (req, res) => {
         WHERE id = ?
       `;
       
-      updater.db.get(query, [cardId], (err, row) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(row);
-        }
-      });
+      try {
+        const row = await updater.db.getQuery(query, [cardId]);
+        resolve(row);
+      } catch (err) {
+        reject(err);
+      }
     });
     
     if (!card) {
