@@ -113,12 +113,36 @@ class EbayScraperService {
             
             while (attempt <= maxAttempts) {
                 try {
+                    // Rotate User-Agent each attempt
+                    requestConfig.headers['User-Agent'] = this.getRandomUserAgent();
+                    requestConfig.headers['Referer'] = 'https://www.ebay.com/';
+                    requestConfig.headers['Cache-Control'] = 'no-cache';
+                    
                     response = await axios.get(searchUrl, requestConfig);
-                    break; // Success, exit retry loop
+                    const html = response?.data || '';
+                    const looksLikeVerification =
+                        typeof html === 'string' && (
+                            html.length < 20000 ||
+                            /(verify|verification|are you a human|captcha|access denied|bot detection)/i.test(html)
+                        );
+                    if (looksLikeVerification && attempt < maxAttempts) {
+                        console.log(`🛑 Verification page detected (length=${html.length}) on attempt ${attempt}. Retrying with proxy/UA in ${attempt * 5}s...`);
+                        await new Promise(resolve => setTimeout(resolve, attempt * 5000));
+                        const newProxyAgent = this.getNextProxy();
+                        if (newProxyAgent) {
+                            requestConfig.httpsAgent = newProxyAgent;
+                            console.log('🔄 Switching ProxyMesh server for retry...');
+                        }
+                        attempt++;
+                        continue;
+                    }
+                    // Success path
+                    break;
                     
                 } catch (error) {
-                    if (error.response?.status === 402 && attempt < maxAttempts) {
-                        console.log(`⚠️ 402 Payment Required (attempt ${attempt}/${maxAttempts}). Retrying in ${attempt * 5} seconds...`);
+                    const status = error.response?.status;
+                    if ((status === 402 || status === 403 || status === 429) && attempt < maxAttempts) {
+                        console.log(`⚠️ HTTP ${status} (attempt ${attempt}/${maxAttempts}). Retrying in ${attempt * 5} seconds...`);
                         await new Promise(resolve => setTimeout(resolve, attempt * 5000)); // Exponential backoff
                         
                         // Get a different proxy for retry
@@ -130,7 +154,7 @@ class EbayScraperService {
                         
                         attempt++;
                     } else {
-                        throw error; // Re-throw if not 402 or max attempts reached
+                        throw error; // Re-throw if not retryable or max attempts reached
                     }
                 }
             }
