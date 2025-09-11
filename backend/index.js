@@ -299,6 +299,51 @@ async function initializeServer() {
     }
   });
 
+  // Targeted averages tester: compute PSA10/PSA9/Raw for a provided summary title (no DB writes)
+  app.post('/api/test-targeted-avg', async (req, res) => {
+    try {
+      const { summaryTitle } = req.body || {};
+      if (!summaryTitle || typeof summaryTitle !== 'string' || summaryTitle.trim().length < 3) {
+        return res.status(400).json({ success: false, error: 'summaryTitle is required' });
+      }
+
+      const EbayPriceUpdater = require('./ebay-price-updater.js');
+      const updater = new EbayPriceUpdater();
+
+      // Run three searches via the existing helper
+      const results = await updater.searchCardPrices(summaryTitle.trim());
+
+      // Compute averages without writing to DB
+      const psa10Average = updater.calculateAverage(results.psa10);
+      const psa9Average = updater.calculateAverage(results.psa9);
+      const rawAverage = updater.calculateAverage(results.raw);
+
+      let multiplier = null;
+      if (rawAverage && psa10Average && rawAverage > 0) {
+        multiplier = Math.round((psa10Average / rawAverage) * 100) / 100;
+      }
+
+      return res.json({
+        success: true,
+        input: { summaryTitle: summaryTitle.trim() },
+        counts: {
+          psa10: Array.isArray(results.psa10) ? results.psa10.length : 0,
+          psa9: Array.isArray(results.psa9) ? results.psa9.length : 0,
+          raw: Array.isArray(results.raw) ? results.raw.length : 0
+        },
+        averages: {
+          psa10Average,
+          psa9Average,
+          rawAverage,
+          multiplier
+        }
+      });
+    } catch (error) {
+      console.error('Error in /api/test-targeted-avg:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   app.get('/api/show-sample-summary-titles', async (req, res) => {
     try {
       const SummaryTitleGenerator = require('./summary-title-generator.js');
