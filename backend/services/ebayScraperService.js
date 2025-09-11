@@ -47,41 +47,13 @@ class EbayScraperService {
         
         // Pokemon TCG cards use different category and structure with BLANK search term
         if (cardType && cardType.toLowerCase().includes('pokemon tcg')) {
-            let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=&_sacat=183454&_from=R40&_sasl=comc_consignment%2C+dcsports87%2C+probstein123%2C+5_star_cards&LH_PrefLoc=1&_saslop=2&_oaa=1&Game=Pok%25C3%25A9mon%2520TCG&LH_Complete=1&LH_Sold=1`;
-            
-            // Add grade-specific parameters for Pokemon
-            if (expectedGrade === 'PSA 10' || expectedGrade === 'PSA 9') {
-                searchUrl += '&Graded=Yes&_dcat=183454';
-                
-                if (expectedGrade === 'PSA 10') {
-                    searchUrl += '&Grade=10';  // Pokemon PSA 10s
-                } else {
-                    searchUrl += '&Grade=9';   // Pokemon PSA 9s
-                }
-                searchUrl += '&Professional%2520Grader=Professional%2520Sports%2520Authenticator%2520%2528PSA%2529';
-            } else if (expectedGrade === 'Raw') {
-                searchUrl += '&Graded=No&_dcat=183454';  // Raw Pokemon cards
-            }
-            
+            // No grade filters; centralized price range
+            const searchUrl = `${this.baseUrl}/sch/i.html?_nkw=&_sacat=183454&_from=R40&_sasl=comc_consignment%2C+dcsports87%2C+probstein123%2C+5_star_cards&LH_PrefLoc=1&_saslop=2&_oaa=1&Game=Pok%25C3%25A9mon%2520TCG&LH_Complete=1&LH_Sold=1&_udlo=11&_udhi=3000`;
             return searchUrl;
         }
         
-        // Standard sports cards (non-Pokemon)
-        let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1`;
-        
-        // Add grade-specific parameters
-        if (expectedGrade === 'PSA 10' || expectedGrade === 'PSA 9') {
-            searchUrl += '&Graded=Yes&_dcat=261328&rt=nc';
-            
-            if (expectedGrade === 'PSA 10') {
-                searchUrl += '&Grade=10&_udlo=50&_udhi=5000';  // Price range for PSA 10s
-            } else {
-                searchUrl += '&Grade=9&_udlo=25&_udhi=2500';   // Price range for PSA 9s
-            }
-            searchUrl += '&Professional%2520Grader=Professional%2520Sports%2520Authenticator%2520%2528PSA%2529';
-        } else if (expectedGrade === 'Raw') {
-            searchUrl += '&rt=nc&Graded=No&_dcat=261328&_udlo=10&_udhi=1000';  // Price range for Raw
-        }
+        // Standard sports cards (non-Pokemon) — no grade filters; centralized price range
+        let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1&rt=nc&_dcat=261328&_udlo=11&_udhi=3000`;
         
         // Add sport filter if specified (for non-Pokemon sports)
         if (sport && sport.toLowerCase() !== 'pokemon') {
@@ -107,12 +79,8 @@ class EbayScraperService {
             console.log(`🔍 DEBUG - Search request: "${searchTerm}" (sport: ${sport}, cardType: ${cardType}, grade: ${expectedGrade}, maxResults: ${maxResults})`);
             console.log(`🔍 Search URL: ${searchUrl}`);
             
-            // Compare with the working manual URL
-            if (searchTerm === "2024 Topps Chrome" && sport === "Baseball" && expectedGrade === "PSA 10") {
-                console.log(`🎯 MANUAL URL: https://www.ebay.com/sch/i.html?_nkw=2024+Topps+Chrome&_sacat=0&_from=R40&Graded=Yes&Grade=10&LH_Complete=1&LH_Sold=1&_udlo=50&_udhi=5000&rt=nc&Sport=Baseball&_dcat=261328`);
-                console.log(`🎯 OUR URL:    ${searchUrl}`);
-                console.log(`🔍 URL COMPARISON - Checking for differences...`);
-            }
+            // Log built URL for debugging
+            console.log(`🎯 Built Search URL: ${searchUrl}`);
             
             // Make HTTP request with optional proxy
             const requestConfig = {
@@ -183,7 +151,8 @@ class EbayScraperService {
                     return {
                         success: true,
                         results: results,
-                        method: 'direct_http'
+                        method: 'direct_http',
+                        searchUrl
                     };
                 }
             }
@@ -191,7 +160,8 @@ class EbayScraperService {
             return {
                 success: false,
                 results: [],
-                method: 'direct_http_failed'
+                method: 'direct_http_failed',
+                searchUrl
             };
 
         } catch (error) {
@@ -199,7 +169,8 @@ class EbayScraperService {
             return {
                 success: false,
                 results: [],
-                error: error.message
+                error: error.message,
+                searchUrl
             };
         }
     }
