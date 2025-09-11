@@ -302,7 +302,7 @@ async function initializeServer() {
   // Targeted averages tester: compute PSA10/PSA9/Raw for a provided summary title (no DB writes)
   app.post('/api/test-targeted-avg', async (req, res) => {
     try {
-      const { summaryTitle } = req.body || {};
+      const { summaryTitle, season } = req.body || {};
       if (!summaryTitle || typeof summaryTitle !== 'string' || summaryTitle.trim().length < 3) {
         return res.status(400).json({ success: false, error: 'summaryTitle is required' });
       }
@@ -311,7 +311,21 @@ async function initializeServer() {
       const updater = new EbayPriceUpdater();
 
       // Run three searches via the existing helper
-      const results = await updater.searchCardPrices(summaryTitle.trim());
+      // Pass season range to single-search via ebay-price-updater by temporarily calling the service directly
+      const EbayScraperService = require('./services/ebayScraperService.js');
+      const service = new EbayScraperService();
+      const seasonParam = season && typeof season === 'string' ? season : '2021|2022|2022-23|2023|2023-24|2024|2024-25|2025';
+      const resp = await service.searchSoldCards(summaryTitle.trim(), null, 50, null, null, null, null, seasonParam);
+
+      // Classify locally using updater helpers
+      const results = { psa10: [], psa9: [], raw: [] };
+      const items = Array.isArray(resp?.results) ? resp.results : [];
+      items.forEach(item => {
+        const t = (item.title || '').toLowerCase();
+        if (t.includes('psa 10') || t.includes('psa-10')) results.psa10.push(item);
+        else if (t.includes('psa 9') || t.includes('psa-9')) results.psa9.push(item);
+        else if (!/(psa|bgs|sgc|cgc|graded|slab)/.test(t)) results.raw.push(item);
+      });
 
       // Compute averages without writing to DB
       const psa10Average = updater.calculateAverage(results.psa10);

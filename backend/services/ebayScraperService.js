@@ -41,19 +41,22 @@ class EbayScraperService {
         return new HttpsProxyAgent(proxyUrl);
     }
 
-    buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = null, cardType = null) {
+    buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = null, cardType = null, season = null) {
         // Clean and encode the search term (preserve negative keywords properly)
         const cleanTerm = searchTerm.replace(/[^\w\s\-\+]/g, ' ').replace(/\s+/g, '+');
         
         // Pokemon TCG cards use different category and structure with BLANK search term
         if (cardType && cardType.toLowerCase().includes('pokemon tcg')) {
-            // No grade filters; centralized price range
+            // No grade filters; centralized price range; DO NOT add Season for Pokemon
             const searchUrl = `${this.baseUrl}/sch/i.html?_nkw=&_sacat=183454&_from=R40&_sasl=comc_consignment%2C+dcsports87%2C+probstein123%2C+5_star_cards&LH_PrefLoc=1&_saslop=2&_oaa=1&Game=Pok%25C3%25A9mon%2520TCG&LH_Complete=1&LH_Sold=1&_udlo=11&_udhi=3000`;
             return searchUrl;
         }
         
         // Standard sports cards (non-Pokemon) — no grade filters; centralized price range
         let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1&rt=nc&_dcat=261328&_udlo=11&_udhi=3000`;
+        if (season) {
+            searchUrl += `&Season=${encodeURIComponent(season)}`;
+        }
         
         // Add sport filter if specified (for non-Pokemon sports)
         if (sport && sport.toLowerCase() !== 'pokemon') {
@@ -73,9 +76,9 @@ class EbayScraperService {
         return searchUrl;
     }
 
-    async searchSoldCards(searchTerm, sport = null, maxResults = 50, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null, cardType = null) {
+    async searchSoldCards(searchTerm, sport = null, maxResults = 50, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null, cardType = null, season = null) {
         try {
-            const searchUrl = this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph, cardType);
+            const searchUrl = this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph, cardType, season);
             console.log(`🔍 DEBUG - Search request: "${searchTerm}" (sport: ${sport}, cardType: ${cardType}, grade: ${expectedGrade}, maxResults: ${maxResults})`);
             console.log(`🔍 Search URL: ${searchUrl}`);
             
@@ -182,25 +185,16 @@ class EbayScraperService {
             
             console.log(`🔍 Parsing HTML for card data with proximity-based correlation...`);
             
-            // Extract titles with positions using generic patterns for all searches
+            // Extract titles with broader patterns (generic; post-filter later)
             const titleData = [];
             const workingTitlePatterns = [
-                // 2024/2025 eBay HTML structure - modern span-based patterns
-                /<span[^>]*>([^<]*(?:2024|2023|2022)[^<]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon|Panini)[^<]*)</gi,
-                /<span[^>]*>([^<]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon|Panini)[^<]*(?:2024|2023|2022)[^<]*)</gi,
-                // JSON-like data structures that eBay now uses
-                /"title"\s*:\s*"([^"]*(?:2024|2023|2022)[^"]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon|Panini)[^"]*)"/gi,
-                /"([^"]*(?:2024|2023|2022)[^"]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon|Panini)[^"]*(?:PSA|BGS|SGC|Raw)[^"]*)"/gi,
-                // Alt attributes for images
-                /alt\s*=\s*["']([^"']*(?:2024|2023|2022)[^"']*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon|Panini)[^"']*)["']/gi,
-                // Div content patterns (modern eBay structure)
-                /<div[^>]*>([^<]*(?:2024|2023|2022)[^<]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon|Panini)[^<]*)</gi,
-                // Aria-label attributes
-                /aria-label\s*=\s*["']([^"']*(?:2024|2023|2022)[^"']*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon|Panini)[^"']*)["']/gi,
-                // Legacy patterns (keep for backward compatibility)
+                /"title"\s*:\s*"([^"]+)"/gi,
                 /<h3[^>]*>([^<]+)<\/h3>/gi,
-                /<a[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)<\/a>/gi,
-                />([^<]*(?:2024|2023)[^<]*(?:Topps|Chrome|Prizm|Select|Bowman|Pokemon)[^<]*)</gi
+                /<span[^>]*>([^<]+)<\/span>/gi,
+                /<div[^>]*>([^<]+)<\/div>/gi,
+                /alt\s*=\s*["']([^"']+)["']/gi,
+                /aria-label\s*=\s*["']([^"']+)["']/gi,
+                /<a[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)<\/a>/gi
             ];
             
             for (let p = 0; p < workingTitlePatterns.length; p++) {
@@ -240,7 +234,29 @@ class EbayScraperService {
                 });
             });
             
-            console.log(`🔍 Found ${titleData.length} titles, ${priceData.length} prices, ${itemIdData.length} itemIds`);
+            // Post-filter titles using query tokens (player/brand/code/print-run)
+            const normalize = (s) => (s || '').toLowerCase().replace(/[^a-z0-9\/#\-\s]/g, ' ').replace(/\s+/g, ' ').trim();
+            const qn = normalize(searchTerm);
+            const baseTokens = qn.split(' ').filter(t => t && t.length > 2);
+            const extraTokens = [];
+            if (/bcp\s*-?\s*50/.test(qn)) extraTokens.push('bcp-50','bcp50','bcp 50');
+            if (/\/?350/.test(qn) || /\b350\b/.test(qn)) extraTokens.push('/350','350');
+            const anchorTokens = ['bowman','chrome'];
+            const allTokens = Array.from(new Set([...baseTokens, ...extraTokens]));
+
+            const scoredTitles = titleData.map(t => {
+                const tn = normalize(t.title);
+                let score = 0;
+                allTokens.forEach(tok => { if (tok && tn.includes(tok)) score++; });
+                const hasAnchor = anchorTokens.some(tok => tn.includes(tok));
+                return { ...t, score, hasAnchor };
+            });
+
+            const filteredTitleData = scoredTitles
+                .filter(t => t.score >= 2 || t.hasAnchor)
+                .map(({title, position}) => ({ title, position }));
+
+            console.log(`🔍 Found ${titleData.length} titles (pre-filter), ${filteredTitleData.length} after token filter; ${priceData.length} prices, ${itemIdData.length} itemIds`);
             
             // Debug specific searches
             if (searchTerm === "2024 Topps Chrome" || titleData.length === 0) {

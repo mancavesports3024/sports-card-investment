@@ -38,7 +38,8 @@ class EbayPriceUpdater {
 
         try {
             // Single search without grade filter; request up to 50 results
-            const resp = await this.ebayService.searchSoldCards(summaryTitle, null, 50, null, null, null, null);
+            const seasonRange = '2021|2022|2022-23|2023|2023-24|2024|2024-25|2025';
+            const resp = await this.ebayService.searchSoldCards(summaryTitle, null, 50, null, null, null, null, seasonRange);
 
             const items = Array.isArray(resp?.results) ? resp.results : Array.isArray(resp) ? resp : [];
             console.log(`   📦 Single search returned ${items.length} items`);
