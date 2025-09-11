@@ -30,74 +30,32 @@ class EbayPriceUpdater {
         return await this.db.allQuery(query, [limit]);
     }
 
-    // Search for prices using eBay scraper with summary title
+    // Search for prices using ONE eBay search (no grade filters); classify locally
     async searchCardPrices(summaryTitle) {
-        console.log(`🔍 Searching prices for: ${summaryTitle}`);
-        
-        const results = {
-            psa10: [],
-            psa9: [],
-            raw: []
-        };
+        console.log(`🔍 Searching prices (single search) for: ${summaryTitle}`);
+
+        const results = { psa10: [], psa9: [], raw: [] };
 
         try {
-            // Search for PSA 10 cards
-            console.log(`   📊 Searching PSA 10...`);
-            const psa10Result = await this.ebayService.searchSoldCards(summaryTitle, null, 20, 'PSA 10');
-            
-            if (psa10Result.success && Array.isArray(psa10Result.results)) {
-                results.psa10 = psa10Result.results.slice(0, 10);
-                console.log(`   ✅ Found ${results.psa10.length} PSA 10 results`);
-            } else if (Array.isArray(psa10Result)) {
-                results.psa10 = psa10Result.slice(0, 10);
-                console.log(`   ✅ Found ${results.psa10.length} PSA 10 results`);
-            } else {
-                console.log(`   ⚠️ PSA 10 search returned no results`);
-                results.psa10 = [];
+            // Single search without grade filter; request up to 50 results
+            const resp = await this.ebayService.searchSoldCards(summaryTitle, null, 50, null, null, null, null);
+
+            const items = Array.isArray(resp?.results) ? resp.results : Array.isArray(resp) ? resp : [];
+            console.log(`   📦 Single search returned ${items.length} items`);
+
+            // Classify by detected grade from title
+            for (const item of items) {
+                const title = (item.title || '').toLowerCase();
+                if (title.includes('psa 10') || title.includes('psa-10')) {
+                    results.psa10.push(item);
+                } else if (title.includes('psa 9') || title.includes('psa-9')) {
+                    results.psa9.push(item);
+                } else if (!/(psa|bgs|sgc|cgc|graded|slab)/.test(title)) {
+                    results.raw.push(item);
+                }
             }
 
-            // Delay between searches (now that 402 errors are fixed)
-            console.log(`   ⏳ Waiting 3 seconds between searches...`);
-            await new Promise(resolve => setTimeout(resolve, 3000));
-
-            // Search for PSA 9 cards
-            console.log(`   📊 Searching PSA 9...`);
-            const psa9Result = await this.ebayService.searchSoldCards(summaryTitle, null, 20, 'PSA 9');
-            
-            if (psa9Result.success && Array.isArray(psa9Result.results)) {
-                results.psa9 = psa9Result.results.slice(0, 10);
-                console.log(`   ✅ Found ${results.psa9.length} PSA 9 results`);
-            } else if (Array.isArray(psa9Result)) {
-                results.psa9 = psa9Result.slice(0, 10);
-                console.log(`   ✅ Found ${results.psa9.length} PSA 9 results`);
-            } else {
-                console.log(`   ⚠️ PSA 9 search returned no results`);
-                results.psa9 = [];
-            }
-
-            // Delay between searches (now that 402 errors are fixed)
-            console.log(`   ⏳ Waiting 3 seconds between searches...`);
-            await new Promise(resolve => setTimeout(resolve, 3000));
-
-            // Search for raw (ungraded) cards - specify 'Raw' as grade to get Graded=No
-            console.log(`   📊 Searching Raw (ungraded)...`);
-            const rawResult = await this.ebayService.searchSoldCards(summaryTitle, null, 20, 'Raw', false); // Raw grade, not autograph
-            if (rawResult.success && Array.isArray(rawResult.results)) {
-                // Filter out any graded cards from raw results
-                const filteredRaw = rawResult.results.filter(card => {
-                    const title = card.title.toLowerCase();
-                    return !title.includes('psa') && 
-                           !title.includes('bgs') && 
-                           !title.includes('sgc') && 
-                           !title.includes('cgc') && 
-                           !title.includes('graded') && 
-                           !title.includes('slab');
-                });
-                results.raw = filteredRaw.slice(0, 10); // Take first 10
-                console.log(`   ✅ Found ${results.raw.length} raw results (filtered from ${rawResult.results.length})`);
-            } else {
-                console.log(`   ⚠️ Raw search failed or returned no results`);
-            }
+            console.log(`   ✅ Classified → PSA10: ${results.psa10.length}, PSA9: ${results.psa9.length}, Raw: ${results.raw.length}`);
 
         } catch (error) {
             console.log(`   ❌ Error searching for prices: ${error.message}`);
