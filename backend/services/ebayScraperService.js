@@ -178,7 +178,7 @@ class EbayScraperService {
                     const html = response?.data || '';
                     const looksLikeVerification =
                         typeof html === 'string' && (
-                            html.length < 20000 ||
+                            html.length < 30000 ||
                             /(verify|verification|are you a human|captcha|access denied|bot detection)/i.test(html)
                         );
                     if (looksLikeVerification && attempt < maxAttempts) {
