@@ -1,15 +1,29 @@
 const axios = require('axios');
 const { HttpsProxyAgent } = require('https-proxy-agent');
+const { CookieJar } = require('tough-cookie');
+const { wrapper } = require('axios-cookiejar-support');
 
 class EbayScraperService {
     constructor() {
         this.baseUrl = 'https://www.ebay.com';
         this.userAgents = [
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0'
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Safari/605.1.15',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0'
         ];
         this.currentUserAgent = 0;
+        
+        // Cookie jar for session persistence
+        this.cookieJar = new CookieJar();
+        this.axiosInstance = wrapper(axios.create({
+            jar: this.cookieJar,
+            timeout: 30000,
+            maxRedirects: 5
+        }));
+        
+        this.warmedUp = false;
         
         // ProxyMesh configuration - only use authorized server for basic plan
         this.proxyServers = [
@@ -26,6 +40,41 @@ class EbayScraperService {
     getRandomUserAgent() {
         this.currentUserAgent = (this.currentUserAgent + 1) % this.userAgents.length;
         return this.userAgents[this.currentUserAgent];
+    }
+    
+    async warmUpSession() {
+        if (this.warmedUp) return;
+        
+        try {
+            console.log('🔥 Warming up session with eBay homepage...');
+            const warmUpHeaders = {
+                'User-Agent': this.getRandomUserAgent(),
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none',
+                'Cache-Control': 'max-age=0'
+            };
+            
+            const proxyAgent = this.getNextProxy();
+            const config = { headers: warmUpHeaders };
+            if (proxyAgent) config.httpsAgent = proxyAgent;
+            
+            await this.axiosInstance.get(this.baseUrl, config);
+            this.warmedUp = true;
+            console.log('✅ Session warmed up successfully');
+            
+            // Small delay to appear more human
+            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+            
+        } catch (error) {
+            console.log('⚠️ Warm-up failed, continuing anyway:', error.message);
+        }
     }
     
     getNextProxy() {
@@ -78,6 +127,9 @@ class EbayScraperService {
 
     async searchSoldCards(searchTerm, sport = null, maxResults = 50, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null, cardType = null, season = null) {
         try {
+            // Warm up session first
+            await this.warmUpSession();
+            
             const searchUrl = this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph, cardType, season);
             console.log(`🔍 DEBUG - Search request: "${searchTerm}" (sport: ${sport}, cardType: ${cardType}, grade: ${expectedGrade}, maxResults: ${maxResults})`);
             console.log(`🔍 Search URL: ${searchUrl}`);
@@ -85,16 +137,25 @@ class EbayScraperService {
             // Log built URL for debugging
             console.log(`🎯 Built Search URL: ${searchUrl}`);
             
-            // Make HTTP request with optional proxy
+            // Enhanced headers for better bot detection evasion
             const requestConfig = {
                 headers: {
                     'User-Agent': this.getRandomUserAgent(),
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                    'Accept-Language': 'en-US,en;q=0.9',
                     'Accept-Encoding': 'gzip, deflate, br',
                     'DNT': '1',
                     'Connection': 'keep-alive',
-                    'Upgrade-Insecure-Requests': '1'
+                    'Upgrade-Insecure-Requests': '1',
+                    'Sec-Fetch-Dest': 'document',
+                    'Sec-Fetch-Mode': 'navigate',
+                    'Sec-Fetch-Site': 'same-origin',
+                    'Sec-Fetch-User': '?1',
+                    'Cache-Control': 'max-age=0',
+                    'Referer': 'https://www.ebay.com/',
+                    'sec-ch-ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+                    'sec-ch-ua-mobile': '?0',
+                    'sec-ch-ua-platform': '"Windows"'
                 },
                 timeout: 30000
             };
@@ -115,10 +176,15 @@ class EbayScraperService {
                 try {
                     // Rotate User-Agent each attempt
                     requestConfig.headers['User-Agent'] = this.getRandomUserAgent();
-                    requestConfig.headers['Referer'] = 'https://www.ebay.com/';
-                    requestConfig.headers['Cache-Control'] = 'no-cache';
                     
-                    response = await axios.get(searchUrl, requestConfig);
+                    // Add random delay between attempts
+                    if (attempt > 1) {
+                        const delay = 2000 + Math.random() * 3000; // 2-5 seconds
+                        console.log(`⏳ Waiting ${Math.round(delay)}ms before retry...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                    
+                    response = await this.axiosInstance.get(searchUrl, requestConfig);
                     const html = response?.data || '';
                     const looksLikeVerification =
                         typeof html === 'string' && (
@@ -126,8 +192,13 @@ class EbayScraperService {
                             /(verify|verification|are you a human|captcha|access denied|bot detection)/i.test(html)
                         );
                     if (looksLikeVerification && attempt < maxAttempts) {
-                        console.log(`🛑 Verification page detected (length=${html.length}) on attempt ${attempt}. Retrying with proxy/UA in ${attempt * 5}s...`);
-                        await new Promise(resolve => setTimeout(resolve, attempt * 5000));
+                        console.log(`🛑 Verification page detected (length=${html.length}) on attempt ${attempt}. Retrying with new session...`);
+                        
+                        // Clear cookies and warm up new session
+                        this.cookieJar.removeAllCookies();
+                        this.warmedUp = false;
+                        await this.warmUpSession();
+                        
                         const newProxyAgent = this.getNextProxy();
                         if (newProxyAgent) {
                             requestConfig.httpsAgent = newProxyAgent;
@@ -142,8 +213,12 @@ class EbayScraperService {
                 } catch (error) {
                     const status = error.response?.status;
                     if ((status === 402 || status === 403 || status === 429) && attempt < maxAttempts) {
-                        console.log(`⚠️ HTTP ${status} (attempt ${attempt}/${maxAttempts}). Retrying in ${attempt * 5} seconds...`);
-                        await new Promise(resolve => setTimeout(resolve, attempt * 5000)); // Exponential backoff
+                        console.log(`⚠️ HTTP ${status} (attempt ${attempt}/${maxAttempts}). Retrying with new session...`);
+                        
+                        // Clear cookies and warm up new session
+                        this.cookieJar.removeAllCookies();
+                        this.warmedUp = false;
+                        await this.warmUpSession();
                         
                         // Get a different proxy for retry
                         const newProxyAgent = this.getNextProxy();
