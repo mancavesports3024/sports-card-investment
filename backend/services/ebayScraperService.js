@@ -1,7 +1,5 @@
 const axios = require('axios');
 const { HttpsProxyAgent } = require('https-proxy-agent');
-const { CookieJar } = require('tough-cookie');
-const { wrapper } = require('axios-cookiejar-support');
 
 class EbayScraperService {
     constructor() {
@@ -14,14 +12,6 @@ class EbayScraperService {
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0'
         ];
         this.currentUserAgent = 0;
-        
-        // Cookie jar for session persistence
-        this.cookieJar = new CookieJar();
-        this.axiosInstance = wrapper(axios.create({
-            jar: this.cookieJar,
-            timeout: 30000,
-            maxRedirects: 5
-        }));
         
         this.warmedUp = false;
         
@@ -62,10 +52,10 @@ class EbayScraperService {
             };
             
             const proxyAgent = this.getNextProxy();
-            const config = { headers: warmUpHeaders };
+            const config = { headers: warmUpHeaders, timeout: 30000 };
             if (proxyAgent) config.httpsAgent = proxyAgent;
             
-            await this.axiosInstance.get(this.baseUrl, config);
+            await axios.get(this.baseUrl, config);
             this.warmedUp = true;
             console.log('✅ Session warmed up successfully');
             
@@ -184,7 +174,7 @@ class EbayScraperService {
                         await new Promise(resolve => setTimeout(resolve, delay));
                     }
                     
-                    response = await this.axiosInstance.get(searchUrl, requestConfig);
+                    response = await axios.get(searchUrl, requestConfig);
                     const html = response?.data || '';
                     const looksLikeVerification =
                         typeof html === 'string' && (
@@ -194,8 +184,7 @@ class EbayScraperService {
                     if (looksLikeVerification && attempt < maxAttempts) {
                         console.log(`🛑 Verification page detected (length=${html.length}) on attempt ${attempt}. Retrying with new session...`);
                         
-                        // Clear cookies and warm up new session
-                        this.cookieJar.removeAllCookies();
+                        // Reset session and warm up new session
                         this.warmedUp = false;
                         await this.warmUpSession();
                         
@@ -215,8 +204,7 @@ class EbayScraperService {
                     if ((status === 402 || status === 403 || status === 429) && attempt < maxAttempts) {
                         console.log(`⚠️ HTTP ${status} (attempt ${attempt}/${maxAttempts}). Retrying with new session...`);
                         
-                        // Clear cookies and warm up new session
-                        this.cookieJar.removeAllCookies();
+                        // Reset session and warm up new session
                         this.warmedUp = false;
                         await this.warmUpSession();
                         
