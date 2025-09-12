@@ -231,7 +231,16 @@ class EbayScraperService {
                     console.log(`🔍 Found ${toppsMatches} instances of "Topps Chrome" in HTML`);
                 }
                 
-                const results = this.parseHtmlForCards(response.data, maxResults, searchTerm, sport, expectedGrade, false, originalIsAutograph, targetPrintRun);
+                // Exclude the section after "Results matching fewer words"
+                let htmlToParse = response.data;
+                const cutoffMarker = 'Results matching fewer words';
+                const cutoffIndex = htmlToParse.indexOf(cutoffMarker);
+                if (cutoffIndex !== -1) {
+                    htmlToParse = htmlToParse.slice(0, cutoffIndex);
+                    console.log('✂️ Truncated HTML at "Results matching fewer words" section to avoid looser matches');
+                }
+                
+                const results = this.parseHtmlForCards(htmlToParse, maxResults, searchTerm, sport, expectedGrade, false, originalIsAutograph, targetPrintRun);
                 
                 if (results.length > 0) {
                     console.log(`✅ Found ${results.length} cards via direct HTTP request`);
@@ -538,13 +547,15 @@ class EbayScraperService {
     detectGradeFromTitle(title) {
         const lowerTitle = title.toLowerCase();
         
-        if (lowerTitle.includes('psa 10') || lowerTitle.includes('psa-10')) {
+        // PSA 10 variants
+        if (/(psa\s*10|psa-10|psa10|gem\s*mt\s*10|gem\s*mint\s*10)/i.test(lowerTitle)) {
             return 'PSA 10';
         }
-        if (lowerTitle.includes('psa 9') || lowerTitle.includes('psa-9')) {
+        // PSA 9 variants
+        if (/(psa\s*9|psa-9|psa9|gem\s*mt\s*9|gem\s*mint\s*9|mint\s*9)/i.test(lowerTitle)) {
             return 'PSA 9';
         }
-        if (lowerTitle.includes('psa 8') || lowerTitle.includes('psa-8')) {
+        if (lowerTitle.includes('psa 8') || lowerTitle.includes('psa-8') || lowerTitle.includes('psa8')) {
             return 'PSA 8';
         }
         
