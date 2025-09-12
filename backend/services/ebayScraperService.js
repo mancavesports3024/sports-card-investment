@@ -272,16 +272,30 @@ class EbayScraperService {
             
             console.log(`🔍 Parsing HTML for card data with proximity-based correlation...`);
             
-            // Extract titles with broader patterns (generic; post-filter later)
+            // Extract titles with much broader patterns to capture all possible card titles
             const titleData = [];
             const workingTitlePatterns = [
+                // JSON title fields
                 /"title"\s*:\s*"([^"]+)"/gi,
+                // Common eBay title containers
                 /<h3[^>]*>([^<]+)<\/h3>/gi,
-                /<span[^>]*>([^<]+)<\/span>/gi,
-                /<div[^>]*>([^<]+)<\/div>/gi,
-                /alt\s*=\s*["']([^"']+)["']/gi,
-                /aria-label\s*=\s*["']([^"']+)["']/gi,
-                /<a[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)<\/a>/gi
+                /<span[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)<\/span>/gi,
+                /<a[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)<\/a>/gi,
+                /<div[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)<\/div>/gi,
+                // s-item patterns (eBay's standard)
+                /<span[^>]*class="[^"]*s-item__title[^"]*"[^>]*>([^<]+)<\/span>/gi,
+                /<a[^>]*class="[^"]*s-item__link[^"]*"[^>]*>([^<]+)<\/a>/gi,
+                /<h3[^>]*class="[^"]*s-item__title[^"]*"[^>]*>([^<]+)<\/h3>/gi,
+                // Generic patterns for any text that might be a title
+                /<span[^>]*>([^<]{20,200})<\/span>/gi,
+                /<div[^>]*>([^<]{20,200})<\/div>/gi,
+                /<a[^>]*>([^<]{20,200})<\/a>/gi,
+                // Alt text and aria labels
+                /alt\s*=\s*["']([^"']{20,200})["']/gi,
+                /aria-label\s*=\s*["']([^"']{20,200})["']/gi,
+                // Data attributes
+                /data-title\s*=\s*["']([^"']+)["']/gi,
+                /data-name\s*=\s*["']([^"']+)["']/gi
             ];
             
             for (let p = 0; p < workingTitlePatterns.length; p++) {
@@ -328,7 +342,7 @@ class EbayScraperService {
             const extraTokens = [];
             if (/bcp\s*-?\s*50/.test(qn)) extraTokens.push('bcp-50','bcp50','bcp 50');
             if (/\/?350/.test(qn) || /\b350\b/.test(qn)) extraTokens.push('/350','350');
-            const anchorTokens = ['bowman','chrome'];
+            const anchorTokens = ['bowman','chrome','jesus','made'];
             const allTokens = Array.from(new Set([...baseTokens, ...extraTokens]));
 
             const scoredTitles = titleData.map(t => {
@@ -339,20 +353,29 @@ class EbayScraperService {
                 return { ...t, score, hasAnchor };
             });
 
+            // More lenient filtering - accept titles with score >= 1 OR has anchor tokens
             const filteredTitleData = scoredTitles
-                .filter(t => t.score >= 2 || t.hasAnchor)
+                .filter(t => t.score >= 1 || t.hasAnchor)
                 .map(({title, position}) => ({ title, position }));
 
             console.log(`🔍 Found ${titleData.length} titles (pre-filter), ${filteredTitleData.length} after token filter; ${priceData.length} prices, ${itemIdData.length} itemIds`);
             
             // Debug specific searches
-            if (searchTerm === "2024 Topps Chrome" || titleData.length === 0) {
+            if (searchTerm.includes("Jesus Made") || titleData.length === 0) {
                 console.log(`🔍 PARSING DEBUG for "${searchTerm}":`);
                 console.log(`   📄 HTML length: ${html.length} characters`);
                 console.log(`   🔤 Title patterns tested: ${workingTitlePatterns.length}`);
                 console.log(`   📝 Titles found: ${titleData.length}`);
+                console.log(`   📝 Filtered titles: ${filteredTitleData.length}`);
                 console.log(`   💰 Prices found: ${priceData.length}`);
                 console.log(`   🆔 ItemIds found: ${itemIdData.length}`);
+                
+                if (filteredTitleData.length > 0) {
+                    console.log(`🔍 Sample filtered titles:`);
+                    filteredTitleData.slice(0, 5).forEach((t, i) => {
+                        console.log(`   ${i+1}. "${t.title}"`);
+                    });
+                }
                 
                 if (titleData.length === 0) {
                     console.log(`❌ NO TITLES FOUND - This explains why search fails!`);
@@ -369,8 +392,8 @@ class EbayScraperService {
             }
 
             // Correlate by proximity within 2000 characters
-            for (let i = 0; i < Math.min(maxResultsNum, titleData.length); i++) {
-                const titleInfo = titleData[i];
+            for (let i = 0; i < Math.min(maxResultsNum, filteredTitleData.length); i++) {
+                const titleInfo = filteredTitleData[i];
                 
                 // Find closest price
                 let closestPrice = null;
