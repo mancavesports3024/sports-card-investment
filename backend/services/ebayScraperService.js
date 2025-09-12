@@ -161,13 +161,6 @@ class EbayScraperService {
                 decompress: true
             };
             
-            // Add proxy if configured
-            const proxyAgent = this.getNextProxy();
-            if (proxyAgent) {
-                requestConfig.httpsAgent = proxyAgent;
-                console.log('🌐 Using ProxyMesh server...');
-            }
-            
             // Retry logic for 402 errors
             let response;
             let attempt = 1;
@@ -185,7 +178,16 @@ class EbayScraperService {
                         await new Promise(resolve => setTimeout(resolve, delay));
                     }
                     
-                    response = await this.httpClient.get(searchUrl, requestConfig);
+                    // Use appropriate client based on proxy configuration
+                    const proxyAgent = this.getNextProxy();
+                    if (proxyAgent) {
+                        // Use regular axios with proxy instead of cookie jar client
+                        console.log('🌐 Using ProxyMesh server with regular axios...');
+                        response = await axios.get(searchUrl, { ...requestConfig, httpsAgent: proxyAgent });
+                    } else {
+                        // Use cookie jar client when no proxy
+                        response = await this.httpClient.get(searchUrl, requestConfig);
+                    }
                     const html = response?.data || '';
                     const looksLikeVerification =
                         typeof html === 'string' && html.length < 15000;
@@ -277,7 +279,7 @@ class EbayScraperService {
                 success: false,
                 results: [],
                 error: error.message,
-                searchUrl
+                searchUrl: searchUrl || 'unknown'
             };
         }
     }
