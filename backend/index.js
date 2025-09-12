@@ -7319,15 +7319,6 @@ app.get('/api/test-ebay-scraper-debug', async (req, res) => {
         const EbayScraperService = require('./services/ebayScraperService.js');
         const ebayService = new EbayScraperService();
 
-        // Initialize browser first
-        const browserInitialized = await ebayService.initializeBrowser();
-        if (!browserInitialized) {
-            return res.status(500).json({
-                success: false,
-                error: 'Failed to initialize browser'
-            });
-        }
-
         // Test with a simple search
         const testSearch = 'Jackson Holliday 2023 Bowman Chrome Draft';
         console.log(`🔍 Testing search: ${testSearch}`);
@@ -7335,28 +7326,11 @@ app.get('/api/test-ebay-scraper-debug', async (req, res) => {
         const result = await ebayService.searchSoldCards(testSearch, 'baseball', 10);
 
         // Get additional debug info
-        let debugInfo = {};
-        try {
-            if (ebayService.page) {
-                debugInfo.pageTitle = await ebayService.page.title();
-                debugInfo.pageUrl = ebayService.page.url();
-                debugInfo.pageContentLength = (await ebayService.page.content()).length;
-                
-                // Try to get some basic page info
-                debugInfo.bodyTextLength = await ebayService.page.evaluate(() => {
-                    return document.body ? document.body.innerText.length : 0;
-                });
-                
-                debugInfo.hasSoldItems = await ebayService.page.evaluate(() => {
-                    return document.body ? document.body.innerText.includes('sold') : false;
-                });
-            }
-        } catch (debugError) {
-            debugInfo.debugError = debugError.message;
-        }
-
-        // Close browser
-        await ebayService.closeBrowser();
+        let debugInfo = {
+            searchUrl: 'Built via buildSearchUrl method',
+            resultCount: result?.results?.length || 0,
+            hasResults: !!(result?.results && result.results.length > 0)
+        };
 
         res.json({
             success: true,
