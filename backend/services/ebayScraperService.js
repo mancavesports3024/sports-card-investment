@@ -177,10 +177,7 @@ class EbayScraperService {
                     response = await axios.get(searchUrl, requestConfig);
                     const html = response?.data || '';
                     const looksLikeVerification =
-                        typeof html === 'string' && (
-                            html.length < 15000 ||
-                            /(verify|verification|are you a human|captcha|access denied|bot detection)/i.test(html)
-                        );
+                        typeof html === 'string' && html.length < 15000;
                     if (looksLikeVerification && attempt < maxAttempts) {
                         console.log(`🛑 Verification page detected (length=${html.length}) on attempt ${attempt}. Retrying with new session...`);
                         
