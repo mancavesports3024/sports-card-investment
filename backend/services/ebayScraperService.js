@@ -41,7 +41,8 @@ class EbayScraperService {
                 'User-Agent': this.getRandomUserAgent(),
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.9',
-                'Accept-Encoding': 'gzip, deflate, br',
+                // Avoid brotli over some proxies to prevent "incorrect header check"
+                'Accept-Encoding': 'gzip, deflate',
                 'DNT': '1',
                 'Connection': 'keep-alive',
                 'Upgrade-Insecure-Requests': '1',
@@ -52,7 +53,7 @@ class EbayScraperService {
             };
             
             const proxyAgent = this.getNextProxy();
-            const config = { headers: warmUpHeaders, timeout: 30000 };
+            const config = { headers: warmUpHeaders, timeout: 30000, responseType: 'text', decompress: true };
             if (proxyAgent) config.httpsAgent = proxyAgent;
             
             await axios.get(this.baseUrl, config);
@@ -133,7 +134,8 @@ class EbayScraperService {
                     'User-Agent': this.getRandomUserAgent(),
                     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
                     'Accept-Language': 'en-US,en;q=0.9',
-                    'Accept-Encoding': 'gzip, deflate, br',
+                    // Avoid brotli over some proxies to prevent "incorrect header check"
+                    'Accept-Encoding': 'gzip, deflate',
                     'DNT': '1',
                     'Connection': 'keep-alive',
                     'Upgrade-Insecure-Requests': '1',
@@ -147,7 +149,9 @@ class EbayScraperService {
                     'sec-ch-ua-mobile': '?0',
                     'sec-ch-ua-platform': '"Windows"'
                 },
-                timeout: 30000
+                timeout: 30000,
+                responseType: 'text',
+                decompress: true
             };
             
             // Add proxy if configured
