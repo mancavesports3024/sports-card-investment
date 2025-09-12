@@ -63,12 +63,19 @@ class EbayScraperService {
             
             const proxyAgent = this.getNextProxy();
             const config = { headers: warmUpHeaders, timeout: 30000, responseType: 'text', decompress: true };
-            if (proxyAgent) config.httpsAgent = proxyAgent;
             
             // Chain a few lightweight requests to establish cookies
-            await this.httpClient.get(this.baseUrl, config);
-            await this.httpClient.get(`${this.baseUrl}/favicon.ico`, { ...config, headers: { ...warmUpHeaders, Accept: '*/*' } });
-            await this.httpClient.get(`${this.baseUrl}/robots.txt`, { ...config, headers: { ...warmUpHeaders, Accept: 'text/plain,*/*;q=0.8' } });
+            if (proxyAgent) {
+                // Use regular axios with proxy for warm-up
+                await axios.get(this.baseUrl, { ...config, httpsAgent: proxyAgent });
+                await axios.get(`${this.baseUrl}/favicon.ico`, { ...config, httpsAgent: proxyAgent, headers: { ...warmUpHeaders, Accept: '*/*' } });
+                await axios.get(`${this.baseUrl}/robots.txt`, { ...config, httpsAgent: proxyAgent, headers: { ...warmUpHeaders, Accept: 'text/plain,*/*;q=0.8' } });
+            } else {
+                // Use cookie jar client when no proxy
+                await this.httpClient.get(this.baseUrl, config);
+                await this.httpClient.get(`${this.baseUrl}/favicon.ico`, { ...config, headers: { ...warmUpHeaders, Accept: '*/*' } });
+                await this.httpClient.get(`${this.baseUrl}/robots.txt`, { ...config, headers: { ...warmUpHeaders, Accept: 'text/plain,*/*;q=0.8' } });
+            }
             this.warmedUp = true;
             console.log('✅ Session warmed up successfully');
             
