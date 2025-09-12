@@ -341,6 +341,15 @@ class EbayScraperService {
                 });
             });
             
+            // Extract explicit graded labels: "Graded - PSA 9" / "Graded - PSA 10"
+            const gradeLabelData = [];
+            const gradeMatches = [...html.matchAll(/Graded\s*-\s*PSA\s*(10|9|8)/gi)];
+            gradeMatches.forEach(match => {
+                const num = match[1];
+                const grade = num === '10' ? 'PSA 10' : num === '9' ? 'PSA 9' : 'PSA 8';
+                gradeLabelData.push({ grade, position: match.index });
+            });
+            
             // Post-filter titles using query tokens (player/brand/code/print-run)
             const normalize = (s) => (s || '').toLowerCase().replace(/[^a-z0-9\/#\-\s]/g, ' ').replace(/\s+/g, ' ').trim();
             const qn = normalize(searchTerm);
@@ -439,6 +448,17 @@ class EbayScraperService {
                     }
                 });
                 
+                // Find closest grade label
+                let detectedGrade = null;
+                let closestGradeDistance = Infinity;
+                gradeLabelData.forEach(g => {
+                    const distance = Math.abs(titleInfo.position - g.position);
+                    if (distance < 2000 && distance < closestGradeDistance) {
+                        detectedGrade = g.grade;
+                        closestGradeDistance = distance;
+                    }
+                });
+                
                 if (closestPrice) {
                     // Special logging for target item
                     if (closestItemId && closestItemId.itemId === '365770463030') {
@@ -451,7 +471,7 @@ class EbayScraperService {
                         numericPrice: closestPrice.numericPrice,
                         itemUrl: closestItemId ? `https://www.ebay.com/itm/${closestItemId.itemId}` : '',
                         sport: this.detectSportFromTitle(titleInfo.title),
-                        grade: expectedGrade || this.detectGradeFromTitle(titleInfo.title),
+                        grade: expectedGrade || detectedGrade || this.detectGradeFromTitle(titleInfo.title),
                         soldDate: 'Recently sold',
                         ebayItemId: closestItemId ? closestItemId.itemId : null
                     });
