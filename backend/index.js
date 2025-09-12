@@ -358,6 +358,134 @@ async function initializeServer() {
     }
   });
 
+  // New endpoint for proper card grouping and averaging workflow
+  app.post('/api/brand-analysis', async (req, res) => {
+    try {
+      const { brand, season } = req.body || {};
+      if (!brand || typeof brand !== 'string' || brand.trim().length < 2) {
+        return res.status(400).json({ success: false, error: 'brand is required' });
+      }
+
+      const EbayScraperService = require('./services/ebayScraperService.js');
+      const service = new EbayScraperService();
+      const seasonParam = season && typeof season === 'string' ? season : '2021|2022|2022-23|2023|2023-24|2024|2024-25|2025';
+      
+      console.log(`🔍 Starting brand analysis for: ${brand} with season: ${seasonParam}`);
+      
+      // Step 1: Search Phase - Get all sold listings for the brand
+      const searchResult = await service.searchSoldCards(brand.trim(), null, 100, null, null, null, null, seasonParam);
+      
+      if (!searchResult.success || !searchResult.results || searchResult.results.length === 0) {
+        return res.json({
+          success: false,
+          error: 'No results found',
+          searchUrl: searchResult.searchUrl,
+          debug: searchResult
+        });
+      }
+
+      console.log(`📊 Found ${searchResult.results.length} total listings`);
+
+      // Step 2: Grouping Phase - Group by similar cards
+      const cardGroups = {};
+      
+      searchResult.results.forEach(item => {
+        const title = (item.title || '').toLowerCase();
+        
+        // Extract key components for grouping
+        const grade = extractGrade(title);
+        const price = parseFloat(item.price) || 0;
+        
+        // Create a grouping key based on title similarity
+        // This is a simplified approach - in production you'd want more sophisticated matching
+        const groupKey = createGroupKey(title);
+        
+        if (!cardGroups[groupKey]) {
+          cardGroups[groupKey] = {
+            title: item.title,
+            psa10: [],
+            psa9: [],
+            raw: []
+          };
+        }
+        
+        // Classify by grade
+        if (grade === 'psa10') {
+          cardGroups[groupKey].psa10.push(price);
+        } else if (grade === 'psa9') {
+          cardGroups[groupKey].psa9.push(price);
+        } else {
+          cardGroups[groupKey].raw.push(price);
+        }
+      });
+
+      // Step 3: Averaging Phase - Calculate averages for each group
+      const analysis = Object.keys(cardGroups).map(groupKey => {
+        const group = cardGroups[groupKey];
+        
+        const psa10Avg = group.psa10.length > 0 ? 
+          Math.round((group.psa10.reduce((a, b) => a + b, 0) / group.psa10.length) * 100) / 100 : null;
+        const psa9Avg = group.psa9.length > 0 ? 
+          Math.round((group.psa9.reduce((a, b) => a + b, 0) / group.psa9.length) * 100) / 100 : null;
+        const rawAvg = group.raw.length > 0 ? 
+          Math.round((group.raw.reduce((a, b) => a + b, 0) / group.raw.length) * 100) / 100 : null;
+
+        return {
+          cardTitle: group.title,
+          groupKey: groupKey,
+          counts: {
+            psa10: group.psa10.length,
+            psa9: group.psa9.length,
+            raw: group.raw.length
+          },
+          averages: {
+            psa10: psa10Avg,
+            psa9: psa9Avg,
+            raw: rawAvg
+          },
+          multiplier: rawAvg && psa10Avg ? Math.round((psa10Avg / rawAvg) * 100) / 100 : null
+        };
+      }).filter(card => card.counts.psa10 + card.counts.psa9 + card.counts.raw > 0);
+
+      return res.json({
+        success: true,
+        brand: brand.trim(),
+        season: seasonParam,
+        searchUrl: searchResult.searchUrl,
+        totalListings: searchResult.results.length,
+        uniqueCards: analysis.length,
+        analysis: analysis
+      });
+
+    } catch (error) {
+      console.error('Error in /api/brand-analysis:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Helper methods for card grouping
+  function extractGrade(title) {
+    const t = title.toLowerCase();
+    if (t.includes('psa 10') || t.includes('psa-10')) return 'psa10';
+    if (t.includes('psa 9') || t.includes('psa-9')) return 'psa9';
+    return 'raw';
+  }
+
+  function createGroupKey(title) {
+    // Simplified grouping - in production you'd want more sophisticated matching
+    // This creates a key based on common card elements
+    const t = title.toLowerCase();
+    
+    // Remove grade information for grouping
+    const cleanTitle = t.replace(/\b(psa|bgs|sgc|cgc)\s*\d+\b/g, '')
+                       .replace(/\b(graded|slab|auto|autograph)\b/g, '')
+                       .replace(/\s+/g, ' ')
+                       .trim();
+    
+    // Use first 50 characters as grouping key (simplified approach)
+    return cleanTitle.substring(0, 50);
+  }
+
   app.get('/api/show-sample-summary-titles', async (req, res) => {
     try {
       const SummaryTitleGenerator = require('./summary-title-generator.js');
