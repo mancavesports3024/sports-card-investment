@@ -369,8 +369,15 @@ class EbayScraperService {
                 
                 if (filteredTitleData.length > 0) {
                     console.log(`🔍 Sample filtered titles:`);
-                    filteredTitleData.slice(0, 5).forEach((t, i) => {
+                    filteredTitleData.slice(0, 10).forEach((t, i) => {
                         console.log(`   ${i+1}. "${t.title}"`);
+                    });
+                }
+                
+                if (priceData.length > 0) {
+                    console.log(`🔍 Sample prices:`);
+                    priceData.slice(0, 10).forEach((p, i) => {
+                        console.log(`   ${i+1}. ${p.price} (numeric: ${p.numericPrice})`);
                     });
                 }
                 
@@ -386,6 +393,17 @@ class EbayScraperService {
                         }
                     }
                 }
+                
+                // Look for specific patterns that should match
+                console.log(`🔍 Looking for specific patterns in HTML...`);
+                const jesusMatches = [...html.matchAll(/jesus made/gi)];
+                console.log(`   "Jesus Made" mentions: ${jesusMatches.length}`);
+                
+                const psaMatches = [...html.matchAll(/psa\s*9/gi)];
+                console.log(`   "PSA 9" mentions: ${psaMatches.length}`);
+                
+                const bowmanMatches = [...html.matchAll(/bowman/gi)];
+                console.log(`   "Bowman" mentions: ${bowmanMatches.length}`);
             }
 
             // Correlate by proximity within 2000 characters
