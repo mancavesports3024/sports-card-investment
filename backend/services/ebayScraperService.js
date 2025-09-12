@@ -194,7 +194,7 @@ class EbayScraperService {
                         continue;
                     }
                     // Success path
-                    break;
+                  break;
                     
                 } catch (error) {
                     const status = error.response?.status;
@@ -453,23 +453,17 @@ class EbayScraperService {
             
             // Apply filtering
             let filteredResults = this.filterCardsByGrade(finalResults, expectedGrade);
-            if (expectedGrade) {
-                console.log(`🔍 Grade filtering (${expectedGrade}): ${finalResults.length} → ${filteredResults.length} results`);
-            }
+            console.log(`🔍 Grade filtering (${expectedGrade || 'none'}): ${finalResults.length} → ${filteredResults.length} results`);
             
             // Apply autograph status filtering
             const beforeAutoFilter = filteredResults.length;
             filteredResults = this.filterByAutographStatus(filteredResults, originalIsAutograph);
-            if (beforeAutoFilter !== filteredResults.length) {
-                console.log(`🔍 Auto status filtering (${originalIsAutograph ? 'keep autos' : 'exclude autos'}): ${beforeAutoFilter} → ${filteredResults.length} results`);
-            }
+            console.log(`🔍 Auto status filtering (${originalIsAutograph}): ${beforeAutoFilter} → ${filteredResults.length} results`);
             
             // Apply print run filtering
             const beforePrintRunFilter = filteredResults.length;
             filteredResults = this.filterByPrintRun(filteredResults, targetPrintRun);
-            if (targetPrintRun && beforePrintRunFilter !== filteredResults.length) {
-                console.log(`🔍 Print run filtering (${targetPrintRun}): ${beforePrintRunFilter} → ${filteredResults.length} results`);
-            }
+            console.log(`🔍 Print run filtering (${targetPrintRun || 'none'}): ${beforePrintRunFilter} → ${filteredResults.length} results`);
             
             return filteredResults;
         } catch (error) {
