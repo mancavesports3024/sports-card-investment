@@ -504,8 +504,10 @@ class EbayScraperService {
             const matches = title.match(/\/(\d+)/);
             
             if (!targetPrintRun) {
-                return !matches;
+                // If no target print run specified, keep all cards
+                return true;
             } else {
+                // If target print run specified, keep cards that match
                 return matches && matches[1] === targetPrintRun.replace('/', '');
             }
         });
