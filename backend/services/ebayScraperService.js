@@ -1,5 +1,7 @@
 const axios = require('axios');
 const { HttpsProxyAgent } = require('https-proxy-agent');
+const { CookieJar } = require('tough-cookie');
+const { wrapper } = require('axios-cookiejar-support');
 
 class EbayScraperService {
     constructor() {
@@ -25,6 +27,16 @@ class EbayScraperService {
         if (this.useProxy) {
             console.log('🌐 ProxyMesh enabled with', this.proxyServers.length, 'servers');
         }
+
+        // Persistent cookie jar and axios client
+        this.cookieJar = new CookieJar();
+        this.httpClient = wrapper(axios.create({
+            jar: this.cookieJar,
+            withCredentials: true,
+            timeout: 30000,
+            responseType: 'text',
+            decompress: true
+        }));
     }
 
     getRandomUserAgent() {
@@ -41,14 +53,11 @@ class EbayScraperService {
                 'User-Agent': this.getRandomUserAgent(),
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.9',
-                // Avoid brotli over some proxies to prevent "incorrect header check"
+                // Let axios negotiate; some proxies choke on br; we omit it explicitly
                 'Accept-Encoding': 'gzip, deflate',
                 'DNT': '1',
                 'Connection': 'keep-alive',
                 'Upgrade-Insecure-Requests': '1',
-                'Sec-Fetch-Dest': 'document',
-                'Sec-Fetch-Mode': 'navigate',
-                'Sec-Fetch-Site': 'none',
                 'Cache-Control': 'max-age=0'
             };
             
@@ -56,7 +65,10 @@ class EbayScraperService {
             const config = { headers: warmUpHeaders, timeout: 30000, responseType: 'text', decompress: true };
             if (proxyAgent) config.httpsAgent = proxyAgent;
             
-            await axios.get(this.baseUrl, config);
+            // Chain a few lightweight requests to establish cookies
+            await this.httpClient.get(this.baseUrl, config);
+            await this.httpClient.get(`${this.baseUrl}/favicon.ico`, { ...config, headers: { ...warmUpHeaders, Accept: '*/*' } });
+            await this.httpClient.get(`${this.baseUrl}/robots.txt`, { ...config, headers: { ...warmUpHeaders, Accept: 'text/plain,*/*;q=0.8' } });
             this.warmedUp = true;
             console.log('✅ Session warmed up successfully');
             
@@ -93,7 +105,9 @@ class EbayScraperService {
         }
         
         // Standard sports cards (non-Pokemon) — no grade filters; centralized price range
-        let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1&rt=nc&_dcat=261328&_udlo=11&_udhi=3000`;
+        // Add cache buster to reduce bot-detection correlation
+        const rnd = Math.floor(Math.random() * 1e9);
+        let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1&rt=nc&_dcat=261328&_udlo=11&_udhi=3000&_rnd=${rnd}`;
         if (season) {
             searchUrl += `&Season=${encodeURIComponent(season)}`;
         }
@@ -134,20 +148,13 @@ class EbayScraperService {
                     'User-Agent': this.getRandomUserAgent(),
                     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
                     'Accept-Language': 'en-US,en;q=0.9',
-                    // Avoid brotli over some proxies to prevent "incorrect header check"
                     'Accept-Encoding': 'gzip, deflate',
                     'DNT': '1',
                     'Connection': 'keep-alive',
                     'Upgrade-Insecure-Requests': '1',
-                    'Sec-Fetch-Dest': 'document',
-                    'Sec-Fetch-Mode': 'navigate',
-                    'Sec-Fetch-Site': 'same-origin',
-                    'Sec-Fetch-User': '?1',
                     'Cache-Control': 'max-age=0',
                     'Referer': 'https://www.ebay.com/',
-                    'sec-ch-ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-                    'sec-ch-ua-mobile': '?0',
-                    'sec-ch-ua-platform': '"Windows"'
+                    // Trim client hints to reduce fingerprint surface
                 },
                 timeout: 30000,
                 responseType: 'text',
@@ -178,7 +185,7 @@ class EbayScraperService {
                         await new Promise(resolve => setTimeout(resolve, delay));
                     }
                     
-                    response = await axios.get(searchUrl, requestConfig);
+                    response = await this.httpClient.get(searchUrl, requestConfig);
                     const html = response?.data || '';
                     const looksLikeVerification =
                         typeof html === 'string' && html.length < 15000;
