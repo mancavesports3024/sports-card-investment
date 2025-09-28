@@ -1,5 +1,4 @@
 const axios = require('axios');
-const { HttpsProxyAgent } = require('https-proxy-agent');
 const { CookieJar } = require('tough-cookie');
 const { wrapper } = require('axios-cookiejar-support');
 const puppeteer = require('puppeteer-extra');
@@ -20,17 +19,6 @@ class EbayScraperService {
         this.currentUserAgent = 0;
         
         this.warmedUp = false;
-        
-        // ProxyMesh configuration - only use authorized server for basic plan
-        this.proxyServers = [
-            'us-ca.proxymesh.com:31280'  // Only server authorized for basic plan
-        ];
-        this.currentProxyIndex = 0;
-        this.useProxy = process.env.PROXYMESH_USERNAME && process.env.PROXYMESH_PASSWORD;
-        
-        if (this.useProxy) {
-            console.log('🌐 ProxyMesh enabled with', this.proxyServers.length, 'servers');
-        }
 
         // Persistent cookie jar and axios client
         this.cookieJar = new CookieJar();
@@ -167,7 +155,6 @@ class EbayScraperService {
                 'User-Agent': this.getRandomUserAgent(),
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.9',
-                // Let axios negotiate; some proxies choke on br; we omit it explicitly
                 'Accept-Encoding': 'gzip, deflate',
                 'DNT': '1',
                 'Connection': 'keep-alive',
@@ -175,21 +162,13 @@ class EbayScraperService {
                 'Cache-Control': 'max-age=0'
             };
             
-            const proxyAgent = this.getNextProxy();
             const config = { headers: warmUpHeaders, timeout: 30000, responseType: 'text', decompress: true };
             
             // Chain a few lightweight requests to establish cookies
-            if (proxyAgent) {
-                // Use regular axios with proxy for warm-up
-                await axios.get(this.baseUrl, { ...config, httpsAgent: proxyAgent });
-                await axios.get(`${this.baseUrl}/favicon.ico`, { ...config, httpsAgent: proxyAgent, headers: { ...warmUpHeaders, Accept: '*/*' } });
-                await axios.get(`${this.baseUrl}/robots.txt`, { ...config, httpsAgent: proxyAgent, headers: { ...warmUpHeaders, Accept: 'text/plain,*/*;q=0.8' } });
-            } else {
-                // Use cookie jar client when no proxy
-                await this.httpClient.get(this.baseUrl, config);
-                await this.httpClient.get(`${this.baseUrl}/favicon.ico`, { ...config, headers: { ...warmUpHeaders, Accept: '*/*' } });
-                await this.httpClient.get(`${this.baseUrl}/robots.txt`, { ...config, headers: { ...warmUpHeaders, Accept: 'text/plain,*/*;q=0.8' } });
-            }
+            await this.httpClient.get(this.baseUrl, config);
+            await this.httpClient.get(`${this.baseUrl}/favicon.ico`, { ...config, headers: { ...warmUpHeaders, Accept: '*/*' } });
+            await this.httpClient.get(`${this.baseUrl}/robots.txt`, { ...config, headers: { ...warmUpHeaders, Accept: 'text/plain,*/*;q=0.8' } });
+            
             this.warmedUp = true;
             console.log('✅ Session warmed up successfully');
             
@@ -201,18 +180,6 @@ class EbayScraperService {
         }
     }
     
-    getNextProxy() {
-        if (!this.useProxy) return null;
-        
-        const proxy = this.proxyServers[this.currentProxyIndex];
-        this.currentProxyIndex = (this.currentProxyIndex + 1) % this.proxyServers.length;
-        
-        const username = process.env.PROXYMESH_USERNAME;
-        const password = process.env.PROXYMESH_PASSWORD;
-        const proxyUrl = `http://${username}:${password}@${proxy}`;
-        
-        return new HttpsProxyAgent(proxyUrl);
-    }
 
     buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = null, cardType = null, season = null) {
         // Clean and encode the search term (preserve negative keywords properly)
@@ -307,16 +274,8 @@ class EbayScraperService {
                         await new Promise(resolve => setTimeout(resolve, delay));
                     }
                     
-                    // Use appropriate client based on proxy configuration
-                    const proxyAgent = this.getNextProxy();
-                    if (proxyAgent) {
-                        // Use regular axios with proxy instead of cookie jar client
-                        console.log('🌐 Using ProxyMesh server with regular axios...');
-                        response = await axios.get(searchUrl, { ...requestConfig, httpsAgent: proxyAgent });
-                    } else {
-                        // Use cookie jar client when no proxy
-                        response = await this.httpClient.get(searchUrl, requestConfig);
-                    }
+                    // Use cookie jar client for all requests
+                    response = await this.httpClient.get(searchUrl, requestConfig);
                     const html = response?.data || '';
                     const looksLikeVerification =
                         typeof html === 'string' && html.length < 15000;
@@ -327,16 +286,11 @@ class EbayScraperService {
                         this.warmedUp = false;
                         await this.warmUpSession();
                         
-                        const newProxyAgent = this.getNextProxy();
-                        if (newProxyAgent) {
-                            requestConfig.httpsAgent = newProxyAgent;
-                            console.log('🔄 Switching ProxyMesh server for retry...');
-                        }
                         attempt++;
                         continue;
                     }
                     // Success path
-                  break;
+                    break;
                     
                 } catch (error) {
                     const status = error.response?.status;
@@ -346,13 +300,6 @@ class EbayScraperService {
                         // Reset session and warm up new session
                         this.warmedUp = false;
                         await this.warmUpSession();
-                        
-                        // Get a different proxy for retry
-                        const newProxyAgent = this.getNextProxy();
-                        if (newProxyAgent) {
-                            requestConfig.httpsAgent = newProxyAgent;
-                            console.log('🔄 Using different ProxyMesh server for retry...');
-                        }
                         
                         attempt++;
                     } else {
