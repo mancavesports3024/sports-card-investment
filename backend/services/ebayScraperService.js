@@ -465,6 +465,9 @@ class EbayScraperService {
             
             console.log(`🔍 Parsing HTML with Cheerio for better reliability...`);
             
+            // Load HTML into Cheerio first
+            const $ = cheerio.load(html);
+            
             // Debug: Check what selectors are available
             console.log(`🔍 Checking for common eBay selectors:`);
             console.log(`  .s-item: ${$('.s-item').length} items`);
@@ -472,9 +475,6 @@ class EbayScraperService {
             console.log(`  .s-item:not(.s-item--ad): ${$('.s-item:not(.s-item--ad)').length} non-ad items`);
             console.log(`  .srp-results: ${$('.srp-results').length} results containers`);
             console.log(`  [data-view]: ${$('[data-view]').length} data-view elements`);
-            
-            // Load HTML into Cheerio
-            const $ = cheerio.load(html);
             
             // Extract card items using eBay's standard selectors
             const cardItems = [];
