@@ -104,49 +104,67 @@ class EbayScraperService {
                 ]
             };
 
-            // Allow overriding executable path via env (e.g., CHROMIUM_PATH or PUPPETEER_EXECUTABLE_PATH)
-            const chromiumPath = process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROMIUM_PATH || process.env.GOOGLE_CHROME_BIN;
-            if (chromiumPath) {
-                // Verify the path exists; if not, try common alternatives
-                const candidates = [chromiumPath, '/usr/bin/chromium-browser', '/usr/bin/google-chrome', '/usr/bin/chromium'];
-                const found = candidates.find(p => {
-                    try { return p && fs.existsSync(p); } catch { return false; }
-                });
-                if (found) {
-                    launchOptions.executablePath = found;
-                    console.log(`🧭 Using system Chromium at: ${found}`);
-                } else if (this.serverlessChromium) {
-                    launchOptions.args = this.serverlessChromium.args || launchOptions.args;
-                    launchOptions.headless = (typeof this.serverlessChromium.headless !== 'undefined') ? this.serverlessChromium.headless : launchOptions.headless;
-                    launchOptions.executablePath = await this.serverlessChromium.executablePath();
-                    console.log(`🧭 Env path not found; using @sparticuz/chromium at: ${launchOptions.executablePath}`);
-                } else {
-                    console.log('🧭 Env Chromium path not found and @sparticuz/chromium unavailable; proceeding without executablePath');
+            // First: Probe system for Chromium using 'which' command (most reliable)
+            console.log('🔍 Probing system for Chromium...');
+            const whichNames = ['chromium-browser', 'chromium', 'google-chrome', 'google-chrome-stable'];
+            let systemChromium = null;
+            
+            for (const name of whichNames) {
+                try {
+                    const pathOut = execFileSync('which', [name], { encoding: 'utf8' }).trim();
+                    if (pathOut && fs.existsSync(pathOut)) {
+                        systemChromium = pathOut;
+                        console.log(`✅ Found system Chromium: ${name} -> ${pathOut}`);
+                        break;
+                    }
+                } catch (_) {
+                    console.log(`❌ ${name}: not found`);
                 }
-            } else if (this.serverlessChromium) {
-                // Fallback to serverless Chromium if present
-                launchOptions.args = this.serverlessChromium.args || launchOptions.args;
-                launchOptions.headless = (typeof this.serverlessChromium.headless !== 'undefined') ? this.serverlessChromium.headless : launchOptions.headless;
-                launchOptions.executablePath = await this.serverlessChromium.executablePath();
-                console.log(`🧭 Using @sparticuz/chromium at: ${launchOptions.executablePath}`);
             }
-
-            // Final probe: try `which` to locate chromium variants on Railway
-            if (!launchOptions.executablePath) {
-                const whichNames = ['chromium-browser', 'chromium', 'google-chrome', 'google-chrome-stable'];
-                for (const name of whichNames) {
-                    try {
-                        const pathOut = execFileSync('which', [name], { encoding: 'utf8' }).trim();
-                        if (pathOut && fs.existsSync(pathOut)) {
-                            launchOptions.executablePath = pathOut;
-                            console.log(`🧭 Located Chromium via which: ${name} -> ${pathOut}`);
-                            break;
-                        }
-                    } catch (_) {
-                        // ignore
+            
+            // Use system Chromium if found
+            if (systemChromium) {
+                launchOptions.executablePath = systemChromium;
+                console.log(`🧭 Using system Chromium: ${systemChromium}`);
+                this.browserEnabled = true;
+            } else {
+                // Fallback to env variables
+                const chromiumPath = process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROMIUM_PATH || process.env.GOOGLE_CHROME_BIN;
+                if (chromiumPath) {
+                    console.log(`🔍 Checking env path: ${chromiumPath}`);
+                    if (fs.existsSync(chromiumPath)) {
+                        launchOptions.executablePath = chromiumPath;
+                        console.log(`🧭 Using env Chromium: ${chromiumPath}`);
+                        this.browserEnabled = true;
+                    } else {
+                        console.log(`❌ Env path does not exist: ${chromiumPath}`);
                     }
                 }
+                
+                // Final fallback to @sparticuz/chromium
+                if (!launchOptions.executablePath && this.serverlessChromium) {
+                    try {
+                        launchOptions.args = this.serverlessChromium.args || launchOptions.args;
+                        launchOptions.headless = (typeof this.serverlessChromium.headless !== 'undefined') ? this.serverlessChromium.headless : launchOptions.headless;
+                        const sparticuzPath = await this.serverlessChromium.executablePath();
+                        if (fs.existsSync(sparticuzPath)) {
+                            launchOptions.executablePath = sparticuzPath;
+                            console.log(`🧭 Using @sparticuz/chromium: ${sparticuzPath}`);
+                            this.browserEnabled = true;
+                        } else {
+                            console.log(`❌ @sparticuz/chromium path does not exist: ${sparticuzPath}`);
+                        }
+                    } catch (error) {
+                        console.log(`❌ @sparticuz/chromium failed: ${error.message}`);
+                    }
+                }
+                
+                if (!launchOptions.executablePath) {
+                    console.log('❌ No working Chromium found - browser fallback will be disabled');
+                    this.browserEnabled = false;
+                }
             }
+
 
             this.browser = await puppeteer.launch(launchOptions);
             
