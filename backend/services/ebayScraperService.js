@@ -90,6 +90,7 @@ class EbayScraperService {
             console.log('🚀 Initializing headless browser...');
             // Prefer a system-provided Chromium when available (Railway/Heroku)
             const fs = require('fs');
+            const { execFileSync } = require('child_process');
             const launchOptions = {
                 headless: 'new',
                 args: [
@@ -128,6 +129,23 @@ class EbayScraperService {
                 launchOptions.headless = (typeof this.serverlessChromium.headless !== 'undefined') ? this.serverlessChromium.headless : launchOptions.headless;
                 launchOptions.executablePath = await this.serverlessChromium.executablePath();
                 console.log(`🧭 Using @sparticuz/chromium at: ${launchOptions.executablePath}`);
+            }
+
+            // Final probe: try `which` to locate chromium variants on Railway
+            if (!launchOptions.executablePath) {
+                const whichNames = ['chromium-browser', 'chromium', 'google-chrome', 'google-chrome-stable'];
+                for (const name of whichNames) {
+                    try {
+                        const pathOut = execFileSync('which', [name], { encoding: 'utf8' }).trim();
+                        if (pathOut && fs.existsSync(pathOut)) {
+                            launchOptions.executablePath = pathOut;
+                            console.log(`🧭 Located Chromium via which: ${name} -> ${pathOut}`);
+                            break;
+                        }
+                    } catch (_) {
+                        // ignore
+                    }
+                }
             }
 
             this.browser = await puppeteer.launch(launchOptions);
