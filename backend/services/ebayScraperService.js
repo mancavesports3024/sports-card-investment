@@ -522,11 +522,15 @@ class EbayScraperService {
                                 title = decodeURIComponent(titleMatch[1]).replace(/-/g, ' ');
                             }
                         }
-                        if (title && title.length > 10) break;
+                        if (title && title.length > 5) break;
                     }
                 }
                 
-                if (!title || title.length < 10) return; // Skip items without valid titles
+                if (!title || title.length < 5) {
+                    console.log(`⚠️ Skipping item ${index}: no valid title found (length: ${title?.length || 0})`);
+                    return;
+                }
+                console.log(`✅ Item ${index}: "${title}"`);
                 
                 // Extract price with better accuracy
                 let price = '';
@@ -566,7 +570,11 @@ class EbayScraperService {
                     }
                 }
                 
-                if (!price || numericPrice === 0) return; // Skip items without valid prices
+                if (!price || numericPrice === 0) {
+                    console.log(`⚠️ Skipping item ${index}: no valid price found (price: "${price}", numeric: ${numericPrice})`);
+                    return;
+                }
+                console.log(`💰 Item ${index}: price = ${price}`);
                 
                 // Extract item ID
                 let itemId = '';
