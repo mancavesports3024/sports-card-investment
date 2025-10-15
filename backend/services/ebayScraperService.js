@@ -89,6 +89,7 @@ class EbayScraperService {
         try {
             console.log('🚀 Initializing headless browser...');
             // Prefer a system-provided Chromium when available (Railway/Heroku)
+            const fs = require('fs');
             const launchOptions = {
                 headless: 'new',
                 args: [
@@ -105,8 +106,22 @@ class EbayScraperService {
             // Allow overriding executable path via env (e.g., CHROMIUM_PATH or PUPPETEER_EXECUTABLE_PATH)
             const chromiumPath = process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROMIUM_PATH || process.env.GOOGLE_CHROME_BIN;
             if (chromiumPath) {
-                launchOptions.executablePath = chromiumPath;
-                console.log(`🧭 Using system Chromium at: ${chromiumPath}`);
+                // Verify the path exists; if not, try common alternatives
+                const candidates = [chromiumPath, '/usr/bin/chromium-browser', '/usr/bin/google-chrome', '/usr/bin/chromium'];
+                const found = candidates.find(p => {
+                    try { return p && fs.existsSync(p); } catch { return false; }
+                });
+                if (found) {
+                    launchOptions.executablePath = found;
+                    console.log(`🧭 Using system Chromium at: ${found}`);
+                } else if (this.serverlessChromium) {
+                    launchOptions.args = this.serverlessChromium.args || launchOptions.args;
+                    launchOptions.headless = (typeof this.serverlessChromium.headless !== 'undefined') ? this.serverlessChromium.headless : launchOptions.headless;
+                    launchOptions.executablePath = await this.serverlessChromium.executablePath();
+                    console.log(`🧭 Env path not found; using @sparticuz/chromium at: ${launchOptions.executablePath}`);
+                } else {
+                    console.log('🧭 Env Chromium path not found and @sparticuz/chromium unavailable; proceeding without executablePath');
+                }
             } else if (this.serverlessChromium) {
                 // Fallback to serverless Chromium if present
                 launchOptions.args = this.serverlessChromium.args || launchOptions.args;
