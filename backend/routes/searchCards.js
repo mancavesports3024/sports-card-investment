@@ -987,7 +987,21 @@ router.get('/', async (req, res) => {
     
     let allCards = [];
     if (scraperResult.success && scraperResult.results) {
-      allCards = scraperResult.results;
+      // Transform eBay scraper results to match expected format
+      allCards = scraperResult.results.map(card => ({
+        id: card.ebayItemId || card.itemId,
+        title: card.title,
+        price: {
+          value: card.numericPrice ? card.numericPrice.toString() : (card.price || '0').replace(/[^\d.]/g, ''),
+          currency: 'USD'
+        },
+        condition: card.grade || 'Raw',
+        soldDate: card.soldDate || 'Recently sold',
+        imageUrl: card.imageUrl,
+        itemWebUrl: card.itemUrl,
+        itemId: card.ebayItemId || card.itemId,
+        sport: card.sport || 'unknown'
+      }));
       console.log(`✅ eBay Scraper: ${allCards.length} sold items found`);
     } else {
       console.log(`❌ eBay Scraper failed: ${scraperResult.error || 'Unknown error'}`);
@@ -1172,7 +1186,21 @@ router.post('/', async (req, res) => {
     
     let allCards = [];
     if (scraperResult.success && scraperResult.results) {
-      allCards = scraperResult.results;
+      // Transform eBay scraper results to match expected format
+      allCards = scraperResult.results.map(card => ({
+        id: card.ebayItemId || card.itemId,
+        title: card.title,
+        price: {
+          value: card.numericPrice ? card.numericPrice.toString() : (card.price || '0').replace(/[^\d.]/g, ''),
+          currency: 'USD'
+        },
+        condition: card.grade || 'Raw',
+        soldDate: card.soldDate || 'Recently sold',
+        imageUrl: card.imageUrl,
+        itemWebUrl: card.itemUrl,
+        itemId: card.ebayItemId || card.itemId,
+        sport: card.sport || 'unknown'
+      }));
       console.log(`✅ eBay Scraper: ${allCards.length} sold items found`);
     } else {
       console.log(`❌ eBay Scraper failed: ${scraperResult.error || 'Unknown error'}`);
