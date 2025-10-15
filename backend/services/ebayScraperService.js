@@ -32,6 +32,12 @@ class EbayScraperService {
 
         // Puppeteer setup with stealth plugin
         puppeteer.use(StealthPlugin());
+        // Optional serverless Chromium (if available)
+        try {
+            this.serverlessChromium = require('@sparticuz/chromium');
+        } catch (e) {
+            this.serverlessChromium = null;
+        }
         this.browser = null;
         this.page = null;
 
@@ -82,7 +88,8 @@ class EbayScraperService {
         
         try {
             console.log('🚀 Initializing headless browser...');
-            this.browser = await puppeteer.launch({
+            // Prefer a system-provided Chromium when available (Railway/Heroku)
+            const launchOptions = {
                 headless: 'new',
                 args: [
                     '--no-sandbox',
@@ -93,7 +100,22 @@ class EbayScraperService {
                     '--no-zygote',
                     '--disable-gpu'
                 ]
-            });
+            };
+
+            // Allow overriding executable path via env (e.g., CHROMIUM_PATH or PUPPETEER_EXECUTABLE_PATH)
+            const chromiumPath = process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROMIUM_PATH || process.env.GOOGLE_CHROME_BIN;
+            if (chromiumPath) {
+                launchOptions.executablePath = chromiumPath;
+                console.log(`🧭 Using system Chromium at: ${chromiumPath}`);
+            } else if (this.serverlessChromium) {
+                // Fallback to serverless Chromium if present
+                launchOptions.args = this.serverlessChromium.args || launchOptions.args;
+                launchOptions.headless = (typeof this.serverlessChromium.headless !== 'undefined') ? this.serverlessChromium.headless : launchOptions.headless;
+                launchOptions.executablePath = await this.serverlessChromium.executablePath();
+                console.log(`🧭 Using @sparticuz/chromium at: ${launchOptions.executablePath}`);
+            }
+
+            this.browser = await puppeteer.launch(launchOptions);
             
             this.page = await this.browser.newPage();
             await this.page.setUserAgent(this.getRandomUserAgent());

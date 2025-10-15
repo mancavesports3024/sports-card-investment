@@ -66,34 +66,36 @@ class ImprovedSummaryTitleGenerator {
     buildSummaryTitle(card) {
         const components = [];
 
-        // 1. Year (if available)
-        if (card.year) {
-            components.push(card.year.toString());
-        }
+        // New format: Player Year Brand Card# Variation PrintRun
 
-        // 2. Card Set (if available)
-        if (card.card_set) {
-            components.push(card.card_set);
-        }
-
-        // 3. Card Type (if available and not "Base")
-        if (card.card_type && card.card_type.toLowerCase() !== 'base') {
-            components.push(card.card_type);
-        }
-
-        // 4. Player Name (if available)
+        // 1. Player Name (if available)
         if (card.player_name) {
             components.push(this.capitalizePlayerName(card.player_name));
         }
 
-        // 5. Auto designation (if it's an autograph)
-        if (card.is_autograph) {
-            components.push('auto');
+        // 2. Year (if available)
+        if (card.year) {
+            components.push(card.year.toString());
         }
 
-        // 6. Card Number (if available)
+        // 3. Brand/Card Set (if available)
+        if (card.card_set) {
+            components.push(card.card_set);
+        }
+
+        // 4. Card Number (if available)
         if (card.card_number) {
             components.push(card.card_number);
+        }
+
+        // 5. Variation (Card Type if available and not "Base")
+        if (card.card_type && card.card_type.toLowerCase() !== 'base') {
+            components.push(card.card_type);
+        }
+
+        // 6. Auto designation (if it's an autograph - part of variation)
+        if (card.is_autograph) {
+            components.push('auto');
         }
 
         // 7. Print Run (if available)

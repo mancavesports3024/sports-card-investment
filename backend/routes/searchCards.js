@@ -850,13 +850,16 @@ router.get('/test-ebay-scraping', async (req, res) => {
   try {
     console.log('🧪 Testing eBay scraping service...');
     
-    const testResult = await ebayScraperService.scrapeEbaySales('baseball card', 3);
+    // Updated to use the available method on EbayScraperService
+    const result = await ebayScraperService.searchSoldCards('baseball card', null, 3);
     
     res.json({
       success: true,
       message: 'eBay scraping test completed',
-      results: testResult,
-      count: testResult.length,
+      results: result && result.results ? result.results : [],
+      count: result && result.results ? result.results.length : 0,
+      method: result && result.method ? result.method : 'unknown',
+      searchUrl: result && result.searchUrl ? result.searchUrl : undefined,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
