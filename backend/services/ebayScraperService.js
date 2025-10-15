@@ -504,14 +504,17 @@ class EbayScraperService {
                 // Extract title with multiple fallbacks
                 let title = '';
                 const titleSelectors = [
+                    '.s-item__title span', // Try span inside title first
                     '.s-item__title',
-                    '.s-item__link',
+                    '.s-item__link .s-item__title span',
+                    '.s-item__link .s-item__title',
+                    'h3 span',
                     'h3',
                     '.item-title',
                     '[data-view="mi:1686|iid:1"] .s-item__title',
-                    '.s-item__link .s-item__title',
-                    'a[href*="/itm/"]',
-                    '.s-item__info .s-item__title'
+                    '.s-item__info .s-item__title',
+                    'a[href*="/itm/"] span',
+                    'a[href*="/itm/"]'
                 ];
                 
                 for (const selector of titleSelectors) {
@@ -519,16 +522,31 @@ class EbayScraperService {
                     if (titleEl.length > 0) {
                         title = titleEl.text().trim();
                         console.log(`🔍 Selector "${selector}" found text: "${title}"`);
-                        // Also try getting title from href attribute if text is empty
-                        if (!title && titleEl.is('a')) {
-                            const href = titleEl.attr('href') || '';
-                            const titleMatch = href.match(/\/itm\/([^\/\?]+)/);
-                            if (titleMatch) {
-                                title = decodeURIComponent(titleMatch[1]).replace(/-/g, ' ');
-                                console.log(`🔗 Extracted title from href: "${title}"`);
-                            }
+                        // Skip if it looks like an item ID (all digits)
+                        if (title && /^\d+$/.test(title)) {
+                            console.log(`⚠️ Skipping numeric ID: "${title}"`);
+                            continue;
                         }
                         if (title && title.length > 10) break; // Increased threshold
+                    }
+                }
+                
+                // If still no title, try to get it from the link text or aria-label
+                if (!title || title.length < 10) {
+                    const linkEl = $item.find('a[href*="/itm/"]').first();
+                    if (linkEl.length > 0) {
+                        // Try aria-label first
+                        const ariaLabel = linkEl.attr('aria-label');
+                        if (ariaLabel && ariaLabel.length > 10) {
+                            title = ariaLabel.trim();
+                            console.log(`🏷️ Extracted title from aria-label: "${title}"`);
+                        }
+                        // Try link text
+                        const linkText = linkEl.text().trim();
+                        if (linkText && linkText.length > 10 && !/^\d+$/.test(linkText)) {
+                            title = linkText;
+                            console.log(`🔗 Extracted title from link text: "${title}"`);
+                        }
                     }
                 }
                 
