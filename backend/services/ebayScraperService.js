@@ -619,6 +619,32 @@ class EbayScraperService {
                 }
                 console.log(`💰 Item ${index}: price = ${price}`);
                 
+                // Extract sold date
+                let soldDate = 'Recently sold';
+                const soldDateSelectors = [
+                    '.su-styled-text.positive.default',
+                    '.s-card__caption .su-styled-text',
+                    '.s-item__caption .su-styled-text',
+                    '.s-item__detail--primary .su-styled-text',
+                    '.s-item__time',
+                    '.s-item__sold',
+                    '.s-item__caption span',
+                    '.su-card-container_header span'
+                ];
+                
+                for (const selector of soldDateSelectors) {
+                    const soldDateEl = $item.find(selector).first();
+                    if (soldDateEl.length > 0) {
+                        const dateText = soldDateEl.text().trim();
+                        // Look for date patterns like "Oct 14, 2025", "Sold Oct 14, 2025", etc.
+                        if (dateText && /(sold\s+)?[a-z]{3}\s+\d{1,2},\s+\d{4}/i.test(dateText)) {
+                            soldDate = dateText.replace(/^sold\s+/i, '');
+                            console.log(`📅 Item ${index}: sold date = "${soldDate}"`);
+                            break;
+                        }
+                    }
+                }
+
                 // Extract item ID
                 let itemId = '';
                 const itemIdSelectors = [
@@ -654,7 +680,7 @@ class EbayScraperService {
                     itemUrl: itemId ? `https://www.ebay.com/itm/${itemId}` : '',
                     sport: this.detectSportFromTitle(title),
                     grade: expectedGrade || grade,
-                    soldDate: 'Recently sold',
+                    soldDate: soldDate,
                     ebayItemId: itemId,
                     autoConfidence: autoConfidence
                 });
