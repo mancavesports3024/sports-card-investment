@@ -291,7 +291,7 @@ class EbayScraperService {
         return searchUrl;
     }
 
-    async searchSoldCards(searchTerm, sport = null, maxResults = 100, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null, cardType = null, season = null, forceRefresh = false) {
+    async searchSoldCards(searchTerm, sport = null, maxResults = 200, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null, cardType = null, season = null, forceRefresh = false) {
         try {
             // Check cache first (unless forceRefresh is true)
             const cacheKey = `ebay_search:${searchTerm}:${sport}:${expectedGrade}:${maxResults}:${season}`;
@@ -462,7 +462,7 @@ class EbayScraperService {
     parseHtmlForCards(html, maxResults, searchTerm = null, sport = null, expectedGrade = null, shouldRemoveAutos = false, originalIsAutograph = false, targetPrintRun = null) {
         try {
             const finalResults = [];
-            const maxResultsNum = parseInt(maxResults) || 100;
+            const maxResultsNum = parseInt(maxResults) || 200;
             
             console.log(`🔍 Parsing HTML with Cheerio for better reliability...`);
             
@@ -516,7 +516,10 @@ class EbayScraperService {
             
             // Process each item
             items.each((index, element) => {
-                if (index >= maxResultsNum) return false; // Stop processing
+                if (index >= maxResultsNum) {
+                    console.log(`🛑 Reached processing limit of ${maxResultsNum} items, stopping`);
+                    return false; // Stop processing
+                }
                 
                 const $item = $(element);
                 
@@ -566,6 +569,17 @@ class EbayScraperService {
                         if (linkText && linkText.length > 10 && !/^\d+$/.test(linkText)) {
                             title = linkText;
                             console.log(`🔗 Extracted title from link text: "${title}"`);
+                        }
+                    }
+                    
+                    // Last resort: try to get title from any text content in the item
+                    if (!title || title.length < 10) {
+                        const itemText = $item.text().trim();
+                        // Look for patterns that look like card titles
+                        const titleMatch = itemText.match(/([A-Z][^.]{20,100})/);
+                        if (titleMatch && titleMatch[1].length > 10) {
+                            title = titleMatch[1].trim();
+                            console.log(`📝 Extracted title from item text: "${title}"`);
                         }
                     }
                 }
