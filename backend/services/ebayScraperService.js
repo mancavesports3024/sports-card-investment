@@ -471,7 +471,10 @@ class EbayScraperService {
                 '.s-item',
                 '.srp-results .s-item',
                 '.s-item__wrapper',
-                '[data-view="mi:1686|iid:1"]'
+                '[data-view="mi:1686|iid:1"]',
+                '.item',
+                '.sresult',
+                '.srp-item'
             ];
             
             let items = $();
@@ -501,14 +504,25 @@ class EbayScraperService {
                     '.s-item__link',
                     'h3',
                     '.item-title',
-                    '[data-view="mi:1686|iid:1"] .s-item__title'
+                    '[data-view="mi:1686|iid:1"] .s-item__title',
+                    '.s-item__link .s-item__title',
+                    'a[href*="/itm/"]',
+                    '.s-item__info .s-item__title'
                 ];
                 
                 for (const selector of titleSelectors) {
                     const titleEl = $item.find(selector).first();
                     if (titleEl.length > 0) {
                         title = titleEl.text().trim();
-                        break;
+                        // Also try getting title from href attribute if text is empty
+                        if (!title && titleEl.is('a')) {
+                            const href = titleEl.attr('href') || '';
+                            const titleMatch = href.match(/\/itm\/([^\/\?]+)/);
+                            if (titleMatch) {
+                                title = decodeURIComponent(titleMatch[1]).replace(/-/g, ' ');
+                            }
+                        }
+                        if (title && title.length > 10) break;
                     }
                 }
                 
@@ -521,7 +535,10 @@ class EbayScraperService {
                     '.s-item__price',
                     '.s-item__detail--primary .s-item__price',
                     '.notranslate',
-                    '.u-flL.condText'
+                    '.u-flL.condText',
+                    '.s-item__price .notranslate',
+                    '.s-item__detail .s-item__price',
+                    '.s-item__details .s-item__price'
                 ];
                 
                 for (const selector of priceSelectors) {
@@ -536,6 +553,16 @@ class EbayScraperService {
                                 break;
                             }
                         }
+                    }
+                }
+                
+                // If no price found with selectors, try regex on the entire item text
+                if (!price) {
+                    const itemText = $item.text();
+                    const priceMatch = itemText.match(/\$[\d,]+\.?\d*/);
+                    if (priceMatch) {
+                        price = priceMatch[0];
+                        numericPrice = parseFloat(price.replace(/[^\d.,]/g, '').replace(/,/g, ''));
                     }
                 }
                 
