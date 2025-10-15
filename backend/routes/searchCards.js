@@ -978,11 +978,20 @@ router.get('/', async (req, res) => {
     //   ebayService.searchSoldItems({ keywords: searchQuery, numSales: 100 }),
     //   ebayScraperService.scrapeEbaySales(searchQuery, 100)
     // ]);
-    // TEMP: Log when using 130point as the primary data source
-    console.log(`[130POINT] Using 130point service for sold items search: "${searchQuery}" at ${new Date().toISOString()}`);
-    // const point130Cards = await point130Service.search130point(searchQuery, 100); // DISABLED
-    const point130Cards = [];
-    let allCards = point130Cards;
+    // Use eBay scraper as the primary data source
+    console.log(`[EBAY SCRAPER] Using eBay scraper for sold items search: "${searchQuery}" at ${new Date().toISOString()}`);
+    
+    const EbayScraperService = require('../services/ebayScraperService');
+    const ebayScraper = new EbayScraperService();
+    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, parseInt(numSales) || 50);
+    
+    let allCards = [];
+    if (scraperResult.success && scraperResult.results) {
+      allCards = scraperResult.results;
+      console.log(`✅ eBay Scraper: ${allCards.length} sold items found`);
+    } else {
+      console.log(`❌ eBay Scraper failed: ${scraperResult.error || 'Unknown error'}`);
+    }
     // let allCards = [];
     // if (ebayApiCards.status === 'fulfilled') {
     //   allCards = allCards.concat(ebayApiCards.value);
@@ -1155,9 +1164,19 @@ router.post('/', async (req, res) => {
     //   ebayScraperService.scrapeEbaySales(searchQuery, 100)
     // ]);
 
-    console.log(`[130POINT] Using 130point service for sold items search: "${searchQuery}" at ${new Date().toISOString()}`);
-    // let allCards = await point130Service.search130point(searchQuery, 500); // DISABLED
+    console.log(`[EBAY SCRAPER] Using eBay scraper for sold items search: "${searchQuery}" at ${new Date().toISOString()}`);
+    
+    const EbayScraperService = require('../services/ebayScraperService');
+    const ebayScraper = new EbayScraperService();
+    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, parseInt(numSales) || 50);
+    
     let allCards = [];
+    if (scraperResult.success && scraperResult.results) {
+      allCards = scraperResult.results;
+      console.log(`✅ eBay Scraper: ${allCards.length} sold items found`);
+    } else {
+      console.log(`❌ eBay Scraper failed: ${scraperResult.error || 'Unknown error'}`);
+    }
 
     // Filter out sealed products and hobby boxes (more precise filtering)
     const filteredCards = allCards.filter(card => {
