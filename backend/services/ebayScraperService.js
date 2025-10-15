@@ -472,20 +472,19 @@ class EbayScraperService {
             
             // Try multiple selectors for eBay items
             const itemSelectors = [
-                '.s-item',
-                '.srp-results .s-item',
-                '.s-item__wrapper',
+                '.s-item:not(.s-item--ad)', // Main selector, exclude ads
+                '.srp-results .s-item:not(.s-item--ad)', 
+                '.s-item__wrapper:not(.s-item--ad)',
                 '[data-view="mi:1686|iid:1"]',
-                '.item',
-                '.sresult',
-                '.srp-item'
+                '.item', '.sresult', '.srp-item'
             ];
             
             let items = $();
             for (const selector of itemSelectors) {
                 items = $(selector);
+                console.log(`🔍 Selector "${selector}" found ${items.length} items`);
                 if (items.length > 0) {
-                    console.log(`✅ Found ${items.length} items using selector: ${selector}`);
+                    console.log(`✅ Using selector: ${selector} (${items.length} items)`);
                     break;
                 }
             }
@@ -522,9 +521,10 @@ class EbayScraperService {
                     if (titleEl.length > 0) {
                         title = titleEl.text().trim();
                         console.log(`🔍 Selector "${selector}" found text: "${title}"`);
-                        // Skip if it looks like an item ID (all digits)
-                        if (title && /^\d+$/.test(title)) {
-                            console.log(`⚠️ Skipping numeric ID: "${title}"`);
+                        // Skip if it looks like an item ID (all digits) or navigation text
+                        if (title && (/^\d+$/.test(title) || 
+                            /^(Shop on eBay|eBay|View|See|More|Loading|Sponsored|Ad)$/i.test(title))) {
+                            console.log(`⚠️ Skipping navigation/ID text: "${title}"`);
                             continue;
                         }
                         if (title && title.length > 10) break; // Increased threshold
