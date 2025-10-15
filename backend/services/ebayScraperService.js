@@ -291,7 +291,7 @@ class EbayScraperService {
         return searchUrl;
     }
 
-    async searchSoldCards(searchTerm, sport = null, maxResults = 50, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null, cardType = null, season = null, forceRefresh = false) {
+    async searchSoldCards(searchTerm, sport = null, maxResults = 100, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null, cardType = null, season = null, forceRefresh = false) {
         try {
             // Check cache first (unless forceRefresh is true)
             const cacheKey = `ebay_search:${searchTerm}:${sport}:${expectedGrade}:${maxResults}:${season}`;
@@ -310,6 +310,7 @@ class EbayScraperService {
             
             let searchUrl = this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph, cardType, season);
             console.log(`🔍 DEBUG - Search request: "${searchTerm}" (sport: ${sport}, cardType: ${cardType}, grade: ${expectedGrade}, maxResults: ${maxResults})`);
+            console.log(`📊 Processing limit set to: ${maxResults} items`);
             console.log(`🔍 Search URL: ${searchUrl}`);
             
             // Log built URL for debugging
@@ -461,7 +462,7 @@ class EbayScraperService {
     parseHtmlForCards(html, maxResults, searchTerm = null, sport = null, expectedGrade = null, shouldRemoveAutos = false, originalIsAutograph = false, targetPrintRun = null) {
         try {
             const finalResults = [];
-            const maxResultsNum = parseInt(maxResults) || 50;
+            const maxResultsNum = parseInt(maxResults) || 100;
             
             console.log(`🔍 Parsing HTML with Cheerio for better reliability...`);
             

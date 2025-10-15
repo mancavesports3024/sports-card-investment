@@ -983,7 +983,7 @@ router.get('/', async (req, res) => {
     
     const EbayScraperService = require('../services/ebayScraperService');
     const ebayScraper = new EbayScraperService();
-    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, parseInt(numSales) || 50, null, null, null, null, null, true);
+    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, parseInt(numSales) || 100, null, null, null, null, null, true);
     
     let allCards = [];
     if (scraperResult.success && scraperResult.results) {
@@ -1182,7 +1182,7 @@ router.post('/', async (req, res) => {
     
     const EbayScraperService = require('../services/ebayScraperService');
     const ebayScraper = new EbayScraperService();
-    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, parseInt(numSales) || 50, null, null, null, null, null, true);
+    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, parseInt(numSales) || 100, null, null, null, null, null, true);
     
     let allCards = [];
     if (scraperResult.success && scraperResult.results) {
