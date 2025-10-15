@@ -387,6 +387,7 @@ class EbayScraperService {
 
             if (response.data) {
                 console.log(`✅ Direct HTTP request successful (${response.data.length} characters), parsing HTML...`);
+                console.log(`🔍 HTML snippet (first 500 chars): ${response.data.substring(0, 500)}`);
                 
                 // Debug specific search
                 if (searchTerm === "2024 Topps Chrome") {
@@ -463,6 +464,14 @@ class EbayScraperService {
             const maxResultsNum = parseInt(maxResults) || 50;
             
             console.log(`🔍 Parsing HTML with Cheerio for better reliability...`);
+            
+            // Debug: Check what selectors are available
+            console.log(`🔍 Checking for common eBay selectors:`);
+            console.log(`  .s-item: ${$('.s-item').length} items`);
+            console.log(`  .s-item--ad: ${$('.s-item--ad').length} ads`);
+            console.log(`  .s-item:not(.s-item--ad): ${$('.s-item:not(.s-item--ad)').length} non-ad items`);
+            console.log(`  .srp-results: ${$('.srp-results').length} results containers`);
+            console.log(`  [data-view]: ${$('[data-view]').length} data-view elements`);
             
             // Load HTML into Cheerio
             const $ = cheerio.load(html);
