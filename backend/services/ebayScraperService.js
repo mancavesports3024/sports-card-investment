@@ -518,19 +518,21 @@ class EbayScraperService {
                     const titleEl = $item.find(selector).first();
                     if (titleEl.length > 0) {
                         title = titleEl.text().trim();
+                        console.log(`🔍 Selector "${selector}" found text: "${title}"`);
                         // Also try getting title from href attribute if text is empty
                         if (!title && titleEl.is('a')) {
                             const href = titleEl.attr('href') || '';
                             const titleMatch = href.match(/\/itm\/([^\/\?]+)/);
                             if (titleMatch) {
                                 title = decodeURIComponent(titleMatch[1]).replace(/-/g, ' ');
+                                console.log(`🔗 Extracted title from href: "${title}"`);
                             }
                         }
-                        if (title && title.length > 5) break;
+                        if (title && title.length > 10) break; // Increased threshold
                     }
                 }
                 
-                if (!title || title.length < 5) {
+                if (!title || title.length < 10) {
                     console.log(`⚠️ Skipping item ${index}: no valid title found (length: ${title?.length || 0})`);
                     return;
                 }
