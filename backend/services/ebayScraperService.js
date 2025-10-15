@@ -476,6 +476,14 @@ class EbayScraperService {
             console.log(`  .srp-results: ${$('.srp-results').length} results containers`);
             console.log(`  [data-view]: ${$('[data-view]').length} data-view elements`);
             
+            // Debug: Show all data-view values
+            const dataViewValues = {};
+            $('[data-view]').each((i, el) => {
+                const value = $(el).attr('data-view');
+                dataViewValues[value] = (dataViewValues[value] || 0) + 1;
+            });
+            console.log(`🔍 Data-view values found:`, dataViewValues);
+            
             // Extract card items using eBay's standard selectors
             const cardItems = [];
             
@@ -484,7 +492,9 @@ class EbayScraperService {
                 '.s-item:not(.s-item--ad)', // Main selector, exclude ads
                 '.srp-results .s-item:not(.s-item--ad)', 
                 '.s-item__wrapper:not(.s-item--ad)',
+                '[data-view*="iid:"]', // Try any data-view with iid
                 '[data-view="mi:1686|iid:1"]',
+                '[data-view*="mi:1686"]', // Try any mi:1686 variant
                 '.item', '.sresult', '.srp-item'
             ];
             
