@@ -291,14 +291,18 @@ class EbayScraperService {
         return searchUrl;
     }
 
-    async searchSoldCards(searchTerm, sport = null, maxResults = 50, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null, cardType = null, season = null) {
+    async searchSoldCards(searchTerm, sport = null, maxResults = 50, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null, cardType = null, season = null, forceRefresh = false) {
         try {
-            // Check cache first
+            // Check cache first (unless forceRefresh is true)
             const cacheKey = `ebay_search:${searchTerm}:${sport}:${expectedGrade}:${maxResults}:${season}`;
-            const cachedResult = await this.getCachedResult(cacheKey);
-            if (cachedResult) {
-                console.log('📦 Returning cached result');
-                return cachedResult;
+            if (!forceRefresh) {
+                const cachedResult = await this.getCachedResult(cacheKey);
+                if (cachedResult) {
+                    console.log('📦 Returning cached result');
+                    return cachedResult;
+                }
+            } else {
+                console.log('🔄 Force refresh requested - bypassing cache');
             }
 
             // Warm up session first
