@@ -850,8 +850,10 @@ router.get('/test-ebay-scraping', async (req, res) => {
   try {
     console.log('🧪 Testing eBay scraping service...');
     
-    // Updated to use the available method on EbayScraperService
-    const result = await ebayScraperService.searchSoldCards('baseball card', null, 3);
+    // Instantiate the service and call the available method
+    const EbayScraperService = require('../services/ebayScraperService');
+    const service = new EbayScraperService();
+    const result = await service.searchSoldCards('baseball card', null, 3);
     
     res.json({
       success: true,
