@@ -523,7 +523,28 @@ class EbayScraperService {
                 for (const selector of titleSelectors) {
                     const titleEl = $item.find(selector).first();
                     if (titleEl.length > 0) {
-                        title = titleEl.text().trim();
+                        // Prefer the last non-promotional span text inside the title element
+                        let candidateTitle = '';
+                        const spans = titleEl.find('span');
+                        if (spans && spans.length) {
+                            for (let i = spans.length - 1; i >= 0; i--) {
+                                const spanText = $(spans[i]).text().trim();
+                                if (spanText && !/^New Listing$/i.test(spanText) && !/^Brand New$/i.test(spanText)) {
+                                    candidateTitle = spanText;
+                                    break;
+                                }
+                            }
+                        }
+                        title = (candidateTitle || titleEl.text().trim());
+
+                        // If still promotional like 'New Listing' or 'Brand New', try aria-label on the link
+                        if ((/^New Listing$/i.test(title) || /^Brand New$/i.test(title)) && titleEl.is('a')) {
+                            const aria = titleEl.attr('aria-label');
+                            if (aria && aria.trim().length > 10) {
+                                title = aria.trim();
+                            }
+                        }
+
                         // Reduced logging - title extraction
                         // Skip if it looks like an item ID (all digits) or navigation text
                         if (title && (
