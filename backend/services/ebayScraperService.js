@@ -537,6 +537,11 @@ class EbayScraperService {
                         }
                         title = (candidateTitle || titleEl.text().trim());
 
+                        // Sanitize: remove common promo prefixes from composed title text
+                        if (title) {
+                            title = title.replace(/^\s*(New Listing|Brand New)\b\s*/i, '').trim();
+                        }
+
                         // If still promotional like 'New Listing' or 'Brand New', try aria-label on the link
                         if ((/^New Listing$/i.test(title) || /^Brand New$/i.test(title)) && titleEl.is('a')) {
                             const aria = titleEl.attr('aria-label');
