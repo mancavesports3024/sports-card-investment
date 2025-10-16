@@ -2717,10 +2717,34 @@ router.get('/card-set-analysis', async (req, res) => {
     const searchQuery = year ? `${cardSet} ${year}` : cardSet;
     console.log(`[CARD SET ANALYSIS] Analyzing card set: "${searchQuery}" at ${new Date().toISOString()}`);
     
-    // Fetch more data for comprehensive analysis
-    // const point130Cards = await point130Service.search130point(searchQuery, parseInt(limit) * 2); // DISABLED
-    const point130Cards = [];
-    let allCards = point130Cards;
+    // Fetch data using eBay scraper
+    console.log(`[EBAY SCRAPER] Using eBay scraper for card set analysis: "${searchQuery}" at ${new Date().toISOString()}`);
+    
+    const EbayScraperService = require('../services/ebayScraperService');
+    const ebayScraper = new EbayScraperService();
+    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, parseInt(limit) || 500, null, null, null, null, null, true);
+    
+    let allCards = [];
+    if (scraperResult.success && scraperResult.results) {
+      // Transform eBay scraper results to match expected format
+      allCards = scraperResult.results.map(card => ({
+        id: card.ebayItemId || card.itemId,
+        title: card.title,
+        price: {
+          value: card.numericPrice ? card.numericPrice.toString() : (card.price || '0').replace(/[^\d.]/g, ''),
+          currency: 'USD'
+        },
+        condition: card.grade || 'Raw',
+        soldDate: card.soldDate || 'Recently sold',
+        imageUrl: card.imageUrl,
+        itemWebUrl: card.itemUrl,
+        itemId: card.ebayItemId || card.itemId,
+        sport: card.sport || 'unknown'
+      }));
+      console.log(`✅ eBay Scraper: ${allCards.length} sold items found for card set analysis`);
+    } else {
+      console.log(`❌ eBay Scraper failed for card set analysis: ${scraperResult.error || 'Unknown error'}`);
+    }
 
     // Filter out sealed products and hobby boxes (more precise filtering)
     const filteredCards = allCards.filter(card => {
