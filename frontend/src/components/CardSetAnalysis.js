@@ -165,7 +165,18 @@ const CardSetAnalysis = () => {
       )}
       <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: '0.25rem', color: '#333' }}>
-          {card.title}
+          {(() => {
+            const rawTitle = card.title || '';
+            return rawTitle
+              .replace(/\s*#unknown\b.*$/i, '')
+              .replace(/\s*#Unknown\b.*$/i, '')
+              .replace(/\s*#UNKNOWN\b.*$/i, '')
+              .replace(/\s+unknown\s*$/i, '')
+              .replace(/\s+Unknown\s*$/i, '')
+              .replace(/\s+UNKNOWN\s*$/i, '')
+              .replace(/\s+/g, ' ')
+              .trim();
+          })()}
         </div>
         <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
           {card.condition && <span style={{ marginRight: '1rem' }}>Condition: {card.condition}</span>}

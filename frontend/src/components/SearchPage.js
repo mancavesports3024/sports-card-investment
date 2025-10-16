@@ -561,7 +561,15 @@ const SearchPage = () => {
                                   <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', width: '100%', overflow: 'visible' }}>
                   <div className="custom-card-title">{(() => {
                     const rawTitle = card.summaryTitle || card.title || '';
-                    return rawTitle.replace(/\s*#unknown\b.*$/i, '').trim();
+                    return rawTitle
+                      .replace(/\s*#unknown\b.*$/i, '')
+                      .replace(/\s*#Unknown\b.*$/i, '')
+                      .replace(/\s*#UNKNOWN\b.*$/i, '')
+                      .replace(/\s+unknown\s*$/i, '')
+                      .replace(/\s+Unknown\s*$/i, '')
+                      .replace(/\s+UNKNOWN\s*$/i, '')
+                      .replace(/\s+/g, ' ')
+                      .trim();
                   })()}</div>
                   {/* Price row - listed price on left, sold price on right */}
                   <div style={{ display: 'flex', justifyContent: card.listPrice ? 'space-between' : 'flex-start', alignItems: 'center', width: '100%' }}>

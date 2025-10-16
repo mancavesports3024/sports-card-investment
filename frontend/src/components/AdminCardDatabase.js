@@ -591,7 +591,18 @@ const AdminCardDatabase = () => {
                   <tr key={card.id}>
                     <td className="card-title">
                       <div className="title-main">
-                        {card.summaryTitle || card.title}
+                        {(() => {
+                          const rawTitle = card.summaryTitle || card.title || '';
+                          return rawTitle
+                            .replace(/\s*#unknown\b.*$/i, '')
+                            .replace(/\s*#Unknown\b.*$/i, '')
+                            .replace(/\s*#UNKNOWN\b.*$/i, '')
+                            .replace(/\s+unknown\s*$/i, '')
+                            .replace(/\s+Unknown\s*$/i, '')
+                            .replace(/\s+UNKNOWN\s*$/i, '')
+                            .replace(/\s+/g, ' ')
+                            .trim();
+                        })()}
                         <button 
                           className="ebay-link-btn"
                           onClick={() => window.open(generateEbaySearchUrl(card.summaryTitle || card.title), '_blank')}
@@ -608,7 +619,18 @@ const AdminCardDatabase = () => {
                         </button>
                       </div>
                       {card.summaryTitle && card.title !== card.summaryTitle && (
-                        <div className="title-original">{card.title}</div>
+                        <div className="title-original">{(() => {
+                          const rawTitle = card.title || '';
+                          return rawTitle
+                            .replace(/\s*#unknown\b.*$/i, '')
+                            .replace(/\s*#Unknown\b.*$/i, '')
+                            .replace(/\s*#UNKNOWN\b.*$/i, '')
+                            .replace(/\s+unknown\s*$/i, '')
+                            .replace(/\s+Unknown\s*$/i, '')
+                            .replace(/\s+UNKNOWN\s*$/i, '')
+                            .replace(/\s+/g, ' ')
+                            .trim();
+                        })()}</div>
                       )}
                     </td>
                     <td className="card-sport">
