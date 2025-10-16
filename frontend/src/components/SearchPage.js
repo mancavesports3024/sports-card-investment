@@ -559,7 +559,10 @@ const SearchPage = () => {
             return (
               <div key={`${card.id || index}-${card.title}`} className="card-item" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.6rem', minWidth: 220, maxWidth: 260, fontSize: '0.97em', marginBottom: 0 }}>
                                   <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', width: '100%', overflow: 'visible' }}>
-                  <div className="custom-card-title">{card.summaryTitle || card.title}</div>
+                  <div className="custom-card-title">{(() => {
+                    const rawTitle = card.summaryTitle || card.title || '';
+                    return rawTitle.replace(/\s*#unknown\b.*$/i, '').trim();
+                  })()}</div>
                   {/* Price row - listed price on left, sold price on right */}
                   <div style={{ display: 'flex', justifyContent: card.listPrice ? 'space-between' : 'flex-start', alignItems: 'center', width: '100%' }}>
                     {card.listPrice && (
