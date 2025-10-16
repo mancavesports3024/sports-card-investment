@@ -552,11 +552,13 @@ class EbayScraperService {
                         title = titleEl.text().trim();
                         console.log(`🔍 Selector "${selector}" found text: "${title}"`);
                         // Skip if it looks like an item ID (all digits) or navigation text
-                        if (title && (/^\d+$/.test(title) || 
+                        if (title && (
+                            /^\d+$/.test(title) || 
                             /^(Shop on eBay|eBay|View|See|More|Loading|Sponsored|Ad)$/i.test(title) ||
-                            /^Shop on eBayBrand New/i.test(title) ||
-                            /^Brand New$/i.test(title) ||
-                            /^Shop on eBay/i.test(title))) {
+                            /Shop on eBay/i.test(title) ||
+                            /Brand New/i.test(title) ||
+                            /^Shop on eBayBrand New/i.test(title)
+                        )) {
                             console.log(`⚠️ Skipping navigation/advertisement text: "${title}"`);
                             continue;
                         }
@@ -592,6 +594,19 @@ class EbayScraperService {
                             console.log(`📝 Extracted title from item text: "${title}"`);
                         }
                     }
+                }
+                
+                // Additional filter for promotional content
+                if (title && (
+                    /Shop on eBay/i.test(title) ||
+                    /Brand New.*\$?\d+/i.test(title) ||
+                    /^Shop on eBay/i.test(title) ||
+                    title.includes('Shop on eBay') ||
+                    (title.length < 20 && /Shop|eBay|Brand/i.test(title))
+                )) {
+                    console.log(`⚠️ Skipping promotional content: "${title}"`);
+                    skippedCount++;
+                    return;
                 }
                 
                 if (!title || title.length < 10) {
