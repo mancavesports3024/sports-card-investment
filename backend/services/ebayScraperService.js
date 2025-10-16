@@ -553,8 +553,11 @@ class EbayScraperService {
                         console.log(`🔍 Selector "${selector}" found text: "${title}"`);
                         // Skip if it looks like an item ID (all digits) or navigation text
                         if (title && (/^\d+$/.test(title) || 
-                            /^(Shop on eBay|eBay|View|See|More|Loading|Sponsored|Ad)$/i.test(title))) {
-                            console.log(`⚠️ Skipping navigation/ID text: "${title}"`);
+                            /^(Shop on eBay|eBay|View|See|More|Loading|Sponsored|Ad)$/i.test(title) ||
+                            /^Shop on eBayBrand New/i.test(title) ||
+                            /^Brand New$/i.test(title) ||
+                            /^Shop on eBay/i.test(title))) {
+                            console.log(`⚠️ Skipping navigation/advertisement text: "${title}"`);
                             continue;
                         }
                         if (title && title.length > 10) break; // Increased threshold
