@@ -2896,7 +2896,7 @@ function analyzeCardSetPerformance(cards) {
     
     // Try to extract card number (common patterns)
     const cardNumberMatch = title.match(/#(\d+)/i);
-    const cardNumber = cardNumberMatch ? cardNumberMatch[1] : 'Unknown';
+    const cardNumber = cardNumberMatch ? cardNumberMatch[1] : null;
     
     // Try to extract player name (before card number or common keywords)
     let playerName = 'Unknown';
@@ -2913,13 +2913,13 @@ function analyzeCardSetPerformance(cards) {
       }
     }
     
-    const key = `${playerName} #${cardNumber}`;
+    const key = cardNumber ? `${playerName} #${cardNumber}` : playerName;
     
     if (!cardMap.has(key)) {
       cardMap.set(key, {
         playerName,
         cardNumber,
-        title: (card.title || '').replace(/\s*#unknown\b.*$/i, '').trim(),
+        title: key, // Use the clean key as the title instead of the original card title
         salesCount: 0,
         totalValue: 0,
         averagePrice: 0,
