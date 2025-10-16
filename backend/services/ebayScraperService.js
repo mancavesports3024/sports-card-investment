@@ -256,7 +256,12 @@ class EbayScraperService {
 
     buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = null, cardType = null, season = null) {
         // Clean and encode the search term (preserve negative keywords properly)
-        const cleanTerm = searchTerm.replace(/[^\w\s\-\+]/g, ' ').replace(/\s+/g, '+');
+        let cleanTerm = searchTerm.replace(/[^\w\s\-\+]/g, ' ').replace(/\s+/g, '+');
+        
+        // Add negative keywords to filter out unwanted items (like your working scraper)
+        if (!cleanTerm.includes('-(psa') && !cleanTerm.includes('-(psa,')) {
+            cleanTerm += ' -(psa -(psa, ace, cgc, tag, slab, tcg, graded, bgs, sgc)';
+        }
         
         // Pokemon TCG cards use different category and structure with BLANK search term
         if (cardType && cardType.toLowerCase().includes('pokemon tcg')) {
@@ -268,7 +273,7 @@ class EbayScraperService {
         // Standard sports cards (non-Pokemon) — no grade filters; centralized price range
         // Add cache buster to reduce bot-detection correlation
         const rnd = Math.floor(Math.random() * 1e9);
-        let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1&rt=nc&_dcat=261328&_udlo=11&_udhi=3000&_rnd=${rnd}`;
+        let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1&rt=nc&_dcat=261328&_udlo=11&_udhi=3000&_rnd=${rnd}&_sop=12&_pgn=1`;
         if (season) {
             searchUrl += `&Season=${encodeURIComponent(season)}`;
         }
@@ -514,12 +519,19 @@ class EbayScraperService {
                 return this.parseHtmlForCardsRegex(html, maxResults, searchTerm, sport, expectedGrade, shouldRemoveAutos, originalIsAutograph, targetPrintRun);
             }
             
+            console.log(`🔄 Starting to process ${items.length} items (limit: ${maxResultsNum})`);
+            
+            let processedCount = 0;
+            let skippedCount = 0;
+            
             // Process each item
             items.each((index, element) => {
                 if (index >= maxResultsNum) {
                     console.log(`🛑 Reached processing limit of ${maxResultsNum} items, stopping`);
                     return false; // Stop processing
                 }
+                
+                console.log(`🔍 Processing item ${index}/${items.length}`);
                 
                 const $item = $(element);
                 
@@ -586,6 +598,7 @@ class EbayScraperService {
                 
                 if (!title || title.length < 10) {
                     console.log(`⚠️ Skipping item ${index}: no valid title found (length: ${title?.length || 0})`);
+                    skippedCount++;
                     return;
                 }
                 console.log(`✅ Item ${index}: "${title}"`);
@@ -630,6 +643,7 @@ class EbayScraperService {
                 
                 if (!price || numericPrice === 0) {
                     console.log(`⚠️ Skipping item ${index}: no valid price found (price: "${price}", numeric: ${numericPrice})`);
+                    skippedCount++;
                     return;
                 }
                 console.log(`💰 Item ${index}: price = ${price}`);
@@ -699,7 +713,11 @@ class EbayScraperService {
                     ebayItemId: itemId,
                     autoConfidence: autoConfidence
                 });
+                
+                processedCount++;
             });
+            
+            console.log(`📊 Processing complete: ${processedCount} items processed, ${skippedCount} items skipped`);
             
             console.log(`🔍 Extracted ${cardItems.length} cards using Cheerio`);
             
