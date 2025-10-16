@@ -990,7 +990,7 @@ router.get('/', async (req, res) => {
       // Transform eBay scraper results to match expected format
       allCards = scraperResult.results.map(card => ({
         id: card.ebayItemId || card.itemId,
-        title: card.title,
+        title: (card.title || '').replace(/\s*#unknown\b.*$/i, '').trim(),
         price: {
           value: card.numericPrice ? card.numericPrice.toString() : (card.price || '0').replace(/[^\d.]/g, ''),
           currency: 'USD'
@@ -1189,7 +1189,7 @@ router.post('/', async (req, res) => {
       // Transform eBay scraper results to match expected format
       allCards = scraperResult.results.map(card => ({
         id: card.ebayItemId || card.itemId,
-        title: card.title,
+        title: (card.title || '').replace(/\s*#unknown\b.*$/i, '').trim(),
         price: {
           value: card.numericPrice ? card.numericPrice.toString() : (card.price || '0').replace(/[^\d.]/g, ''),
           currency: 'USD'
@@ -2729,7 +2729,7 @@ router.get('/card-set-analysis', async (req, res) => {
       // Transform eBay scraper results to match expected format
       allCards = scraperResult.results.map(card => ({
         id: card.ebayItemId || card.itemId,
-        title: card.title,
+        title: (card.title || '').replace(/\s*#unknown\b.*$/i, '').trim(),
         price: {
           value: card.numericPrice ? card.numericPrice.toString() : (card.price || '0').replace(/[^\d.]/g, ''),
           currency: 'USD'
