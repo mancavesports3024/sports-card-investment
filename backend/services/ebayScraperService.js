@@ -706,13 +706,20 @@ class EbayScraperService {
                     if (linkEl.length > 0) {
                         const href = linkEl.attr('href');
                         if (href) {
-                            const idMatch = href.match(/(?:itm\/|item\/)(\d{10,})/);
+                            const idMatch = href.match(/(?:itm\/|item\/)(\d{9,})/);
                             if (idMatch) {
                                 itemId = idMatch[1];
-                                break;
                             }
                         }
                     }
+                }
+
+                // Final safety: if title is numeric-only, skip and log context
+                if (/^\d+$/.test(title)) {
+                    const debugHref = $item.find('a[href*="/itm/"]').first().attr('href') || '';
+                    console.log(`🛑 Skipping numeric-only title for itemId=${itemId || 'unknown'} href=${debugHref}`);
+                    skippedCount++;
+                    return;
                 }
                 
                 // Extract grade information
