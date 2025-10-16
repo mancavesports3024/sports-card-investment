@@ -948,7 +948,7 @@ router.get('/ebay-usage', async (req, res) => {
 
 // GET /api/search-cards (for testing with query parameters)
 router.get('/', async (req, res) => {
-  const { searchQuery, numSales = 10 } = req.query;
+  const { searchQuery, numSales = 200 } = req.query;
   
   // Validate required parameters
   if (!searchQuery) {
@@ -983,7 +983,7 @@ router.get('/', async (req, res) => {
     
     const EbayScraperService = require('../services/ebayScraperService');
     const ebayScraper = new EbayScraperService();
-    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, parseInt(numSales) || 200, null, null, null, null, null, true);
+    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, Math.max(parseInt(numSales) || 200, 500), null, null, null, null, null, true);
     
     let allCards = [];
     if (scraperResult.success && scraperResult.results) {
@@ -1128,7 +1128,7 @@ router.get('/', async (req, res) => {
 
 // POST /api/search-cards (for production use)
 router.post('/', async (req, res) => {
-  const { searchQuery, numSales = 10 } = req.body;
+  const { searchQuery, numSales = 200 } = req.body;
   console.log(`>>> POST /api/search-cards endpoint hit at ${new Date().toISOString()} with searchQuery: "${searchQuery}"`);
   
   // Validate required parameters
@@ -1182,7 +1182,7 @@ router.post('/', async (req, res) => {
     
     const EbayScraperService = require('../services/ebayScraperService');
     const ebayScraper = new EbayScraperService();
-    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, parseInt(numSales) || 200, null, null, null, null, null, true);
+    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, Math.max(parseInt(numSales) || 200, 500), null, null, null, null, null, true);
     
     let allCards = [];
     if (scraperResult.success && scraperResult.results) {
