@@ -309,8 +309,7 @@ class EbayScraperService {
             await this.warmUpSession();
             
             let searchUrl = this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph, cardType, season);
-            console.log(`🔍 DEBUG - Search request: "${searchTerm}" (sport: ${sport}, cardType: ${cardType}, grade: ${expectedGrade}, maxResults: ${maxResults})`);
-            console.log(`📊 Processing limit set to: ${maxResults} items`);
+            console.log(`🔍 eBay search: "${searchTerm}" (maxResults: ${maxResults})`);
             console.log(`🔍 Search URL: ${searchUrl}`);
             
             // Log built URL for debugging
@@ -388,16 +387,7 @@ class EbayScraperService {
 
             if (response.data) {
                 console.log(`✅ Direct HTTP request successful (${response.data.length} characters), parsing HTML...`);
-                console.log(`🔍 HTML snippet (first 500 chars): ${response.data.substring(0, 500)}`);
-                
-                // Debug specific search
-                if (searchTerm === "2024 Topps Chrome") {
-                    console.log(`🔍 TOPPS CHROME DEBUG - HTML content sample (first 500 chars):`);
-                    console.log(response.data.substring(0, 500));
-                    console.log(`🔍 Searching for "Topps Chrome" in HTML...`);
-                    const toppsMatches = (response.data.match(/topps chrome/gi) || []).length;
-                    console.log(`🔍 Found ${toppsMatches} instances of "Topps Chrome" in HTML`);
-                }
+                // Reduced logging - HTML parsing successful
                 
                 // Exclude the section after "Results matching fewer words"
                 let htmlToParse = response.data;
@@ -464,26 +454,13 @@ class EbayScraperService {
             const finalResults = [];
             const maxResultsNum = parseInt(maxResults) || 200;
             
-            console.log(`🔍 Parsing HTML with Cheerio for better reliability...`);
+            console.log(`🔍 Parsing HTML with Cheerio...`);
             
             // Load HTML into Cheerio first
             const $ = cheerio.load(html);
             
-            // Debug: Check what selectors are available
-            console.log(`🔍 Checking for common eBay selectors:`);
-            console.log(`  .s-item: ${$('.s-item').length} items`);
-            console.log(`  .s-item--ad: ${$('.s-item--ad').length} ads`);
-            console.log(`  .s-item:not(.s-item--ad): ${$('.s-item:not(.s-item--ad)').length} non-ad items`);
-            console.log(`  .srp-results: ${$('.srp-results').length} results containers`);
-            console.log(`  [data-view]: ${$('[data-view]').length} data-view elements`);
-            
-            // Debug: Show all data-view values
-            const dataViewValues = {};
-            $('[data-view]').each((i, el) => {
-                const value = $(el).attr('data-view');
-                dataViewValues[value] = (dataViewValues[value] || 0) + 1;
-            });
-            console.log(`🔍 Data-view values found:`, dataViewValues);
+            // Check for data-view elements (reduced logging)
+            console.log(`🔍 Found ${$('[data-view]').length} data-view elements`);
             
             // Extract card items using eBay's standard selectors
             const cardItems = [];
@@ -502,7 +479,6 @@ class EbayScraperService {
             let items = $();
             for (const selector of itemSelectors) {
                 items = $(selector);
-                console.log(`🔍 Selector "${selector}" found ${items.length} items`);
                 if (items.length > 0) {
                     console.log(`✅ Using selector: ${selector} (${items.length} items)`);
                     break;
@@ -514,7 +490,7 @@ class EbayScraperService {
                 return this.parseHtmlForCardsRegex(html, maxResults, searchTerm, sport, expectedGrade, shouldRemoveAutos, originalIsAutograph, targetPrintRun);
             }
             
-            console.log(`🔄 Starting to process ${items.length} items (limit: ${maxResultsNum})`);
+            console.log(`🔄 Processing ${items.length} items...`);
             
             let processedCount = 0;
             let skippedCount = 0;
@@ -525,8 +501,6 @@ class EbayScraperService {
                     console.log(`🛑 Reached processing limit of ${maxResultsNum} items, stopping`);
                     return false; // Stop processing
                 }
-                
-                console.log(`🔍 Processing item ${index}/${items.length}`);
                 
                 const $item = $(element);
                 
@@ -550,7 +524,7 @@ class EbayScraperService {
                     const titleEl = $item.find(selector).first();
                     if (titleEl.length > 0) {
                         title = titleEl.text().trim();
-                        console.log(`🔍 Selector "${selector}" found text: "${title}"`);
+                        // Reduced logging - title extraction
                         // Skip if it looks like an item ID (all digits) or navigation text
                         if (title && (
                             /^\d+$/.test(title) || 
@@ -614,7 +588,7 @@ class EbayScraperService {
                     skippedCount++;
                     return;
                 }
-                console.log(`✅ Item ${index}: "${title}"`);
+                // Reduced logging - item processed
                 
                 // Extract price with better accuracy
                 let price = '';
@@ -659,7 +633,7 @@ class EbayScraperService {
                     skippedCount++;
                     return;
                 }
-                console.log(`💰 Item ${index}: price = ${price}`);
+                // Reduced logging - price extracted
                 
                 // Extract sold date
                 let soldDate = 'Recently sold';
@@ -681,7 +655,7 @@ class EbayScraperService {
                         // Look for date patterns like "Oct 14, 2025", "Sold Oct 14, 2025", etc.
                         if (dateText && /(sold\s+)?[a-z]{3}\s+\d{1,2},\s+\d{4}/i.test(dateText)) {
                             soldDate = dateText.replace(/^sold\s+/i, '');
-                            console.log(`📅 Item ${index}: sold date = "${soldDate}"`);
+                            // Reduced logging - sold date extracted
                             break;
                         }
                     }
@@ -730,7 +704,7 @@ class EbayScraperService {
                 processedCount++;
             });
             
-            console.log(`📊 Processing complete: ${processedCount} items processed, ${skippedCount} items skipped`);
+            console.log(`📊 Processed ${processedCount} items, skipped ${skippedCount} items`);
             
             console.log(`🔍 Extracted ${cardItems.length} cards using Cheerio`);
             
