@@ -2919,7 +2919,7 @@ function analyzeCardSetPerformance(cards) {
       cardMap.set(key, {
         playerName,
         cardNumber,
-        title: card.title,
+        title: (card.title || '').replace(/\s*#unknown\b.*$/i, '').trim(),
         salesCount: 0,
         totalValue: 0,
         averagePrice: 0,
