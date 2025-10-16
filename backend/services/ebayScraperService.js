@@ -296,10 +296,10 @@ class EbayScraperService {
             // Check cache first (unless forceRefresh is true)
             const cacheKey = `ebay_search:${searchTerm}:${sport}:${expectedGrade}:${maxResults}:${season}`;
             if (!forceRefresh) {
-                const cachedResult = await this.getCachedResult(cacheKey);
-                if (cachedResult) {
-                    console.log('📦 Returning cached result');
-                    return cachedResult;
+            const cachedResult = await this.getCachedResult(cacheKey);
+            if (cachedResult) {
+                console.log('📦 Returning cached result');
+                return cachedResult;
                 }
             } else {
                 console.log('🔄 Force refresh requested - bypassing cache');
@@ -531,7 +531,7 @@ class EbayScraperService {
                                 const spanText = $(spans[i]).text().trim();
                                 if (spanText && !/^New Listing$/i.test(spanText) && !/^Brand New$/i.test(spanText)) {
                                     candidateTitle = spanText;
-                                    break;
+                        break;
                                 }
                             }
                         }
@@ -687,7 +687,7 @@ class EbayScraperService {
                         }
                     }
                 }
-
+                
                 // Extract item ID
                 let itemId = '';
                 const itemIdSelectors = [
