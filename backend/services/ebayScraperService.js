@@ -256,12 +256,7 @@ class EbayScraperService {
 
     buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = null, cardType = null, season = null) {
         // Clean and encode the search term (preserve negative keywords properly)
-        let cleanTerm = searchTerm.replace(/[^\w\s\-\+]/g, ' ').replace(/\s+/g, '+');
-        
-        // Add negative keywords to filter out unwanted items (like your working scraper)
-        if (!cleanTerm.includes('-(psa') && !cleanTerm.includes('-(psa,')) {
-            cleanTerm += ' -(psa -(psa, ace, cgc, tag, slab, tcg, graded, bgs, sgc)';
-        }
+        const cleanTerm = searchTerm.replace(/[^\w\s\-\+]/g, ' ').replace(/\s+/g, '+');
         
         // Pokemon TCG cards use different category and structure with BLANK search term
         if (cardType && cardType.toLowerCase().includes('pokemon tcg')) {
