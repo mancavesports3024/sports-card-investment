@@ -561,32 +561,38 @@ class EbayScraperService {
                     }
                 }
                 
-                // If still no title, try to get it from the link text or aria-label
-                if (!title || title.length < 10) {
-                    const linkEl = $item.find('a[href*="/itm/"]').first();
-                    if (linkEl.length > 0) {
-                        // Try aria-label first
-                        const ariaLabel = linkEl.attr('aria-label');
-                        if (ariaLabel && ariaLabel.length > 10) {
-                            title = ariaLabel.trim();
-                            console.log(`🏷️ Extracted title from aria-label: "${title}"`);
-                        }
-                        // Try link text
-                        const linkText = linkEl.text().trim();
-                        if (linkText && linkText.length > 10 && !/^\d+$/.test(linkText)) {
-                            title = linkText;
-                            console.log(`🔗 Extracted title from link text: "${title}"`);
-                        }
-                    }
-                    
-                    // Last resort: try to get title from any text content in the item
-                    if (!title || title.length < 10) {
-                        const itemText = $item.text().trim();
-                        // Look for patterns that look like card titles
-                        const titleMatch = itemText.match(/([A-Z][^.]{20,100})/);
-                        if (titleMatch && titleMatch[1].length > 10) {
-                            title = titleMatch[1].trim();
-                            console.log(`📝 Extracted title from item text: "${title}"`);
+                // Stronger fallback: if title is missing or looks like a placeholder like 'New Listing',
+                // attempt to extract from any product link inside the item
+                if (!title || /^New Listing$/i.test(title)) {
+                    const links = $item.find('a[href*="/itm/"]');
+                    if (links && links.length) {
+                        let recovered = '';
+                        // Prefer a link with a useful aria-label
+                        links.each((i, el) => {
+                            if (recovered) return; // already found
+                            const $el = $(el);
+                            const aria = ($el.attr('aria-label') || '').trim();
+                            const ttlAttr = ($el.attr('title') || '').trim();
+                            const href = ($el.attr('href') || '').trim();
+                            if (aria && aria.length > 10 && !/^New Listing$/i.test(aria)) {
+                                recovered = aria;
+                                return;
+                            }
+                            if (ttlAttr && ttlAttr.length > 10 && !/^New Listing$/i.test(ttlAttr)) {
+                                recovered = ttlAttr;
+                                return;
+                            }
+                            // Try to reconstruct from URL slug when present
+                            const slugMatch = href.match(/\/itm\/([^\/?#]+)(?:[\/?#]|$)/);
+                            if (slugMatch && slugMatch[1]) {
+                                const fromSlug = decodeURIComponent(slugMatch[1]).replace(/[-_]+/g, ' ').trim();
+                                if (fromSlug && fromSlug.length > 10 && !/^New Listing$/i.test(fromSlug)) {
+                                    recovered = fromSlug;
+                                }
+                            }
+                        });
+                        if (recovered) {
+                            title = recovered;
                         }
                     }
                 }
