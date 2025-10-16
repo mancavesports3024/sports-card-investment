@@ -2729,7 +2729,7 @@ router.get('/card-set-analysis', async (req, res) => {
       // Transform eBay scraper results to match expected format
       allCards = scraperResult.results.map(card => ({
         id: card.ebayItemId || card.itemId,
-        title: (card.title || '').replace(/\s*#unknown\b.*$/i, '').trim(),
+        title: (card.title || '').replace(/\s*#unknown\b.*$/i, '').replace(/\s*#Unknown\b.*$/i, '').replace(/\s*#UNKNOWN\b.*$/i, '').replace(/\s+unknown\s*$/i, '').replace(/\s+Unknown\s*$/i, '').replace(/\s+UNKNOWN\s*$/i, '').replace(/\s+/g, ' ').trim(),
         price: {
           value: card.numericPrice ? card.numericPrice.toString() : (card.price || '0').replace(/[^\d.]/g, ''),
           currency: 'USD'
