@@ -2836,7 +2836,7 @@ router.get('/card-set-analysis', async (req, res) => {
     // Group cards by title and count occurrences, then get individual listings for top groups
     const cardGroups = {};
     allCards.forEach(card => {
-      const cleanTitle = sanitizeTitle(card.title || '');
+      const cleanTitle = (card.title || '').replace(/\s*#unknown\b.*$/i, '').replace(/\s*#Unknown\b.*$/i, '').replace(/\s*#UNKNOWN\b.*$/i, '').replace(/\s+unknown\s*$/i, '').replace(/\s+Unknown\s*$/i, '').replace(/\s+UNKNOWN\s*$/i, '').replace(/\s+/g, ' ').trim();
       if (!cardGroups[cleanTitle]) {
         cardGroups[cleanTitle] = [];
       }
