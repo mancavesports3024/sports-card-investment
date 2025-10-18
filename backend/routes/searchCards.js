@@ -2832,7 +2832,23 @@ router.get('/card-set-analysis', async (req, res) => {
       return priceB - priceA; // Highest first
     });
 
-    const sortedBySalesVolume = cardAnalysis.sort((a, b) => b.salesCount - a.salesCount);
+    // For most sold cards, show individual listings of the most frequently sold card types
+    // Group cards by title and count occurrences, then get individual listings for top groups
+    const cardGroups = {};
+    allCards.forEach(card => {
+      const cleanTitle = sanitizeTitle(card.title || '');
+      if (!cardGroups[cleanTitle]) {
+        cardGroups[cleanTitle] = [];
+      }
+      cardGroups[cleanTitle].push(card);
+    });
+    
+    // Sort groups by frequency and get individual listings from top groups
+    const sortedBySalesVolume = Object.entries(cardGroups)
+      .sort(([,a], [,b]) => b.length - a.length)
+      .slice(0, 20)
+      .flatMap(([title, cards]) => cards.slice(0, 3)) // Show up to 3 listings per card type
+      .slice(0, 20); // Limit to 20 total listings
 
     // Add EPN tracking
     const addTrackingToCards = (cards) => {
