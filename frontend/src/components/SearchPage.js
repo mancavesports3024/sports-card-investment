@@ -291,15 +291,25 @@ const SearchPage = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    const dateStr = date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
-    }) + ' ' + date.toLocaleTimeString('en-US', {
+    });
+    
+    // Only show time if it's not midnight (12:00 AM)
+    const timeStr = date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
     });
+    
+    // If time is 12:00 AM, it likely means no time was provided, so don't show it
+    if (timeStr === '12:00 AM') {
+      return dateStr;
+    }
+    
+    return dateStr + ' ' + timeStr;
   };
 
   // Helper to generate a unique key for live listings per section and query
