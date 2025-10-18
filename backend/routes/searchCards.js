@@ -2899,13 +2899,16 @@ function analyzeCardSetPerformance(cards) {
     const cardNumberMatch = title.match(/#(\d+)/i);
     const cardNumber = cardNumberMatch ? cardNumberMatch[1] : null;
     
-    // Try to extract player name (before card number or common keywords)
+    // Create a better title that preserves more information from the original
+    let displayTitle = title;
+    
+    // Try to extract player name for grouping purposes
     let playerName = 'Unknown';
     const beforeNumber = title.split(/#\d+/i)[0];
     if (beforeNumber) {
-      // Remove common card set keywords
+      // Only remove very basic card set keywords, preserve more descriptive terms
       const cleanName = beforeNumber
-        .replace(/\b(topps|bowman|panini|upper deck|fleer|donruss|score|stadium club|gallery|heritage|chrome|update|series|one|two|three|first|second|third|base|parallel|insert|rookie|rc|auto|autograph|patch|relic|numbered|limited|gold|silver|bronze|platinum|diamond|emerald|sapphire|ruby|amethyst|onyx|black|white|blue|red|green|orange|purple|pink|yellow|brown|gray|grey|tan|cream|ivory|beige|mint|nm|near mint|used|good|excellent|very good|fair|poor|graded|psa|bgs|beckett|sgc|cgc|tag|ace|hga|gma|pgs|bvg|csg|rcg|ksa|fgs|pgm|dga|isa)\b/gi, '')
+        .replace(/\b(topps|bowman|panini|upper deck|fleer|donruss|score|stadium club|gallery|heritage|chrome|update|series|one|two|three|first|second|third|base|parallel|insert|rookie|rc|auto|autograph|patch|relic|numbered|limited|mint|nm|near mint|used|good|excellent|very good|fair|poor|graded|psa|bgs|beckett|sgc|cgc|tag|ace|hga|gma|pgs|bvg|csg|rcg|ksa|fgs|pgm|dga|isa)\b/gi, '')
         .replace(/\s+/g, ' ')
         .trim();
       
@@ -2914,13 +2917,16 @@ function analyzeCardSetPerformance(cards) {
       }
     }
     
+    // For display, use the original title but clean it up
+    displayTitle = (title || '').replace(/\s*#unknown\b.*$/i, '').replace(/\s*#Unknown\b.*$/i, '').replace(/\s*#UNKNOWN\b.*$/i, '').replace(/\s+unknown\s*$/i, '').replace(/\s+Unknown\s*$/i, '').replace(/\s+UNKNOWN\s*$/i, '').replace(/\s+/g, ' ').trim();
+    
     const key = cardNumber ? `${playerName} #${cardNumber}` : playerName;
     
     if (!cardMap.has(key)) {
       cardMap.set(key, {
         playerName,
         cardNumber,
-        title: key, // Use the clean key as the title instead of the original card title
+        title: displayTitle, // Use the improved display title
         salesCount: 0,
         totalValue: 0,
         averagePrice: 0,
