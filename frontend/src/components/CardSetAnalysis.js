@@ -136,56 +136,92 @@ const CardSetAnalysis = () => {
   };
 
   const renderCardItem = (card, index) => (
-    <div key={card.id || index} style={{
-      background: '#fff',
-      border: '1px solid #e0e0e0',
-      borderRadius: 8,
-      padding: '1rem',
-      marginBottom: '0.75rem',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '1rem',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-      transition: 'transform 0.2s ease',
-      cursor: 'pointer'
-    }} onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-       onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}>
-      {card.image && (
-        <img 
-          src={card.image} 
-          alt={card.title} 
-          style={{ 
-            width: 80, 
-            height: 80, 
-            objectFit: 'cover', 
-            borderRadius: 6,
-            border: '1px solid #e0e0e0'
-          }} 
-        />
-      )}
-      <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: '0.25rem', color: '#333' }}>
-          {(() => {
-            const rawTitle = card.title || '';
-            return rawTitle
-              .replace(/\s*#unknown\b.*$/i, '')
-              .replace(/\s*#Unknown\b.*$/i, '')
-              .replace(/\s*#UNKNOWN\b.*$/i, '')
-              .replace(/\s+unknown\s*$/i, '')
-              .replace(/\s+Unknown\s*$/i, '')
-              .replace(/\s+UNKNOWN\s*$/i, '')
-              .replace(/\s+/g, ' ')
-              .trim();
-          })()}
+    <div key={card.id || index} className="card-item" style={{ 
+      background: '#fff', 
+      border: '1px solid #eee', 
+      borderRadius: 7, 
+      boxShadow: '0 1px 4px rgba(0,0,0,0.03)', 
+      padding: '0.6rem 0.6rem', 
+      minWidth: 220, 
+      maxWidth: 260, 
+      fontSize: '0.97em', 
+      marginBottom: 0 
+    }}>
+      <div className="card-details" style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '0.2rem', 
+        width: '100%', 
+        overflow: 'visible' 
+      }}>
+        <div className="custom-card-title">{(() => {
+          const rawTitle = card.title || '';
+          return rawTitle
+            .replace(/\s*#unknown\b.*$/i, '')
+            .replace(/\s*#Unknown\b.*$/i, '')
+            .replace(/\s*#UNKNOWN\b.*$/i, '')
+            .replace(/\s+unknown\s*$/i, '')
+            .replace(/\s+Unknown\s*$/i, '')
+            .replace(/\s+UNKNOWN\s*$/i, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+        })()}</div>
+        
+        {/* Price row */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'flex-start', 
+          alignItems: 'center', 
+          width: '100%' 
+        }}>
+          <div className="custom-card-price">{formatPrice(card.price)}</div>
         </div>
-        <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
-          {card.condition && <span style={{ marginRight: '1rem' }}>Condition: {card.condition}</span>}
-          {card.soldDate && <span>Sold: {formatDate(card.soldDate)}</span>}
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#000' }}>
-            {formatPrice(card.price)}
+        
+        {/* Condition */}
+        {card.condition && (
+          <div className="custom-card-sale-type">{card.condition}</div>
+        )}
+        
+        {/* Sales count for most sold cards */}
+        {card.salesCount && (
+          <div className="card-bids" style={{ 
+            fontSize: '0.85em', 
+            color: '#856404', 
+            backgroundColor: '#fff3cd', 
+            padding: '1px 4px', 
+            borderRadius: 3, 
+            border: '1px solid #ffeaa7', 
+            alignSelf: 'flex-start' 
+          }}>
+            Sales: {card.salesCount}
           </div>
+        )}
+        
+        {/* Average price for most sold cards */}
+        {card.averagePrice && (
+          <div style={{ fontSize: '0.85em', color: '#666' }}>
+            Avg: {formatPrice({ value: card.averagePrice, currency: 'USD' })}
+          </div>
+        )}
+        
+        {/* Sold date */}
+        {card.soldDate && (
+          <div className="custom-card-date">Sold: {formatDate(card.soldDate)}</div>
+        )}
+        
+        {/* Item number, extract from itemWebUrl if possible */}
+        {card.itemWebUrl && (() => {
+          const match = card.itemWebUrl.match(/\/itm\/(\d{6,})|\/(\d{6,})(?:\?.*)?$/);
+          const itemNum = match ? (match[1] || match[2]) : null;
+          return itemNum ? (
+            <div className="custom-card-item-number">
+              Item: {itemNum}
+            </div>
+          ) : null;
+        })()}
+        
+        {/* eBay link */}
+        {card.itemWebUrl && (
           <a 
             href={card.itemWebUrl} 
             target="_blank" 
@@ -194,80 +230,96 @@ const CardSetAnalysis = () => {
               background: '#ffd700',
               color: '#000',
               fontWeight: 600,
-              padding: '0.5rem 1rem',
-              borderRadius: 6,
+              padding: '0.4rem 0.8rem',
+              borderRadius: 4,
               textDecoration: 'none',
-              border: '2px solid #000',
-              fontSize: '0.9rem'
+              border: '1px solid #000',
+              fontSize: '0.85rem',
+              textAlign: 'center',
+              marginTop: '0.2rem'
             }}
           >
             View on eBay
           </a>
-        </div>
+        )}
       </div>
     </div>
   );
 
   const renderSalesVolumeCard = (card, index) => (
-    <div key={`${card.playerName}-${card.cardNumber}-${index}`} style={{
-      background: '#fff',
-      border: '1px solid #e0e0e0',
-      borderRadius: 8,
-      padding: '1rem',
-      marginBottom: '0.75rem',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+    <div key={`${card.playerName}-${card.cardNumber}-${index}`} className="card-item" style={{ 
+      background: '#fff', 
+      border: '1px solid #eee', 
+      borderRadius: 7, 
+      boxShadow: '0 1px 4px rgba(0,0,0,0.03)', 
+      padding: '0.6rem 0.6rem', 
+      minWidth: 220, 
+      maxWidth: 260, 
+      fontSize: '0.97em', 
+      marginBottom: 0 
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#333', marginBottom: '0.25rem' }}>
-            {card.playerName} #{card.cardNumber}
-          </div>
-          <div style={{ fontSize: '0.9rem', color: '#666' }}>
-            {card.title}
-          </div>
+      <div className="card-details" style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '0.2rem', 
+        width: '100%', 
+        overflow: 'visible' 
+      }}>
+        <div className="custom-card-title">{card.title}</div>
+        
+        {/* Sales count */}
+        <div className="card-bids" style={{ 
+          fontSize: '0.85em', 
+          color: '#856404', 
+          backgroundColor: '#fff3cd', 
+          padding: '1px 4px', 
+          borderRadius: 3, 
+          border: '1px solid #ffeaa7', 
+          alignSelf: 'flex-start' 
+        }}>
+          Sales: {card.salesCount}
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontWeight: 700, fontSize: '1.2rem', color: '#000' }}>
-            {card.salesCount} sales
-          </div>
-          <div style={{ fontSize: '0.9rem', color: '#666' }}>
-            Avg: {formatPrice({ value: card.averagePrice })}
-          </div>
+        
+        {/* Average price */}
+        <div style={{ fontSize: '0.85em', color: '#666' }}>
+          Avg: {formatPrice({ value: card.averagePrice, currency: 'USD' })}
         </div>
+        
+        {/* Highest price */}
+        <div className="custom-card-price">
+          High: {formatPrice({ value: card.highestPrice, currency: 'USD' })}
+        </div>
+        
+        {/* Recent sale info */}
+        {card.recentSales?.[0] && (
+          <div className="custom-card-date">
+            Latest: {formatDate(card.recentSales[0].soldDate)}
+          </div>
+        )}
+        
+        {/* eBay link */}
+        {card.recentSales?.[0]?.itemWebUrl && (
+          <a 
+            href={card.recentSales[0].itemWebUrl} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{
+              background: '#ffd700',
+              color: '#000',
+              fontWeight: 600,
+              padding: '0.4rem 0.8rem',
+              borderRadius: 4,
+              textDecoration: 'none',
+              border: '1px solid #000',
+              fontSize: '0.85rem',
+              textAlign: 'center',
+              marginTop: '0.2rem'
+            }}
+          >
+            View on eBay
+          </a>
+        )}
       </div>
-      
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-        <div style={{ fontSize: '0.9rem', color: '#666' }}>
-          <div>High: {formatPrice({ value: card.highestPrice })}</div>
-          <div>Low: {formatPrice({ value: card.lowestPrice })}</div>
-        </div>
-        <div style={{ fontSize: '0.9rem', color: '#666' }}>
-          <div>Total: {formatPrice({ value: card.totalValue })}</div>
-        </div>
-      </div>
-
-      {card.recentSales.length > 0 && (
-        <div style={{ marginTop: '0.75rem' }}>
-          <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.5rem', color: '#333' }}>
-            Recent Sales:
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {card.recentSales.slice(0, 3).map((sale, saleIndex) => (
-              <div key={saleIndex} style={{
-                background: '#f8f9fa',
-                padding: '0.5rem',
-                borderRadius: 4,
-                fontSize: '0.8rem',
-                border: '1px solid #e9ecef'
-              }}>
-                <div style={{ fontWeight: 600 }}>{formatPrice({ value: sale.price })}</div>
-                <div style={{ color: '#666' }}>{formatDate(sale.soldDate)}</div>
-                {sale.condition && <div style={{ color: '#666' }}>{sale.condition}</div>}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 
@@ -603,7 +655,14 @@ const CardSetAnalysis = () => {
                   💎 Top 20 Highest Value Cards
                 </h3>
                 {results.topCardsByValue?.length > 0 ? (
-                  results.topCardsByValue.map((card, index) => renderCardItem(card, index))
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', 
+                    gap: '0.7rem', 
+                    gridAutoFlow: 'row' 
+                  }}>
+                    {results.topCardsByValue.map((card, index) => renderCardItem(card, index))}
+                  </div>
                 ) : (
                   <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
                     No high-value cards found for this set.
@@ -618,7 +677,14 @@ const CardSetAnalysis = () => {
                   📈 Top 20 Most Sold Cards
                 </h3>
                 {results.topCardsBySalesVolume?.length > 0 ? (
-                  results.topCardsBySalesVolume.map((card, index) => renderSalesVolumeCard(card, index))
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', 
+                    gap: '0.7rem', 
+                    gridAutoFlow: 'row' 
+                  }}>
+                    {results.topCardsBySalesVolume.map((card, index) => renderSalesVolumeCard(card, index))}
+                  </div>
                 ) : (
                   <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
                     No sales volume data found for this set.
