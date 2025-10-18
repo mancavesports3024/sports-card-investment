@@ -631,17 +631,16 @@ class EbayScraperService {
                     }
                 }
                 
-                // Additional filter for promotional content and Pokémon cards
+                // Additional filter for promotional content and "Choose Your Card" items
                 if (title && (
                     /Shop on eBay/i.test(title) ||
                     /Brand New.*\$?\d+/i.test(title) ||
                     /^Shop on eBay/i.test(title) ||
                     title.includes('Shop on eBay') ||
                     (title.length < 20 && /Shop|eBay|Brand/i.test(title)) ||
-                    /pokémon|pokemon|poké|poke/i.test(title) ||
-                    /scarlet.*violet|151.*choose|ex.*holo.*full art/i.test(title)
+                    /choose your card/i.test(title)
                 )) {
-                    console.log(`⚠️ Skipping promotional content or Pokémon card: "${title}"`);
+                    console.log(`⚠️ Skipping promotional content or "Choose Your Card" item: "${title}"`);
                     skippedCount++;
                     return;
                 }
