@@ -389,13 +389,16 @@ class EbayScraperService {
                 console.log(`✅ Direct HTTP request successful (${response.data.length} characters), parsing HTML...`);
                 // Reduced logging - HTML parsing successful
                 
-                // Exclude the section after "Results matching fewer words"
+                // For card set analysis, don't truncate HTML to get more results
                 let htmlToParse = response.data;
                 const cutoffMarker = 'Results matching fewer words';
                 const cutoffIndex = htmlToParse.indexOf(cutoffMarker);
-                if (cutoffIndex !== -1) {
+                if (cutoffIndex !== -1 && maxResults <= 200) {
+                    // Only truncate for smaller searches to maintain quality
                     htmlToParse = htmlToParse.slice(0, cutoffIndex);
                     console.log('✂️ Truncated HTML at "Results matching fewer words" section to avoid looser matches');
+                } else if (cutoffIndex !== -1) {
+                    console.log('📈 Large search requested - keeping all results including looser matches');
                 }
                 
                 const results = this.parseHtmlForCards(htmlToParse, maxResults, searchTerm, sport, expectedGrade, false, originalIsAutograph, targetPrintRun);

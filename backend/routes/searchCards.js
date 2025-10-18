@@ -2722,7 +2722,7 @@ router.get('/card-set-analysis', async (req, res) => {
     
     const EbayScraperService = require('../services/ebayScraperService');
     const ebayScraper = new EbayScraperService();
-    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, parseInt(limit) || 500, null, null, null, null, null, true);
+    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, parseInt(limit) || 2000, null, null, null, null, null, true);
     
     let allCards = [];
     if (scraperResult.success && scraperResult.results) {
