@@ -247,7 +247,7 @@ const CardSetAnalysis = () => {
   );
 
   const renderSalesVolumeCard = (card, index) => (
-    <div key={`${card.id || card.title}-${index}`} className="card-item" style={{ 
+    <div key={`${card.playerName}-${card.cardNumber}-${index}`} className="card-item" style={{ 
       background: '#fff', 
       border: '1px solid #eee', 
       borderRadius: 7, 
@@ -265,74 +265,42 @@ const CardSetAnalysis = () => {
         width: '100%', 
         overflow: 'visible' 
       }}>
-        <div className="custom-card-title">{(() => {
-          const rawTitle = card.title || '';
-          return rawTitle
-            .replace(/\s*#unknown\b.*$/i, '')
-            .replace(/\s*#Unknown\b.*$/i, '')
-            .replace(/\s*#UNKNOWN\b.*$/i, '')
-            .replace(/\s+unknown\s*$/i, '')
-            .replace(/\s+Unknown\s*$/i, '')
-            .replace(/\s+UNKNOWN\s*$/i, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-        })()}</div>
+        <div className="custom-card-title">{card.title}</div>
         
-        {/* Price row */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'flex-start', 
-          alignItems: 'center', 
-          width: '100%' 
+        {/* Sales count */}
+        <div className="card-bids" style={{ 
+          fontSize: '0.85em', 
+          color: '#856404', 
+          backgroundColor: '#fff3cd', 
+          padding: '1px 4px', 
+          borderRadius: 3, 
+          border: '1px solid #ffeaa7', 
+          alignSelf: 'flex-start' 
         }}>
-          <div className="custom-card-price">{formatPrice(card.price)}</div>
+          Sales: {card.salesCount}
         </div>
         
-        {/* Condition */}
-        {card.condition && (
-          <div className="custom-card-sale-type">{card.condition}</div>
-        )}
+        {/* Average price */}
+        <div style={{ fontSize: '0.85em', color: '#666' }}>
+          Avg: {formatPrice({ value: card.averagePrice, currency: 'USD' })}
+        </div>
         
-        {/* Bid count */}
-        {card.numBids && (
-          <div className="card-bids" style={{ 
-            fontSize: '0.85em', 
-            color: '#856404', 
-            backgroundColor: '#fff3cd', 
-            padding: '1px 4px', 
-            borderRadius: 3, 
-            border: '1px solid #ffeaa7', 
-            alignSelf: 'flex-start' 
-          }}>
-            Bids: {card.numBids}
+        {/* Highest price */}
+        <div className="custom-card-price">
+          High: {formatPrice({ value: card.highestPrice, currency: 'USD' })}
+        </div>
+        
+        {/* Recent sale info */}
+        {card.recentSales?.[0] && (
+          <div className="custom-card-date">
+            Latest: {formatDate(card.recentSales[0].soldDate)}
           </div>
         )}
         
-        {/* Sold date */}
-        {card.soldDate && (
-          <div className="custom-card-date">Sold: {formatDate(card.soldDate)}</div>
-        )}
-        
-        {/* Seller */}
-        {card.seller && card.seller !== '130point' && (
-          <div style={{ fontSize: '0.85em', color: '#666' }}>Via: {card.seller}</div>
-        )}
-        
-        {/* Item number */}
-        {card.itemWebUrl && (() => {
-          const match = card.itemWebUrl.match(/\/itm\/(\d{6,})|\/(\d{6,})(?:\?.*)?$/);
-          const itemNum = match ? (match[1] || match[2]) : null;
-          return itemNum ? (
-            <div className="custom-card-item-number">
-              Item: {itemNum}
-            </div>
-          ) : null;
-        })()}
-        
         {/* eBay link */}
-        {card.itemWebUrl && (
+        {card.recentSales?.[0]?.itemWebUrl && (
           <a 
-            href={card.itemWebUrl} 
+            href={card.recentSales[0].itemWebUrl} 
             target="_blank" 
             rel="noopener noreferrer"
             style={{
