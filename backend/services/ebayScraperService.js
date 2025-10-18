@@ -254,7 +254,7 @@ class EbayScraperService {
     }
     
 
-    buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = null, cardType = null, season = null) {
+    buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = null, cardType = null, season = null, page = 1) {
         // Clean and encode the search term (preserve negative keywords properly)
         const cleanTerm = searchTerm.replace(/[^\w\s\-\+]/g, ' ').replace(/\s+/g, '+');
         
@@ -268,7 +268,7 @@ class EbayScraperService {
         // Standard sports cards (non-Pokemon) — no grade filters; centralized price range
         // Add cache buster to reduce bot-detection correlation
         const rnd = Math.floor(Math.random() * 1e9);
-        let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1&rt=nc&_dcat=261328&_udlo=11&_udhi=3000&_rnd=${rnd}&_sop=12&_pgn=1`;
+        let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1&rt=nc&_dcat=261328&_udlo=11&_udhi=3000&_rnd=${rnd}&_sop=12&_pgn=${page}`;
         if (season) {
             searchUrl += `&Season=${encodeURIComponent(season)}`;
         }
@@ -308,13 +308,67 @@ class EbayScraperService {
             // Warm up session first
             await this.warmUpSession();
             
-            let searchUrl = this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph, cardType, season);
-            console.log(`🔍 eBay search: "${searchTerm}" (maxResults: ${maxResults})`);
-            console.log(`🔍 Search URL: ${searchUrl}`);
+            // Calculate how many pages we need to fetch
+            const itemsPerPage = 50; // eBay typically shows 50 items per page
+            const pagesNeeded = Math.ceil(maxResults / itemsPerPage);
+            console.log(`🔍 eBay search: "${searchTerm}" (maxResults: ${maxResults}, pages: ${pagesNeeded})`);
             
-            // Log built URL for debugging
-            console.log(`🎯 Built Search URL: ${searchUrl}`);
+            let allResults = [];
             
+            // Fetch multiple pages if needed
+            for (let page = 1; page <= pagesNeeded && allResults.length < maxResults; page++) {
+                let searchUrl = this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph, cardType, season, page);
+                console.log(`🔍 Fetching page ${page}: ${searchUrl}`);
+                
+                const pageResults = await this.fetchPageResults(searchUrl, maxResults - allResults.length, searchTerm, sport, expectedGrade, originalIsAutograph, targetPrintRun);
+                
+                if (pageResults && pageResults.length > 0) {
+                    allResults = allResults.concat(pageResults);
+                    console.log(`📄 Page ${page}: Found ${pageResults.length} items (Total: ${allResults.length})`);
+                } else {
+                    console.log(`📄 Page ${page}: No more results found, stopping pagination`);
+                    break;
+                }
+                
+                // Add delay between pages to avoid rate limiting
+                if (page < pagesNeeded) {
+                    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+                }
+            }
+            
+            if (allResults.length > 0) {
+                console.log(`✅ Found ${allResults.length} total cards across ${pagesNeeded} pages`);
+                const result = {
+                    success: true,
+                    results: allResults,
+                    method: 'pagination',
+                    searchUrl: this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph, cardType, season)
+                };
+                // Cache the successful result
+                await this.setCachedResult(cacheKey, result);
+                return result;
+            }
+            
+            return {
+                success: false,
+                results: [],
+                method: 'pagination_failed',
+                searchUrl: this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph, cardType, season)
+            };
+
+        } catch (error) {
+            console.error('Error in searchSoldCards:', error.message);
+            return {
+                success: false,
+                results: [],
+                error: error.message,
+                searchUrl: searchUrl || 'unknown'
+            };
+        }
+    }
+    
+    async fetchPageResults(searchUrl, maxResults, searchTerm, sport, expectedGrade, originalIsAutograph, targetPrintRun) {
+        try {
             // Enhanced headers for better bot detection evasion
             const requestConfig = {
                 headers: {
@@ -327,7 +381,6 @@ class EbayScraperService {
                     'Upgrade-Insecure-Requests': '1',
                     'Cache-Control': 'max-age=0',
                     'Referer': 'https://www.ebay.com/',
-                    // Trim client hints to reduce fingerprint surface
                 },
                 timeout: 30000,
                 responseType: 'text',
@@ -385,9 +438,8 @@ class EbayScraperService {
                 }
             }
 
-            if (response.data) {
+            if (response && response.data) {
                 console.log(`✅ Direct HTTP request successful (${response.data.length} characters), parsing HTML...`);
-                // Reduced logging - HTML parsing successful
                 
                 // For card set analysis, don't truncate HTML to get more results
                 let htmlToParse = response.data;
@@ -405,15 +457,7 @@ class EbayScraperService {
                 
                 if (results.length > 0) {
                     console.log(`✅ Found ${results.length} cards via direct HTTP request`);
-                    const result = {
-                        success: true,
-                        results: results,
-                        method: 'direct_http',
-                        searchUrl
-                    };
-                    // Cache the successful result
-                    await this.setCachedResult(cacheKey, result);
-                    return result;
+                    return results;
                 }
             }
 
@@ -423,32 +467,14 @@ class EbayScraperService {
             
             if (browserResults && browserResults.length > 0) {
                 console.log(`✅ Found ${browserResults.length} cards via browser fallback`);
-                const result = {
-                    success: true,
-                    results: browserResults,
-                    method: 'browser_fallback',
-                    searchUrl
-                };
-                // Cache the successful result
-                await this.setCachedResult(cacheKey, result);
-                return result;
+                return browserResults;
             }
 
-            return {
-                success: false,
-                results: [],
-                method: 'all_methods_failed',
-                searchUrl
-            };
+            return [];
 
         } catch (error) {
-            console.error('Error in searchSoldCards:', error.message);
-            return {
-                success: false,
-                results: [],
-                error: error.message,
-                searchUrl: searchUrl || 'unknown'
-            };
+            console.error('Error in fetchPageResults:', error.message);
+            return [];
         }
     }
 
