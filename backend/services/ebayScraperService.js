@@ -255,8 +255,19 @@ class EbayScraperService {
     
 
     buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = null, cardType = null, season = null, page = 1) {
+        // Process negative keywords (exclusions) properly for eBay
+        let processedTerm = searchTerm;
+        
+        // Handle negative keywords in parentheses: -(word1, word2) -> -word1 -word2
+        const negativeMatch = processedTerm.match(/\(([^)]+)\)/);
+        if (negativeMatch) {
+            const negativeWords = negativeMatch[1].split(/[,\s]+/).filter(word => word.length > 0);
+            const negativeString = negativeWords.map(word => `-${word.trim()}`).join(' ');
+            processedTerm = processedTerm.replace(/\([^)]+\)/, negativeString);
+        }
+        
         // Clean and encode the search term (preserve more characters for better matching)
-        const cleanTerm = searchTerm
+        const cleanTerm = processedTerm
             .replace(/[^\w\s\-\+\(\)\/]/g, ' ') // Keep parentheses and slashes
             .replace(/\s+/g, '+')
             .trim();
