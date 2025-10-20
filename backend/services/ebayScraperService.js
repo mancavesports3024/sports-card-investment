@@ -245,8 +245,8 @@ class EbayScraperService {
             this.warmedUp = true;
             console.log('✅ Session warmed up successfully');
             
-            // Small delay to appear more human
-            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+            // Minimal delay to appear more human
+            await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 700));
             
         } catch (error) {
             console.log('⚠️ Warm-up failed, continuing anyway:', error.message);
@@ -330,9 +330,9 @@ class EbayScraperService {
                     break;
                 }
                 
-                // Add delay between pages to avoid rate limiting
+                // Add minimal delay between pages to avoid rate limiting
                 if (page < pagesNeeded) {
-                    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+                    await new Promise(resolve => setTimeout(resolve, 200 + Math.random() * 500));
                 }
             }
             
@@ -382,7 +382,7 @@ class EbayScraperService {
                     'Cache-Control': 'max-age=0',
                     'Referer': 'https://www.ebay.com/',
                 },
-                timeout: 30000,
+                timeout: 15000, // Reduced for faster failures
                 responseType: 'text',
                 decompress: true
             };
@@ -397,9 +397,9 @@ class EbayScraperService {
                     // Rotate User-Agent each attempt
                     requestConfig.headers['User-Agent'] = this.getRandomUserAgent();
                     
-                    // Add random delay between attempts
+                    // Add minimal delay between attempts
                     if (attempt > 1) {
-                        const delay = 2000 + Math.random() * 3000; // 2-5 seconds
+                        const delay = 1000 + Math.random() * 1500; // 1-2.5 seconds
                         console.log(`⏳ Waiting ${Math.round(delay)}ms before retry...`);
                         await new Promise(resolve => setTimeout(resolve, delay));
                     }
