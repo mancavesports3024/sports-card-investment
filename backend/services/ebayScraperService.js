@@ -255,8 +255,11 @@ class EbayScraperService {
     
 
     buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = null, cardType = null, season = null, page = 1) {
-        // Clean and encode the search term (preserve negative keywords properly)
-        const cleanTerm = searchTerm.replace(/[^\w\s\-\+]/g, ' ').replace(/\s+/g, '+');
+        // Clean and encode the search term (preserve more characters for better matching)
+        const cleanTerm = searchTerm
+            .replace(/[^\w\s\-\+\(\)\/]/g, ' ') // Keep parentheses and slashes
+            .replace(/\s+/g, '+')
+            .trim();
         
         // Pokemon TCG cards use different category and structure with BLANK search term
         if (cardType && cardType.toLowerCase().includes('pokemon tcg')) {
