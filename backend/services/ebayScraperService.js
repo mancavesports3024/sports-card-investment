@@ -790,38 +790,52 @@ class EbayScraperService {
                 let saleType = null;
                 let numBids = null;
                 
-                // Look for sale type indicators
+                // Look for sale type indicators - check multiple areas
                 const saleTypeSelectors = [
                     '.s-item__detail--primary',
                     '.s-item__details',
                     '.s-item__subtitle',
                     '.s-item__info',
-                    '.s-item__caption'
+                    '.s-item__caption',
+                    '.s-item__price',
+                    '.s-item__shipping'
                 ];
                 
+                // First, look for bid information (auctions)
                 for (const selector of saleTypeSelectors) {
-                    const saleEl = $item.find(selector).first();
+                    const saleEl = $item.find(selector);
                     if (saleEl.length > 0) {
                         const saleText = saleEl.text().trim();
-                        
-                        // Check for "Buy It Now" indicators
-                        if (saleText.includes('Buy It Now') || saleText.includes('BIN')) {
-                            saleType = 'Buy It Now';
-                            break;
-                        }
                         
                         // Check for auction indicators and extract bid count
                         const bidMatch = saleText.match(/(\d+)\s*bid/i);
                         if (bidMatch) {
                             saleType = 'Auction';
                             numBids = parseInt(bidMatch[1]);
+                            console.log(`🎯 Found auction with ${numBids} bids`);
                             break;
                         }
-                        
-                        // Check for "Best Offer" indicators
-                        if (saleText.includes('Best Offer') || saleText.includes('OBO')) {
-                            saleType = 'Best Offer';
-                            break;
+                    }
+                }
+                
+                // If no auction found, look for other sale types
+                if (!saleType) {
+                    for (const selector of saleTypeSelectors) {
+                        const saleEl = $item.find(selector).first();
+                        if (saleEl.length > 0) {
+                            const saleText = saleEl.text().trim();
+                            
+                            // Check for "Buy It Now" indicators
+                            if (saleText.includes('Buy It Now') || saleText.includes('BIN')) {
+                                saleType = 'Buy It Now';
+                                break;
+                            }
+                            
+                            // Check for "Best Offer" indicators
+                            if (saleText.includes('Best Offer') || saleText.includes('OBO')) {
+                                saleType = 'Best Offer';
+                                break;
+                            }
                         }
                     }
                 }
