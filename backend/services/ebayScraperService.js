@@ -748,17 +748,39 @@ class EbayScraperService {
                     const shippingEl = $item.find(selector).first();
                     if (shippingEl.length > 0) {
                         const shippingText = shippingEl.text().trim();
-                        // Look for shipping cost patterns like "$4.99 shipping", "Free shipping", etc.
-                        const shippingMatch = shippingText.match(/(?:shipping|Shipping)[\s:]*(\$?[\d,]+\.?\d*|Free|free)/i);
-                        if (shippingMatch) {
-                            const cost = shippingMatch[1].toLowerCase();
-                            if (cost === 'free' || cost === '0') {
-                                shippingCost = 'Free';
-                            } else {
-                                shippingCost = cost.startsWith('$') ? cost : `$${cost}`;
+                        
+                        // Look for various shipping cost patterns
+                        const patterns = [
+                            // Standard patterns: "$4.99 shipping", "Free shipping"
+                            /(?:shipping|Shipping)[\s:]*(\$?[\d,]+\.?\d*|Free|free)/i,
+                            // Direct cost patterns: "$4.99", "Free"
+                            /(\$[\d,]+\.?\d*|Free|free)/i,
+                            // "Free shipping" variations
+                            /(Free\s+shipping|free\s+shipping)/i,
+                            // "Shipping included" or similar
+                            /(shipping\s+included|included\s+shipping)/i
+                        ];
+                        
+                        for (const pattern of patterns) {
+                            const shippingMatch = shippingText.match(pattern);
+                            if (shippingMatch) {
+                                let cost = shippingMatch[1] || shippingMatch[0];
+                                cost = cost.toLowerCase().trim();
+                                
+                                if (cost === 'free' || cost === '0' || cost.includes('free') || cost.includes('included')) {
+                                    shippingCost = 'Free';
+                                } else if (cost.includes('$')) {
+                                    shippingCost = cost;
+                                } else if (/^\d+\.?\d*$/.test(cost)) {
+                                    shippingCost = `$${cost}`;
+                                } else {
+                                    shippingCost = cost;
+                                }
+                                break;
                             }
-                            break;
                         }
+                        
+                        if (shippingCost) break;
                     }
                 }
                 
