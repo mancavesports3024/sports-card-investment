@@ -9,6 +9,35 @@ const { getEbayApiUsage } = require('../services/ebayService');
 const getCardBaseService = require('../services/getCardBaseService');
 const fs = require('fs').promises;
 const path = require('path');
+const jwt = require('jsonwebtoken');
+
+// Middleware to require JWT authentication
+const requireUser = (req, res, next) => {
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      error: 'Invalid or expired token',
+      searches: [],
+      count: 0
+    });
+  }
+
+  const token = auth.substring(7); // Remove 'Bearer ' prefix
+  
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev_secret');
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      error: 'Invalid or expired token',
+      searches: [],
+      count: 0
+    });
+  }
+};
 
 // Initialize 130point service - DISABLED
 // const point130Service = new OnePointService();
@@ -1130,7 +1159,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/search-cards (for production use)
-router.post('/', async (req, res) => {
+router.post('/', requireUser, async (req, res) => {
   const { searchQuery, numSales = 200 } = req.body;
   console.log(`>>> POST /api/search-cards endpoint hit at ${new Date().toISOString()} with searchQuery: "${searchQuery}"`);
   
@@ -1396,15 +1425,17 @@ router.post('/', async (req, res) => {
     // Save the search to history only if there are results
     if (allCards.length > 0) {
       try {
-        // Use the new Redis-based function with a default user
-        // In a real app, you'd get the user from req.user or session
-        const defaultUser = { id: 'default', email: 'default@example.com' };
-        await searchHistoryService.addSearchForUser(defaultUser, {
-          searchQuery,
-          results: sorted,
-          priceAnalysis: sorted.priceAnalysis
-        });
-        console.log(`💾 Saved search: "${searchQuery}" (${allCards.length} cards found)`);
+        // Use the authenticated user if available, otherwise skip saving
+        if (req.user && req.user.id) {
+          await searchHistoryService.addSearchForUser(req.user, {
+            searchQuery,
+            results: sorted,
+            priceAnalysis: sorted.priceAnalysis
+          });
+          console.log(`💾 Saved search for user ${req.user.email}: "${searchQuery}" (${allCards.length} cards found)`);
+        } else {
+          console.log(`⚠️ No authenticated user - skipping search history save for: "${searchQuery}"`);
+        }
       } catch (error) {
         console.log('⚠️ Failed to save search to history:', error.message);
         // Don't fail the request if saving history fails
