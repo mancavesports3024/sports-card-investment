@@ -324,13 +324,14 @@ async function initializeServer() {
       await client.connect();
       console.log('✅ Connected to Redis');
       
-      // Get all keys that match the old default user pattern
-      const defaultUserKeys = await client.keys('search:default:*');
-      console.log(`📋 Found ${defaultUserKeys.length} searches under 'default' user`);
+      // Get all keys that match your old user ID pattern
+      const oldUserId = '105566836389394966720';
+      const oldUserKeys = await client.keys(`search:${oldUserId}:*`);
+      console.log(`📋 Found ${oldUserKeys.length} searches under old user ID: ${oldUserId}`);
       
-      if (defaultUserKeys.length === 0) {
+      if (oldUserKeys.length === 0) {
         await client.disconnect();
-        return res.json({ success: true, message: 'No searches found under default user', migrated: 0 });
+        return res.json({ success: true, message: 'No searches found under old user ID', migrated: 0 });
       }
       
       // Get your actual user ID
@@ -341,7 +342,7 @@ async function initializeServer() {
       
       let migratedCount = 0;
       
-      for (const key of defaultUserKeys) {
+      for (const key of oldUserKeys) {
         try {
           // Get the search data
           const searchData = await client.get(key);
@@ -350,7 +351,7 @@ async function initializeServer() {
           const search = JSON.parse(searchData);
           
           // Create new key for your user
-          const newKey = key.replace('search:default:', `search:${yourUserId}:`);
+          const newKey = key.replace(`search:${oldUserId}:`, `search:${yourUserId}:`);
           
           // Save under your user ID
           await client.setEx(newKey, 30 * 24 * 60 * 60, searchData);
@@ -374,13 +375,13 @@ async function initializeServer() {
         }
       }
       
-      // Clean up old default user searches
+      // Clean up old user searches
       if (migratedCount > 0) {
-        console.log('🧹 Cleaning up old default user searches...');
-        for (const key of defaultUserKeys) {
+        console.log('🧹 Cleaning up old user searches...');
+        for (const key of oldUserKeys) {
           await client.del(key);
         }
-        await client.del('search_history:default');
+        await client.del(`search_history:${oldUserId}`);
         console.log('✅ Cleanup completed');
       }
       
