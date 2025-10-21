@@ -349,9 +349,11 @@ class EbayScraperService {
                     break;
                 }
                 
-                // Add minimal delay between pages to avoid rate limiting
+                // Add delay between pages to avoid verification pages
                 if (page < pagesNeeded) {
-                    await new Promise(resolve => setTimeout(resolve, 200 + Math.random() * 500));
+                    const pageDelay = 1000 + Math.random() * 1000; // 1-2 seconds
+                    console.log(`⏳ Waiting ${Math.round(pageDelay)}ms before next page...`);
+                    await new Promise(resolve => setTimeout(resolve, pageDelay));
                 }
             }
             
@@ -418,7 +420,7 @@ class EbayScraperService {
                     
                     // Add minimal delay between attempts
                     if (attempt > 1) {
-                        const delay = 1000 + Math.random() * 1500; // 1-2.5 seconds
+                        const delay = 3000 + Math.random() * 2000; // 3-5 seconds
                         console.log(`⏳ Waiting ${Math.round(delay)}ms before retry...`);
                         await new Promise(resolve => setTimeout(resolve, delay));
                     }
