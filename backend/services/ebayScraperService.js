@@ -283,6 +283,11 @@ class EbayScraperService {
         // Add cache buster to reduce bot-detection correlation
         const rnd = Math.floor(Math.random() * 1e9);
         let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1&rt=nc&_dcat=261328&_udlo=11&_udhi=3000&_rnd=${rnd}&_sop=12&_pgn=${page}`;
+        
+        // For Pokemon-related searches, try broader category
+        if (cleanTerm.toLowerCase().includes('pokemon') || cleanTerm.toLowerCase().includes('charmeleon') || cleanTerm.toLowerCase().includes('charizard')) {
+            searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1&rt=nc&_dcat=183454&_udlo=11&_udhi=3000&_rnd=${rnd}&_sop=12&_pgn=${page}`;
+        }
         if (season) {
             searchUrl += `&Season=${encodeURIComponent(season)}`;
         }
