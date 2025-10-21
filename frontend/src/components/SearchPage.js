@@ -183,11 +183,21 @@ const SearchPage = () => {
 
     try {
       console.log('📡 Making API request to:', config.getSearchCardsUrl());
+      
+      // Prepare headers with authentication if available
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add authentication token if user is logged in
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch(config.getSearchCardsUrl(), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           searchQuery: combinedQuery,
           numSales: 25
