@@ -599,6 +599,11 @@ const SearchPage = () => {
                     <div className="card-bids" style={{ fontSize: '0.85em', color: '#856404', backgroundColor: '#fff3cd', padding: '1px 4px', borderRadius: 3, border: '1px solid #ffeaa7', alignSelf: 'flex-start' }}>Bids: {card.numBids}</div>
                   )}
                   <div className="custom-card-date">Sold: {formatDate(card.soldDate)}</div>
+                  {card.shippingCost && (
+                    <div style={{ fontSize: '0.85em', color: '#666' }}>
+                      Shipping: {card.shippingCost}
+                    </div>
+                  )}
                   {card.seller && card.seller !== '130point' && (
                     <div className="card-seller" style={{ fontSize: '0.85em', color: '#666' }}>Via: {card.seller}</div>
                   )}

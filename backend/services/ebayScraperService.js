@@ -728,6 +728,35 @@ class EbayScraperService {
                     '.s-item__info'
                 ];
                 
+                // Extract shipping cost
+                let shippingCost = null;
+                const shippingSelectors = [
+                    '.s-item__shipping',
+                    '.s-item__detail--secondary .s-item__shipping',
+                    '.s-item__details .s-item__shipping',
+                    '.s-item__shipping .s-item__shippingCost',
+                    '.s-item__shippingCost',
+                    '.s-item__detail--secondary'
+                ];
+                
+                for (const selector of shippingSelectors) {
+                    const shippingEl = $item.find(selector).first();
+                    if (shippingEl.length > 0) {
+                        const shippingText = shippingEl.text().trim();
+                        // Look for shipping cost patterns like "$4.99 shipping", "Free shipping", etc.
+                        const shippingMatch = shippingText.match(/(?:shipping|Shipping)[\s:]*(\$?[\d,]+\.?\d*|Free|free)/i);
+                        if (shippingMatch) {
+                            const cost = shippingMatch[1].toLowerCase();
+                            if (cost === 'free' || cost === '0') {
+                                shippingCost = 'Free';
+                            } else {
+                                shippingCost = cost.startsWith('$') ? cost : `$${cost}`;
+                            }
+                            break;
+                        }
+                    }
+                }
+                
                 for (const selector of soldDateSelectors) {
                     const soldDateEl = $item.find(selector).first();
                     if (soldDateEl.length > 0) {
@@ -791,7 +820,8 @@ class EbayScraperService {
                     grade: expectedGrade || grade,
                     soldDate: soldDate,
                     ebayItemId: itemId,
-                    autoConfidence: autoConfidence
+                    autoConfidence: autoConfidence,
+                    shippingCost: shippingCost
                 });
                 
                 processedCount++;
