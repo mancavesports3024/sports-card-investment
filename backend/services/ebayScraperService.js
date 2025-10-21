@@ -762,6 +762,64 @@ class EbayScraperService {
                     }
                 }
                 
+                // Extract sale type and bid information
+                let saleType = null;
+                let numBids = null;
+                
+                // Look for sale type indicators
+                const saleTypeSelectors = [
+                    '.s-item__detail--primary',
+                    '.s-item__details',
+                    '.s-item__subtitle',
+                    '.s-item__info',
+                    '.s-item__caption'
+                ];
+                
+                for (const selector of saleTypeSelectors) {
+                    const saleEl = $item.find(selector).first();
+                    if (saleEl.length > 0) {
+                        const saleText = saleEl.text().trim();
+                        
+                        // Check for "Buy It Now" indicators
+                        if (saleText.includes('Buy It Now') || saleText.includes('BIN')) {
+                            saleType = 'Buy It Now';
+                            break;
+                        }
+                        
+                        // Check for auction indicators and extract bid count
+                        const bidMatch = saleText.match(/(\d+)\s*bid/i);
+                        if (bidMatch) {
+                            saleType = 'Auction';
+                            numBids = parseInt(bidMatch[1]);
+                            break;
+                        }
+                        
+                        // Check for "Best Offer" indicators
+                        if (saleText.includes('Best Offer') || saleText.includes('OBO')) {
+                            saleType = 'Best Offer';
+                            break;
+                        }
+                    }
+                }
+                
+                // If no sale type found, try to infer from item structure
+                if (!saleType) {
+                    // Look for bid-related elements
+                    const bidElements = $item.find('[class*="bid"], [class*="auction"]');
+                    if (bidElements.length > 0) {
+                        saleType = 'Auction';
+                        // Try to extract bid count from bid elements
+                        const bidText = bidElements.text();
+                        const bidMatch = bidText.match(/(\d+)\s*bid/i);
+                        if (bidMatch) {
+                            numBids = parseInt(bidMatch[1]);
+                        }
+                    } else {
+                        // Default to Buy It Now for sold items
+                        saleType = 'Buy It Now';
+                    }
+                }
+                
                 for (const selector of soldDateSelectors) {
                     const soldDateEl = $item.find(selector).first();
                     if (soldDateEl.length > 0) {
@@ -826,7 +884,9 @@ class EbayScraperService {
                     soldDate: soldDate,
                     ebayItemId: itemId,
                     autoConfidence: autoConfidence,
-                    shippingCost: shippingCost
+                    shippingCost: shippingCost,
+                    saleType: saleType,
+                    numBids: numBids
                 });
                 
                 processedCount++;

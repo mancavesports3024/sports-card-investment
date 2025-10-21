@@ -1001,7 +1001,9 @@ router.get('/', async (req, res) => {
         itemWebUrl: card.itemUrl,
         itemId: card.ebayItemId || card.itemId,
         sport: card.sport || 'unknown',
-        shippingCost: card.shippingCost
+        shippingCost: card.shippingCost,
+        saleType: card.saleType,
+        numBids: card.numBids
       }));
       console.log(`✅ eBay Scraper: ${allCards.length} sold items found`);
     } else {
@@ -1201,7 +1203,9 @@ router.post('/', async (req, res) => {
         itemWebUrl: card.itemUrl,
         itemId: card.ebayItemId || card.itemId,
         sport: card.sport || 'unknown',
-        shippingCost: card.shippingCost
+        shippingCost: card.shippingCost,
+        saleType: card.saleType,
+        numBids: card.numBids
       }));
       console.log(`✅ eBay Scraper: ${allCards.length} sold items found`);
     } else {
@@ -2742,7 +2746,9 @@ router.get('/card-set-analysis', async (req, res) => {
         itemWebUrl: card.itemUrl,
         itemId: card.ebayItemId || card.itemId,
         sport: card.sport || 'unknown',
-        shippingCost: card.shippingCost
+        shippingCost: card.shippingCost,
+        saleType: card.saleType,
+        numBids: card.numBids
       }));
       console.log(`✅ eBay Scraper: ${allCards.length} sold items found for card set analysis`);
     } else {
