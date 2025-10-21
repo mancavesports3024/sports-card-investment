@@ -118,7 +118,7 @@ class EbayScraperService {
                         break;
                     }
                 } catch (_) {
-                    console.log(`❌ ${name}: not found`);
+                    // Silently skip - browser not available (normal in serverless)
                 }
             }
             
@@ -136,9 +136,9 @@ class EbayScraperService {
                         launchOptions.executablePath = chromiumPath;
                         console.log(`🧭 Using env Chromium: ${chromiumPath}`);
                         this.browserEnabled = true;
-                    } else {
-                        console.log(`❌ Env path does not exist: ${chromiumPath}`);
-                    }
+                } else {
+                    // Silently skip - browser not available (normal in serverless)
+                }
                 }
                 
                 // Final fallback to @sparticuz/chromium
@@ -152,15 +152,15 @@ class EbayScraperService {
                             console.log(`🧭 Using @sparticuz/chromium: ${sparticuzPath}`);
                             this.browserEnabled = true;
                         } else {
-                            console.log(`❌ @sparticuz/chromium path does not exist: ${sparticuzPath}`);
+                            // Silently skip - browser not available (normal in serverless)
                         }
                     } catch (error) {
-                        console.log(`❌ @sparticuz/chromium failed: ${error.message}`);
+                        // Silently skip - browser not available (normal in serverless)
                     }
                 }
                 
                 if (!launchOptions.executablePath) {
-                    console.log('❌ No working Chromium found - browser fallback will be disabled');
+                    console.log('ℹ️ Browser fallback disabled (normal in serverless environments)');
                     this.browserEnabled = false;
                 }
             }
