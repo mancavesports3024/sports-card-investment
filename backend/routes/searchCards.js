@@ -1422,27 +1422,8 @@ router.post('/', requireUser, async (req, res) => {
     sorted.aigrade10 = addTrackingToCards(sorted.aigrade10);
     sorted.otherGraded = addTrackingToCards(sorted.otherGraded);
 
-    // Save the search to history only if there are results
-    if (allCards.length > 0) {
-      try {
-        // Use the authenticated user if available, otherwise skip saving
-        if (req.user && req.user.id) {
-          await searchHistoryService.addSearchForUser(req.user, {
-            searchQuery,
-            results: sorted,
-            priceAnalysis: sorted.priceAnalysis
-          });
-          console.log(`💾 Saved search for user ${req.user.email}: "${searchQuery}" (${allCards.length} cards found)`);
-        } else {
-          console.log(`⚠️ No authenticated user - skipping search history save for: "${searchQuery}"`);
-        }
-      } catch (error) {
-        console.log('⚠️ Failed to save search to history:', error.message);
-        // Don't fail the request if saving history fails
-      }
-    } else {
-      console.log(`⚠️ Not saving search with 0 results: "${searchQuery}"`);
-    }
+    // Note: Search history is saved by the frontend via /api/search-history endpoint
+    // This prevents duplicate saves and ensures proper user authentication
 
     const responseData = { 
       searchParams: { searchQuery, numSales },
