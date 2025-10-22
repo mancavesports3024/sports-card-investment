@@ -149,6 +149,183 @@ const CardSetAnalysis = () => {
     return dateStr + ' ' + timeStr;
   };
 
+  // Hot Cards Analysis - Identify trending cards
+  const renderHotCardsAnalysis = (results) => {
+    if (!results) return null;
+    
+    // Get all cards from all categories
+    const allCards = [
+      ...(results.raw || []),
+      ...(results.psa9 || []),
+      ...(results.psa10 || []),
+      ...(results.psa8 || []),
+      ...(results.psa7 || []),
+      ...(results.cgc9 || []),
+      ...(results.cgc10 || []),
+      ...(results.tag8 || []),
+      ...(results.tag9 || []),
+      ...(results.tag10 || []),
+      ...(results.sgc10 || []),
+      ...(results.aigrade9 || []),
+      ...(results.aigrade10 || []),
+      ...(results.otherGraded || [])
+    ].filter(card => card.price?.value && !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
+
+    if (allCards.length === 0) return null;
+
+    // Define "recent" as last 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    // Group cards by title and analyze recent vs older sales
+    const cardGroups = {};
+    
+    allCards.forEach(card => {
+      const title = card.title || '';
+      const price = Number(card.price?.value);
+      const soldDate = new Date(card.soldDate);
+      const isRecent = soldDate >= sevenDaysAgo;
+      
+      if (!cardGroups[title]) {
+        cardGroups[title] = {
+          title,
+          recentSales: [],
+          olderSales: [],
+          totalSales: 0,
+          avgPrice: 0
+        };
+      }
+      
+      if (isRecent) {
+        cardGroups[title].recentSales.push({ price, soldDate });
+      } else {
+        cardGroups[title].olderSales.push({ price, soldDate });
+      }
+      
+      cardGroups[title].totalSales++;
+    });
+
+    // Calculate hot cards based on recent activity and price increases
+    const hotCards = Object.values(cardGroups)
+      .filter(group => group.recentSales.length > 0 && group.olderSales.length > 0)
+      .map(group => {
+        const recentAvg = group.recentSales.reduce((sum, sale) => sum + sale.price, 0) / group.recentSales.length;
+        const olderAvg = group.olderSales.reduce((sum, sale) => sum + sale.price, 0) / group.olderSales.length;
+        const priceChange = recentAvg - olderAvg;
+        const priceChangePercent = olderAvg > 0 ? (priceChange / olderAvg) * 100 : 0;
+        
+        return {
+          ...group,
+          recentAvg,
+          olderAvg,
+          priceChange,
+          priceChangePercent,
+          hotScore: (group.recentSales.length * 2) + (priceChangePercent > 0 ? priceChangePercent : 0)
+        };
+      })
+      .filter(card => card.hotScore > 0)
+      .sort((a, b) => b.hotScore - a.hotScore)
+      .slice(0, 5);
+
+    if (hotCards.length === 0) return null;
+
+    return (
+      <div style={{ 
+        background: 'linear-gradient(135deg, #ff6b35, #f7931e)', 
+        borderRadius: 12, 
+        padding: '1.5rem', 
+        marginBottom: '2rem',
+        border: '2px solid #ffd700',
+        boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)'
+      }}>
+        <h3 style={{ 
+          color: '#fff', 
+          fontWeight: 800, 
+          textShadow: '1px 1px 4px rgba(0,0,0,0.5)',
+          marginBottom: '1rem',
+          fontSize: '1.3rem'
+        }}>
+          🔥 Hot Cards Right Now
+        </h3>
+        <p style={{ 
+          color: '#fff', 
+          marginBottom: '1.5rem',
+          fontSize: '0.95rem',
+          opacity: 0.9
+        }}>
+          Cards showing increased activity and price movement in the last 7 days
+        </p>
+        
+        <div style={{ display: 'grid', gap: '1rem' }}>
+          {hotCards.map((card, index) => (
+            <div key={index} style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              borderRadius: 8,
+              padding: '1rem',
+              border: '1px solid rgba(255, 255, 255, 0.3)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                <h4 style={{ 
+                  color: '#333', 
+                  margin: 0, 
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  flex: 1
+                }}>
+                  {card.summaryTitle || card.title}
+                </h4>
+                <div style={{
+                  background: card.priceChangePercent > 0 ? '#4caf50' : '#f44336',
+                  color: '#fff',
+                  padding: '0.25rem 0.5rem',
+                  borderRadius: 4,
+                  fontSize: '0.8rem',
+                  fontWeight: 600
+                }}>
+                  {card.priceChangePercent > 0 ? '+' : ''}{card.priceChangePercent.toFixed(1)}%
+                </div>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
+                <div>
+                  <strong style={{ color: '#666' }}>Recent Avg:</strong>
+                  <div style={{ color: '#333', fontWeight: 600 }}>${card.recentAvg.toFixed(2)}</div>
+                </div>
+                <div>
+                  <strong style={{ color: '#666' }}>Previous Avg:</strong>
+                  <div style={{ color: '#333', fontWeight: 600 }}>${card.olderAvg.toFixed(2)}</div>
+                </div>
+                <div>
+                  <strong style={{ color: '#666' }}>Recent Sales:</strong>
+                  <div style={{ color: '#333', fontWeight: 600 }}>{card.recentSales.length}</div>
+                </div>
+                <div>
+                  <strong style={{ color: '#666' }}>Total Sales:</strong>
+                  <div style={{ color: '#333', fontWeight: 600 }}>{card.totalSales}</div>
+                </div>
+              </div>
+              
+              <div style={{ 
+                marginTop: '0.5rem', 
+                padding: '0.5rem', 
+                background: card.priceChangePercent > 0 ? '#e8f5e8' : '#ffeaea',
+                borderRadius: 4,
+                fontSize: '0.8rem',
+                color: card.priceChangePercent > 0 ? '#2e7d32' : '#c62828'
+              }}>
+                {card.priceChangePercent > 0 ? '📈' : '📉'} 
+                {card.priceChangePercent > 0 
+                  ? `Price up $${card.priceChange.toFixed(2)} in last 7 days`
+                  : `Price down $${Math.abs(card.priceChange).toFixed(2)} in last 7 days`
+                }
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const renderCardItem = (card, index) => (
     <div key={card.id || index} className="card-item" style={{ 
       background: '#fff', 
@@ -707,6 +884,9 @@ const CardSetAnalysis = () => {
               </div>
             )}
           </div>
+
+          {/* Hot Cards Analysis */}
+          {renderHotCardsAnalysis(results.categorizedResults)}
 
           {results.categorizedResults && (
             <div>
