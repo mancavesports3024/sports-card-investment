@@ -242,9 +242,12 @@ const CardSetAnalysis = () => {
     console.log(`🔥 Hot cards found: ${hotCards.length}`);
     if (hotCards.length === 0) {
       console.log(`🔥 No hot cards - showing fallback with recent activity`);
+      console.log(`🔥 Card groups with recent sales:`, cardGroupsArray.filter(group => group.recentSales.length > 0).length);
+      console.log(`🔥 Sample card group:`, cardGroupsArray.find(group => group.recentSales.length > 0));
+      
       // Fallback: show cards with recent activity even without price comparison
       const recentActivityCards = cardGroupsArray
-        .filter(group => group.recentSales.length >= 2)
+        .filter(group => group.recentSales.length >= 1) // Reduced from 2 to 1
         .map(group => {
           const recentAvg = group.recentSales.reduce((sum, sale) => sum + sale.price, 0) / group.recentSales.length;
           return {
@@ -259,7 +262,11 @@ const CardSetAnalysis = () => {
         .sort((a, b) => b.hotScore - a.hotScore)
         .slice(0, 3);
       
-      if (recentActivityCards.length === 0) return null;
+      console.log(`🔥 Recent activity cards found: ${recentActivityCards.length}`);
+      if (recentActivityCards.length === 0) {
+        console.log(`🔥 No recent activity cards either - returning null`);
+        return null;
+      }
       
       return (
         <div style={{ 
