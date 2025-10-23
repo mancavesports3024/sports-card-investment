@@ -195,80 +195,82 @@ class GemRateService {
         return null;
       }
 
-      // Look for PSA data structure - try multiple possible locations
+      // Look for PSA data in the population_data array
       let psaData = null;
       
-      // Try different possible structures
-      if (rawData.psa) {
-        psaData = rawData.psa;
-        console.log('✅ Found PSA data at rawData.psa');
-      } else if (rawData.data && rawData.data.psa) {
-        psaData = rawData.data.psa;
-        console.log('✅ Found PSA data at rawData.data.psa');
-      } else if (rawData.population && rawData.population.psa) {
-        psaData = rawData.population.psa;
-        console.log('✅ Found PSA data at rawData.population.psa');
-      } else if (rawData.grading && rawData.grading.psa) {
-        psaData = rawData.grading.psa;
-        console.log('✅ Found PSA data at rawData.grading.psa');
-      } else if (rawData.results && rawData.results.psa) {
-        psaData = rawData.results.psa;
-        console.log('✅ Found PSA data at rawData.results.psa');
-      } else if (rawData.card && rawData.card.psa) {
-        psaData = rawData.card.psa;
-        console.log('✅ Found PSA data at rawData.card.psa');
-      } else {
-        // Try to find any object that might contain PSA data
-        console.log('🔍 Searching for PSA data in all possible locations...');
-        for (const [key, value] of Object.entries(rawData)) {
-          if (value && typeof value === 'object') {
-            console.log(`🔍 Checking key: ${key}`, Object.keys(value));
-            if (value.psa || value.PSA || value.total || value.gemRate) {
-              psaData = value;
-              console.log(`✅ Found potential PSA data at rawData.${key}`);
-              break;
-            }
-          }
+      if (rawData.population_data && Array.isArray(rawData.population_data)) {
+        // Find the PSA entry in the population_data array
+        psaData = rawData.population_data.find(item => item.grader === 'psa');
+        if (psaData) {
+          console.log('✅ Found PSA data in population_data array');
+        }
+      }
+      
+      // Fallback to other possible structures
+      if (!psaData) {
+        if (rawData.psa) {
+          psaData = rawData.psa;
+          console.log('✅ Found PSA data at rawData.psa');
+        } else if (rawData.data && rawData.data.psa) {
+          psaData = rawData.data.psa;
+          console.log('✅ Found PSA data at rawData.data.psa');
+        } else if (rawData.population && rawData.population.psa) {
+          psaData = rawData.population.psa;
+          console.log('✅ Found PSA data at rawData.population.psa');
+        } else if (rawData.grading && rawData.grading.psa) {
+          psaData = rawData.grading.psa;
+          console.log('✅ Found PSA data at rawData.grading.psa');
+        } else if (rawData.results && rawData.results.psa) {
+          psaData = rawData.results.psa;
+          console.log('✅ Found PSA data at rawData.results.psa');
+        } else if (rawData.card && rawData.card.psa) {
+          psaData = rawData.card.psa;
+          console.log('✅ Found PSA data at rawData.card.psa');
         }
       }
 
       if (!psaData) {
         console.log('❌ No PSA data found in response structure');
         console.log('🔍 Available top-level keys:', Object.keys(rawData));
+        if (rawData.population_data) {
+          console.log('🔍 Population data graders:', rawData.population_data.map(item => item.grader));
+        }
         return null;
       }
 
       console.log('🔍 PSA data structure:', JSON.stringify(psaData, null, 2));
       console.log('🔍 PSA data keys:', Object.keys(psaData));
 
-      // Parse the PSA data structure
+      // Parse the PSA data structure from the actual GemRate response
       const population = {
-        // Basic stats
-        total: psaData.total || psaData.Total || 0,
-        gemsPlus: psaData.gemsPlus || psaData['Gems+'] || psaData.gems_plus || 0,
-        gemRate: psaData.gemRate || psaData['Gem Rate'] || psaData.gem_rate || 0,
+        // Basic stats from PSA data
+        total: psaData.card_total_grades || 0,
+        gemsPlus: psaData.card_gems || 0,
+        gemRate: parseFloat(psaData.card_gem_rate) * 100 || 0, // Convert to percentage
         
-        // Grade breakdowns
-        perfect: psaData.perfect || psaData.Perfect || 0,
-        pristine: psaData.pristine || psaData.Pristine || 0,
-        gemMint: psaData.gemMint || psaData['Gem Mint'] || psaData.gem_mint || 0,
-        mintPlus: psaData.mintPlus || psaData['Mint+'] || psaData.mint_plus || 0,
-        grade9: psaData.grade9 || psaData['9'] || 0,
-        grade8: psaData.grade8 || psaData['8'] || 0,
-        grade7: psaData.grade7 || psaData['7'] || 0,
-        grade6: psaData.grade6 || psaData['6'] || 0,
-        grade5: psaData.grade5 || psaData['5'] || 0,
-        grade4: psaData.grade4 || psaData['4'] || 0,
-        grade3: psaData.grade3 || psaData['3'] || 0,
-        grade2: psaData.grade2 || psaData['2'] || 0,
-        grade1: psaData.grade1 || psaData['1'] || 0,
+        // Grade breakdowns from PSA grades object
+        perfect: psaData.grades?.g10 || 0, // PSA 10 = Perfect
+        pristine: 0, // Not available in this structure
+        gemMint: psaData.grades?.g10 || 0, // PSA 10 = Gem Mint
+        mintPlus: 0, // Not available in this structure
+        grade9: psaData.grades?.g9 || 0,
+        grade8: psaData.grades?.g8 || 0,
+        grade7: psaData.grades?.g7 || 0,
+        grade6: psaData.grades?.g6 || 0,
+        grade5: psaData.grades?.g5 || 0,
+        grade4: psaData.grades?.g4 || 0,
+        grade3: psaData.grades?.g3 || 0,
+        grade2: psaData.grades?.g2 || 0,
+        grade1: psaData.grades?.g1 || 0,
         
-        // Additional fields
-        cardName: rawData.cardName || rawData.name || rawData.title || '',
-        set: rawData.set || rawData.cardSet || rawData.series || '',
-        year: rawData.year || rawData.cardYear || rawData.releaseYear || '',
-        sport: rawData.sport || rawData.category || rawData.game || '',
-        player: rawData.player || rawData.athlete || rawData.name || '',
+        // Additional fields from PSA data
+        cardName: psaData.name || psaData.description || '',
+        set: psaData.set_name || '',
+        year: psaData.year || '',
+        sport: psaData.category || '',
+        player: psaData.name || '',
+        cardNumber: psaData.card_number || '',
+        parallel: psaData.parallel || '',
         
         // Raw data for debugging
         rawPsaData: psaData
