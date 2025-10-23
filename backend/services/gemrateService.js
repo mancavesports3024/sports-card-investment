@@ -246,7 +246,7 @@ class GemRateService {
         // Basic stats from PSA data
         total: psaData.card_total_grades || 0,
         gemsPlus: psaData.card_gems || 0,
-        gemRate: parseFloat(psaData.card_gem_rate) * 100 || 0, // Convert to percentage
+        gemRate: Math.round(parseFloat(psaData.card_gem_rate) * 100 * 100) / 100 || 0, // Convert to percentage and round to 2 decimals
         
         // Grade breakdowns from PSA grades object
         perfect: psaData.grades?.g10 || 0, // PSA 10 = Perfect

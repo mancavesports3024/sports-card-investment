@@ -139,7 +139,7 @@ const GemRateAnalysis = ({ cardName, searchResults }) => {
             </div>
             <div style={{ background: 'rgba(255, 255, 255, 0.1)', padding: '0.5rem', borderRadius: 8 }}>
               <div style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 600 }}>Gem Rate</div>
-              <div style={{ color: '#ffd700', fontSize: '1.2rem', fontWeight: 700 }}>{population.gemRate || 0}%</div>
+              <div style={{ color: '#ffd700', fontSize: '1.2rem', fontWeight: 700 }}>{population.gemRate ? population.gemRate.toFixed(2) : 0}%</div>
             </div>
             <div style={{ background: 'rgba(255, 255, 255, 0.1)', padding: '0.5rem', borderRadius: 8 }}>
               <div style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 600 }}>Gems+</div>
