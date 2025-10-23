@@ -1037,6 +1037,51 @@ router.get('/', async (req, res) => {
       console.log(`✅ eBay Scraper: ${allCards.length} sold items found`);
     } else {
       console.log(`❌ eBay Scraper failed: ${scraperResult.error || 'Unknown error'}`);
+      
+      // Try 130point as fallback
+      console.log(`🔄 Trying 130point fallback for: "${searchQuery}"`);
+      try {
+        const Point130Service = require('../services/130pointService');
+        const point130Service = new Point130Service();
+        
+        // Process exclusions for 130point format
+        let processedQuery = searchQuery;
+        const exclusionMatch = searchQuery.match(/-\s*\(([^)]+)\)/);
+        if (exclusionMatch) {
+          const exclusions = exclusionMatch[1].split(',').map(e => e.trim());
+          processedQuery = `${searchQuery.split(' -')[0]} -(${exclusions.join(',')})`;
+        }
+        
+        const point130Results = await point130Service.searchSoldCards(processedQuery, {
+          type: '2',
+          sort: 'urlEndTimeSoonest'
+        });
+        
+        if (point130Results && point130Results.length > 0) {
+          console.log(`✅ 130point fallback: ${point130Results.length} sold items found`);
+          
+          // Transform 130point results to match expected format
+          allCards = point130Results.map(card => ({
+            id: `130point_${Date.now()}_${Math.random()}`,
+            title: card.title || '',
+            price: card.price || { value: '0', currency: 'USD' },
+            condition: 'Raw',
+            soldDate: card.soldDate || 'Recently sold',
+            imageUrl: card.image || '',
+            itemWebUrl: card.link || '',
+            itemId: `130point_${Date.now()}_${Math.random()}`,
+            sport: 'unknown',
+            shippingCost: null,
+            saleType: '130point',
+            numBids: null,
+            source: '130point'
+          }));
+        } else {
+          console.log(`❌ 130point fallback also failed - no results`);
+        }
+      } catch (point130Error) {
+        console.log(`❌ 130point fallback error: ${point130Error.message}`);
+      }
     }
     // let allCards = [];
     // if (ebayApiCards.status === 'fulfilled') {
@@ -1239,6 +1284,51 @@ router.post('/', requireUser, async (req, res) => {
       console.log(`✅ eBay Scraper: ${allCards.length} sold items found`);
     } else {
       console.log(`❌ eBay Scraper failed: ${scraperResult.error || 'Unknown error'}`);
+      
+      // Try 130point as fallback
+      console.log(`🔄 Trying 130point fallback for: "${searchQuery}"`);
+      try {
+        const Point130Service = require('../services/130pointService');
+        const point130Service = new Point130Service();
+        
+        // Process exclusions for 130point format
+        let processedQuery = searchQuery;
+        const exclusionMatch = searchQuery.match(/-\s*\(([^)]+)\)/);
+        if (exclusionMatch) {
+          const exclusions = exclusionMatch[1].split(',').map(e => e.trim());
+          processedQuery = `${searchQuery.split(' -')[0]} -(${exclusions.join(',')})`;
+        }
+        
+        const point130Results = await point130Service.searchSoldCards(processedQuery, {
+          type: '2',
+          sort: 'urlEndTimeSoonest'
+        });
+        
+        if (point130Results && point130Results.length > 0) {
+          console.log(`✅ 130point fallback: ${point130Results.length} sold items found`);
+          
+          // Transform 130point results to match expected format
+          allCards = point130Results.map(card => ({
+            id: `130point_${Date.now()}_${Math.random()}`,
+            title: card.title || '',
+            price: card.price || { value: '0', currency: 'USD' },
+            condition: 'Raw',
+            soldDate: card.soldDate || 'Recently sold',
+            imageUrl: card.image || '',
+            itemWebUrl: card.link || '',
+            itemId: `130point_${Date.now()}_${Math.random()}`,
+            sport: 'unknown',
+            shippingCost: null,
+            saleType: '130point',
+            numBids: null,
+            source: '130point'
+          }));
+        } else {
+          console.log(`❌ 130point fallback also failed - no results`);
+        }
+      } catch (point130Error) {
+        console.log(`❌ 130point fallback error: ${point130Error.message}`);
+      }
     }
 
     // Filter out sealed products and hobby boxes (more precise filtering)
@@ -2765,6 +2855,43 @@ router.get('/card-set-analysis', async (req, res) => {
       console.log(`✅ eBay Scraper: ${allCards.length} sold items found for card set analysis`);
     } else {
       console.log(`❌ eBay Scraper failed for card set analysis: ${scraperResult.error || 'Unknown error'}`);
+      
+      // Try 130point as fallback for card set analysis
+      console.log(`🔄 Trying 130point fallback for card set analysis: "${searchQuery}"`);
+      try {
+        const Point130Service = require('../services/130pointService');
+        const point130Service = new Point130Service();
+        
+        const point130Results = await point130Service.searchSoldCards(searchQuery, {
+          type: '2',
+          sort: 'urlEndTimeSoonest'
+        });
+        
+        if (point130Results && point130Results.length > 0) {
+          console.log(`✅ 130point fallback for card set: ${point130Results.length} sold items found`);
+          
+          // Transform 130point results to match expected format
+          allCards = point130Results.map(card => ({
+            id: `130point_${Date.now()}_${Math.random()}`,
+            title: card.title || '',
+            price: card.price || { value: '0', currency: 'USD' },
+            condition: 'Raw',
+            soldDate: card.soldDate || 'Recently sold',
+            imageUrl: card.image || '',
+            itemWebUrl: card.link || '',
+            itemId: `130point_${Date.now()}_${Math.random()}`,
+            sport: 'unknown',
+            shippingCost: null,
+            saleType: '130point',
+            numBids: null,
+            source: '130point'
+          }));
+        } else {
+          console.log(`❌ 130point fallback for card set also failed - no results`);
+        }
+      } catch (point130Error) {
+        console.log(`❌ 130point fallback error for card set: ${point130Error.message}`);
+      }
     }
 
     // Filter out sealed products and hobby boxes (more precise filtering)
