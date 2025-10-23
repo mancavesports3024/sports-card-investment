@@ -151,7 +151,11 @@ const CardSetAnalysis = () => {
 
   // Hot Cards Analysis - Identify trending cards
   const renderHotCardsAnalysis = (results) => {
-    if (!results) return null;
+    console.log('🔥 Hot Cards - Input results:', results);
+    if (!results) {
+      console.log('🔥 Hot Cards - No results provided');
+      return null;
+    }
     
     // Get all cards from all categories
     const allCards = [
@@ -288,8 +292,8 @@ const CardSetAnalysis = () => {
             {recentActivityCards.map((card, index) => (
               <div key={index} style={{
                 background: 'rgba(255, 255, 255, 0.95)',
-                borderRadius: 8,
-                padding: '1rem',
+      borderRadius: 8,
+      padding: '1rem',
                 border: '1px solid rgba(255, 255, 255, 0.3)'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
@@ -433,7 +437,7 @@ const CardSetAnalysis = () => {
       marginBottom: 0 
     }}>
       <div className="card-details" style={{ 
-        display: 'flex', 
+      display: 'flex',
         flexDirection: 'column', 
         gap: '0.2rem', 
         width: '100%', 
@@ -456,7 +460,7 @@ const CardSetAnalysis = () => {
         <div style={{ 
           display: 'flex', 
           justifyContent: 'flex-start', 
-          alignItems: 'center', 
+      alignItems: 'center',
           width: '100%' 
         }}>
           <div className="custom-card-price">{formatPrice(card.price)}</div>
@@ -479,14 +483,14 @@ const CardSetAnalysis = () => {
             alignSelf: 'flex-start' 
           }}>
             Sales: {card.salesCount}
-          </div>
+        </div>
         )}
         
         {/* Average price for most sold cards */}
         {card.averagePrice && (
           <div style={{ fontSize: '0.85em', color: '#666' }}>
             Avg: {formatPrice({ value: card.averagePrice, currency: 'USD' })}
-          </div>
+        </div>
         )}
         
         {/* Sold date */}
@@ -501,7 +505,7 @@ const CardSetAnalysis = () => {
           return itemNum ? (
             <div className="custom-card-item-number">
               Item: {itemNum}
-            </div>
+          </div>
           ) : null;
         })()}
         
@@ -533,7 +537,7 @@ const CardSetAnalysis = () => {
 
   const renderSalesVolumeCard = (card, index) => (
     <div key={`${card.playerName}-${card.cardNumber}-${index}`} className="card-item" style={{ 
-      background: '#fff', 
+      background: '#fff',
       border: '1px solid #eee', 
       borderRadius: 7, 
       boxShadow: '0 1px 4px rgba(0,0,0,0.03)', 
@@ -563,18 +567,18 @@ const CardSetAnalysis = () => {
           alignSelf: 'flex-start' 
         }}>
           Sales: {card.salesCount}
-        </div>
+          </div>
         
         {/* Average price */}
         <div style={{ fontSize: '0.85em', color: '#666' }}>
           Avg: {formatPrice({ value: card.averagePrice, currency: 'USD' })}
-        </div>
-        
+      </div>
+      
         {/* Highest price */}
         <div className="custom-card-price">
           High: {formatPrice({ value: card.highestPrice, currency: 'USD' })}
-        </div>
-        
+      </div>
+
         {/* Recent sale info */}
         {card.recentSales?.[0] && (
           <div className="custom-card-date">
@@ -593,7 +597,7 @@ const CardSetAnalysis = () => {
               color: '#000',
               fontWeight: 600,
               padding: '0.4rem 0.8rem',
-              borderRadius: 4,
+                borderRadius: 4,
               textDecoration: 'none',
               border: '1px solid #000',
               fontSize: '0.85rem',
@@ -980,6 +984,10 @@ const CardSetAnalysis = () => {
           </div>
 
           {/* Hot Cards Analysis */}
+          {console.log('🔥 About to call renderHotCardsAnalysis with:', results.categorizedResults)}
+          <div style={{background: 'red', color: 'white', padding: '10px', margin: '10px 0'}}>
+            🔥 HOT CARDS DEBUG: {results.categorizedResults ? 'Results exist' : 'No results'}
+          </div>
           {renderHotCardsAnalysis(results.categorizedResults)}
 
           {results.categorizedResults && (
