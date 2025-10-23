@@ -7,6 +7,7 @@ import { Helmet } from 'react-helmet';
 import { InContentAd, SearchResultsAd } from './AdSense';
 import FeaturedEbayRotator from './FeaturedEbayRotator';
 import PageLayout from './PageLayout';
+import GemRateAnalysis from './GemRateAnalysis';
 
 // FeaturedEbayListing component
 const FeaturedEbayListing = () => {
@@ -1053,6 +1054,14 @@ const SearchPage = () => {
 
             {/* Price Analysis */}
             {renderPriceAnalysis(results.priceAnalysis)}
+
+            {/* GemRate PSA Population Analysis */}
+            {results && results.results && (
+              <GemRateAnalysis 
+                cardName={searchQuery} 
+                searchResults={results.results} 
+              />
+            )}
 
             {/* Ad after price analysis */}
             <InContentAd />

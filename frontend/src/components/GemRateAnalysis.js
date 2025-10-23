@@ -7,7 +7,7 @@ const GemRateAnalysis = ({ cardName, searchResults }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (cardName) {
+    if (cardName && cardName.trim()) {
       fetchGemRateData(cardName);
     }
   }, [cardName]);
@@ -131,51 +131,80 @@ const GemRateAnalysis = ({ cardName, searchResults }) => {
       
       {population && (
         <div style={{ marginBottom: '1.5rem' }}>
+          {/* Main PSA Stats */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
             <div style={{ background: 'rgba(255, 255, 255, 0.1)', padding: '0.5rem', borderRadius: 8 }}>
               <div style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 600 }}>Total Population</div>
-              <div style={{ color: '#ffd700', fontSize: '1.2rem', fontWeight: 700 }}>{population.total || 0}</div>
+              <div style={{ color: '#ffd700', fontSize: '1.2rem', fontWeight: 700 }}>{population.total?.toLocaleString() || 0}</div>
             </div>
             <div style={{ background: 'rgba(255, 255, 255, 0.1)', padding: '0.5rem', borderRadius: 8 }}>
               <div style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 600 }}>Gem Rate</div>
               <div style={{ color: '#ffd700', fontSize: '1.2rem', fontWeight: 700 }}>{population.gemRate || 0}%</div>
             </div>
             <div style={{ background: 'rgba(255, 255, 255, 0.1)', padding: '0.5rem', borderRadius: 8 }}>
-              <div style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 600 }}>PSA 10</div>
-              <div style={{ color: '#ffd700', fontSize: '1.2rem', fontWeight: 700 }}>{population.gemMint || 0}</div>
+              <div style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 600 }}>Gems+</div>
+              <div style={{ color: '#ffd700', fontSize: '1.2rem', fontWeight: 700 }}>{population.gemsPlus?.toLocaleString() || 0}</div>
             </div>
             <div style={{ background: 'rgba(255, 255, 255, 0.1)', padding: '0.5rem', borderRadius: 8 }}>
-              <div style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 600 }}>PSA 9</div>
-              <div style={{ color: '#ffd700', fontSize: '1.2rem', fontWeight: 700 }}>{population.grade9 || 0}</div>
+              <div style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 600 }}>PSA 10</div>
+              <div style={{ color: '#ffd700', fontSize: '1.2rem', fontWeight: 700 }}>{population.gemMint?.toLocaleString() || 0}</div>
             </div>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
-            <div style={{ color: '#fff', textAlign: 'center' }}>
-              <div style={{ fontWeight: 600 }}>Perfect</div>
-              <div style={{ color: '#ffd700' }}>{population.perfect || 0}</div>
+          {/* Grade Breakdown */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.5rem', fontSize: '0.85rem', marginBottom: '1rem' }}>
+            <div style={{ color: '#fff', textAlign: 'center', background: 'rgba(255, 255, 255, 0.05)', padding: '0.5rem', borderRadius: 6 }}>
+              <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>PSA 9</div>
+              <div style={{ color: '#ffd700', fontWeight: 700 }}>{population.grade9?.toLocaleString() || 0}</div>
             </div>
-            <div style={{ color: '#fff', textAlign: 'center' }}>
-              <div style={{ fontWeight: 600 }}>Pristine</div>
-              <div style={{ color: '#ffd700' }}>{population.pristine || 0}</div>
+            <div style={{ color: '#fff', textAlign: 'center', background: 'rgba(255, 255, 255, 0.05)', padding: '0.5rem', borderRadius: 6 }}>
+              <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>PSA 8</div>
+              <div style={{ color: '#ffd700', fontWeight: 700 }}>{population.grade8?.toLocaleString() || 0}</div>
             </div>
-            <div style={{ color: '#fff', textAlign: 'center' }}>
-              <div style={{ fontWeight: 600 }}>Mint+</div>
-              <div style={{ color: '#ffd700' }}>{population.mintPlus || 0}</div>
+            <div style={{ color: '#fff', textAlign: 'center', background: 'rgba(255, 255, 255, 0.05)', padding: '0.5rem', borderRadius: 6 }}>
+              <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>PSA 7</div>
+              <div style={{ color: '#ffd700', fontWeight: 700 }}>{population.grade7?.toLocaleString() || 0}</div>
             </div>
-            <div style={{ color: '#fff', textAlign: 'center' }}>
-              <div style={{ fontWeight: 600 }}>Grade 8</div>
-              <div style={{ color: '#ffd700' }}>{population.grade8 || 0}</div>
+            <div style={{ color: '#fff', textAlign: 'center', background: 'rgba(255, 255, 255, 0.05)', padding: '0.5rem', borderRadius: 6 }}>
+              <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>PSA 6</div>
+              <div style={{ color: '#ffd700', fontWeight: 700 }}>{population.grade6?.toLocaleString() || 0}</div>
             </div>
-            <div style={{ color: '#fff', textAlign: 'center' }}>
-              <div style={{ fontWeight: 600 }}>Grade 7</div>
-              <div style={{ color: '#ffd700' }}>{population.grade7 || 0}</div>
+            <div style={{ color: '#fff', textAlign: 'center', background: 'rgba(255, 255, 255, 0.05)', padding: '0.5rem', borderRadius: 6 }}>
+              <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>PSA 5</div>
+              <div style={{ color: '#ffd700', fontWeight: 700 }}>{population.grade5?.toLocaleString() || 0}</div>
             </div>
-            <div style={{ color: '#fff', textAlign: 'center' }}>
-              <div style={{ fontWeight: 600 }}>Grade 6</div>
-              <div style={{ color: '#ffd700' }}>{population.grade6 || 0}</div>
+            <div style={{ color: '#fff', textAlign: 'center', background: 'rgba(255, 255, 255, 0.05)', padding: '0.5rem', borderRadius: 6 }}>
+              <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>PSA 4</div>
+              <div style={{ color: '#ffd700', fontWeight: 700 }}>{population.grade4?.toLocaleString() || 0}</div>
             </div>
           </div>
+
+          {/* Card Info */}
+          {(population.cardName || population.set || population.year) && (
+            <div style={{ 
+              background: 'rgba(255, 255, 255, 0.1)', 
+              borderRadius: 8, 
+              padding: '0.75rem',
+              marginTop: '1rem'
+            }}>
+              <div style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>Card Information</div>
+              {population.cardName && (
+                <div style={{ color: '#ffd700', fontSize: '0.85rem', marginBottom: '0.25rem' }}>
+                  <strong>Name:</strong> {population.cardName}
+                </div>
+              )}
+              {population.set && (
+                <div style={{ color: '#ffd700', fontSize: '0.85rem', marginBottom: '0.25rem' }}>
+                  <strong>Set:</strong> {population.set}
+                </div>
+              )}
+              {population.year && (
+                <div style={{ color: '#ffd700', fontSize: '0.85rem', marginBottom: '0.25rem' }}>
+                  <strong>Year:</strong> {population.year}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
