@@ -223,7 +223,11 @@ const CardSetAnalysis = () => {
           hotScore: (group.recentSales.length * 2) + (priceChangePercent > 0 ? priceChangePercent : 0)
         };
       })
-      .filter(card => card.hotScore > 0)
+      .filter(card => 
+        card.hotScore > 0 && 
+        card.priceChangePercent > 5 && // Only cards with at least 5% price increase
+        card.recentSales.length >= 2   // At least 2 recent sales for reliability
+      )
       .sort((a, b) => b.hotScore - a.hotScore)
       .slice(0, 5);
 
@@ -253,7 +257,7 @@ const CardSetAnalysis = () => {
           fontSize: '0.95rem',
           opacity: 0.9
         }}>
-          Cards showing increased activity and price movement in the last 7 days
+          Cards with significant price increases and increased sales activity in the last 7 days
         </p>
         
         <div style={{ display: 'grid', gap: '1rem' }}>
