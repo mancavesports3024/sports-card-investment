@@ -63,6 +63,7 @@ class Point130Service {
 
             // Parse the response
             console.log(`📊 130point response length: ${response.data?.length || 0}`);
+            console.log(`📊 130point response preview: ${(response.data || '').substring(0, 200)}...`);
             const cardData = this.parseResponse(response.data, searchTerm);
             console.log(`📊 130point parsed ${cardData.length} cards`);
             
@@ -72,6 +73,39 @@ class Point130Service {
                     await this.redisClient.setEx(cacheKey, 3600, JSON.stringify(cardData)); // 1 hour cache
                 } catch (cacheError) {
                     console.log('⚠️ Cache error (non-critical):', cacheError.message);
+                }
+            }
+
+            // If no results, try a simpler search term
+            if (cardData.length === 0 && searchTerm.includes(' -(')) {
+                console.log(`🔄 No results with exclusions, trying simpler search...`);
+                const simpleTerm = searchTerm.split(' -(')[0].trim();
+                console.log(`🔍 130point simple search: "${simpleTerm}"`);
+                
+                const simpleParams = this.buildSearchParams(simpleTerm, options);
+                const simpleResponse = await axios.post(`${this.baseUrl}/sales/`, simpleParams, {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
+                        'Accept': '*/*',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        'Accept-Encoding': 'gzip, deflate, br, zstd',
+                        'Origin': 'https://130point.com',
+                        'Referer': 'https://130point.com/',
+                        'Sec-Fetch-Dest': 'empty',
+                        'Sec-Fetch-Mode': 'cors',
+                        'Sec-Fetch-Site': 'same-site'
+                    },
+                    timeout: 15000
+                });
+                
+                console.log(`📊 130point simple response length: ${simpleResponse.data?.length || 0}`);
+                const simpleCardData = this.parseResponse(simpleResponse.data, simpleTerm);
+                console.log(`📊 130point simple parsed ${simpleCardData.length} cards`);
+                
+                if (simpleCardData.length > 0) {
+                    console.log(`✅ 130point simple search found ${simpleCardData.length} sold items`);
+                    return simpleCardData;
                 }
             }
 
