@@ -805,6 +805,7 @@ app.use('/api/live-listings', require('./routes/liveListings'));
   app.use('/api/ebay-bidding', require('./routes/ebayBidding'));
   app.use('/api/spreadsheet-manager', require('./routes/spreadsheetManager'));
   app.use('/api/gemrate', require('./routes/gemrate'));
+  app.use('/api/130point', require('./routes/130point'));
   
   // Routes
   app.use('/api/auth', require('./routes/auth'));
