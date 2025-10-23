@@ -188,8 +188,6 @@ class GemRateService {
    */
   parsePopulationData(rawData) {
     try {
-      console.log('🔍 Parsing GemRate data structure:', JSON.stringify(rawData, null, 2));
-      console.log('🔍 Raw data keys:', Object.keys(rawData || {}));
       
       if (!rawData || typeof rawData !== 'object') {
         return null;
@@ -202,7 +200,7 @@ class GemRateService {
         // Find the PSA entry in the population_data array
         psaData = rawData.population_data.find(item => item.grader === 'psa');
         if (psaData) {
-          console.log('✅ Found PSA data in population_data array');
+          // Found PSA data
         }
       }
       
@@ -210,36 +208,22 @@ class GemRateService {
       if (!psaData) {
         if (rawData.psa) {
           psaData = rawData.psa;
-          console.log('✅ Found PSA data at rawData.psa');
         } else if (rawData.data && rawData.data.psa) {
           psaData = rawData.data.psa;
-          console.log('✅ Found PSA data at rawData.data.psa');
         } else if (rawData.population && rawData.population.psa) {
           psaData = rawData.population.psa;
-          console.log('✅ Found PSA data at rawData.population.psa');
         } else if (rawData.grading && rawData.grading.psa) {
           psaData = rawData.grading.psa;
-          console.log('✅ Found PSA data at rawData.grading.psa');
         } else if (rawData.results && rawData.results.psa) {
           psaData = rawData.results.psa;
-          console.log('✅ Found PSA data at rawData.results.psa');
         } else if (rawData.card && rawData.card.psa) {
           psaData = rawData.card.psa;
-          console.log('✅ Found PSA data at rawData.card.psa');
         }
       }
 
       if (!psaData) {
-        console.log('❌ No PSA data found in response structure');
-        console.log('🔍 Available top-level keys:', Object.keys(rawData));
-        if (rawData.population_data) {
-          console.log('🔍 Population data graders:', rawData.population_data.map(item => item.grader));
-        }
         return null;
       }
-
-      console.log('🔍 PSA data structure:', JSON.stringify(psaData, null, 2));
-      console.log('🔍 PSA data keys:', Object.keys(psaData));
 
       // Parse the PSA data structure from the actual GemRate response
       const population = {
@@ -276,12 +260,6 @@ class GemRateService {
         rawPsaData: psaData
       };
 
-      console.log('✅ Parsed population data:', {
-        total: population.total,
-        gemsPlus: population.gemsPlus,
-        gemRate: population.gemRate,
-        cardName: population.cardName
-      });
 
       return population;
     } catch (error) {
