@@ -112,13 +112,22 @@ class Point130Service {
             
             const cards = [];
             
-            // Look for card items in the response
-            $('.sold-item, .card-item, .result-item').each((index, element) => {
-                const $item = $(element);
+            // Look for card items in table rows (130point uses table structure)
+            $('tbody tr').each((index, element) => {
+                const $row = $(element);
+                const cells = $row.find('td');
                 
-                const card = this.extractCardData($item, $);
-                if (card && card.title) {
-                    cards.push(card);
+                if (cells.length >= 2) {
+                    const cell1 = $(cells[0]).text().trim();
+                    const cell2 = $(cells[1]).text().trim();
+                    
+                    // Skip empty rows
+                    if (cell1 || cell2) {
+                        const card = this.extractCardFromRow(cell1, cell2);
+                        if (card && card.title) {
+                            cards.push(card);
+                        }
+                    }
                 }
             });
 
@@ -159,6 +168,45 @@ class Point130Service {
         }
 
         return cards;
+    }
+
+    /**
+     * Extract card data from table row cells
+     */
+    extractCardFromRow(cell1, cell2) {
+        try {
+            // Look for price in both cells - 130point embeds prices in the text
+            const fullText = (cell1 + ' ' + cell2);
+            const priceMatch = fullText.match(/Sale Price:\s*\$?([\d,]+\.?\d*)/i) || 
+                             fullText.match(/\$([\d,]+\.?\d*)/);
+            const price = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : null;
+            
+            // Look for title and other info in cell2
+            const title = cell2 || cell1;
+            
+            // Look for date patterns
+            const dateMatch = fullText.match(/(\d{1,2}\/\d{1,2}\/\d{4}|\d{4}-\d{2}-\d{2})/);
+            const soldDate = dateMatch ? dateMatch[1] : null;
+            
+            // Look for links
+            const linkMatch = fullText.match(/https?:\/\/[^\s]+/);
+            const link = linkMatch ? linkMatch[0] : null;
+            
+            if (title && title.length > 5) {
+                return {
+                    title: this.cleanTitle(title),
+                    price: price ? { value: price, currency: 'USD' } : null,
+                    soldDate: soldDate,
+                    link: link,
+                    source: '130point'
+                };
+            }
+            
+            return null;
+        } catch (error) {
+            console.error('❌ Error extracting card from row:', error);
+            return null;
+        }
     }
 
     /**
