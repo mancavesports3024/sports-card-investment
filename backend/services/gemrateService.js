@@ -188,38 +188,98 @@ class GemRateService {
    */
   parsePopulationData(rawData) {
     try {
-      // Parse the actual GemRate response structure
-      // This will need to be updated based on their actual response format
+      console.log('🔍 Parsing GemRate data structure:', JSON.stringify(rawData, null, 2));
+      console.log('🔍 Raw data keys:', Object.keys(rawData || {}));
       
       if (!rawData || typeof rawData !== 'object') {
         return null;
       }
 
-      // Extract population data from the response
+      // Look for PSA data structure - try multiple possible locations
+      let psaData = null;
+      
+      // Try different possible structures
+      if (rawData.psa) {
+        psaData = rawData.psa;
+        console.log('✅ Found PSA data at rawData.psa');
+      } else if (rawData.data && rawData.data.psa) {
+        psaData = rawData.data.psa;
+        console.log('✅ Found PSA data at rawData.data.psa');
+      } else if (rawData.population && rawData.population.psa) {
+        psaData = rawData.population.psa;
+        console.log('✅ Found PSA data at rawData.population.psa');
+      } else if (rawData.grading && rawData.grading.psa) {
+        psaData = rawData.grading.psa;
+        console.log('✅ Found PSA data at rawData.grading.psa');
+      } else if (rawData.results && rawData.results.psa) {
+        psaData = rawData.results.psa;
+        console.log('✅ Found PSA data at rawData.results.psa');
+      } else if (rawData.card && rawData.card.psa) {
+        psaData = rawData.card.psa;
+        console.log('✅ Found PSA data at rawData.card.psa');
+      } else {
+        // Try to find any object that might contain PSA data
+        console.log('🔍 Searching for PSA data in all possible locations...');
+        for (const [key, value] of Object.entries(rawData)) {
+          if (value && typeof value === 'object') {
+            console.log(`🔍 Checking key: ${key}`, Object.keys(value));
+            if (value.psa || value.PSA || value.total || value.gemRate) {
+              psaData = value;
+              console.log(`✅ Found potential PSA data at rawData.${key}`);
+              break;
+            }
+          }
+        }
+      }
+
+      if (!psaData) {
+        console.log('❌ No PSA data found in response structure');
+        console.log('🔍 Available top-level keys:', Object.keys(rawData));
+        return null;
+      }
+
+      console.log('🔍 PSA data structure:', JSON.stringify(psaData, null, 2));
+      console.log('🔍 PSA data keys:', Object.keys(psaData));
+
+      // Parse the PSA data structure
       const population = {
-        total: rawData.total || 0,
-        gemsPlus: rawData.gemsPlus || 0,
-        gemRate: rawData.gemRate || 0,
-        perfect: rawData.perfect || 0,
-        pristine: rawData.pristine || 0,
-        gemMint: rawData.gemMint || 0,
-        mintPlus: rawData.mintPlus || 0,
-        grade9: rawData.grade9 || 0,
-        grade8: rawData.grade8 || 0,
-        grade7: rawData.grade7 || 0,
-        grade6: rawData.grade6 || 0,
-        grade5: rawData.grade5 || 0,
-        grade4: rawData.grade4 || 0,
-        grade3: rawData.grade3 || 0,
-        grade2: rawData.grade2 || 0,
-        grade1: rawData.grade1 || 0,
-        // Additional fields that might be in the response
-        cardName: rawData.cardName || rawData.name || '',
-        set: rawData.set || rawData.cardSet || '',
-        year: rawData.year || rawData.cardYear || '',
-        sport: rawData.sport || rawData.category || '',
-        player: rawData.player || rawData.athlete || ''
+        // Basic stats
+        total: psaData.total || psaData.Total || 0,
+        gemsPlus: psaData.gemsPlus || psaData['Gems+'] || psaData.gems_plus || 0,
+        gemRate: psaData.gemRate || psaData['Gem Rate'] || psaData.gem_rate || 0,
+        
+        // Grade breakdowns
+        perfect: psaData.perfect || psaData.Perfect || 0,
+        pristine: psaData.pristine || psaData.Pristine || 0,
+        gemMint: psaData.gemMint || psaData['Gem Mint'] || psaData.gem_mint || 0,
+        mintPlus: psaData.mintPlus || psaData['Mint+'] || psaData.mint_plus || 0,
+        grade9: psaData.grade9 || psaData['9'] || 0,
+        grade8: psaData.grade8 || psaData['8'] || 0,
+        grade7: psaData.grade7 || psaData['7'] || 0,
+        grade6: psaData.grade6 || psaData['6'] || 0,
+        grade5: psaData.grade5 || psaData['5'] || 0,
+        grade4: psaData.grade4 || psaData['4'] || 0,
+        grade3: psaData.grade3 || psaData['3'] || 0,
+        grade2: psaData.grade2 || psaData['2'] || 0,
+        grade1: psaData.grade1 || psaData['1'] || 0,
+        
+        // Additional fields
+        cardName: rawData.cardName || rawData.name || rawData.title || '',
+        set: rawData.set || rawData.cardSet || rawData.series || '',
+        year: rawData.year || rawData.cardYear || rawData.releaseYear || '',
+        sport: rawData.sport || rawData.category || rawData.game || '',
+        player: rawData.player || rawData.athlete || rawData.name || '',
+        
+        // Raw data for debugging
+        rawPsaData: psaData
       };
+
+      console.log('✅ Parsed population data:', {
+        total: population.total,
+        gemsPlus: population.gemsPlus,
+        gemRate: population.gemRate,
+        cardName: population.cardName
+      });
 
       return population;
     } catch (error) {
@@ -305,7 +365,7 @@ class GemRateService {
   }
 
   /**
-   * Analyze card investment potential using GemRate data
+   * Analyze card investment potential using GemRate PSA data
    * @param {string} cardName - Name of the card
    * @param {Object} priceData - Current price data from eBay
    * @returns {Promise<Object>} Investment analysis
@@ -315,39 +375,54 @@ class GemRateService {
       console.log(`💰 Analyzing investment potential for: ${cardName}`);
       
       const populationData = await this.getPopulationData(cardName);
-      const trendsData = await this.getGradingTrends(cardName);
       
-      if (!populationData || !trendsData) {
+      if (!populationData) {
         return {
           success: false,
-          error: 'Insufficient GemRate data for analysis'
+          error: 'Insufficient GemRate PSA data for analysis'
         };
       }
 
-      // Calculate investment metrics
-      const gemRate = parseFloat(populationData.gemRate);
-      const totalPopulation = populationData.total;
-      const recentActivity = trendsData.trends.recentActivity;
+      // Extract PSA-specific metrics
+      const totalPopulation = populationData.total || 0;
+      const gemsPlus = populationData.gemsPlus || 0;
+      const gemRate = parseFloat(populationData.gemRate) || 0;
+      const psa10Count = populationData.gemMint || 0;
+      const psa9Count = populationData.grade9 || 0;
       
-      // Investment score calculation
-      const scarcityScore = Math.min(100, (1000 / totalPopulation) * 100);
-      const demandScore = Math.min(100, (recentActivity / 10) * 100);
-      const qualityScore = gemRate;
-      const investmentScore = (scarcityScore * 0.4 + demandScore * 0.3 + qualityScore * 0.3);
+      // Calculate investment metrics based on PSA data
+      const scarcityScore = this.calculateScarcityScore(totalPopulation);
+      const qualityScore = this.calculateQualityScore(gemRate, psa10Count, psa9Count);
+      const demandScore = this.calculateDemandScore(priceData);
+      const gemRateScore = Math.min(100, gemRate * 2); // Convert percentage to score
+      
+      // Weighted investment score
+      const investmentScore = (
+        scarcityScore * 0.3 +      // 30% - How rare the card is
+        qualityScore * 0.25 +      // 25% - How likely to get high grades
+        demandScore * 0.25 +       // 25% - Market demand from eBay prices
+        gemRateScore * 0.2         // 20% - Overall gem rate quality
+      );
       
       const analysis = {
         card: cardName,
         investmentScore: Math.round(investmentScore),
         metrics: {
           scarcityScore: Math.round(scarcityScore),
-          demandScore: Math.round(demandScore),
           qualityScore: Math.round(qualityScore),
-          gemRate: gemRate,
+          demandScore: Math.round(demandScore),
+          gemRateScore: Math.round(gemRateScore),
+          // PSA-specific data
           totalPopulation: totalPopulation,
-          recentActivity: recentActivity
+          gemsPlus: gemsPlus,
+          gemRate: gemRate,
+          psa10Count: psa10Count,
+          psa9Count: psa9Count,
+          psa10Percentage: totalPopulation > 0 ? ((psa10Count / totalPopulation) * 100).toFixed(1) : 0,
+          psa9Percentage: totalPopulation > 0 ? ((psa9Count / totalPopulation) * 100).toFixed(1) : 0
         },
         recommendation: this.getInvestmentRecommendation(investmentScore),
-        source: 'GemRate + eBay',
+        source: 'GemRate PSA + eBay',
         timestamp: new Date().toISOString()
       };
 
@@ -359,6 +434,73 @@ class GemRateService {
         error: error.message
       };
     }
+  }
+
+  /**
+   * Calculate scarcity score based on total population
+   * @param {number} totalPopulation - Total number of cards graded
+   * @returns {number} Scarcity score (0-100)
+   */
+  calculateScarcityScore(totalPopulation) {
+    if (totalPopulation === 0) return 0;
+    
+    // More cards = less scarce = lower score
+    // Fewer cards = more scarce = higher score
+    if (totalPopulation <= 100) return 100;      // Very rare
+    if (totalPopulation <= 500) return 90;       // Rare
+    if (totalPopulation <= 1000) return 80;      // Uncommon
+    if (totalPopulation <= 2500) return 70;      // Somewhat common
+    if (totalPopulation <= 5000) return 60;      // Common
+    if (totalPopulation <= 10000) return 50;    // Very common
+    return Math.max(10, 100 - (totalPopulation / 1000)); // Scale down for very high numbers
+  }
+
+  /**
+   * Calculate quality score based on PSA grading data
+   * @param {number} gemRate - Overall gem rate percentage
+   * @param {number} psa10Count - Number of PSA 10s
+   * @param {number} psa9Count - Number of PSA 9s
+   * @returns {number} Quality score (0-100)
+   */
+  calculateQualityScore(gemRate, psa10Count, psa9Count) {
+    // Higher gem rate = better quality potential
+    const gemRateScore = Math.min(100, gemRate * 2);
+    
+    // More PSA 10s relative to PSA 9s = better quality
+    const gradeRatio = psa9Count > 0 ? (psa10Count / psa9Count) : 0;
+    const ratioScore = Math.min(50, gradeRatio * 10);
+    
+    return Math.round((gemRateScore + ratioScore) / 2);
+  }
+
+  /**
+   * Calculate demand score based on eBay price data
+   * @param {Object} priceData - eBay price data
+   * @returns {number} Demand score (0-100)
+   */
+  calculateDemandScore(priceData) {
+    if (!priceData || !priceData.raw || priceData.raw.length === 0) {
+      return 50; // Neutral if no price data
+    }
+    
+    const rawPrices = priceData.raw.filter(p => p > 0);
+    const psa9Prices = priceData.psa9 ? priceData.psa9.filter(p => p > 0) : [];
+    const psa10Prices = priceData.psa10 ? priceData.psa10.filter(p => p > 0) : [];
+    
+    if (rawPrices.length === 0) return 50;
+    
+    const avgRawPrice = rawPrices.reduce((sum, price) => sum + price, 0) / rawPrices.length;
+    const avgPsa9Price = psa9Prices.length > 0 ? psa9Prices.reduce((sum, price) => sum + price, 0) / psa9Prices.length : 0;
+    const avgPsa10Price = psa10Prices.length > 0 ? psa10Prices.reduce((sum, price) => sum + price, 0) / psa10Prices.length : 0;
+    
+    // Higher prices = higher demand
+    let demandScore = Math.min(100, avgRawPrice / 10); // Scale raw price
+    
+    // Premium for graded cards indicates demand
+    if (avgPsa9Price > 0 && avgPsa9Price > avgRawPrice * 2) demandScore += 10;
+    if (avgPsa10Price > 0 && avgPsa10Price > avgRawPrice * 3) demandScore += 15;
+    
+    return Math.min(100, demandScore);
   }
 
   /**
