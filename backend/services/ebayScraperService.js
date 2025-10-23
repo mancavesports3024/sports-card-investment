@@ -255,20 +255,15 @@ class EbayScraperService {
     
 
     buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = null, cardType = null, season = null, page = 1) {
-        // Process negative keywords (exclusions) properly for eBay
+        // Simplify search term to avoid eBay detection
         let processedTerm = searchTerm;
         
-        // Handle negative keywords in parentheses: -(word1, word2) -> -word1 -word2
-        const negativeMatch = processedTerm.match(/\(([^)]+)\)/);
-        if (negativeMatch) {
-            const negativeWords = negativeMatch[1].split(/[,\s]+/).filter(word => word.length > 0);
-            const negativeString = negativeWords.map(word => `-${word.trim()}`).join(' ');
-            processedTerm = processedTerm.replace(/\([^)]+\)/, negativeString);
-        }
+        // Extract the main card name (before any exclusions)
+        const mainCardName = processedTerm.split(' -')[0].trim();
         
-        // Clean and encode the search term (preserve more characters for better matching)
-        const cleanTerm = processedTerm
-            .replace(/[^\w\s\-\+\(\)\/]/g, ' ') // Keep parentheses and slashes
+        // Only use the main card name to avoid complex exclusions that trigger detection
+        const cleanTerm = mainCardName
+            .replace(/[^\w\s]/g, ' ') // Remove special characters
             .replace(/\s+/g, '+')
             .trim();
         
@@ -351,7 +346,7 @@ class EbayScraperService {
                 
                 // Add delay between pages to avoid verification pages
                 if (page < pagesNeeded) {
-                    const pageDelay = 1000 + Math.random() * 1000; // 1-2 seconds
+                    const pageDelay = 3000 + Math.random() * 3000; // 3-6 seconds
                     console.log(`⏳ Waiting ${Math.round(pageDelay)}ms before next page...`);
                     await new Promise(resolve => setTimeout(resolve, pageDelay));
                 }
