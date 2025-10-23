@@ -140,10 +140,26 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
           {searches.map((search) => (
             <li key={search.id || search._id} style={{ marginBottom: 18, background: '#333', borderRadius: 6, padding: '1rem 1.5rem', border: '1px solid #ffd700' }}>
               <div style={{ fontWeight: 'bold', color: '#ffd700' }}>{search.query || search.searchQuery}</div>
-              {/* Show summary of Raw, PSA 9, PSA 10 */}
+              {/* Show average prices for Raw, PSA 9, PSA 10 */}
               {search.results && (
                 <div style={{ fontSize: '0.92em', color: '#bbb', marginTop: 2 }}>
-                  Raw: {search.results.raw || 0}, PSA 9: {search.results.psa9 || 0}, PSA 10: {search.results.psa10 || 0}
+                  {(() => {
+                    const getAveragePrice = (cards) => {
+                      if (!cards || !Array.isArray(cards) || cards.length === 0) return 'N/A';
+                      const validPrices = cards
+                        .filter(card => card.price?.value && !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0)
+                        .map(card => Number(card.price.value));
+                      if (validPrices.length === 0) return 'N/A';
+                      const avg = validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length;
+                      return `$${avg.toFixed(2)}`;
+                    };
+                    
+                    const rawAvg = getAveragePrice(search.results.raw);
+                    const psa9Avg = getAveragePrice(search.results.psa9);
+                    const psa10Avg = getAveragePrice(search.results.psa10);
+                    
+                    return `Raw: ${rawAvg}, PSA 9: ${psa9Avg}, PSA 10: ${psa10Avg}`;
+                  })()}
                 </div>
               )}
               <div style={{ marginTop: 10, display: 'flex', gap: '1rem' }}>
