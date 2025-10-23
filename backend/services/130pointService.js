@@ -68,7 +68,11 @@ class Point130Service {
             
             // Cache the results (even if 0 results to avoid repeated API calls)
             if (this.redisClient) {
-                await this.redisClient.setex(cacheKey, 3600, JSON.stringify(cardData)); // 1 hour cache
+                try {
+                    await this.redisClient.setEx(cacheKey, 3600, JSON.stringify(cardData)); // 1 hour cache
+                } catch (cacheError) {
+                    console.log('⚠️ Cache error (non-critical):', cacheError.message);
+                }
             }
 
             console.log(`✅ 130point found ${cardData.length} sold items`);
