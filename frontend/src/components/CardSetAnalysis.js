@@ -171,6 +171,7 @@ const CardSetAnalysis = () => {
       ...(results.otherGraded || [])
     ].filter(card => card.price?.value && !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
 
+    console.log(`🔥 Hot Cards Analysis: ${allCards.length} total cards`);
     if (allCards.length === 0) return null;
 
     // Define "recent" as last 7 days
@@ -206,7 +207,10 @@ const CardSetAnalysis = () => {
     });
 
     // Calculate hot cards based on recent activity and price increases
-    const hotCards = Object.values(cardGroups)
+    const cardGroupsArray = Object.values(cardGroups);
+    console.log(`🔥 Card groups: ${cardGroupsArray.length}`);
+    
+    const hotCards = cardGroupsArray
       .filter(group => group.recentSales.length > 0 && group.olderSales.length > 0)
       .map(group => {
         const recentAvg = group.recentSales.reduce((sum, sale) => sum + sale.price, 0) / group.recentSales.length;
@@ -225,13 +229,99 @@ const CardSetAnalysis = () => {
       })
       .filter(card => 
         card.hotScore > 0 && 
-        card.priceChangePercent > 5 && // Only cards with at least 5% price increase
-        card.recentSales.length >= 2   // At least 2 recent sales for reliability
+        card.priceChangePercent > 2 && // Reduced from 5% to 2% price increase
+        card.recentSales.length >= 1   // Reduced from 2 to 1 recent sale
       )
       .sort((a, b) => b.hotScore - a.hotScore)
       .slice(0, 5);
 
-    if (hotCards.length === 0) return null;
+    console.log(`🔥 Hot cards found: ${hotCards.length}`);
+    if (hotCards.length === 0) {
+      console.log(`🔥 No hot cards - showing fallback with recent activity`);
+      // Fallback: show cards with recent activity even without price comparison
+      const recentActivityCards = cardGroupsArray
+        .filter(group => group.recentSales.length >= 2)
+        .map(group => {
+          const recentAvg = group.recentSales.reduce((sum, sale) => sum + sale.price, 0) / group.recentSales.length;
+          return {
+            ...group,
+            recentAvg,
+            olderAvg: recentAvg, // Use same as recent for fallback
+            priceChange: 0,
+            priceChangePercent: 0,
+            hotScore: group.recentSales.length * 2
+          };
+        })
+        .sort((a, b) => b.hotScore - a.hotScore)
+        .slice(0, 3);
+      
+      if (recentActivityCards.length === 0) return null;
+      
+      return (
+        <div style={{ 
+          background: 'linear-gradient(135deg, #ff6b35, #f7931e)', 
+          borderRadius: 12, 
+          padding: '1.5rem', 
+          marginBottom: '2rem',
+          border: '2px solid #ffd700',
+          boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)'
+        }}>
+          <h3 style={{ 
+            color: '#fff', 
+            fontWeight: 800, 
+            textShadow: '1px 1px 4px rgba(0,0,0,0.5)',
+            marginBottom: '1rem',
+            fontSize: '1.3rem'
+          }}>
+            🔥 Recent Activity
+          </h3>
+          <p style={{ 
+            color: '#fff', 
+            marginBottom: '1.5rem',
+            fontSize: '0.95rem',
+            opacity: 0.9
+          }}>
+            Cards with recent sales activity in the last 7 days
+          </p>
+          
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            {recentActivityCards.map((card, index) => (
+              <div key={index} style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: 8,
+                padding: '1rem',
+                border: '1px solid rgba(255, 255, 255, 0.3)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                  <h4 style={{ 
+                    color: '#333', 
+                    margin: 0, 
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    flex: 1
+                  }}>
+                    {card.summaryTitle || card.title}
+                  </h4>
+                  <span style={{ 
+                    background: '#28a745', 
+                    color: 'white', 
+                    padding: '0.2rem 0.5rem', 
+                    borderRadius: 4, 
+                    fontSize: '0.8rem',
+                    fontWeight: 600
+                  }}>
+                    {card.recentSales.length} recent sales
+                  </span>
+                </div>
+                <div style={{ color: '#666', fontSize: '0.9rem' }}>
+                  Recent Avg: ${card.recentAvg.toFixed(2)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div style={{ 
