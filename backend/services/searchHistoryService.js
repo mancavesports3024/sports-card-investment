@@ -64,9 +64,9 @@ async function addSearchForUser(user, searchData) {
       createdAt: now,
       results: {
         totalCards: searchData.results?.raw?.length + searchData.results?.psa9?.length + searchData.results?.psa10?.length || 0,
-        raw: searchData.results?.raw?.length || 0,
-        psa9: searchData.results?.psa9?.length || 0,
-        psa10: searchData.results?.psa10?.length || 0
+        raw: searchData.results?.raw || [],
+        psa9: searchData.results?.psa9 || [],
+        psa10: searchData.results?.psa10 || []
       },
       priceAnalysis: searchData.priceAnalysis || null
     };
