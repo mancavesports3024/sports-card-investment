@@ -35,8 +35,9 @@ class Point130Service {
             if (this.redisClient) {
                 const cached = await this.redisClient.get(cacheKey);
                 if (cached) {
-                    console.log('✅ Using cached 130point data');
-                    return JSON.parse(cached);
+                    const cachedData = JSON.parse(cached);
+                    console.log(`✅ Using cached 130point data: ${cachedData.length} items`);
+                    return cachedData;
                 }
             }
 
@@ -61,10 +62,12 @@ class Point130Service {
             });
 
             // Parse the response
+            console.log(`📊 130point response length: ${response.data?.length || 0}`);
             const cardData = this.parseResponse(response.data, searchTerm);
+            console.log(`📊 130point parsed ${cardData.length} cards`);
             
-            // Cache the results
-            if (this.redisClient && cardData.length > 0) {
+            // Cache the results (even if 0 results to avoid repeated API calls)
+            if (this.redisClient) {
                 await this.redisClient.setex(cacheKey, 3600, JSON.stringify(cardData)); // 1 hour cache
             }
 
@@ -111,6 +114,8 @@ class Point130Service {
             const $ = cheerio.load(html);
             
             const cards = [];
+            const tableRows = $('tbody tr').length;
+            console.log(`📋 Found ${tableRows} table rows in 130point response`);
             
             // Look for card items in table rows (130point uses table structure)
             $('tbody tr').each((index, element) => {
@@ -130,6 +135,8 @@ class Point130Service {
                     }
                 }
             });
+            
+            console.log(`📊 Extracted ${cards.length} cards from ${tableRows} rows`);
 
             // If no specific selectors work, try to parse JSON if it's a JSON response
             if (cards.length === 0 && html.trim().startsWith('{')) {
