@@ -185,4 +185,40 @@ router.get('/set/:setName', async (req, res) => {
   }
 });
 
+// GET /api/gemrate/details/:gemrateId - Get card details by gemrate_id
+router.get('/details/:gemrateId', async (req, res) => {
+  try {
+    const { gemrateId } = req.params;
+    
+    console.log(`📊 GemRate card details request: "${gemrateId}"`);
+    
+    const cardDetails = await gemrateService.getCardDetails(gemrateId);
+    
+    if (cardDetails) {
+      res.json({
+        success: true,
+        data: {
+          gemrateId: gemrateId,
+          population: gemrateService.parsePopulationData(cardDetails),
+          rawData: cardDetails
+        },
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'No card details found',
+        gemrateId: gemrateId
+      });
+    }
+  } catch (error) {
+    console.error('❌ GemRate details error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get card details',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;

@@ -8,7 +8,7 @@ class GemRateService {
   }
 
   /**
-   * Search for card population data on GemRate
+   * Search for card population data on GemRate (Two-step process)
    * @param {string} searchQuery - Card name or identifier
    * @param {Object} options - Search options
    * @returns {Promise<Object>} Population data
@@ -17,8 +17,8 @@ class GemRateService {
     try {
       console.log(`🔍 GemRate search: "${searchQuery}"`);
       
-      // Make POST request to GemRate's universal search API
-      const response = await axios.post(this.apiUrl, {
+      // Step 1: Search for gemrate_id
+      const searchResponse = await axios.post(this.apiUrl, {
         query: searchQuery,
         ...options
       }, {
@@ -33,26 +33,55 @@ class GemRateService {
         }
       });
 
-      if (response.data && response.status === 200) {
-        console.log(`✅ Found GemRate data for: ${searchQuery}`);
-        return {
-          success: true,
-          card: searchQuery,
-          population: this.parsePopulationData(response.data),
-          rawData: response.data,
-          source: 'GemRate',
-          timestamp: new Date().toISOString()
-        };
-      } else {
-        console.log(`❌ No GemRate data found for: ${searchQuery}`);
+      if (!searchResponse.data || searchResponse.status !== 200) {
+        console.log(`❌ No GemRate search results for: ${searchQuery}`);
         return {
           success: false,
           card: searchQuery,
-          error: 'No population data found',
+          error: 'No search results found',
           source: 'GemRate',
           timestamp: new Date().toISOString()
         };
       }
+
+      // Extract gemrate_id from search results
+      const gemrateId = this.extractGemrateId(searchResponse.data);
+      if (!gemrateId) {
+        console.log(`❌ No gemrate_id found in search results for: ${searchQuery}`);
+        return {
+          success: false,
+          card: searchQuery,
+          error: 'No gemrate_id found in search results',
+          source: 'GemRate',
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      console.log(`🔍 Found gemrate_id: ${gemrateId}`);
+
+      // Step 2: Get detailed card data using gemrate_id
+      const cardDetails = await this.getCardDetails(gemrateId);
+      if (!cardDetails) {
+        console.log(`❌ No card details found for gemrate_id: ${gemrateId}`);
+        return {
+          success: false,
+          card: searchQuery,
+          error: 'No card details found',
+          source: 'GemRate',
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      console.log(`✅ Found GemRate data for: ${searchQuery}`);
+      return {
+        success: true,
+        card: searchQuery,
+        gemrateId: gemrateId,
+        population: this.parsePopulationData(cardDetails),
+        rawData: cardDetails,
+        source: 'GemRate',
+        timestamp: new Date().toISOString()
+      };
     } catch (error) {
       console.error('❌ GemRate search error:', error.message);
       return {
@@ -62,6 +91,93 @@ class GemRateService {
         source: 'GemRate',
         timestamp: new Date().toISOString()
       };
+    }
+  }
+
+  /**
+   * Extract gemrate_id from search results
+   * @param {Object} searchData - Search response data
+   * @returns {string|null} gemrate_id or null
+   */
+  extractGemrateId(searchData) {
+    try {
+      // Look for gemrate_id in various possible locations in the response
+      if (searchData.gemrate_id) {
+        return searchData.gemrate_id;
+      }
+      
+      if (searchData.id) {
+        return searchData.id;
+      }
+      
+      if (searchData.results && Array.isArray(searchData.results) && searchData.results.length > 0) {
+        const firstResult = searchData.results[0];
+        if (firstResult.gemrate_id) {
+          return firstResult.gemrate_id;
+        }
+        if (firstResult.id) {
+          return firstResult.id;
+        }
+      }
+      
+      if (searchData.data && searchData.data.gemrate_id) {
+        return searchData.data.gemrate_id;
+      }
+      
+      if (searchData.data && searchData.data.id) {
+        return searchData.data.id;
+      }
+      
+      // If it's an array of results, take the first one
+      if (Array.isArray(searchData) && searchData.length > 0) {
+        const firstItem = searchData[0];
+        if (firstItem.gemrate_id) {
+          return firstItem.gemrate_id;
+        }
+        if (firstItem.id) {
+          return firstItem.id;
+        }
+      }
+      
+      console.log('🔍 Search data structure:', JSON.stringify(searchData, null, 2));
+      return null;
+    } catch (error) {
+      console.error('❌ Error extracting gemrate_id:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get detailed card data using gemrate_id
+   * @param {string} gemrateId - The gemrate_id from search results
+   * @returns {Promise<Object|null>} Card details or null
+   */
+  async getCardDetails(gemrateId) {
+    try {
+      console.log(`📊 Getting card details for gemrate_id: ${gemrateId}`);
+      
+      const response = await axios.get(`${this.baseUrl}/card-details`, {
+        params: { gemrate_id: gemrateId },
+        timeout: this.timeout,
+        headers: {
+          'Accept': '*/*',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
+          'Origin': 'https://www.gemrate.com',
+          'Referer': 'https://www.gemrate.com/universal-search',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+
+      if (response.data && response.status === 200) {
+        console.log(`✅ Retrieved card details for gemrate_id: ${gemrateId}`);
+        return response.data;
+      } else {
+        console.log(`❌ No card details found for gemrate_id: ${gemrateId}`);
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Error getting card details:', error.message);
+      return null;
     }
   }
 
