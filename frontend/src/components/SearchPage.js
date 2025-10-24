@@ -611,8 +611,17 @@ const SearchPage = () => {
                   )}
                   <div className="custom-card-date">Sold: {formatDate(card.soldDate)}</div>
                   {card.shippingCost && (
-                    <div style={{ fontSize: '0.85em', color: '#666' }}>
-                      Shipping: {card.shippingCost}
+                    <div style={{ 
+                      fontSize: '0.9em', 
+                      color: '#2c5530', 
+                      backgroundColor: '#d4edda', 
+                      padding: '2px 6px', 
+                      borderRadius: 4, 
+                      border: '1px solid #c3e6cb',
+                      alignSelf: 'flex-start',
+                      fontWeight: 500
+                    }}>
+                      📦 {card.shippingCost}
                     </div>
                   )}
                   {card.seller && card.seller !== '130point' && (

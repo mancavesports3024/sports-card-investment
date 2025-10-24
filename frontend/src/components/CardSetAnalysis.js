@@ -505,6 +505,22 @@ const CardSetAnalysis = () => {
           <div className="custom-card-date">Sold: {formatDate(card.soldDate)}</div>
         )}
         
+        {/* Shipping cost */}
+        {card.shippingCost && (
+          <div style={{ 
+            fontSize: '0.85em', 
+            color: '#2c5530', 
+            backgroundColor: '#d4edda', 
+            padding: '2px 6px', 
+            borderRadius: 4, 
+            border: '1px solid #c3e6cb',
+            alignSelf: 'flex-start',
+            fontWeight: 500
+          }}>
+            📦 {card.shippingCost}
+          </div>
+        )}
+        
         {/* Item number, extract from itemWebUrl if possible */}
         {card.itemWebUrl && (() => {
           const match = card.itemWebUrl.match(/\/itm\/(\d{6,})|\/(\d{6,})(?:\?.*)?$/);
