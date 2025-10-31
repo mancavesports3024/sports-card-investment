@@ -15,9 +15,8 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   border: 4px solid #ffd700;
   padding: 1rem;
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  grid-template-rows: 1.5fr 2fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 0.5rem;
 }
 
@@ -43,37 +42,57 @@
 
 /* Outfield - Top */
 .outfield-top {
-  grid-column: 1 / -1;
-  grid-row: 1;
+  flex: 0 0 auto;
   background: linear-gradient(to bottom, rgba(45, 80, 22, 0.8), rgba(61, 107, 31, 0.6));
+  min-height: 100px;
+}
+
+/* Middle Row */
+.middle-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 0.5rem;
+  flex: 1 1 auto;
 }
 
 /* Left Field */
 .left-field {
-  grid-column: 1;
-  grid-row: 2;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
 }
 
-/* Center Field */
-.center-field {
-  grid-column: 2;
-  grid-row: 2;
+/* Center Field - Pitcher's Mound */
+.center-field.pitchers-mound {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
   position: relative;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
 }
 
 /* Right Field */
 .right-field {
-  grid-column: 3;
-  grid-row: 2;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
 }
 
-/* Infield - Bottom */
-.infield-bottom {
-  grid-column: 1 / -1;
-  grid-row: 3;
+/* Bottom Row */
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+  min-height: 100px;
+}
+
+/* Raw and PSA 9 Price Sections */
+.raw-price-section,
+.psa9-price-section {
   background: linear-gradient(to top, rgba(45, 80, 22, 0.8), rgba(61, 107, 31, 0.6));
+  min-height: 100px;
 }
 
 /* Card Image Container */
@@ -124,6 +143,23 @@
   font-size: 0.9rem;
   color: #333;
   font-weight: 600;
+}
+
+.card-title-badge {
+  margin-top: 0.5rem;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #000000;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 8px;
+  border: 2px solid #000000;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .card-title-overlay {
@@ -275,6 +311,14 @@
     padding: 0.5rem;
   }
 
+  .middle-row {
+    gap: 0.25rem;
+  }
+
+  .bottom-row {
+    gap: 0.25rem;
+  }
+
   .price-value {
     font-size: 1.2rem;
   }
@@ -288,13 +332,14 @@
     max-width: 150px;
   }
 
-  .price-row {
-    gap: 1rem;
-  }
-
   .gemrate-value,
   .total-value {
     font-size: 1.1rem;
+  }
+
+  .card-title-badge {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.5rem;
   }
 }
 
@@ -306,6 +351,15 @@
 
   .field-section {
     padding: 0.4rem;
+  }
+
+  .middle-row {
+    gap: 0.2rem;
+  }
+
+  .bottom-row {
+    gap: 0.2rem;
+    grid-template-columns: 1fr;
   }
 
   .price-label,
@@ -331,14 +385,15 @@
     font-size: 2rem;
   }
 
+  .card-title-badge {
+    font-size: 0.7rem;
+    padding: 0.35rem 0.5rem;
+    margin-top: 0.35rem;
+  }
+
   .card-title-overlay {
     font-size: 0.7rem;
     padding: 0.5rem 0.25rem 0.25rem;
-  }
-
-  .price-row {
-    gap: 0.75rem;
-    flex-wrap: wrap;
   }
 
   .population-info {
@@ -353,5 +408,11 @@
   .gemrate-value,
   .total-value {
     font-size: 0.95rem;
+  }
+
+  .outfield-top,
+  .raw-price-section,
+  .psa9-price-section {
+    min-height: 80px;
   }
 }

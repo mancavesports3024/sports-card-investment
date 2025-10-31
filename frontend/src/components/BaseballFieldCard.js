@@ -28,7 +28,7 @@ const BaseballFieldCard = ({ card }) => {
   return (
     <div className="baseball-field-card">
       <div className="baseball-field">
-        {/* Outfield - Top */}
+        {/* Outfield - Top - PSA 10 */}
         <div className="field-section outfield-top">
           <div className="price-label">PSA 10</div>
           <div className="price-value">{formatPrice(psa10Price)}</div>
@@ -42,62 +42,67 @@ const BaseballFieldCard = ({ card }) => {
           )}
         </div>
 
-        {/* Left Field */}
-        <div className="field-section left-field">
-          <div className="gemrate-info">
-            <div className="gemrate-label">Gem Rate</div>
-            <div className="gemrate-value">{gemRate > 0 ? `${gemRate}%` : 'N/A'}</div>
-          </div>
-        </div>
-
-        {/* Center Field - Card Image */}
-        <div className="field-section center-field">
-          <div className="card-image-container">
-            {card.imageUrl || card.image ? (
-              <img 
-                src={card.imageUrl || card.image} 
-                alt={card.title || card.summaryTitle || 'Card'}
-                className="card-image"
-              />
-            ) : (
-              <div className="card-placeholder">
-                <div className="card-placeholder-icon">⚾</div>
-                <div className="card-placeholder-text">Card Image</div>
-              </div>
-            )}
-            <div className="card-title-overlay">
-              {card.summaryTitle || card.title || 'Card Title'}
+        {/* Middle Row - Left: Gem Rate, Center: Card Image (Pitcher's Mound), Right: Total Graded */}
+        <div className="middle-row">
+          {/* Left Field - Gem Rate */}
+          <div className="field-section left-field">
+            <div className="gemrate-info">
+              <div className="gemrate-label">GEM RATE</div>
+              <div className="gemrate-value">{gemRate > 0 ? `${gemRate}%` : 'N/A'}</div>
             </div>
           </div>
-        </div>
 
-        {/* Right Field */}
-        <div className="field-section right-field">
-          <div className="total-graded-info">
-            <div className="total-label">Total Graded</div>
-            <div className="total-value">{totalGraded > 0 ? totalGraded.toLocaleString() : 'N/A'}</div>
-          </div>
-        </div>
-
-        {/* Infield - Bottom */}
-        <div className="field-section infield-bottom">
-          <div className="price-row">
-            <div className="price-item">
-              <div className="price-label">RAW</div>
-              <div className="price-value">{formatPrice(rawPrice)}</div>
-            </div>
-            <div className="price-item">
-              <div className="price-label">PSA 9</div>
-              <div className="price-value">{formatPrice(psa9Price)}</div>
-              {psa9Pop > 0 && (
-                <div className="population-info">Pop: {psa9Pop.toLocaleString()}</div>
-              )}
-              {psa9Profit !== null && (
-                <div className={`profit-badge ${psa9Profit >= 0 ? 'profit' : 'loss'}`}>
-                  {psa9Profit >= 0 ? '+' : ''}{psa9Profit}%
+          {/* Center - Card Image (Pitcher's Mound) */}
+          <div className="field-section center-field pitchers-mound">
+            <div className="card-image-container">
+              {card.imageUrl || card.image ? (
+                <img 
+                  src={card.imageUrl || card.image} 
+                  alt={card.title || card.summaryTitle || 'Card'}
+                  className="card-image"
+                />
+              ) : (
+                <div className="card-placeholder">
+                  <div className="card-placeholder-icon">⚾</div>
+                  <div className="card-placeholder-text">Card Image</div>
                 </div>
               )}
             </div>
+            {/* Card title below image */}
+            <div className="card-title-badge">
+              {card.summaryTitle || card.title || 'Card Title'}
+            </div>
+          </div>
+
+          {/* Right Field - Total Graded */}
+          <div className="field-section right-field">
+            <div className="total-graded-info">
+              <div className="total-label">TOTAL GRADED</div>
+              <div className="total-value">{totalGraded > 0 ? totalGraded.toLocaleString() : 'N/A'}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Row - Raw and PSA 9 Prices */}
+        <div className="bottom-row">
+          {/* Raw Average Price */}
+          <div className="field-section raw-price-section">
+            <div className="price-label">RAW</div>
+            <div className="price-value">{formatPrice(rawPrice)}</div>
+          </div>
+
+          {/* PSA 9 Average Price */}
+          <div className="field-section psa9-price-section">
+            <div className="price-label">PSA 9</div>
+            <div className="price-value">{formatPrice(psa9Price)}</div>
+            {psa9Pop > 0 && (
+              <div className="population-info">Pop: {psa9Pop.toLocaleString()}</div>
+            )}
+            {psa9Profit !== null && (
+              <div className={`profit-badge ${psa9Profit >= 0 ? 'profit' : 'loss'}`}>
+                {psa9Profit >= 0 ? '+' : ''}{psa9Profit}%
+              </div>
+            )}
           </div>
         </div>
 

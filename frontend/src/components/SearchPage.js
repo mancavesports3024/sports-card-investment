@@ -429,13 +429,22 @@ const SearchPage = () => {
     const psa9Avg = psa9Prices.length > 0 ? psa9Prices.reduce((a, b) => a + b, 0) / psa9Prices.length : 0;
     const psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
 
-    // Get card image from first available card
-    const cardImage = psa10Cards[0]?.image?.imageUrl || 
-                     psa10Cards[0]?.image || 
-                     psa9Cards[0]?.image?.imageUrl || 
-                     psa9Cards[0]?.image || 
-                     rawCards[0]?.image?.imageUrl || 
-                     rawCards[0]?.image || 
+    // Get card image from first available sold card (priority: PSA 10, PSA 9, Raw)
+    const getCardImage = (card) => {
+      if (!card) return null;
+      // Try various image field patterns
+      if (typeof card.image === 'string') return card.image;
+      if (card.image?.imageUrl) return card.image.imageUrl;
+      if (card.image?.url) return card.image.url;
+      if (card.imageUrl) return card.imageUrl;
+      if (card.thumbnail) return card.thumbnail;
+      if (card.thumbnailUrl) return card.thumbnailUrl;
+      return null;
+    };
+
+    const cardImage = getCardImage(psa10Cards[0]) || 
+                     getCardImage(psa9Cards[0]) || 
+                     getCardImage(rawCards[0]) || 
                      null;
 
     // Get card title
