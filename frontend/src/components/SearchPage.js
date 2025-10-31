@@ -8,6 +8,7 @@ import { InContentAd, SearchResultsAd } from './AdSense';
 import FeaturedEbayRotator from './FeaturedEbayRotator';
 import PageLayout from './PageLayout';
 import GemRateAnalysis from './GemRateAnalysis';
+import BaseballFieldCard from './BaseballFieldCard';
 
 // FeaturedEbayListing component
 const FeaturedEbayListing = () => {
@@ -98,6 +99,31 @@ const SearchPage = () => {
   const rawLiveRef = useRef(null);
   const psa9LiveRef = useRef(null);
   const psa10LiveRef = useRef(null);
+  // State for gemrate data for baseball field card
+  const [baseballCardGemrateData, setBaseballCardGemrateData] = useState(null);
+
+  // Fetch gemrate data when search results change
+  useEffect(() => {
+    const fetchGemrateForBaseballCard = async () => {
+      if (!results || !results.searchParams?.searchQuery) {
+        setBaseballCardGemrateData(null);
+        return;
+      }
+      try {
+        const response = await fetch(`${config.API_BASE_URL}/api/gemrate/search/${encodeURIComponent(results.searchParams.searchQuery)}`);
+        const data = await response.json();
+        if (data.success && data.data.success && data.data.population) {
+          setBaseballCardGemrateData(data.data.population);
+        } else {
+          setBaseballCardGemrateData(null);
+        }
+      } catch (err) {
+        console.error('Failed to fetch gemrate data for baseball card:', err);
+        setBaseballCardGemrateData(null);
+      }
+    };
+    fetchGemrateForBaseballCard();
+  }, [results]);
 
   // Fetch saved searches on mount (for duplicate prevention)
   useEffect(() => {
@@ -384,6 +410,55 @@ const SearchPage = () => {
     const max = Math.max(...prices);
     const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
     return { min, max, avg };
+  };
+
+  // Helper to build summary card data for baseball field card
+  const buildSummaryCardData = () => {
+    if (!results || !results.results) return null;
+
+    const rawCards = filterRawCards(results.results.raw || []);
+    const psa9Cards = (results.results.psa9 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
+    const psa10Cards = (results.results.psa10 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
+
+    // Calculate average prices
+    const rawPrices = rawCards.map(card => Number(card.price?.value)).filter(v => !isNaN(v) && v > 0);
+    const psa9Prices = psa9Cards.map(card => Number(card.price?.value)).filter(v => !isNaN(v) && v > 0);
+    const psa10Prices = psa10Cards.map(card => Number(card.price?.value)).filter(v => !isNaN(v) && v > 0);
+
+    const rawAvg = rawPrices.length > 0 ? rawPrices.reduce((a, b) => a + b, 0) / rawPrices.length : 0;
+    const psa9Avg = psa9Prices.length > 0 ? psa9Prices.reduce((a, b) => a + b, 0) / psa9Prices.length : 0;
+    const psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
+
+    // Get card image from first available card
+    const cardImage = psa10Cards[0]?.image?.imageUrl || 
+                     psa10Cards[0]?.image || 
+                     psa9Cards[0]?.image?.imageUrl || 
+                     psa9Cards[0]?.image || 
+                     rawCards[0]?.image?.imageUrl || 
+                     rawCards[0]?.image || 
+                     null;
+
+    // Get card title
+    const cardTitle = results.searchParams?.searchQuery || 
+                     psa10Cards[0]?.summaryTitle || 
+                     psa10Cards[0]?.title || 
+                     psa9Cards[0]?.summaryTitle || 
+                     psa9Cards[0]?.title || 
+                     rawCards[0]?.summaryTitle || 
+                     rawCards[0]?.title || 
+                     'Card';
+
+    return {
+      title: cardTitle,
+      summaryTitle: cardTitle,
+      imageUrl: cardImage,
+      image: cardImage,
+      rawAveragePrice: rawAvg,
+      psa9AveragePrice: psa9Avg,
+      psa10Price: psa10Avg,
+      gemrateData: baseballCardGemrateData,
+      population: baseballCardGemrateData
+    };
   };
 
   // Helper to check if a listing is new (listed in last 24 hours)
@@ -1063,6 +1138,37 @@ const SearchPage = () => {
 
             {/* Price Analysis */}
             {renderPriceAnalysis(results.priceAnalysis)}
+
+            {/* Baseball Field Card - Scorecard Summary */}
+            {(() => {
+              const summaryCard = buildSummaryCardData();
+              if (!summaryCard || (!summaryCard.rawAveragePrice && !summaryCard.psa9AveragePrice && !summaryCard.psa10Price)) {
+                return null;
+              }
+              return (
+                <div style={{ 
+                  margin: '2rem 0', 
+                  display: 'flex', 
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  width: '100%'
+                }}>
+                  <div style={{ width: '100%', maxWidth: '500px' }}>
+                    <h3 style={{ 
+                      color: '#fff', 
+                      fontWeight: 800, 
+                      textShadow: '1px 1px 6px #000',
+                      textAlign: 'center',
+                      marginBottom: '1rem',
+                      fontSize: '1.5rem'
+                    }}>
+                      ⚾ Scorecard Summary
+                    </h3>
+                    <BaseballFieldCard card={summaryCard} />
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* GemRate PSA Population Analysis */}
             {results && results.results && (
