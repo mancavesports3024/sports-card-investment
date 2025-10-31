@@ -42,18 +42,25 @@ const BaseballFieldCard = ({ card }) => {
           )}
         </div>
 
-        {/* Middle Row - Left: Gem Rate, Center: Card Image (Pitcher's Mound), Right: Total Graded */}
+        {/* Middle Row - Left: Gem Rate, Right: Card Image */}
         <div className="middle-row">
           {/* Left Field - Gem Rate */}
-          <div className="field-section left-field">
+          <div className="field-section left-field gemrate-section">
             <div className="gemrate-info">
               <div className="gemrate-label">GEM RATE</div>
               <div className="gemrate-value">{gemRate > 0 ? `${gemRate}%` : 'N/A'}</div>
             </div>
+            {/* Total Graded below Gem Rate */}
+            {totalGraded > 0 && (
+              <div className="total-graded-info-compact">
+                <div className="total-label-compact">TOTAL GRADED</div>
+                <div className="total-value-compact">{totalGraded.toLocaleString()}</div>
+              </div>
+            )}
           </div>
 
-          {/* Center - Card Image (Pitcher's Mound) */}
-          <div className="field-section center-field pitchers-mound">
+          {/* Right - Card Image Section */}
+          <div className="field-section card-image-section">
             <div className="card-image-container">
               {card.imageUrl || card.image ? (
                 <img 
@@ -71,14 +78,6 @@ const BaseballFieldCard = ({ card }) => {
             {/* Card title below image */}
             <div className="card-title-badge">
               {card.summaryTitle || card.title || 'Card Title'}
-            </div>
-          </div>
-
-          {/* Right Field - Total Graded */}
-          <div className="field-section right-field">
-            <div className="total-graded-info">
-              <div className="total-label">TOTAL GRADED</div>
-              <div className="total-value">{totalGraded > 0 ? totalGraded.toLocaleString() : 'N/A'}</div>
             </div>
           </div>
         </div>
@@ -106,16 +105,6 @@ const BaseballFieldCard = ({ card }) => {
           </div>
         </div>
 
-        {/* Baseball Diamond Lines */}
-        <svg className="diamond-overlay" viewBox="0 0 400 400" preserveAspectRatio="none">
-          {/* Base paths */}
-          <line x1="200" y1="200" x2="150" y2="150" className="diamond-line" />
-          <line x1="200" y1="200" x2="250" y2="150" className="diamond-line" />
-          <line x1="200" y1="200" x2="150" y2="250" className="diamond-line" />
-          <line x1="200" y1="200" x2="250" y2="250" className="diamond-line" />
-          {/* Home plate */}
-          <polygon points="200,200 190,210 210,210" className="home-plate" />
-        </svg>
       </div>
     </div>
   );
