@@ -432,20 +432,79 @@ const SearchPage = () => {
     // Get card image from first available sold card (priority: PSA 10, PSA 9, Raw)
     const getCardImage = (card) => {
       if (!card) return null;
-      // Try various image field patterns
-      if (typeof card.image === 'string') return card.image;
-      if (card.image?.imageUrl) return card.image.imageUrl;
-      if (card.image?.url) return card.image.url;
-      if (card.imageUrl) return card.imageUrl;
-      if (card.thumbnail) return card.thumbnail;
-      if (card.thumbnailUrl) return card.thumbnailUrl;
+      
+      // Try all possible image field patterns
+      let imageUrl = null;
+      
+      // Direct imageUrl field (most common)
+      if (card.imageUrl && typeof card.imageUrl === 'string' && card.imageUrl.startsWith('http')) {
+        imageUrl = card.imageUrl;
+      }
+      // Image object with imageUrl property
+      else if (card.image && typeof card.image === 'object' && card.image.imageUrl) {
+        imageUrl = card.image.imageUrl;
+      }
+      // Image as string
+      else if (typeof card.image === 'string' && card.image.startsWith('http')) {
+        imageUrl = card.image;
+      }
+      // Image object with url property
+      else if (card.image?.url && typeof card.image.url === 'string' && card.image.url.startsWith('http')) {
+        imageUrl = card.image.url;
+      }
+      // Thumbnail fields
+      else if (card.thumbnail && typeof card.thumbnail === 'string' && card.thumbnail.startsWith('http')) {
+        imageUrl = card.thumbnail;
+      }
+      else if (card.thumbnailUrl && typeof card.thumbnailUrl === 'string' && card.thumbnailUrl.startsWith('http')) {
+        imageUrl = card.thumbnailUrl;
+      }
+      // Check nested image objects
+      else if (card.imageUrl && typeof card.imageUrl === 'object' && card.imageUrl.url) {
+        imageUrl = card.imageUrl.url;
+      }
+      
+      // Validate URL
+      if (imageUrl && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
+        return imageUrl;
+      }
+      
       return null;
     };
 
-    const cardImage = getCardImage(psa10Cards[0]) || 
-                     getCardImage(psa9Cards[0]) || 
-                     getCardImage(rawCards[0]) || 
-                     null;
+    // Try to get image from cards, prioritizing those with images
+    let cardImage = null;
+    
+    // First, try all cards to find one with an image
+    const allCards = [...psa10Cards, ...psa9Cards, ...rawCards];
+    for (const card of allCards) {
+      const img = getCardImage(card);
+      if (img) {
+        cardImage = img;
+        console.log('✅ Found card image:', img.substring(0, 50) + '...');
+        break;
+      }
+    }
+    
+    // If still no image, log for debugging
+    if (!cardImage) {
+      console.log('⚠️ No card image found. Sample card structure:', {
+        psa10Card: psa10Cards[0] ? {
+          hasImageUrl: !!psa10Cards[0].imageUrl,
+          hasImage: !!psa10Cards[0].image,
+          imageUrlType: typeof psa10Cards[0].imageUrl,
+          imageType: typeof psa10Cards[0].image
+        } : null,
+        psa9Card: psa9Cards[0] ? {
+          hasImageUrl: !!psa9Cards[0].imageUrl,
+          hasImage: !!psa9Cards[0].image
+        } : null,
+        rawCard: rawCards[0] ? {
+          hasImageUrl: !!rawCards[0].imageUrl,
+          hasImage: !!rawCards[0].image
+        } : null
+      });
+    }
 
     // Get card title
     const cardTitle = results.searchParams?.searchQuery || 

@@ -59,18 +59,34 @@ const BaseballFieldCard = ({ card }) => {
           {/* Right - Card Image Section */}
           <div className="field-section card-image-section">
             <div className="card-image-container">
-              {card.imageUrl || card.image ? (
-                <img 
-                  src={card.imageUrl || card.image} 
-                  alt={card.title || card.summaryTitle || 'Card'}
-                  className="card-image"
-                />
-              ) : (
-                <div className="card-placeholder">
-                  <div className="card-placeholder-icon">⚾</div>
-                  <div className="card-placeholder-text">Card Image</div>
-                </div>
-              )}
+              {(() => {
+                const imageSrc = card.imageUrl || card.image;
+                const isValidImage = imageSrc && 
+                                   typeof imageSrc === 'string' && 
+                                   (imageSrc.startsWith('http://') || imageSrc.startsWith('https://'));
+                
+                if (isValidImage) {
+                  return (
+                    <img 
+                      src={imageSrc}
+                      alt={card.title || card.summaryTitle || 'Card'}
+                      className="card-image"
+                      onError={(e) => {
+                        console.error('❌ Image failed to load:', imageSrc);
+                        e.target.style.display = 'none';
+                        e.target.nextSibling?.classList.remove('hidden');
+                      }}
+                    />
+                  );
+                }
+                
+                return (
+                  <div className="card-placeholder">
+                    <div className="card-placeholder-icon">⚾</div>
+                    <div className="card-placeholder-text">Card Image</div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
