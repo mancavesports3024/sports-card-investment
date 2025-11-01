@@ -1,23 +1,23 @@
 .baseball-field-card {
   width: 100%;
-  max-width: 700px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
 .baseball-field {
   position: relative;
   width: 100%;
-  aspect-ratio: 0.9;
+  aspect-ratio: 1.1;
   background: #2d7a1f;
-  border-radius: 20px;
+  border-radius: 24px;
   overflow: visible;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
   border: 6px solid #ffd700;
-  padding: 1.5rem;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  min-height: 700px;
+  gap: 1.5rem;
+  min-height: 650px;
 }
 
 /* Grass mowing stripes */
@@ -72,9 +72,9 @@
 .outfield {
   flex: 0 0 auto;
   background: linear-gradient(180deg, #1e5c14 0%, #2d7a1f 100%);
-  min-height: 150px;
+  min-height: 140px;
   border: 5px solid rgba(255, 255, 255, 0.9);
-  padding: 1.5rem;
+  padding: 1.75rem 2rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -92,11 +92,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 2.5rem;
   box-shadow: 
     0 8px 24px rgba(0, 0, 0, 0.6),
     inset 0 2px 10px rgba(139, 90, 60, 0.4);
-  min-height: 280px;
+  min-height: 300px;
   position: relative;
   z-index: 3;
 }
@@ -119,9 +119,9 @@
 .infield-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 1rem;
+  gap: 1.5rem;
   flex: 0 0 auto;
-  min-height: 160px;
+  min-height: 170px;
   width: 100%;
 }
 
@@ -129,7 +129,7 @@
 .third-base {
   background: linear-gradient(135deg, #2d7a1f 0%, #1e5c14 100%);
   border: 5px solid rgba(255, 255, 255, 0.9);
-  padding: 1.5rem 1rem;
+  padding: 1.75rem 1.25rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
@@ -155,7 +155,7 @@
 .home-plate {
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
   border: 5px solid rgba(255, 255, 255, 0.9);
-  padding: 1.5rem;
+  padding: 1.75rem 1.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
@@ -177,7 +177,7 @@
 .first-base {
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
   border: 5px solid rgba(255, 255, 255, 0.9);
-  padding: 1.5rem 1rem;
+  padding: 1.75rem 1.25rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
@@ -212,9 +212,9 @@
 
 .card-image {
   width: 100%;
-  max-width: 280px;
+  max-width: 240px;
   height: auto;
-  max-height: 380px;
+  max-height: 340px;
   object-fit: contain;
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
@@ -297,7 +297,7 @@
 }
 
 .price-value {
-  font-size: 2.25rem;
+  font-size: 2.5rem;
   font-weight: 900;
   color: #ffffff;
   text-shadow: 
@@ -360,7 +360,7 @@
 }
 
 .gemrate-value {
-  font-size: 2.5rem;
+  font-size: 3rem;
   font-weight: 900;
   color: #ffffff;
   text-shadow: 
