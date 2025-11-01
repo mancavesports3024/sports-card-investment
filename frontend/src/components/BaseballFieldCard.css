@@ -8,16 +8,32 @@
   position: relative;
   width: 100%;
   aspect-ratio: 0.75;
-  background: #1a3d0f;
+  background: linear-gradient(180deg, #1a3d0f 0%, #2d5016 50%, #1a3d0f 100%);
   border-radius: 20px;
   overflow: visible;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  border: 4px solid #ffd700;
+  border: 5px solid #ffd700;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  min-height: 600px;
+  min-height: 650px;
+}
+
+/* Baseball field dirt/grass pattern */
+.baseball-field::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.03) 2px, rgba(0, 0, 0, 0.03) 4px),
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 0, 0, 0.03) 2px, rgba(0, 0, 0, 0.03) 4px);
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 16px;
 }
 
 /* Field sections */
@@ -28,14 +44,15 @@
   justify-content: center;
   border-radius: 12px;
   position: relative;
+  z-index: 1;
 }
 
 /* Outfield - Top - PSA 10 */
 .outfield-top {
   flex: 0 0 auto;
-  background: #2d5016;
+  background: linear-gradient(135deg, #2d5016 0%, #1f4010 100%);
   min-height: 150px;
-  border: 2px solid rgba(255, 215, 0, 0.5);
+  border: 3px solid rgba(255, 215, 0, 0.6);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -43,6 +60,7 @@
   align-items: center;
   gap: 0.75rem;
   width: 100%;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Middle Row - Gem Rate Left, Card Image Right */
@@ -51,26 +69,27 @@
   grid-template-columns: 1fr 2fr;
   gap: 1rem;
   flex: 1 1 auto;
-  min-height: 250px;
+  min-height: 280px;
   width: 100%;
 }
 
 /* Left Field - Gem Rate Section */
 .left-field.gemrate-section {
-  background: #1a3d0f;
-  border: 2px solid rgba(255, 215, 0, 0.5);
+  background: linear-gradient(135deg, #1a3d0f 0%, #0f2608 100%);
+  border: 3px solid rgba(255, 215, 0, 0.6);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 1rem;
   min-height: 100%;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Card Image Section - Right Side */
+/* Card Image Section - Right Side (Home Plate area) */
 .card-image-section {
-  background: #ffffff;
-  border: 3px solid #ffd700;
+  background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+  border: 4px solid #ffd700;
   position: relative;
   z-index: 2;
   display: flex;
@@ -78,48 +97,71 @@
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(255, 215, 0, 0.1);
   min-height: 100%;
 }
 
-/* Bottom Row - Raw and PSA 9 */
+/* Home plate marker */
+.card-image-section::before {
+  content: '⬥';
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  color: rgba(255, 215, 0, 0.5);
+  z-index: 0;
+}
+
+/* Bottom Row - Raw and PSA 9 (Infield corners) */
 .bottom-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
   flex: 0 0 auto;
-  min-height: 140px;
+  min-height: 150px;
   width: 100%;
 }
 
-/* Raw and PSA 9 Price Sections */
+/* Raw and PSA 9 Price Sections - Infield bases */
 .raw-price-section,
 .psa9-price-section {
-  background: #2d5016;
-  min-height: 140px;
-  border: 2px solid rgba(255, 215, 0, 0.5);
+  background: linear-gradient(135deg, #2d5016 0%, #1f4010 100%);
+  min-height: 150px;
+  border: 3px solid rgba(255, 215, 0, 0.6);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 0.75rem;
   padding: 1.25rem;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+  position: relative;
 }
 
-/* Baseball Diamond Overlay */
+/* Base markers */
+.raw-price-section::after,
+.psa9-price-section::after {
+  content: '◇';
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* Baseball Diamond Overlay - visible foul lines */
 .baseball-field::before {
   content: '';
   position: absolute;
-  top: 50%;
+  top: 52%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: 60%;
-  height: 60%;
-  border: 3px dashed rgba(255, 215, 0, 0.3);
-  border-radius: 0;
-  clip-path: polygon(50% 100%, 0% 50%, 50% 0%, 100% 50%);
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 55%;
+  height: 55%;
+  border: 2px dashed rgba(255, 215, 0, 0.25);
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
 }
 
 /* Card Image Container */
@@ -136,32 +178,58 @@
 
 .card-image {
   width: 100%;
-  max-width: 220px;
+  max-width: 240px;
   height: auto;
-  max-height: 310px;
+  max-height: 340px;
   object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   background: white;
   padding: 0.5rem;
 }
 
 .card-placeholder {
-  width: 140px;
-  height: 140px;
-  background: linear-gradient(135deg, #e8d5ff 0%, #d4b5ff 100%);
+  width: 160px;
+  height: 160px;
+  background: linear-gradient(135deg, #e8d5ff 0%, #c4a3ff 50%, #d4b5ff 100%);
   border-radius: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
   margin-bottom: 1rem;
+  position: relative;
+}
+
+/* Baseball stitching effect on placeholder */
+.card-placeholder::before {
+  content: '';
+  position: absolute;
+  width: 80%;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, #ff1744 0px, #ff1744 10px, transparent 10px, transparent 15px);
+  top: 35%;
+  left: 10%;
+  transform: rotate(-30deg);
+}
+
+.card-placeholder::after {
+  content: '';
+  position: absolute;
+  width: 80%;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, #ff1744 0px, #ff1744 10px, transparent 10px, transparent 15px);
+  bottom: 35%;
+  left: 10%;
+  transform: rotate(30deg);
 }
 
 .card-placeholder-icon {
   font-size: 4rem;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+  position: relative;
+  z-index: 1;
 }
 
 .card-placeholder-text {
@@ -170,6 +238,8 @@
   font-weight: 600;
   letter-spacing: 0.5px;
   margin-top: 0.75rem;
+  position: relative;
+  z-index: 1;
 }
 
 /* Price Labels and Values */
@@ -275,22 +345,22 @@
   .baseball-field {
     padding: 1rem;
     gap: 0.75rem;
-    min-height: 550px;
+    min-height: 600px;
   }
 
   .outfield-top {
-    min-height: 120px;
+    min-height: 130px;
     padding: 1.25rem;
   }
 
   .middle-row {
     gap: 0.75rem;
-    min-height: 200px;
+    min-height: 220px;
   }
 
   .bottom-row {
     gap: 0.75rem;
-    min-height: 120px;
+    min-height: 130px;
   }
 
   .price-value {
@@ -302,18 +372,18 @@
   }
 
   .card-image {
-    max-width: 180px;
-    max-height: 250px;
+    max-width: 200px;
+    max-height: 280px;
   }
 
   .card-placeholder {
-    width: 120px;
-    height: 120px;
+    width: 130px;
+    height: 130px;
   }
 
   .raw-price-section,
   .psa9-price-section {
-    min-height: 120px;
+    min-height: 130px;
     padding: 1rem;
   }
 }
@@ -322,11 +392,11 @@
   .baseball-field {
     padding: 0.75rem;
     gap: 0.5rem;
-    min-height: 500px;
+    min-height: 550px;
   }
 
   .outfield-top {
-    min-height: 110px;
+    min-height: 120px;
     padding: 1rem;
     gap: 0.5rem;
   }
@@ -358,13 +428,13 @@
   }
 
   .card-image {
-    max-width: 150px;
-    max-height: 210px;
+    max-width: 160px;
+    max-height: 224px;
   }
 
   .card-placeholder {
-    width: 100px;
-    height: 100px;
+    width: 110px;
+    height: 110px;
   }
 
   .card-placeholder-icon {
@@ -373,17 +443,17 @@
 
   .raw-price-section,
   .psa9-price-section {
-    min-height: 100px;
+    min-height: 110px;
     padding: 0.75rem;
   }
 
   .left-field.gemrate-section {
-    min-height: 180px;
+    min-height: 200px;
     padding: 1.25rem 1rem;
   }
 
   .card-image-section {
-    min-height: 200px;
+    min-height: 220px;
     padding: 1.25rem;
   }
 }

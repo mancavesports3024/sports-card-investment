@@ -1215,19 +1215,21 @@ const SearchPage = () => {
               }
               return (
                 <div style={{ 
-                  margin: '2rem 0', 
+                  margin: '2rem 0 4rem 0', 
                   display: 'flex', 
                   justifyContent: 'center',
                   alignItems: 'center',
-                  width: '100%'
+                  width: '100%',
+                  padding: '2rem 1rem',
+                  minHeight: '700px'
                 }}>
-                  <div style={{ width: '100%', maxWidth: '500px' }}>
+                  <div style={{ width: '100%', maxWidth: '600px' }}>
                     <h3 style={{ 
                       color: '#fff', 
                       fontWeight: 800, 
                       textShadow: '1px 1px 6px #000',
                       textAlign: 'center',
-                      marginBottom: '1rem',
+                      marginBottom: '1.5rem',
                       fontSize: '1.5rem'
                     }}>
                       ⚾ Scorecard Summary
