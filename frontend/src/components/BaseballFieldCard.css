@@ -41,8 +41,13 @@
 .outfield-top {
   flex: 0 0 auto;
   background: #2d5016;
-  min-height: 110px;
+  min-height: 130px;
   border: 2px solid rgba(255, 215, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* Middle Row */
@@ -51,6 +56,7 @@
   grid-template-columns: 1fr 2fr;
   gap: 0.75rem;
   flex: 1 1 auto;
+  min-height: 200px;
 }
 
 /* Left Field - Gem Rate Section */
@@ -91,8 +97,13 @@
 .raw-price-section,
 .psa9-price-section {
   background: #2d5016;
-  min-height: 100px;
+  min-height: 110px;
   border: 2px solid rgba(255, 215, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* Card Image Container */
