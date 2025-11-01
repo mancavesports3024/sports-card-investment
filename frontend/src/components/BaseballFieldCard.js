@@ -50,13 +50,10 @@ const BaseballFieldCard = ({ card }) => {
               <div className="gemrate-label">GEM RATE</div>
               <div className="gemrate-value">{gemRate > 0 ? `${gemRate}%` : 'N/A'}</div>
             </div>
-            {/* Total Graded below Gem Rate */}
-            {totalGraded > 0 && (
-              <div className="total-graded-info-compact">
-                <div className="total-label-compact">TOTAL GRADED</div>
-                <div className="total-value-compact">{totalGraded.toLocaleString()}</div>
-              </div>
-            )}
+            {/* Total Graded label at bottom */}
+            <div className="total-graded-label-bottom">
+              <div className="total-label-compact">TOTAL GRADED</div>
+            </div>
           </div>
 
           {/* Right - Card Image Section */}
@@ -74,10 +71,6 @@ const BaseballFieldCard = ({ card }) => {
                   <div className="card-placeholder-text">Card Image</div>
                 </div>
               )}
-            </div>
-            {/* Card title below image */}
-            <div className="card-title-badge">
-              {card.summaryTitle || card.title || 'Card Title'}
             </div>
           </div>
         </div>
