@@ -1,26 +1,26 @@
 .baseball-field-card {
   width: 100%;
-  max-width: 600px;
+  max-width: 650px;
   margin: 0 auto;
 }
 
 .baseball-field {
   position: relative;
   width: 100%;
-  aspect-ratio: 0.75;
-  background: linear-gradient(180deg, #1a3d0f 0%, #2d5016 50%, #1a3d0f 100%);
+  aspect-ratio: 1;
+  background: #2d7a1f; /* Grass green base */
   border-radius: 20px;
   overflow: visible;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  border: 5px solid #ffd700;
-  padding: 1.25rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  border: 6px solid #ffd700;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   min-height: 650px;
 }
 
-/* Baseball field dirt/grass pattern */
+/* Grass mowing stripes pattern */
 .baseball-field::after {
   content: '';
   position: absolute;
@@ -28,12 +28,37 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
-    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.03) 2px, rgba(0, 0, 0, 0.03) 4px),
-    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 0, 0, 0.03) 2px, rgba(0, 0, 0, 0.03) 4px);
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 30px,
+    rgba(0, 0, 0, 0.06) 30px,
+    rgba(0, 0, 0, 0.06) 60px
+  );
   pointer-events: none;
   z-index: 0;
   border-radius: 16px;
+}
+
+/* Baseball Diamond - White chalk lines */
+.baseball-field::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 70%;
+  height: 70%;
+  border: 5px solid rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+  z-index: 1;
+  box-shadow: 
+    0 0 15px rgba(255, 255, 255, 0.5),
+    inset 0 0 20px rgba(139, 90, 43, 0.4);
+  background: radial-gradient(circle at center, 
+    rgba(139, 90, 43, 0.7) 0%, 
+    rgba(160, 110, 60, 0.6) 40%, 
+    transparent 60%);
 }
 
 /* Field sections */
@@ -42,28 +67,29 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
+  border-radius: 15px;
   position: relative;
   z-index: 2;
 }
 
-/* Outfield - Top - PSA 10 */
+/* Outfield - Top - PSA 10 (Deep Outfield grass) */
 .outfield-top {
   flex: 0 0 auto;
-  background: linear-gradient(135deg, #2d5016 0%, #1f4010 100%);
-  min-height: 150px;
-  border: 3px solid rgba(255, 215, 0, 0.6);
-  padding: 1.5rem;
+  background: linear-gradient(180deg, #1e5c14 0%, #2d7a1f 100%);
+  min-height: 160px;
+  border: 4px solid rgba(255, 255, 255, 0.8);
+  padding: 1.75rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 0.75rem;
   width: 100%;
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border-radius: 15px;
 }
 
-/* Middle Row - Gem Rate Left, Card Image Right */
+/* Middle Row */
 .middle-row {
   display: grid;
   grid-template-columns: 1fr 2fr;
@@ -73,97 +99,116 @@
   width: 100%;
 }
 
-/* Left Field - Gem Rate Section */
+/* Left Field - Gem Rate Section (Grass area) */
 .left-field.gemrate-section {
-  background: linear-gradient(135deg, #1a3d0f 0%, #0f2608 100%);
-  border: 3px solid rgba(255, 215, 0, 0.6);
+  background: linear-gradient(135deg, #2d7a1f 0%, #1e5c14 100%);
+  border: 4px solid rgba(255, 255, 255, 0.8);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 1rem;
+  padding: 1.75rem 1.25rem;
   min-height: 100%;
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border-radius: 15px;
 }
 
-/* Card Image Section - Right Side (Home Plate area) */
+/* Card Image Section - Right Side (Pitcher's Mound / Infield dirt) */
 .card-image-section {
-  background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
-  border: 4px solid #ffd700;
+  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
+  border: 5px solid rgba(255, 255, 255, 0.95);
   position: relative;
-  z-index: 2;
+  z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(255, 215, 0, 0.1);
+  padding: 2rem;
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.5),
+    inset 0 2px 10px rgba(139, 90, 60, 0.4);
   min-height: 100%;
+  border-radius: 15px;
+}
+
+/* Pitcher's mound circle */
+.card-image-section::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  border: 3px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  z-index: 1;
+  box-shadow: inset 0 0 20px rgba(139, 90, 60, 0.6);
 }
 
 /* Home plate marker */
-.card-image-section::before {
+.card-image-section::after {
   content: '⬥';
   position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 1.5rem;
-  color: rgba(255, 215, 0, 0.5);
-  z-index: 0;
+  bottom: 15px;
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.8);
+  z-index: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
-/* Bottom Row - Raw and PSA 9 (Infield corners) */
+/* Bottom Row - Infield corners (dirt) */
 .bottom-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
   flex: 0 0 auto;
-  min-height: 150px;
+  min-height: 160px;
   width: 100%;
 }
 
-/* Raw and PSA 9 Price Sections - Infield bases */
+/* Raw and PSA 9 Price Sections - Bases (dirt infield) */
 .raw-price-section,
 .psa9-price-section {
-  background: linear-gradient(135deg, #2d5016 0%, #1f4010 100%);
-  min-height: 150px;
-  border: 3px solid rgba(255, 215, 0, 0.6);
+  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
+  min-height: 160px;
+  border: 4px solid rgba(255, 255, 255, 0.8);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 0.75rem;
-  padding: 1.25rem;
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   position: relative;
+  border-radius: 15px;
 }
 
-/* Base markers */
-.raw-price-section::after,
-.psa9-price-section::after {
-  content: '◇';
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.2);
-}
-
-/* Baseball Diamond Overlay - visible foul lines */
-.baseball-field::before {
+/* Base bags - white squares */
+.raw-price-section::after {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(45deg);
-  width: 65%;
-  height: 65%;
-  border: 4px solid rgba(255, 215, 0, 0.6);
-  border-style: solid;
-  pointer-events: none;
-  z-index: 1;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  bottom: 15px;
+  left: 15px;
+  width: 25px;
+  height: 25px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  transform: rotate(45deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.psa9-price-section::after {
+  content: '';
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  width: 25px;
+  height: 25px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  transform: rotate(45deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 /* Card Image Container */
@@ -175,124 +220,136 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  z-index: 3;
+  z-index: 4;
 }
 
 .card-image {
   width: 100%;
-  max-width: 240px;
+  max-width: 250px;
   height: auto;
-  max-height: 340px;
+  max-height: 350px;
   object-fit: contain;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
   background: white;
-  padding: 0.5rem;
+  padding: 0.75rem;
+  border: 3px solid rgba(255, 255, 255, 0.9);
 }
 
 .card-placeholder {
   width: 160px;
   height: 160px;
-  background: linear-gradient(135deg, #e8d5ff 0%, #c4a3ff 50%, #d4b5ff 100%);
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #f0f0f0 50%, #d0d0d0 100%);
   border-radius: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    0 8px 20px rgba(0, 0, 0, 0.5),
+    inset -5px -5px 15px rgba(0, 0, 0, 0.1),
+    inset 5px 5px 15px rgba(255, 255, 255, 0.3);
   margin-bottom: 1rem;
   position: relative;
+  border: 3px solid rgba(255, 255, 255, 0.5);
 }
 
-/* Baseball stitching effect on placeholder */
+/* Baseball stitching - red curved lines */
 .card-placeholder::before {
   content: '';
   position: absolute;
-  width: 80%;
-  height: 2px;
-  background: repeating-linear-gradient(90deg, #ff1744 0px, #ff1744 10px, transparent 10px, transparent 15px);
-  top: 35%;
-  left: 10%;
-  transform: rotate(-30deg);
+  width: 70%;
+  height: 70%;
+  border: 3px solid transparent;
+  border-top: 3px dashed #d32f2f;
+  border-bottom: 3px dashed #d32f2f;
+  border-radius: 50%;
+  transform: rotate(-15deg);
 }
 
 .card-placeholder::after {
   content: '';
   position: absolute;
-  width: 80%;
-  height: 2px;
-  background: repeating-linear-gradient(90deg, #ff1744 0px, #ff1744 10px, transparent 10px, transparent 15px);
-  bottom: 35%;
-  left: 10%;
-  transform: rotate(30deg);
+  width: 70%;
+  height: 70%;
+  border: 3px solid transparent;
+  border-top: 3px dashed #d32f2f;
+  border-bottom: 3px dashed #d32f2f;
+  border-radius: 50%;
+  transform: rotate(15deg);
 }
 
 .card-placeholder-icon {
   font-size: 4rem;
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
   position: relative;
   z-index: 1;
 }
 
 .card-placeholder-text {
-  font-size: 1rem;
-  color: #000;
-  font-weight: 600;
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 700;
   letter-spacing: 0.5px;
   margin-top: 0.75rem;
   position: relative;
   z-index: 1;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 /* Price Labels and Values */
 .price-label {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #ffd700;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  letter-spacing: 2.5px;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.9),
+    0 0 10px rgba(0, 0, 0, 0.5);
   margin-bottom: 0.5rem;
 }
 
 .price-value {
-  font-size: 2.25rem;
+  font-size: 2.5rem;
   font-weight: 900;
   color: #ffffff;
-  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.9);
+  text-shadow: 
+    3px 3px 6px rgba(0, 0, 0, 0.9),
+    0 0 15px rgba(0, 0, 0, 0.6);
   margin-bottom: 0.5rem;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .population-info {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: rgba(255, 255, 255, 0.95);
   font-weight: 600;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
   margin-bottom: 0.5rem;
 }
 
 .profit-badge {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
-  padding: 0.5rem 1rem;
-  border-radius: 10px;
-  margin-top: 0.25rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 12px;
+  margin-top: 0.5rem;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .profit-badge.profit {
-  background: #4caf50;
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
   color: #ffffff;
-  border: 2px solid #388e3c;
-  box-shadow: 0 3px 8px rgba(76, 175, 80, 0.5);
+  border: 3px solid #2e7d32;
+  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.6);
 }
 
 .profit-badge.loss {
-  background: #d32f2f;
+  background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
   color: #ffffff;
-  border: 2px solid #b71c1c;
-  box-shadow: 0 3px 8px rgba(211, 47, 47, 0.5);
+  border: 3px solid #9a0007;
+  box-shadow: 0 4px 10px rgba(211, 47, 47, 0.6);
 }
 
 /* Gemrate Info */
@@ -306,20 +363,24 @@
 }
 
 .gemrate-label {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #ffd700;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  letter-spacing: 2.5px;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.9),
+    0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .gemrate-value {
-  font-size: 2.5rem;
+  font-size: 2.8rem;
   font-weight: 900;
   color: #ffffff;
-  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.9);
-  letter-spacing: 0.5px;
+  text-shadow: 
+    3px 3px 6px rgba(0, 0, 0, 0.9),
+    0 0 15px rgba(0, 0, 0, 0.6);
+  letter-spacing: 1px;
 }
 
 .total-graded-label-bottom {
@@ -330,132 +391,12 @@
 }
 
 .total-label-compact {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #ffd700;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .baseball-field-card {
-    max-width: 100%;
-  }
-
-  .baseball-field {
-    padding: 1rem;
-    gap: 0.75rem;
-    min-height: 600px;
-  }
-
-  .outfield-top {
-    min-height: 130px;
-    padding: 1.25rem;
-  }
-
-  .middle-row {
-    gap: 0.75rem;
-    min-height: 220px;
-  }
-
-  .bottom-row {
-    gap: 0.75rem;
-    min-height: 130px;
-  }
-
-  .price-value {
-    font-size: 1.8rem;
-  }
-
-  .gemrate-value {
-    font-size: 2rem;
-  }
-
-  .card-image {
-    max-width: 200px;
-    max-height: 280px;
-  }
-
-  .card-placeholder {
-    width: 130px;
-    height: 130px;
-  }
-
-  .raw-price-section,
-  .psa9-price-section {
-    min-height: 130px;
-    padding: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .baseball-field {
-    padding: 0.75rem;
-    gap: 0.5rem;
-    min-height: 550px;
-  }
-
-  .outfield-top {
-    min-height: 120px;
-    padding: 1rem;
-    gap: 0.5rem;
-  }
-
-  .middle-row {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-    min-height: auto;
-  }
-
-  .bottom-row {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-    min-height: auto;
-  }
-
-  .price-label,
-  .gemrate-label,
-  .total-label-compact {
-    font-size: 0.8rem;
-  }
-
-  .price-value {
-    font-size: 1.5rem;
-  }
-
-  .gemrate-value {
-    font-size: 1.8rem;
-  }
-
-  .card-image {
-    max-width: 160px;
-    max-height: 224px;
-  }
-
-  .card-placeholder {
-    width: 110px;
-    height: 110px;
-  }
-
-  .card-placeholder-icon {
-    font-size: 3rem;
-  }
-
-  .raw-price-section,
-  .psa9-price-section {
-    min-height: 110px;
-    padding: 0.75rem;
-  }
-
-  .left-field.gemrate-section {
-    min-height: 200px;
-    padding: 1.25rem 1rem;
-  }
-
-  .card-image-section {
-    min-height: 220px;
-    padding: 1.25rem;
-  }
+  letter-spacing: 2.5px;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.9),
+    0 0 10px rgba(0, 0, 0, 0.5);
 }
