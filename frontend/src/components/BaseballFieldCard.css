@@ -1,13 +1,13 @@
 .baseball-field-card {
   width: 100%;
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
 .baseball-field {
   position: relative;
   width: 100%;
-  aspect-ratio: 1.1;
+  aspect-ratio: 1.3;
   background: #2d7a1f;
   border-radius: 24px;
   overflow: visible;
@@ -17,7 +17,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  min-height: 650px;
+  min-height: 600px;
 }
 
 /* Grass mowing stripes */
@@ -31,13 +31,13 @@
   background: repeating-linear-gradient(
     90deg,
     rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 35px,
-    rgba(0, 0, 0, 0.08) 35px,
-    rgba(0, 0, 0, 0.08) 70px
+    rgba(0, 0, 0, 0) 40px,
+    rgba(0, 0, 0, 0.08) 40px,
+    rgba(0, 0, 0, 0.08) 80px
   );
   pointer-events: none;
   z-index: 0;
-  border-radius: 16px;
+  border-radius: 20px;
 }
 
 /* Baseball Diamond - White chalk lines */
@@ -47,15 +47,12 @@
   top: 55%;
   left: 50%;
   transform: translate(-50%, -50%) rotate(45deg);
-  width: 55%;
-  height: 55%;
+  width: 50%;
+  height: 50%;
   border: 6px solid rgba(255, 255, 255, 0.95);
   pointer-events: none;
   z-index: 1;
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
-  background: radial-gradient(circle at center, 
-    rgba(139, 90, 43, 0.5) 0%, 
-    transparent 50%);
 }
 
 .field-section {
@@ -84,52 +81,76 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* Pitcher's Mound - Card Image (CENTER) */
-.pitchers-mound {
+/* Middle Row - Gem Rate | Card Image | PSA 9 */
+.middle-infield-row {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr;
+  gap: 1.5rem;
   flex: 1 1 auto;
+  min-height: 300px;
+  width: 100%;
+}
+
+/* Left Section - Gem Rate */
+.left-section {
+  background: linear-gradient(135deg, #2d7a1f 0%, #1e5c14 100%);
+  border: 5px solid rgba(255, 255, 255, 0.9);
+  padding: 2rem 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.left-section::after {
+  content: '';
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  width: 35px;
+  height: 35px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  transform: rotate(45deg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Center Section - Card Image */
+.center-card {
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
   border: 6px solid rgba(255, 255, 255, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 2.5rem;
   box-shadow: 
     0 8px 24px rgba(0, 0, 0, 0.6),
     inset 0 2px 10px rgba(139, 90, 60, 0.4);
-  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
   z-index: 3;
 }
 
 /* Pitcher's mound circle */
-.pitchers-mound::before {
+.center-card::before {
   content: '';
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   border: 4px solid rgba(255, 255, 255, 0.5);
   border-radius: 50%;
   z-index: 1;
 }
 
-/* Infield Row - Three bases */
-.infield-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1.5rem;
-  flex: 0 0 auto;
-  min-height: 170px;
-  width: 100%;
-}
-
-/* Third Base - Gem Rate (LEFT) */
-.third-base {
-  background: linear-gradient(135deg, #2d7a1f 0%, #1e5c14 100%);
+/* Right Section - PSA 9 */
+.right-section {
+  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
   border: 5px solid rgba(255, 255, 255, 0.9);
-  padding: 1.75rem 1.25rem;
+  padding: 2rem 1.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
@@ -138,65 +159,48 @@
   gap: 0.75rem;
 }
 
-.third-base::after {
+.right-section::after {
   content: '';
   position: absolute;
-  bottom: 10px;
-  left: 10px;
-  width: 30px;
-  height: 30px;
+  bottom: 15px;
+  right: 15px;
+  width: 35px;
+  height: 35px;
   background: rgba(255, 255, 255, 0.95);
   border: 2px solid rgba(0, 0, 0, 0.3);
   transform: rotate(45deg);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-/* Home Plate - Raw (CENTER) */
+/* Bottom Center - Raw (Home Plate) */
+.bottom-center {
+  display: flex;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 140px;
+  width: 100%;
+}
+
 .home-plate {
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
   border: 5px solid rgba(255, 255, 255, 0.9);
-  padding: 1.75rem 1.5rem;
+  padding: 1.75rem 2.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 0.75rem;
+  min-width: 300px;
 }
 
 .home-plate::after {
   content: '⬥';
   position: absolute;
-  bottom: 10px;
+  bottom: 15px;
   font-size: 2.5rem;
   color: rgba(255, 255, 255, 0.9);
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
-}
-
-/* First Base - PSA 9 (RIGHT) */
-.first-base {
-  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
-  border: 5px solid rgba(255, 255, 255, 0.9);
-  padding: 1.75rem 1.25rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.first-base::after {
-  content: '';
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  width: 30px;
-  height: 30px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(0, 0, 0, 0.3);
-  transform: rotate(45deg);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 /* Card Image Container */
@@ -212,9 +216,9 @@
 
 .card-image {
   width: 100%;
-  max-width: 240px;
+  max-width: 260px;
   height: auto;
-  max-height: 340px;
+  max-height: 360px;
   object-fit: contain;
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
@@ -285,7 +289,7 @@
 
 /* Price Labels and Values */
 .price-label {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 800;
   color: #ffffff;
   text-transform: uppercase;
@@ -293,22 +297,22 @@
   text-shadow: 
     2px 2px 4px rgba(0, 0, 0, 0.95),
     0 0 12px rgba(0, 0, 0, 0.6);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .price-value {
-  font-size: 2.5rem;
+  font-size: 2.75rem;
   font-weight: 900;
   color: #ffffff;
   text-shadow: 
     3px 3px 6px rgba(0, 0, 0, 0.95),
     0 0 15px rgba(0, 0, 0, 0.7);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   letter-spacing: 1px;
 }
 
 .population-info {
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: rgba(255, 255, 255, 0.95);
   font-weight: 600;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.95);
@@ -316,9 +320,9 @@
 }
 
 .profit-badge {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  padding: 0.6rem 1.2rem;
+  padding: 0.7rem 1.4rem;
   border-radius: 12px;
   margin-top: 0.5rem;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
@@ -344,12 +348,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   width: 100%;
 }
 
 .gemrate-label {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 800;
   color: #ffffff;
   text-transform: uppercase;
@@ -360,7 +364,7 @@
 }
 
 .gemrate-value {
-  font-size: 3rem;
+  font-size: 3.25rem;
   font-weight: 900;
   color: #ffffff;
   text-shadow: 
@@ -370,12 +374,13 @@
 }
 
 .total-graded-label-bottom {
-  margin-top: 0.75rem;
+  margin-top: auto;
+  padding-top: 1rem;
   text-align: center;
 }
 
 .total-label-compact {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #ffffff;
   text-transform: uppercase;

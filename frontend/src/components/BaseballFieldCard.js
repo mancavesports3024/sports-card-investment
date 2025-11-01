@@ -50,48 +50,11 @@ const BaseballFieldCard = ({ card }) => {
           )}
         </div>
 
-        {/* Pitcher's Mound - Card Image */}
-        <div className="field-section pitchers-mound">
-          <div className="card-image-container">
-            {(() => {
-              const imageSrc = card.imageUrl || card.image;
-              const isValidImage = imageSrc && 
-                                 typeof imageSrc === 'string' && 
-                                 (imageSrc.startsWith('http://') || imageSrc.startsWith('https://'));
-              
-              console.log('🖼️ Image validation:', { imageSrc, isValidImage });
-              
-              if (isValidImage) {
-                return (
-                  <img 
-                    src={imageSrc}
-                    alt={card.title || card.summaryTitle || 'Card'}
-                    className="card-image"
-                    onError={(e) => {
-                      console.error('❌ Image failed to load:', imageSrc);
-                      e.target.style.display = 'none';
-                    }}
-                    onLoad={() => {
-                      console.log('✅ Image loaded successfully:', imageSrc);
-                    }}
-                  />
-                );
-              }
-              
-              return (
-                <div className="card-placeholder">
-                  <div className="card-placeholder-icon">⚾</div>
-                  <div className="card-placeholder-text">Card Image</div>
-                </div>
-              );
-            })()}
-          </div>
-        </div>
 
-        {/* Infield Diamond - 3 bases */}
-        <div className="infield-row">
-          {/* Third Base - Gem Rate */}
-          <div className="field-section third-base">
+        {/* Middle Row - Gem Rate | Card Image | PSA 9 */}
+        <div className="middle-infield-row">
+          {/* Left - Gem Rate */}
+          <div className="field-section left-section">
             <div className="gemrate-info">
               <div className="gemrate-label">GEM RATE</div>
               <div className="gemrate-value">{gemRate > 0 ? `${gemRate}%` : 'N/A'}</div>
@@ -103,14 +66,52 @@ const BaseballFieldCard = ({ card }) => {
             )}
           </div>
 
-          {/* Home Plate - Raw */}
-          <div className="field-section home-plate">
-            <div className="price-label">RAW</div>
-            <div className="price-value">{formatPrice(rawPrice)}</div>
+          {/* Center - Card Image */}
+          <div className="field-section center-card">
+            <div className="card-image-container">
+              {(() => {
+                const imageSrc = card.imageUrl || card.image;
+                const isValidImage = imageSrc && 
+                                   typeof imageSrc === 'string' && 
+                                   (imageSrc.startsWith('http://') || imageSrc.startsWith('https://'));
+                
+                console.log('🖼️ Card Image Check:', { 
+                  imageSrc, 
+                  isValidImage,
+                  imageUrlExists: !!card.imageUrl,
+                  imageExists: !!card.image,
+                  cardKeys: Object.keys(card)
+                });
+                
+                if (isValidImage) {
+                  return (
+                    <img 
+                      src={imageSrc}
+                      alt={card.title || card.summaryTitle || 'Card'}
+                      className="card-image"
+                      onError={(e) => {
+                        console.error('❌ Image failed to load:', imageSrc);
+                        e.target.style.display = 'none';
+                      }}
+                      onLoad={() => {
+                        console.log('✅ Image loaded successfully:', imageSrc);
+                      }}
+                    />
+                  );
+                }
+                
+                return (
+                  <div className="card-placeholder">
+                    <div className="card-placeholder-icon">⚾</div>
+                    <div className="card-placeholder-text">Card Image</div>
+                  </div>
+                );
+              })()}
+            </div>
           </div>
 
-          {/* First Base - PSA 9 */}
-          <div className="field-section first-base">
+          {/* Right - PSA 9 */}
+          <div className="field-section right-section">
             <div className="price-label">PSA 9</div>
             <div className="price-value">{formatPrice(psa9Price)}</div>
             {psa9Pop > 0 && (
@@ -121,6 +122,14 @@ const BaseballFieldCard = ({ card }) => {
                 {psa9Profit >= 0 ? '+' : ''}{psa9Profit}%
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Bottom - Raw (Home Plate) */}
+        <div className="bottom-center">
+          <div className="field-section home-plate">
+            <div className="price-label">RAW</div>
+            <div className="price-value">{formatPrice(rawPrice)}</div>
           </div>
         </div>
 
