@@ -44,7 +44,7 @@
   justify-content: center;
   border-radius: 12px;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 /* Outfield - Top - PSA 10 */
@@ -154,14 +154,16 @@
 .baseball-field::before {
   content: '';
   position: absolute;
-  top: 52%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) rotate(45deg);
-  width: 55%;
-  height: 55%;
-  border: 2px dashed rgba(255, 215, 0, 0.25);
+  width: 65%;
+  height: 65%;
+  border: 4px solid rgba(255, 215, 0, 0.6);
+  border-style: solid;
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
 }
 
 /* Card Image Container */
