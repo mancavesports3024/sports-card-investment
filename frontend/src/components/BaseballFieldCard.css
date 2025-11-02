@@ -1,21 +1,21 @@
 .baseball-field-card {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
 .baseball-field {
   position: relative;
   width: 100%;
-  min-height: 650px;
+  min-height: 700px;
   background: #2d7a1f;
-  border-radius: 28px;
+  border-radius: 30px;
   border: 6px solid #ffd700;
-  box-shadow: 0 14px 45px rgba(0, 0, 0, 0.55);
-  padding: 2rem;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  padding: 2.25rem;
   display: grid;
-  grid-template-rows: 0.42fr 0.38fr 0.2fr;
-  gap: 1.25rem;
+  grid-template-rows: 0.4fr 0.4fr 0.2fr;
+  gap: 1.4rem;
   overflow: hidden;
 }
 
