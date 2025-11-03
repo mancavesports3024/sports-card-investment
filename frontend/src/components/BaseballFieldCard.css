@@ -74,23 +74,24 @@
   z-index: 5;
 }
 
-/* Base positions - aligned with foul lines */
+/* Base positions - one under Gem Rate, one under PSA 9 */
 .base-marker.first {
-  bottom: 5%;
-  left: 50%;
-  transform: translate(60px, -60px) rotate(45deg);
+  bottom: 20%;
+  right: 8%;
+  transform: translate(0, -50%) rotate(45deg);
+  /* Positioned under PSA 9 tile */
 }
 
 .base-marker.second {
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(45deg);
+  display: none;
+  /* Hide second base */
 }
 
 .base-marker.third {
-  bottom: 5%;
-  left: 50%;
-  transform: translate(-60px, -60px) rotate(45deg);
+  bottom: 20%;
+  left: 8%;
+  transform: translate(0, -50%) rotate(45deg);
+  /* Positioned under Gem Rate tile */
 }
 
 .base-marker.home {
@@ -113,30 +114,9 @@
   z-index: 1;
 }
 
-/* Foul lines - white chalk lines connecting bases */
+/* Foul lines - removed solid white lines */
 .foul-line {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
-  z-index: 2;
-}
-
-.foul-line.first {
-  width: 100px;
-  height: 2px;
-  bottom: 5%;
-  left: 50%;
-  transform: translateX(-50%) rotate(-45deg);
-  transform-origin: left center;
-}
-
-.foul-line.third {
-  width: 100px;
-  height: 2px;
-  bottom: 5%;
-  left: 50%;
-  transform: translateX(-50%) rotate(45deg);
-  transform-origin: right center;
+  display: none;
 }
 
 /* Base tile styling - consistent padding/margin using absolute positioning */
