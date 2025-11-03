@@ -127,11 +127,12 @@ const BaseballFieldCard = ({ card }) => {
           </div>
         </div>
 
-        {/* Bottom - Raw (Home Plate) */}
+        {/* Bottom - Raw (home plate) */}
         <div className="bottom-center">
           <div className="field-section home-plate">
             <div className="price-label">RAW</div>
             <div className="price-value">{formatPrice(rawPrice)}</div>
+            <div className="home-plate-base" />
           </div>
         </div>
 
