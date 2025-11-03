@@ -1,6 +1,8 @@
 .baseball-field-card {
   width: 100%;
-  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Container with relative positioning */
@@ -47,12 +49,88 @@
   z-index: 0;
 }
 
+/* Base markers - visible white squares */
+.base-marker {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  transform: rotate(45deg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  z-index: 5;
+}
+
+.base-marker.first {
+  bottom: 35%;
+  right: 8%;
+  transform: translateX(-50%) translateY(50%) rotate(45deg);
+}
+
+.base-marker.second {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.base-marker.third {
+  bottom: 35%;
+  left: 8%;
+  transform: translateX(50%) translateY(50%) rotate(45deg);
+}
+
+.base-marker.home {
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%) translateY(50%) rotate(45deg);
+}
+
+/* Pitcher's mound circle */
+.pitchers-mound {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  background: rgba(200, 154, 109, 0.3);
+  z-index: 1;
+}
+
+/* Foul lines - white chalk lines */
+.foul-line {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+  z-index: 2;
+}
+
+.foul-line.first {
+  width: 80px;
+  height: 2px;
+  bottom: 35%;
+  right: 8%;
+  transform: translateX(-50%) translateY(50%) rotate(-45deg);
+  transform-origin: center;
+}
+
+.foul-line.third {
+  width: 80px;
+  height: 2px;
+  bottom: 35%;
+  left: 8%;
+  transform: translateX(50%) translateY(50%) rotate(45deg);
+  transform-origin: center;
+}
+
 /* Base tile styling - consistent padding/margin */
 .tile {
   position: absolute;
   z-index: 10;
   background: rgba(255, 255, 255, 0.95);
-  border: 2px solid #d32f2f;
+  border: none;
   border-radius: 5px;
   display: flex;
   flex-direction: column;
@@ -89,7 +167,7 @@
   width: 24%;
   height: 40%;
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
-  border: 2px solid #d32f2f;
+  border: none;
 }
 
 /* 4. PSA 9: vertical tile on right (first base) */
