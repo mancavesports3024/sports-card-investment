@@ -7,7 +7,6 @@ import { Helmet } from 'react-helmet';
 import { InContentAd, SearchResultsAd } from './AdSense';
 import FeaturedEbayRotator from './FeaturedEbayRotator';
 import PageLayout from './PageLayout';
-import GemRateAnalysis from './GemRateAnalysis';
 import BaseballFieldCard from './BaseballFieldCard';
 
 // FeaturedEbayListing component
@@ -1238,13 +1237,6 @@ const SearchPage = () => {
               );
             })()}
 
-            {/* GemRate PSA Population Analysis */}
-            {results && results.results && (
-              <GemRateAnalysis 
-                cardName={searchQuery} 
-                searchResults={results.results} 
-              />
-            )}
 
             {/* Ad after price analysis */}
             <InContentAd />

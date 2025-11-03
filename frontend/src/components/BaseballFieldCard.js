@@ -121,6 +121,15 @@ const BaseballFieldCard = ({ card }) => {
 
         {/* Middle Row */}
         <div className="middle-row">
+          {/* Left Tile - Gem Rate (Third Base) */}
+          <div className="tile tile-gemrate">
+            <div className="tile-label">GEM RATE</div>
+            <div className="tile-value">{gemrateData?.gemRate > 0 ? `${gemrateData.gemRate.toFixed(2)}%` : 'N/A'}</div>
+            {gemrateData?.total > 0 && (
+              <div className="tile-info">TOTAL: {gemrateData.total.toLocaleString()}</div>
+            )}
+          </div>
+
           {/* Center Tile - Card Image (Pitcher's Mound) */}
           <div className="tile tile-card">
             <div className="card-image-container">

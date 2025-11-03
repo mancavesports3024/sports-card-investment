@@ -150,14 +150,21 @@
   background: linear-gradient(180deg, #1e5c14 0%, #2d7a1f 100%);
 }
 
-/* Removed Gem Rate tile */
+/* 2. Gem Rate: vertical tile on left (third base) */
+.tile-gemrate {
+  bottom: 35%;
+  left: 8%;
+  width: 22%;
+  height: 30%;
+  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
+}
 
 /* 3. Card Image: vertical tile in center (pitcher's mound) */
 .tile-card {
   bottom: 20%;
   left: 50%;
   transform: translateX(-50%);
-  width: 28%;
+  width: 24%;
   height: 40%;
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
   border: none;
@@ -167,7 +174,7 @@
 .tile-psa9 {
   bottom: 35%;
   right: 8%;
-  width: 25%;
+  width: 22%;
   height: 30%;
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
 }
