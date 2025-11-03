@@ -6,16 +6,16 @@
 .baseball-field {
   position: relative;
   width: 100%;
-  min-height: 650px;
+  min-height: 162px;
   background: #2d7a1f;
-  border-radius: 28px;
-  border: 6px solid #ffd700;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
-  padding: 2.5rem 3rem;
+  border-radius: 7px;
+  border: 1.5px solid #ffd700;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  padding: 0.625rem 0.75rem;
   display: grid;
   grid-template-rows: auto 1fr auto;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
+  gap: 0.375rem;
   overflow: hidden;
 }
 
@@ -54,20 +54,20 @@
 .tile {
   position: relative;
   z-index: 2;
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  box-shadow: 0 1.5px 5px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
-  border: 5px solid rgba(255, 255, 255, 0.9);
+  padding: 0.375rem;
+  border: 1.25px solid rgba(255, 255, 255, 0.9);
 }
 
 /* Top Tile - PSA 10 (Green, horizontal, outfield) */
 .tile-psa10 {
   background: linear-gradient(180deg, #1e5c14 0%, #2d7a1f 100%);
-  min-height: 120px;
+  min-height: 30px;
   grid-column: 1 / -1;
 }
 
@@ -75,34 +75,34 @@
 .middle-row {
   display: grid;
   grid-template-columns: 1fr 1.5fr 1fr;
-  gap: 1.25rem;
+  gap: 0.3125rem;
   grid-column: 1 / -1;
 }
 
 /* Left Tile - Gem Rate (Brown, third base) */
 .tile-gemrate {
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
-  min-height: 280px;
+  min-height: 70px;
 }
 
 /* Center Tile - Card Image (Brown, pitcher's mound) */
 .tile-card {
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
-  border: 6px solid #d32f2f;
-  min-height: 320px;
-  padding: 2rem 1.5rem;
+  border: 1.5px solid #d32f2f;
+  min-height: 80px;
+  padding: 0.5rem 0.375rem;
 }
 
 /* Right Tile - PSA 9 (Brown, first base) */
 .tile-psa9 {
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
-  min-height: 280px;
+  min-height: 70px;
 }
 
 /* Bottom Tile - RAW (Brown, home plate) */
 .tile-raw {
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
-  min-height: 120px;
+  min-height: 30px;
   grid-column: 1 / -1;
   width: 40%;
   justify-self: center;
@@ -110,29 +110,29 @@
 
 /* Typography */
 .tile-label {
-  font-size: 1rem;
+  font-size: 0.25rem;
   font-weight: 800;
   color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
-  margin-bottom: 0.75rem;
+  letter-spacing: 0.5px;
+  text-shadow: 0.5px 0.5px 1px rgba(0, 0, 0, 0.9);
+  margin-bottom: 0.1875rem;
 }
 
 .tile-value {
-  font-size: 2.5rem;
+  font-size: 0.625rem;
   font-weight: 900;
   color: #ffffff;
-  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9);
-  margin-bottom: 0.5rem;
+  text-shadow: 0.75px 0.75px 1.5px rgba(0, 0, 0, 0.9);
+  margin-bottom: 0.125rem;
 }
 
 .tile-info {
-  font-size: 0.85rem;
+  font-size: 0.2125rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.95);
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
-  margin-top: 0.5rem;
+  text-shadow: 0.25px 0.25px 0.75px rgba(0, 0, 0, 0.8);
+  margin-top: 0.125rem;
 }
 
 /* Card Image */
@@ -146,29 +146,29 @@
 
 .card-image {
   width: auto;
-  max-width: 140px;
+  max-width: 35px;
   height: auto;
-  max-height: 260px;
-  border-radius: 14px;
+  max-height: 65px;
+  border-radius: 3.5px;
   background: #ffffff;
-  padding: 0.5rem;
-  border: 3px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  padding: 0.125rem;
+  border: 0.75px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1.5px 4.5px rgba(0, 0, 0, 0.4);
   object-fit: contain;
 }
 
 .card-placeholder {
-  width: 140px;
-  height: 200px;
-  border-radius: 14px;
+  width: 35px;
+  height: 50px;
+  border-radius: 3.5px;
   background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 50%, #d7d7d7 100%);
-  border: 3px solid rgba(255, 255, 255, 0.6);
+  border: 0.75px solid rgba(255, 255, 255, 0.6);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
 }
 
 .card-placeholder::before,
@@ -177,7 +177,7 @@
   position: absolute;
   width: 60%;
   height: 60%;
-  border: 3px dashed #d32f2f;
+  border: 0.75px dashed #d32f2f;
   border-radius: 50%;
 }
 
@@ -185,15 +185,15 @@
 .card-placeholder::after { transform: rotate(20deg); }
 
 .card-placeholder-icon {
-  font-size: 3.5rem;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+  font-size: 0.875rem;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
   position: relative;
   z-index: 1;
 }
 
 .card-placeholder-text {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
+  margin-top: 0.125rem;
+  font-size: 0.225rem;
   font-weight: 700;
   color: #2d2d2d;
   position: relative;
@@ -202,26 +202,26 @@
 
 /* Profit Badge */
 .profit-badge {
-  font-size: 0.9rem;
+  font-size: 0.225rem;
   font-weight: 700;
-  padding: 0.5rem 1rem;
-  border-radius: 10px;
-  margin-top: 0.5rem;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  padding: 0.125rem 0.25rem;
+  border-radius: 2.5px;
+  margin-top: 0.125rem;
+  text-shadow: 0.25px 0.25px 0.5px rgba(0, 0, 0, 0.5);
 }
 
 .profit-badge.profit {
   background: linear-gradient(135deg, #4caf50 0%, #2f7c36 100%);
-  border: 2px solid #27652c;
+  border: 0.5px solid #27652c;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.6);
+  box-shadow: 0 1px 3px rgba(76, 175, 80, 0.6);
 }
 
 .profit-badge.loss {
   background: linear-gradient(135deg, #d32f2f 0%, #a41b1b 100%);
-  border: 2px solid #861212;
+  border: 0.5px solid #861212;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(211, 47, 47, 0.6);
+  box-shadow: 0 1px 3px rgba(211, 47, 47, 0.6);
 }
 
 /* Responsive */
