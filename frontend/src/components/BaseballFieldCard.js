@@ -11,8 +11,68 @@ const BaseballFieldCard = ({ card }) => {
   const gemrateData = card.gemrateData || card.population || null;
   const psa10Pop = gemrateData?.perfect || gemrateData?.grade10 || gemrateData?.psa10Population || 0;
   const psa9Pop = gemrateData?.grade9 || gemrateData?.psa9Population || 0;
-  const gemRate = gemrateData?.gemRate || 0;
-  const totalGraded = gemrateData?.total || 0;
+
+  // Extract card information from title
+  const extractCardInfo = (title) => {
+    if (!title) return { name: '', set: '', year: '' };
+    
+    // Extract year (4-digit year)
+    const yearMatch = title.match(/\b(19|20)\d{2}\b/);
+    const year = yearMatch ? yearMatch[0] : '';
+    
+    // For Pokemon cards, try to extract name and set
+    // Pattern: "Name" followed by "Set" or vice versa
+    let name = '';
+    let set = '';
+    
+    // Try to find card name (usually before set name, or standalone)
+    // Remove year, PSA/grade info, and common words
+    const cleaned = title
+      .replace(/\b(19|20)\d{2}\b/g, '')
+      .replace(/\bPSA\s*\d+\b/gi, '')
+      .replace(/\bBGS\s*\d+\b/gi, '')
+      .replace(/\b(GEM|MINT|NM|NEAR MINT)\b/gi, '')
+      .replace(/\bGRADED\b/gi, '')
+      .trim();
+    
+    // Common Pokemon patterns
+    const pokemonPattern = /(?:^|\s)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+(EX|GX|V|VMAX|VSTAR|RARE))?)/i;
+    const pokemonMatch = cleaned.match(pokemonPattern);
+    if (pokemonMatch) {
+      name = pokemonMatch[1].trim();
+    } else {
+      // Fallback: take first significant words as name
+      const words = cleaned.split(/\s+/).filter(w => w.length > 2);
+      name = words.slice(0, 3).join(' ') || cleaned;
+    }
+    
+    // Extract set name (usually contains terms like "Set", "Series", collection names)
+    const setPatterns = [
+      /(?:Pokemon|Pokémon)?\s*(Japanese|English)?\s*([A-Z0-9][A-Za-z0-9\s\-]+(?:\s+(Set|Series|Collection|Premier|Crown|Zenith|Inferno|etc)))/i,
+      /([A-Z][A-Z0-9\-\s]+(?:Set|Series|Collection|Pack))/i,
+      /([A-Z0-9][A-Za-z0-9\s\-]{5,})/i
+    ];
+    
+    for (const pattern of setPatterns) {
+      const match = cleaned.match(pattern);
+      if (match && match[0].length > 5 && !match[0].includes(name)) {
+        set = match[0].trim();
+        break;
+      }
+    }
+    
+    // If no set found, try to extract from remaining text
+    if (!set && cleaned.length > name.length) {
+      const remaining = cleaned.replace(name, '').trim();
+      if (remaining.length > 3) {
+        set = remaining.split(/\s+/).slice(0, 5).join(' ');
+      }
+    }
+    
+    return { name: name || 'Unknown', set: set || 'Unknown', year: year || '' };
+  };
+
+  const cardInfo = extractCardInfo(card.title || card.summaryTitle || '');
 
   // Format price
   const formatPrice = (price) => {
@@ -61,15 +121,6 @@ const BaseballFieldCard = ({ card }) => {
 
         {/* Middle Row */}
         <div className="middle-row">
-          {/* Left Tile - Gem Rate (Third Base) */}
-          <div className="tile tile-gemrate">
-            <div className="tile-label">GEM RATE</div>
-            <div className="tile-value">{gemRate > 0 ? `${gemRate}%` : 'N/A'}</div>
-            {totalGraded > 0 && (
-              <div className="tile-info">TOTAL: {totalGraded.toLocaleString()}</div>
-            )}
-          </div>
-
           {/* Center Tile - Card Image (Pitcher's Mound) */}
           <div className="tile tile-card">
             <div className="card-image-container">
@@ -78,14 +129,6 @@ const BaseballFieldCard = ({ card }) => {
                 const isValidImage = imageSrc && 
                                    typeof imageSrc === 'string' && 
                                    (imageSrc.startsWith('http://') || imageSrc.startsWith('https://'));
-                
-                console.log('🖼️ Card Image Check:', { 
-                  imageSrc, 
-                  isValidImage,
-                  imageUrlExists: !!card.imageUrl,
-                  imageExists: !!card.image,
-                  cardKeys: Object.keys(card)
-                });
                 
                 if (isValidImage) {
                   return (
@@ -111,6 +154,21 @@ const BaseballFieldCard = ({ card }) => {
                   </div>
                 );
               })()}
+            </div>
+            {/* Card Information */}
+            <div className="card-info">
+              <div className="card-info-line">
+                <span className="card-info-label">Name:</span>
+                <span className="card-info-value">{cardInfo.name}</span>
+              </div>
+              <div className="card-info-line">
+                <span className="card-info-label">Set:</span>
+                <span className="card-info-value">{cardInfo.set}</span>
+              </div>
+              <div className="card-info-line">
+                <span className="card-info-label">Year:</span>
+                <span className="card-info-value">{cardInfo.year}</span>
+              </div>
             </div>
           </div>
 
