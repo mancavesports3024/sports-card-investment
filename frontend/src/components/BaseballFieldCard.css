@@ -6,205 +6,161 @@
 .baseball-field {
   position: relative;
   width: 100%;
-  min-height: 600px;
+  min-height: 650px;
   background: #2d7a1f;
-  border-radius: 24px;
+  border-radius: 28px;
   border: 6px solid #ffd700;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
-  padding: 2.25rem 3rem 2.5rem;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  padding: 2.5rem 3rem;
   display: grid;
-  grid-template-rows: 0.32fr 0.48fr 0.2fr;
-  gap: 1.2rem;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
   overflow: hidden;
 }
 
-@supports (display: grid) {
-  .baseball-field {
-    grid-template-rows: 0.32fr 0.48fr 0.2fr;
-  }
-}
-
-/* Grass mowing pattern */
-.baseball-field::after {
+/* Baseball field background elements */
+.baseball-field::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 48px,
-    rgba(0, 0, 0, 0.08) 48px,
-    rgba(0, 0, 0, 0.08) 96px
-  );
+  background: 
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0) 0px,
+      rgba(0, 0, 0, 0) 50px,
+      rgba(0, 0, 0, 0.08) 50px,
+      rgba(0, 0, 0, 0.08) 100px
+    );
   pointer-events: none;
   z-index: 0;
 }
 
-/* Chalk overlay */
-.chalk-overlays {
+/* Infield dirt area */
+.baseball-field::after {
+  content: '';
   position: absolute;
-  inset: 0;
-  z-index: 1;
+  bottom: 0;
+  left: 20%;
+  right: 20%;
+  height: 55%;
+  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
+  border-radius: 50% 50% 0 0;
   pointer-events: none;
+  z-index: 0;
 }
 
-.chalk-path {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.85);
-  stroke-width: 10;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
-}
-
-.field-section {
+/* Base tiles styling */
+.tile {
   position: relative;
   z-index: 2;
-  border-radius: 14px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  border: 5px solid rgba(255, 255, 255, 0.9);
 }
 
-/* Outfield - PSA 10 */
-.outfield {
+/* Top Tile - PSA 10 (Green, horizontal, outfield) */
+.tile-psa10 {
   background: linear-gradient(180deg, #1e5c14 0%, #2d7a1f 100%);
-  border: 4px solid rgba(255, 255, 255, 0.85);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  padding: 1rem 1.25rem;
+  min-height: 120px;
+  grid-column: 1 / -1;
 }
 
-/* Middle row: Gem Rate | Card Image | PSA 9 */
-.middle-infield-row {
+/* Middle Row */
+.middle-row {
   display: grid;
-  grid-template-columns: 0.22fr 0.56fr 0.22fr;
-  gap: 0.9rem;
-  align-items: stretch;
+  grid-template-columns: 1fr 1.5fr 1fr;
+  gap: 1.25rem;
+  grid-column: 1 / -1;
 }
 
-.left-section {
-  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 55%, #8b5a3c 100%);
-  border: 4px solid rgba(255, 255, 255, 0.85);
-  padding: 0.7rem 0.6rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 0.4rem;
+/* Left Tile - Gem Rate (Brown, third base) */
+.tile-gemrate {
+  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
+  min-height: 280px;
 }
 
-.left-section::after {
-  content: '';
-  position: absolute;
-  bottom: 6px;
-  left: 10px;
-  width: 20px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(0, 0, 0, 0.3);
-  transform: rotate(45deg);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+/* Center Tile - Card Image (Brown, pitcher's mound) */
+.tile-card {
+  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
+  border: 6px solid #d32f2f;
+  min-height: 320px;
+  padding: 2rem 1.5rem;
 }
 
-.center-card {
-  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 55%, #8b5a3c 100%);
-  border: 5px solid rgba(255, 255, 255, 0.95);
-  padding: 1.5rem 1.1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+/* Right Tile - PSA 9 (Brown, first base) */
+.tile-psa9 {
+  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
+  min-height: 280px;
 }
 
-.center-card::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90px;
-  height: 160px;
-  border: 3px solid rgba(255, 255, 255, 0.35);
-  border-radius: 50%;
+/* Bottom Tile - RAW (Brown, home plate) */
+.tile-raw {
+  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
+  min-height: 120px;
+  grid-column: 1 / -1;
+  width: 40%;
+  justify-self: center;
 }
 
-.right-section {
-  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 55%, #8b5a3c 100%);
-  border: 4px solid rgba(255, 255, 255, 0.85);
-  padding: 0.7rem 0.6rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 0.4rem;
+/* Typography */
+.tile-label {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
+  margin-bottom: 0.75rem;
 }
 
-.right-section::after {
-  content: '';
-  position: absolute;
-  bottom: 4px;
-  right: 10px;
-  width: 20px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(0, 0, 0, 0.3);
-  transform: rotate(45deg);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+.tile-value {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9);
+  margin-bottom: 0.5rem;
 }
 
-/* Bottom - RAW (home plate) */
-.bottom-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.tile-info {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+  margin-top: 0.5rem;
 }
 
-.home-plate {
-  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 55%, #8b5a3c 100%);
-  border: 4px solid rgba(255, 255, 255, 0.9);
-  padding: 0.95rem 1.25rem 1.1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.45rem;
-  width: clamp(200px, 22%, 240px);
-  margin-top: 0.6rem;
-}
-
-.home-plate-base {
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(0, 0, 0, 0.25);
-  transform: rotate(45deg);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-  margin-top: 0.25rem;
-}
-
+/* Card Image */
 .card-image-container {
   width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .card-image {
-  width: 110px;
-  height: 220px;
-  border-radius: 16px;
+  width: auto;
+  max-width: 140px;
+  height: auto;
+  max-height: 260px;
+  border-radius: 14px;
   background: #ffffff;
-  padding: 0.35rem;
+  padding: 0.5rem;
   border: 3px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  object-fit: contain;
 }
 
 .card-placeholder {
-  width: 110px;
-  height: 220px;
-  border-radius: 16px;
+  width: 140px;
+  height: 200px;
+  border-radius: 14px;
   background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 50%, #d7d7d7 100%);
   border: 3px solid rgba(255, 255, 255, 0.6);
   display: flex;
@@ -212,68 +168,45 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
 
 .card-placeholder::before,
 .card-placeholder::after {
   content: '';
   position: absolute;
-  width: 55%;
-  height: 55%;
+  width: 60%;
+  height: 60%;
   border: 3px dashed #d32f2f;
   border-radius: 50%;
 }
 
-.card-placeholder::before { transform: rotate(-18deg); }
-.card-placeholder::after { transform: rotate(18deg); }
+.card-placeholder::before { transform: rotate(-20deg); }
+.card-placeholder::after { transform: rotate(20deg); }
 
 .card-placeholder-icon {
-  font-size: 3.2rem;
+  font-size: 3.5rem;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+  position: relative;
+  z-index: 1;
 }
 
 .card-placeholder-text {
-  margin-top: 0.4rem;
-  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #2d2d2d;
+  position: relative;
+  z-index: 1;
 }
 
-.price-label,
-.gemrate-label {
-  font-size: 0.85rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: #ffffff;
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.6), 2px 2px 4px rgba(0, 0, 0, 0.85);
-}
-
-.price-value,
-.gemrate-value {
-  font-size: 1.9rem;
-  font-weight: 900;
-  color: #ffffff;
-  text-shadow: 0 0 12px rgba(0, 0, 0, 0.65), 3px 3px 6px rgba(0, 0, 0, 0.85);
-}
-
-.population-info,
-.total-label-compact {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.75);
-}
-
-.total-label-compact { text-transform: uppercase; letter-spacing: 1.2px; }
-
+/* Profit Badge */
 .profit-badge {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  padding: 0.45rem 0.9rem;
+  padding: 0.5rem 1rem;
   border-radius: 10px;
-  margin-top: 0.3rem;
+  margin-top: 0.5rem;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
@@ -289,4 +222,21 @@
   border: 2px solid #861212;
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(211, 47, 47, 0.6);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .baseball-field {
+    padding: 1.5rem;
+    min-height: 550px;
+  }
+
+  .middle-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .tile-raw {
+    width: 70%;
+  }
 }

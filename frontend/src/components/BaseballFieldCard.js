@@ -36,16 +36,12 @@ const BaseballFieldCard = ({ card }) => {
   return (
     <div className="baseball-field-card">
       <div className="baseball-field">
-        <svg className="chalk-overlays" viewBox="0 0 1200 600" preserveAspectRatio="none">
-          <path className="chalk-path" d="M600 420 Q 780 470 960 520" />
-          <path className="chalk-path" d="M600 420 Q 420 470 240 520" />
-        </svg>
-        {/* Outfield - PSA 10 */}
-        <div className="field-section outfield">
-          <div className="price-label">PSA 10</div>
-          <div className="price-value">{formatPrice(psa10Price)}</div>
+        {/* Top Tile - PSA 10 (Outfield) */}
+        <div className="tile tile-psa10">
+          <div className="tile-label">PSA 10</div>
+          <div className="tile-value">{formatPrice(psa10Price)}</div>
           {psa10Pop > 0 && (
-            <div className="population-info">Pop: {psa10Pop.toLocaleString()}</div>
+            <div className="tile-info">Pop: {psa10Pop.toLocaleString()}</div>
           )}
           {psa10Profit !== null && (
             <div className={`profit-badge ${psa10Profit >= 0 ? 'profit' : 'loss'}`}>
@@ -54,24 +50,19 @@ const BaseballFieldCard = ({ card }) => {
           )}
         </div>
 
-
-        {/* Middle Row - Gem Rate | Card Image | PSA 9 */}
-        <div className="middle-infield-row">
-          {/* Left - Gem Rate */}
-          <div className="field-section left-section">
-            <div className="gemrate-info">
-              <div className="gemrate-label">GEM RATE</div>
-              <div className="gemrate-value">{gemRate > 0 ? `${gemRate}%` : 'N/A'}</div>
-            </div>
+        {/* Middle Row */}
+        <div className="middle-row">
+          {/* Left Tile - Gem Rate (Third Base) */}
+          <div className="tile tile-gemrate">
+            <div className="tile-label">GEM RATE</div>
+            <div className="tile-value">{gemRate > 0 ? `${gemRate}%` : 'N/A'}</div>
             {totalGraded > 0 && (
-              <div className="total-graded-label-bottom">
-                <div className="total-label-compact">TOTAL: {totalGraded.toLocaleString()}</div>
-              </div>
+              <div className="tile-info">TOTAL: {totalGraded.toLocaleString()}</div>
             )}
           </div>
 
-          {/* Center - Card Image */}
-          <div className="field-section center-card">
+          {/* Center Tile - Card Image (Pitcher's Mound) */}
+          <div className="tile tile-card">
             <div className="card-image-container">
               {(() => {
                 const imageSrc = card.imageUrl || card.image;
@@ -114,12 +105,12 @@ const BaseballFieldCard = ({ card }) => {
             </div>
           </div>
 
-          {/* Right - PSA 9 */}
-          <div className="field-section right-section">
-            <div className="price-label">PSA 9</div>
-            <div className="price-value">{formatPrice(psa9Price)}</div>
+          {/* Right Tile - PSA 9 (First Base) */}
+          <div className="tile tile-psa9">
+            <div className="tile-label">PSA 9</div>
+            <div className="tile-value">{formatPrice(psa9Price)}</div>
             {psa9Pop > 0 && (
-              <div className="population-info">Pop: {psa9Pop.toLocaleString()}</div>
+              <div className="tile-info">Pop: {psa9Pop.toLocaleString()}</div>
             )}
             {psa9Profit !== null && (
               <div className={`profit-badge ${psa9Profit >= 0 ? 'profit' : 'loss'}`}>
@@ -129,15 +120,11 @@ const BaseballFieldCard = ({ card }) => {
           </div>
         </div>
 
-        {/* Bottom - Raw (home plate) */}
-        <div className="bottom-center">
-          <div className="field-section home-plate">
-            <div className="price-label">RAW</div>
-            <div className="price-value">{formatPrice(rawPrice)}</div>
-            <div className="home-plate-base" />
-          </div>
+        {/* Bottom Tile - RAW (Home Plate) */}
+        <div className="tile tile-raw">
+          <div className="tile-label">RAW</div>
+          <div className="tile-value">{formatPrice(rawPrice)}</div>
         </div>
-
       </div>
     </div>
   );
