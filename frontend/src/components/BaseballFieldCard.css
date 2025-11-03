@@ -164,8 +164,8 @@
   bottom: 20%;
   left: 50%;
   transform: translateX(-50%);
-  width: 24%;
-  height: 40%;
+  width: 26%;
+  height: 42%;
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
   border: none;
 }
@@ -219,61 +219,63 @@
 /* Card Image Container */
 .card-image-container {
   width: 100%;
-  height: 65%;
+  height: 60%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 
 /* Card Information */
 .card-info {
   width: 100%;
-  height: 35%;
+  height: 40%;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
-  padding: 0.3rem 0.5rem;
-  background: rgba(255, 255, 255, 0.15);
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 4px;
-  font-size: 0.45rem;
+  font-size: 0.65rem;
 }
 
 .card-info-line {
   width: 100%;
   display: flex;
   align-items: center;
-  margin-bottom: 0.2rem;
-  line-height: 1.3;
+  margin-bottom: 0.3rem;
+  line-height: 1.4;
 }
 
 .card-info-label {
   font-weight: 700;
   color: #ffffff;
-  text-shadow: 2px 2px 3px rgba(0, 0, 0, 1), 0 0 4px rgba(0, 0, 0, 0.8);
-  margin-right: 0.4rem;
-  min-width: 2.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.9);
+  margin-right: 0.5rem;
+  min-width: 3rem;
+  font-size: 0.7rem;
 }
 
 .card-info-value {
   font-weight: 600;
   color: #ffffff;
-  text-shadow: 2px 2px 3px rgba(0, 0, 0, 1), 0 0 4px rgba(0, 0, 0, 0.8);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.9);
   flex: 1;
   word-wrap: break-word;
+  font-size: 0.65rem;
 }
 
 .card-image {
   width: auto;
-  max-width: 95%;
+  max-width: 100%;
   height: auto;
-  max-height: 75%;
+  max-height: 95%;
   border-radius: 6px;
   background: #ffffff;
-  padding: 0.4rem;
-  border: 2px solid rgba(255, 255, 255, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7), 0 0 8px rgba(255, 255, 255, 0.5);
+  padding: 0.5rem;
+  border: 3px solid rgba(255, 255, 255, 1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.8), 0 0 12px rgba(255, 255, 255, 0.6);
   object-fit: contain;
 }
 

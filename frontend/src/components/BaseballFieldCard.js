@@ -12,13 +12,35 @@ const BaseballFieldCard = ({ card }) => {
   const psa10Pop = gemrateData?.perfect || gemrateData?.grade10 || gemrateData?.psa10Population || 0;
   const psa9Pop = gemrateData?.grade9 || gemrateData?.psa9Population || 0;
 
-  // Extract card information from title
-  const extractCardInfo = (title) => {
+  // Extract card information from title and card data
+  const extractCardInfo = (title, cardData) => {
     if (!title) return { name: '', set: '', year: '' };
     
-    // Extract year (4-digit year)
+    // Try multiple sources for year
+    let year = '';
+    
+    // 1. Try from title (4-digit year)
     const yearMatch = title.match(/\b(19|20)\d{2}\b/);
-    const year = yearMatch ? yearMatch[0] : '';
+    if (yearMatch) {
+      year = yearMatch[0];
+    }
+    
+    // 2. Try from card data properties
+    if (!year) {
+      if (cardData?.year) {
+        year = String(cardData.year);
+      } else if (cardData?.cardYear) {
+        year = String(cardData.cardYear);
+      }
+    }
+    
+    // 3. Try to extract from search query if available
+    if (!year && cardData?.searchQuery) {
+      const searchYearMatch = cardData.searchQuery.match(/\b(19|20)\d{2}\b/);
+      if (searchYearMatch) {
+        year = searchYearMatch[0];
+      }
+    }
     
     // For Pokemon cards, try to extract name and set
     // Pattern: "Name" followed by "Set" or vice versa
@@ -69,10 +91,10 @@ const BaseballFieldCard = ({ card }) => {
       }
     }
     
-    return { name: name || 'Unknown', set: set || 'Unknown', year: year || '' };
+    return { name: name || 'Unknown', set: set || 'Unknown', year: year || 'N/A' };
   };
 
-  const cardInfo = extractCardInfo(card.title || card.summaryTitle || '');
+  const cardInfo = extractCardInfo(card.title || card.summaryTitle || '', card);
 
   // Format price
   const formatPrice = (price) => {
