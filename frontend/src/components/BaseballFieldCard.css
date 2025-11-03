@@ -7,12 +7,13 @@
 .baseball-field {
   position: relative;
   width: 100%;
+  max-width: 600px;
   aspect-ratio: 1;
-  min-height: 500px;
+  min-height: 300px;
   background: #2d7a1f;
-  border-radius: 20px;
-  border: 5px solid #ffd700;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+  border: 3px solid #ffd700;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
   overflow: hidden;
 }
 
@@ -24,9 +25,9 @@
   background: repeating-linear-gradient(
     90deg,
     rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 45px,
-    rgba(0, 0, 0, 0.1) 45px,
-    rgba(0, 0, 0, 0.1) 90px
+    rgba(0, 0, 0, 0) 25px,
+    rgba(0, 0, 0, 0.1) 25px,
+    rgba(0, 0, 0, 0.1) 50px
   );
   pointer-events: none;
   z-index: 0;
@@ -51,14 +52,14 @@
   position: absolute;
   z-index: 10;
   background: rgba(255, 255, 255, 0.95);
-  border: 3px solid #d32f2f;
-  border-radius: 8px;
+  border: 2px solid #d32f2f;
+  border-radius: 5px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  padding: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 /* 1. PSA 10: horizontal tile at top center (outfield) */
@@ -88,7 +89,7 @@
   width: 24%;
   height: 40%;
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
-  border: 4px solid #d32f2f;
+  border: 2px solid #d32f2f;
 }
 
 /* 4. PSA 9: vertical tile on right (first base) */
@@ -112,29 +113,29 @@
 
 /* Typography */
 .tile-label {
-  font-size: 0.75rem;
+  font-size: 0.5rem;
   font-weight: 800;
   color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.95);
-  margin-bottom: 0.5rem;
-}
-
-.tile-value {
-  font-size: 1.6rem;
-  font-weight: 900;
-  color: #ffffff;
-  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.95);
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.95);
   margin-bottom: 0.25rem;
 }
 
+.tile-value {
+  font-size: 1rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.95);
+  margin-bottom: 0.125rem;
+}
+
 .tile-info {
-  font-size: 0.65rem;
+  font-size: 0.45rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.95);
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
-  margin-top: 0.25rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+  margin-top: 0.125rem;
 }
 
 /* Card Image Container */
@@ -148,29 +149,29 @@
 
 .card-image {
   width: auto;
-  max-width: 90%;
+  max-width: 85%;
   height: auto;
-  max-height: 90%;
-  border-radius: 8px;
+  max-height: 85%;
+  border-radius: 4px;
   background: #ffffff;
-  padding: 0.5rem;
-  border: 2px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  padding: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
   object-fit: contain;
 }
 
 .card-placeholder {
-  width: 90%;
-  height: 90%;
-  border-radius: 8px;
+  width: 85%;
+  height: 85%;
+  border-radius: 4px;
   background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 50%, #d7d7d7 100%);
-  border: 2px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .card-placeholder::before,
@@ -179,7 +180,7 @@
   position: absolute;
   width: 60%;
   height: 60%;
-  border: 2px dashed #d32f2f;
+  border: 1px dashed #d32f2f;
   border-radius: 50%;
 }
 
@@ -187,15 +188,15 @@
 .card-placeholder::after { transform: rotate(20deg); }
 
 .card-placeholder-icon {
-  font-size: 2.5rem;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  font-size: 1.5rem;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
   position: relative;
   z-index: 1;
 }
 
 .card-placeholder-text {
-  margin-top: 0.5rem;
-  font-size: 0.6rem;
+  margin-top: 0.25rem;
+  font-size: 0.4rem;
   font-weight: 700;
   color: #2d2d2d;
   position: relative;
@@ -204,48 +205,49 @@
 
 /* Profit Badge */
 .profit-badge {
-  font-size: 0.6rem;
+  font-size: 0.4rem;
   font-weight: 700;
-  padding: 0.3rem 0.6rem;
-  border-radius: 6px;
-  margin-top: 0.3rem;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  padding: 0.15rem 0.3rem;
+  border-radius: 3px;
+  margin-top: 0.15rem;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 .profit-badge.profit {
   background: linear-gradient(135deg, #4caf50 0%, #2f7c36 100%);
-  border: 2px solid #27652c;
+  border: 1px solid #27652c;
   color: #ffffff;
-  box-shadow: 0 3px 8px rgba(76, 175, 80, 0.7);
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.7);
 }
 
 .profit-badge.loss {
   background: linear-gradient(135deg, #d32f2f 0%, #a41b1b 100%);
-  border: 2px solid #861212;
+  border: 1px solid #861212;
   color: #ffffff;
-  box-shadow: 0 3px 8px rgba(211, 47, 47, 0.7);
+  box-shadow: 0 2px 4px rgba(211, 47, 47, 0.7);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .baseball-field {
+    max-width: 100%;
     aspect-ratio: 0.9;
-    min-height: 400px;
+    min-height: 250px;
   }
 
   .tile {
-    padding: 0.75rem;
+    padding: 0.4rem;
   }
 
   .tile-label {
-    font-size: 0.6rem;
+    font-size: 0.45rem;
   }
 
   .tile-value {
-    font-size: 1.2rem;
+    font-size: 0.9rem;
   }
 
   .tile-info {
-    font-size: 0.55rem;
+    font-size: 0.4rem;
   }
 }
