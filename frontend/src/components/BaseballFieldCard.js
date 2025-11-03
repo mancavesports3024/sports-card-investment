@@ -36,8 +36,10 @@ const BaseballFieldCard = ({ card }) => {
   return (
     <div className="baseball-field-card">
       <div className="baseball-field">
-        <div className="diamond-line first" />
-        <div className="diamond-line third" />
+        <svg className="chalk-overlays" viewBox="0 0 1200 600" preserveAspectRatio="none">
+          <path className="chalk-path" d="M600 420 Q 780 470 960 520" />
+          <path className="chalk-path" d="M600 420 Q 420 470 240 520" />
+        </svg>
         {/* Outfield - PSA 10 */}
         <div className="field-section outfield">
           <div className="price-label">PSA 10</div>

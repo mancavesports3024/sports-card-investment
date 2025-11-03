@@ -6,21 +6,21 @@
 .baseball-field {
   position: relative;
   width: 100%;
-  min-height: 520px;
+  min-height: 600px;
   background: #2d7a1f;
   border-radius: 24px;
   border: 6px solid #ffd700;
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
-  padding: 2rem 2.5rem;
+  padding: 2.25rem 3rem 2.5rem;
   display: grid;
-  grid-template-rows: 0.35fr 0.4fr 0.25fr;
-  gap: 1rem;
+  grid-template-rows: 0.32fr 0.48fr 0.2fr;
+  gap: 1.2rem;
   overflow: hidden;
 }
 
 @supports (display: grid) {
   .baseball-field {
-    grid-template-rows: 0.35fr 0.43fr 0.22fr;
+    grid-template-rows: 0.32fr 0.48fr 0.2fr;
   }
 }
 
@@ -40,39 +40,21 @@
   z-index: 0;
 }
 
-/* Diamond chalk lines */
-.baseball-field::before {
-  content: '';
+/* Chalk overlay */
+.chalk-overlays {
   position: absolute;
-  bottom: 16%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  height: 3px;
-  background: none;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
 }
 
-.diamond-line {
-  position: absolute;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
-}
-
-.diamond-line.first {
-  bottom: 23%;
-  left: 50%;
-  width: 22%;
-  transform: translateX(-50%) rotate(-36deg);
-  transform-origin: center right;
-}
-
-.diamond-line.third {
-  bottom: 23%;
-  left: 50%;
-  width: 22%;
-  transform: translateX(-50%) rotate(36deg);
-  transform-origin: center left;
+.chalk-path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
 }
 
 .field-section {
@@ -97,9 +79,9 @@
 /* Middle row: Gem Rate | Card Image | PSA 9 */
 .middle-infield-row {
   display: grid;
-  grid-template-columns: 0.18fr 0.64fr 0.18fr;
-  gap: 0.75rem;
-  height: 100%;
+  grid-template-columns: 0.22fr 0.56fr 0.22fr;
+  gap: 0.9rem;
+  align-items: stretch;
 }
 
 .left-section {
@@ -129,7 +111,7 @@
 .center-card {
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 55%, #8b5a3c 100%);
   border: 5px solid rgba(255, 255, 255, 0.95);
-  padding: 1.2rem 0.8rem;
+  padding: 1.5rem 1.1rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -142,9 +124,9 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 120px;
-  height: 120px;
-  border: 3px solid rgba(255, 255, 255, 0.45);
+  width: 90px;
+  height: 160px;
+  border: 3px solid rgba(255, 255, 255, 0.35);
   border-radius: 50%;
 }
 
@@ -192,14 +174,14 @@
 }
 
 .home-plate-base {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(0, 0, 0, 0.25);
   transform: rotate(45deg);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
 }
 
 .card-image-container {
@@ -210,37 +192,35 @@
 }
 
 .card-image {
-  width: auto;
-  max-width: 120px;
-  height: 100%;
-  max-height: 280px;
-  border-radius: 12px;
+  width: 110px;
+  height: 220px;
+  border-radius: 16px;
   background: #ffffff;
-  padding: 0.45rem;
+  padding: 0.35rem;
   border: 3px solid rgba(255, 255, 255, 0.95);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
 .card-placeholder {
   width: 110px;
-  height: 200px;
-  border-radius: 18px;
-  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #f0f0f0 55%, #d7d7d7 100%);
+  height: 220px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 50%, #d7d7d7 100%);
   border: 3px solid rgba(255, 255, 255, 0.6);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
 }
 
 .card-placeholder::before,
 .card-placeholder::after {
   content: '';
   position: absolute;
-  width: 60%;
-  height: 60%;
+  width: 55%;
+  height: 55%;
   border: 3px dashed #d32f2f;
   border-radius: 50%;
 }
