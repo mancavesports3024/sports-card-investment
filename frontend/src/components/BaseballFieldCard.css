@@ -61,28 +61,33 @@
   z-index: 5;
 }
 
+/* Base positions - aligned with foul lines */
 .base-marker.first {
-  bottom: 35%;
-  right: 8%;
-  transform: translateX(-50%) translateY(50%) rotate(45deg);
+  bottom: 5%;
+  left: 50%;
+  transform: translate(60px, -60px) rotate(45deg);
+  /* Positioned at end of first base line (45deg from home) */
 }
 
 .base-marker.second {
-  top: 50%;
+  top: 40%;
   left: 50%;
   transform: translate(-50%, -50%) rotate(45deg);
+  /* Second base at center top of diamond */
 }
 
 .base-marker.third {
-  bottom: 35%;
-  left: 8%;
-  transform: translateX(50%) translateY(50%) rotate(45deg);
+  bottom: 5%;
+  left: 50%;
+  transform: translate(-60px, -60px) rotate(45deg);
+  /* Positioned at end of third base line (-45deg from home) */
 }
 
 .base-marker.home {
   bottom: 5%;
   left: 50%;
-  transform: translateX(-50%) translateY(50%) rotate(45deg);
+  transform: translateX(-50%) rotate(45deg);
+  /* Home plate at bottom center */
 }
 
 /* Pitcher's mound circle */
@@ -108,21 +113,21 @@
 }
 
 .foul-line.first {
-  width: 80px;
+  width: 100px;
   height: 2px;
-  bottom: 35%;
-  right: 8%;
-  transform: translateX(-50%) translateY(50%) rotate(-45deg);
-  transform-origin: center;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%) rotate(-45deg);
+  transform-origin: left center;
 }
 
 .foul-line.third {
-  width: 80px;
+  width: 100px;
   height: 2px;
-  bottom: 35%;
-  left: 8%;
-  transform: translateX(50%) translateY(50%) rotate(45deg);
-  transform-origin: center;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  transform-origin: right center;
 }
 
 /* Base tile styling - consistent padding/margin */
@@ -152,7 +157,7 @@
 
 /* 2. Gem Rate: vertical tile on left (third base) */
 .tile-gemrate {
-  bottom: 35%;
+  bottom: 45%;
   left: 8%;
   width: 22%;
   height: 30%;
@@ -161,18 +166,18 @@
 
 /* 3. Card Image: vertical tile in center (pitcher's mound) */
 .tile-card {
-  bottom: 20%;
+  bottom: 18%;
   left: 50%;
   transform: translateX(-50%);
-  width: 26%;
-  height: 42%;
+  width: 30%;
+  height: 48%;
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
   border: none;
 }
 
 /* 4. PSA 9: vertical tile on right (first base) */
 .tile-psa9 {
-  bottom: 35%;
+  bottom: 45%;
   right: 8%;
   width: 22%;
   height: 30%;
@@ -219,7 +224,7 @@
 /* Card Image Container */
 .card-image-container {
   width: 100%;
-  height: 60%;
+  height: 55%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -229,12 +234,12 @@
 /* Card Information */
 .card-info {
   width: 100%;
-  height: 40%;
+  height: 45%;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
-  padding: 0.5rem;
+  padding: 0.6rem;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 4px;
   font-size: 0.65rem;
@@ -270,10 +275,10 @@
   width: auto;
   max-width: 100%;
   height: auto;
-  max-height: 95%;
+  max-height: 100%;
   border-radius: 6px;
   background: #ffffff;
-  padding: 0.5rem;
+  padding: 0.6rem;
   border: 3px solid rgba(255, 255, 255, 1);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.8), 0 0 12px rgba(255, 255, 255, 0.6);
   object-fit: contain;
