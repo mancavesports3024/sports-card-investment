@@ -186,21 +186,6 @@ const BaseballFieldCard = ({ card }) => {
                 );
               })()}
             </div>
-            {/* Card Information */}
-            <div className="card-info">
-              <div className="card-info-line">
-                <span className="card-info-label">Name:</span>
-                <span className="card-info-value">{cardInfo.name}</span>
-              </div>
-              <div className="card-info-line">
-                <span className="card-info-label">Set:</span>
-                <span className="card-info-value">{cardInfo.set}</span>
-              </div>
-              <div className="card-info-line">
-                <span className="card-info-label">Year:</span>
-                <span className="card-info-value">{cardInfo.year}</span>
-              </div>
-            </div>
           </div>
 
           {/* Right Tile - PSA 9 (First Base) */}
@@ -222,6 +207,24 @@ const BaseballFieldCard = ({ card }) => {
         <div className="tile tile-raw">
           <div className="tile-label">RAW</div>
           <div className="tile-value">{formatPrice(rawPrice)}</div>
+        </div>
+
+        {/* Card Information - Lower Left Corner */}
+        <div className="tile tile-card-info">
+          <div className="card-info">
+            <div className="card-info-line">
+              <span className="card-info-label">Name:</span>
+              <span className="card-info-value">{cardInfo.name}</span>
+            </div>
+            <div className="card-info-line">
+              <span className="card-info-label">Set:</span>
+              <span className="card-info-value">{cardInfo.set}</span>
+            </div>
+            <div className="card-info-line">
+              <span className="card-info-label">Year:</span>
+              <span className="card-info-value">{cardInfo.year}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
