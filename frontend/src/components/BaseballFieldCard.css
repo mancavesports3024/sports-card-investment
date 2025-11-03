@@ -220,7 +220,7 @@
 /* Typography - Increased font sizes for better readability */
 /* Headings (PSA 10, RAW, etc.) - Match price font size */
 .tile-label {
-  font-size: 1.8rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #ffffff;
   text-transform: uppercase;
@@ -231,7 +231,7 @@
 
 /* Price values and main data */
 .tile-value {
-  font-size: 1.8rem;
+  font-size: 1.35rem;
   font-weight: 900;
   color: #ffffff;
   text-shadow: 3px 3px 5px rgba(0, 0, 0, 1), 0 0 8px rgba(0, 0, 0, 0.95);
@@ -240,7 +240,7 @@
 
 /* Subtext (population, percentages, etc.) */
 .tile-info {
-  font-size: 1rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #ffffff;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 5px rgba(0, 0, 0, 0.9);
@@ -358,7 +358,7 @@
 
 /* Profit Badge - Increased font size */
 .profit-badge {
-  font-size: 1rem;
+  font-size: 0.75rem;
   font-weight: 700;
   padding: 0.3rem 0.6rem;
   border-radius: 4px;
