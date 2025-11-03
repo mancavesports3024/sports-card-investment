@@ -5,18 +5,22 @@
   align-items: center;
 }
 
-/* Container with relative positioning */
+/* Container with grid layout */
 .baseball-field {
   position: relative;
   width: 100%;
   max-width: 600px;
-  aspect-ratio: 1;
-  min-height: 300px;
+  min-height: 400px;
   background: #2d7a1f;
   border-radius: 12px;
   border: 3px solid #ffd700;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
   overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  padding: 1rem;
 }
 
 /* Grass mowing stripes */
@@ -61,78 +65,24 @@
   z-index: 5;
 }
 
-/* Base positions - aligned with foul lines */
-.base-marker.first {
-  bottom: 5%;
-  left: 50%;
-  transform: translate(60px, -60px) rotate(45deg);
-  /* Positioned at end of first base line (45deg from home) */
+/* Base positions - hidden when using grid layout */
+.base-marker {
+  display: none;
 }
 
-.base-marker.second {
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(45deg);
-  /* Second base at center top of diamond */
-}
-
-.base-marker.third {
-  bottom: 5%;
-  left: 50%;
-  transform: translate(-60px, -60px) rotate(45deg);
-  /* Positioned at end of third base line (-45deg from home) */
-}
-
-.base-marker.home {
-  bottom: 5%;
-  left: 50%;
-  transform: translateX(-50%) rotate(45deg);
-  /* Home plate at bottom center */
-}
-
-/* Pitcher's mound circle */
+/* Pitcher's mound circle - hidden in grid layout */
 .pitchers-mound {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 40px;
-  height: 40px;
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  border-radius: 50%;
-  background: rgba(200, 154, 109, 0.3);
-  z-index: 1;
+  display: none;
 }
 
-/* Foul lines - white chalk lines */
+/* Foul lines - hidden in grid layout */
 .foul-line {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
-  z-index: 2;
-}
-
-.foul-line.first {
-  width: 100px;
-  height: 2px;
-  bottom: 5%;
-  left: 50%;
-  transform: translateX(-50%) rotate(-45deg);
-  transform-origin: left center;
-}
-
-.foul-line.third {
-  width: 100px;
-  height: 2px;
-  bottom: 5%;
-  left: 50%;
-  transform: translateX(-50%) rotate(45deg);
-  transform-origin: right center;
+  display: none;
 }
 
 /* Base tile styling - consistent padding/margin */
 .tile {
-  position: absolute;
+  position: relative;
   z-index: 10;
   background: rgba(255, 255, 255, 0.95);
   border: none;
@@ -145,52 +95,55 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
-/* 1. PSA 10: horizontal tile at top center (outfield) */
+/* Row 1: PSA 10 (horizontal, centered) */
 .tile-psa10 {
-  top: 5%;
-  left: 50%;
-  transform: translateX(-50%);
+  grid-row: 1;
+  grid-column: 1;
   width: 65%;
-  height: 15%;
+  justify-self: center;
+  min-height: 70px;
   background: linear-gradient(180deg, #1e5c14 0%, #2d7a1f 100%);
 }
 
-/* 2. Gem Rate: vertical tile on left (third base) */
-.tile-gemrate {
-  bottom: 45%;
-  left: 8%;
-  width: 22%;
-  height: 30%;
-  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
+/* Row 2: Middle row container */
+.middle-row {
+  grid-row: 2;
+  grid-column: 1;
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr;
+  gap: 0.75rem;
+  align-items: stretch;
 }
 
-/* 3. Card Image: vertical tile in center (pitcher's mound) */
+/* 2. Gem Rate: vertical tile on left */
+.tile-gemrate {
+  grid-column: 1;
+  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
+  min-height: 200px;
+}
+
+/* 3. Card Image: vertical tile in center */
 .tile-card {
-  bottom: 18%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 30%;
-  height: 48%;
+  grid-column: 2;
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
   border: none;
+  min-height: 200px;
 }
 
-/* 4. PSA 9: vertical tile on right (first base) */
+/* 4. PSA 9: vertical tile on right */
 .tile-psa9 {
-  bottom: 45%;
-  right: 8%;
-  width: 22%;
-  height: 30%;
+  grid-column: 3;
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
+  min-height: 200px;
 }
 
-/* 5. RAW: vertical tile at bottom center (below home plate) */
+/* Row 3: RAW (vertical, centered below Card Image) */
 .tile-raw {
-  bottom: 5%;
-  left: 50%;
-  transform: translateX(-50%);
+  grid-row: 3;
+  grid-column: 1;
   width: 28%;
-  height: 12%;
+  justify-self: center;
+  min-height: 60px;
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
 }
 
