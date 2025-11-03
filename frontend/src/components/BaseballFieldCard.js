@@ -36,6 +36,8 @@ const BaseballFieldCard = ({ card }) => {
   return (
     <div className="baseball-field-card">
       <div className="baseball-field">
+        <div className="diamond-line first" />
+        <div className="diamond-line third" />
         {/* Outfield - PSA 10 */}
         <div className="field-section outfield">
           <div className="price-label">PSA 10</div>

@@ -18,6 +18,12 @@
   overflow: hidden;
 }
 
+@supports (display: grid) {
+  .baseball-field {
+    grid-template-rows: 0.35fr 0.4fr 0.25fr;
+  }
+}
+
 /* Grass mowing pattern */
 .baseball-field::after {
   content: '';
@@ -38,15 +44,35 @@
 .baseball-field::before {
   content: '';
   position: absolute;
-  top: 58%;
+  bottom: 16%;
   left: 50%;
-  transform: translate(-50%, -50%) rotate(45deg);
-  width: 42%;
-  height: 42%;
-  border: 6px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.55);
-  pointer-events: none;
-  z-index: 1;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 3px;
+  background: none;
+}
+
+.diamond-line {
+  position: absolute;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+}
+
+.diamond-line.first {
+  bottom: 20%;
+  left: 50%;
+  width: 24%;
+  transform: translateX(-50%) rotate(-32deg);
+  transform-origin: center right;
+}
+
+.diamond-line.third {
+  bottom: 20%;
+  left: 50%;
+  width: 24%;
+  transform: translateX(-50%) rotate(32deg);
+  transform-origin: center left;
 }
 
 .field-section {
@@ -71,26 +97,26 @@
 /* Middle row: Gem Rate | Card Image | PSA 9 */
 .middle-infield-row {
   display: grid;
-  grid-template-columns: 0.32fr 0.36fr 0.32fr;
+  grid-template-columns: 0.22fr 0.56fr 0.22fr;
   gap: 0.75rem;
   height: 100%;
 }
 
 .left-section {
-  background: linear-gradient(135deg, #2d7a1f 0%, #1e5c14 100%);
+  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 55%, #8b5a3c 100%);
   border: 4px solid rgba(255, 255, 255, 0.85);
-  padding: 0.9rem 0.75rem;
+  padding: 0.7rem 0.6rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .left-section::after {
   content: '';
   position: absolute;
-  bottom: 10px;
+  bottom: 6px;
   left: 10px;
   width: 20px;
   height: 20px;
@@ -103,7 +129,7 @@
 .center-card {
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 55%, #8b5a3c 100%);
   border: 5px solid rgba(255, 255, 255, 0.95);
-  padding: 1.1rem;
+  padding: 0.9rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -125,18 +151,18 @@
 .right-section {
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 55%, #8b5a3c 100%);
   border: 4px solid rgba(255, 255, 255, 0.85);
-  padding: 0.9rem 0.75rem;
+  padding: 0.7rem 0.6rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .right-section::after {
   content: '';
   position: absolute;
-  bottom: 10px;
+  bottom: 4px;
   right: 10px;
   width: 20px;
   height: 20px;
@@ -162,13 +188,14 @@
   align-items: center;
   gap: 0.5rem;
   width: clamp(200px, 24%, 260px);
+  margin-top: 0.5rem;
 }
 
 .home-plate::after {
   content: '⬥';
   position: absolute;
-  bottom: 10px;
-  font-size: 2rem;
+  bottom: 6px;
+  font-size: 1.8rem;
   color: rgba(255, 255, 255, 0.85);
   text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
