@@ -170,7 +170,7 @@
   bottom: 45%;
   left: 8%;
   width: 22%;
-  min-height: 200px;
+  min-height: 150px; /* shorter */
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
 }
 
@@ -203,7 +203,7 @@
   bottom: 45%;
   right: 8%;
   width: 22%;
-  min-height: 200px;
+  min-height: 150px; /* shorter */
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
 }
 
@@ -220,7 +220,7 @@
 /* Typography - Increased font sizes for better readability */
 /* Headings (PSA 10, RAW, etc.) - Match price font size */
 .tile-label {
-  font-size: 0.675rem;
+  font-size: 0.844rem; /* +25% */
   font-weight: 800;
   color: #ffffff;
   text-transform: uppercase;
@@ -231,7 +231,7 @@
 
 /* Price values and main data */
 .tile-value {
-  font-size: 0.675rem;
+  font-size: 0.844rem; /* +25% */
   font-weight: 900;
   color: #ffffff;
   text-shadow: 3px 3px 5px rgba(0, 0, 0, 1), 0 0 8px rgba(0, 0, 0, 0.95);
@@ -240,7 +240,7 @@
 
 /* Subtext (population, percentages, etc.) */
 .tile-info {
-  font-size: 0.375rem;
+  font-size: 0.469rem; /* +25% */
   font-weight: 600;
   color: #ffffff;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 5px rgba(0, 0, 0, 0.9);
@@ -264,10 +264,10 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
-  padding: 0.3rem;
+  padding: 0.35rem;
   background: rgba(255, 255, 255, 0.15);
   border-radius: 4px;
-  font-size: 0.55rem;
+  font-size: 0.688rem; /* +25% */
 }
 
 .card-info-line {
@@ -282,9 +282,9 @@
   font-weight: 700;
   color: #ffffff;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 1), 0 0 4px rgba(0, 0, 0, 0.8);
-  margin-right: 0.3rem;
-  min-width: 2.5rem;
-  font-size: 0.55rem;
+  margin-right: 0.35rem;
+  min-width: 2.8rem;
+  font-size: 0.688rem; /* +25% */
   flex-shrink: 0;
 }
 
@@ -294,7 +294,7 @@
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 1), 0 0 4px rgba(0, 0, 0, 0.8);
   flex: 1;
   word-wrap: break-word;
-  font-size: 0.55rem;
+  font-size: 0.688rem; /* +25% */
   text-align: left;
 }
 
@@ -358,7 +358,7 @@
 
 /* Profit Badge - Increased font size */
 .profit-badge {
-  font-size: 0.375rem;
+  font-size: 0.469rem; /* +25% */
   font-weight: 700;
   padding: 0.3rem 0.6rem;
   border-radius: 4px;
