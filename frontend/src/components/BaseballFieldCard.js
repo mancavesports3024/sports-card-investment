@@ -36,6 +36,15 @@ const BaseballFieldCard = ({ card }) => {
   return (
     <div className="baseball-field-card">
       <div className="baseball-field">
+        {/* Baseball field elements */}
+        <div className="foul-line first"></div>
+        <div className="foul-line third"></div>
+        <div className="base-marker first"></div>
+        <div className="base-marker second"></div>
+        <div className="base-marker third"></div>
+        <div className="base-marker home"></div>
+        <div className="pitchers-mound"></div>
+
         {/* Top Tile - PSA 10 (Outfield) */}
         <div className="tile tile-psa10">
           <div className="tile-label">PSA 10</div>
