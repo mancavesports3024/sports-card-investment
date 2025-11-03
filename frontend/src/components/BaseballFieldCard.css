@@ -1,21 +1,20 @@
 .baseball-field-card {
   width: 100%;
-  max-width: 1400px;
   margin: 0 auto;
 }
 
 .baseball-field {
   position: relative;
   width: 100%;
-  min-height: 700px;
+  min-height: 420px;
   background: #2d7a1f;
-  border-radius: 30px;
+  border-radius: 24px;
   border: 6px solid #ffd700;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
-  padding: 2.25rem;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+  padding: 1.5rem 1.75rem;
   display: grid;
-  grid-template-rows: 0.4fr 0.4fr 0.2fr;
-  gap: 1.4rem;
+  grid-template-rows: 0.32fr 0.38fr 0.18fr;
+  gap: 0.9rem;
   overflow: hidden;
 }
 
@@ -53,48 +52,48 @@
 .field-section {
   position: relative;
   z-index: 2;
-  border-radius: 18px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
 }
 
 /* Outfield - PSA 10 */
 .outfield {
   background: linear-gradient(180deg, #1e5c14 0%, #2d7a1f 100%);
-  border: 5px solid rgba(255, 255, 255, 0.85);
+  border: 4px solid rgba(255, 255, 255, 0.85);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.65rem;
-  padding: 1.5rem;
+  gap: 0.45rem;
+  padding: 1rem 1.25rem;
 }
 
 /* Middle row: Gem Rate | Card Image | PSA 9 */
 .middle-infield-row {
   display: grid;
   grid-template-columns: 0.32fr 0.36fr 0.32fr;
-  gap: 1.1rem;
+  gap: 0.75rem;
   height: 100%;
 }
 
 .left-section {
   background: linear-gradient(135deg, #2d7a1f 0%, #1e5c14 100%);
-  border: 5px solid rgba(255, 255, 255, 0.85);
-  padding: 1.25rem 1rem;
+  border: 4px solid rgba(255, 255, 255, 0.85);
+  padding: 0.9rem 0.75rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .left-section::after {
   content: '';
   position: absolute;
-  bottom: 14px;
-  left: 14px;
-  width: 28px;
-  height: 28px;
+  bottom: 10px;
+  left: 10px;
+  width: 20px;
+  height: 20px;
   background: rgba(255, 255, 255, 0.95);
   border: 2px solid rgba(0, 0, 0, 0.3);
   transform: rotate(45deg);
@@ -103,8 +102,8 @@
 
 .center-card {
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 55%, #8b5a3c 100%);
-  border: 6px solid rgba(255, 255, 255, 0.95);
-  padding: 1.75rem;
+  border: 5px solid rgba(255, 255, 255, 0.95);
+  padding: 1.1rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -117,30 +116,30 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 120px;
-  height: 120px;
-  border: 4px solid rgba(255, 255, 255, 0.45);
+  width: 90px;
+  height: 90px;
+  border: 3px solid rgba(255, 255, 255, 0.45);
   border-radius: 50%;
 }
 
 .right-section {
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 55%, #8b5a3c 100%);
-  border: 5px solid rgba(255, 255, 255, 0.85);
-  padding: 1.25rem 1rem;
+  border: 4px solid rgba(255, 255, 255, 0.85);
+  padding: 0.9rem 0.75rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .right-section::after {
   content: '';
   position: absolute;
-  bottom: 14px;
-  right: 14px;
-  width: 28px;
-  height: 28px;
+  bottom: 10px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
   background: rgba(255, 255, 255, 0.95);
   border: 2px solid rgba(0, 0, 0, 0.3);
   transform: rotate(45deg);
@@ -156,20 +155,20 @@
 
 .home-plate {
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 55%, #8b5a3c 100%);
-  border: 5px solid rgba(255, 255, 255, 0.9);
-  padding: 1.1rem 1.8rem;
+  border: 4px solid rgba(255, 255, 255, 0.9);
+  padding: 0.9rem 1.4rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  width: clamp(240px, 28%, 320px);
+  width: clamp(200px, 24%, 260px);
 }
 
 .home-plate::after {
   content: '⬥';
   position: absolute;
-  bottom: 12px;
-  font-size: 2.2rem;
+  bottom: 10px;
+  font-size: 2rem;
   color: rgba(255, 255, 255, 0.85);
   text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
@@ -183,37 +182,37 @@
 
 .card-image {
   width: 100%;
-  max-width: 210px;
+  max-width: 160px;
   height: auto;
-  max-height: 320px;
+  max-height: 240px;
   border-radius: 12px;
   background: #ffffff;
-  padding: 0.6rem;
-  border: 4px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  padding: 0.45rem;
+  border: 3px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
 .card-placeholder {
-  width: 160px;
-  height: 160px;
+  width: 130px;
+  height: 130px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #ffffff 0%, #f0f0f0 55%, #d7d7d7 100%);
-  border: 4px solid rgba(255, 255, 255, 0.6);
+  border: 3px solid rgba(255, 255, 255, 0.6);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
 
 .card-placeholder::before,
 .card-placeholder::after {
   content: '';
   position: absolute;
-  width: 70%;
-  height: 70%;
-  border: 4px dashed #d32f2f;
+  width: 65%;
+  height: 65%;
+  border: 3px dashed #d32f2f;
   border-radius: 50%;
 }
 
@@ -221,20 +220,20 @@
 .card-placeholder::after { transform: rotate(18deg); }
 
 .card-placeholder-icon {
-  font-size: 4rem;
+  font-size: 3.2rem;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
 }
 
 .card-placeholder-text {
-  margin-top: 0.5rem;
-  font-size: 1rem;
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #2d2d2d;
 }
 
 .price-label,
 .gemrate-label {
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -244,7 +243,7 @@
 
 .price-value,
 .gemrate-value {
-  font-size: 2.4rem;
+  font-size: 1.9rem;
   font-weight: 900;
   color: #ffffff;
   text-shadow: 0 0 12px rgba(0, 0, 0, 0.65), 3px 3px 6px rgba(0, 0, 0, 0.85);
@@ -252,7 +251,7 @@
 
 .population-info,
 .total-label-compact {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.95);
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.75);
@@ -261,24 +260,24 @@
 .total-label-compact { text-transform: uppercase; letter-spacing: 1.2px; }
 
 .profit-badge {
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  padding: 0.55rem 1.2rem;
-  border-radius: 11px;
-  margin-top: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 10px;
+  margin-top: 0.3rem;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .profit-badge.profit {
   background: linear-gradient(135deg, #4caf50 0%, #2f7c36 100%);
-  border: 3px solid #27652c;
+  border: 2px solid #27652c;
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.6);
 }
 
 .profit-badge.loss {
   background: linear-gradient(135deg, #d32f2f 0%, #a41b1b 100%);
-  border: 3px solid #861212;
+  border: 2px solid #861212;
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(211, 47, 47, 0.6);
 }

@@ -1215,15 +1215,13 @@ const SearchPage = () => {
               }
               return (
                 <div style={{ 
-                  margin: '2rem 0 4rem 0', 
+                  margin: '2rem 0', 
                   display: 'flex', 
                   justifyContent: 'center',
                   alignItems: 'center',
-                  width: '100%',
-                  padding: '2rem 1rem',
-                  minHeight: '700px'
+                  width: '100%'
                 }}>
-                  <div style={{ width: '100%', maxWidth: '600px' }}>
+                  <div style={{ width: '100%', maxWidth: '100%' }}>
                     <h3 style={{ 
                       color: '#fff', 
                       fontWeight: 800, 
