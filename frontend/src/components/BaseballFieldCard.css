@@ -74,6 +74,31 @@
   z-index: 5;
 }
 
+/* Base positions - aligned with foul lines */
+.base-marker.first {
+  bottom: 5%;
+  left: 50%;
+  transform: translate(60px, -60px) rotate(45deg);
+}
+
+.base-marker.second {
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.base-marker.third {
+  bottom: 5%;
+  left: 50%;
+  transform: translate(-60px, -60px) rotate(45deg);
+}
+
+.base-marker.home {
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+}
+
 /* Pitcher's mound circle */
 .pitchers-mound {
   position: absolute;
