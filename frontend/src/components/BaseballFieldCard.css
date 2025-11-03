@@ -74,12 +74,12 @@
   z-index: 5;
 }
 
-/* Base positions - moved to red circle locations (below tiles, lower on field) */
+/* Base positions - moved up a full inch, closer to tiles */
 .base-marker.first {
   bottom: 35%;
   right: 10%;
-  transform: translate(-18px, 48px) rotate(45deg);
-  /* Positioned below PSA 9 tile: moved up 1/2 inch, left 3/16 inch */
+  transform: translate(-18px, -48px) rotate(45deg);
+  /* Positioned below PSA 9 tile: moved up 1 full inch, left 3/16 inch */
 }
 
 .base-marker.second {
@@ -90,8 +90,8 @@
 .base-marker.third {
   bottom: 35%;
   left: 10%;
-  transform: translate(18px, 48px) rotate(45deg);
-  /* Positioned below GEM RATE tile: moved up 1/2 inch, right 3/16 inch */
+  transform: translate(18px, -48px) rotate(45deg);
+  /* Positioned below GEM RATE tile: moved up 1 full inch, right 3/16 inch */
 }
 
 .base-marker.home {
