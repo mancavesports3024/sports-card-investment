@@ -74,12 +74,12 @@
   z-index: 5;
 }
 
-/* Base positions - one under Gem Rate, one under PSA 9 */
+/* Base positions - moved to red circle locations (below tiles, lower on field) */
 .base-marker.first {
-  bottom: 20%;
-  right: 8%;
-  transform: translate(0, -50%) rotate(45deg);
-  /* Positioned under PSA 9 tile */
+  bottom: 35%;
+  right: 10%;
+  transform: rotate(45deg);
+  /* Positioned below PSA 9 tile, to the right of center card */
 }
 
 .base-marker.second {
@@ -88,10 +88,10 @@
 }
 
 .base-marker.third {
-  bottom: 20%;
-  left: 8%;
-  transform: translate(0, -50%) rotate(45deg);
-  /* Positioned under Gem Rate tile */
+  bottom: 35%;
+  left: 10%;
+  transform: rotate(45deg);
+  /* Positioned below GEM RATE tile, to the left of center card */
 }
 
 .base-marker.home {
@@ -154,28 +154,40 @@
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
 }
 
-/* 3. Card Image: vertical tile in center (below PSA 10) */
+/* 3. Card Image: vertical tile in center (below PSA 10) - no border, just image */
 .tile-card {
   bottom: 20%;
   left: 50%;
   transform: translateX(-50%);
   width: 30%;
   min-height: 320px;
-  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
+  background: transparent;
   border: none;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  box-shadow: none;
 }
 
-/* Card Information - Lower Left Corner */
-.tile-card-info {
-  bottom: 5%;
-  left: 8%;
-  width: 24%;
-  min-height: 120px;
-  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
-  padding: 0.4rem;
+/* Card Information - Top, above PSA 10 tile */
+.card-info-top {
+  position: absolute;
+  top: 2%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.card-info-top-text {
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.9);
 }
 
 /* 4. PSA 9: vertical tile on right (first base area) */

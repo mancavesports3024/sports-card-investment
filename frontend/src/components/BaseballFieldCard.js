@@ -127,6 +127,13 @@ const BaseballFieldCard = ({ card }) => {
         <div className="base-marker home"></div>
         <div className="pitchers-mound"></div>
 
+        {/* Card Information - Top, above PSA 10 */}
+        <div className="card-info-top">
+          <span className="card-info-top-text">Name: {cardInfo.name}</span>
+          <span className="card-info-top-text">Set: {cardInfo.set}</span>
+          <span className="card-info-top-text">Year: {cardInfo.year}</span>
+        </div>
+
         {/* Top Tile - PSA 10 (Outfield) */}
         <div className="tile tile-psa10">
           <div className="tile-label">PSA 10</div>
@@ -209,23 +216,6 @@ const BaseballFieldCard = ({ card }) => {
           <div className="tile-value">{formatPrice(rawPrice)}</div>
         </div>
 
-        {/* Card Information - Lower Left Corner */}
-        <div className="tile tile-card-info">
-          <div className="card-info">
-            <div className="card-info-line">
-              <span className="card-info-label">Name:</span>
-              <span className="card-info-value">{cardInfo.name}</span>
-            </div>
-            <div className="card-info-line">
-              <span className="card-info-label">Set:</span>
-              <span className="card-info-value">{cardInfo.set}</span>
-            </div>
-            <div className="card-info-line">
-              <span className="card-info-label">Year:</span>
-              <span className="card-info-value">{cardInfo.year}</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
