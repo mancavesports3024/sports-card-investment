@@ -525,7 +525,8 @@ const SearchPage = () => {
       psa10Price: psa10Avg,
       gemrateData: baseballCardGemrateData,
       population: baseballCardGemrateData,
-      searchQuery: results.searchParams?.searchQuery || searchQuery
+      searchQuery: results.searchParams?.searchQuery || searchQuery,
+      createdAt: new Date().toISOString()
     };
   };
 

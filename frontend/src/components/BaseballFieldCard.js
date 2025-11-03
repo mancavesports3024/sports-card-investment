@@ -102,6 +102,24 @@ const BaseballFieldCard = ({ card }) => {
     return `$${Number(price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
+  // Format timestamp
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '';
+    try {
+      const date = new Date(timestamp);
+      return date.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (e) {
+      return '';
+    }
+  };
+
   // Calculate profit/loss percentages (assuming grading cost of $18.99)
   const gradingCost = 18.99;
   const psa10Profit = rawPrice > 0 ? (((psa10Price - rawPrice - gradingCost) / rawPrice) * 100).toFixed(1) : null;
@@ -215,6 +233,13 @@ const BaseballFieldCard = ({ card }) => {
           <div className="tile-label">RAW</div>
           <div className="tile-value">{formatPrice(rawPrice)}</div>
         </div>
+
+        {/* Timestamp - Bottom of card */}
+        {card.createdAt && (
+          <div className="card-timestamp">
+            Created: {formatTimestamp(card.createdAt)}
+          </div>
+        )}
 
       </div>
     </div>
