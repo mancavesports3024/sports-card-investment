@@ -167,10 +167,10 @@
 /* Row 2: Middle row - using absolute positioning */
 /* 2. Gem Rate: vertical tile on left (third base area) */
 .tile-gemrate {
-  bottom: 45%;
+  bottom: 50%; /* move up slightly */
   left: 8%;
-  width: 22%;
-  min-height: 150px; /* shorter */
+  width: 20%; /* smaller */
+  min-height: 120px; /* smaller */
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
 }
 
@@ -200,10 +200,10 @@
 
 /* 4. PSA 9: vertical tile on right (first base area) */
 .tile-psa9 {
-  bottom: 45%;
+  bottom: 50%; /* move up slightly */
   right: 8%;
-  width: 22%;
-  min-height: 150px; /* shorter */
+  width: 20%; /* smaller */
+  min-height: 120px; /* smaller */
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
 }
 
@@ -240,7 +240,7 @@
 
 /* Subtext (population, percentages, etc.) */
 .tile-info {
-  font-size: 0.469rem; /* +25% */
+  font-size: 0.8rem; /* larger for Pop, Total */
   font-weight: 600;
   color: #ffffff;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 5px rgba(0, 0, 0, 0.9);
@@ -358,7 +358,7 @@
 
 /* Profit Badge - Increased font size */
 .profit-badge {
-  font-size: 0.469rem; /* +25% */
+  font-size: 0.8rem; /* larger for % chip */
   font-weight: 700;
   padding: 0.3rem 0.6rem;
   border-radius: 4px;
