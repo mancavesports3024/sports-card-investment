@@ -153,9 +153,9 @@
 }
 
 /* Typography - Increased font sizes for better readability */
-/* Headings (PSA 10, RAW, etc.) */
+/* Headings (PSA 10, RAW, etc.) - Match price font size */
 .tile-label {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 800;
   color: #ffffff;
   text-transform: uppercase;
