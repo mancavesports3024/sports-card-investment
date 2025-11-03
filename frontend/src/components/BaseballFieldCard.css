@@ -105,7 +105,9 @@
   background: linear-gradient(180deg, #1e5c14 0%, #2d7a1f 100%);
 }
 
-/* Row 2: Middle row container */
+/* Row 2: Middle row container
+   Layout: Gem Rate | Card Image | PSA 9
+   Card Image tile is taller to visually match combined height of side tiles */
 .middle-row {
   grid-row: 2;
   grid-column: 1;
@@ -122,12 +124,15 @@
   min-height: 200px;
 }
 
-/* 3. Card Image: vertical tile in center */
+/* 3. Card Image: vertical tile in center
+   Taller height to visually match combined height of Gem Rate and PSA 9 tiles */
 .tile-card {
   grid-column: 2;
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
   border: none;
-  min-height: 200px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 4. PSA 9: vertical tile on right */
@@ -147,55 +152,58 @@
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
 }
 
-/* Typography */
+/* Typography - Increased font sizes for better readability */
+/* Headings (PSA 10, RAW, etc.) */
 .tile-label {
-  font-size: 0.55rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  text-shadow: 2px 2px 3px rgba(0, 0, 0, 1), 0 0 4px rgba(0, 0, 0, 0.8);
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.9);
+  margin-bottom: 0.5rem;
+}
+
+/* Price values and main data */
+.tile-value {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 3px 3px 5px rgba(0, 0, 0, 1), 0 0 8px rgba(0, 0, 0, 0.95);
   margin-bottom: 0.3rem;
 }
 
-.tile-value {
-  font-size: 1.1rem;
-  font-weight: 900;
-  color: #ffffff;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.9);
-  margin-bottom: 0.15rem;
-}
-
+/* Subtext (population, percentages, etc.) */
 .tile-info {
-  font-size: 0.5rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #ffffff;
-  text-shadow: 2px 2px 3px rgba(0, 0, 0, 1), 0 0 4px rgba(0, 0, 0, 0.8);
-  margin-top: 0.15rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 5px rgba(0, 0, 0, 0.9);
+  margin-top: 0.3rem;
 }
 
-/* Card Image Container */
+/* Card Image Container - Larger image display area */
 .card-image-container {
   width: 100%;
-  height: 55%;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
 }
 
-/* Card Information */
+/* Card Information - Increased font sizes */
 .card-info {
   width: 100%;
-  height: 45%;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
-  padding: 0.6rem;
+  padding: 0.8rem;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 4px;
-  font-size: 0.65rem;
+  font-size: 1.2rem;
 }
 
 .card-info-line {
@@ -210,9 +218,9 @@
   font-weight: 700;
   color: #ffffff;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.9);
-  margin-right: 0.5rem;
-  min-width: 3rem;
-  font-size: 0.7rem;
+  margin-right: 0.6rem;
+  min-width: 4rem;
+  font-size: 1.2rem;
 }
 
 .card-info-value {
@@ -221,20 +229,22 @@
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.9);
   flex: 1;
   word-wrap: break-word;
-  font-size: 0.65rem;
+  font-size: 1.2rem;
 }
 
+/* Card Image - Larger and more prominent */
 .card-image {
   width: auto;
-  max-width: 100%;
+  max-width: 200px;
   height: auto;
-  max-height: 100%;
-  border-radius: 6px;
+  border-radius: 8px;
   background: #ffffff;
-  padding: 0.6rem;
+  padding: 0.8rem;
   border: 3px solid rgba(255, 255, 255, 1);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.8), 0 0 12px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.9), 0 0 15px rgba(255, 255, 255, 0.7);
   object-fit: contain;
+  /* Center horizontally */
+  margin: 0 auto;
 }
 
 .card-placeholder {
@@ -280,14 +290,14 @@
   z-index: 1;
 }
 
-/* Profit Badge */
+/* Profit Badge - Increased font size */
 .profit-badge {
-  font-size: 0.4rem;
+  font-size: 1rem;
   font-weight: 700;
-  padding: 0.15rem 0.3rem;
-  border-radius: 3px;
-  margin-top: 0.15rem;
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  margin-top: 0.3rem;
+  text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.7);
 }
 
 .profit-badge.profit {
