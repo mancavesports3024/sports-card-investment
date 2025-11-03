@@ -176,7 +176,7 @@
 
 /* 3. Card Image: vertical tile in center (below PSA 10) */
 .tile-card {
-  bottom: 24%;
+  bottom: 20%;
   left: 50%;
   transform: translateX(-50%);
   width: 30%;
