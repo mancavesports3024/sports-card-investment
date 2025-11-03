@@ -901,6 +901,39 @@ class EbayScraperService {
                     return;
                 }
                 
+                // Extract image URL
+                let imageUrl = '';
+                const imageSelectors = [
+                    '.s-item__image img',
+                    '.s-item__image-wrapper img',
+                    'img.s-item__image-img',
+                    '.s-item__picture img',
+                    '.picture img',
+                    'img[src*="ebayimg"]',
+                    'img[src*="ebaystatic"]'
+                ];
+                
+                for (const selector of imageSelectors) {
+                    const imgEl = $item.find(selector).first();
+                    if (imgEl.length > 0) {
+                        let src = imgEl.attr('src') || imgEl.attr('data-src') || imgEl.attr('data-lazy');
+                        if (src) {
+                            // Fix relative URLs and eBay image URLs
+                            if (src.startsWith('//')) {
+                                src = 'https:' + src;
+                            } else if (src.startsWith('/')) {
+                                src = 'https://www.ebay.com' + src;
+                            }
+                            // Convert eBay thumbnail URLs to full-size if needed
+                            if (src.includes('s-l') && !src.includes('s-l1600')) {
+                                src = src.replace(/s-l\d+/, 's-l1600');
+                            }
+                            imageUrl = src;
+                            break;
+                        }
+                    }
+                }
+                
                 // Extract grade information
                 const grade = this.detectGradeFromTitle(title);
                 
@@ -919,7 +952,8 @@ class EbayScraperService {
                     autoConfidence: autoConfidence,
                     shippingCost: shippingCost,
                     saleType: saleType,
-                    numBids: numBids
+                    numBids: numBids,
+                    imageUrl: imageUrl
                 });
                 
                 processedCount++;
