@@ -12,8 +12,25 @@ const BaseballFieldCard = ({ card }) => {
   const psa10Pop = gemrateData?.perfect || gemrateData?.grade10 || gemrateData?.psa10Population || 0;
   const psa9Pop = gemrateData?.grade9 || gemrateData?.psa9Population || 0;
 
-  // Extract card information from title and card data
-  const extractCardInfo = (title, cardData) => {
+  // Extract card information - prioritize gemrate data, fallback to title parsing
+  const extractCardInfo = (title, cardData, gemrateData) => {
+    // First, try to get card details from gemrate data (most reliable)
+    if (gemrateData) {
+      const gemrateName = gemrateData.cardName || gemrateData.player || '';
+      const gemrateSet = gemrateData.set || '';
+      const gemrateYear = gemrateData.year ? String(gemrateData.year) : '';
+      
+      // If we have gemrate data, use it (even if some fields are empty)
+      if (gemrateName || gemrateSet || gemrateYear) {
+        return {
+          name: gemrateName || 'Unknown',
+          set: gemrateSet || 'Unknown',
+          year: gemrateYear || 'N/A'
+        };
+      }
+    }
+    
+    // Fallback to title parsing if no gemrate data
     if (!title) return { name: '', set: '', year: '' };
     
     // Try multiple sources for year
@@ -94,7 +111,7 @@ const BaseballFieldCard = ({ card }) => {
     return { name: name || 'Unknown', set: set || 'Unknown', year: year || 'N/A' };
   };
 
-  const cardInfo = extractCardInfo(card.title || card.summaryTitle || '', card);
+  const cardInfo = extractCardInfo(card.title || card.summaryTitle || '', card, gemrateData);
 
   // Format price
   const formatPrice = (price) => {
