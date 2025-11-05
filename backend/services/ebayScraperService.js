@@ -738,7 +738,13 @@ class EbayScraperService {
                     '.s-item__details .s-item__shipping',
                     '.s-item__shipping .s-item__shippingCost',
                     '.s-item__shippingCost',
-                    '.s-item__detail--secondary'
+                    '.s-item__detail--secondary',
+                    '.s-item__detail--primary',
+                    '.s-item__price',
+                    '.s-item__time',
+                    '.s-item__freeXDays',
+                    '[class*="shipping"]',
+                    '[class*="delivery"]'
                 ];
                 
                 for (const selector of shippingSelectors) {
@@ -783,6 +789,34 @@ class EbayScraperService {
                         }
                         
                         if (shippingCost) break;
+                    }
+                }
+                
+                // Fallback: If shipping not found in specific selectors, search entire item text
+                if (!shippingCost) {
+                    const fullItemText = $item.text();
+                    const shippingPatterns = [
+                        // Match "+$7.80 delivery", "+$4.99 shipping", etc.
+                        /\+?\s*(\$|£|€)\s*([\d,]+\.?\d*)\s*(?:delivery|shipping|postage|p\s*&\s*p)/i,
+                        // Match "Free delivery", "Free shipping", etc.
+                        /free\s+(?:delivery|shipping|postage)/i,
+                        // Match "$7.80 delivery", "$4.99 shipping" (without +)
+                        /(\$|£|€)\s*([\d,]+\.?\d*)\s*(?:delivery|shipping|postage)/i,
+                    ];
+                    
+                    for (const pattern of shippingPatterns) {
+                        const match = fullItemText.match(pattern);
+                        if (match) {
+                            if (match[0].toLowerCase().includes('free')) {
+                                shippingCost = 'Free';
+                            } else if (match[2] && match[1]) {
+                                // Extract currency and value
+                                const currency = match[1] || '$';
+                                const value = match[2].replace(/,/g, '');
+                                shippingCost = `${currency}${value}`;
+                            }
+                            if (shippingCost) break;
+                        }
                     }
                 }
                 
