@@ -856,7 +856,25 @@ class EbayScraperService {
                 let saleType = null;
                 let numBids = null;
                 
-                // Look for sale type indicators - check multiple areas
+                // Primary: User-identified exact location where eBay places bid count
+                const primaryBidSelector = '.s-card_attribute-row .su-styled-text';
+                const bidEl = $item.find(primaryBidSelector);
+                if (bidEl.length > 0) {
+                    // Check all matching elements for bid text
+                    bidEl.each((index, element) => {
+                        const bidText = $(element).text().trim();
+                        // Match patterns like "19 bids", "1 bid"
+                        const bidMatch = bidText.match(/^(\d+)\s*bids?$/i);
+                        if (bidMatch) {
+                            saleType = 'Auction';
+                            numBids = parseInt(bidMatch[1]);
+                            console.log(`🎯 Found auction with ${numBids} bids in primary selector`);
+                            return false; // Break out of each loop
+                        }
+                    });
+                }
+                
+                // Secondary: Look for bid information in other areas
                 const saleTypeSelectors = [
                     '.s-item__detail--primary',
                     '.s-item__details',
@@ -867,19 +885,21 @@ class EbayScraperService {
                     '.s-item__shipping'
                 ];
                 
-                // First, look for bid information (auctions)
-                for (const selector of saleTypeSelectors) {
-                    const saleEl = $item.find(selector);
-                    if (saleEl.length > 0) {
-                        const saleText = saleEl.text().trim();
-                        
-                        // Check for auction indicators and extract bid count
-                        const bidMatch = saleText.match(/(\d+)\s*bids?/i);
-                        if (bidMatch) {
-                            saleType = 'Auction';
-                            numBids = parseInt(bidMatch[1]);
-                            console.log(`🎯 Found auction with ${numBids} bids`);
-                            break;
+                if (!saleType || numBids == null) {
+                    for (const selector of saleTypeSelectors) {
+                        const saleEl = $item.find(selector);
+                        if (saleEl.length > 0) {
+                            const saleText = saleEl.text().trim();
+                            
+                            // Check for auction indicators and extract bid count
+                            // Use word boundaries to avoid matching numbers from prices
+                            const bidMatch = saleText.match(/\b(\d+)\s*bids?\b/i);
+                            if (bidMatch) {
+                                saleType = 'Auction';
+                                numBids = parseInt(bidMatch[1]);
+                                console.log(`🎯 Found auction with ${numBids} bids`);
+                                break;
+                            }
                         }
                     }
                 }
@@ -912,9 +932,9 @@ class EbayScraperService {
                     const bidElements = $item.find('[class*="bid"], [class*="auction"]');
                     if (bidElements.length > 0) {
                         saleType = 'Auction';
-                        // Try to extract bid count from bid elements
+                        // Try to extract bid count from bid elements (use word boundaries)
                         const bidText = bidElements.text();
-                        const bidMatch = bidText.match(/(\d+)\s*bids?/i);
+                        const bidMatch = bidText.match(/\b(\d+)\s*bids?\b/i);
                         if (bidMatch) {
                             numBids = parseInt(bidMatch[1]);
                         }
@@ -924,10 +944,11 @@ class EbayScraperService {
                     }
                 }
 
-                // Ultimate fallback: scan the entire item text for bids
+                // Ultimate fallback: scan the entire item text for bids (use word boundaries to avoid matching prices)
                 if ((!saleType || saleType === 'Buy It Now') && (numBids == null || isNaN(numBids))) {
                     const fullText = $item.text();
-                    const bidMatch = fullText && fullText.match(/(\d+)\s*bids?/i);
+                    // Use word boundaries to avoid matching "$50" or "50" from prices
+                    const bidMatch = fullText && fullText.match(/\b(\d+)\s*bids?\b/i);
                     if (bidMatch) {
                         saleType = 'Auction';
                         numBids = parseInt(bidMatch[1]);
