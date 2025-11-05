@@ -917,6 +917,45 @@ class EbayScraperService {
                     }
                 }
                 
+                // CRITICAL: Check full item text for bids BEFORE checking for "Buy It Now"
+                // This ensures we catch auctions even if selectors miss them
+                if (!saleType || numBids == null || isNaN(numBids)) {
+                    const fullText = $item.text();
+                    if (fullText) {
+                        // Match pattern: number followed by "bid" or "bids"
+                        let bidMatches = [];
+                        try {
+                            // Try matchAll first (ES2020+)
+                            const matchIterator = fullText.matchAll(/\b(\d+)\s*bids?\b/gi);
+                            bidMatches = Array.from(matchIterator);
+                        } catch (e) {
+                            // Fallback for older JS: use exec in a loop
+                            const regex = /\b(\d+)\s*bids?\b/gi;
+                            let match;
+                            while ((match = regex.exec(fullText)) !== null) {
+                                bidMatches.push(match);
+                            }
+                        }
+                        
+                        if (bidMatches && bidMatches.length > 0) {
+                            // Get the best match (not part of a price pattern)
+                            for (const match of bidMatches) {
+                                const num = parseInt(match[1], 10);
+                                // Validate: reasonable bid count and not part of price
+                                const beforeMatch = fullText.substring(Math.max(0, match.index - 15), match.index);
+                                const isPricePattern = /[\$£€]\s*\d+|\d+\.\d{2}\s*$/.test(beforeMatch);
+                                if (!isPricePattern && num >= 1 && num <= 10000) {
+                                    // This looks like a good bid count match
+                                    saleType = 'Auction';
+                                    numBids = num;
+                                    console.log(`🎯 Found auction with ${numBids} bids in full-text search (text: "${match[0]}")`);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 // If no auction found, look for other sale types
                 if (!saleType) {
                     for (const selector of saleTypeSelectors) {
@@ -957,33 +996,6 @@ class EbayScraperService {
                     }
                 }
 
-                // Ultimate fallback: scan the entire item text for bids (use word boundaries to avoid matching prices)
-                // Only run if we haven't found a sale type yet OR if we found "Buy It Now" but no bids (might be wrong)
-                if (!saleType || (saleType === 'Buy It Now' && (numBids == null || isNaN(numBids)))) {
-                    const fullText = $item.text();
-                    // Use word boundaries and ensure we're not matching prices (like "$50" or "50.00")
-                    // Match pattern: number followed by "bid" or "bids", but not part of a price
-                    const bidMatches = fullText && fullText.matchAll(/\b(\d+)\s*bids?\b/gi);
-                    if (bidMatches) {
-                        // Get the last match (most likely to be the actual bid count, not a price)
-                        let lastMatch = null;
-                        for (const match of bidMatches) {
-                            const num = parseInt(match[1], 10);
-                            // Validate: bid counts are typically reasonable (1-10000 range)
-                            // and shouldn't be part of a price pattern
-                            const beforeMatch = fullText.substring(Math.max(0, match.index - 10), match.index);
-                            const isPricePattern = /[\$£€]\s*\d+|\d+\.\d{2}\s*$/.test(beforeMatch);
-                            if (!isPricePattern && num >= 1 && num <= 10000) {
-                                lastMatch = match;
-                            }
-                        }
-                        if (lastMatch) {
-                            saleType = 'Auction';
-                            numBids = parseInt(lastMatch[1], 10);
-                            console.log(`🎯 Found auction with ${numBids} bids in full-text fallback`);
-                        }
-                    }
-                }
                 
                 // Final default: only set "Buy It Now" if we've exhausted all detection methods
                 if (!saleType) {
