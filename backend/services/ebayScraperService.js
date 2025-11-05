@@ -949,16 +949,17 @@ class EbayScraperService {
                         const bidText = bidElements.text();
                         const bidMatch = bidText.match(/\b(\d+)\s*bids?\b/i);
                         if (bidMatch) {
-                            numBids = parseInt(bidMatch[1]);
+                            const bidNum = parseInt(bidMatch[1], 10);
+                            if (bidNum >= 1 && bidNum <= 10000) {
+                                numBids = bidNum;
+                            }
                         }
-                    } else {
-                        // Default to Buy It Now for sold items
-                        saleType = 'Buy It Now';
                     }
                 }
 
                 // Ultimate fallback: scan the entire item text for bids (use word boundaries to avoid matching prices)
-                if ((!saleType || saleType === 'Buy It Now') && (numBids == null || isNaN(numBids))) {
+                // Only run if we haven't found a sale type yet OR if we found "Buy It Now" but no bids (might be wrong)
+                if (!saleType || (saleType === 'Buy It Now' && (numBids == null || isNaN(numBids)))) {
                     const fullText = $item.text();
                     // Use word boundaries and ensure we're not matching prices (like "$50" or "50.00")
                     // Match pattern: number followed by "bid" or "bids", but not part of a price
@@ -968,7 +969,7 @@ class EbayScraperService {
                         let lastMatch = null;
                         for (const match of bidMatches) {
                             const num = parseInt(match[1], 10);
-                            // Validate: bid counts are typically reasonable (1-1000 range)
+                            // Validate: bid counts are typically reasonable (1-10000 range)
                             // and shouldn't be part of a price pattern
                             const beforeMatch = fullText.substring(Math.max(0, match.index - 10), match.index);
                             const isPricePattern = /[\$£€]\s*\d+|\d+\.\d{2}\s*$/.test(beforeMatch);
@@ -979,8 +980,14 @@ class EbayScraperService {
                         if (lastMatch) {
                             saleType = 'Auction';
                             numBids = parseInt(lastMatch[1], 10);
+                            console.log(`🎯 Found auction with ${numBids} bids in full-text fallback`);
                         }
                     }
+                }
+                
+                // Final default: only set "Buy It Now" if we've exhausted all detection methods
+                if (!saleType) {
+                    saleType = 'Buy It Now';
                 }
                 
                 for (const selector of soldDateSelectors) {
