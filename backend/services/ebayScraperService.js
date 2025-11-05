@@ -887,13 +887,19 @@ class EbayScraperService {
                                 if (bidMatch) {
                                     const bidNum = parseInt(bidMatch[1], 10);
                                     // Validate: reasonable bid count (1-10000)
-                                    // Also check it's not part of a price pattern (like "18.50" where "50" might match)
-                                    const beforeMatch = text.substring(Math.max(0, bidMatch.index - 10), bidMatch.index);
-                                    const isPricePattern = /\d+\.\d*\s*$|[\$£€]\s*\d+\.?\d*\s*$/.test(beforeMatch.trim());
-                                    
-                                    if (bidNum >= 1 && bidNum <= 10000 && !isPricePattern) {
-                                        foundBidElement = { text, bidNum };
-                                        return false; // Break out of each loop
+                                    if (bidNum >= 1 && bidNum <= 10000) {
+                                        // For small numbers (1-99), check if they're part of a decimal (like "18.50")
+                                        let isPricePattern = false;
+                                        if (bidNum < 100) {
+                                            const beforeMatch = text.substring(Math.max(0, bidMatch.index - 10), bidMatch.index);
+                                            const decimalPattern = new RegExp(`\\d+\\.${bidNum}\\b`);
+                                            isPricePattern = decimalPattern.test(beforeMatch);
+                                        }
+                                        
+                                        if (!isPricePattern) {
+                                            foundBidElement = { text, bidNum };
+                                            return false; // Break out of each loop
+                                        }
                                     }
                                 }
                             }
@@ -965,35 +971,26 @@ class EbayScraperService {
                                 const num = parseInt(match[1], 10);
                                 // Basic validation: reasonable bid count (1-1000 is typical, up to 10000 for extreme cases)
                                 if (num >= 1 && num <= 10000) {
-                                    const beforeMatch = fullText.substring(Math.max(0, match.index - 30), match.index);
-                                    const afterMatch = fullText.substring(match.index + match[0].length, match.index + match[0].length + 15);
+                                    const beforeMatch = fullText.substring(Math.max(0, match.index - 20), match.index);
                                     
-                                    // Skip if it looks like part of a price pattern
-                                    const hasCurrencyBefore = /[\$£€]\s*\d+\.?\d*\s*$/.test(beforeMatch.trim());
-                                    const hasDecimalBefore = /\d+\.\d+\s*$/.test(beforeMatch.trim());
-                                    const hasNumberImmediatelyAfter = /^\s*\d+/.test(afterMatch);
+                                    // CRITICAL: Only skip if it's CLEARLY part of a decimal price pattern
+                                    // For small numbers (1-99), check if they're the decimal part of a price (like "18.50")
+                                    let shouldSkip = false;
+                                    if (num < 100) {
+                                        // Check if this number appears right after a decimal point (like "18.50")
+                                        const decimalPattern = new RegExp(`\\d+\\.${num}\\b`);
+                                        if (decimalPattern.test(beforeMatch)) {
+                                            shouldSkip = true;
+                                        }
+                                    }
                                     
-                                    // CRITICAL: Check if this number is part of a decimal (like "18.50" where "50" would match)
-                                    // Look for patterns like "X.50" or "$X.50" before this match
-                                    const decimalPattern = new RegExp(`\\d+\\.${num}\\b`);
-                                    const hasDecimalPattern = decimalPattern.test(beforeMatch);
+                                    // Skip if it's part of a long item number (10+ digits - eBay item numbers)
+                                    const longNumberBefore = /\d{10,}\s*$/.test(beforeMatch.trim());
                                     
-                                    // Also check if this is part of a large item number (like "136672223508" where "50" appears)
-                                    // Skip if it's immediately after a long sequence of digits
-                                    const longNumberBefore = /\d{8,}\s*$/.test(beforeMatch.trim());
-                                    
-                                    // Filter out numbers that are commonly part of prices (like 50, 19, 14) if they're near decimals
-                                    // Small numbers (1-99) that appear right after a decimal are likely price cents
-                                    const isSmallPriceNumber = num < 100 && /\d+\.\s*$/.test(beforeMatch.trim());
-                                    
-                                    // CRITICAL: Ensure the matched text is clean - should be just "N bids" or "N bid"
-                                    // Only skip if there's a decimal number or price pattern immediately before (like "18.50" or "$50")
-                                    const hasDecimalOrPriceBefore = /\d+\.\d+\s*$|[\$£€]\s*\d+\s*$/.test(beforeMatch.trim());
-                                    
-                                    // Prefer matches that are clearly standalone (not part of prices or item numbers)
-                                    // Also prefer smaller numbers (1-1000 range) as they're more likely to be bid counts
-                                    if (!hasCurrencyBefore && !hasDecimalBefore && !hasDecimalPattern && !hasNumberImmediatelyAfter && !longNumberBefore && !isSmallPriceNumber && !hasDecimalOrPriceBefore) {
-                                        const score = num <= 1000 ? 2 : 1; // Prefer smaller numbers
+                                    // Accept the match unless it's clearly a price pattern
+                                    if (!shouldSkip && !longNumberBefore) {
+                                        // Prefer smaller numbers (1-1000) as they're more likely to be bid counts
+                                        const score = num <= 1000 ? 2 : 1;
                                         validMatches.push({ match, num, score });
                                     }
                                 }
