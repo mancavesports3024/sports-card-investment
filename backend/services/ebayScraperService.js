@@ -879,20 +879,27 @@ class EbayScraperService {
                     if (bidElements.length > 0) {
                         bidElements.each((index, element) => {
                             let text = $(element).text().trim();
+                            console.log(`🔍 Checking element ${index} with selector "${selector}": "${text}"`);
                             
                             // CRITICAL: If there's a $ sign, split at it and only use the part BEFORE the $
                             // This prevents "19 bids== $0" from interfering with extraction
                             if (text.includes('$')) {
                                 const dollarIndex = text.indexOf('$');
                                 text = text.substring(0, dollarIndex).trim();
+                                console.log(`   After splitting at $: "${text}"`);
                             }
+                            
+                            // Clean up any extra characters like "==" that might interfere
+                            text = text.replace(/[=]+/g, ' ').trim();
                             
                             const lowerText = text.toLowerCase();
                             // Only consider elements that contain "bid" or "bids"
                             if (lowerText.includes('bid') || lowerText.includes('bids')) {
+                                console.log(`   Contains bid text, attempting match...`);
                                 // Match patterns like "19 bids", "1 bid" - use word boundaries to avoid matching prices
                                 const bidMatch = text.match(/\b(\d+)\s*bids?\b/i);
                                 if (bidMatch) {
+                                    console.log(`   Matched bid pattern: "${bidMatch[0]}"`);
                                     const bidNum = parseInt(bidMatch[1], 10);
                                     // Validate: reasonable bid count (1-10000)
                                     if (bidNum >= 1 && bidNum <= 10000) {
@@ -906,9 +913,14 @@ class EbayScraperService {
                                         
                                         if (!isPricePattern) {
                                             foundBidElement = { text, bidNum };
+                                            console.log(`   ✅ Found bid element with ${bidNum} bids`);
                                             return false; // Break out of each loop
+                                        } else {
+                                            console.log(`   ❌ Rejected as price pattern`);
                                         }
                                     }
+                                } else {
+                                    console.log(`   ❌ No bid match found in text`);
                                 }
                             }
                         });
@@ -960,9 +972,12 @@ class EbayScraperService {
                 
                 // CRITICAL: Check full item text for bids BEFORE checking for "Buy It Now"
                 // This ensures we catch auctions even if selectors miss them
-                if (!saleType || numBids == null || isNaN(numBids)) {
+                // Always run if we don't have a bid count, even if saleType is set
+                if (numBids == null || isNaN(numBids)) {
+                    console.log(`🔍 Running full-text search for bids. Current saleType: ${saleType}, numBids: ${numBids}`);
                     const fullText = $item.text();
                     if (fullText) {
+                        console.log(`   Full text length: ${fullText.length}, preview: "${fullText.substring(0, 200)}..."`);
                         // Match pattern: number followed by "bid" or "bids" with word boundaries
                         let bidMatches = [];
                         try {
@@ -979,19 +994,22 @@ class EbayScraperService {
                         }
                         
                         if (bidMatches && bidMatches.length > 0) {
+                            console.log(`   Found ${bidMatches.length} potential bid matches`);
                             // Filter and rank matches: prefer standalone "N bids" patterns, avoid price patterns
                             const validMatches = [];
                             for (const match of bidMatches) {
                                 const num = parseInt(match[1], 10);
+                                console.log(`   Checking match: "${match[0]}" (number: ${num})`);
                                 // Basic validation: reasonable bid count (1-1000 is typical, up to 10000 for extreme cases)
                                 if (num >= 1 && num <= 10000) {
                                     const beforeMatch = fullText.substring(Math.max(0, match.index - 20), match.index);
-                                    const afterMatch = fullText.substring(match.index + match[0].length, match.index + match[0].length + 20);
                                     
-                                    // CRITICAL: Skip if there's a $ sign nearby - bids don't have $ signs
-                                    const hasDollarSign = beforeMatch.includes('$') || afterMatch.includes('$');
-                                    if (hasDollarSign) {
-                                        continue; // Skip this match entirely
+                                    // CRITICAL: Only skip if $ sign appears BEFORE the bid count (indicating it's part of a price)
+                                    // Don't skip if $ appears AFTER (it could be unrelated shipping/other info)
+                                    const hasDollarBefore = beforeMatch.includes('$');
+                                    if (hasDollarBefore) {
+                                        console.log(`     ❌ Skipped - $ sign before match`);
+                                        continue; // Skip this match - $ before means it's likely part of a price
                                     }
                                     
                                     // CRITICAL: Only skip if it's CLEARLY part of a decimal price pattern
@@ -1012,7 +1030,11 @@ class EbayScraperService {
                                     if (!shouldSkip && !longNumberBefore) {
                                         // Prefer smaller numbers (1-1000) as they're more likely to be bid counts
                                         const score = num <= 1000 ? 2 : 1;
+                                        console.log(`     ✅ Accepted match: ${num} bids (score: ${score})`);
                                         validMatches.push({ match, num, score });
+                                    } else {
+                                        if (shouldSkip) console.log(`     ❌ Skipped - decimal pattern`);
+                                        if (longNumberBefore) console.log(`     ❌ Skipped - long number before`);
                                     }
                                 }
                             }
@@ -1024,9 +1046,15 @@ class EbayScraperService {
                                 saleType = 'Auction';
                                 numBids = bestMatch.num;
                                 console.log(`🎯 Found auction with ${numBids} bids in full-text search (text: "${bestMatch.match[0]}", index: ${bestMatch.match.index})`);
+                            } else {
+                                console.log(`   ❌ No valid bid matches found after filtering`);
                             }
+                        } else {
+                            console.log(`   ❌ No bid matches found in full text`);
                         }
                     }
+                } else {
+                    console.log(`⚠️ Full-text search skipped - saleType: ${saleType}, numBids: ${numBids}`);
                 }
                 
                 // If no auction found, look for other sale types
@@ -1073,7 +1101,10 @@ class EbayScraperService {
                 // Final default: only set "Buy It Now" if we've exhausted all detection methods
                 if (!saleType) {
                     saleType = 'Buy It Now';
+                    console.log(`⚠️ Defaulting to "Buy It Now" - no sale type detected`);
                 }
+                
+                console.log(`📊 Final result for item: saleType="${saleType}", numBids=${numBids}`);
                 
                 for (const selector of soldDateSelectors) {
                     const soldDateEl = $item.find(selector).first();
