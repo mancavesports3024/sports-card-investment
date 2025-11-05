@@ -749,11 +749,13 @@ class EbayScraperService {
                         // Look for various shipping cost patterns
                         const patterns = [
                             // Standard patterns: "$4.99 shipping", "Free shipping"
-                            /(?:shipping|Shipping)[\s:]*(\$?[\d,]+\.?\d*|Free|free)/i,
-                            // Direct cost patterns: "$4.99", "Free"
-                            /(\$[\d,]+\.?\d*|Free|free)/i,
-                            // "Free shipping" variations
-                            /(Free\s+shipping|free\s+shipping)/i,
+                            /(?:shipping|delivery|postage|p\s*&\s*p)[\s:+]*(\$|£|€)?\s*([\d,]+\.?\d*|Free|free)/i,
+                            // Cost followed by descriptor: "+$4.99 delivery", "+$4.99 postage"
+                            /\+?\s*(\$|£|€)\s*([\d,]+\.?\d*)\s*(?:shipping|delivery|postage)/i,
+                            // Descriptor with free: "Free delivery", "Free postage"
+                            /(Free\s+(?:shipping|delivery|postage)|free\s+(?:shipping|delivery|postage))/i,
+                            // Direct cost patterns: "$4.99", "£2.99", "Free"
+                            /(\$|£|€)\s*([\d,]+\.?\d*)/i,
                             // "Shipping included" or similar
                             /(shipping\s+included|included\s+shipping)/i
                         ];
@@ -761,17 +763,20 @@ class EbayScraperService {
                         for (const pattern of patterns) {
                             const shippingMatch = shippingText.match(pattern);
                             if (shippingMatch) {
-                                let cost = shippingMatch[1] || shippingMatch[0];
-                                cost = cost.toLowerCase().trim();
-                                
-                                if (cost === 'free' || cost === '0' || cost.includes('free') || cost.includes('included')) {
+                                let raw = shippingMatch[0];
+                                let currency = shippingMatch[1] && /[$£€]/.test(shippingMatch[1]) ? shippingMatch[1] : (shippingMatch[2] && /[$£€]/.test(shippingMatch[2]) ? shippingMatch[2] : '$');
+                                let valuePart = shippingMatch[2] && !/[$£€]/.test(shippingMatch[2]) ? shippingMatch[2] : (shippingMatch[1] && !/[$£€]/.test(shippingMatch[1]) ? shippingMatch[1] : null);
+                                const lower = raw.toLowerCase().trim();
+                                if (lower.includes('free') || lower === 'free' || lower.includes('included')) {
                                     shippingCost = 'Free';
-                                } else if (cost.includes('$')) {
-                                    shippingCost = cost;
-                                } else if (/^\d+\.?\d*$/.test(cost)) {
-                                    shippingCost = `$${cost}`;
+                                } else if (valuePart) {
+                                    shippingCost = `${currency}${valuePart}`;
                                 } else {
-                                    shippingCost = cost;
+                                    // Fallback: extract any number
+                                    const num = raw.match(/([\d,]+\.?\d*)/);
+                                    if (num) {
+                                        shippingCost = `${currency}${num[1]}`;
+                                    }
                                 }
                                 break;
                             }
@@ -803,7 +808,7 @@ class EbayScraperService {
                         const saleText = saleEl.text().trim();
                         
                         // Check for auction indicators and extract bid count
-                        const bidMatch = saleText.match(/(\d+)\s*bid/i);
+                        const bidMatch = saleText.match(/(\d+)\s*bids?/i);
                         if (bidMatch) {
                             saleType = 'Auction';
                             numBids = parseInt(bidMatch[1]);
@@ -843,7 +848,7 @@ class EbayScraperService {
                         saleType = 'Auction';
                         // Try to extract bid count from bid elements
                         const bidText = bidElements.text();
-                        const bidMatch = bidText.match(/(\d+)\s*bid/i);
+                        const bidMatch = bidText.match(/(\d+)\s*bids?/i);
                         if (bidMatch) {
                             numBids = parseInt(bidMatch[1]);
                         }
