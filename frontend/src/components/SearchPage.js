@@ -745,29 +745,86 @@ const SearchPage = () => {
                     )}
                     <div className="custom-card-price">{formatPrice(card.price)}</div>
                   </div>
-                  {/* Sale type (auction/fixed/etc.) */}
-                  {card.saleType && (
-                    <div className="custom-card-sale-type">{card.saleType}</div>
-                  )}
-                  {/* Bid count below sale type, above sold date/time */}
-                  {card.numBids && (
-                    <div className="card-bids" style={{ fontSize: '0.85em', color: '#856404', backgroundColor: '#fff3cd', padding: '1px 4px', borderRadius: 3, border: '1px solid #ffeaa7', alignSelf: 'flex-start' }}>Bids: {card.numBids}</div>
-                  )}
+                  {/* Sale type (auction/fixed/etc.) - normalize display */}
+                  {(() => {
+                    // Determine if this is an auction
+                    const isAuction = card.listingType === 'AUCTION' || 
+                                     card.saleType === 'auction' || 
+                                     card.saleType === 'Auction' ||
+                                     (card.numBids && card.numBids > 0) ||
+                                     (card.auction && card.auction.bidCount > 0);
+                    
+                    // Get bid count from multiple possible sources
+                    const bidCount = card.numBids || 
+                                   card.auction?.bidCount || 
+                                   card.bidCount || 
+                                   null;
+                    
+                    // Show sale type badge
+                    if (isAuction) {
+                      return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                          <div className="custom-card-sale-type">Auction</div>
+                          {bidCount !== null && bidCount !== undefined && (
+                            <div className="card-bids" style={{ fontSize: '0.85em', color: '#856404', backgroundColor: '#fff3cd', padding: '1px 4px', borderRadius: 3, border: '1px solid #ffeaa7', alignSelf: 'flex-start' }}>
+                              {bidCount} {bidCount === 1 ? 'bid' : 'bids'}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    } else if (card.saleType) {
+                      // For non-auction items, show the sale type (Buy It Now, Best Offer, etc.)
+                      // Normalize common variations
+                      const normalizedType = card.saleType === 'fixed_price' ? 'Buy It Now' : card.saleType;
+                      return (
+                        <div className="custom-card-sale-type">{normalizedType}</div>
+                      );
+                    }
+                    return null;
+                  })()}
                   <div className="custom-card-date">Sold: {formatDate(card.soldDate)}</div>
-                  {card.shippingCost && (
-                    <div style={{ 
-                      fontSize: '0.9em', 
-                      color: '#2c5530', 
-                      backgroundColor: '#d4edda', 
-                      padding: '2px 6px', 
-                      borderRadius: 4, 
-                      border: '1px solid #c3e6cb',
-                      alignSelf: 'flex-start',
-                      fontWeight: 500
-                    }}>
-                      📦 {card.shippingCost}
-                    </div>
-                  )}
+                  {/* Shipping cost - always show if available, format properly */}
+                  {(() => {
+                    if (!card.shippingCost) return null;
+                    
+                    // Format shipping cost - handle both number and string formats
+                    let shippingDisplay = '';
+                    if (typeof card.shippingCost === 'number') {
+                      shippingDisplay = card.shippingCost === 0 ? 'Free' : `$${card.shippingCost.toFixed(2)}`;
+                    } else if (typeof card.shippingCost === 'string') {
+                      // Check if it already has $ or is "Free"
+                      if (card.shippingCost.toLowerCase().includes('free')) {
+                        shippingDisplay = 'Free';
+                      } else if (card.shippingCost.includes('$')) {
+                        shippingDisplay = card.shippingCost;
+                      } else {
+                        // Try to parse as number
+                        const numValue = parseFloat(card.shippingCost);
+                        if (!isNaN(numValue)) {
+                          shippingDisplay = numValue === 0 ? 'Free' : `$${numValue.toFixed(2)}`;
+                        } else {
+                          shippingDisplay = card.shippingCost;
+                        }
+                      }
+                    } else {
+                      shippingDisplay = String(card.shippingCost);
+                    }
+                    
+                    return (
+                      <div style={{ 
+                        fontSize: '0.9em', 
+                        color: '#2c5530', 
+                        backgroundColor: '#d4edda', 
+                        padding: '2px 6px', 
+                        borderRadius: 4, 
+                        border: '1px solid #c3e6cb',
+                        alignSelf: 'flex-start',
+                        fontWeight: 500
+                      }}>
+                        📦 {shippingDisplay}
+                      </div>
+                    );
+                  })()}
                   {card.seller && card.seller !== '130point' && (
                     <div className="card-seller" style={{ fontSize: '0.85em', color: '#666' }}>Via: {card.seller}</div>
                   )}
