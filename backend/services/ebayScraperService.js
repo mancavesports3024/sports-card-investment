@@ -732,32 +732,41 @@ class EbayScraperService {
                 
                 // Extract shipping cost
                 // Primary: User-identified exact location where eBay places shipping info
+                // Same selector as bids but filter by content (delivery/shipping/postage)
                 let shippingCost = null;
-                const primaryShippingSelector = '.s-card_attribute-row .su-styled-text';
-                const shippingEl = $item.find(primaryShippingSelector).first();
+                const primaryShippingSelector = '.s-card_attribute-row .su-styled-text.secondary.large';
+                const shippingElements = $item.find(primaryShippingSelector);
                 
-                if (shippingEl.length > 0) {
-                    const shippingText = shippingEl.text().trim();
-                    // Match patterns like "+$7.80 delivery", "$4.99 shipping", "Free delivery"
-                    const shippingPatterns = [
-                        /\+?\s*(\$|£|€)\s*([\d,]+\.?\d*)\s*(?:delivery|shipping|postage)/i,
-                        /free\s+(?:delivery|shipping|postage)/i,
-                    ];
-                    
-                    for (const pattern of shippingPatterns) {
-                        const match = shippingText.match(pattern);
-                        if (match) {
-                            if (match[0].toLowerCase().includes('free')) {
-                                shippingCost = 'Free';
-                            } else if (match[2] && match[1]) {
-                                const currency = match[1] || '$';
-                                const value = match[2].replace(/,/g, '');
-                                shippingCost = `${currency}${value}`;
+                // Find the element that contains shipping information
+                shippingElements.each((index, element) => {
+                    const shippingText = $(element).text().trim();
+                    const lowerText = shippingText.toLowerCase();
+                    // Only consider elements that contain shipping-related terms (not bids)
+                    if ((lowerText.includes('delivery') || lowerText.includes('shipping') || lowerText.includes('postage')) && 
+                        !lowerText.includes('bid') && !lowerText.includes('bids')) {
+                        // Match patterns like "+$7.80 delivery", "$4.99 shipping", "Free delivery"
+                        const shippingPatterns = [
+                            /\+?\s*(\$|£|€)\s*([\d,]+\.?\d*)\s*(?:delivery|shipping|postage)/i,
+                            /free\s+(?:delivery|shipping|postage)/i,
+                        ];
+                        
+                        for (const pattern of shippingPatterns) {
+                            const match = shippingText.match(pattern);
+                            if (match) {
+                                if (match[0].toLowerCase().includes('free')) {
+                                    shippingCost = 'Free';
+                                } else if (match[2] && match[1]) {
+                                    const currency = match[1] || '$';
+                                    const value = match[2].replace(/,/g, '');
+                                    shippingCost = `${currency}${value}`;
+                                }
+                                if (shippingCost) {
+                                    return false; // Break out of each loop
+                                }
                             }
-                            if (shippingCost) break;
                         }
                     }
-                }
+                });
                 
                 // Fallback: Only check other selectors if primary didn't find it
                 if (!shippingCost) {
@@ -857,13 +866,13 @@ class EbayScraperService {
                 let numBids = null;
                 
                 // Primary: User-identified exact location where eBay places bid count
-                // Only check elements that actually contain "bid" or "bids" to avoid matching shipping/prices
-                const primaryBidSelector = '.s-card_attribute-row .su-styled-text';
-                const allElements = $item.find(primaryBidSelector);
+                // Exact selector: .s-card_attribute-row span.su-styled-text.secondary.large containing "bids"
+                const primaryBidSelector = '.s-card_attribute-row .su-styled-text.secondary.large';
+                const bidElements = $item.find(primaryBidSelector);
                 let foundBidElement = null;
                 
                 // Find the element that contains bid information
-                allElements.each((index, element) => {
+                bidElements.each((index, element) => {
                     const text = $(element).text().trim();
                     const lowerText = text.toLowerCase();
                     // Only consider elements that contain "bid" or "bids"
