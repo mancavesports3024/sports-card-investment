@@ -882,12 +882,16 @@ class EbayScraperService {
                             const lowerText = text.toLowerCase();
                             // Only consider elements that contain "bid" or "bids"
                             if (lowerText.includes('bid') || lowerText.includes('bids')) {
-                                // Match patterns like "19 bids", "1 bid" - allow whitespace but extract just the number
-                                const bidMatch = text.match(/(\d+)\s*bids?/i);
+                                // Match patterns like "19 bids", "1 bid" - use word boundaries to avoid matching prices
+                                const bidMatch = text.match(/\b(\d+)\s*bids?\b/i);
                                 if (bidMatch) {
                                     const bidNum = parseInt(bidMatch[1], 10);
                                     // Validate: reasonable bid count (1-10000)
-                                    if (bidNum >= 1 && bidNum <= 10000) {
+                                    // Also check it's not part of a price pattern (like "18.50" where "50" might match)
+                                    const beforeMatch = text.substring(Math.max(0, bidMatch.index - 10), bidMatch.index);
+                                    const isPricePattern = /\d+\.\d*\s*$|[\$£€]\s*\d+\.?\d*\s*$/.test(beforeMatch.trim());
+                                    
+                                    if (bidNum >= 1 && bidNum <= 10000 && !isPricePattern) {
                                         foundBidElement = { text, bidNum };
                                         return false; // Break out of each loop
                                     }
@@ -955,36 +959,53 @@ class EbayScraperService {
                         }
                         
                         if (bidMatches && bidMatches.length > 0) {
-                            // Take the FIRST reasonable match (most likely the actual bid count)
+                            // Filter and rank matches: prefer standalone "N bids" patterns, avoid price patterns
+                            const validMatches = [];
                             for (const match of bidMatches) {
                                 const num = parseInt(match[1], 10);
-                                // Basic validation: reasonable bid count (1-10000)
+                                // Basic validation: reasonable bid count (1-1000 is typical, up to 10000 for extreme cases)
                                 if (num >= 1 && num <= 10000) {
-                                    // Check if it's clearly part of a price (like "$50" before "19 bids")
-                                    const beforeMatch = fullText.substring(Math.max(0, match.index - 20), match.index);
-                                    const afterMatch = fullText.substring(match.index + match[0].length, match.index + match[0].length + 10);
-                                    // Skip if it looks like a price pattern (currency symbol immediately before)
-                                    const isPricePattern = /[\$£€]\s*\d+$/.test(beforeMatch.trim());
-                                    // Skip if another number immediately follows (like "50 19 bids")
-                                    const hasNumberAfter = /^\s*\d+/.test(afterMatch);
+                                    const beforeMatch = fullText.substring(Math.max(0, match.index - 30), match.index);
+                                    const afterMatch = fullText.substring(match.index + match[0].length, match.index + match[0].length + 15);
                                     
-                                    if (!isPricePattern && !hasNumberAfter) {
-                                        saleType = 'Auction';
-                                        numBids = num;
-                                        console.log(`🎯 Found auction with ${numBids} bids in full-text search (text: "${match[0]}", index: ${match.index})`);
-                                        break;
+                                    // Skip if it looks like part of a price pattern
+                                    const hasCurrencyBefore = /[\$£€]\s*\d+\.?\d*\s*$/.test(beforeMatch.trim());
+                                    const hasDecimalBefore = /\d+\.\d+\s*$/.test(beforeMatch.trim());
+                                    const hasNumberImmediatelyAfter = /^\s*\d+/.test(afterMatch);
+                                    
+                                    // CRITICAL: Check if this number is part of a decimal (like "18.50" where "50" would match)
+                                    // Look for patterns like "X.50" or "$X.50" before this match
+                                    const decimalPattern = new RegExp(`\\d+\\.${num}\\b`);
+                                    const hasDecimalPattern = decimalPattern.test(beforeMatch);
+                                    
+                                    // Also check if this is part of a large item number (like "136672223508" where "50" appears)
+                                    // Skip if it's immediately after a long sequence of digits
+                                    const longNumberBefore = /\d{8,}\s*$/.test(beforeMatch.trim());
+                                    
+                                    // Filter out numbers that are commonly part of prices (like 50, 19, 14) if they're near decimals
+                                    // Small numbers (1-99) that appear right after a decimal are likely price cents
+                                    const isSmallPriceNumber = num < 100 && /\d+\.\s*$/.test(beforeMatch.trim());
+                                    
+                                    // CRITICAL: Ensure the matched text is clean - should be just "N bids" or "N bid"
+                                    // Only skip if there's a decimal number or price pattern immediately before (like "18.50" or "$50")
+                                    const hasDecimalOrPriceBefore = /\d+\.\d+\s*$|[\$£€]\s*\d+\s*$/.test(beforeMatch.trim());
+                                    
+                                    // Prefer matches that are clearly standalone (not part of prices or item numbers)
+                                    // Also prefer smaller numbers (1-1000 range) as they're more likely to be bid counts
+                                    if (!hasCurrencyBefore && !hasDecimalBefore && !hasDecimalPattern && !hasNumberImmediatelyAfter && !longNumberBefore && !isSmallPriceNumber && !hasDecimalOrPriceBefore) {
+                                        const score = num <= 1000 ? 2 : 1; // Prefer smaller numbers
+                                        validMatches.push({ match, num, score });
                                     }
                                 }
                             }
-                            // If no perfect match, use the last reasonable one (most likely the actual bid count)
-                            if (!saleType && bidMatches.length > 0) {
-                                const lastMatch = bidMatches[bidMatches.length - 1];
-                                const num = parseInt(lastMatch[1], 10);
-                                if (num >= 1 && num <= 10000) {
-                                    saleType = 'Auction';
-                                    numBids = num;
-                                    console.log(`🎯 Found auction with ${numBids} bids in full-text search (using last match)`);
-                                }
+                            
+                            // Sort by score (higher is better), then take the first one
+                            if (validMatches.length > 0) {
+                                validMatches.sort((a, b) => b.score - a.score);
+                                const bestMatch = validMatches[0];
+                                saleType = 'Auction';
+                                numBids = bestMatch.num;
+                                console.log(`🎯 Found auction with ${numBids} bids in full-text search (text: "${bestMatch.match[0]}", index: ${bestMatch.match.index})`);
                             }
                         }
                     }
