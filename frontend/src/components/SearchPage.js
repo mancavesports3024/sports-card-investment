@@ -783,33 +783,31 @@ const SearchPage = () => {
                     return null;
                   })()}
                   <div className="custom-card-date">Sold: {formatDate(card.soldDate)}</div>
-                  {/* Shipping cost - always show if available, format properly */}
+                  {/* Shipping cost - always render chip; show 'See listing' if missing */}
                   {(() => {
-                    if (!card.shippingCost) return null;
-                    
                     // Format shipping cost - handle both number and string formats
-                    let shippingDisplay = '';
-                    if (typeof card.shippingCost === 'number') {
-                      shippingDisplay = card.shippingCost === 0 ? 'Free' : `$${card.shippingCost.toFixed(2)}`;
-                    } else if (typeof card.shippingCost === 'string') {
-                      // Check if it already has $ or is "Free"
-                      if (card.shippingCost.toLowerCase().includes('free')) {
-                        shippingDisplay = 'Free';
-                      } else if (card.shippingCost.includes('$')) {
-                        shippingDisplay = card.shippingCost;
-                      } else {
-                        // Try to parse as number
-                        const numValue = parseFloat(card.shippingCost);
-                        if (!isNaN(numValue)) {
-                          shippingDisplay = numValue === 0 ? 'Free' : `$${numValue.toFixed(2)}`;
-                        } else {
+                    let shippingDisplay = 'See listing';
+                    if (card.shippingCost !== undefined && card.shippingCost !== null) {
+                      if (typeof card.shippingCost === 'number') {
+                        shippingDisplay = card.shippingCost === 0 ? 'Free' : `$${card.shippingCost.toFixed(2)}`;
+                      } else if (typeof card.shippingCost === 'string') {
+                        const lc = card.shippingCost.toLowerCase();
+                        if (lc.includes('free')) {
+                          shippingDisplay = 'Free';
+                        } else if (card.shippingCost.includes('$')) {
                           shippingDisplay = card.shippingCost;
+                        } else {
+                          const numValue = parseFloat(card.shippingCost);
+                          if (!isNaN(numValue)) {
+                            shippingDisplay = numValue === 0 ? 'Free' : `$${numValue.toFixed(2)}`;
+                          } else if (card.shippingCost.trim().length > 0) {
+                            shippingDisplay = card.shippingCost;
+                          }
                         }
+                      } else {
+                        shippingDisplay = String(card.shippingCost);
                       }
-                    } else {
-                      shippingDisplay = String(card.shippingCost);
                     }
-                    
                     return (
                       <div style={{ 
                         fontSize: '0.9em', 

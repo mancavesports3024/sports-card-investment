@@ -1331,6 +1331,56 @@ router.post('/', requireUser, async (req, res) => {
       }
     }
 
+    // 1) Enforce search-term keyword matching to avoid unrelated results
+    try {
+      const lowerQuery = (searchQuery || '').toLowerCase();
+      const positivePart = lowerQuery.split(' -(')[0].trim();
+      const exclusionMatch = lowerQuery.match(/-\s*\(([^)]+)\)/);
+      const exclusions = exclusionMatch
+        ? exclusionMatch[1].split(',').map(s => s.trim()).filter(Boolean)
+        : [];
+
+      // Primary token: first meaningful word (>=3 chars) from the positive part
+      const positiveTokens = positivePart.split(/\s+/).filter(t => t.length > 0);
+      const primaryToken = positiveTokens.find(t => t.length >= 3) || positiveTokens[0] || '';
+
+      // Numeric fraction like 170/165
+      const fractionMatch = positivePart.match(/(\d+)\s*\/\s*(\d+)/);
+      const fractionVariants = fractionMatch
+        ? [
+            `${fractionMatch[1]}/${fractionMatch[2]}`,
+            `${fractionMatch[1]} ${fractionMatch[2]}`,
+            `${fractionMatch[1]}-${fractionMatch[2]}`
+          ]
+        : [];
+
+      const beforeFilterCount = allCards.length;
+      allCards = allCards.filter(card => {
+        const title = (card.title || '').toLowerCase();
+        if (!title) return false;
+
+        // Exclusions: if any excluded term appears, drop
+        if (exclusions.length > 0 && exclusions.some(ex => ex && title.includes(ex))) {
+          return false;
+        }
+
+        // Must include primary token when present
+        if (primaryToken && !title.includes(primaryToken)) {
+          return false;
+        }
+
+        // If a fraction is present, enforce at least one variant exists
+        if (fractionVariants.length > 0 && !fractionVariants.some(v => title.includes(v))) {
+          return false;
+        }
+
+        return true;
+      });
+      console.log(`🔎 Keyword filtering: ${beforeFilterCount} → ${allCards.length} after enforcing positive tokens and exclusions`);
+    } catch (kwErr) {
+      console.log('⚠️ Keyword filtering skipped due to error:', kwErr.message);
+    }
+
     // Filter out sealed products and hobby boxes (more precise filtering)
     const filteredCards = allCards.filter(card => {
       const title = (card.title || '').toLowerCase();
