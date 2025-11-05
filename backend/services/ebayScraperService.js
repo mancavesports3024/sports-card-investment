@@ -733,6 +733,8 @@ class EbayScraperService {
                 // Extract shipping cost
                 let shippingCost = null;
                 const shippingSelectors = [
+                    '.s-card_attribute-row .su-styled-text',
+                    '.s-card_attribute-row span',
                     '.s-item__shipping',
                     '.s-item__detail--secondary .s-item__shipping',
                     '.s-item__details .s-item__shipping',
@@ -744,7 +746,8 @@ class EbayScraperService {
                     '.s-item__time',
                     '.s-item__freeXDays',
                     '[class*="shipping"]',
-                    '[class*="delivery"]'
+                    '[class*="delivery"]',
+                    '.su-styled-text.secondary'
                 ];
                 
                 for (const selector of shippingSelectors) {
