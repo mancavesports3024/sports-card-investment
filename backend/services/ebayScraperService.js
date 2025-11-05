@@ -878,7 +878,15 @@ class EbayScraperService {
                     const bidElements = $item.find(selector);
                     if (bidElements.length > 0) {
                         bidElements.each((index, element) => {
-                            const text = $(element).text().trim();
+                            let text = $(element).text().trim();
+                            
+                            // CRITICAL: If there's a $ sign, split at it and only use the part BEFORE the $
+                            // This prevents "19 bids== $0" from interfering with extraction
+                            if (text.includes('$')) {
+                                const dollarIndex = text.indexOf('$');
+                                text = text.substring(0, dollarIndex).trim();
+                            }
+                            
                             const lowerText = text.toLowerCase();
                             // Only consider elements that contain "bid" or "bids"
                             if (lowerText.includes('bid') || lowerText.includes('bids')) {
@@ -929,7 +937,13 @@ class EbayScraperService {
                     for (const selector of saleTypeSelectors) {
                         const saleEl = $item.find(selector);
                         if (saleEl.length > 0) {
-                            const saleText = saleEl.text().trim();
+                            let saleText = saleEl.text().trim();
+                            
+                            // CRITICAL: If there's a $ sign, split at it and only use the part BEFORE the $
+                            if (saleText.includes('$')) {
+                                const dollarIndex = saleText.indexOf('$');
+                                saleText = saleText.substring(0, dollarIndex).trim();
+                            }
                             
                             // Check for auction indicators and extract bid count
                             // Use word boundaries to avoid matching numbers from prices
@@ -972,6 +986,13 @@ class EbayScraperService {
                                 // Basic validation: reasonable bid count (1-1000 is typical, up to 10000 for extreme cases)
                                 if (num >= 1 && num <= 10000) {
                                     const beforeMatch = fullText.substring(Math.max(0, match.index - 20), match.index);
+                                    const afterMatch = fullText.substring(match.index + match[0].length, match.index + match[0].length + 20);
+                                    
+                                    // CRITICAL: Skip if there's a $ sign nearby - bids don't have $ signs
+                                    const hasDollarSign = beforeMatch.includes('$') || afterMatch.includes('$');
+                                    if (hasDollarSign) {
+                                        continue; // Skip this match entirely
+                                    }
                                     
                                     // CRITICAL: Only skip if it's CLEARLY part of a decimal price pattern
                                     // For small numbers (1-99), check if they're the decimal part of a price (like "18.50")
