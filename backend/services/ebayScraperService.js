@@ -857,6 +857,16 @@ class EbayScraperService {
                         saleType = 'Buy It Now';
                     }
                 }
+
+                // Ultimate fallback: scan the entire item text for bids
+                if ((!saleType || saleType === 'Buy It Now') && (numBids == null || isNaN(numBids))) {
+                    const fullText = $item.text();
+                    const bidMatch = fullText && fullText.match(/(\d+)\s*bids?/i);
+                    if (bidMatch) {
+                        saleType = 'Auction';
+                        numBids = parseInt(bidMatch[1]);
+                    }
+                }
                 
                 for (const selector of soldDateSelectors) {
                     const soldDateEl = $item.find(selector).first();
