@@ -857,21 +857,34 @@ class EbayScraperService {
                 let numBids = null;
                 
                 // Primary: User-identified exact location where eBay places bid count
+                // Only check elements that actually contain "bid" or "bids" to avoid matching shipping/prices
                 const primaryBidSelector = '.s-card_attribute-row .su-styled-text';
-                const bidEl = $item.find(primaryBidSelector);
-                if (bidEl.length > 0) {
-                    // Check all matching elements for bid text
-                    bidEl.each((index, element) => {
-                        const bidText = $(element).text().trim();
-                        // Match patterns like "19 bids", "1 bid"
-                        const bidMatch = bidText.match(/^(\d+)\s*bids?$/i);
+                const allElements = $item.find(primaryBidSelector);
+                let foundBidElement = null;
+                
+                // Find the element that contains bid information
+                allElements.each((index, element) => {
+                    const text = $(element).text().trim();
+                    const lowerText = text.toLowerCase();
+                    // Only consider elements that contain "bid" or "bids"
+                    if (lowerText.includes('bid') || lowerText.includes('bids')) {
+                        // Match patterns like "19 bids", "1 bid" - must be exact match
+                        const bidMatch = text.match(/^(\d+)\s*bids?$/i);
                         if (bidMatch) {
-                            saleType = 'Auction';
-                            numBids = parseInt(bidMatch[1]);
-                            console.log(`🎯 Found auction with ${numBids} bids in primary selector`);
-                            return false; // Break out of each loop
+                            const bidNum = parseInt(bidMatch[1], 10);
+                            // Validate: reasonable bid count (1-10000)
+                            if (bidNum >= 1 && bidNum <= 10000) {
+                                foundBidElement = { text, bidNum };
+                                return false; // Break out of each loop
+                            }
                         }
-                    });
+                    }
+                });
+                
+                if (foundBidElement) {
+                    saleType = 'Auction';
+                    numBids = foundBidElement.bidNum;
+                    console.log(`🎯 Found auction with ${numBids} bids in primary selector (text: "${foundBidElement.text}")`);
                 }
                 
                 // Secondary: Look for bid information in other areas
@@ -947,11 +960,26 @@ class EbayScraperService {
                 // Ultimate fallback: scan the entire item text for bids (use word boundaries to avoid matching prices)
                 if ((!saleType || saleType === 'Buy It Now') && (numBids == null || isNaN(numBids))) {
                     const fullText = $item.text();
-                    // Use word boundaries to avoid matching "$50" or "50" from prices
-                    const bidMatch = fullText && fullText.match(/\b(\d+)\s*bids?\b/i);
-                    if (bidMatch) {
-                        saleType = 'Auction';
-                        numBids = parseInt(bidMatch[1]);
+                    // Use word boundaries and ensure we're not matching prices (like "$50" or "50.00")
+                    // Match pattern: number followed by "bid" or "bids", but not part of a price
+                    const bidMatches = fullText && fullText.matchAll(/\b(\d+)\s*bids?\b/gi);
+                    if (bidMatches) {
+                        // Get the last match (most likely to be the actual bid count, not a price)
+                        let lastMatch = null;
+                        for (const match of bidMatches) {
+                            const num = parseInt(match[1], 10);
+                            // Validate: bid counts are typically reasonable (1-1000 range)
+                            // and shouldn't be part of a price pattern
+                            const beforeMatch = fullText.substring(Math.max(0, match.index - 10), match.index);
+                            const isPricePattern = /[\$£€]\s*\d+|\d+\.\d{2}\s*$/.test(beforeMatch);
+                            if (!isPricePattern && num >= 1 && num <= 10000) {
+                                lastMatch = match;
+                            }
+                        }
+                        if (lastMatch) {
+                            saleType = 'Auction';
+                            numBids = parseInt(lastMatch[1], 10);
+                        }
                     }
                 }
                 
