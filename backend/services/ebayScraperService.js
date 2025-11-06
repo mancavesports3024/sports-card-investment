@@ -1022,19 +1022,50 @@ class EbayScraperService {
                                     // Skip if it's part of a very long number (12+ digits - eBay item numbers)
                                     const isItemNumber = /\d{12,}\s*$/.test(beforeMatch.trim());
                                     
-                                    // Fix concatenation case like "$18.50" + "13 bids" becoming "5013 bids"
-                                    // If number is large and immediately preceded by a decimal price, prefer the trailing digits
+                                    // Fix concatenation cases where price and bid are concatenated with no space
+                                    // Examples: "$14.99" + "1 bid" = "$14.991 bid", "$18.50" + "13 bids" = "$18.5013 bids"
                                     let effectiveNum = num;
+                                    
+                                    // Check if immediately before is a price pattern (like "$14.99" or "$18.50")
+                                    const pricePatternBefore = /[\$£€]\s*\d+\.(\d{1,2})\s*$/.exec(beforeMatch.trim());
+                                    if (pricePatternBefore) {
+                                        const priceCents = pricePatternBefore[1]; // e.g., "99" from "$14.99"
+                                        const priceCentsLength = pricePatternBefore[1].length; // 1 or 2 digits
+                                        
+                                        // If the matched number starts with the price cents, it's concatenated
+                                        // Example: "$14.99" + "1 bid" = "$14.991 bid" → match "991", but should be "1"
+                                        const numStr = String(num);
+                                        if (numStr.startsWith(priceCents)) {
+                                            // Extract just the bid part (everything after the price cents)
+                                            const bidPart = numStr.substring(priceCentsLength);
+                                            const bidNum = parseInt(bidPart, 10);
+                                            
+                                            if (bidNum >= 1 && bidNum <= 1000) {
+                                                console.log(`     ↩️ Correcting concatenated number ${num} → ${bidNum} (price "${priceCents}" + bid "${bidPart}")`);
+                                                effectiveNum = bidNum;
+                                            } else {
+                                                // If extraction doesn't make sense, skip this match entirely
+                                                console.log(`     ❌ Skipped - concatenated with price but invalid bid part: "${bidPart}"`);
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Also handle cases like "$18.50" + "13 bids" = "$18.5013 bids" (old logic)
                                     const decimalRightBefore = /\d+\.\d{1,2}\s*$/.test(beforeMatch.trim());
-                                    if (num >= 1000 && decimalRightBefore) {
-                                        const tail = num % 1000; // keep last up to 3 digits (handles up to 999 bids)
+                                    if (effectiveNum >= 1000 && decimalRightBefore && !pricePatternBefore) {
+                                        const tail = effectiveNum % 1000; // keep last up to 3 digits
                                         if (tail >= 1 && tail <= 1000) {
-                                            console.log(`     ↩️ Correcting concatenated number ${num} → ${tail} (after decimal context)`);
+                                            console.log(`     ↩️ Correcting concatenated number ${effectiveNum} → ${tail} (after decimal context)`);
                                             effectiveNum = tail;
                                         }
                                     }
 
-                                    if (!hasDollarImmediatelyBefore && !isDecimalPart && !isItemNumber) {
+                                    // Allow through if we successfully fixed concatenation, or if it's a clean match
+                                    const wasConcatenatedAndFixed = pricePatternBefore && effectiveNum !== num;
+                                    const shouldAccept = wasConcatenatedAndFixed || (!hasDollarImmediatelyBefore && !isDecimalPart && !isItemNumber);
+                                    
+                                    if (shouldAccept) {
                                         // Prefer smaller numbers (1-1000) as they're more likely to be bid counts
                                         const score = effectiveNum <= 1000 ? 2 : 1;
                                         console.log(`     ✅ Accepted match: ${effectiveNum} bids (score: ${score})`);
@@ -1045,7 +1076,7 @@ class EbayScraperService {
                                             bestScore = score;
                                         }
                                     } else {
-                                        if (hasDollarImmediatelyBefore) console.log(`     ❌ Skipped - $ immediately before`);
+                                        if (hasDollarImmediatelyBefore && !wasConcatenatedAndFixed) console.log(`     ❌ Skipped - $ immediately before`);
                                         if (isDecimalPart) console.log(`     ❌ Skipped - decimal part`);
                                         if (isItemNumber) console.log(`     ❌ Skipped - item number`);
                                     }
