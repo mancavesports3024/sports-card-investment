@@ -972,8 +972,9 @@ class EbayScraperService {
                 
                 // CRITICAL: Check full item text for bids BEFORE checking for "Buy It Now"
                 // This ensures we catch auctions even if selectors miss them
-                // Always run if we don't have a bid count, even if saleType is set
-                if (numBids == null || isNaN(numBids)) {
+                // ALWAYS run this check - it's the most reliable way to find auctions
+                // Override any previous saleType if we find bids
+                {
                     console.log(`🔍 Running full-text search for bids. Current saleType: ${saleType}, numBids: ${numBids}`);
                     const fullText = $item.text();
                     if (fullText) {
@@ -995,66 +996,58 @@ class EbayScraperService {
                         
                         if (bidMatches && bidMatches.length > 0) {
                             console.log(`   Found ${bidMatches.length} potential bid matches`);
-                            // Filter and rank matches: prefer standalone "N bids" patterns, avoid price patterns
-                            const validMatches = [];
+                            // SIMPLIFIED: Just find the first reasonable match - prefer smaller numbers
+                            let bestMatch = null;
+                            let bestScore = 0;
+                            
                             for (const match of bidMatches) {
                                 const num = parseInt(match[1], 10);
                                 console.log(`   Checking match: "${match[0]}" (number: ${num})`);
-                                // Basic validation: reasonable bid count (1-1000 is typical, up to 10000 for extreme cases)
+                                
+                                // Basic validation: reasonable bid count (1-10000)
                                 if (num >= 1 && num <= 10000) {
-                                    const beforeMatch = fullText.substring(Math.max(0, match.index - 20), match.index);
+                                    const beforeMatch = fullText.substring(Math.max(0, match.index - 15), match.index);
                                     
-                                    // CRITICAL: Only skip if $ sign appears BEFORE the bid count (indicating it's part of a price)
-                                    // Don't skip if $ appears AFTER (it could be unrelated shipping/other info)
-                                    const hasDollarBefore = beforeMatch.includes('$');
-                                    if (hasDollarBefore) {
-                                        console.log(`     ❌ Skipped - $ sign before match`);
-                                        continue; // Skip this match - $ before means it's likely part of a price
-                                    }
+                                    // ONLY skip if $ sign appears immediately before (within 5 chars) - likely part of price
+                                    const hasDollarImmediatelyBefore = /[\$£€]\s*\d+\s*$/.test(beforeMatch.trim());
                                     
-                                    // CRITICAL: Only skip if it's CLEARLY part of a decimal price pattern
-                                    // For small numbers (1-99), check if they're the decimal part of a price (like "18.50")
-                                    let shouldSkip = false;
-                                    if (num < 100) {
-                                        // Check if this number appears right after a decimal point (like "18.50")
-                                        const decimalPattern = new RegExp(`\\d+\\.${num}\\b`);
-                                        if (decimalPattern.test(beforeMatch)) {
-                                            shouldSkip = true;
-                                        }
-                                    }
+                                    // ONLY skip if it's clearly a decimal (like "18.50" where "50" matches)
+                                    const isDecimalPart = num < 100 && /\d+\.\d*\s*$/.test(beforeMatch.trim());
                                     
-                                    // Skip if it's part of a long item number (10+ digits - eBay item numbers)
-                                    const longNumberBefore = /\d{10,}\s*$/.test(beforeMatch.trim());
+                                    // Skip if it's part of a very long number (12+ digits - eBay item numbers)
+                                    const isItemNumber = /\d{12,}\s*$/.test(beforeMatch.trim());
                                     
-                                    // Accept the match unless it's clearly a price pattern
-                                    if (!shouldSkip && !longNumberBefore) {
+                                    if (!hasDollarImmediatelyBefore && !isDecimalPart && !isItemNumber) {
                                         // Prefer smaller numbers (1-1000) as they're more likely to be bid counts
                                         const score = num <= 1000 ? 2 : 1;
                                         console.log(`     ✅ Accepted match: ${num} bids (score: ${score})`);
-                                        validMatches.push({ match, num, score });
+                                        
+                                        if (score > bestScore || (score === bestScore && num < (bestMatch ? parseInt(bestMatch[1], 10) : Infinity))) {
+                                            bestMatch = match;
+                                            bestScore = score;
+                                        }
                                     } else {
-                                        if (shouldSkip) console.log(`     ❌ Skipped - decimal pattern`);
-                                        if (longNumberBefore) console.log(`     ❌ Skipped - long number before`);
+                                        if (hasDollarImmediatelyBefore) console.log(`     ❌ Skipped - $ immediately before`);
+                                        if (isDecimalPart) console.log(`     ❌ Skipped - decimal part`);
+                                        if (isItemNumber) console.log(`     ❌ Skipped - item number`);
                                     }
                                 }
                             }
                             
-                            // Sort by score (higher is better), then take the first one
-                            if (validMatches.length > 0) {
-                                validMatches.sort((a, b) => b.score - a.score);
-                                const bestMatch = validMatches[0];
+                            if (bestMatch) {
+                                const bidNum = parseInt(bestMatch[1], 10);
                                 saleType = 'Auction';
-                                numBids = bestMatch.num;
-                                console.log(`🎯 Found auction with ${numBids} bids in full-text search (text: "${bestMatch.match[0]}", index: ${bestMatch.match.index})`);
+                                numBids = bidNum;
+                                console.log(`🎯 Found auction with ${numBids} bids in full-text search (text: "${bestMatch[0]}", index: ${bestMatch.index})`);
                             } else {
                                 console.log(`   ❌ No valid bid matches found after filtering`);
                             }
                         } else {
                             console.log(`   ❌ No bid matches found in full text`);
                         }
+                    } else {
+                        console.log(`   ❌ No full text available`);
                     }
-                } else {
-                    console.log(`⚠️ Full-text search skipped - saleType: ${saleType}, numBids: ${numBids}`);
                 }
                 
                 // If no auction found, look for other sale types
