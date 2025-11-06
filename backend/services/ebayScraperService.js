@@ -1011,7 +1011,12 @@ class EbayScraperService {
                                 
                                 // Basic validation: reasonable bid count (1-10000)
                                 if (num >= 1 && num <= 10000) {
-                                    const beforeMatch = fullText.substring(Math.max(0, match.index - 15), match.index);
+                                    // Increase lookback to catch prices that might be further back
+                                    const beforeMatch = fullText.substring(Math.max(0, match.index - 25), match.index);
+                                    // Also get text that includes the match to check for concatenation
+                                    const matchContext = fullText.substring(Math.max(0, match.index - 10), match.index + match[0].length + 5);
+                                    console.log(`     Before match context: "${beforeMatch}"`);
+                                    console.log(`     Match context (includes match): "${matchContext}"`);
                                     
                                     // ONLY skip if $ sign appears immediately before (including decimals) - likely part of price
                                     const hasDollarImmediatelyBefore = /[\$£€]\s*\d+(?:\.\d+)?\s*$/.test(beforeMatch.trim());
@@ -1023,22 +1028,47 @@ class EbayScraperService {
                                     const isItemNumber = /\d{12,}\s*$/.test(beforeMatch.trim());
                                     
                                     // Fix concatenation cases where price and bid are concatenated with no space
-                                    // Examples: "$14.99" + "1 bid" = "$14.991 bid", "$18.50" + "13 bids" = "$18.5013 bids"
+                                    // Examples: "$14.99" + "1 bid" = "$14.991 bid", "$17.50" + "5 bids" = "$17.505 bids"
                                     let effectiveNum = num;
                                     
-                                    // Check if immediately before is a price pattern (like "$14.99" or "$18.50")
+                                    // Check the match context for price patterns that are concatenated with the bid
+                                    // Look for patterns like "$17.505" where "505" is the match but should be "5"
+                                    const concatenatedPriceMatch = /[\$£€]\s*(\d+)\.(\d{1,2})(\d+)\s*bids?/i.exec(matchContext);
+                                    if (concatenatedPriceMatch) {
+                                        const priceDollars = concatenatedPriceMatch[1];
+                                        const priceCents = concatenatedPriceMatch[2];
+                                        const bidDigits = concatenatedPriceMatch[3];
+                                        console.log(`     Found concatenated price pattern: $${priceDollars}.${priceCents}${bidDigits} bids`);
+                                        console.log(`     Price cents: "${priceCents}", Bid digits: "${bidDigits}"`);
+                                        
+                                        // The matched number should be priceCents + bidDigits
+                                        const expectedConcatenated = priceCents + bidDigits;
+                                        if (String(num) === expectedConcatenated) {
+                                            const bidNum = parseInt(bidDigits, 10);
+                                            if (bidNum >= 1 && bidNum <= 1000) {
+                                                console.log(`     ↩️ Correcting concatenated number ${num} → ${bidNum} (price "${priceCents}" + bid "${bidDigits}")`);
+                                                effectiveNum = bidNum;
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Also check if immediately before is a price pattern (like "$14.99" or "$17.50")
+                                    // This handles cases where the price is separate but we still need to check
                                     const pricePatternBefore = /[\$£€]\s*\d+\.(\d{1,2})\s*$/.exec(beforeMatch.trim());
                                     if (pricePatternBefore) {
-                                        const priceCents = pricePatternBefore[1]; // e.g., "99" from "$14.99"
+                                        const priceCents = pricePatternBefore[1]; // e.g., "50" from "$17.50"
                                         const priceCentsLength = pricePatternBefore[1].length; // 1 or 2 digits
+                                        console.log(`     Found price pattern before: "${pricePatternBefore[0]}", cents: "${priceCents}"`);
                                         
                                         // If the matched number starts with the price cents, it's concatenated
-                                        // Example: "$14.99" + "1 bid" = "$14.991 bid" → match "991", but should be "1"
+                                        // Example: "$17.50" + "5 bids" = "$17.505 bids" → match "505", but should be "5"
                                         const numStr = String(num);
+                                        console.log(`     Checking if "${numStr}" starts with "${priceCents}"`);
                                         if (numStr.startsWith(priceCents)) {
                                             // Extract just the bid part (everything after the price cents)
                                             const bidPart = numStr.substring(priceCentsLength);
                                             const bidNum = parseInt(bidPart, 10);
+                                            console.log(`     Extracted bid part: "${bidPart}" → ${bidNum}`);
                                             
                                             if (bidNum >= 1 && bidNum <= 1000) {
                                                 console.log(`     ↩️ Correcting concatenated number ${num} → ${bidNum} (price "${priceCents}" + bid "${bidPart}")`);
@@ -1048,7 +1078,11 @@ class EbayScraperService {
                                                 console.log(`     ❌ Skipped - concatenated with price but invalid bid part: "${bidPart}"`);
                                                 continue;
                                             }
+                                        } else {
+                                            console.log(`     Number "${numStr}" does not start with price cents "${priceCents}"`);
                                         }
+                                    } else {
+                                        console.log(`     No price pattern found before match`);
                                     }
                                     
                                     // Also handle cases like "$18.50" + "13 bids" = "$18.5013 bids" (old logic)
