@@ -897,12 +897,17 @@ class EbayScraperService {
                             if (lowerText.includes('bid') || lowerText.includes('bids')) {
                                 console.log(`   Contains bid text, attempting match...`);
                                 // Match patterns like "19 bids", "1 bid" - use word boundaries to avoid matching prices
+                                // CRITICAL: The text should be primarily about bids - check if it matches the pattern closely
                                 const bidMatch = text.match(/\b(\d+)\s*bids?\b/i);
                                 if (bidMatch) {
                                     console.log(`   Matched bid pattern: "${bidMatch[0]}"`);
                                     const bidNum = parseInt(bidMatch[1], 10);
                                     // Validate: reasonable bid count (1-10000)
                                     if (bidNum >= 1 && bidNum <= 10000) {
+                                        // CRITICAL: For the primary selector, prefer text that is PRIMARILY about bids
+                                        // Accept if the matched text is at the start or the text is short (like "19 bids" or "19 bids==")
+                                        const isPrimaryBidText = bidMatch.index === 0 || text.length < 30;
+                                        
                                         // For small numbers (1-99), check if they're part of a decimal (like "18.50")
                                         let isPricePattern = false;
                                         if (bidNum < 100) {
@@ -911,12 +916,13 @@ class EbayScraperService {
                                             isPricePattern = decimalPattern.test(beforeMatch);
                                         }
                                         
-                                        if (!isPricePattern) {
+                                        if (!isPricePattern && isPrimaryBidText) {
                                             foundBidElement = { text, bidNum };
-                                            console.log(`   ✅ Found bid element with ${bidNum} bids`);
+                                            console.log(`   ✅ Found bid element with ${bidNum} bids (primary text match)`);
                                             return false; // Break out of each loop
                                         } else {
-                                            console.log(`   ❌ Rejected as price pattern`);
+                                            if (isPricePattern) console.log(`   ❌ Rejected as price pattern`);
+                                            if (!isPrimaryBidText) console.log(`   ❌ Rejected - not primary bid text (text too long or match not at start)`);
                                         }
                                     }
                                 } else {
@@ -970,11 +976,10 @@ class EbayScraperService {
                     }
                 }
                 
-                // CRITICAL: Check full item text for bids BEFORE checking for "Buy It Now"
-                // This ensures we catch auctions even if selectors miss them
-                // ALWAYS run this check - it's the most reliable way to find auctions
-                // Override any previous saleType if we find bids
-                {
+                // CRITICAL: Check full item text for bids ONLY if primary/secondary selectors didn't find anything
+                // This prevents full-text search from overriding correct primary selector results
+                // Only run if we don't have a valid bid count yet
+                if (!saleType || numBids == null || isNaN(numBids)) {
                     console.log(`🔍 Running full-text search for bids. Current saleType: ${saleType}, numBids: ${numBids}`);
                     const fullText = $item.text();
                     if (fullText) {
@@ -1048,6 +1053,8 @@ class EbayScraperService {
                     } else {
                         console.log(`   ❌ No full text available`);
                     }
+                } else {
+                    console.log(`✅ Skipping full-text search - already found ${numBids} bids from primary/secondary selectors`);
                 }
                 
                 // If no auction found, look for other sale types
