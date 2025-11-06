@@ -1013,8 +1013,8 @@ class EbayScraperService {
                                 if (num >= 1 && num <= 10000) {
                                     const beforeMatch = fullText.substring(Math.max(0, match.index - 15), match.index);
                                     
-                                    // ONLY skip if $ sign appears immediately before (within 5 chars) - likely part of price
-                                    const hasDollarImmediatelyBefore = /[\$£€]\s*\d+\s*$/.test(beforeMatch.trim());
+                                    // ONLY skip if $ sign appears immediately before (including decimals) - likely part of price
+                                    const hasDollarImmediatelyBefore = /[\$£€]\s*\d+(?:\.\d+)?\s*$/.test(beforeMatch.trim());
                                     
                                     // ONLY skip if it's clearly a decimal (like "18.50" where "50" matches)
                                     const isDecimalPart = num < 100 && /\d+\.\d*\s*$/.test(beforeMatch.trim());
@@ -1022,13 +1022,26 @@ class EbayScraperService {
                                     // Skip if it's part of a very long number (12+ digits - eBay item numbers)
                                     const isItemNumber = /\d{12,}\s*$/.test(beforeMatch.trim());
                                     
+                                    // Fix concatenation case like "$18.50" + "13 bids" becoming "5013 bids"
+                                    // If number is large and immediately preceded by a decimal price, prefer the trailing digits
+                                    let effectiveNum = num;
+                                    const decimalRightBefore = /\d+\.\d{1,2}\s*$/.test(beforeMatch.trim());
+                                    if (num >= 1000 && decimalRightBefore) {
+                                        const tail = num % 1000; // keep last up to 3 digits (handles up to 999 bids)
+                                        if (tail >= 1 && tail <= 1000) {
+                                            console.log(`     ↩️ Correcting concatenated number ${num} → ${tail} (after decimal context)`);
+                                            effectiveNum = tail;
+                                        }
+                                    }
+
                                     if (!hasDollarImmediatelyBefore && !isDecimalPart && !isItemNumber) {
                                         // Prefer smaller numbers (1-1000) as they're more likely to be bid counts
-                                        const score = num <= 1000 ? 2 : 1;
-                                        console.log(`     ✅ Accepted match: ${num} bids (score: ${score})`);
+                                        const score = effectiveNum <= 1000 ? 2 : 1;
+                                        console.log(`     ✅ Accepted match: ${effectiveNum} bids (score: ${score})`);
                                         
-                                        if (score > bestScore || (score === bestScore && num < (bestMatch ? parseInt(bestMatch[1], 10) : Infinity))) {
-                                            bestMatch = match;
+                                        if (score > bestScore || (score === bestScore && effectiveNum < (bestMatch ? parseInt(bestMatch[1], 10) : Infinity))) {
+                                            // Synthesize a match-like object carrying corrected number
+                                            bestMatch = { ...match, 1: String(effectiveNum), 0: `${effectiveNum} bids` };
                                             bestScore = score;
                                         }
                                     } else {
