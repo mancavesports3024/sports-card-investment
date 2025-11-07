@@ -904,10 +904,6 @@ class EbayScraperService {
                                     const bidNum = parseInt(bidMatch[1], 10);
                                     // Validate: reasonable bid count (1-10000)
                                     if (bidNum >= 1 && bidNum <= 10000) {
-                                        // CRITICAL: For the primary selector, prefer text that is PRIMARILY about bids
-                                        // Accept if the matched text is at the start or the text is short (like "19 bids" or "19 bids==")
-                                        const isPrimaryBidText = bidMatch.index === 0 || text.length < 30;
-                                        
                                         // For small numbers (1-99), check if they're part of a decimal (like "18.50")
                                         let isPricePattern = false;
                                         if (bidNum < 100) {
@@ -916,13 +912,15 @@ class EbayScraperService {
                                             isPricePattern = decimalPattern.test(beforeMatch);
                                         }
                                         
-                                        if (!isPricePattern && isPrimaryBidText) {
+                                        // Accept if it's not a price pattern - be less strict about text length/position
+                                        // The primary selector is already specific enough (.s-card_attribute-row .su-styled-text.secondary.large)
+                                        // so we can trust matches from it
+                                        if (!isPricePattern) {
                                             foundBidElement = { text, bidNum };
-                                            console.log(`   ✅ Found bid element with ${bidNum} bids (primary text match)`);
+                                            console.log(`   ✅ Found bid element with ${bidNum} bids (primary selector match)`);
                                             return false; // Break out of each loop
                                         } else {
-                                            if (isPricePattern) console.log(`   ❌ Rejected as price pattern`);
-                                            if (!isPrimaryBidText) console.log(`   ❌ Rejected - not primary bid text (text too long or match not at start)`);
+                                            console.log(`   ❌ Rejected as price pattern`);
                                         }
                                     }
                                 } else {
@@ -1018,14 +1016,20 @@ class EbayScraperService {
                                     console.log(`     Before match context: "${beforeMatch}"`);
                                     console.log(`     Match context (includes match): "${matchContext}"`);
                                     
-                                    // ONLY skip if $ sign appears immediately before (including decimals) - likely part of price
-                                    const hasDollarImmediatelyBefore = /[\$£€]\s*\d+(?:\.\d+)?\s*$/.test(beforeMatch.trim());
+                                    // ONLY skip if $ sign appears immediately before (within 3 chars) - likely part of price
+                                    // Be more lenient - only skip if price is RIGHT before the bid count
+                                    const hasDollarImmediatelyBefore = /[\$£€]\s*\d+(?:\.\d+)?\s{0,2}$/.test(beforeMatch.trim());
                                     
                                     // ONLY skip if it's clearly a decimal (like "18.50" where "50" matches)
+                                    // Only check for small numbers that could be decimal parts
                                     const isDecimalPart = num < 100 && /\d+\.\d*\s*$/.test(beforeMatch.trim());
                                     
                                     // Skip if it's part of a very long number (12+ digits - eBay item numbers)
                                     const isItemNumber = /\d{12,}\s*$/.test(beforeMatch.trim());
+                                    
+                                    // For reasonable bid counts (1-1000), be more lenient - only skip if clearly a price
+                                    // Don't skip just because there's a price somewhere before it
+                                    const isReasonableBidCount = num >= 1 && num <= 1000;
                                     
                                     // Fix concatenation cases where price and bid are concatenated with no space
                                     // Examples: "$14.99" + "1 bid" = "$14.991 bid", "$17.50" + "5 bids" = "$17.505 bids"
@@ -1097,7 +1101,11 @@ class EbayScraperService {
 
                                     // Allow through if we successfully fixed concatenation, or if it's a clean match
                                     const wasConcatenatedAndFixed = pricePatternBefore && effectiveNum !== num;
-                                    const shouldAccept = wasConcatenatedAndFixed || (!hasDollarImmediatelyBefore && !isDecimalPart && !isItemNumber);
+                                    // For reasonable bid counts (1-1000), be more lenient - only skip if clearly a price pattern
+                                    // For larger numbers, be more strict
+                                    const shouldAccept = wasConcatenatedAndFixed || 
+                                        (isReasonableBidCount && !isDecimalPart && !isItemNumber) ||
+                                        (!isReasonableBidCount && !hasDollarImmediatelyBefore && !isDecimalPart && !isItemNumber);
                                     
                                     if (shouldAccept) {
                                         // Prefer smaller numbers (1-1000) as they're more likely to be bid counts
