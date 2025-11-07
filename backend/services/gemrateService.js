@@ -15,11 +15,26 @@ class GemRateService {
    */
   async searchCardPopulation(searchQuery, options = {}) {
     try {
-      console.log(`🔍 GemRate search: "${searchQuery}"`);
+      // Remove negative keywords (exclusions) from the search query for GemRate
+      // Example: "Charizard 094/080 Inferno X -(PickCards, Choose, double, pick, Singles, Rares)"
+      // Should become: "Charizard 094/080 Inferno X"
+      let cleanQuery = searchQuery;
+      if (cleanQuery && typeof cleanQuery === 'string') {
+        // Remove everything from " -(" onwards (negative keywords)
+        const exclusionIndex = cleanQuery.indexOf(' -(');
+        if (exclusionIndex !== -1) {
+          cleanQuery = cleanQuery.substring(0, exclusionIndex).trim();
+        }
+        // Also handle other exclusion patterns like " -(word)" or " -word"
+        cleanQuery = cleanQuery.replace(/\s*-\s*\([^)]+\)/g, '').trim();
+        cleanQuery = cleanQuery.replace(/\s*-\s*\w+/g, '').trim();
+      }
+      
+      console.log(`🔍 GemRate search: "${cleanQuery}"`);
       
       // Step 1: Search for gemrate_id
       const searchResponse = await axios.post(this.apiUrl, {
-        query: searchQuery,
+        query: cleanQuery,
         ...options
       }, {
         timeout: this.timeout,
