@@ -1034,6 +1034,7 @@ class EbayScraperService {
                                     // Fix concatenation cases where price and bid are concatenated with no space
                                     // Examples: "$14.99" + "1 bid" = "$14.991 bid", "$17.50" + "5 bids" = "$17.505 bids"
                                     let effectiveNum = num;
+                                    let wasConcatenatedAndFixed = false; // Track if we fixed concatenation
                                     
                                     // Check the match context for price patterns that are concatenated with the bid
                                     // Look for patterns like "$17.505" where "505" is the match but should be "5"
@@ -1057,6 +1058,7 @@ class EbayScraperService {
                                             if (bidNum >= 1 && bidNum <= 1000) {
                                                 console.log(`     ↩️ Correcting concatenated number ${num} → ${bidNum} (price "${priceCents}" + bid "${bidDigits}")`);
                                                 effectiveNum = bidNum;
+                                                wasConcatenatedAndFixed = true; // Mark that we fixed concatenation
                                             } else {
                                                 console.log(`     ❌ Bid digits "${bidDigits}" out of range (1-1000)`);
                                             }
@@ -1108,8 +1110,12 @@ class EbayScraperService {
                                         }
                                     }
 
+                                    // Also check if pricePatternBefore fixed concatenation (for cases not caught by concatenatedPriceMatch)
+                                    if (pricePatternBefore && effectiveNum !== num && !wasConcatenatedAndFixed) {
+                                        wasConcatenatedAndFixed = true;
+                                    }
+                                    
                                     // Allow through if we successfully fixed concatenation, or if it's a clean match
-                                    const wasConcatenatedAndFixed = pricePatternBefore && effectiveNum !== num;
                                     // For reasonable bid counts (1-1000), be more lenient - only skip if clearly a price pattern
                                     // For larger numbers, be more strict
                                     const shouldAccept = wasConcatenatedAndFixed || 
