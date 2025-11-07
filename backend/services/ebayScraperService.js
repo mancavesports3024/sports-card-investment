@@ -1037,6 +1037,7 @@ class EbayScraperService {
                                     
                                     // Check the match context for price patterns that are concatenated with the bid
                                     // Look for patterns like "$17.505" where "505" is the match but should be "5"
+                                    // Also handles "$42.0016" where "0016" is the match but should be "16"
                                     const concatenatedPriceMatch = /[\$£€]\s*(\d+)\.(\d{1,2})(\d+)\s*bids?/i.exec(matchContext);
                                     if (concatenatedPriceMatch) {
                                         const priceDollars = concatenatedPriceMatch[1];
@@ -1045,14 +1046,22 @@ class EbayScraperService {
                                         console.log(`     Found concatenated price pattern: $${priceDollars}.${priceCents}${bidDigits} bids`);
                                         console.log(`     Price cents: "${priceCents}", Bid digits: "${bidDigits}"`);
                                         
-                                        // The matched number should be priceCents + bidDigits
-                                        const expectedConcatenated = priceCents + bidDigits;
-                                        if (String(num) === expectedConcatenated) {
+                                        // The matched number string (before parsing) should be priceCents + bidDigits
+                                        // Use match[1] (the original matched string) instead of parsed num to preserve leading zeros
+                                        const matchedNumberStr = match[1]; // e.g., "0016" or "505"
+                                        const expectedConcatenated = priceCents + bidDigits; // e.g., "00" + "16" = "0016"
+                                        
+                                        console.log(`     Comparing matched string "${matchedNumberStr}" with expected "${expectedConcatenated}"`);
+                                        if (matchedNumberStr === expectedConcatenated) {
                                             const bidNum = parseInt(bidDigits, 10);
                                             if (bidNum >= 1 && bidNum <= 1000) {
                                                 console.log(`     ↩️ Correcting concatenated number ${num} → ${bidNum} (price "${priceCents}" + bid "${bidDigits}")`);
                                                 effectiveNum = bidNum;
+                                            } else {
+                                                console.log(`     ❌ Bid digits "${bidDigits}" out of range (1-1000)`);
                                             }
+                                        } else {
+                                            console.log(`     ❌ Matched string "${matchedNumberStr}" doesn't match expected "${expectedConcatenated}"`);
                                         }
                                     }
                                     
