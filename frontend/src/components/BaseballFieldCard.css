@@ -9,7 +9,7 @@
 .baseball-field {
   position: relative;
   width: 100%;
-  max-width: 600px;
+  max-width: 780px;
   aspect-ratio: 1;
   min-height: 400px;
   background: #2d7a1f;
