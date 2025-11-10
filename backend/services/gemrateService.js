@@ -1,10 +1,49 @@
 const axios = require('axios');
+const { CookieJar } = require('tough-cookie');
+const { wrapper } = require('axios-cookiejar-support');
 
 class GemRateService {
   constructor() {
     this.baseUrl = 'https://www.gemrate.com';
-    this.apiUrl = 'https://www.gemrate.com/universal-search-query';
+    this.searchPath = '/universal-search-query';
+    this.cardDetailsPath = '/card-details';
     this.timeout = 10000; // 10 seconds
+
+    // Maintain a shared cookie jar so the POST + subsequent GET share session cookies
+    this.cookieJar = new CookieJar();
+    this.httpClient = wrapper(axios.create({
+      baseURL: this.baseUrl,
+      timeout: this.timeout,
+      jar: this.cookieJar,
+      withCredentials: true
+    }));
+
+    this.defaultHeaders = {
+      'Accept': '*/*',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
+      'Origin': 'https://www.gemrate.com',
+      'Referer': 'https://www.gemrate.com/universal-search',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Sec-Fetch-Site': 'same-origin',
+      'Sec-Fetch-Mode': 'cors',
+      'Sec-Fetch-Dest': 'empty'
+    };
+
+    this.sessionInitialized = false;
+  }
+
+  async ensureSession() {
+    if (this.sessionInitialized) return;
+    try {
+      await this.httpClient.get('/', {
+        headers: this.defaultHeaders
+      });
+      this.sessionInitialized = true;
+      console.log('✅ GemRate session initialized');
+    } catch (error) {
+      console.log(`⚠️ GemRate warm-up failed: ${error.message}`);
+    }
   }
 
   /**
@@ -15,6 +54,8 @@ class GemRateService {
    */
   async searchCardPopulation(searchQuery, options = {}) {
     try {
+      await this.ensureSession();
+
       // Remove negative keywords (exclusions) from the search query for GemRate
       // Example: "Charizard 094/080 Inferno X -(PickCards, Choose, double, pick, Singles, Rares)"
       // Should become: "Charizard 094/080 Inferno X"
@@ -31,20 +72,15 @@ class GemRateService {
       }
       
       console.log(`🔍 GemRate search: "${cleanQuery}"`);
-      
+
       // Step 1: Search for gemrate_id
-      const searchResponse = await axios.post(this.apiUrl, {
+      const searchResponse = await this.httpClient.post(this.searchPath, {
         query: cleanQuery,
         ...options
       }, {
-        timeout: this.timeout,
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': '*/*',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
-          'Origin': 'https://www.gemrate.com',
-          'Referer': 'https://www.gemrate.com/universal-search',
-          'X-Requested-With': 'XMLHttpRequest'
+          ...this.defaultHeaders,
+          'Content-Type': 'application/json'
         }
       });
 
@@ -171,16 +207,9 @@ class GemRateService {
     try {
       console.log(`📊 Getting card details for gemrate_id: ${gemrateId}`);
       
-      const response = await axios.get(`${this.baseUrl}/card-details`, {
+      const response = await this.httpClient.get(this.cardDetailsPath, {
         params: { gemrate_id: gemrateId },
-        timeout: this.timeout,
-        headers: {
-          'Accept': '*/*',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
-          'Origin': 'https://www.gemrate.com',
-          'Referer': 'https://www.gemrate.com/universal-search',
-          'X-Requested-With': 'XMLHttpRequest'
-        }
+        headers: this.defaultHeaders
       });
 
       if (response.data && response.status === 200) {
