@@ -23,7 +23,7 @@ class GemRateService {
       'Accept-Language': 'en-US,en;q=0.9',
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
       'Origin': 'https://www.gemrate.com',
-      'Referer': 'https://www.gemrate.com/universal-search',
+      'Referer': 'https://www.gemrate.com/',
       'X-Requested-With': 'XMLHttpRequest',
       'Sec-Fetch-Site': 'same-origin',
       'Sec-Fetch-Mode': 'cors',
@@ -43,6 +43,20 @@ class GemRateService {
       console.log('✅ GemRate session initialized');
     } catch (error) {
       console.log(`⚠️ GemRate warm-up failed: ${error.message}`);
+    }
+  }
+
+  async warmCardSession(gemrateId) {
+    try {
+      await this.httpClient.get(`/card/${gemrateId}`, {
+        headers: {
+          ...this.defaultHeaders,
+          'Referer': 'https://www.gemrate.com/universal-search'
+        }
+      });
+      console.log(`✅ GemRate card page visited for ${gemrateId}`);
+    } catch (error) {
+      console.log(`⚠️ GemRate card page warm-up failed for ${gemrateId}: ${error.message}`);
     }
   }
 
@@ -109,6 +123,8 @@ class GemRateService {
       }
 
       console.log(`🔍 Found gemrate_id: ${gemrateId}`);
+
+      await this.warmCardSession(gemrateId);
 
       // Step 2: Get detailed card data using gemrate_id
       const cardDetails = await this.getCardDetails(gemrateId);
@@ -209,7 +225,10 @@ class GemRateService {
       
       const response = await this.httpClient.get(this.cardDetailsPath, {
         params: { gemrate_id: gemrateId },
-        headers: this.defaultHeaders
+        headers: {
+          ...this.defaultHeaders,
+          'Referer': `https://www.gemrate.com/card/${gemrateId}`
+        }
       });
 
       if (response.data && response.status === 200) {
