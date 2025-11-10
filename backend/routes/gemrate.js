@@ -2,16 +2,29 @@ const express = require('express');
 const router = express.Router();
 const gemrateService = require('../services/gemrateService');
 
+const sanitizeGemrateQuery = (query) => {
+  if (!query || typeof query !== 'string') return query;
+  let cleanQuery = query;
+  const exclusionIndex = cleanQuery.indexOf(' -(');
+  if (exclusionIndex !== -1) {
+    cleanQuery = cleanQuery.substring(0, exclusionIndex).trim();
+  }
+  cleanQuery = cleanQuery.replace(/\s*-\s*\([^)]+\)/g, '').trim();
+  cleanQuery = cleanQuery.replace(/\s*-\s*\w+/g, '').trim();
+  return cleanQuery;
+};
+
 // GET /api/gemrate/search/:query - Search for card population data
 router.get('/search/:query', async (req, res) => {
   try {
     const { query } = req.params;
     const { options } = req.query;
+    const cleanQuery = sanitizeGemrateQuery(query);
     
-    console.log(`🔍 GemRate search request: "${query}"`);
+    console.log(`🔍 GemRate search request: "${cleanQuery}"`);
     
-    const result = await gemrateService.searchCardPopulation(query, options ? JSON.parse(options) : {});
-    
+    const result = await gemrateService.searchCardPopulation(cleanQuery, options ? JSON.parse(options) : {});
+
     res.json({
       success: true,
       data: result,
@@ -38,11 +51,13 @@ router.post('/search', async (req, res) => {
         error: 'Missing required field: query'
       });
     }
+
+    const cleanQuery = sanitizeGemrateQuery(query);
     
-    console.log(`🔍 GemRate search request: "${query}"`);
+    console.log(`🔍 GemRate search request: "${cleanQuery}"`);
     
-    const result = await gemrateService.searchCardPopulation(query, options || {});
-    
+    const result = await gemrateService.searchCardPopulation(cleanQuery, options || {});
+
     res.json({
       success: true,
       data: result,

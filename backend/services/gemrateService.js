@@ -18,17 +18,51 @@ class GemRateService {
       withCredentials: true
     }));
 
-    this.defaultHeaders = {
-      'Accept': '*/*',
+    this.baseHeaders = {
       'Accept-Language': 'en-US,en;q=0.9',
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
-      'Origin': 'https://www.gemrate.com',
+      'Origin': 'https://www.gemrate.com'
+    };
+
+    this.pageHeaders = {
+      ...this.baseHeaders,
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
       'Referer': 'https://www.gemrate.com/',
+      'Sec-Fetch-Site': 'same-origin',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Dest': 'document',
+      'Cache-Control': 'max-age=0'
+    };
+
+    this.searchHeaders = {
+      ...this.baseHeaders,
+      'Accept': 'application/json, text/plain, */*',
+      'Content-Type': 'application/json',
+      'Referer': 'https://www.gemrate.com/universal-search',
       'X-Requested-With': 'XMLHttpRequest',
       'Sec-Fetch-Site': 'same-origin',
       'Sec-Fetch-Mode': 'cors',
       'Sec-Fetch-Dest': 'empty'
     };
+
+    this.cardPageHeaders = {
+      ...this.baseHeaders,
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+      'Referer': 'https://www.gemrate.com/universal-search',
+      'Sec-Fetch-Site': 'same-origin',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Dest': 'document'
+    };
+
+    this.cardDetailsHeaders = (gemrateId) => ({
+      ...this.baseHeaders,
+      'Accept': 'application/json, text/plain, */*',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Referer': `https://www.gemrate.com/card/${gemrateId}`,
+      'Sec-Fetch-Site': 'same-origin',
+      'Sec-Fetch-Mode': 'cors',
+      'Sec-Fetch-Dest': 'empty'
+    });
 
     this.sessionInitialized = false;
   }
@@ -37,7 +71,7 @@ class GemRateService {
     if (this.sessionInitialized) return;
     try {
       await this.httpClient.get('/', {
-        headers: this.defaultHeaders
+        headers: this.pageHeaders
       });
       this.sessionInitialized = true;
       console.log('✅ GemRate session initialized');
@@ -48,13 +82,10 @@ class GemRateService {
 
   async warmCardSession(gemrateId) {
     try {
-      await this.httpClient.get(`/card/${gemrateId}`, {
-        headers: {
-          ...this.defaultHeaders,
-          'Referer': 'https://www.gemrate.com/universal-search'
-        }
+      const response = await this.httpClient.get(`/card/${gemrateId}`, {
+        headers: this.cardPageHeaders
       });
-      console.log(`✅ GemRate card page visited for ${gemrateId}`);
+      console.log(`✅ GemRate card page visited for ${gemrateId} (status ${response.status})`);
     } catch (error) {
       console.log(`⚠️ GemRate card page warm-up failed for ${gemrateId}: ${error.message}`);
     }
@@ -92,10 +123,7 @@ class GemRateService {
         query: cleanQuery,
         ...options
       }, {
-        headers: {
-          ...this.defaultHeaders,
-          'Content-Type': 'application/json'
-        }
+        headers: this.searchHeaders
       });
 
       if (!searchResponse.data || searchResponse.status !== 200) {
@@ -225,10 +253,7 @@ class GemRateService {
       
       const response = await this.httpClient.get(this.cardDetailsPath, {
         params: { gemrate_id: gemrateId },
-        headers: {
-          ...this.defaultHeaders,
-          'Referer': `https://www.gemrate.com/card/${gemrateId}`
-        }
+        headers: this.cardDetailsHeaders(gemrateId)
       });
 
       if (response.data && response.status === 200) {
