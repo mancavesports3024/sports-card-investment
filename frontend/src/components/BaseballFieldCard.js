@@ -158,7 +158,8 @@ const BaseballFieldCard = ({ card }) => {
 
   return (
     <div className="baseball-field-card">
-      <div className="baseball-field">
+      <div className="baseball-field-wrapper">
+        <div className="baseball-field">
         {/* Baseball field elements */}
         <div className="foul-line first"></div>
         <div className="foul-line third"></div>
@@ -264,6 +265,7 @@ const BaseballFieldCard = ({ card }) => {
           </div>
         )}
 
+      </div>
       </div>
     </div>
   );
