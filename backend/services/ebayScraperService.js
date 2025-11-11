@@ -993,6 +993,7 @@ class EbayScraperService {
                             debugBidLog(`   Found ${bidMatches.length} potential bid matches`);
                             let bestMatch = null;
                             let bestScore = 0;
+                            let bestEffectiveNum = null;
 
                             for (const match of bidMatches) {
                                 const num = parseInt(match[1], 10);
@@ -1085,7 +1086,7 @@ class EbayScraperService {
                                         debugBidLog(`     ✅ Selecting bid match ${effectiveNum}`);
                                         bestMatch = match;
                                         bestScore = effectiveNum;
-                                        numBids = effectiveNum;
+                                        bestEffectiveNum = effectiveNum;
                                     } else {
                                         debugBidLog(`     ➖ Not better than current best score (${bestScore})`);
                                     }
@@ -1094,7 +1095,7 @@ class EbayScraperService {
 
                             if (bestMatch) {
                                 saleType = 'Auction';
-                                numBids = parseInt(bestMatch[1], 10);
+                                numBids = bestEffectiveNum ?? parseInt(bestMatch[1], 10);
                                 debugBidLog(`🎯 Found auction with ${numBids} bids in full-text search (text: "${bestMatch[0]}", index: ${bestMatch.index})`);
                             } else {
                                 debugBidLog(`   ❌ No valid bid matches found after filtering`);
