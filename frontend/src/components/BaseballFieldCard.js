@@ -87,9 +87,9 @@ const BaseballFieldCard = ({ card }) => {
     
     // Extract set name (usually contains terms like "Set", "Series", collection names)
     const setPatterns = [
-      /(?:Pokemon|Pokémon)?\s*(Japanese|English)?\s*([A-Z0-9][A-Za-z0-9\s\-]+(?:\s+(Set|Series|Collection|Premier|Crown|Zenith|Inferno|etc)))/i,
-      /([A-Z][A-Z0-9\-\s]+(?:Set|Series|Collection|Pack))/i,
-      /([A-Z0-9][A-Za-z0-9\s\-]{5,})/i
+      /(?:Pokemon|Pokémon)?\s*(Japanese|English)?\s*([A-Z0-9][A-Za-z0-9\s-]+(?:\s+(Set|Series|Collection|Premier|Crown|Zenith|Inferno|etc)))/i,
+      /([A-Z][A-Z0-9-\s]+(?:Set|Series|Collection|Pack))/i,
+      /([A-Z0-9][A-Za-z0-9\s-]{5,})/i
     ];
     
     for (const pattern of setPatterns) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import config from '../config';
 import FeaturedEbayRotator from './FeaturedEbayRotator';
@@ -80,6 +80,8 @@ const CardSetAnalysis = () => {
       case 'Escape':
         setShowSuggestions(false);
         setSuggestions([]);
+        break;
+      default:
         break;
     }
   };

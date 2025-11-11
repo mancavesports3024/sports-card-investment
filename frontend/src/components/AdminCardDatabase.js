@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './AdminCardDatabase.css';
 
 // Edit Card Modal Component
@@ -237,11 +237,7 @@ const AdminCardDatabase = () => {
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://web-production-9efa.up.railway.app';
 
-  useEffect(() => {
-    fetchCards();
-  }, [currentPage, filters]);
-
-  const fetchCards = async () => {
+  const fetchCards = useCallback(async () => {
     setLoading(true);
     setError('');
     
@@ -266,7 +262,11 @@ const AdminCardDatabase = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE_URL, currentPage, filters]);
+
+  useEffect(() => {
+    fetchCards();
+  }, [fetchCards]);
 
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({
