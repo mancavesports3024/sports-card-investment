@@ -159,13 +159,15 @@ class GemRateService {
 
       const $ = cheerio.load(response.data);
       const pathsSet = new Set();
+      let slug = null;
+      let universalPopPath = null;
 
-    const addPath = (href) => {
+      const addPath = (href) => {
         if (!href) return;
         const normalized = this.normalizePath(href);
-      if (normalized) {
-        pathsSet.add(normalized);
-      }
+        if (normalized) {
+          pathsSet.add(normalized);
+        }
       };
 
       const canonical = $('link[rel="canonical"]').attr('href');
@@ -180,8 +182,28 @@ class GemRateService {
         }
       });
 
-      let slug = null;
-      let universalPopPath = null;
+      const urlPathRegex = /"url_path":"([^"]+)"/g;
+      let match;
+      while ((match = urlPathRegex.exec(response.data)) !== null) {
+        addPath(match[1]);
+      }
+
+      const canonicalRegex = /"canonical_url":"([^"]+)"/g;
+      while ((match = canonicalRegex.exec(response.data)) !== null) {
+        addPath(match[1]);
+      }
+
+      const slugRegex = /"slug":"([^"]+)"/g;
+      while ((match = slugRegex.exec(response.data)) !== null) {
+        if (!slug) {
+          slug = decodeURIComponent(match[1]);
+        }
+      }
+
+      if (slug) {
+        addPath(`/card/${slug}`);
+        addPath(`/card/${slug}/pop`);
+      }
 
       for (const path of pathsSet) {
         const match = path.match(/\/card\/([^/?#]+)/i);
@@ -192,7 +214,7 @@ class GemRateService {
         if (!universalPopPath && path.startsWith('/universal-pop-report/')) {
           universalPopPath = path;
           const popMatch = path.match(/\/universal-pop-report\/[^/]+\/([^/?#]+)/i);
-          if (popMatch) {
+          if (popMatch && !slug) {
             slug = decodeURIComponent(popMatch[1]);
           }
         }
