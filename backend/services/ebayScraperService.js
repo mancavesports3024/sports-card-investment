@@ -543,6 +543,15 @@ class EbayScraperService {
                 console.log('⚠️ Detected sparse result set (<5 items). Dumping HTML preview for analysis.');
                 const preview = html.slice(0, 2000).replace(/\s+/g, ' ');
                 console.log(`--- HTML PREVIEW START ---\n${preview}\n--- HTML PREVIEW END ---`);
+                const itemSummariesIdx = html.indexOf('"itemSummaries"');
+                if (itemSummariesIdx !== -1) {
+                    const start = Math.max(0, itemSummariesIdx - 300);
+                    const end = Math.min(html.length, itemSummariesIdx + 2000);
+                    const snippet = html.slice(start, end).replace(/\s+/g, ' ');
+                    console.log(`--- ITEM SUMMARIES SNIPPET ---\n${snippet}\n--- ITEM SUMMARIES SNIPPET END ---`);
+                } else {
+                    console.log('ℹ️ No "itemSummaries" token detected in HTML.');
+                }
             }
             
             console.log(`🔄 Processing ${items.length} items...`);
