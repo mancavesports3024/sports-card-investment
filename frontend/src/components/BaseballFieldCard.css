@@ -10,14 +10,14 @@
   position: relative;
   width: 100%;
   max-width: 620px;
-  aspect-ratio: 3 / 2;
-  min-height: 280px;
+  height: 200px;
+  min-height: 200px;
   background: #2d7a1f;
   border-radius: 12px;
   border: 3px solid #ffd700;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
   overflow: hidden;
-  padding: 0.75rem;
+  padding: 0.6rem;
 }
 
 /* Grass mowing stripes */
@@ -76,9 +76,9 @@
 
 /* Base positions - moved up a full inch, closer to tiles */
 .base-marker.first {
-  bottom: 35%;
+  bottom: 32%;
   right: 10%;
-  transform: translate(-18px, -48px) rotate(45deg);
+  transform: translate(-18px, -36px) rotate(45deg);
   /* Positioned below PSA 9 tile: moved up 1 full inch, left 3/16 inch */
 }
 
@@ -88,9 +88,9 @@
 }
 
 .base-marker.third {
-  bottom: 35%;
+  bottom: 32%;
   left: 10%;
-  transform: translate(18px, -48px) rotate(45deg);
+  transform: translate(18px, -36px) rotate(45deg);
   /* Positioned below GEM RATE tile: moved up 1 full inch, right 3/16 inch */
 }
 
@@ -130,37 +130,37 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.45rem;
+  padding: 0.4rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 /* Row 1: PSA 10 (horizontal, centered at top - pitcher's mound area) */
 .tile-psa10 {
-  top: 5%;
+  top: 6%;
   left: 50%;
   transform: translateX(-50%);
-  width: 62%;
-  min-height: 58px;
+  width: 60%;
+  min-height: 48px;
   background: linear-gradient(180deg, #1e5c14 0%, #2d7a1f 100%);
 }
 
 /* Row 2: Middle row - using absolute positioning */
 /* 2. Gem Rate: vertical tile on left (third base area) */
 .tile-gemrate {
-  bottom: 50%; /* move up slightly */
+  bottom: 48%; /* move up slightly */
   left: 8%;
   width: 20%; /* smaller */
-  min-height: 100px; /* smaller */
+  min-height: 86px; /* smaller */
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
 }
 
 /* 3. Card Image: vertical tile in center (below PSA 10) - no border, just image */
 .tile-card {
-  bottom: 18%;
+  bottom: 16%;
   left: 50%;
   transform: translateX(-50%);
-  width: 28%;
-  min-height: 220px;
+  width: 26%;
+  min-height: 140px;
   background: transparent;
   border: none;
   display: flex;
@@ -193,27 +193,27 @@
 
 /* 4. PSA 9: vertical tile on right (first base area) */
 .tile-psa9 {
-  bottom: 50%; /* move up slightly */
+  bottom: 48%; /* move up slightly */
   right: 8%;
   width: 20%; /* smaller */
-  min-height: 100px; /* smaller */
+  min-height: 86px; /* smaller */
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
 }
 
 /* Row 3: RAW (vertical, centered below Card Image - home plate area) */
 .tile-raw {
-  bottom: 5%;
+  bottom: 8%;
   left: 50%;
   transform: translateX(-50%);
-  width: 28%;
-  min-height: 48px;
+  width: 26%;
+  min-height: 40px;
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
 }
 
 /* Timestamp - Bottom of card */
 .card-timestamp {
   position: absolute;
-  bottom: 1%;
+  bottom: 2%;
   left: 50%;
   transform: translateX(-50%);
   color: #ffffff;
@@ -227,7 +227,7 @@
 /* Typography - Increased font sizes for better readability */
 /* Headings (PSA 10, RAW, etc.) - Match price font size */
 .tile-label {
-  font-size: 0.844rem; /* +25% */
+  font-size: 0.78rem; /* +25% */
   font-weight: 800;
   color: #ffffff;
   text-transform: uppercase;
@@ -238,7 +238,7 @@
 
 /* Price values and main data */
 .tile-value {
-  font-size: 0.844rem; /* +25% */
+  font-size: 0.82rem; /* +25% */
   font-weight: 900;
   color: #ffffff;
   text-shadow: 3px 3px 5px rgba(0, 0, 0, 1), 0 0 8px rgba(0, 0, 0, 0.95);
@@ -247,7 +247,7 @@
 
 /* Subtext (population, percentages, etc.) */
 .tile-info {
-  font-size: 0.8rem; /* larger for Pop, Total */
+  font-size: 0.7rem; /* larger for Pop, Total */
   font-weight: 600;
   color: #ffffff;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 5px rgba(0, 0, 0, 0.9);
@@ -308,13 +308,13 @@
 /* Card Image - Larger and more prominent */
 .card-image {
   width: auto;
-  max-width: 160px;
+  max-width: 120px;
   height: auto;
   border-radius: 8px;
   background: #ffffff;
-  padding: 0.6rem;
+  padding: 0.5rem;
   border: 3px solid rgba(255, 255, 255, 1);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.9), 0 0 15px rgba(255, 255, 255, 0.7);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.85), 0 0 12px rgba(255, 255, 255, 0.6);
   object-fit: contain;
   /* Center horizontally */
   margin: 0 auto;
@@ -391,31 +391,31 @@
 @media (max-width: 768px) {
   .baseball-field {
     max-width: 100%;
-    aspect-ratio: 1;
-    min-height: 220px;
+    height: 200px;
+    min-height: 200px;
   }
 
   .tile {
-    padding: 0.35rem;
+    padding: 0.32rem;
   }
 
   .tile-label {
-    font-size: 0.6rem;
+    font-size: 0.58rem;
   }
 
   .tile-value {
-    font-size: 0.8rem;
+    font-size: 0.76rem;
   }
 
   .tile-info {
-    font-size: 0.55rem;
+    font-size: 0.5rem;
   }
 
   .tile-card {
-    min-height: 180px;
+    min-height: 135px;
   }
 
   .card-image {
-    max-width: 130px;
+    max-width: 110px;
   }
 }
