@@ -553,21 +553,23 @@ class EbayScraperService {
                     console.log('ℹ️ No "itemSummaries" token detected in HTML.');
                 }
             }
-            
+
             console.log(`🔄 Processing ${items.length} items...`);
-            
+
             let processedCount = 0;
             let skippedCount = 0;
-            
+
+            const seenItemIds = new Set();
+
             // Process each item
             items.each((index, element) => {
                 if (index >= maxResultsNum) {
                     console.log(`🛑 Reached processing limit of ${maxResultsNum} items, stopping`);
                     return false; // Stop processing
                 }
-                
+
                 const $item = $(element);
-                
+
                 // Extract title with multiple fallbacks
                 let title = '';
                 const titleSelectors = [
@@ -583,7 +585,7 @@ class EbayScraperService {
                     'a[href*="/itm/"] span',
                     'a[href*="/itm/"]'
                 ];
-                
+
                 for (const selector of titleSelectors) {
                     const titleEl = $item.find(selector).first();
                     if (titleEl.length > 0) {
@@ -595,7 +597,7 @@ class EbayScraperService {
                                 const spanText = $(spans[i]).text().trim();
                                 if (spanText && !/^New Listing$/i.test(spanText) && !/^Brand New$/i.test(spanText)) {
                                     candidateTitle = spanText;
-                        break;
+                                    break;
                                 }
                             }
                         }
@@ -629,7 +631,7 @@ class EbayScraperService {
                         if (title && title.length > 10) break; // Increased threshold
                     }
                 }
-                
+
                 // Stronger fallback: if title is missing or looks like a placeholder like 'New Listing',
                 // attempt to extract from any product link inside the item
                 if (!title || /^New Listing$/i.test(title)) {
@@ -665,7 +667,7 @@ class EbayScraperService {
                         }
                     }
                 }
-                
+
                 // Additional filter for promotional content and "Choose Your Card" items
                 if (title && (
                     /Shop on eBay/i.test(title) ||
@@ -679,14 +681,14 @@ class EbayScraperService {
                     skippedCount++;
                     return;
                 }
-                
+
                 if (!title || title.length < 10) {
                     console.log(`⚠️ Skipping item ${index}: no valid title found (length: ${title?.length || 0})`);
                     skippedCount++;
                     return;
                 }
                 // Reduced logging - item processed
-                
+
                 // Extract price with better accuracy
                 let price = '';
                 let numericPrice = 0;
@@ -699,7 +701,7 @@ class EbayScraperService {
                     '.s-item__detail .s-item__price',
                     '.s-item__details .s-item__price'
                 ];
-                
+
                 for (const selector of priceSelectors) {
                     const priceEl = $item.find(selector).first();
                     if (priceEl.length > 0) {
@@ -714,7 +716,7 @@ class EbayScraperService {
                         }
                     }
                 }
-                
+
                 // If no price found with selectors, try regex on the entire item text
                 if (!price) {
                     const itemText = $item.text();
@@ -724,14 +726,14 @@ class EbayScraperService {
                         numericPrice = parseFloat(price.replace(/[^\d.,]/g, '').replace(/,/g, ''));
                     }
                 }
-                
+
                 if (!price || numericPrice === 0) {
                     console.log(`⚠️ Skipping item ${index}: no valid price found (price: "${price}", numeric: ${numericPrice})`);
                     skippedCount++;
                     return;
                 }
                 // Reduced logging - price extracted
-                
+
                 // Extract sold date and time
                 let soldDate = 'Recently sold';
                 const soldDateSelectors = [
@@ -748,14 +750,14 @@ class EbayScraperService {
                     '.s-item__subtitle',
                     '.s-item__info'
                 ];
-                
+
                 // Extract shipping cost
                 // Primary: User-identified exact location where eBay places shipping info
                 // Same selector as bids but filter by content (delivery/shipping/postage)
                 let shippingCost = null;
                 const primaryShippingSelector = '.s-card_attribute-row .su-styled-text.secondary.large';
                 const shippingElements = $item.find(primaryShippingSelector);
-                
+
                 // Find the element that contains shipping information
                 shippingElements.each((index, element) => {
                     const shippingText = $(element).text().trim();
@@ -768,7 +770,7 @@ class EbayScraperService {
                             /\+?\s*(\$|£|€)\s*([\d,]+\.?\d*)\s*(?:delivery|shipping|postage)/i,
                             /free\s+(?:delivery|shipping|postage)/i,
                         ];
-                        
+
                         for (const pattern of shippingPatterns) {
                             const match = shippingText.match(pattern);
                             if (match) {
@@ -786,7 +788,10 @@ class EbayScraperService {
                         }
                     }
                 });
-                
+
+                let saleType = 'Buy It Now';
+                let numBids = null;
+
                 // Fallback: Only check other selectors if primary didn't find it
                 if (!shippingCost) {
                     const shippingSelectors = [
@@ -805,446 +810,62 @@ class EbayScraperService {
                         '[class*="delivery"]',
                         '.su-styled-text.secondary'
                     ];
-                
-                for (const selector of shippingSelectors) {
-                    const shippingEl = $item.find(selector).first();
-                    if (shippingEl.length > 0) {
-                        const shippingText = shippingEl.text().trim();
-                        
-                        // Look for various shipping cost patterns
-                        const patterns = [
-                            // Standard patterns: "$4.99 shipping", "Free shipping"
-                            /(?:shipping|delivery|postage|p\s*&\s*p)[\s:+]*(\$|£|€)?\s*([\d,]+\.?\d*|Free|free)/i,
-                            // Cost followed by descriptor: "+$4.99 delivery", "+$4.99 postage"
-                            /\+?\s*(\$|£|€)\s*([\d,]+\.?\d*)\s*(?:shipping|delivery|postage)/i,
-                            // Descriptor with free: "Free delivery", "Free postage"
-                            /(Free\s+(?:shipping|delivery|postage)|free\s+(?:shipping|delivery|postage))/i,
-                            // Direct cost patterns: "$4.99", "£2.99", "Free"
-                            /(\$|£|€)\s*([\d,]+\.?\d*)/i,
-                            // "Shipping included" or similar
-                            /(shipping\s+included|included\s+shipping)/i
-                        ];
-                        
-                        for (const pattern of patterns) {
-                            const shippingMatch = shippingText.match(pattern);
-                            if (shippingMatch) {
-                                let raw = shippingMatch[0];
-                                let currency = shippingMatch[1] && /[$£€]/.test(shippingMatch[1]) ? shippingMatch[1] : (shippingMatch[2] && /[$£€]/.test(shippingMatch[2]) ? shippingMatch[2] : '$');
-                                let valuePart = shippingMatch[2] && !/[$£€]/.test(shippingMatch[2]) ? shippingMatch[2] : (shippingMatch[1] && !/[$£€]/.test(shippingMatch[1]) ? shippingMatch[1] : null);
-                                const lower = raw.toLowerCase().trim();
-                                if (lower.includes('free') || lower === 'free' || lower.includes('included')) {
-                                    shippingCost = 'Free';
-                                } else if (valuePart) {
-                                    shippingCost = `${currency}${valuePart}`;
-                                } else {
-                                    // Fallback: extract any number
-                                    const num = raw.match(/([\d,]+\.?\d*)/);
-                                    if (num) {
-                                        shippingCost = `${currency}${num[1]}`;
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                        
-                        if (shippingCost) break;
-                    }
-                }
-                
-                    // Final fallback: If shipping not found in specific selectors, search entire item text
-                    if (!shippingCost) {
-                        const fullItemText = $item.text();
-                        const shippingPatterns = [
-                            // Match "+$7.80 delivery", "+$4.99 shipping", etc.
-                            /\+?\s*(\$|£|€)\s*([\d,]+\.?\d*)\s*(?:delivery|shipping|postage|p\s*&\s*p)/i,
-                            // Match "Free delivery", "Free shipping", etc.
-                            /free\s+(?:delivery|shipping|postage)/i,
-                            // Match "$7.80 delivery", "$4.99 shipping" (without +)
-                            /(\$|£|€)\s*([\d,]+\.?\d*)\s*(?:delivery|shipping|postage)/i,
-                        ];
-                        
-                        for (const pattern of shippingPatterns) {
-                            const match = fullItemText.match(pattern);
-                            if (match) {
-                                if (match[0].toLowerCase().includes('free')) {
-                                    shippingCost = 'Free';
-                                } else if (match[2] && match[1]) {
-                                    // Extract currency and value
-                                    const currency = match[1] || '$';
-                                    const value = match[2].replace(/,/g, '');
-                                    shippingCost = `${currency}${value}`;
-                                }
-                                if (shippingCost) break;
-                            }
-                        }
-                    }
-                }
-                
-                // Extract sale type and bid information
-                let saleType = null;
-                let numBids = null;
-                
-                // Primary: User-identified exact location where eBay places bid count
-                // Try multiple selectors to catch different eBay layouts
-                let foundBidElement = null;
-                const bidSelectors = [
-                    '.s-card_attribute-row .su-styled-text.secondary.large',  // Exact DevTools selector
-                    '.s-card_attribute-row .su-styled-text',                  // Fallback
-                    '.s-card_attribute-row span'                              // Broader fallback
-                ];
-                
-                for (const selector of bidSelectors) {
-                    const bidElements = $item.find(selector);
-                    if (bidElements.length > 0) {
-                        bidElements.each((index, element) => {
-                            let text = $(element).text().trim();
-                            debugBidLog(`🔍 Checking element ${index} with selector "${selector}": "${text}"`);
-                            
-                            // CRITICAL: If there's a $ sign, split at it and only use the part BEFORE the $
-                            // This prevents "19 bids== $0" from interfering with extraction
-                            if (text.includes('$')) {
-                                const dollarIndex = text.indexOf('$');
-                                text = text.substring(0, dollarIndex).trim();
-                                debugBidLog(`   After splitting at $: "${text}"`);
-                            }
-                            
-                            // Clean up any extra characters like "==" that might interfere
-                            text = text.replace(/[=]+/g, ' ').trim();
-                            
-                            const lowerText = text.toLowerCase();
-                            // Only consider elements that contain "bid" or "bids"
-                            if (lowerText.includes('bid') || lowerText.includes('bids')) {
-                                debugBidLog(`   Contains bid text, attempting match...`);
-                                // Match patterns like "19 bids", "1 bid" - use word boundaries to avoid matching prices
-                                // CRITICAL: The text should be primarily about bids - check if it matches the pattern closely
-                                const bidMatch = text.match(/\b(\d+)\s*bids?\b/i);
+
+                    for (const selector of shippingSelectors) {
+                        const shippingEl = $item.find(selector).first();
+                        if (shippingEl.length > 0) {
+                            const shippingText = shippingEl.text().trim();
+                            if (!shippingText) continue;
+                            const lowerText = shippingText.toLowerCase();
+                            if (lowerText.includes('bid')) {
+                                const bidMatch = shippingText.match(/(\d+)\s*bids?/i);
                                 if (bidMatch) {
-                                    debugBidLog(`   Matched bid pattern: "${bidMatch[0]}"`);
-                                    const bidNum = parseInt(bidMatch[1], 10);
-                                    // Validate: reasonable bid count (1-10000)
-                                    if (bidNum >= 1 && bidNum <= 10000) {
-                                        // For small numbers (1-99), check if they're part of a decimal (like "18.50")
-                                        let isPricePattern = false;
-                                        if (bidNum < 100) {
-                                            const beforeMatch = text.substring(Math.max(0, bidMatch.index - 10), bidMatch.index);
-                                            const decimalPattern = new RegExp(`\\d+\\.${bidNum}\\b`);
-                                            isPricePattern = decimalPattern.test(beforeMatch);
-                                        }
-                                        
-                                        // Accept if it's not a price pattern - be less strict about text length/position
-                                        // The primary selector is already specific enough (.s-card_attribute-row .su-styled-text.secondary.large)
-                                        // so we can trust matches from it
-                                        if (!isPricePattern) {
-                                            foundBidElement = { text, bidNum };
-                                            debugBidLog(`   ✅ Found bid element with ${bidNum} bids (primary selector match)`);
-                                            return false; // Break out of each loop
-                                        } else {
-                                            debugBidLog(`   ❌ Rejected as price pattern`);
-                                        }
+                                    saleType = 'Auction';
+                                    numBids = parseInt(bidMatch[1], 10);
+                                }
+                                continue;
+                            }
+                            const shippingPatterns = [
+                                /\+?\s*(\$|£|€)\s*([\d,]+\.?\d*)\s*(?:delivery|shipping|postage)/i,
+                                /free\s+(?:delivery|shipping|postage)/i,
+                            ];
+                            for (const pattern of shippingPatterns) {
+                                const match = shippingText.match(pattern);
+                                if (match) {
+                                    if (match[0].toLowerCase().includes('free')) {
+                                        shippingCost = 'Free';
+                                    } else if (match[2] && match[1]) {
+                                        const currency = match[1] || '$';
+                                        const value = match[2].replace(/,/g, '');
+                                        shippingCost = `${currency}${value}`;
                                     }
-                                } else {
-                                    debugBidLog(`   ❌ No bid match found in text`);
+                                    break;
                                 }
                             }
-                        });
-                        if (foundBidElement) break; // Break out of selector loop if found
-                    }
-                }
-                
-                if (foundBidElement) {
-                    saleType = 'Auction';
-                    numBids = foundBidElement.bidNum;
-                    debugBidLog(`🎯 Found auction with ${numBids} bids in primary selector (text: "${foundBidElement.text}")`);
-                }
-                
-                // Secondary: Look for bid information in other areas
-                const saleTypeSelectors = [
-                    '.s-item__detail--primary',
-                    '.s-item__details',
-                    '.s-item__subtitle',
-                    '.s-item__info',
-                    '.s-item__caption',
-                    '.s-item__price',
-                    '.s-item__shipping'
-                ];
-                
-                if (!saleType || numBids == null) {
-                    for (const selector of saleTypeSelectors) {
-                        const saleEl = $item.find(selector);
-                        if (saleEl.length > 0) {
-                            let saleText = saleEl.text().trim();
-                            
-                            // CRITICAL: If there's a $ sign, split at it and only use the part BEFORE the $
-                            if (saleText.includes('$')) {
-                                const dollarIndex = saleText.indexOf('$');
-                                saleText = saleText.substring(0, dollarIndex).trim();
-                            }
-                            
-                            // Check for auction indicators and extract bid count
-                            // Use word boundaries to avoid matching numbers from prices
-                            const bidMatch = saleText.match(/\b(\d+)\s*bids?\b/i);
-                            if (bidMatch) {
-                                saleType = 'Auction';
-                                numBids = parseInt(bidMatch[1]);
-                                debugBidLog(`🎯 Found auction with ${numBids} bids`);
+                            if (shippingCost) {
                                 break;
                             }
                         }
                     }
                 }
-                
-                // CRITICAL: Check full item text for bids ONLY if primary/secondary selectors didn't find anything
-                // This prevents full-text search from overriding correct primary selector results
-                // Only run if we don't have a valid bid count yet
-                if (!saleType || numBids == null || isNaN(numBids)) {
-                    debugBidLog(`🔍 Running full-text search for bids. Current saleType: ${saleType}, numBids: ${numBids}`);
-                    const fullText = $item.text();
-                    if (fullText) {
-                        debugBidLog(`   Full text length: ${fullText.length}`);
-                        // Match pattern: number followed by "bid" or "bids" with word boundaries
-                        let bidMatches = [];
-                        try {
-                            // Try matchAll first (ES2020+)
-                            const matchIterator = fullText.matchAll(/\b(\d+)\s*bids?\b/gi);
-                            bidMatches = Array.from(matchIterator);
-                        } catch (e) {
-                            // Fallback for older JS: use exec in a loop
-                            const regex = /\b(\d+)\s*bids?\b/gi;
-                            let match;
-                            while ((match = regex.exec(fullText)) !== null) {
-                                bidMatches.push(match);
-                            }
-                        }
-                        
-                        if (bidMatches && bidMatches.length > 0) {
-                            debugBidLog(`   Found ${bidMatches.length} potential bid matches`);
-                            // SIMPLIFIED: Just find the first reasonable match - prefer smaller numbers
-                            let bestMatch = null;
-                            let bestScore = 0;
-                            
-                            for (const match of bidMatches) {
-                                const num = parseInt(match[1], 10);
-                                debugBidLog(`   Checking match: "${match[0]}" (number: ${num})`);
-                                
-                                // Basic validation: reasonable bid count (1-10000)
-                                if (num >= 1 && num <= 10000) {
-                                    // Increase lookback to catch prices that might be further back
-                                    const beforeMatch = fullText.substring(Math.max(0, match.index - 25), match.index);
-                                    // Also get text that includes the match to check for concatenation
-                                    const matchContext = fullText.substring(Math.max(0, match.index - 10), match.index + match[0].length + 5);
-                                    debugBidLog(`     Before match context: "${beforeMatch}"`);
-                                    debugBidLog(`     Match context (includes match): "${matchContext}"`);
-                                    
-                                    // ONLY skip if $ sign appears immediately before (within 3 chars) - likely part of price
-                                    // Be more lenient - only skip if price is RIGHT before the bid count
-                                    const hasDollarImmediatelyBefore = /[\$£€]\s*\d+(?:\.\d+)?\s{0,2}$/.test(beforeMatch.trim());
-                                    
-                                    // ONLY skip if it's clearly a decimal (like "18.50" where "50" matches)
-                                    // Only check for small numbers that could be decimal parts
-                                    const isDecimalPart = num < 100 && /\d+\.\d*\s*$/.test(beforeMatch.trim());
-                                    
-                                    // Skip if it's part of a very long number (12+ digits - eBay item numbers)
-                                    const isItemNumber = /\d{12,}\s*$/.test(beforeMatch.trim());
-                                    
-                                    // For reasonable bid counts (1-1000), be more lenient - only skip if clearly a price
-                                    // Don't skip just because there's a price somewhere before it
-                                    const isReasonableBidCount = num >= 1 && num <= 1000;
-                                    
-                                    // Fix concatenation cases where price and bid are concatenated with no space
-                                    // Examples: "$14.99" + "1 bid" = "$14.991 bid", "$17.50" + "5 bids" = "$17.505 bids"
-                                    let effectiveNum = num;
-                                    let wasConcatenatedAndFixed = false; // Track if we fixed concatenation
-                                    
-                                    // Check the match context for price patterns that are concatenated with the bid
-                                    // Look for patterns like "$17.505" where "505" is the match but should be "5"
-                                    // Also handles "$42.0016" where "0016" is the match but should be "16"
-                                    const concatenatedPriceMatch = /[\$£€]\s*(\d+)\.(\d{1,2})(\d+)\s*bids?/i.exec(matchContext);
-                                    if (concatenatedPriceMatch) {
-                                        const priceDollars = concatenatedPriceMatch[1];
-                                        const priceCents = concatenatedPriceMatch[2];
-                                        const bidDigits = concatenatedPriceMatch[3];
-                                        debugBidLog(`     Found concatenated price pattern: $${priceDollars}.${priceCents}${bidDigits} bids`);
-                                        debugBidLog(`     Price cents: "${priceCents}", Bid digits: "${bidDigits}"`);
-                                        const matchedNumberStr = match[1]; // e.g., "0016" or "505"
-                                        const expectedConcatenated = priceCents + bidDigits; // e.g., "00" + "16" = "0016"
-                                        debugBidLog(`     Comparing matched string "${matchedNumberStr}" with expected "${expectedConcatenated}"`);
-                                        if (matchedNumberStr === expectedConcatenated) {
-                                            const bidNum = parseInt(bidDigits, 10);
-                                            if (bidNum >= 1 && bidNum <= 1000) {
-                                                debugBidLog(`     ↩️ Correcting concatenated number ${num} → ${bidNum} (price "${priceCents}" + bid "${bidDigits}")`);
-                                                effectiveNum = bidNum;
-                                                wasConcatenatedAndFixed = true; // Mark that we fixed concatenation
-                                            } else {
-                                                debugBidLog(`     ❌ Bid digits "${bidDigits}" out of range (1-1000)`);
-                                            }
-                                        } else {
-                                            debugBidLog(`     ❌ Matched string "${matchedNumberStr}" doesn't match expected "${expectedConcatenated}"`);
-                                        }
-                                    }
-                                    
-                                    // Also check if immediately before is a price pattern (like "$14.99" or "$17.50")
-                                    // This handles cases where the price is separate but we still need to check
-                                    const pricePatternBefore = /[\$£€]\s*\d+\.(\d{1,2})\s*$/.exec(beforeMatch.trim());
-                                    if (pricePatternBefore) {
-                                        const priceCents = pricePatternBefore[1]; // e.g., "50" from "$17.50"
-                                        const priceCentsLength = pricePatternBefore[1].length; // 1 or 2 digits
-                                        debugBidLog(`     Found price pattern before: "${pricePatternBefore[0]}", cents: "${priceCents}"`);
 
-                                        const numStr = String(num);
-                                        debugBidLog(`     Checking if "${numStr}" starts with "${priceCents}"`);
-                                        if (numStr.startsWith(priceCents)) {
-                                            const bidPart = numStr.substring(priceCentsLength);
-                                            const bidNum = parseInt(bidPart, 10);
-                                            debugBidLog(`     Extracted bid part: "${bidPart}" → ${bidNum}`);
-
-                                            if (bidNum >= 1 && bidNum <= 1000) {
-                                                debugBidLog(`     ↩️ Correcting concatenated number ${num} → ${bidNum} (price "${priceCents}" + bid "${bidPart}")`);
-                                                effectiveNum = bidNum;
-                                            } else {
-                                                debugBidLog(`     ❌ Skipped - concatenated with price but invalid bid part: "${bidPart}"`);
-                                                continue;
-                                            }
-                                        } else {
-                                            debugBidLog(`     Number "${numStr}" does not start with price cents "${priceCents}"`);
-                                        }
-                                    } else {
-                                        debugBidLog(`     No price pattern found before match`);
-                                    }
-                                    
-                                    // Also handle cases like "$18.50" + "13 bids" = "$18.5013 bids" (old logic)
-                                    const decimalRightBefore = /\d+\.\d{1,2}\s*$/.test(beforeMatch.trim());
-                                    if (effectiveNum >= 1000 && decimalRightBefore && !pricePatternBefore) {
-                                        const tail = effectiveNum % 1000; // keep last up to 3 digits
-                                        if (tail >= 1 && tail <= 1000) {
-                                            debugBidLog(`     ↩️ Correcting concatenated number ${effectiveNum} → ${tail} (after decimal context)`);
-                                            effectiveNum = tail;
-                                        }
-                                    }
-
-                                    // Also check if pricePatternBefore fixed concatenation (for cases not caught by concatenatedPriceMatch)
-                                    if (pricePatternBefore && effectiveNum !== num && !wasConcatenatedAndFixed) {
-                                        wasConcatenatedAndFixed = true;
-                                    }
-                                    
-                                    // Allow through if we successfully fixed concatenation, or if it's a clean match
-                                    // For reasonable bid counts (1-1000), be more lenient - only skip if clearly a price pattern
-                                    // For larger numbers, be more strict
-                                    const shouldAccept = wasConcatenatedAndFixed || 
-                                        (isReasonableBidCount && !isDecimalPart && !isItemNumber) ||
-                                        (!isReasonableBidCount && !hasDollarImmediatelyBefore && !isDecimalPart && !isItemNumber);
-                                    
-                                    if (shouldAccept) {
-                                        // Prefer smaller numbers (1-1000) as they're more likely to be bid counts
-                                        const score = effectiveNum <= 1000 ? 2 : 1;
-                                        debugBidLog(`     ✅ Accepted match: ${effectiveNum} bids (score: ${score})`);
-                                        
-                                        if (score > bestScore || (score === bestScore && effectiveNum < (bestMatch ? parseInt(bestMatch[1], 10) : Infinity))) {
-                                            // Synthesize a match-like object carrying corrected number
-                                            bestMatch = { ...match, 1: String(effectiveNum), 0: `${effectiveNum} bids` };
-                                            bestScore = score;
-                                        }
-                                    } else {
-                                        if (hasDollarImmediatelyBefore && !wasConcatenatedAndFixed) debugBidLog(`     ❌ Skipped - $ immediately before`);
-                                        if (isDecimalPart) debugBidLog(`     ❌ Skipped - decimal part`);
-                                        if (isItemNumber) debugBidLog(`     ❌ Skipped - item number`);
-                                    }
-                                }
-                            }
-                            
-                            if (bestMatch) {
-                                const bidNum = parseInt(bestMatch[1], 10);
-                                saleType = 'Auction';
-                                numBids = bidNum;
-                                debugBidLog(`🎯 Found auction with ${numBids} bids in full-text search (text: "${bestMatch[0]}", index: ${bestMatch.index})`);
-                            } else {
-                                debugBidLog(`   ❌ No valid bid matches found after filtering`);
-                            }
-                        } else {
-                            debugBidLog(`   ❌ No bid matches found in full text`);
-                        }
-                    } else {
-                        debugBidLog(`   ❌ No full text available`);
-                    }
-                } else {
-                    debugBidLog(`✅ Skipping full-text search - already found ${numBids} bids from primary/secondary selectors`);
-                }
-                
-                // If no auction found, look for other sale types
-                if (!saleType) {
-                    for (const selector of saleTypeSelectors) {
-                        const saleEl = $item.find(selector).first();
-                        if (saleEl.length > 0) {
-                            const saleText = saleEl.text().trim();
-                            
-                            // Check for "Buy It Now" indicators
-                            if (saleText.includes('Buy It Now') || saleText.includes('BIN')) {
-                                saleType = 'Buy It Now';
-                                break;
-                            }
-                            
-                            // Check for "Best Offer" indicators
-                            if (saleText.includes('Best Offer') || saleText.includes('OBO')) {
-                                saleType = 'Best Offer';
-                                break;
-                            }
-                        }
-                    }
-                }
-                
-                // If no sale type found, try to infer from item structure
-                if (!saleType) {
-                    // Look for bid-related elements
-                    const bidElements = $item.find('[class*="bid"], [class*="auction"]');
-                    if (bidElements.length > 0) {
-                        saleType = 'Auction';
-                        // Try to extract bid count from bid elements (use word boundaries)
-                        const bidText = bidElements.text();
-                        const bidMatch = bidText.match(/\b(\d+)\s*bids?\b/i);
-                        if (bidMatch) {
-                            const bidNum = parseInt(bidMatch[1], 10);
-                            if (bidNum >= 1 && bidNum <= 10000) {
-                                numBids = bidNum;
-                            }
-                        }
+                const soldDateEl = soldDateSelectors
+                    .map((selector) => $item.find(selector).first())
+                    .find((el) => el && el.length && el.text().trim().length > 0);
+                if (soldDateEl && soldDateEl.length) {
+                    const text = soldDateEl.text().trim();
+                    if (text) {
+                        soldDate = text;
                     }
                 }
 
-                
-                // Final default: only set "Buy It Now" if we've exhausted all detection methods
-                if (!saleType) {
-                    saleType = 'Buy It Now';
-                    debugBidLog(`⚠️ Defaulting to "Buy It Now" - no sale type detected`);
-                }
-                
-                console.log(`📊 Final result for item: saleType="${saleType}", numBids=${numBids}`);
-                
-                for (const selector of soldDateSelectors) {
-                    const soldDateEl = $item.find(selector).first();
-                    if (soldDateEl.length > 0) {
-                        const dateText = soldDateEl.text().trim();
-                        // Look for date patterns with time like "Oct 14, 2025 2:30 PM", "Sold Oct 14, 2025 2:30 PM", etc.
-                        if (dateText && /(sold\s+)?[a-z]{3}\s+\d{1,2},\s+\d{4}(\s+\d{1,2}:\d{2}\s*[ap]m)?/i.test(dateText)) {
-                            soldDate = dateText.replace(/^sold\s+/i, '');
-                            // Reduced logging - sold date extracted
-                            break;
-                        }
-                        // Fallback to date-only patterns like "Oct 14, 2025", "Sold Oct 14, 2025", etc.
-                        else if (dateText && /(sold\s+)?[a-z]{3}\s+\d{1,2},\s+\d{4}/i.test(dateText)) {
-                            soldDate = dateText.replace(/^sold\s+/i, '');
-                            // Reduced logging - sold date extracted (date only)
-                            break;
-                        }
-                    }
-                }
-                
-                // Extract item ID
-                let itemId = '';
+                let itemId = null;
                 const itemIdSelectors = [
-                    '.s-item__link',
                     'a[href*="/itm/"]',
-                    '[data-view="mi:1686|iid:1"] a'
+                    '.s-item__link',
+                    'a'
                 ];
-                
+
                 for (const selector of itemIdSelectors) {
                     const linkEl = $item.find(selector).first();
                     if (linkEl.length > 0) {
@@ -1258,6 +879,11 @@ class EbayScraperService {
                     }
                 }
 
+                if (itemId && seenItemIds.has(itemId)) {
+                    skippedCount++;
+                    return;
+                }
+
                 // Final safety: if title is numeric-only, skip and log context
                 if (/^\d+$/.test(title)) {
                     const debugHref = $item.find('a[href*="/itm/"]').first().attr('href') || '';
@@ -1265,7 +891,7 @@ class EbayScraperService {
                     skippedCount++;
                     return;
                 }
-                
+
                 // Extract image URL
                 let imageUrl = '';
                 const imageSelectors = [
@@ -1277,7 +903,7 @@ class EbayScraperService {
                     'img[src*="ebayimg"]',
                     'img[src*="ebaystatic"]'
                 ];
-                
+
                 for (const selector of imageSelectors) {
                     const imgEl = $item.find(selector).first();
                     if (imgEl.length > 0) {
@@ -1298,18 +924,23 @@ class EbayScraperService {
                         }
                     }
                 }
-                
+
                 // Extract grade information
                 const grade = this.detectGradeFromTitle(title);
-                
+
                 // Apply confidence scoring for autograph detection
                 const autoConfidence = this.calculateAutographConfidence(title);
-                
+
+                const itemUrl = itemId ? `https://www.ebay.com/itm/${itemId}` : '';
+                if (itemId) {
+                    seenItemIds.add(itemId);
+                }
+
                 cardItems.push({
                     title: title,
                     price: price,
                     numericPrice: numericPrice,
-                    itemUrl: itemId ? `https://www.ebay.com/itm/${itemId}` : '',
+                    itemUrl: itemUrl,
                     sport: this.detectSportFromTitle(title),
                     grade: expectedGrade || grade,
                     soldDate: soldDate,
@@ -1320,10 +951,29 @@ class EbayScraperService {
                     numBids: numBids,
                     imageUrl: imageUrl
                 });
-                
+
                 processedCount++;
             });
-            
+
+            if ((cardItems.length === 0 || processedCount < maxResultsNum) && items.length <= 5) {
+                const fallbackResults = this.extractItemsFromJson(html, maxResultsNum - processedCount, expectedGrade);
+                if (fallbackResults.length > 0) {
+                    console.log(`✅ Added ${fallbackResults.length} cards via JSON fallback parsing`);
+                    for (const item of fallbackResults) {
+                        if (item.ebayItemId && seenItemIds.has(item.ebayItemId)) {
+                            continue;
+                        }
+                        if (item.ebayItemId) {
+                            seenItemIds.add(item.ebayItemId);
+                        }
+                        cardItems.push(item);
+                        processedCount++;
+                    }
+                } else {
+                    console.log('❌ JSON fallback parsing did not yield additional cards');
+                }
+            }
+
             console.log(`📊 Processed ${processedCount} items, skipped ${skippedCount} items`);
             return cardItems;
         } catch (error) {
@@ -1445,6 +1095,153 @@ class EbayScraperService {
             }
             return title.includes(normalized);
         });
+    }
+
+    extractItemsFromJson(html, remainingSlots, expectedGrade) {
+        const assignments = [
+            'window.__INITIAL_STATE__',
+            'window.__INITIAL_DATA__',
+            'window.__SRP_REDUX_INITIAL_STATE__',
+            'window.__srpReactInitialState__',
+            'window.__srpInitialState__'
+        ];
+
+        for (const assignment of assignments) {
+            const regex = new RegExp(`${assignment.replace(/\./g, '\\.') }\s*=\s*(\{[\s\S]*?\});`);
+            const match = regex.exec(html);
+            if (match) {
+                const jsonString = match[1];
+                const parsed = this.safeJsonParse(jsonString);
+                if (!parsed) {
+                    console.log(`⚠️ Failed to parse JSON for ${assignment}`);
+                    continue;
+                }
+
+                const itemSummaries = this.findItemSummaries(parsed);
+                if (Array.isArray(itemSummaries) && itemSummaries.length) {
+                    console.log(`✅ Found ${itemSummaries.length} items via JSON assignment ${assignment}`);
+                    console.log(`🧩 JSON item summary keys: ${Object.keys(itemSummaries[0] || {}).slice(0, 12).join(', ')}`);
+                    return this.normalizeItemSummaries(itemSummaries, remainingSlots, expectedGrade);
+                }
+            }
+        }
+        return [];
+    }
+
+    safeJsonParse(jsonString) {
+        try {
+            return JSON.parse(jsonString);
+        } catch (error) {
+            try {
+                const sanitized = jsonString
+                    .replace(/undefined/g, 'null')
+                    .replace(/\bNaN\b/g, 'null');
+                return JSON.parse(sanitized);
+            } catch (innerError) {
+                console.log('⚠️ JSON parse failed:', innerError.message);
+                return null;
+            }
+        }
+    }
+
+    findItemSummaries(root) {
+        const queue = [root];
+        const seen = new WeakSet();
+
+        while (queue.length) {
+            const node = queue.shift();
+            if (!node || typeof node !== 'object') continue;
+            if (seen.has(node)) continue;
+            seen.add(node);
+
+            if (Array.isArray(node)) {
+                for (const item of node) {
+                    queue.push(item);
+                }
+                continue;
+            }
+
+            if (Array.isArray(node.itemSummaries) && node.itemSummaries.length) {
+                return node.itemSummaries;
+            }
+
+            for (const value of Object.values(node)) {
+                if (value && typeof value === 'object') {
+                    queue.push(value);
+                }
+            }
+        }
+        return null;
+    }
+
+    normalizeItemSummaries(itemSummaries, remainingSlots, expectedGrade) {
+        const results = [];
+        for (const summary of itemSummaries) {
+            if (remainingSlots != null && results.length >= remainingSlots) break;
+            const title = (summary.title || summary.legacyItemTitle || '').trim();
+            if (!title || title.length < 6) continue;
+
+            const priceInfo = summary.price || summary.currentPrice || summary.currentBidPrice || summary.primaryPrice;
+            const priceValue = priceInfo ? parseFloat(priceInfo.value || priceInfo.raw || priceInfo.convertedValue || 0) : 0;
+            if (!Number.isFinite(priceValue) || priceValue <= 0) continue;
+            const currency = priceInfo?.currency || priceInfo?.currencyId || 'USD';
+            const priceText = `${this.currencySymbol(currency)}${priceValue.toFixed(2)}`;
+
+            const itemId = summary.itemId || summary.id || summary.legacyItemId || null;
+            const itemUrl = summary.itemHref || summary.itemUrl || (itemId ? `https://www.ebay.com/itm/${itemId}` : '');
+
+            const saleType = Array.isArray(summary.buyingOptions) && summary.buyingOptions.includes('AUCTION')
+                ? 'Auction'
+                : 'Buy It Now';
+            const numBids = saleType === 'Auction' ? (summary.bidCount ?? summary.bids ?? null) : null;
+
+            const imageUrl = summary.image?.imageUrl || summary.image?.imageUrlHttps || summary.galleryUrl || null;
+            const popSport = this.detectSportFromTitle(title);
+            const grade = expectedGrade || this.detectGradeFromTitle(title);
+            const soldDate = summary.itemEndDate || summary.itemEndDateString || summary.timeLeft || 'Recently sold';
+
+            const shippingCost = summary.shipping?.price?.value
+                ? `${this.currencySymbol(summary.shipping.price.currency || currency)}${parseFloat(summary.shipping.price.value).toFixed(2)}`
+                : summary.shipping?.type === 'FREE' || summary.shipping?.value === 'FREE'
+                    ? 'Free'
+                    : null;
+
+            results.push({
+                title,
+                price: priceText,
+                numericPrice: priceValue,
+                itemUrl,
+                sport: popSport,
+                grade,
+                soldDate,
+                ebayItemId: itemId,
+                autoConfidence: this.calculateAutographConfidence(title),
+                shippingCost,
+                saleType,
+                numBids,
+                imageUrl
+            });
+        }
+        return results;
+    }
+
+    currencySymbol(code) {
+        switch ((code || '').toUpperCase()) {
+            case 'USD':
+                return '$';
+            case 'GBP':
+                return '£';
+            case 'EUR':
+                return '€';
+            case 'AUD':
+                return 'A$';
+            case 'CAD':
+                return 'C$';
+            case 'JPY':
+                return '¥';
+            default:
+                return `${code} `;
+        }
     }
 
     parseHtmlForCardsRegex(html, maxResults, searchTerm = null, sport = null, expectedGrade = null, shouldRemoveAutos = false, originalIsAutograph = false, targetPrintRun = null) {
