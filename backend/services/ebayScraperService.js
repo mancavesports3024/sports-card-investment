@@ -1317,6 +1317,121 @@ class EbayScraperService {
         }
     }
 
+    detectSportFromTitle(title) {
+        const lowerTitle = (title || '').toLowerCase();
+
+        if (/(football|nfl|panini\s+prizm|donruss)/i.test(lowerTitle)) {
+            return 'football';
+        }
+        if (/(basketball|nba|hoops|select)/i.test(lowerTitle)) {
+            return 'basketball';
+        }
+        if (/(baseball|mlb|topps|bowman)/i.test(lowerTitle)) {
+            return 'baseball';
+        }
+        if (/(hockey|nhl|upper\s+deck)/i.test(lowerTitle)) {
+            return 'hockey';
+        }
+        if (/(pokemon|pokémon)/i.test(lowerTitle)) {
+            return 'pokemon';
+        }
+        if (/(soccer|futbol|football\s+club|premier\s+league)/i.test(lowerTitle)) {
+            return 'soccer';
+        }
+        if (/(ufc|mma|wwe|wrestling)/i.test(lowerTitle)) {
+            return 'mma';
+        }
+        if (/(golf|pga)/i.test(lowerTitle)) {
+            return 'golf';
+        }
+        if (/(tennis)/i.test(lowerTitle)) {
+            return 'tennis';
+        }
+
+        return 'unknown';
+    }
+
+    detectGradeFromTitle(title) {
+        const lowerTitle = (title || '').toLowerCase();
+
+        if (/(psa\s*10|psa-10|psa10|gem\s*mt\s*10|gem\s*mint\s*10)/i.test(lowerTitle)) {
+            return 'PSA 10';
+        }
+        if (/(psa\s*9|psa-9|psa9|gem\s*mt\s*9|gem\s*mint\s*9)/i.test(lowerTitle)) {
+            return 'PSA 9';
+        }
+        if (/(psa\s*8|psa-8|psa8|mint\s*8)/i.test(lowerTitle)) {
+            return 'PSA 8';
+        }
+        if (/(bgs\s*10|bgs-10|bgs10|beckett\s*10)/i.test(lowerTitle)) {
+            return 'BGS 10';
+        }
+        if (/(bgs\s*9\.5|bgs-9\.5|bgs9\.5|beckett\s*9\.5)/i.test(lowerTitle)) {
+            return 'BGS 9.5';
+        }
+        if (/(bgs\s*9|bgs-9|bgs9|beckett\s*9)/i.test(lowerTitle)) {
+            return 'BGS 9';
+        }
+
+        return 'Raw';
+    }
+
+    calculateAutographConfidence(title) {
+        const lowerTitle = (title || '').toLowerCase();
+        const autoTerms = ['auto', 'autograph', 'autographed', 'signed', 'signature'];
+        const relicTerms = ['relic', 'patch', 'jersey', 'swatch'];
+        const ambiguousTerms = ['auto relic', 'autograph relic', 'signed relic'];
+
+        let confidence = 0;
+
+        autoTerms.forEach(term => {
+            if (lowerTitle.includes(term)) confidence += 1;
+        });
+
+        relicTerms.forEach(term => {
+            if (lowerTitle.includes(term) && !autoTerms.some(auto => lowerTitle.includes(auto))) {
+                confidence -= 0.5;
+            }
+        });
+
+        ambiguousTerms.forEach(term => {
+            if (lowerTitle.includes(term)) confidence += 0.5;
+        });
+
+        return Math.max(0, Math.min(1, confidence));
+    }
+
+    filterByAutographStatusWithConfidence(cards, originalIsAutograph) {
+        if (originalIsAutograph == null) return cards;
+
+        return cards.filter(card => {
+            const hasAuto = (card.autoConfidence || 0) > 0.5;
+            return originalIsAutograph ? hasAuto : !hasAuto;
+        });
+    }
+
+    filterByPrintRun(cards, targetPrintRun) {
+        if (!targetPrintRun) return cards;
+        return cards.filter(card => {
+            const match = (card.title || '').match(/\/(\d+)/);
+            return match && match[1] === targetPrintRun.replace('/', '');
+        });
+    }
+
+    filterByGrade(cards, expectedGrade) {
+        if (!expectedGrade) return cards;
+        const normalized = expectedGrade.toLowerCase();
+
+        return cards.filter(card => {
+            const title = (card.title || '').toLowerCase();
+            if (normalized === 'raw') {
+                const gradingTerms = ['psa 10', 'psa 9', 'psa 8', 'gem mt', 'mint 9'];
+                return !gradingTerms.some(term => title.includes(term));
+            }
+            return title.includes(normalized);
+        });
+    }
+
     parseHtmlForCardsRegex(html, maxResults, searchTerm = null, sport = null, expectedGrade = null, shouldRemoveAutos = false, originalIsAutograph = false, targetPrintRun = null) {
         try {
             const finalResults = [];
