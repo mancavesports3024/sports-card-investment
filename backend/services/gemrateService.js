@@ -54,11 +54,11 @@ class GemRateService {
       'Sec-Fetch-Dest': 'document'
     };
 
-    this.cardDetailsHeaders = (gemrateId) => ({
+    this.cardDetailsHeaders = (cardIdentifier) => ({
       ...this.baseHeaders,
       'Accept': 'application/json, text/plain, */*',
       'X-Requested-With': 'XMLHttpRequest',
-      'Referer': `https://www.gemrate.com/card/${gemrateId}`,
+      'Referer': `https://www.gemrate.com/card/${cardIdentifier}`,
       'Sec-Fetch-Site': 'same-origin',
       'Sec-Fetch-Mode': 'cors',
       'Sec-Fetch-Dest': 'empty'
@@ -159,7 +159,7 @@ class GemRateService {
       }
 
       // Extract gemrate_id from search results
-      const { gemrateId, cardSlug } = this.extractGemrateInfo(searchResponse.data);
+      const { gemrateId, cardSlug, sampleEntry } = this.extractGemrateInfo(searchResponse.data);
       if (!gemrateId) {
         console.log(`❌ No gemrate_id found in search results for: ${searchQuery}`);
         if (searchResponse.data) {
@@ -175,6 +175,9 @@ class GemRateService {
       }
 
       console.log(`🔍 Found gemrate_id: ${gemrateId}${cardSlug ? ` (slug: ${cardSlug})` : ''}`);
+      if (!cardSlug && sampleEntry) {
+        console.log('🔍 GemRate first result sample:', JSON.stringify(sampleEntry, null, 2).slice(0, 1000));
+      }
 
       const warmedPath = await this.warmCardSession(gemrateId, cardSlug);
 
@@ -220,15 +223,28 @@ class GemRateService {
    */
   extractGemrateInfo(searchData) {
     try {
-      const info = { gemrateId: null, cardSlug: null };
+      const info = { gemrateId: null, cardSlug: null, sampleEntry: null };
 
       const inspectEntry = (entry) => {
         if (!entry || typeof entry !== 'object') return;
+        if (!info.sampleEntry) {
+          info.sampleEntry = entry;
+        }
         if (!info.gemrateId) {
           info.gemrateId = entry.gemrate_id || entry.gemrateId || entry.id || null;
         }
         if (!info.cardSlug) {
           info.cardSlug = entry.slug || entry.card_slug || entry.url_path || entry.path || null;
+        }
+        if (!info.cardSlug) {
+          Object.values(entry).forEach(val => {
+            if (typeof val === 'string' && !info.cardSlug) {
+              const match = val.match(/\/card\/([^/?#]+)/i);
+              if (match) {
+                info.cardSlug = decodeURIComponent(match[1]);
+              }
+            }
+          });
         }
       };
 
@@ -255,7 +271,7 @@ class GemRateService {
       return info;
     } catch (error) {
       console.error('❌ Error extracting gemrate_id:', error);
-      return { gemrateId: null, cardSlug: null };
+      return { gemrateId: null, cardSlug: null, sampleEntry: null };
     }
   }
 
