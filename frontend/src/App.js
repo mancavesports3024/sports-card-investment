@@ -3,7 +3,6 @@ import './App.css';
 import HomePage from './components/HomePage';
 import SearchPage from './components/SearchPage';
 import AuthSuccess from './components/AuthSuccess';
-import SavedSearches from './components/SavedSearches';
 import CardSetAnalysis from './components/CardSetAnalysis';
 import NewsPage from './components/NewsPage';
 import EbayItemLookup from './pages/EbayItemLookup';
