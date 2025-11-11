@@ -1093,7 +1093,7 @@ const SearchPage = () => {
               <label htmlFor="searchQuery"><strong>Advanced Search</strong> (overrides all fields):</label>
               <small className="search-helper">
                 For best results: <em>year, brand, set, player</em> - exclusion words<br />
-                Example: <code>2025 Topps Chrome Jackson Holliday -PSA -BGS</code>
+                Example: <code>2025 Topps Chrome Jackson Holliday -pick -custom</code>
               </small>
               <input
                 type="text"
