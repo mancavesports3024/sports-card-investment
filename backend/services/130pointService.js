@@ -1,5 +1,6 @@
 const axios = require('axios');
 const redis = require('redis');
+const cheerio = require('cheerio');
 
 class Point130Service {
     constructor() {
@@ -45,20 +46,20 @@ class Point130Service {
             const searchParams = this.buildSearchParams(searchTerm, options);
             
             // Make API request
-            const response = await axios.post(`${this.baseUrl}/sales/`, searchParams, {
+            const response = await axios.post(`${this.baseUrl}/sales/`, searchParams.toString(), {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
-                    'Accept': '*/*',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                    'Accept-Encoding': 'gzip, deflate, br, zstd',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.5',
                     'Origin': 'https://130point.com',
                     'Referer': 'https://130point.com/',
-                    'Sec-Fetch-Dest': 'empty',
-                    'Sec-Fetch-Mode': 'cors',
-                    'Sec-Fetch-Site': 'same-site'
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
-                timeout: 15000
+                timeout: 20000,
+                responseType: 'text',
+                maxRedirects: 0,
+                validateStatus: status => status >= 200 && status < 400
             });
 
             // Parse the response
@@ -83,20 +84,20 @@ class Point130Service {
                 console.log(`🔍 130point simple search: "${simpleTerm}"`);
                 
                 const simpleParams = this.buildSearchParams(simpleTerm, options);
-                const simpleResponse = await axios.post(`${this.baseUrl}/sales/`, simpleParams, {
+                const simpleResponse = await axios.post(`${this.baseUrl}/sales/`, simpleParams.toString(), {
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
-                        'Accept': '*/*',
-                        'Accept-Language': 'en-US,en;q=0.9',
-                        'Accept-Encoding': 'gzip, deflate, br, zstd',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        'Accept-Language': 'en-US,en;q=0.5',
                         'Origin': 'https://130point.com',
                         'Referer': 'https://130point.com/',
-                        'Sec-Fetch-Dest': 'empty',
-                        'Sec-Fetch-Mode': 'cors',
-                        'Sec-Fetch-Site': 'same-site'
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
-                    timeout: 15000
+                    timeout: 20000,
+                    responseType: 'text',
+                    maxRedirects: 0,
+                    validateStatus: status => status >= 200 && status < 400
                 });
                 
                 console.log(`📊 130point simple response length: ${simpleResponse.data?.length || 0}`);
@@ -114,6 +115,11 @@ class Point130Service {
 
         } catch (error) {
             console.error('❌ 130point search failed:', error.message);
+            if (error.response) {
+                console.error('Status:', error.response.status);
+                console.error('Headers:', JSON.stringify(error.response.headers, null, 2));
+                console.error('Body preview:', String(error.response.data || '').slice(0, 200));
+            }
             return [];
         }
     }
@@ -131,16 +137,15 @@ class Point130Service {
         }
 
         // URL encode the search term
-        const encodedTerm = encodeURIComponent(processedTerm);
+        const params = new URLSearchParams();
+        params.append('query', processedTerm);
+        params.append('type', options.type || '2');
+        params.append('subcat', options.subcat || '-1');
+        params.append('tab_id', options.tab_id || '1');
+        params.append('tz', options.timezone || 'America/Chicago');
+        params.append('sort', options.sort || 'urlEndTimeSoonest');
 
-        return {
-            query: encodedTerm,
-            type: options.type || '2', // 2 = sold items
-            subcat: options.subcat || '-1', // -1 = all categories
-            tab_id: options.tab_id || '1',
-            tz: options.timezone || 'America/Chicago',
-            sort: options.sort || 'urlEndTimeSoonest' // Sort by end time
-        };
+        return params;
     }
 
     /**
@@ -148,7 +153,6 @@ class Point130Service {
      */
     parseResponse(html, searchTerm) {
         try {
-            const cheerio = require('cheerio');
             const $ = cheerio.load(html);
             
             const cards = [];
