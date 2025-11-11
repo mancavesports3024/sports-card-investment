@@ -9,7 +9,7 @@
   position: relative;
   width: 100%;
   max-width: 620px;
-  height: 200px;
+  height: 500px;
   overflow: hidden;
   display: flex;
   justify-content: center;
@@ -35,7 +35,7 @@
   top: 0;
   left: 50%;
   transform-origin: top center;
-  transform: translateX(-50%) scale(0.7);
+  transform: translateX(-50%) scale(0.95);
 }
 
 /* Grass mowing stripes */
@@ -58,11 +58,11 @@
 .baseball-field::after {
   content: '';
   position: absolute;
-  bottom: 22%;
+  bottom: 24%;
   left: 50%;
   transform: translateX(-50%) rotate(45deg);
-  width: 44%;
-  height: 44%;
+  width: 48%;
+  height: 48%;
   border: 2px dashed rgba(255, 255, 255, 0.2);
   pointer-events: none;
   z-index: 0;
@@ -86,19 +86,19 @@
 
 .base-marker.first {
   left: 78%;
-  bottom: 46%;
+  bottom: 43%;
   transform: translate(-50%, 50%) rotate(45deg);
 }
 
 .base-marker.third {
   left: 22%;
-  bottom: 46%;
+  bottom: 43%;
   transform: translate(-50%, 50%) rotate(45deg);
 }
 
 .base-marker.home {
   left: 50%;
-  bottom: 15%;
+  bottom: 12%;
   transform: translate(-50%, 50%) rotate(45deg);
 }
 
@@ -138,31 +138,31 @@
 
 /* Row 1: PSA 10 (horizontal, centered at top - pitcher's mound area) */
 .tile-psa10 {
-  top: 8%;
+  top: 10%;
   left: 50%;
   transform: translateX(-50%);
-  width: 60%;
-  min-height: 52px;
+  width: 62%;
+  min-height: 90px;
   background: linear-gradient(180deg, #1e5c14 0%, #2d7a1f 100%);
 }
 
 /* Row 2: Middle row - using absolute positioning */
 /* 2. Gem Rate: vertical tile on left (third base area) */
 .tile-gemrate {
-  bottom: 48%;
+  bottom: 45%;
   left: 8%;
-  width: 20%; /* smaller */
-  min-height: 86px;
+  width: 22%; /* wider */
+  min-height: 140px;
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
 }
 
 /* 3. Card Image: vertical tile in center (below PSA 10) - no border, just image */
 .tile-card {
-  bottom: 16%;
+  bottom: 18%;
   left: 50%;
   transform: translateX(-50%);
-  width: 28%;
-  min-height: 170px;
+  width: 30%;
+  min-height: 260px;
   background: transparent;
   border: none;
   display: flex;
@@ -174,12 +174,12 @@
 /* Card Information - Top, above PSA 10 tile */
 .card-info-top {
   position: absolute;
-  top: 4%;
+  top: 6%;
   left: 50%;
-  transform: translate(-50%, -8px);
+  transform: translate(-50%, -10px);
   display: flex;
   flex-wrap: wrap;
-  gap: 1.2rem;
+  gap: 1.4rem;
   justify-content: center;
   align-items: center;
   z-index: 10;
@@ -195,31 +195,31 @@
 
 /* 4. PSA 9: vertical tile on right (first base area) */
 .tile-psa9 {
-  bottom: 48%;
+  bottom: 45%;
   right: 8%;
-  width: 20%; /* smaller */
-  min-height: 86px;
+  width: 22%; /* wider */
+  min-height: 140px;
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
 }
 
 /* Row 3: RAW (vertical, centered below Card Image - home plate area) */
 .tile-raw {
-  bottom: 8%;
+  bottom: 10%;
   left: 50%;
   transform: translateX(-50%);
-  width: 28%;
-  min-height: 50px;
+  width: 30%;
+  min-height: 90px;
   background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
 }
 
 /* Timestamp - Bottom of card */
 .card-timestamp {
   position: absolute;
-  bottom: 3%;
+  bottom: 4%;
   left: 50%;
   transform: translateX(-50%);
   color: #ffffff;
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   font-weight: 500;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.9);
   z-index: 10;
@@ -310,11 +310,11 @@
 /* Card Image - Larger and more prominent */
 .card-image {
   width: auto;
-  max-width: 150px;
+  max-width: 200px;
   height: auto;
   border-radius: 8px;
   background: #ffffff;
-  padding: 0.55rem;
+  padding: 0.75rem;
   border: 3px solid rgba(255, 255, 255, 1);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.9), 0 0 15px rgba(255, 255, 255, 0.7);
   object-fit: contain;
@@ -392,11 +392,11 @@
 /* Responsive */
 @media (max-width: 768px) {
   .baseball-field-wrapper {
-    height: 200px;
+    height: 360px;
   }
 
   .baseball-field-wrapper .baseball-field {
-    transform: translateX(-50%) scale(0.6);
+    transform: translateX(-50%) scale(0.75);
   }
 
   .baseball-field {
