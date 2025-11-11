@@ -1004,8 +1004,9 @@ class EbayScraperService {
                                     debugBidLog(`     Before match context: "${beforeMatch}"`);
                                     debugBidLog(`     Match context (includes match): "${matchContext}"`);
 
-                                    const hasDollarImmediatelyBefore = /[$£€]\s*\d+(?:\.\d+)?\s{0,2}$/.test(beforeMatch.trim());
-                                    const isDecimalPart = num < 100 && /\d+\.\d*\s*$/.test(beforeMatch.trim());
+                                    const trimmedBeforeMatch = beforeMatch.trim();
+                                    const hasDollarImmediatelyBefore = /[$£€]\s*\d+(?:\.\d+)?\s{0,2}$/.test(trimmedBeforeMatch);
+                                    const isDecimalPart = num < 100 && /\d+\.\d*\s*$/.test(trimmedBeforeMatch);
                                     const isItemNumber = /\d{12,}\s*$/.test(beforeMatch.trim());
                                     const isReasonableBidCount = num >= 1 && num <= 1000;
 
@@ -1041,15 +1042,17 @@ class EbayScraperService {
                                         const priceCents = pricePatternBefore[1];
                                         const priceCentsLength = pricePatternBefore[1].length;
                                         debugBidLog(`     Found price pattern before: "${pricePatternBefore[0]}", cents: "${priceCents}"`);
-                                        const numStr = String(num);
+                                        const numStr = match[1];
                                         debugBidLog(`     Checking if "${numStr}" starts with "${priceCents}"`);
                                         if (numStr.startsWith(priceCents)) {
                                             const bidPart = numStr.substring(priceCentsLength);
-                                            const bidNum = parseInt(bidPart, 10);
+                                            const bidDigits = bidPart.replace(/^0+/, '');
+                                            const bidNum = parseInt(bidDigits || '0', 10);
                                             debugBidLog(`     Extracted bid part: "${bidPart}" → ${bidNum}`);
                                             if (bidNum >= 1 && bidNum <= 1000) {
                                                 debugBidLog(`     ↩️ Correcting concatenated number ${num} → ${bidNum} (price "${priceCents}" + bid "${bidPart}")`);
                                                 effectiveNum = bidNum;
+                                                wasConcatenatedAndFixed = true;
                                             } else {
                                                 debugBidLog(`     ❌ Skipped - concatenated with price but invalid bid part: "${bidPart}"`);
                                                 continue;
