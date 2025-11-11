@@ -538,6 +538,12 @@ class EbayScraperService {
                 console.log('❌ No items found with standard selectors, falling back to regex parsing...');
                 return this.parseHtmlForCardsRegex(html, maxResults, searchTerm, sport, expectedGrade, shouldRemoveAutos, originalIsAutograph, targetPrintRun);
             }
+
+            if (items.length < 5) {
+                console.log('⚠️ Detected sparse result set (<5 items). Dumping HTML preview for analysis.');
+                const preview = html.slice(0, 2000).replace(/\s+/g, ' ');
+                console.log(`--- HTML PREVIEW START ---\n${preview}\n--- HTML PREVIEW END ---`);
+            }
             
             console.log(`🔄 Processing ${items.length} items...`);
             
