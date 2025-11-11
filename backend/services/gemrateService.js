@@ -123,6 +123,7 @@ class GemRateService {
       pushPath(`/card/${gemrateId}`);
       pushPath(`/universal-search?gemrate_id=${gemrateId}`);
 
+      let firstSuccessfulPath = null;
       for (const path of candidatePaths) {
         try {
           const response = await this.httpClient.get(path, {
@@ -133,11 +134,19 @@ class GemRateService {
           });
           if (response.status === 200) {
             console.log(`✅ GemRate card page visited at path ${path} (status ${response.status})`);
-            return path;
+            if (!firstSuccessfulPath) {
+              firstSuccessfulPath = path;
+            }
+            if (path.includes('/card/')) {
+              return path;
+            }
           }
         } catch (innerErr) {
           console.log(`⚠️ GemRate card page attempt ${path} failed: ${innerErr.response?.status || innerErr.message}`);
         }
+      }
+      if (firstSuccessfulPath) {
+        return firstSuccessfulPath;
       }
       console.log(`⚠️ GemRate card page warm-up failed for ${gemrateId} (slug: ${cardSlug || 'none'}) - all paths attempted`);
     } catch (error) {
