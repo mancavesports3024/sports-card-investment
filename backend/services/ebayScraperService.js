@@ -763,7 +763,7 @@ class EbayScraperService {
                     const shippingText = $(element).text().trim();
                     const lowerText = shippingText.toLowerCase();
                     // Only consider elements that contain shipping-related terms (not bids)
-                    if ((lowerText.includes('delivery') || lowerText.includes('shipping') || lowerText.includes('postage')) && 
+                    if ((lowerText.includes('delivery') || lowerText.includes('shipping') || lowerText.includes('postage')) &&
                         !lowerText.includes('bid') && !lowerText.includes('bids')) {
                         // Match patterns like "+$7.80 delivery", "$4.99 shipping", "Free delivery"
                         const shippingPatterns = [
@@ -789,9 +789,6 @@ class EbayScraperService {
                     }
                 });
 
-                let saleType = 'Buy It Now';
-                let numBids = null;
-
                 // Fallback: Only check other selectors if primary didn't find it
                 if (!shippingCost) {
                     const shippingSelectors = [
@@ -815,47 +812,352 @@ class EbayScraperService {
                         const shippingEl = $item.find(selector).first();
                         if (shippingEl.length > 0) {
                             const shippingText = shippingEl.text().trim();
-                            if (!shippingText) continue;
-                            const lowerText = shippingText.toLowerCase();
-                            if (lowerText.includes('bid')) {
-                                const bidMatch = shippingText.match(/(\d+)\s*bids?/i);
-                                if (bidMatch) {
-                                    saleType = 'Auction';
-                                    numBids = parseInt(bidMatch[1], 10);
-                                }
-                                continue;
-                            }
-                            const shippingPatterns = [
-                                /\+?\s*(\$|£|€)\s*([\d,]+\.?\d*)\s*(?:delivery|shipping|postage)/i,
-                                /free\s+(?:delivery|shipping|postage)/i,
+
+                            // Look for various shipping cost patterns
+                            const patterns = [
+                                /(?:shipping|delivery|postage|p\s*&\s*p)[\s:+]*(\$|£|€)?\s*([\d,]+\.?\d*|Free|free)/i,
+                                /\+?\s*(\$|£|€)\s*([\d,]+\.?\d*)\s*(?:shipping|delivery|postage)/i,
+                                /(Free\s+(?:shipping|delivery|postage)|free\s+(?:shipping|delivery|postage))/i,
+                                /(\$|£|€)\s*([\d,]+\.?\d*)/i,
+                                /(shipping\s+included|included\s+shipping)/i
                             ];
-                            for (const pattern of shippingPatterns) {
-                                const match = shippingText.match(pattern);
-                                if (match) {
-                                    if (match[0].toLowerCase().includes('free')) {
+
+                            for (const pattern of patterns) {
+                                const shippingMatch = shippingText.match(pattern);
+                                if (shippingMatch) {
+                                    let raw = shippingMatch[0];
+                                    let currency = shippingMatch[1] && /[$£€]/.test(shippingMatch[1])
+                                        ? shippingMatch[1]
+                                        : (shippingMatch[2] && /[$£€]/.test(shippingMatch[2]) ? shippingMatch[2] : '$');
+                                    let valuePart = shippingMatch[2] && !/[$£€]/.test(shippingMatch[2])
+                                        ? shippingMatch[2]
+                                        : (shippingMatch[1] && !/[$£€]/.test(shippingMatch[1]) ? shippingMatch[1] : null);
+                                    const lower = raw.toLowerCase().trim();
+                                    if (lower.includes('free') || lower === 'free' || lower.includes('included')) {
                                         shippingCost = 'Free';
-                                    } else if (match[2] && match[1]) {
-                                        const currency = match[1] || '$';
-                                        const value = match[2].replace(/,/g, '');
-                                        shippingCost = `${currency}${value}`;
+                                    } else if (valuePart) {
+                                        shippingCost = `${currency}${valuePart}`;
+                                    } else {
+                                        const num = raw.match(/([\d,]+\.?\d*)/);
+                                        if (num) {
+                                            shippingCost = `${currency}${num[1]}`;
+                                        }
                                     }
                                     break;
                                 }
                             }
-                            if (shippingCost) {
+
+                            if (shippingCost) break;
+                        }
+                    }
+
+                    if (!shippingCost) {
+                        const fullItemText = $item.text();
+                        const shippingPatterns = [
+                            /\+?\s*(\$|£|€)\s*([\d,]+\.?\d*)\s*(?:delivery|shipping|postage|p\s*&\s*p)/i,
+                            /free\s+(?:delivery|shipping|postage)/i,
+                            /(\$|£|€)\s*([\d,]+\.?\d*)\s*(?:delivery|shipping|postage)/i,
+                        ];
+
+                        for (const pattern of shippingPatterns) {
+                            const match = fullItemText.match(pattern);
+                            if (match) {
+                                if (match[0].toLowerCase().includes('free')) {
+                                    shippingCost = 'Free';
+                                } else if (match[2] && match[1]) {
+                                    const currency = match[1] || '$';
+                                    const value = match[2].replace(/,/g, '');
+                                    shippingCost = `${currency}${value}`;
+                                }
+                                if (shippingCost) break;
+                            }
+                        }
+                    }
+                }
+
+                // Extract sale type and bid information
+                let saleType = null;
+                let numBids = null;
+
+                // Primary: User-identified exact location where eBay places bid count
+                // Try multiple selectors to catch different eBay layouts
+                let foundBidElement = null;
+                const bidSelectors = [
+                    '.s-card_attribute-row .su-styled-text.secondary.large',
+                    '.s-card_attribute-row .su-styled-text',
+                    '.s-card_attribute-row span'
+                ];
+
+                for (const selector of bidSelectors) {
+                    const bidElements = $item.find(selector);
+                    if (bidElements.length > 0) {
+                        bidElements.each((index, element) => {
+                            let text = $(element).text().trim();
+                            debugBidLog(`🔍 Checking element ${index} with selector "${selector}": "${text}"`);
+
+                            if (text.includes('$')) {
+                                const dollarIndex = text.indexOf('$');
+                                text = text.substring(0, dollarIndex).trim();
+                                debugBidLog(`   After splitting at $: "${text}"`);
+                            }
+
+                            text = text.replace(/[=]+/g, ' ').trim();
+
+                            const lowerText = text.toLowerCase();
+                            if (lowerText.includes('bid') || lowerText.includes('bids')) {
+                                debugBidLog(`   Contains bid text, attempting match...`);
+                                const bidMatch = text.match(/\b(\d+)\s*bids?\b/i);
+                                if (bidMatch) {
+                                    debugBidLog(`   Matched bid pattern: "${bidMatch[0]}"`);
+                                    const bidNum = parseInt(bidMatch[1], 10);
+                                    if (bidNum >= 1 && bidNum <= 10000) {
+                                        let isPricePattern = false;
+                                        if (bidNum < 100) {
+                                            const beforeMatch = text.substring(Math.max(0, bidMatch.index - 10), bidMatch.index);
+                                            const decimalPattern = new RegExp(`\\d+\\.${bidNum}\\b`);
+                                            isPricePattern = decimalPattern.test(beforeMatch);
+                                        }
+
+                                        if (!isPricePattern) {
+                                            foundBidElement = { text, bidNum };
+                                            debugBidLog(`   ✅ Found bid element with ${bidNum} bids (primary selector match)`);
+                                            return false;
+                                        } else {
+                                            debugBidLog(`   ⚠️ Rejected as price pattern`);
+                                        }
+                                    }
+                                } else {
+                                    debugBidLog(`   ⚠️ No bid match found in text`);
+                                }
+                            }
+                        });
+                        if (foundBidElement) break;
+                    }
+                }
+
+                if (foundBidElement) {
+                    saleType = 'Auction';
+                    numBids = foundBidElement.bidNum;
+                    debugBidLog(`🎯 Found auction with ${numBids} bids in primary selector (text: "${foundBidElement.text}")`);
+                }
+
+                const saleTypeSelectors = [
+                    '.s-item__detail--primary',
+                    '.s-item__details',
+                    '.s-item__subtitle',
+                    '.s-item__info',
+                    '.s-item__caption',
+                    '.s-item__price',
+                    '.s-item__shipping'
+                ];
+
+                if (!saleType || numBids == null) {
+                    for (const selector of saleTypeSelectors) {
+                        const saleEl = $item.find(selector);
+                        if (saleEl.length > 0) {
+                            let saleText = saleEl.text().trim();
+                            if (saleText.includes('$')) {
+                                const dollarIndex = saleText.indexOf('$');
+                                saleText = saleText.substring(0, dollarIndex).trim();
+                            }
+
+                            const bidMatch = saleText.match(/\b(\d+)\s*bids?\b/i);
+                            if (bidMatch) {
+                                saleType = 'Auction';
+                                numBids = parseInt(bidMatch[1]);
+                                debugBidLog(`🎯 Found auction with ${numBids} bids`);
                                 break;
                             }
                         }
                     }
                 }
 
-                const soldDateEl = soldDateSelectors
-                    .map((selector) => $item.find(selector).first())
-                    .find((el) => el && el.length && el.text().trim().length > 0);
-                if (soldDateEl && soldDateEl.length) {
-                    const text = soldDateEl.text().trim();
-                    if (text) {
-                        soldDate = text;
+                if (!saleType || numBids == null || isNaN(numBids)) {
+                    debugBidLog(`🔍 Running full-text search for bids. Current saleType: ${saleType}, numBids: ${numBids}`);
+                    const fullText = $item.text();
+                    if (fullText) {
+                        debugBidLog(`   Full text length: ${fullText.length}`);
+                        let bidMatches = [];
+                        try {
+                            const matchIterator = fullText.matchAll(/\b(\d+)\s*bids?\b/gi);
+                            bidMatches = Array.from(matchIterator);
+                        } catch (e) {
+                            const regex = /\b(\d+)\s*bids?\b/gi;
+                            let match;
+                            while ((match = regex.exec(fullText)) !== null) {
+                                bidMatches.push(match);
+                            }
+                        }
+
+                        if (bidMatches && bidMatches.length > 0) {
+                            debugBidLog(`   Found ${bidMatches.length} potential bid matches`);
+                            let bestMatch = null;
+                            let bestScore = 0;
+
+                            for (const match of bidMatches) {
+                                const num = parseInt(match[1], 10);
+                                debugBidLog(`   Checking match: "${match[0]}" (number: ${num})`);
+
+                                if (num >= 1 && num <= 10000) {
+                                    const beforeMatch = fullText.substring(Math.max(0, match.index - 25), match.index);
+                                    const matchContext = fullText.substring(Math.max(0, match.index - 10), match.index + match[0].length + 5);
+                                    debugBidLog(`     Before match context: "${beforeMatch}"`);
+                                    debugBidLog(`     Match context (includes match): "${matchContext}"`);
+
+                                    const hasDollarImmediatelyBefore = /[$£€]\s*\d+(?:\.\d+)?\s{0,2}$/.test(beforeMatch.trim());
+                                    const isDecimalPart = num < 100 && /\d+\.\d*\s*$/.test(beforeMatch.trim());
+                                    const isItemNumber = /\d{12,}\s*$/.test(beforeMatch.trim());
+                                    const isReasonableBidCount = num >= 1 && num <= 1000;
+
+                                    let effectiveNum = num;
+                                    let wasConcatenatedAndFixed = false;
+
+                                    const concatenatedPriceMatch = /[$£€]\s*(\d+)\.(\d{1,2})(\d+)\s*bids?/i.exec(matchContext);
+                                    if (concatenatedPriceMatch) {
+                                        const priceDollars = concatenatedPriceMatch[1];
+                                        const priceCents = concatenatedPriceMatch[2];
+                                        const bidDigits = concatenatedPriceMatch[3];
+                                        debugBidLog(`     Found concatenated price pattern: $${priceDollars}.${priceCents}${bidDigits} bids`);
+                                        debugBidLog(`     Price cents: "${priceCents}", Bid digits: "${bidDigits}"`);
+                                        const matchedNumberStr = match[1];
+                                        const expectedConcatenated = priceCents + bidDigits;
+                                        debugBidLog(`     Comparing matched string "${matchedNumberStr}" with expected "${expectedConcatenated}"`);
+                                        if (matchedNumberStr === expectedConcatenated) {
+                                            const bidNum = parseInt(bidDigits, 10);
+                                            if (bidNum >= 1 && bidNum <= 1000) {
+                                                debugBidLog(`     ↩️ Correcting concatenated number ${num} → ${bidNum} (price "${priceCents}" + bid "${bidDigits}")`);
+                                                effectiveNum = bidNum;
+                                                wasConcatenatedAndFixed = true;
+                                            } else {
+                                                debugBidLog(`     ❌ Bid digits "${bidDigits}" out of range (1-1000)`);
+                                            }
+                                        } else {
+                                            debugBidLog(`     ❌ Matched string "${matchedNumberStr}" doesn't match expected "${expectedConcatenated}"`);
+                                        }
+                                    }
+
+                                    const pricePatternBefore = /[$£€]\s*\d+\.(\d{1,2})\s*$/.exec(beforeMatch.trim());
+                                    if (pricePatternBefore) {
+                                        const priceCents = pricePatternBefore[1];
+                                        const priceCentsLength = pricePatternBefore[1].length;
+                                        debugBidLog(`     Found price pattern before: "${pricePatternBefore[0]}", cents: "${priceCents}"`);
+                                        const numStr = String(num);
+                                        debugBidLog(`     Checking if "${numStr}" starts with "${priceCents}"`);
+                                        if (numStr.startsWith(priceCents)) {
+                                            const bidPart = numStr.substring(priceCentsLength);
+                                            const bidNum = parseInt(bidPart, 10);
+                                            debugBidLog(`     Extracted bid part: "${bidPart}" → ${bidNum}`);
+                                            if (bidNum >= 1 && bidNum <= 1000) {
+                                                debugBidLog(`     ↩️ Correcting concatenated number ${num} → ${bidNum} (price "${priceCents}" + bid "${bidPart}")`);
+                                                effectiveNum = bidNum;
+                                            } else {
+                                                debugBidLog(`     ❌ Skipped - concatenated with price but invalid bid part: "${bidPart}"`);
+                                                continue;
+                                            }
+                                        } else {
+                                            debugBidLog(`     Number "${numStr}" does not start with price cents "${priceCents}"`);
+                                        }
+                                    } else {
+                                        debugBidLog(`     No price pattern found before match`);
+                                    }
+
+                                    if (hasDollarImmediatelyBefore && !wasConcatenatedAndFixed && !isReasonableBidCount) {
+                                        debugBidLog(`     Rejecting ${num} because price pattern detected immediately before`);
+                                        continue;
+                                    }
+
+                                    if (isDecimalPart) {
+                                        debugBidLog(`     ❌ Looks like decimal part of price, skipping`);
+                                        continue;
+                                    }
+
+                                    if (isItemNumber) {
+                                        debugBidLog(`     ❌ Matched item number, skipping`);
+                                        continue;
+                                    }
+
+                                    debugBidLog(`     ⚠️ Candidate bid count: ${effectiveNum} (original: ${num}, concatenatedFix: ${wasConcatenatedAndFixed})`);
+
+                                    if (!bestMatch || effectiveNum > bestScore) {
+                                        debugBidLog(`     ✅ Selecting bid match ${effectiveNum}`);
+                                        bestMatch = match;
+                                        bestScore = effectiveNum;
+                                        numBids = effectiveNum;
+                                    } else {
+                                        debugBidLog(`     ➖ Not better than current best score (${bestScore})`);
+                                    }
+                                }
+                            }
+
+                            if (bestMatch) {
+                                saleType = 'Auction';
+                                numBids = parseInt(bestMatch[1], 10);
+                                debugBidLog(`🎯 Found auction with ${numBids} bids in full-text search (text: "${bestMatch[0]}", index: ${bestMatch.index})`);
+                            } else {
+                                debugBidLog(`   ❌ No valid bid matches found after filtering`);
+                            }
+                        } else {
+                            debugBidLog(`   ❌ No bid matches found in full text`);
+                        }
+                    } else {
+                        debugBidLog(`   ❌ No full text available`);
+                    }
+                } else {
+                    debugBidLog(`ℹ️ Skipping full-text search - already found ${numBids} bids from primary/secondary selectors`);
+                }
+
+                if (!saleType) {
+                    for (const selector of saleTypeSelectors) {
+                        const saleEl = $item.find(selector).first();
+                        if (saleEl.length > 0) {
+                            const saleText = saleEl.text().trim();
+
+                            if (saleText.includes('Buy It Now') || saleText.includes('BIN')) {
+                                saleType = 'Buy It Now';
+                                break;
+                            }
+
+                            if (saleText.includes('Best Offer') || saleText.includes('OBO')) {
+                                saleType = 'Best Offer';
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!saleType) {
+                    const bidElements = $item.find('[class*="bid"], [class*="auction"]');
+                    if (bidElements.length > 0) {
+                        saleType = 'Auction';
+                        const bidText = bidElements.text();
+                        const bidMatch = bidText.match(/\b(\d+)\s*bids?\b/i);
+                        if (bidMatch) {
+                            const bidNum = parseInt(bidMatch[1], 10);
+                            if (bidNum >= 1 && bidNum <= 10000) {
+                                numBids = bidNum;
+                            }
+                        }
+                    }
+                }
+
+                if (!saleType) {
+                    saleType = 'Buy It Now';
+                    debugBidLog(`⚠️ Defaulting to "Buy It Now" - no sale type detected`);
+                }
+
+                console.log(`📊 Final result for item: saleType="${saleType}", numBids=${numBids}`);
+
+                for (const selector of soldDateSelectors) {
+                    const soldDateEl = $item.find(selector).first();
+                    if (soldDateEl.length > 0) {
+                        const dateText = soldDateEl.text().trim();
+                        if (dateText && /(sold\s+)?[a-z]{3}\s+\d{1,2},\s+\d{4}(\s+\d{1,2}:\d{2}\s*[ap]m)?/i.test(dateText)) {
+                            soldDate = dateText.replace(/^sold\s+/i, '');
+                            break;
+                        } else if (dateText && /(sold\s+)?[a-z]{3}\s+\d{1,2},\s+\d{4}/i.test(dateText)) {
+                            soldDate = dateText.replace(/^sold\s+/i, '');
+                            break;
+                        }
                     }
                 }
 
