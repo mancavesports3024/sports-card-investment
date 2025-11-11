@@ -1091,12 +1091,16 @@ const SearchPage = () => {
             </div>
             <div className="form-group advanced-search">
               <label htmlFor="searchQuery"><strong>Advanced Search</strong> (overrides all fields):</label>
+              <small className="search-helper">
+                For best results: <em>year, brand, set, player</em> - exclusion words<br />
+                Example: <code>2025 Topps Chrome Jackson Holliday -PSA -BGS</code>
+              </small>
               <input
                 type="text"
                 id="searchQuery"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="e.g., Mike Trout 2011 Topps Update Rookie"
+                placeholder="e.g., 2025 Bowman Chrome Jackson Chourio -PSA"
               />
             </div>
           </div>
