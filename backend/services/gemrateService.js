@@ -2,7 +2,6 @@ const axios = require('axios');
 const { CookieJar } = require('tough-cookie');
 const { wrapper } = require('axios-cookiejar-support');
 const cheerio = require('cheerio');
-const cheerio = require('cheerio');
 
 class GemRateService {
   constructor() {
