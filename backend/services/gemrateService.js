@@ -1,6 +1,8 @@
 const axios = require('axios');
 const { CookieJar } = require('tough-cookie');
 const { wrapper } = require('axios-cookiejar-support');
+const cheerio = require('cheerio');
+const cheerio = require('cheerio');
 
 class GemRateService {
   constructor() {
@@ -54,17 +56,36 @@ class GemRateService {
       'Sec-Fetch-Dest': 'document'
     };
 
-    this.cardDetailsHeaders = (cardIdentifier) => ({
-      ...this.baseHeaders,
-      'Accept': 'application/json, text/plain, */*',
-      'X-Requested-With': 'XMLHttpRequest',
-      'Referer': `https://www.gemrate.com/card/${cardIdentifier}`,
-      'Sec-Fetch-Site': 'same-origin',
-      'Sec-Fetch-Mode': 'cors',
-      'Sec-Fetch-Dest': 'empty'
-    });
+    this.cardDetailsHeaders = (refererPath) => {
+      const normalized = this.normalizePath(refererPath);
+      return {
+        ...this.baseHeaders,
+        'Accept': 'application/json, text/plain, */*',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Referer': `https://www.gemrate.com${normalized}`,
+        'Sec-Fetch-Site': 'same-origin',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Dest': 'empty'
+      };
+    };
 
     this.sessionInitialized = false;
+  }
+
+  normalizePath(href) {
+    if (!href) return '/';
+    try {
+      if (href.startsWith('http')) {
+        const url = new URL(href);
+        return `${url.pathname}${url.search || ''}`;
+      }
+    } catch (_) {
+      // ignore parsing errors
+    }
+    if (!href.startsWith('/')) {
+      return `/${href}`;
+    }
+    return href;
   }
 
   async ensureSession() {
@@ -80,14 +101,25 @@ class GemRateService {
     }
   }
 
-  async warmCardSession(gemrateId, cardSlug = null) {
+  async warmCardSession(gemrateId, cardSlug = null, extraPaths = []) {
     try {
       const candidatePaths = [];
+      const pushPath = (path) => {
+        if (!path) return;
+        const normalized = this.normalizePath(path);
+        if (!candidatePaths.includes(normalized)) {
+          candidatePaths.push(normalized);
+        }
+      };
+
+      (extraPaths || []).forEach(pushPath);
+
       if (cardSlug) {
-        candidatePaths.push(`/card/${cardSlug}`);
-        candidatePaths.push(`/card/${cardSlug}/pop`);
+        pushPath(`/card/${cardSlug}`);
+        pushPath(`/card/${cardSlug}/pop`);
       }
-      candidatePaths.push(`/card/${gemrateId}`);
+      pushPath(`/card/${gemrateId}`);
+      pushPath(`/universal-search?gemrate_id=${gemrateId}`);
 
       for (const path of candidatePaths) {
         try {
@@ -110,6 +142,54 @@ class GemRateService {
       console.log(`⚠️ GemRate card page warm-up failed for ${gemrateId}: ${error.message}`);
     }
     return null;
+  }
+
+  async fetchSlugFromUniversalSearch(gemrateId) {
+    try {
+      const response = await this.httpClient.get('/universal-search', {
+        params: { gemrate_id: gemrateId },
+        headers: this.pageHeaders
+      });
+
+      if (response.status !== 200 || typeof response.data !== 'string') {
+        return { slug: null, paths: [] };
+      }
+
+      const $ = cheerio.load(response.data);
+      const pathsSet = new Set();
+
+      const addPath = (href) => {
+        if (!href) return;
+        const normalized = this.normalizePath(href);
+        pathsSet.add(normalized);
+      };
+
+      const canonical = $('link[rel="canonical"]').attr('href');
+      if (canonical) {
+        addPath(canonical);
+      }
+
+      $('a[href]').each((_, el) => {
+        const href = $(el).attr('href');
+        if (href && (href.includes('/card/') || href.includes('/universal-pop-report/'))) {
+          addPath(href);
+        }
+      });
+
+      let slug = null;
+      for (const path of pathsSet) {
+        const match = path.match(/\/card\/([^/?#]+)/i);
+        if (match) {
+          slug = decodeURIComponent(match[1]);
+          break;
+        }
+      }
+
+      return { slug, paths: Array.from(pathsSet) };
+    } catch (error) {
+      console.log(`⚠️ Unable to parse universal search page for ${gemrateId}: ${error.message}`);
+      return { slug: null, paths: [] };
+    }
   }
 
   /**
@@ -179,10 +259,23 @@ class GemRateService {
         console.log('🔍 GemRate first result sample:', JSON.stringify(sampleEntry, null, 2).slice(0, 1000));
       }
 
-      const warmedPath = await this.warmCardSession(gemrateId, cardSlug);
+      let resolvedSlug = cardSlug;
+      let extraPaths = [];
+      if (!resolvedSlug) {
+        const slugInfo = await this.fetchSlugFromUniversalSearch(gemrateId);
+        if (slugInfo.slug) {
+          resolvedSlug = slugInfo.slug;
+          console.log(`🔍 Derived slug from universal search page: ${resolvedSlug}`);
+        }
+        if (slugInfo.paths && slugInfo.paths.length > 0) {
+          extraPaths = slugInfo.paths;
+        }
+      }
+
+      const warmedPath = await this.warmCardSession(gemrateId, resolvedSlug, extraPaths);
 
       // Step 2: Get detailed card data using gemrate_id
-      const cardDetails = await this.getCardDetails(gemrateId, cardSlug, warmedPath);
+      const cardDetails = await this.getCardDetails(gemrateId, resolvedSlug, warmedPath);
       if (!cardDetails) {
         console.log(`❌ No card details found for gemrate_id: ${gemrateId}`);
         return {
@@ -284,11 +377,13 @@ class GemRateService {
     try {
       console.log(`📊 Getting card details for gemrate_id: ${gemrateId}`);
 
-      const refererPath = warmedPath || (cardSlug ? `/card/${cardSlug}` : `/card/${gemrateId}`);
+      const refererPath =
+        warmedPath ||
+        (cardSlug ? `/card/${cardSlug}` : `/universal-search?gemrate_id=${gemrateId}`);
 
       const response = await this.httpClient.get(this.cardDetailsPath, {
         params: { gemrate_id: gemrateId },
-        headers: this.cardDetailsHeaders(refererPath.startsWith('/card/') ? refererPath.replace('/card/', '') : gemrateId)
+        headers: this.cardDetailsHeaders(refererPath)
       });
 
       if (response.data && response.status === 200) {
