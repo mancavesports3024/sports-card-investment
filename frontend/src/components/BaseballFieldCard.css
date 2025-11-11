@@ -1,47 +1,47 @@
 .scorecard-summary {
   display: flex;
   justify-content: center;
-  padding: 0 1.5rem;
-  margin: 2.5rem 0;
+  padding: 0 1rem;
+  margin: 1.8rem 0;
 }
 
 .summary-card {
   width: 100%;
-  max-width: 960px;
+  max-width: 900px;
   background: linear-gradient(180deg, #144229 0%, #0b1f14 100%);
-  border-radius: 28px;
-  border: 4px solid #ffd700;
-  padding: 32px;
+  border-radius: 22px;
+  border: 3px solid #ffd700;
+  padding: 24px;
   color: #ffffff;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 20px;
 }
 
 .summary-header {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 18px;
   flex-wrap: wrap;
 }
 
 .logo-pill {
-  width: 80px;
-  height: 80px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   background: rgba(255, 215, 0, 0.18);
   border: 2px solid rgba(255, 215, 0, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 12px 30px rgba(255, 215, 0, 0.25);
+  box-shadow: 0 10px 26px rgba(255, 215, 0, 0.22);
   overflow: hidden;
 }
 
 .logo-pill img {
-  width: 68px;
-  height: 68px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -49,103 +49,103 @@
 .card-title-block {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
 }
 
 .card-set-year {
   text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.72);
+  letter-spacing: 0.16em;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .card-title-block h2 {
-  font-size: 2.25rem;
+  font-size: 1.95rem;
   margin: 0;
   color: #ffffff;
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.08;
   word-break: break-word;
 }
 
 .card-meta {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .header-stat-chip {
   margin-left: auto;
   background: rgba(255, 215, 0, 0.12);
-  border: 1px solid rgba(255, 215, 0, 0.35);
-  border-radius: 16px;
-  padding: 14px 18px;
-  min-width: 180px;
+  border: 1px solid rgba(255, 215, 0, 0.32);
+  border-radius: 14px;
+  padding: 10px 14px;
+  min-width: 150px;
   text-align: right;
 }
 
 .header-stat-chip .label {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: rgba(255, 255, 255, 0.68);
-  margin-bottom: 6px;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.66);
+  margin-bottom: 4px;
 }
 
 .header-stat-chip .value {
   display: block;
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #ffd700;
 }
 
 .header-stat-chip .caption {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.7);
 }
 
 .summary-body {
   display: grid;
-  grid-template-columns: 1fr 1.3fr 1fr;
-  gap: 28px;
+  grid-template-columns: 0.9fr 1.2fr 0.9fr;
+  gap: 20px;
   align-items: stretch;
 }
 
 .price-card {
-  background: rgba(0, 0, 0, 0.35);
-  border-radius: 20px;
-  padding: 20px 22px;
-  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.28);
+  background: rgba(0, 0, 0, 0.32);
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.26);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .price-card .label {
-  font-size: 0.95rem;
-  letter-spacing: 0.18em;
+  font-size: 0.85rem;
+  letter-spacing: 0.17em;
   text-transform: uppercase;
   color: #ffd700;
   font-weight: 700;
 }
 
 .price-card .price {
-  font-size: 1.95rem;
+  font-size: 1.7rem;
   font-weight: 800;
   color: #ffffff;
 }
 
 .price-card .subtext {
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .trend-badge {
-  margin-top: 4px;
-  padding: 6px 12px;
+  margin-top: 2px;
+  padding: 5px 10px;
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 700;
   align-self: flex-start;
   color: #ffffff;
@@ -160,48 +160,48 @@
 }
 
 .card-image-panel {
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 24px;
-  padding: 24px;
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 20px;
+  padding: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 20px 52px rgba(0, 0, 0, 0.32);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
   position: relative;
 }
 
 .card-image-panel::after {
   content: "";
   position: absolute;
-  inset: 18px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  inset: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   pointer-events: none;
 }
 
 .card-image-panel img {
   width: 100%;
-  max-height: 360px;
+  max-height: 300px;
   object-fit: contain;
-  border-radius: 18px;
+  border-radius: 16px;
   background: #ffffff;
-  padding: 12px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+  padding: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.38);
 }
 
 .card-placeholder {
   width: 100%;
-  height: 320px;
-  border-radius: 18px;
+  height: 240px;
+  border-radius: 16px;
   background: linear-gradient(135deg, #1f2937, #111827);
   color: rgba(255, 255, 255, 0.65);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  font-size: 1.1rem;
-  letter-spacing: 0.15em;
+  gap: 8px;
+  font-size: 1rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -209,52 +209,53 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
 .raw-card {
-  background: rgba(0, 0, 0, 0.35);
-  border-radius: 18px;
-  padding: 18px 28px;
-  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.28);
+  background: rgba(0, 0, 0, 0.32);
+  border-radius: 16px;
+  padding: 14px 22px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.26);
   display: flex;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 14px;
   align-items: center;
   justify-content: center;
 }
 
 .raw-card .label {
-  font-size: 0.85rem;
-  letter-spacing: 0.22em;
+  font-size: 0.78rem;
+  letter-spacing: 0.2em;
   color: #ffd700;
   text-transform: uppercase;
 }
 
 .raw-card .price {
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #ffffff;
 }
 
 .raw-card .details {
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .summary-footer {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.68);
   text-align: center;
 }
 
 @media (max-width: 960px) {
   .summary-card {
-    padding: 24px;
+    padding: 20px;
+    gap: 18px;
   }
 
   .summary-header {
-    gap: 16px;
+    gap: 14px;
   }
 
   .header-stat-chip {
@@ -273,34 +274,30 @@
   .trend-badge {
     align-self: center;
   }
-}
-
-@media (max-width: 600px) {
-  .summary-card {
-    padding: 20px 16px;
-  }
-
-  .logo-pill {
-    width: 64px;
-    height: 64px;
-  }
-
-  .logo-pill img {
-    width: 54px;
-    height: 54px;
-  }
-
-  .card-title-block h2 {
-    font-size: 1.65rem;
-  }
-
-  .card-image-panel {
-    padding: 18px;
-  }
 
   .card-image-panel img,
   .card-placeholder {
     max-height: 260px;
     height: 260px;
+  }
+}
+
+@media (max-width: 600px) {
+  .summary-card {
+    padding: 18px 14px;
+  }
+
+  .logo-pill {
+    width: 58px;
+    height: 58px;
+  }
+
+  .logo-pill img {
+    width: 48px;
+    height: 48px;
+  }
+
+  .card-title-block h2 {
+    font-size: 1.55rem;
   }
 }
