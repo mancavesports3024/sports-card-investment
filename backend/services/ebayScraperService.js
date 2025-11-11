@@ -1309,4 +1309,5 @@ class EbayScraperService {
                 processedCount++;
             });
             
-            console.log(`
+            console.log(`📊 Processed ${processedCount} items, skipped ${skippedCount} items`);
+            return cardItems;
