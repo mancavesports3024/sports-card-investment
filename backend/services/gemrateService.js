@@ -80,15 +80,36 @@ class GemRateService {
     }
   }
 
-  async warmCardSession(gemrateId) {
+  async warmCardSession(gemrateId, cardSlug = null) {
     try {
-      const response = await this.httpClient.get(`/card/${gemrateId}`, {
-        headers: this.cardPageHeaders
-      });
-      console.log(`✅ GemRate card page visited for ${gemrateId} (status ${response.status})`);
+      const candidatePaths = [];
+      if (cardSlug) {
+        candidatePaths.push(`/card/${cardSlug}`);
+        candidatePaths.push(`/card/${cardSlug}/pop`);
+      }
+      candidatePaths.push(`/card/${gemrateId}`);
+
+      for (const path of candidatePaths) {
+        try {
+          const response = await this.httpClient.get(path, {
+            headers: {
+              ...this.cardPageHeaders,
+              Referer: path.includes(cardSlug || '') ? 'https://www.gemrate.com/universal-search' : this.cardPageHeaders.Referer
+            }
+          });
+          if (response.status === 200) {
+            console.log(`✅ GemRate card page visited at path ${path} (status ${response.status})`);
+            return path;
+          }
+        } catch (innerErr) {
+          console.log(`⚠️ GemRate card page attempt ${path} failed: ${innerErr.response?.status || innerErr.message}`);
+        }
+      }
+      console.log(`⚠️ GemRate card page warm-up failed for ${gemrateId} (slug: ${cardSlug || 'none'}) - all paths attempted`);
     } catch (error) {
       console.log(`⚠️ GemRate card page warm-up failed for ${gemrateId}: ${error.message}`);
     }
+    return null;
   }
 
   /**
@@ -138,9 +159,12 @@ class GemRateService {
       }
 
       // Extract gemrate_id from search results
-      const gemrateId = this.extractGemrateId(searchResponse.data);
+      const { gemrateId, cardSlug } = this.extractGemrateInfo(searchResponse.data);
       if (!gemrateId) {
         console.log(`❌ No gemrate_id found in search results for: ${searchQuery}`);
+        if (searchResponse.data) {
+          console.log('🔍 GemRate search data sample:', JSON.stringify(searchResponse.data, null, 2).slice(0, 1000));
+        }
         return {
           success: false,
           card: searchQuery,
@@ -150,12 +174,12 @@ class GemRateService {
         };
       }
 
-      console.log(`🔍 Found gemrate_id: ${gemrateId}`);
+      console.log(`🔍 Found gemrate_id: ${gemrateId}${cardSlug ? ` (slug: ${cardSlug})` : ''}`);
 
-      await this.warmCardSession(gemrateId);
+      const warmedPath = await this.warmCardSession(gemrateId, cardSlug);
 
       // Step 2: Get detailed card data using gemrate_id
-      const cardDetails = await this.getCardDetails(gemrateId);
+      const cardDetails = await this.getCardDetails(gemrateId, cardSlug, warmedPath);
       if (!cardDetails) {
         console.log(`❌ No card details found for gemrate_id: ${gemrateId}`);
         return {
@@ -194,51 +218,44 @@ class GemRateService {
    * @param {Object} searchData - Search response data
    * @returns {string|null} gemrate_id or null
    */
-  extractGemrateId(searchData) {
+  extractGemrateInfo(searchData) {
     try {
-      // Look for gemrate_id in various possible locations in the response
-      if (searchData.gemrate_id) {
-        return searchData.gemrate_id;
-      }
-      
-      if (searchData.id) {
-        return searchData.id;
-      }
-      
-      if (searchData.results && Array.isArray(searchData.results) && searchData.results.length > 0) {
-        const firstResult = searchData.results[0];
-        if (firstResult.gemrate_id) {
-          return firstResult.gemrate_id;
+      const info = { gemrateId: null, cardSlug: null };
+
+      const inspectEntry = (entry) => {
+        if (!entry || typeof entry !== 'object') return;
+        if (!info.gemrateId) {
+          info.gemrateId = entry.gemrate_id || entry.gemrateId || entry.id || null;
         }
-        if (firstResult.id) {
-          return firstResult.id;
+        if (!info.cardSlug) {
+          info.cardSlug = entry.slug || entry.card_slug || entry.url_path || entry.path || null;
         }
-      }
-      
-      if (searchData.data && searchData.data.gemrate_id) {
-        return searchData.data.gemrate_id;
-      }
-      
-      if (searchData.data && searchData.data.id) {
-        return searchData.data.id;
-      }
-      
-      // If it's an array of results, take the first one
-      if (Array.isArray(searchData) && searchData.length > 0) {
-        const firstItem = searchData[0];
-        if (firstItem.gemrate_id) {
-          return firstItem.gemrate_id;
+      };
+
+      const inspectAny = (data) => {
+        if (!data) return;
+        if (Array.isArray(data)) {
+          data.forEach(item => inspectEntry(item));
+        } else if (typeof data === 'object') {
+          inspectEntry(data);
+          Object.values(data).forEach(val => {
+            if (typeof val === 'object') inspectAny(val);
+          });
         }
-        if (firstItem.id) {
-          return firstItem.id;
-        }
+      };
+
+      inspectAny(searchData);
+
+      if (!info.gemrateId) {
+        console.log('🔍 Unable to find gemrate_id in search data.');
       }
-      
-      console.log('🔍 Search data structure:', JSON.stringify(searchData, null, 2));
-      return null;
+      if (!info.cardSlug) {
+        console.log('⚠️ No slug found in search data. Available keys:', Object.keys(searchData || {}));
+      }
+      return info;
     } catch (error) {
       console.error('❌ Error extracting gemrate_id:', error);
-      return null;
+      return { gemrateId: null, cardSlug: null };
     }
   }
 
@@ -247,13 +264,15 @@ class GemRateService {
    * @param {string} gemrateId - The gemrate_id from search results
    * @returns {Promise<Object|null>} Card details or null
    */
-  async getCardDetails(gemrateId) {
+  async getCardDetails(gemrateId, cardSlug = null, warmedPath = null) {
     try {
       console.log(`📊 Getting card details for gemrate_id: ${gemrateId}`);
-      
+
+      const refererPath = warmedPath || (cardSlug ? `/card/${cardSlug}` : `/card/${gemrateId}`);
+
       const response = await this.httpClient.get(this.cardDetailsPath, {
         params: { gemrate_id: gemrateId },
-        headers: this.cardDetailsHeaders(gemrateId)
+        headers: this.cardDetailsHeaders(refererPath.startsWith('/card/') ? refererPath.replace('/card/', '') : gemrateId)
       });
 
       if (response.data && response.status === 200) {
