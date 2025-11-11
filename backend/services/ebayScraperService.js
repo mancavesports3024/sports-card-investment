@@ -1311,3 +1311,103 @@ class EbayScraperService {
             
             console.log(`📊 Processed ${processedCount} items, skipped ${skippedCount} items`);
             return cardItems;
+        } catch (error) {
+            console.error('Error in parseHtmlForCards:', error.message);
+            return [];
+        }
+    }
+
+    parseHtmlForCardsRegex(html, maxResults, searchTerm = null, sport = null, expectedGrade = null, shouldRemoveAutos = false, originalIsAutograph = false, targetPrintRun = null) {
+        try {
+            const finalResults = [];
+            const showBidDebug = process.env.EBAY_VERBOSE_BID_LOGS === '1';
+            const debugBidLog = (...args) => {
+                if (showBidDebug) console.log(...args);
+            };
+            const maxResultsNum = parseInt(maxResults) || 200;
+
+            console.log(`🔍 Parsing HTML with Regex...`);
+
+            // Load HTML into Cheerio first
+            const $ = cheerio.load(html);
+
+            // Check for data-view elements (reduced logging)
+            console.log(`🔍 Found ${$('[data-view]').length} data-view elements`);
+
+            // Extract card items using eBay's standard selectors
+            const cardItems = [];
+
+            // Try multiple selectors for eBay items
+            const itemSelectors = [
+                '.s-item:not(.s-item--ad)',
+                '.srp-results .s-item:not(.s-item--ad)',
+                '.s-item__wrapper:not(.s-item--ad)',
+                '[data-view*="iid:"]',
+                '[data-view="mi:1686|iid:1"]',
+                '[data-view*="mi:1686"]',
+                '.item',
+                '.sresult',
+                '.srp-item'
+            ];
+
+            let items = $();
+            for (const selector of itemSelectors) {
+                items = $(selector);
+                if (items.length > 0) {
+                    console.log(`✅ Using selector: ${selector} (${items.length} items)`);
+                    break;
+                }
+            }
+
+            if (items.length === 0) {
+                console.log('❌ No items found with standard selectors in regex fallback. Returning empty results.');
+                return [];
+            }
+
+            items.each((index, element) => {
+                if (index >= maxResultsNum) {
+                    return false;
+                }
+
+                const $item = $(element);
+                const text = $item.text();
+                const titleMatch = text.match(/"([^"]{10,})"/);
+                const priceMatch = text.match(/[\$£€]\s*([0-9,.]+)/);
+
+                if (!titleMatch || !priceMatch) {
+                    return;
+                }
+
+                const title = titleMatch[1].trim();
+                const numericPrice = parseFloat(priceMatch[1].replace(/,/g, ''));
+                if (!title || !Number.isFinite(numericPrice) || numericPrice <= 0) {
+                    return;
+                }
+
+                finalResults.push({
+                    title,
+                    price: priceMatch[0],
+                    numericPrice,
+                    itemUrl: '',
+                    sport: this.detectSportFromTitle(title),
+                    grade: expectedGrade || this.detectGradeFromTitle(title),
+                    soldDate: null,
+                    ebayItemId: null,
+                    autoConfidence: this.calculateAutographConfidence(title),
+                    shippingCost: null,
+                    saleType: 'Buy It Now',
+                    numBids: null,
+                    imageUrl: null
+                });
+            });
+
+            console.log(`📊 Regex fallback extracted ${finalResults.length} cards`);
+            return finalResults;
+        } catch (error) {
+            console.error('Error in parseHtmlForCardsRegex:', error.message);
+            return [];
+        }
+    }
+}
+
+module.exports = EbayScraperService;
