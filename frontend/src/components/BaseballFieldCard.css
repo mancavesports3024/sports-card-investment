@@ -1,431 +1,306 @@
-.baseball-field-card {
-  width: 100%;
+.scorecard-summary {
   display: flex;
   justify-content: center;
-  align-items: center;
+  padding: 0 1.5rem;
+  margin: 2.5rem 0;
 }
 
-.baseball-field-wrapper {
-  position: relative;
+.summary-card {
   width: 100%;
-  max-width: 620px;
-  height: 500px;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-}
-
-/* Container with relative positioning for baseball field layout */
-.baseball-field {
-  position: relative;
-  width: 100%;
-  max-width: 620px;
-  aspect-ratio: 3 / 2;
-  min-height: 280px;
-  background: #2d7a1f;
-  border-radius: 12px;
-  border: 3px solid #ffd700;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-  overflow: hidden;
-  padding: 0.75rem;
-}
-
-.baseball-field-wrapper .baseball-field {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform-origin: top center;
-  transform: translateX(-50%) scale(0.95);
-}
-
-/* Grass mowing stripes */
-.baseball-field::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 25px,
-    rgba(0, 0, 0, 0.1) 25px,
-    rgba(0, 0, 0, 0.1) 50px
-  );
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Faint diamond overlay for visual reference */
-.baseball-field::after {
-  content: '';
-  position: absolute;
-  bottom: 24%;
-  left: 50%;
-  transform: translateX(-50%) rotate(45deg);
-  width: 48%;
-  height: 48%;
-  border: 2px dashed rgba(255, 255, 255, 0.2);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Base markers - visible white squares */
-.base-marker {
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(0, 0, 0, 0.3);
-  transform: rotate(45deg);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
-  z-index: 5;
-}
-
-.base-marker.second {
-  display: none;
-}
-
-.base-marker.first {
-  left: 78%;
-  bottom: 43%;
-  transform: translate(-50%, 50%) rotate(45deg);
-}
-
-.base-marker.third {
-  left: 22%;
-  bottom: 43%;
-  transform: translate(-50%, 50%) rotate(45deg);
-}
-
-.base-marker.home {
-  left: 50%;
-  bottom: 12%;
-  transform: translate(-50%, 50%) rotate(45deg);
-}
-
-/* Pitcher's mound circle */
-.pitchers-mound {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 40px;
-  height: 40px;
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  border-radius: 50%;
-  background: rgba(200, 154, 109, 0.3);
-  z-index: 1;
-}
-
-/* Foul lines - removed solid white lines */
-.foul-line {
-  display: none;
-}
-
-/* Base tile styling - consistent padding/margin using absolute positioning */
-.tile {
-  position: absolute;
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.95);
-  border: none;
-  border-radius: 5px;
+  max-width: 960px;
+  background: linear-gradient(180deg, #144229 0%, #0b1f14 100%);
+  border-radius: 28px;
+  border: 4px solid #ffd700;
+  padding: 32px;
+  color: #ffffff;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
+  gap: 28px;
+}
+
+.summary-header {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0.42rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-}
-
-/* Row 1: PSA 10 (horizontal, centered at top - pitcher's mound area) */
-.tile-psa10 {
-  top: 10%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 62%;
-  min-height: 90px;
-  background: linear-gradient(180deg, #1e5c14 0%, #2d7a1f 100%);
-}
-
-/* Row 2: Middle row - using absolute positioning */
-/* 2. Gem Rate: vertical tile on left (third base area) */
-.tile-gemrate {
-  bottom: 45%;
-  left: 8%;
-  width: 22%; /* wider */
-  min-height: 140px;
-  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
-}
-
-/* 3. Card Image: vertical tile in center (below PSA 10) - no border, just image */
-.tile-card {
-  bottom: 18%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 30%;
-  min-height: 260px;
-  background: transparent;
-  border: none;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  box-shadow: none;
-}
-
-/* Card Information - Top, above PSA 10 tile */
-.card-info-top {
-  position: absolute;
-  top: 6%;
-  left: 50%;
-  transform: translate(-50%, -10px);
-  display: flex;
+  gap: 24px;
   flex-wrap: wrap;
-  gap: 1.4rem;
-  justify-content: center;
+}
+
+.logo-pill {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 215, 0, 0.18);
+  border: 2px solid rgba(255, 215, 0, 0.85);
+  display: flex;
   align-items: center;
-  z-index: 10;
-  white-space: normal;
+  justify-content: center;
+  box-shadow: 0 12px 30px rgba(255, 215, 0, 0.25);
+  overflow: hidden;
 }
 
-.card-info-top-text {
+.logo-pill img {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.card-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.card-set-year {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.card-title-block h2 {
+  font-size: 2.25rem;
+  margin: 0;
   color: #ffffff;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.9);
+  font-weight: 800;
+  line-height: 1.1;
+  word-break: break-word;
 }
 
-/* 4. PSA 9: vertical tile on right (first base area) */
-.tile-psa9 {
-  bottom: 45%;
-  right: 8%;
-  width: 22%; /* wider */
-  min-height: 140px;
-  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
+.card-meta {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.75);
 }
 
-/* Row 3: RAW (vertical, centered below Card Image - home plate area) */
-.tile-raw {
-  bottom: 10%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 30%;
-  min-height: 90px;
-  background: linear-gradient(135deg, #c59a6d 0%, #a67c52 50%, #8b5a3c 100%);
+.header-stat-chip {
+  margin-left: auto;
+  background: rgba(255, 215, 0, 0.12);
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  border-radius: 16px;
+  padding: 14px 18px;
+  min-width: 180px;
+  text-align: right;
 }
 
-/* Timestamp - Bottom of card */
-.card-timestamp {
-  position: absolute;
-  bottom: 4%;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #ffffff;
-  font-size: 0.7rem;
-  font-weight: 500;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.9);
-  z-index: 10;
-  white-space: nowrap;
+.header-stat-chip .label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.68);
+  margin-bottom: 6px;
 }
 
-/* Typography - Increased font sizes for better readability */
-/* Headings (PSA 10, RAW, etc.) - Match price font size */
-.tile-label {
-  font-size: 0.844rem; /* +25% */
+.header-stat-chip .value {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffd700;
+}
+
+.header-stat-chip .caption {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.summary-body {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr 1fr;
+  gap: 28px;
+  align-items: stretch;
+}
+
+.price-card {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 20px;
+  padding: 20px 22px;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.28);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.price-card .label {
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #ffd700;
+  font-weight: 700;
+}
+
+.price-card .price {
+  font-size: 1.95rem;
   font-weight: 800;
   color: #ffffff;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.9);
-  margin-bottom: 0.5rem;
 }
 
-/* Price values and main data */
-.tile-value {
-  font-size: 0.844rem; /* +25% */
-  font-weight: 900;
+.price-card .subtext {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.trend-badge {
+  margin-top: 4px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  align-self: flex-start;
   color: #ffffff;
-  text-shadow: 3px 3px 5px rgba(0, 0, 0, 1), 0 0 8px rgba(0, 0, 0, 0.95);
-  margin-bottom: 0.3rem;
 }
 
-/* Subtext (population, percentages, etc.) */
-.tile-info {
-  font-size: 0.8rem; /* larger for Pop, Total */
-  font-weight: 600;
-  color: #ffffff;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 1), 0 0 5px rgba(0, 0, 0, 0.9);
-  margin-top: 0.3rem;
+.trend-badge.up {
+  background: linear-gradient(135deg, #2e8b57, #1f613e);
 }
 
-/* Card Image Container - Larger image display area */
-.card-image-container {
-  width: 100%;
-  height: 100%;
+.trend-badge.down {
+  background: linear-gradient(135deg, #b91c1c, #8a1111);
+}
+
+.card-image-panel {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 24px;
+  padding: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 20px 52px rgba(0, 0, 0, 0.32);
+  position: relative;
 }
 
-/* Card Information - Smaller font for corner placement */
-.card-info {
+.card-image-panel::after {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+}
+
+.card-image-panel img {
   width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  padding: 0.35rem;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
-  font-size: 0.688rem; /* +25% */
-}
-
-.card-info-line {
-  width: 100%;
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 0.2rem;
-  line-height: 1.3;
-}
-
-.card-info-label {
-  font-weight: 700;
-  color: #ffffff;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 1), 0 0 4px rgba(0, 0, 0, 0.8);
-  margin-right: 0.35rem;
-  min-width: 2.8rem;
-  font-size: 0.688rem; /* +25% */
-  flex-shrink: 0;
-}
-
-.card-info-value {
-  font-weight: 600;
-  color: #ffffff;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 1), 0 0 4px rgba(0, 0, 0, 0.8);
-  flex: 1;
-  word-wrap: break-word;
-  font-size: 0.688rem; /* +25% */
-  text-align: left;
-}
-
-/* Card Image - Larger and more prominent */
-.card-image {
-  width: auto;
-  max-width: 200px;
-  height: auto;
-  border-radius: 8px;
-  background: #ffffff;
-  padding: 0.75rem;
-  border: 3px solid rgba(255, 255, 255, 1);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.9), 0 0 15px rgba(255, 255, 255, 0.7);
+  max-height: 360px;
   object-fit: contain;
-  /* Center horizontally */
-  margin: 0 auto;
+  border-radius: 18px;
+  background: #ffffff;
+  padding: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
 }
 
 .card-placeholder {
-  width: 85%;
-  height: 85%;
-  border-radius: 4px;
-  background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 50%, #d7d7d7 100%);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  width: 100%;
+  height: 320px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #1f2937, #111827);
+  color: rgba(255, 255, 255, 0.65);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  position: relative;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  gap: 10px;
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }
 
-.card-placeholder::before,
-.card-placeholder::after {
-  content: '';
-  position: absolute;
-  width: 60%;
-  height: 60%;
-  border: 1px dashed #d32f2f;
-  border-radius: 50%;
+.summary-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
 }
 
-.card-placeholder::before { transform: rotate(-20deg); }
-.card-placeholder::after { transform: rotate(20deg); }
-
-.card-placeholder-icon {
-  font-size: 1.5rem;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
-  position: relative;
-  z-index: 1;
+.raw-card {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 18px;
+  padding: 18px 28px;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.28);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: center;
+  justify-content: center;
 }
 
-.card-placeholder-text {
-  margin-top: 0.25rem;
-  font-size: 0.4rem;
-  font-weight: 700;
-  color: #2d2d2d;
-  position: relative;
-  z-index: 1;
+.raw-card .label {
+  font-size: 0.85rem;
+  letter-spacing: 0.22em;
+  color: #ffd700;
+  text-transform: uppercase;
 }
 
-/* Profit Badge - Increased font size */
-.profit-badge {
-  font-size: 0.8rem; /* larger for % chip */
-  font-weight: 700;
-  padding: 0.3rem 0.6rem;
-  border-radius: 4px;
-  margin-top: 0.3rem;
-  text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.7);
-}
-
-.profit-badge.profit {
-  background: linear-gradient(135deg, #4caf50 0%, #2f7c36 100%);
-  border: 1px solid #27652c;
+.raw-card .price {
+  font-size: 1.6rem;
+  font-weight: 800;
   color: #ffffff;
-  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.7);
 }
 
-.profit-badge.loss {
-  background: linear-gradient(135deg, #d32f2f 0%, #a41b1b 100%);
-  border: 1px solid #861212;
-  color: #ffffff;
-  box-shadow: 0 2px 4px rgba(211, 47, 47, 0.7);
+.raw-card .details {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.72);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .baseball-field-wrapper {
-    height: 360px;
+.summary-footer {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.72);
+  text-align: center;
+}
+
+@media (max-width: 960px) {
+  .summary-card {
+    padding: 24px;
   }
 
-  .baseball-field-wrapper .baseball-field {
-    transform: translateX(-50%) scale(0.75);
+  .summary-header {
+    gap: 16px;
   }
 
-  .baseball-field {
-    max-width: 100%;
-    aspect-ratio: 1;
-    min-height: 220px;
+  .header-stat-chip {
+    margin-left: 0;
   }
 
-  .tile {
-    padding: 0.35rem;
+  .summary-body {
+    grid-template-columns: 1fr;
   }
 
-  .tile-label {
-    font-size: 0.6rem;
+  .price-card {
+    align-items: center;
+    text-align: center;
   }
 
-  .tile-value {
-    font-size: 0.8rem;
+  .trend-badge {
+    align-self: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .summary-card {
+    padding: 20px 16px;
   }
 
-  .tile-info {
-    font-size: 0.55rem;
+  .logo-pill {
+    width: 64px;
+    height: 64px;
   }
 
-  .tile-card {
-    min-height: 180px;
+  .logo-pill img {
+    width: 54px;
+    height: 54px;
   }
 
-  .card-image {
-    max-width: 130px;
+  .card-title-block h2 {
+    font-size: 1.65rem;
+  }
+
+  .card-image-panel {
+    padding: 18px;
+  }
+
+  .card-image-panel img,
+  .card-placeholder {
+    max-height: 260px;
+    height: 260px;
   }
 }
