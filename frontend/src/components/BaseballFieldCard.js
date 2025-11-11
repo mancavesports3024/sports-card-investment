@@ -155,21 +155,18 @@ const BaseballFieldCard = ({ card }) => {
     <div className="scorecard-summary">
       <div className="summary-card">
         <header className="summary-header">
-          <div className="logo-pill">
-            <img src={LOGO_SRC} alt="Scorecard logo" />
-          </div>
           <div className="card-title-block">
             {(cardInfo.year || cardInfo.set) && (
               <span className="card-set-year">
-                {[cardInfo.year, cardInfo.set].filter(Boolean).join(' · ')}
+                {[cardInfo.year, cardInfo.set].filter(Boolean).join(" · ")}
               </span>
             )}
-            <h2>{cardInfo.name || card.summaryTitle || 'Card Summary'}</h2>
+            <h2>{cardInfo.name || card.summaryTitle || "Card Summary"}</h2>
             {(cardInfo.player || cardInfo.cardNumber) && (
               <div className="card-meta">
                 {[cardInfo.player, cardInfo.cardNumber ? `#${cardInfo.cardNumber}` : null]
                   .filter(Boolean)
-                  .join(' • ')}
+                  .join(" • ")}
               </div>
             )}
           </div>
@@ -177,7 +174,7 @@ const BaseballFieldCard = ({ card }) => {
             <div className="header-stat-chip">
               <span className="label">Gem Rate</span>
               <span className="value">
-                {gemRateValue !== null ? `${gemRateValue.toFixed(1)}%` : 'N/A'}
+                {gemRateValue !== null ? `${gemRateValue.toFixed(1)}%` : "N/A"}
               </span>
               {totalPopulation ? (
                 <span className="caption">Total Pop: {totalPopulation.toLocaleString()}</span>
@@ -225,9 +222,12 @@ const BaseballFieldCard = ({ card }) => {
             <div className="price">{formatPrice(rawPrice)}</div>
             <div className="details">Average recent ungraded sale price</div>
           </div>
-          {card.createdAt && (
-            <div className="summary-footer">Created: {formatTimestamp(card.createdAt)}</div>
-          )}
+          <div className="summary-footer">
+            {card.createdAt && (
+              <div>Created: {formatTimestamp(card.createdAt)}</div>
+            )}
+            <div className="footer-site">mancavesportscardsllc.com</div>
+          </div>
         </div>
       </div>
     </div>
