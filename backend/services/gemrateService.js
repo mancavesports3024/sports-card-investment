@@ -276,13 +276,16 @@ class GemRateService {
       let extraPaths = [];
       let refererOverride = null;
       if (!resolvedSlug) {
-        const slugInfo = await this.fetchSlugFromUniversalSearch(gemrateId);
+      const slugInfo = await this.fetchSlugFromUniversalSearch(gemrateId);
         if (slugInfo.slug) {
           resolvedSlug = slugInfo.slug;
           console.log(`🔍 Derived slug from universal search page: ${resolvedSlug}`);
         }
         if (slugInfo.paths && slugInfo.paths.length > 0) {
           extraPaths = slugInfo.paths;
+        if (!resolvedSlug) {
+          console.log('🔍 Universal search paths discovered:', slugInfo.paths.slice(0, 5));
+        }
         }
         if (slugInfo.universalPopPath) {
           refererOverride = slugInfo.universalPopPath;
