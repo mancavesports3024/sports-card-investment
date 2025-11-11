@@ -109,9 +109,6 @@
 .stat-card,
 .raw-card {
   width: 100%;
-}
-
-.stat-card {
   background: rgba(0, 0, 0, 0.45);
   border-radius: 16px;
   padding: 16px 18px;
@@ -121,6 +118,20 @@
   align-items: center;
   text-align: center;
   gap: 8px;
+  border: 2px solid rgba(255, 215, 0, 0.65);
+}
+
+.price-card {
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36);
+}
+
+.stat-card {
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36);
+}
+
+.raw-card {
+  padding: 16px 18px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
 }
 
 .gem-rate-card .label {
