@@ -1487,10 +1487,11 @@ class EbayScraperService {
             if (!title || title.length < 6) continue;
 
             const priceInfo = summary.price || summary.currentPrice || summary.currentBidPrice || summary.primaryPrice;
-            const priceValue = priceInfo ? parseFloat(priceInfo.value || priceInfo.raw || priceInfo.convertedValue || 0) : 0;
-            if (!Number.isFinite(priceValue) || priceValue <= 0) continue;
-            const currency = priceInfo?.currency || priceInfo?.currencyId || 'USD';
-            const priceText = `${this.currencySymbol(currency)}${priceValue.toFixed(2)}`;
+            const rawPrice = priceInfo ? parseFloat(priceInfo.value ?? priceInfo.raw ?? priceInfo.convertedValue ?? priceInfo.amount ?? 0) : 0;
+            if (!Number.isFinite(rawPrice) || rawPrice <= 0) continue;
+            const normalizedPrice = Math.round(rawPrice * 100) / 100;
+            const currency = (priceInfo?.currency || priceInfo?.currencyId || priceInfo?.currencySymbol || 'USD');
+            const priceText = `${this.currencySymbol(currency)}${normalizedPrice.toFixed(2)}`;
 
             const itemId = summary.itemId || summary.id || summary.legacyItemId || null;
             const itemUrl = summary.itemHref || summary.itemUrl || (itemId ? `https://www.ebay.com/itm/${itemId}` : '');
@@ -1498,23 +1499,78 @@ class EbayScraperService {
             const saleType = Array.isArray(summary.buyingOptions) && summary.buyingOptions.includes('AUCTION')
                 ? 'Auction'
                 : 'Buy It Now';
-            const numBids = saleType === 'Auction' ? (summary.bidCount ?? summary.bids ?? null) : null;
+            let numBids = null;
+            if (saleType === 'Auction') {
+                const bidSources = [
+                    summary.bidCount,
+                    summary.bids,
+                    summary.numBids,
+                    summary.bidCountDisplay,
+                    summary.itemAuctionInfo?.bidCount,
+                    summary.itemAuctionInfo?.bidCountDisplay,
+                    summary.auctionInfo?.bidCount,
+                    summary.auctionInfo?.bidCountDisplay
+                ];
+                for (const src of bidSources) {
+                    const normalized = this.normalizeBidCount(src);
+                    if (normalized != null) {
+                        numBids = normalized;
+                        break;
+                    }
+                }
+                if (numBids == null) {
+                    const textSources = [
+                        summary.itemSubtitle,
+                        summary.subtitle,
+                        summary.itemTitleSubtitle,
+                        summary.itemCardSubTitle,
+                        summary.itemInfo?.viewItemShortDescription,
+                        summary.itemInfo?.subtitle
+                    ];
+                    for (const text of textSources) {
+                        if (typeof text === 'string') {
+                            const match = text.match(/\b(\d+)\s*bids?\b/i);
+                            if (match) {
+                                numBids = parseInt(match[1], 10);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
 
             const imageUrl = summary.image?.imageUrl || summary.image?.imageUrlHttps || summary.galleryUrl || null;
             const popSport = this.detectSportFromTitle(title);
             const grade = expectedGrade || this.detectGradeFromTitle(title);
             const soldDate = summary.itemEndDate || summary.itemEndDateString || summary.timeLeft || 'Recently sold';
 
-            const shippingCost = summary.shipping?.price?.value
-                ? `${this.currencySymbol(summary.shipping.price.currency || currency)}${parseFloat(summary.shipping.price.value).toFixed(2)}`
-                : summary.shipping?.type === 'FREE' || summary.shipping?.value === 'FREE'
-                    ? 'Free'
-                    : null;
+            let shippingCost = null;
+            if (summary.shipping?.price?.value) {
+                const shipCurrency = summary.shipping.price.currency || summary.shipping.price.currencyId || currency;
+                const shipValue = Math.round(parseFloat(summary.shipping.price.value) * 100) / 100;
+                if (Number.isFinite(shipValue) && shipValue > 0) {
+                    shippingCost = `${this.currencySymbol(shipCurrency)}${shipValue.toFixed(2)}`;
+                } else if (shipValue === 0) {
+                    shippingCost = 'Free';
+                }
+            } else if (summary.shipping?.type === 'FREE' || summary.shipping?.value === 'FREE') {
+                shippingCost = 'Free';
+            } else if (typeof summary.shippingCostDisplay === 'string') {
+                const match = summary.shippingCostDisplay.match(/\b(free)\b/i);
+                if (match) {
+                    shippingCost = 'Free';
+                } else {
+                    const numeric = summary.shippingCostDisplay.match(/([$£€])\s*([\d,.]+)/);
+                    if (numeric) {
+                        shippingCost = `${numeric[1]}${numeric[2]}`;
+                    }
+                }
+            }
 
             results.push({
                 title,
                 price: priceText,
-                numericPrice: priceValue,
+                numericPrice: normalizedPrice,
                 itemUrl,
                 sport: popSport,
                 grade,
@@ -1547,6 +1603,37 @@ class EbayScraperService {
             default:
                 return `${code} `;
         }
+    }
+
+    normalizeBidCount(raw) {
+        if (raw == null) return null;
+        if (typeof raw === 'number') {
+            if (!Number.isFinite(raw)) return null;
+            if (raw > 100 && raw % 100 < 100) {
+                const stripped = Math.floor(raw % 100);
+                if (stripped >= 1 && stripped <= 100) {
+                    return stripped;
+                }
+            }
+            const integer = Math.floor(raw);
+            return integer >= 0 ? integer : null;
+        }
+        if (typeof raw === 'string') {
+            const match = raw.match(/(\d[\d,]*)/);
+            if (match) {
+                const value = parseInt(match[1].replace(/,/g, ''), 10);
+                if (Number.isFinite(value)) {
+                    if (value > 100 && value % 100 < 100) {
+                        const stripped = value % 100;
+                        if (stripped >= 1 && stripped <= 100) {
+                            return stripped;
+                        }
+                    }
+                    return value;
+                }
+            }
+        }
+        return null;
     }
 
     parseHtmlForCardsRegex(html, maxResults, searchTerm = null, sport = null, expectedGrade = null, shouldRemoveAutos = false, originalIsAutograph = false, targetPrintRun = null) {
