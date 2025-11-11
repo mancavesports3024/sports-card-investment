@@ -55,7 +55,7 @@ class GemRateService {
       'Sec-Fetch-Dest': 'document'
     };
 
-    this.cardDetailsHeaders = (refererPath) => {
+    this.cardDetailsHeaders = (refererPath, cardDetailsToken = null) => {
       const normalized = this.normalizePath(refererPath);
       return {
         ...this.baseHeaders,
@@ -64,11 +64,13 @@ class GemRateService {
         'Referer': `https://www.gemrate.com${normalized}`,
         'Sec-Fetch-Site': 'same-origin',
         'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Dest': 'empty'
+        'Sec-Fetch-Dest': 'empty',
+        ...(cardDetailsToken ? { 'X-Card-Details-Token': cardDetailsToken } : {})
       };
     };
 
     this.sessionInitialized = false;
+    this.latestCardDetailsToken = null;
   }
 
   normalizePath(href) {
@@ -166,10 +168,12 @@ class GemRateService {
         return { slug: null, paths: [] };
       }
 
-      const $ = cheerio.load(response.data);
+      const html = response.data;
+      const $ = cheerio.load(html);
       const pathsSet = new Set();
       let slug = null;
       let universalPopPath = null;
+      let cardDetailsToken = null;
 
       const addPath = (href) => {
         if (!href) return;
@@ -182,6 +186,12 @@ class GemRateService {
       const canonical = $('link[rel="canonical"]').attr('href');
       if (canonical) {
         addPath(canonical);
+      }
+
+      const tokenMatch = html.match(/const\s+cardDetailsToken\s*=\s*"([^"]+)"/);
+      if (tokenMatch && tokenMatch[1]) {
+        cardDetailsToken = tokenMatch[1];
+        console.log('🔐 Parsed GemRate cardDetailsToken from universal search page');
       }
 
       $('a[href]').each((_, el) => {
@@ -229,10 +239,10 @@ class GemRateService {
         }
       }
 
-      return { slug, paths: Array.from(pathsSet), universalPopPath };
+      return { slug, paths: Array.from(pathsSet), universalPopPath, cardDetailsToken };
     } catch (error) {
       console.log(`⚠️ Unable to parse universal search page for ${gemrateId}: ${error.message}`);
-      return { slug: null, paths: [] };
+      return { slug: null, paths: [], cardDetailsToken: null };
     }
   }
 
@@ -306,8 +316,9 @@ class GemRateService {
       let resolvedSlug = cardSlug;
       let extraPaths = [];
       let refererOverride = null;
+      let cardDetailsToken = null;
       if (!resolvedSlug) {
-      const slugInfo = await this.fetchSlugFromUniversalSearch(gemrateId);
+        const slugInfo = await this.fetchSlugFromUniversalSearch(gemrateId);
         if (slugInfo.slug) {
           resolvedSlug = slugInfo.slug;
           console.log(`🔍 Derived slug from universal search page: ${resolvedSlug}`);
@@ -321,12 +332,32 @@ class GemRateService {
         if (slugInfo.universalPopPath) {
           refererOverride = slugInfo.universalPopPath;
         }
+        if (slugInfo.cardDetailsToken) {
+          cardDetailsToken = slugInfo.cardDetailsToken;
+          this.latestCardDetailsToken = cardDetailsToken;
+        }
+      } else {
+        // Even if slug was provided, still attempt to refresh token via universal search
+        const slugInfo = await this.fetchSlugFromUniversalSearch(gemrateId);
+        if (!cardDetailsToken && slugInfo.cardDetailsToken) {
+          cardDetailsToken = slugInfo.cardDetailsToken;
+          this.latestCardDetailsToken = cardDetailsToken;
+        }
+        if (!resolvedSlug && slugInfo.slug) {
+          resolvedSlug = slugInfo.slug;
+        }
+        if ((!extraPaths || extraPaths.length === 0) && slugInfo.paths && slugInfo.paths.length > 0) {
+          extraPaths = slugInfo.paths;
+        }
+        if (!refererOverride && slugInfo.universalPopPath) {
+          refererOverride = slugInfo.universalPopPath;
+        }
       }
 
       const warmedPath = await this.warmCardSession(gemrateId, resolvedSlug, extraPaths);
 
       // Step 2: Get detailed card data using gemrate_id
-      const cardDetails = await this.getCardDetails(gemrateId, resolvedSlug, warmedPath, refererOverride);
+      const cardDetails = await this.getCardDetails(gemrateId, resolvedSlug, warmedPath, refererOverride, cardDetailsToken);
       if (!cardDetails) {
         console.log(`❌ No card details found for gemrate_id: ${gemrateId}`);
         return {
@@ -424,7 +455,7 @@ class GemRateService {
    * @param {string} gemrateId - The gemrate_id from search results
    * @returns {Promise<Object|null>} Card details or null
    */
-  async getCardDetails(gemrateId, cardSlug = null, warmedPath = null, refererOverride = null) {
+  async getCardDetails(gemrateId, cardSlug = null, warmedPath = null, refererOverride = null, cardDetailsToken = null) {
     try {
       console.log(`📊 Getting card details for gemrate_id: ${gemrateId}`);
 
@@ -433,12 +464,20 @@ class GemRateService {
         warmedPath ||
         (cardSlug ? `/card/${cardSlug}` : `/universal-search?gemrate_id=${gemrateId}`);
 
+      const effectiveToken = cardDetailsToken || this.latestCardDetailsToken || null;
+      if (!effectiveToken) {
+        console.log('⚠️ GemRate card details token not available; attempting request without it');
+      }
+
       const response = await this.httpClient.get(this.cardDetailsPath, {
         params: { gemrate_id: gemrateId },
-        headers: this.cardDetailsHeaders(refererPath)
+        headers: this.cardDetailsHeaders(refererPath, effectiveToken)
       });
 
       if (response.data && response.status === 200) {
+        if (effectiveToken && !this.latestCardDetailsToken) {
+          this.latestCardDetailsToken = effectiveToken;
+        }
         console.log(`✅ Retrieved card details for gemrate_id: ${gemrateId}`);
         return response.data;
       } else {
