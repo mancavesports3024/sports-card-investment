@@ -9,72 +9,12 @@ import FeaturedEbayRotator from './FeaturedEbayRotator';
 import PageLayout from './PageLayout';
 import BaseballFieldCard from './BaseballFieldCard';
 
-// FeaturedEbayListing component
-const FeaturedEbayListing = () => {
-  const [listings, setListings] = useState([]);
-  const [current, setCurrent] = useState(0);
-  const intervalRef = useRef();
-
-  useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        const res = await fetch('/api/ebay-active-listings');
-        const data = await res.json();
-        setListings(data.items || []);
-      } catch (err) {
-        setListings([]);
-      }
-    };
-    fetchListings();
-  }, []);
-
-  useEffect(() => {
-    if (listings.length === 0) return;
-    intervalRef.current = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % listings.length);
-    }, 5000);
-    return () => clearInterval(intervalRef.current);
-  }, [listings]);
-
-  if (listings.length === 0) return null;
-  const item = listings[current];
-  return (
-    <div style={{
-      background: '#000',
-      color: '#ffd700',
-      border: '2px solid #ffd700',
-      borderRadius: 12,
-      padding: '1.5rem',
-      margin: '2rem auto 1.5rem auto',
-      maxWidth: 500,
-      display: 'flex',
-      alignItems: 'center',
-      gap: '1.5rem',
-      boxShadow: '0 4px 24px rgba(0,0,0,0.12)'
-    }}>
-      {item.image && (
-        <img src={item.image.imageUrl || item.image} alt={item.title} style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 8, border: '2px solid #ffd700', background: '#fff' }} />
-      )}
-      <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 6 }}>{item.title}</div>
-        <div style={{ fontSize: '1.05rem', color: '#fff', marginBottom: 8 }}>
-          {item.price && item.price.value ? `$${Number(item.price.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : ''}
-        </div>
-        <a href={item.itemWebUrl} target="_blank" rel="noopener noreferrer" style={{ background: '#ffd700', color: '#000', fontWeight: 700, padding: '0.5rem 1.2rem', borderRadius: 6, textDecoration: 'none', border: '2px solid #000', fontSize: '1rem' }}>
-          View on eBay
-        </a>
-      </div>
-    </div>
-  );
-};
-
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState(null);
   const [playerName, setPlayerName] = useState('');
   const [cardSet, setCardSet] = useState('');
   const [year, setYear] = useState('');
@@ -152,9 +92,8 @@ const SearchPage = () => {
     const token = localStorage.getItem('authToken');
     if (token) {
       try {
-        // Decode JWT token to get user info
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser(payload);
+        // Decode JWT token to ensure it's valid
+        JSON.parse(atob(token.split('.')[1]));
         setIsLoggedIn(true);
       } catch (error) {
         console.error('Invalid token:', error);
@@ -277,7 +216,7 @@ const SearchPage = () => {
         ].length > 0;
         if (hasCards) {
           try {
-            const saveRes = await fetch(config.getSearchHistoryUrl(), {
+            await fetch(config.getSearchHistoryUrl(), {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -389,9 +328,9 @@ const SearchPage = () => {
     if (!Array.isArray(cards)) return [];
     // Only filter to valid, non-graded cards (no outlier filtering, now handled in backend)
     return cards.filter(card => {
-      const title = (card.title || '').toLowerCase();
       // Exclude if title contains grading company and grade in any order
-      const isGraded = /(psa|bgs|sgc|cgc|tag|gm|gem|mint)[\s:\-\(]*((9\.5)|10|9|8|7)|((9\.5|10|9|8|7)[\s:\-\)]*(psa|bgs|sgc|cgc|tag|gm|gem|mint))/i.test(card.title || '');
+      const gradeRegex = /(?:(?:psa|bgs|sgc|cgc|tag|gm|gem|mint)[\s:(-]*(?:9\.5|10|9|8|7))|(?:(?:9\.5|10|9|8|7)[\s:)-]*(?:psa|bgs|sgc|cgc|tag|gm|gem|mint))/i;
+      const isGraded = gradeRegex.test(card.title || '');
       // Exclude if price is missing or not a number
       const priceValue = Number(card.price?.value);
       const validPrice = !isNaN(priceValue) && priceValue > 0;
@@ -675,9 +614,9 @@ const SearchPage = () => {
                               <span style={{ color: '#f5a623', fontWeight: 600, fontSize: '0.98rem' }}>★</span>
                             )}
                             {item.starRating && item.numRatings && (
-                              <a href="#" style={{ color: '#0066c0', fontWeight: 500, fontSize: '0.92rem', textDecoration: 'underline', marginRight: 4 }} target="_blank" rel="noopener noreferrer">
+                              <span style={{ color: '#0066c0', fontWeight: 500, fontSize: '0.92rem', textDecoration: 'underline', marginRight: 4 }}>
                                 {item.numRatings} product ratings
-                              </a>
+                              </span>
                             )}
                           </div>
                         </div>
@@ -1209,7 +1148,9 @@ const SearchPage = () => {
               <div className="results-summary" style={{ color: '#fff', fontWeight: 700, fontSize: '1.15rem', textShadow: '1px 1px 6px #000' }}>
                 <p>Found {results.sources?.total || 0} total sold items</p>
                 {!isLoggedIn && (
-                  <p className="save-note">💡 <a href="#" onClick={handleLogin}>Sign in</a> to save this search</p>
+                  <p className="save-note">
+                    💡 <button type="button" onClick={handleLogin} style={{ background: 'none', border: 'none', padding: 0, color: '#ffd700', textDecoration: 'underline', cursor: 'pointer', fontWeight: 700 }}>Sign in</button> to save this search
+                  </p>
                 )}
               </div>
             </div>

@@ -175,4 +175,5 @@ class TokenService {
 }
 
 // Export singleton instance
-export default new TokenService(); 
+const tokenService = new TokenService();
+export default tokenService;

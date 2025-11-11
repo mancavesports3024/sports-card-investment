@@ -8,25 +8,9 @@ const EbayItemLookup = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [savedItems, setSavedItems] = useState([]);
-    const [config, setConfig] = useState({
-        maxBidAmount: 100,
-        bidBuffer: 30,
-        autoBidEnabled: false
-    });
-
     useEffect(() => {
-        loadConfig();
         loadSavedItems();
     }, []);
-
-    const loadConfig = async () => {
-        try {
-            const response = await axios.get('/api/ebay-bidding/config');
-            setConfig(response.data);
-        } catch (error) {
-            console.error('Error loading config:', error);
-        }
-    };
 
     const loadSavedItems = async () => {
         try {
