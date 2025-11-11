@@ -1,8 +1,6 @@
 import React from "react";
 import "./BaseballFieldCard.css";
 
-const LOGO_SRC = `${process.env.PUBLIC_URL}/brand/mancave-logo.svg`;
-
 const formatPrice = (price) => {
   const numeric = Number(price);
   if (!Number.isFinite(numeric) || numeric <= 0) {
