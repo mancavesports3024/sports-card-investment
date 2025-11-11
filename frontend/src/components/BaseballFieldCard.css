@@ -21,17 +21,19 @@
 
 .summary-header {
   display: flex;
-  align-items: flex-start;
-  gap: 18px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
 }
 
 .card-title-block {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
-  flex: 1;
+  align-items: center;
+  text-align: center;
 }
 
 .card-set-year {
@@ -42,11 +44,11 @@
 }
 
 .card-title-block h2 {
-  font-size: 1.95rem;
+  font-size: 2.05rem;
   margin: 0;
   color: #ffffff;
   font-weight: 800;
-  line-height: 1.08;
+  line-height: 1.12;
   word-break: break-word;
 }
 
@@ -92,9 +94,51 @@
 
 .summary-body {
   display: grid;
-  grid-template-columns: 0.9fr 1.2fr 0.9fr;
+  grid-template-columns: 0.95fr 1.1fr 0.95fr;
   gap: 20px;
   align-items: stretch;
+}
+
+.side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.price-card,
+.stat-card,
+.raw-card {
+  width: 100%;
+}
+
+.stat-card {
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.gem-rate-card .label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.gem-rate-card .value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffd700;
+}
+
+.gem-rate-card .caption {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .price-card {
@@ -196,19 +240,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
 }
 
 .raw-card {
   background: rgba(0, 0, 0, 0.45);
   border-radius: 16px;
-  padding: 14px 22px;
+  padding: 14px 18px;
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
   display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
+  flex-direction: column;
+  gap: 8px;
   align-items: center;
-  justify-content: center;
+  text-align: center;
 }
 
 .raw-card .label {
@@ -225,8 +268,8 @@
 }
 
 .raw-card .details {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.68);
 }
 
 .summary-footer {
@@ -262,6 +305,10 @@
 
   .summary-body {
     grid-template-columns: 1fr;
+  }
+
+  .side-column {
+    order: unset;
   }
 
   .price-card {

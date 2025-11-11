@@ -168,25 +168,21 @@ const BaseballFieldCard = ({ card }) => {
               </div>
             )}
           </div>
-          {(gemRateValue !== null || totalPopulation) && (
-            <div className="header-stat-chip">
-              <span className="label">Gem Rate</span>
-              <span className="value">
-                {gemRateValue !== null ? `${gemRateValue.toFixed(1)}%` : "N/A"}
-              </span>
-              {totalPopulation ? (
-                <span className="caption">Total Pop: {totalPopulation.toLocaleString()}</span>
-              ) : null}
-            </div>
-          )}
         </header>
 
         <div className="summary-body">
-          <div className="price-card">
-            <span className="label">PSA 9</span>
-            <span className="price">{formatPrice(psa9Price)}</span>
-            {psa9Pop ? <span className="subtext">Pop: {psa9Pop.toLocaleString()}</span> : null}
-            <TrendBadge value={psa9Trend} />
+          <div className="side-column">
+            <div className="price-card">
+              <span className="label">PSA 9</span>
+              <span className="price">{formatPrice(psa9Price)}</span>
+              {psa9Pop ? <span className="subtext">Pop: {psa9Pop.toLocaleString()}</span> : null}
+              <TrendBadge value={psa9Trend} />
+            </div>
+            <div className="raw-card">
+              <div className="label">Raw</div>
+              <div className="price">{formatPrice(rawPrice)}</div>
+              <div className="details">Average recent ungraded sale price</div>
+            </div>
           </div>
 
           <div className="card-image-panel">
@@ -206,20 +202,28 @@ const BaseballFieldCard = ({ card }) => {
             )}
           </div>
 
-          <div className="price-card">
-            <span className="label">PSA 10</span>
-            <span className="price">{formatPrice(psa10Price)}</span>
-            {psa10Pop ? <span className="subtext">Pop: {psa10Pop.toLocaleString()}</span> : null}
-            <TrendBadge value={psa10Trend} />
+          <div className="side-column">
+            <div className="price-card">
+              <span className="label">PSA 10</span>
+              <span className="price">{formatPrice(psa10Price)}</span>
+              {psa10Pop ? <span className="subtext">Pop: {psa10Pop.toLocaleString()}</span> : null}
+              <TrendBadge value={psa10Trend} />
+            </div>
+            {(gemRateValue !== null || totalPopulation) && (
+              <div className="stat-card gem-rate-card">
+                <span className="label">Gem Rate</span>
+                <span className="value">
+                  {gemRateValue !== null ? `${gemRateValue.toFixed(1)}%` : "N/A"}
+                </span>
+                {totalPopulation ? (
+                  <span className="caption">Total Pop: {totalPopulation.toLocaleString()}</span>
+                ) : null}
+              </div>
+            )}
           </div>
         </div>
 
         <div className="summary-bottom">
-          <div className="raw-card">
-            <div className="label">Raw</div>
-            <div className="price">{formatPrice(rawPrice)}</div>
-            <div className="details">Average recent ungraded sale price</div>
-          </div>
           <div className="summary-footer">
             {card.createdAt && (
               <div>Created: {formatTimestamp(card.createdAt)}</div>
