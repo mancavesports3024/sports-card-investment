@@ -113,6 +113,12 @@ const BaseballFieldCard = ({ card }) => {
 
   const cardInfo = extractCardInfo(card.title || card.summaryTitle || '', card, gemrateData);
 
+  const truncateText = (value, maxLength = 28) => {
+    if (!value) return '';
+    const trimmed = String(value).trim();
+    return trimmed.length > maxLength ? `${trimmed.slice(0, maxLength - 3)}...` : trimmed;
+  };
+
   // Format price
   const formatPrice = (price) => {
     if (!price || price === 0) return 'N/A';
@@ -164,9 +170,9 @@ const BaseballFieldCard = ({ card }) => {
 
         {/* Card Information - Top, above PSA 10 */}
         <div className="card-info-top">
-          <span className="card-info-top-text">Name: {cardInfo.name}</span>
-          <span className="card-info-top-text">Set: {cardInfo.set}</span>
-          <span className="card-info-top-text">Year: {cardInfo.year}</span>
+          <span className="card-info-top-text">Name: {truncateText(cardInfo.name, 26)}</span>
+          <span className="card-info-top-text">Set: {truncateText(cardInfo.set, 32)}</span>
+          <span className="card-info-top-text">Year: {truncateText(cardInfo.year, 8)}</span>
         </div>
 
         {/* Top Tile - PSA 10 (Outfield) */}
