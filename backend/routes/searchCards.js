@@ -187,6 +187,9 @@ const categorizeCards = (cards) => {
     const { psa10, ...legacyBucketsWithoutPsa10 } = legacyBuckets;
     const categorizedResult = { ...legacyBucketsWithoutPsa10, priceAnalysis, gradingStats };
     
+    // Debug: Log counts before filtering
+    console.log(`[CATEGORIZE DEBUG] Total cards: ${cards.length}, PSA9: ${legacyBuckets.psa9.length}, PSA10: ${legacyBuckets.psa10.length}, Raw: ${legacyBuckets.raw.length}`);
+    
     // Always use filteredRaw for the returned raw bucket
     if (priceAnalysis && priceAnalysis.raw && Array.isArray(legacyBuckets.raw)) {
       // Find the filteredRaw set by matching the price and title to the filtered set used in priceAnalysis
@@ -204,11 +207,16 @@ const categorizeCards = (cards) => {
       // Use the same PSA 10 filtering logic as in calculatePriceAnalysis
       const psa10Prices = legacyBuckets.psa10.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
       const psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
-      const psa10Threshold = psa10Avg / 1.5;
+      // Use a less aggressive threshold - only filter out prices below 40% of average (was 66.7%)
+      // Also use a minimum floor of $10 to avoid filtering out very low-priced cards
+      const psa10Threshold = Math.max(psa10Avg / 2.5, 10);
+      const originalCount = legacyBuckets.psa10.length;
       const filteredPsa10 = legacyBuckets.psa10.filter(card => {
         const price = parseFloat(card.price?.value || 0);
         return price > 0 && price >= psa10Threshold;
       });
+      
+      console.log(`[PSA10 FILTER] Original: ${originalCount}, Avg: $${psa10Avg.toFixed(2)}, Threshold: $${psa10Threshold.toFixed(2)}, Filtered: ${filteredPsa10.length}`);
       
       // Force update the categorizedResult.psa10 array
       categorizedResult.psa10 = [...filteredPsa10];
@@ -217,11 +225,15 @@ const categorizeCards = (cards) => {
     if (gradingStats.psa && gradingStats.psa['10'] && Array.isArray(gradingStats.psa['10'].cards)) {
       const gsPsa10Prices = gradingStats.psa['10'].cards.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
       const gsPsa10Avg = gsPsa10Prices.length > 0 ? gsPsa10Prices.reduce((a, b) => a + b, 0) / gsPsa10Prices.length : 0;
-      const gsPsa10Threshold = gsPsa10Avg / 1.5;
+      // Use a less aggressive threshold - only filter out prices below 40% of average (was 66.7%)
+      // Also use a minimum floor of $10 to avoid filtering out very low-priced cards
+      const gsPsa10Threshold = Math.max(gsPsa10Avg / 2.5, 10);
+      const originalGsCount = gradingStats.psa['10'].cards.length;
       gradingStats.psa['10'].cards = gradingStats.psa['10'].cards.filter(card => {
         const price = parseFloat(card.price?.value || 0);
         return price > 0 && price >= gsPsa10Threshold;
       });
+      console.log(`[GS PSA10 FILTER] Original: ${originalGsCount}, Avg: $${gsPsa10Avg.toFixed(2)}, Threshold: $${gsPsa10Threshold.toFixed(2)}, Filtered: ${gradingStats.psa['10'].cards.length}`);
     }
     Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
       if (bucket !== 'raw' && bucket !== 'psa10') categorizedResult[bucket] = arr;
@@ -314,7 +326,9 @@ const calculatePriceAnalysis = (raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8,
     // Calculate initial average from all PSA 10s
     const psa10Prices = psa10.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
     const psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
-    const psa10Threshold = psa10Avg / 1.5;
+    // Use a less aggressive threshold - only filter out prices below 40% of average (was 66.7%)
+    // Also use a minimum floor of $10 to avoid filtering out very low-priced cards
+    const psa10Threshold = Math.max(psa10Avg / 2.5, 10);
     // Filter out low outliers
     filteredPsa10 = psa10.filter(card => {
       const price = parseFloat(card.price?.value || 0);
