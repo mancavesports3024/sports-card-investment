@@ -262,8 +262,9 @@ class EbayScraperService {
         const mainCardName = processedTerm.split(' -')[0].trim();
         
         // Only use the main card name to avoid complex exclusions that trigger detection
+        // Preserve # character (will be URL-encoded as %23)
         const cleanTerm = mainCardName
-            .replace(/[^\w\s]/g, ' ') // Remove special characters
+            .replace(/[^\w\s#]/g, ' ') // Remove special characters but keep #
             .replace(/\s+/g, '+')
             .trim();
         
