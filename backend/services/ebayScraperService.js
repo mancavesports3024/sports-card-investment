@@ -308,15 +308,16 @@ class EbayScraperService {
     async searchSoldCards(searchTerm, sport = null, maxResults = 200, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null, cardType = null, season = null, forceRefresh = false) {
         try {
             // Check cache first (unless forceRefresh is true)
+            // Include maxResults in cache key to prevent returning wrong number of results
             const cacheKey = `ebay_search:${searchTerm}:${sport}:${expectedGrade}:${maxResults}:${season}`;
             if (!forceRefresh) {
             const cachedResult = await this.getCachedResult(cacheKey);
             if (cachedResult) {
-                console.log('📦 Returning cached result');
+                console.log(`📦 Returning cached result (cacheKey: ${cacheKey}, cached maxResults: ${cachedResult.results?.length || 0})`);
                 return cachedResult;
                 }
             } else {
-                console.log('🔄 Force refresh requested - bypassing cache');
+                console.log(`🔄 Force refresh requested - bypassing cache (cacheKey: ${cacheKey})`);
             }
 
             // Warm up session first
@@ -325,7 +326,7 @@ class EbayScraperService {
             // Calculate how many pages we need to fetch
             const itemsPerPage = 50; // eBay typically shows 50 items per page
             const pagesNeeded = Math.ceil(maxResults / itemsPerPage);
-            console.log(`🔍 eBay search: "${searchTerm}" (maxResults: ${maxResults}, pages: ${pagesNeeded})`);
+            console.log(`🔍 eBay search: "${searchTerm}" (maxResults: ${maxResults}, pages: ${pagesNeeded}, cacheKey: ${cacheKey})`);
             
             let allResults = [];
             
