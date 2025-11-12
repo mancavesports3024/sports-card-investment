@@ -1537,6 +1537,28 @@ router.post('/', requireUser, async (req, res) => {
     // }
     // responseData.ebayApiUsage = ebayApiUsage;
 
+    console.log(`[POST RESPONSE] Sending response - PSA9: ${sorted.psa9?.length || 0}, PSA10: ${sorted.psa10?.length || 0}`);
+    console.log(`[POST RESPONSE] responseData.results keys: ${Object.keys(responseData.results).filter(k => !['priceAnalysis', 'gradingStats'].includes(k)).join(', ')}`);
+    
+    // Log actual PSA 9/10 card data being sent
+    if (sorted.psa9 && sorted.psa9.length > 0) {
+      console.log(`[POST RESPONSE] PSA9 cards (${sorted.psa9.length}):`);
+      sorted.psa9.slice(0, 3).forEach((card, idx) => {
+        console.log(`  [${idx}] Title: "${card.title}", Price: $${card.price?.value || 'N/A'}, ItemId: ${card.id || card.itemId || 'N/A'}`);
+      });
+    }
+    if (sorted.psa10 && sorted.psa10.length > 0) {
+      console.log(`[POST RESPONSE] PSA10 cards (${sorted.psa10.length}):`);
+      sorted.psa10.forEach((card, idx) => {
+        console.log(`  [${idx}] Title: "${card.title}", Price: $${card.price?.value || 'N/A'}, ItemId: ${card.id || card.itemId || 'N/A'}`);
+      });
+    }
+    
+    // Verify priceAnalysis has the right data
+    if (responseData.priceAnalysis) {
+      console.log(`[POST RESPONSE] priceAnalysis.psa9: count=${responseData.priceAnalysis.psa9?.count || 0}, avgPrice=$${responseData.priceAnalysis.psa9?.avgPrice?.toFixed(2) || '0.00'}`);
+      console.log(`[POST RESPONSE] priceAnalysis.psa10: count=${responseData.priceAnalysis.psa10?.count || 0}, avgPrice=$${responseData.priceAnalysis.psa10?.avgPrice?.toFixed(2) || '0.00'}`);
+    }
 
     clearTimeout(timeout);
     res.json(responseData);
