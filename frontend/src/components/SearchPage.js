@@ -61,11 +61,14 @@ const SearchPage = () => {
         const data = await response.json();
         console.log(`[FRONTEND] GemRate response:`, data);
         
-        if (data.success && data.data && data.data.success && data.data.population) {
-          console.log(`[FRONTEND] Setting GemRate data:`, data.data.population);
-          setBaseballCardGemrateData(data.data.population);
+        // Check for population data in multiple possible locations
+        const populationData = data.data?.population || data.data?.data?.population || data.data;
+        
+        if (data.success && data.data && data.data.success && populationData) {
+          console.log(`[FRONTEND] Setting GemRate data:`, populationData);
+          setBaseballCardGemrateData(populationData);
         } else {
-          console.log(`[FRONTEND] GemRate data not available - success: ${data.success}, data.success: ${data.data?.success}, hasPopulation: ${!!data.data?.population}`);
+          console.log(`[FRONTEND] GemRate data not available - success: ${data.success}, data.success: ${data.data?.success}, hasPopulation: ${!!populationData}, rawData:`, data);
           setBaseballCardGemrateData(null);
         }
       } catch (err) {
