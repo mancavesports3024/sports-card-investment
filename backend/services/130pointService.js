@@ -29,15 +29,12 @@ class Point130Service {
      */
     async searchSoldCards(searchTerm, options = {}) {
         try {
-            console.log(`🔍 130point search: "${searchTerm}"`);
-            
             // Check cache first
             const cacheKey = `130point_${searchTerm.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
             if (this.redisClient) {
                 const cached = await this.redisClient.get(cacheKey);
                 if (cached) {
                     const cachedData = JSON.parse(cached);
-                    console.log(`✅ Using cached 130point data: ${cachedData.length} items`);
                     return cachedData;
                 }
             }
@@ -63,10 +60,7 @@ class Point130Service {
             });
 
             // Parse the response
-            console.log(`📊 130point response length: ${response.data?.length || 0}`);
-            console.log(`📊 130point response preview: ${(response.data || '').substring(0, 200)}...`);
             const cardData = this.parseResponse(response.data, searchTerm);
-            console.log(`📊 130point parsed ${cardData.length} cards`);
             
             // Cache the results (even if 0 results to avoid repeated API calls)
             if (this.redisClient) {
@@ -79,9 +73,7 @@ class Point130Service {
 
             // If no results, try a simpler search term
             if (cardData.length === 0 && searchTerm.includes(' -(')) {
-                console.log(`🔄 No results with exclusions, trying simpler search...`);
                 const simpleTerm = searchTerm.split(' -(')[0].trim();
-                console.log(`🔍 130point simple search: "${simpleTerm}"`);
                 
                 const simpleParams = this.buildSearchParams(simpleTerm, options);
                 const simpleResponse = await axios.post(`${this.baseUrl}/sales/`, simpleParams.toString(), {
@@ -100,17 +92,13 @@ class Point130Service {
                     validateStatus: status => status >= 200 && status < 400
                 });
                 
-                console.log(`📊 130point simple response length: ${simpleResponse.data?.length || 0}`);
                 const simpleCardData = this.parseResponse(simpleResponse.data, simpleTerm);
-                console.log(`📊 130point simple parsed ${simpleCardData.length} cards`);
                 
                 if (simpleCardData.length > 0) {
-                    console.log(`✅ 130point simple search found ${simpleCardData.length} sold items`);
                     return simpleCardData;
                 }
             }
 
-            console.log(`✅ 130point found ${cardData.length} sold items`);
             return cardData;
 
         } catch (error) {
@@ -156,8 +144,6 @@ class Point130Service {
             const $ = cheerio.load(html);
             
             const cards = [];
-            const tableRows = $('tbody tr').length;
-            console.log(`📋 Found ${tableRows} table rows in 130point response`);
             
             // Look for card items in table rows (130point uses table structure)
             $('tbody tr').each((index, element) => {
@@ -177,8 +163,6 @@ class Point130Service {
                     }
                 }
             });
-            
-            console.log(`📊 Extracted ${cards.length} cards from ${tableRows} rows`);
 
             // If no specific selectors work, try to parse JSON if it's a JSON response
             if (cards.length === 0 && html.trim().startsWith('{')) {

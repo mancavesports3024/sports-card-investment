@@ -153,11 +153,7 @@ const categorizeCards = (cards) => {
         }
       }
       if (!isGraded) {
-        // Log if the card looks graded but didn't match the regex
-        if (title.includes('bgs') || title.includes('beckett') || title.includes('psa') || title.includes('sgc') || title.includes('cgc')) {
-          console.log(`Card ${index}: "${card.title}"`);
-          console.log('  ⚠️ Grading company mentioned but regex did not match. Classified as otherGraded.');
-        }
+        // Card looks graded but didn't match the regex - classified as otherGraded
         if (rawKeywords.some(keyword => title.includes(keyword)) || condition === 'ungraded' || condition === 'not graded' || condition === 'no grade') {
           legacyBuckets.raw.push(card);
           // Optionally log raw
@@ -191,15 +187,6 @@ const categorizeCards = (cards) => {
     const { psa10, ...legacyBucketsWithoutPsa10 } = legacyBuckets;
     const categorizedResult = { ...legacyBucketsWithoutPsa10, priceAnalysis, gradingStats };
     
-    // Debug: Log initial legacyBuckets.psa10
-    console.log('=== INITIAL LEGACY BUCKETS PSA10 ===');
-    console.log('Initial legacyBuckets.psa10 count:', legacyBuckets.psa10?.length || 0);
-    if (legacyBuckets.psa10 && Array.isArray(legacyBuckets.psa10)) {
-      legacyBuckets.psa10.forEach(card => {
-        console.log(`[INITIAL LEGACY] Title: ${card.title}, Price: ${card.price?.value}, ItemId: ${card.id || card.itemId}`);
-      });
-    }
-    console.log('=== END INITIAL LEGACY BUCKETS PSA10 ===');
     // Always use filteredRaw for the returned raw bucket
     if (priceAnalysis && priceAnalysis.raw && Array.isArray(legacyBuckets.raw)) {
       // Find the filteredRaw set by matching the price and title to the filtered set used in priceAnalysis
@@ -218,63 +205,27 @@ const categorizeCards = (cards) => {
       const psa10Prices = legacyBuckets.psa10.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
       const psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
       const psa10Threshold = psa10Avg / 1.5;
-      console.log('--- CATEGORIZE PSA10 FILTERING ---');
-      console.log('PSA10 prices (all):', psa10Prices);
-      console.log('PSA10 average (pre-filter):', psa10Avg);
-      console.log('PSA10 threshold (avg/1.5):', psa10Threshold);
       const filteredPsa10 = legacyBuckets.psa10.filter(card => {
         const price = parseFloat(card.price?.value || 0);
-        const include = price > 0 && price >= psa10Threshold;
-        console.log(`[CATEGORIZE PSA10] Title: ${card.title}, Price: ${card.price?.value}, Include: ${include}`);
-        return include;
+        return price > 0 && price >= psa10Threshold;
       });
-      console.log('PSA10 prices (filtered):', filteredPsa10.map(card => parseFloat(card.price?.value || 0)));
-      console.log('--- END CATEGORIZE PSA10 FILTERING ---');
       
       // Force update the categorizedResult.psa10 array
       categorizedResult.psa10 = [...filteredPsa10];
-      
-      console.log('=== CATEGORIZED RESULT PSA10 ===');
-      console.log('categorizedResult.psa10 count:', categorizedResult.psa10?.length || 0);
-      if (categorizedResult.psa10 && Array.isArray(categorizedResult.psa10)) {
-        categorizedResult.psa10.forEach(card => {
-          console.log(`[CATEGORIZED RESULT] Title: ${card.title}, Price: ${card.price?.value}, ItemId: ${card.id || card.itemId}`);
-        });
-      }
-      console.log('=== END CATEGORIZED RESULT PSA10 ===');
     }
     // Also filter gradingStats['psa']['10'].cards if it exists
     if (gradingStats.psa && gradingStats.psa['10'] && Array.isArray(gradingStats.psa['10'].cards)) {
       const gsPsa10Prices = gradingStats.psa['10'].cards.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
       const gsPsa10Avg = gsPsa10Prices.length > 0 ? gsPsa10Prices.reduce((a, b) => a + b, 0) / gsPsa10Prices.length : 0;
       const gsPsa10Threshold = gsPsa10Avg / 1.5;
-      console.log('--- GRADINGSTATS PSA10 FILTERING ---');
-      console.log('GS PSA10 prices (all):', gsPsa10Prices);
-      console.log('GS PSA10 average (pre-filter):', gsPsa10Avg);
-      console.log('GS PSA10 threshold (avg/1.5):', gsPsa10Threshold);
-      const originalGsPsa10Count = gradingStats.psa['10'].cards.length;
       gradingStats.psa['10'].cards = gradingStats.psa['10'].cards.filter(card => {
         const price = parseFloat(card.price?.value || 0);
-        const include = price > 0 && price >= gsPsa10Threshold;
-        console.log(`[GS PSA10] Title: ${card.title}, Price: ${card.price?.value}, Include: ${include}`);
-        return include;
+        return price > 0 && price >= gsPsa10Threshold;
       });
-      console.log(`GS PSA10 filtered: ${originalGsPsa10Count} -> ${gradingStats.psa['10'].cards.length}`);
-      console.log('--- END GRADINGSTATS PSA10 FILTERING ---');
     }
     Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
       if (bucket !== 'raw' && bucket !== 'psa10') categorizedResult[bucket] = arr;
     });
-    
-    // Debug: Log final categorized result before returning
-    console.log('=== FINAL CATEGORIZED RESULT ===');
-    console.log('Final categorizedResult.psa10 count:', categorizedResult.psa10?.length || 0);
-    if (categorizedResult.psa10 && Array.isArray(categorizedResult.psa10)) {
-      categorizedResult.psa10.forEach(card => {
-        console.log(`[FINAL CATEGORIZED] Title: ${card.title}, Price: ${card.price?.value}, ItemId: ${card.id || card.itemId}`);
-      });
-    }
-    console.log('=== END FINAL CATEGORIZED RESULT ===');
     
     return categorizedResult;
   } catch (err) {
@@ -607,26 +558,6 @@ const calculatePriceAnalysis = (raw, psa7, psa8, psa9, psa10, cgc9, cgc10, tag8,
     };
   }
 
-  // Log price analysis
-  console.log('\n=== PRICE ANALYSIS ===');
-  console.log(`Raw Cards: ${analysis.raw.count} items, Avg: $${analysis.raw.avgPrice.toFixed(2)}, Trend: ${analysis.raw.trend.toUpperCase()}`);
-  console.log(`PSA 7 Cards: ${analysis.psa7.count} items, Avg: $${analysis.psa7.avgPrice.toFixed(2)}, Trend: ${analysis.psa7.trend.toUpperCase()}`);
-  console.log(`PSA 8 Cards: ${analysis.psa8.count} items, Avg: $${analysis.psa8.avgPrice.toFixed(2)}, Trend: ${analysis.psa8.trend.toUpperCase()}`);
-  console.log(`PSA 9 Cards: ${analysis.psa9.count} items, Avg: $${analysis.psa9.avgPrice.toFixed(2)}, Trend: ${analysis.psa9.trend.toUpperCase()}`);
-  console.log(`PSA 10 Cards: ${analysis.psa10.count} items, Avg: $${analysis.psa10.avgPrice.toFixed(2)}, Trend: ${analysis.psa10.trend.toUpperCase()}`);
-  console.log(`CGC 9 Cards: ${analysis.cgc9.count} items, Avg: $${analysis.cgc9.avgPrice.toFixed(2)}, Trend: ${analysis.cgc9.trend.toUpperCase()}`);
-  console.log(`CGC 10 Cards: ${analysis.cgc10.count} items, Avg: $${analysis.cgc10.avgPrice.toFixed(2)}, Trend: ${analysis.cgc10.trend.toUpperCase()}`);
-  console.log(`TAG 8 Cards: ${analysis.tag8.count} items, Avg: $${analysis.tag8.avgPrice.toFixed(2)}, Trend: ${analysis.tag8.trend.toUpperCase()}`);
-  console.log(`TAG 9 Cards: ${analysis.tag9.count} items, Avg: $${analysis.tag9.avgPrice.toFixed(2)}, Trend: ${analysis.tag9.trend.toUpperCase()}`);
-  console.log(`TAG 10 Cards: ${analysis.tag10.count} items, Avg: $${analysis.tag10.avgPrice.toFixed(2)}, Trend: ${analysis.tag10.trend.toUpperCase()}`);
-  console.log(`SGC 10 Cards: ${analysis.sgc10.count} items, Avg: $${analysis.sgc10.avgPrice.toFixed(2)}, Trend: ${analysis.sgc10.trend.toUpperCase()}`);
-  console.log(`AiGrade 9 Cards: ${analysis.aigrade9.count} items, Avg: $${analysis.aigrade9.avgPrice.toFixed(2)}, Trend: ${analysis.aigrade9.trend.toUpperCase()}`);
-  console.log(`AiGrade 10 Cards: ${analysis.aigrade10.count} items, Avg: $${analysis.aigrade10.avgPrice.toFixed(2)}, Trend: ${analysis.aigrade10.trend.toUpperCase()}`);
-  console.log(`Other Graded Cards: ${analysis.otherGraded.count} items, Avg: $${analysis.otherGraded.avgPrice.toFixed(2)}, Trend: ${analysis.otherGraded.trend.toUpperCase()}`);
-  
-  if (analysis.comparisons.rawToPsa9) {
-    console.log(`Raw → PSA 9: ${analysis.comparisons.rawToPsa9.description}`);
-  }
   // Price analysis logging commented out to reduce log rate
   // if (analysis.comparisons.rawToPsa10) {
   //   console.log(`Raw → PSA 10: ${analysis.comparisons.rawToPsa10.description}`);
@@ -775,32 +706,12 @@ const sortByValue = (categorized) => {
     return array || [];
   };
 
-  // Debug: Log PSA 10 count before sorting
-  console.log('=== BEFORE SORT ===');
-  console.log('PSA10 count before sort:', categorized.psa10?.length || 0);
-  if (categorized.psa10 && Array.isArray(categorized.psa10)) {
-    categorized.psa10.forEach(card => {
-      console.log(`[BEFORE SORT] Title: ${card.title}, Price: ${card.price?.value}, ItemId: ${card.id || card.itemId}`);
-    });
-  }
-  console.log('=== END BEFORE SORT ===');
-
   // Safely sort each category
   categorized.raw = safeSort(categorized.raw);
   categorized.psa7 = safeSort(categorized.psa7);
   categorized.psa8 = safeSort(categorized.psa8);
   categorized.psa9 = safeSort(categorized.psa9);
   categorized.psa10 = safeSort(categorized.psa10);
-  
-  // Debug: Log PSA 10 count after sorting
-  console.log('=== AFTER SORT ===');
-  console.log('PSA10 count after sort:', categorized.psa10?.length || 0);
-  if (categorized.psa10 && Array.isArray(categorized.psa10)) {
-    categorized.psa10.forEach(card => {
-      console.log(`[AFTER SORT] Title: ${card.title}, Price: ${card.price?.value}, ItemId: ${card.id || card.itemId}`);
-    });
-  }
-  console.log('=== END AFTER SORT ===');
   
   categorized.cgc9 = safeSort(categorized.cgc9);
   categorized.cgc10 = safeSort(categorized.cgc10);
@@ -1008,8 +919,6 @@ router.get('/', async (req, res) => {
     //   ebayScraperService.scrapeEbaySales(searchQuery, 100)
     // ]);
     // Use eBay scraper as the primary data source
-    console.log(`[EBAY SCRAPER] Using eBay scraper for sold items search: "${searchQuery}" at ${new Date().toISOString()}`);
-    
     const EbayScraperService = require('../services/ebayScraperService');
     const ebayScraper = new EbayScraperService();
     const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, Math.max(parseInt(numSales) || 200, 500), null, null, null, null, null, true);
@@ -1034,9 +943,8 @@ router.get('/', async (req, res) => {
         saleType: card.saleType,
         numBids: card.numBids
       }));
-      console.log(`✅ eBay Scraper: ${allCards.length} sold items found`);
     } else {
-      console.log(`❌ eBay Scraper failed: ${scraperResult.error || 'Unknown error'}`);
+      console.error(`❌ eBay Scraper failed: ${scraperResult.error || 'Unknown error'}`);
       
       // Try 130point as fallback
       console.log(`🔄 Trying 130point fallback for: "${searchQuery}"`);
@@ -1110,7 +1018,6 @@ router.get('/', async (req, res) => {
     });
     
     allCards = uniqueCards;
-    console.log(`📊 Total unique sold items: ${allCards.length}`);
 
     // Categorize and sort the results
     const categorized = categorizeCards(allCards);
@@ -1149,27 +1056,6 @@ router.get('/', async (req, res) => {
     //   console.error('Failed to fetch eBay API usage:', usageError.message);
     // }
 
-    // Debug: Log final PSA 10 cards being sent to frontend
-    if (sorted.psa10 && Array.isArray(sorted.psa10)) {
-      console.log('=== FINAL PSA10 CARDS SENT TO FRONTEND ===');
-      console.log('PSA10 count in sorted:', sorted.psa10.length);
-      sorted.psa10.forEach(card => {
-        console.log(`[FINAL PSA10] Title: ${card.title}, Price: ${card.price?.value}, Source: ${card.source}, ItemId: ${card.id || card.itemId}`);
-      });
-      console.log('=== END FINAL PSA10 CARDS ===');
-    }
-    
-    // Also check if gradingStats has PSA 10 cards
-    if (sorted.gradingStats && sorted.gradingStats.psa && sorted.gradingStats.psa['10']) {
-      console.log('=== GRADINGSTATS PSA10 IN FINAL RESPONSE ===');
-      console.log('GS PSA10 count:', sorted.gradingStats.psa['10'].cards?.length || 0);
-      if (sorted.gradingStats.psa['10'].cards && Array.isArray(sorted.gradingStats.psa['10'].cards)) {
-        sorted.gradingStats.psa['10'].cards.forEach(card => {
-          console.log(`[GS FINAL] Title: ${card.title}, Price: ${card.price?.value}, Source: ${card.source}, ItemId: ${card.id || card.itemId}`);
-        });
-      }
-      console.log('=== END GRADINGSTATS PSA10 IN FINAL RESPONSE ===');
-    }
 
     res.json({ 
       searchParams: { searchQuery, numSales: 25 },
@@ -1206,7 +1092,6 @@ router.get('/', async (req, res) => {
 // POST /api/search-cards (for production use)
 router.post('/', requireUser, async (req, res) => {
   const { searchQuery, numSales = 200 } = req.body;
-  console.log(`>>> POST /api/search-cards endpoint hit at ${new Date().toISOString()} with searchQuery: "${searchQuery}"`);
   
   // Validate required parameters
   if (!searchQuery) {
@@ -1255,8 +1140,6 @@ router.post('/', requireUser, async (req, res) => {
     //   ebayScraperService.scrapeEbaySales(searchQuery, 100)
     // ]);
 
-    console.log(`[EBAY SCRAPER] Using eBay scraper for sold items search: "${searchQuery}" at ${new Date().toISOString()}`);
-    
     const EbayScraperService = require('../services/ebayScraperService');
     const ebayScraper = new EbayScraperService();
     const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, Math.max(parseInt(numSales) || 200, 500), null, null, null, null, null, true);
@@ -1281,9 +1164,8 @@ router.post('/', requireUser, async (req, res) => {
         saleType: card.saleType,
         numBids: card.numBids
       }));
-      console.log(`✅ eBay Scraper: ${allCards.length} sold items found`);
     } else {
-      console.log(`❌ eBay Scraper failed: ${scraperResult.error || 'Unknown error'}`);
+      console.error(`❌ eBay Scraper failed: ${scraperResult.error || 'Unknown error'}`);
       
       // Try 130point as fallback
       console.log(`🔄 Trying 130point fallback for: "${searchQuery}"`);
@@ -1376,7 +1258,6 @@ router.post('/', requireUser, async (req, res) => {
 
         return true;
       });
-      console.log(`🔎 Keyword filtering: ${beforeFilterCount} → ${allCards.length} after enforcing positive tokens and exclusions`);
     } catch (kwErr) {
       console.log('⚠️ Keyword filtering skipped due to error:', kwErr.message);
     }
@@ -1385,11 +1266,6 @@ router.post('/', requireUser, async (req, res) => {
     const filteredCards = allCards.filter(card => {
       const title = (card.title || '').toLowerCase();
       
-      // Debug specific problematic entry
-      if (title.includes('jumbo hobby case') || title.includes('2025 topps series one 1 baseball jumbo hobby case')) {
-        console.log(`[DEBUG] Found problematic entry: "${card.title}"`);
-        console.log(`[DEBUG] Title lowercase: "${title}"`);
-      }
       
       // Enhanced sealed product patterns to catch more variations
       const sealedProductPatterns = [
@@ -1497,7 +1373,6 @@ router.post('/', requireUser, async (req, res) => {
       return !shouldFilter;
     });
 
-    console.log(`📊 Filtered out ${allCards.length - filteredCards.length} sealed products, keeping ${filteredCards.length} individual cards`);
     allCards = filteredCards;
 
 
@@ -1531,7 +1406,6 @@ router.post('/', requireUser, async (req, res) => {
     });
     
     allCards = uniqueCards;
-    console.log(`📊 Total unique sold items: ${allCards.length}`);
 
     // Categorize and sort the results
     const categorized = categorizeCards(allCards);
@@ -1600,14 +1474,6 @@ router.post('/', requireUser, async (req, res) => {
     // }
     // responseData.ebayApiUsage = ebayApiUsage;
 
-    // Debug: Log all PSA 10 cards in the final response
-    if (sorted.psa10 && Array.isArray(sorted.psa10)) {
-      console.log('=== FINAL PSA10 CARDS SENT TO FRONTEND ===');
-      sorted.psa10.forEach(card => {
-        console.log(`[FINAL PSA10] Title: ${card.title}, Price: ${card.price?.value}, Source: ${card.source}, ItemId: ${card.id || card.itemId}`);
-      });
-      console.log('=== END FINAL PSA10 CARDS ===');
-    }
 
     clearTimeout(timeout);
     res.json(responseData);
@@ -2873,11 +2739,7 @@ router.get('/card-set-analysis', async (req, res) => {
   try {
     // Build search query
     const searchQuery = year ? `${cardSet} ${year}` : cardSet;
-    console.log(`[CARD SET ANALYSIS] Analyzing card set: "${searchQuery}" at ${new Date().toISOString()}`);
-    
     // Fetch data using eBay scraper
-    console.log(`[EBAY SCRAPER] Using eBay scraper for card set analysis: "${searchQuery}" at ${new Date().toISOString()}`);
-    
     const EbayScraperService = require('../services/ebayScraperService');
     const ebayScraper = new EbayScraperService();
     const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, parseInt(limit) || 2000, null, null, null, null, null, true);
@@ -2902,9 +2764,8 @@ router.get('/card-set-analysis', async (req, res) => {
         saleType: card.saleType,
         numBids: card.numBids
       }));
-      console.log(`✅ eBay Scraper: ${allCards.length} sold items found for card set analysis`);
     } else {
-      console.log(`❌ eBay Scraper failed for card set analysis: ${scraperResult.error || 'Unknown error'}`);
+      console.error(`❌ eBay Scraper failed for card set analysis: ${scraperResult.error || 'Unknown error'}`);
       
       // Try 130point as fallback for card set analysis
       console.log(`🔄 Trying 130point fallback for card set analysis: "${searchQuery}"`);
@@ -2996,7 +2857,6 @@ router.get('/card-set-analysis', async (req, res) => {
       return !isSealedProduct && !hasQuantityIndicators && !isHighValueSealed;
     });
 
-    console.log(`📊 Filtered out ${allCards.length - filteredCards.length} sealed products, keeping ${filteredCards.length} individual cards`);
     allCards = filteredCards;
 
     // Remove duplicates
@@ -3012,7 +2872,6 @@ router.get('/card-set-analysis', async (req, res) => {
     });
     
     allCards = uniqueCards;
-    console.log(`📊 Total unique cards found for ${cardSet}: ${allCards.length}`);
 
     // Categorize cards
     const categorized = categorizeCards(allCards);
