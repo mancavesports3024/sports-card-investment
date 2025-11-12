@@ -1449,8 +1449,11 @@ router.post('/', requireUser, async (req, res) => {
     allCards = uniqueCards;
 
     // Categorize and sort the results
+    console.log(`[POST SEARCH] About to categorize ${allCards.length} cards`);
     const categorized = categorizeCards(allCards);
+    console.log(`[POST SEARCH] After categorization - PSA9: ${categorized.psa9?.length || 0}, PSA10: ${categorized.psa10?.length || 0}`);
     const sorted = sortByDate(categorized); // Sort by date for search page
+    console.log(`[POST SEARCH] After sorting - PSA9: ${sorted.psa9?.length || 0}, PSA10: ${sorted.psa10?.length || 0}`);
 
     // Add EPN tracking to all eBay URLs in the results
     const addTrackingToCards = (cards) => {
