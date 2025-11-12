@@ -1186,8 +1186,10 @@ router.post('/', requireUser, async (req, res) => {
     
     const EbayScraperService = require('../services/ebayScraperService');
     const ebayScraper = new EbayScraperService();
-    const maxResults = Math.max(parseInt(numSales) || 200, 500);
-    console.log(`[POST SEARCH] Calling eBay scraper with maxResults: ${maxResults}`);
+    // Respect numSales parameter but cap at 500 to prevent excessive requests
+    const requestedResults = parseInt(numSales) || 200;
+    const maxResults = Math.min(requestedResults, 500);
+    console.log(`[POST SEARCH] Calling eBay scraper with maxResults: ${maxResults} (requested: ${requestedResults})`);
     
     let scraperResult;
     try {

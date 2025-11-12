@@ -19,11 +19,21 @@ router.get('/search/:query', async (req, res) => {
   try {
     const { query } = req.params;
     const { options } = req.query;
-    const cleanQuery = sanitizeGemrateQuery(query);
+    const cleanQuery = sanitizeGemrateQuery(decodeURIComponent(query));
     
-    console.log(`🔍 GemRate search request: "${cleanQuery}"`);
+    console.log(`🔍 GemRate search request: "${cleanQuery}" (original: "${decodeURIComponent(query)}")`);
+    
+    if (!cleanQuery || cleanQuery.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid search query',
+        details: 'Query is empty after sanitization'
+      });
+    }
     
     const result = await gemrateService.searchCardPopulation(cleanQuery, options ? JSON.parse(options) : {});
+    
+    console.log(`🔍 GemRate search result: success=${result?.success}, hasPopulation=${!!result?.population}`);
 
     res.json({
       success: true,
@@ -32,6 +42,7 @@ router.get('/search/:query', async (req, res) => {
     });
   } catch (error) {
     console.error('❌ GemRate search error:', error);
+    console.error('❌ GemRate error stack:', error.stack);
     res.status(500).json({
       success: false,
       error: 'Failed to search GemRate data',
