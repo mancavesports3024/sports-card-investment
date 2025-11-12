@@ -1182,9 +1182,21 @@ router.post('/', requireUser, async (req, res) => {
     //   ebayScraperService.scrapeEbaySales(searchQuery, 100)
     // ]);
 
+    console.log(`[POST SEARCH] Starting search for: "${searchQuery}" with numSales: ${numSales}`);
+    
     const EbayScraperService = require('../services/ebayScraperService');
     const ebayScraper = new EbayScraperService();
-    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, Math.max(parseInt(numSales) || 200, 500), null, null, null, null, null, true);
+    const maxResults = Math.max(parseInt(numSales) || 200, 500);
+    console.log(`[POST SEARCH] Calling eBay scraper with maxResults: ${maxResults}`);
+    
+    let scraperResult;
+    try {
+      scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, maxResults, null, null, null, null, null, true);
+      console.log(`[POST SEARCH] eBay scraper returned: success=${scraperResult?.success}, results count=${scraperResult?.results?.length || 0}, error=${scraperResult?.error || 'none'}`);
+    } catch (scraperError) {
+      console.error(`[POST SEARCH] eBay scraper threw error:`, scraperError);
+      throw scraperError;
+    }
     
     let allCards = [];
     if (scraperResult.success && scraperResult.results) {
