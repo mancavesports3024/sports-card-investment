@@ -225,8 +225,17 @@ const categorizeCards = (cards) => {
       });
     }
     Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
-      if (bucket !== 'raw' && bucket !== 'psa10') categorizedResult[bucket] = arr;
+      // Don't overwrite legacy buckets (raw, psa7, psa8, psa9, psa10, etc.)
+      // Only add new dynamic buckets that don't exist in legacy buckets
+      if (!legacyBuckets.hasOwnProperty(bucket)) {
+        categorizedResult[bucket] = arr;
+      }
     });
+    
+    // Ensure PSA 9 is explicitly set (it should be in legacyBucketsWithoutPsa10, but make sure)
+    if (Array.isArray(legacyBuckets.psa9)) {
+      categorizedResult.psa9 = legacyBuckets.psa9;
+    }
     
     return categorizedResult;
   } catch (err) {
