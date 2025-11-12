@@ -134,9 +134,13 @@ const categorizeCards = (cards) => {
         isGraded = true;
         // Legacy buckets for PSA, CGC, TAG, SGC, AiGrade
         if (company === 'psa') {
-          if (grade === '10') legacyBuckets.psa10.push(card);
-          else if (grade === '9') legacyBuckets.psa9.push(card);
-          else if (grade === '8') legacyBuckets.psa8.push(card);
+          if (grade === '10') {
+            legacyBuckets.psa10.push(card);
+            console.log(`[CATEGORIZE] Found PSA 10: "${card.title}" - Price: ${card.price?.value}`);
+          } else if (grade === '9') {
+            legacyBuckets.psa9.push(card);
+            console.log(`[CATEGORIZE] Found PSA 9: "${card.title}" - Price: ${card.price?.value}`);
+          } else if (grade === '8') legacyBuckets.psa8.push(card);
           else if (grade === '7') legacyBuckets.psa7.push(card);
         } else if (company === 'cgc') {
           if (grade === '10') legacyBuckets.cgc10.push(card);
@@ -187,6 +191,9 @@ const categorizeCards = (cards) => {
     const { psa10, ...legacyBucketsWithoutPsa10 } = legacyBuckets;
     const categorizedResult = { ...legacyBucketsWithoutPsa10, priceAnalysis, gradingStats };
     
+    console.log(`[CATEGORIZE SUMMARY] Total cards processed: ${cards.length}`);
+    console.log(`[CATEGORIZE SUMMARY] Legacy buckets - PSA9: ${legacyBuckets.psa9.length}, PSA10: ${legacyBuckets.psa10.length}, Raw: ${legacyBuckets.raw.length}`);
+    console.log(`[CATEGORIZE SUMMARY] Before filtering - categorizedResult.psa9: ${categorizedResult.psa9?.length || 0}, categorizedResult.psa10: ${categorizedResult.psa10?.length || 0}`);
     
     // Always use filteredRaw for the returned raw bucket
     if (priceAnalysis && priceAnalysis.raw && Array.isArray(legacyBuckets.raw)) {
@@ -202,17 +209,28 @@ const categorizeCards = (cards) => {
     }
     // Always use filteredPsa10 for the returned psa10 bucket
     if (Array.isArray(legacyBuckets.psa10)) {
+      console.log(`[PSA10 FILTER] Starting with ${legacyBuckets.psa10.length} PSA 10 cards`);
       // Use the same PSA 10 filtering logic as in calculatePriceAnalysis
       const psa10Prices = legacyBuckets.psa10.map(card => parseFloat(card.price?.value || 0)).filter(price => price > 0);
       const psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
       const psa10Threshold = psa10Avg / 1.5;
+      console.log(`[PSA10 FILTER] Average: $${psa10Avg.toFixed(2)}, Threshold: $${psa10Threshold.toFixed(2)}`);
       const filteredPsa10 = legacyBuckets.psa10.filter(card => {
         const price = parseFloat(card.price?.value || 0);
-        return price > 0 && price >= psa10Threshold;
+        const include = price > 0 && price >= psa10Threshold;
+        if (!include) {
+          console.log(`[PSA10 FILTER] EXCLUDED: "${card.title}" - Price: $${price} (below threshold $${psa10Threshold.toFixed(2)})`);
+        }
+        return include;
       });
+      
+      console.log(`[PSA10 FILTER] After filtering: ${filteredPsa10.length} cards remain (removed ${legacyBuckets.psa10.length - filteredPsa10.length})`);
       
       // Force update the categorizedResult.psa10 array
       categorizedResult.psa10 = [...filteredPsa10];
+      console.log(`[PSA10 FILTER] categorizedResult.psa10 now has ${categorizedResult.psa10.length} cards`);
+    } else {
+      console.log(`[PSA10 FILTER] WARNING: legacyBuckets.psa10 is not an array! Type: ${typeof legacyBuckets.psa10}`);
     }
     // Also filter gradingStats['psa']['10'].cards if it exists
     if (gradingStats.psa && gradingStats.psa['10'] && Array.isArray(gradingStats.psa['10'].cards)) {
@@ -224,18 +242,28 @@ const categorizeCards = (cards) => {
         return price > 0 && price >= gsPsa10Threshold;
       });
     }
+    console.log(`[DYNAMIC BUCKETS] Processing ${Object.keys(dynamicBuckets).length} dynamic buckets`);
     Object.entries(dynamicBuckets).forEach(([bucket, arr]) => {
       // Don't overwrite legacy buckets (raw, psa7, psa8, psa9, psa10, etc.)
       // Only add new dynamic buckets that don't exist in legacy buckets
       if (!legacyBuckets.hasOwnProperty(bucket)) {
         categorizedResult[bucket] = arr;
+        console.log(`[DYNAMIC BUCKETS] Added new bucket: ${bucket} with ${arr.length} cards`);
+      } else {
+        console.log(`[DYNAMIC BUCKETS] Skipped ${bucket} (exists in legacy buckets)`);
       }
     });
     
     // Ensure PSA 9 is explicitly set (it should be in legacyBucketsWithoutPsa10, but make sure)
     if (Array.isArray(legacyBuckets.psa9)) {
+      console.log(`[PSA9 FIX] Explicitly setting categorizedResult.psa9 to ${legacyBuckets.psa9.length} cards`);
       categorizedResult.psa9 = legacyBuckets.psa9;
+    } else {
+      console.log(`[PSA9 FIX] WARNING: legacyBuckets.psa9 is not an array! Type: ${typeof legacyBuckets.psa9}, Value: ${legacyBuckets.psa9}`);
     }
+    
+    console.log(`[FINAL CATEGORIZE] Returning - PSA9: ${categorizedResult.psa9?.length || 0}, PSA10: ${categorizedResult.psa10?.length || 0}`);
+    console.log(`[FINAL CATEGORIZE] categorizedResult keys: ${Object.keys(categorizedResult).join(', ')}`);
     
     return categorizedResult;
   } catch (err) {
@@ -1067,6 +1095,9 @@ router.get('/', async (req, res) => {
     // }
 
 
+    console.log(`[RESPONSE] Sending response - PSA9: ${sorted.psa9?.length || 0}, PSA10: ${sorted.psa10?.length || 0}`);
+    console.log(`[RESPONSE] sorted keys: ${Object.keys(sorted).filter(k => !['priceAnalysis', 'gradingStats'].includes(k)).join(', ')}`);
+    
     res.json({ 
       searchParams: { searchQuery, numSales: 25 },
       results: sorted,
