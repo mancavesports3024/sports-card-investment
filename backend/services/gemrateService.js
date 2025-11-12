@@ -144,7 +144,12 @@ class GemRateService {
             }
           }
         } catch (innerErr) {
-          console.log(`⚠️ GemRate card page attempt ${path} failed: ${innerErr.response?.status || innerErr.message}`);
+          // 404 is expected for some cards that don't have a direct card page
+          // Only log as warning if it's not a 404, or if we don't have a fallback path yet
+          const is404 = innerErr.response?.status === 404;
+          if (!is404 || !firstSuccessfulPath) {
+            console.log(`⚠️ GemRate card page attempt ${path} failed: ${innerErr.response?.status || innerErr.message}`);
+          }
         }
       }
       if (firstSuccessfulPath) {
@@ -481,11 +486,16 @@ class GemRateService {
         console.log(`✅ Retrieved card details for gemrate_id: ${gemrateId}`);
         return response.data;
       } else {
-        console.log(`❌ No card details found for gemrate_id: ${gemrateId}`);
+        console.log(`❌ No card details found for gemrate_id: ${gemrateId} (status: ${response.status})`);
         return null;
       }
     } catch (error) {
-      console.error('❌ Error getting card details:', error.message);
+      // Check if it's a 404 - this is expected for some cards
+      if (error.response?.status === 404) {
+        console.log(`⚠️ GemRate card details returned 404 for gemrate_id: ${gemrateId} - card may not have detailed page`);
+      } else {
+        console.error('❌ Error getting card details:', error.message);
+      }
       return null;
     }
   }
