@@ -1145,16 +1145,17 @@ router.post('/', requireUser, async (req, res) => {
     });
   }
 
-  // Set timeout for this request
+  // Set timeout for this request - increased to 3 minutes for large searches
   const timeout = setTimeout(() => {
     if (!res.headersSent) {
+      console.error('[POST SEARCH] Request timeout after 3 minutes');
       res.status(408).json({
         error: 'Request timeout',
-        message: 'The request took too long to process. Please try again.',
+        message: 'The request took too long to process. Please try again with a more specific search.',
         timestamp: new Date().toISOString()
       });
     }
-  }, 120000); // 2 minute timeout
+  }, 180000); // 3 minute timeout
 
   try {
     // Always fetch fresh data
