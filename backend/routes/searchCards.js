@@ -959,7 +959,10 @@ router.get('/', async (req, res) => {
     // Use eBay scraper as the primary data source
     const EbayScraperService = require('../services/ebayScraperService');
     const ebayScraper = new EbayScraperService();
-    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, Math.max(parseInt(numSales) || 200, 500), null, null, null, null, null, true);
+    // Respect numSales parameter but cap at 500 to prevent excessive requests
+    const requestedResults = parseInt(numSales) || 200;
+    const maxResults = Math.min(requestedResults, 500);
+    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, maxResults, null, null, null, null, null, true);
     
     let allCards = [];
     if (scraperResult.success && scraperResult.results) {
