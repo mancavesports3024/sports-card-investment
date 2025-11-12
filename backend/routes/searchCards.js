@@ -1278,27 +1278,43 @@ router.post('/', requireUser, async (req, res) => {
         : [];
 
       const beforeFilterCount = allCards.length;
+      console.log(`[KEYWORD FILTER] Starting with ${beforeFilterCount} cards`);
+      console.log(`[KEYWORD FILTER] Primary token: "${primaryToken}", Exclusions: [${exclusions.join(', ')}]`);
+      
+      let excludedByExclusion = 0;
+      let excludedByPrimaryToken = 0;
+      let excludedByFraction = 0;
+      
       allCards = allCards.filter(card => {
         const title = (card.title || '').toLowerCase();
         if (!title) return false;
 
         // Exclusions: if any excluded term appears, drop
         if (exclusions.length > 0 && exclusions.some(ex => ex && title.includes(ex))) {
+          excludedByExclusion++;
+          console.log(`[KEYWORD FILTER] EXCLUDED (exclusion): "${card.title}"`);
           return false;
         }
 
         // Must include primary token when present
         if (primaryToken && !title.includes(primaryToken)) {
+          excludedByPrimaryToken++;
+          console.log(`[KEYWORD FILTER] EXCLUDED (no primary token "${primaryToken}"): "${card.title}"`);
           return false;
         }
 
         // If a fraction is present, enforce at least one variant exists
         if (fractionVariants.length > 0 && !fractionVariants.some(v => title.includes(v))) {
+          excludedByFraction++;
+          console.log(`[KEYWORD FILTER] EXCLUDED (no fraction): "${card.title}"`);
           return false;
         }
 
         return true;
       });
+      
+      console.log(`[KEYWORD FILTER] After filtering: ${allCards.length} cards (removed ${beforeFilterCount - allCards.length})`);
+      console.log(`[KEYWORD FILTER] Breakdown - Exclusions: ${excludedByExclusion}, No primary token: ${excludedByPrimaryToken}, No fraction: ${excludedByFraction}`);
     } catch (kwErr) {
       console.log('⚠️ Keyword filtering skipped due to error:', kwErr.message);
     }
@@ -1434,6 +1450,8 @@ router.post('/', requireUser, async (req, res) => {
     //   console.log('❌ eBay scraping failed:', ebayScrapedCards.reason);
     // }
 
+    console.log(`[POST SEARCH] Before deduplication: ${allCards.length} cards`);
+    
     // Remove duplicates based on title and price
     const uniqueCards = [];
     const seen = new Set();
@@ -1447,6 +1465,7 @@ router.post('/', requireUser, async (req, res) => {
     });
     
     allCards = uniqueCards;
+    console.log(`[POST SEARCH] After deduplication: ${allCards.length} cards`);
 
     // Categorize and sort the results
     console.log(`[POST SEARCH] About to categorize ${allCards.length} cards`);
