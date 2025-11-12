@@ -959,9 +959,8 @@ router.get('/', async (req, res) => {
     // Use eBay scraper as the primary data source
     const EbayScraperService = require('../services/ebayScraperService');
     const ebayScraper = new EbayScraperService();
-    // Respect numSales parameter but cap at 500 to prevent excessive requests
-    const requestedResults = parseInt(numSales) || 200;
-    const maxResults = Math.min(requestedResults, 500);
+    // Use 500 as maxResults for comprehensive search results
+    const maxResults = 500;
     const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, maxResults, null, null, null, null, null, true);
     
     let allCards = [];
@@ -1189,11 +1188,9 @@ router.post('/', requireUser, async (req, res) => {
     
     const EbayScraperService = require('../services/ebayScraperService');
     const ebayScraper = new EbayScraperService();
-    // Respect numSales parameter but cap at 500 to prevent excessive requests
-    const requestedResults = parseInt(numSales) || 200;
-    const maxResults = Math.min(requestedResults, 500);
-    console.log(`[POST SEARCH] Parsed numSales: ${numSales} -> requestedResults: ${requestedResults} -> maxResults: ${maxResults}`);
-    console.log(`[POST SEARCH] Calling eBay scraper with maxResults: ${maxResults} (requested: ${requestedResults})`);
+    // Use 500 as maxResults for comprehensive search results
+    const maxResults = 500;
+    console.log(`[POST SEARCH] Calling eBay scraper with maxResults: ${maxResults}`);
     
     let scraperResult;
     try {

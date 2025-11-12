@@ -49,15 +49,27 @@ const SearchPage = () => {
         return;
       }
       try {
-        const response = await fetch(`${config.API_BASE_URL}/api/gemrate/search/${encodeURIComponent(results.searchParams.searchQuery)}`);
+        // Clean the search query - remove exclusions for GemRate
+        let cleanQuery = results.searchParams.searchQuery;
+        const exclusionIndex = cleanQuery.indexOf(' -(');
+        if (exclusionIndex !== -1) {
+          cleanQuery = cleanQuery.substring(0, exclusionIndex).trim();
+        }
+        
+        console.log(`[FRONTEND] Fetching GemRate data for: "${cleanQuery}"`);
+        const response = await fetch(`${config.API_BASE_URL}/api/gemrate/search/${encodeURIComponent(cleanQuery)}`);
         const data = await response.json();
-        if (data.success && data.data.success && data.data.population) {
+        console.log(`[FRONTEND] GemRate response:`, data);
+        
+        if (data.success && data.data && data.data.success && data.data.population) {
+          console.log(`[FRONTEND] Setting GemRate data:`, data.data.population);
           setBaseballCardGemrateData(data.data.population);
         } else {
+          console.log(`[FRONTEND] GemRate data not available - success: ${data.success}, data.success: ${data.data?.success}, hasPopulation: ${!!data.data?.population}`);
           setBaseballCardGemrateData(null);
         }
       } catch (err) {
-        console.error('Failed to fetch gemrate data for baseball card:', err);
+        console.error('[FRONTEND] Failed to fetch gemrate data for baseball card:', err);
         setBaseballCardGemrateData(null);
       }
     };
