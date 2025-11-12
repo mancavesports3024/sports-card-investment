@@ -1577,9 +1577,21 @@ router.post('/', requireUser, async (req, res) => {
     }
   } catch (error) {
     // Improved error logging and safe access
-    console.error('Search error:', error, error?.response?.status);
+    console.error('[POST SEARCH] Search error:', error);
+    console.error('[POST SEARCH] Error message:', error?.message);
+    console.error('[POST SEARCH] Error stack:', error?.stack);
+    if (error?.response) {
+      console.error('[POST SEARCH] Error response status:', error.response.status);
+      console.error('[POST SEARCH] Error response data:', error.response.data);
+    }
     clearTimeout(timeout);
-    res.status(500).json({ error: 'Failed to fetch card data', details: error?.message || error });
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: 'Failed to fetch card data', 
+        details: error?.message || String(error),
+        timestamp: new Date().toISOString()
+      });
+    }
   }
 });
 
