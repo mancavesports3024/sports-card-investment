@@ -405,17 +405,31 @@ class GemRateService {
     try {
       const info = { gemrateId: null, cardSlug: null, sampleEntry: null };
 
-      const inspectEntry = (entry) => {
+      const inspectEntry = (entry, isPreferred = false) => {
         if (!entry || typeof entry !== 'object') return;
-        if (!info.sampleEntry) {
+        
+        // Only set as sampleEntry if it's preferred (PSA/Universal) or if we don't have one yet
+        if (isPreferred || !info.sampleEntry) {
           info.sampleEntry = entry;
         }
-        if (!info.gemrateId) {
-          info.gemrateId = entry.gemrate_id || entry.gemrateId || entry.id || null;
+        
+        // Only set gemrateId if it's preferred or we don't have one yet
+        if (isPreferred || !info.gemrateId) {
+          const entryId = entry.gemrate_id || entry.gemrateId || entry.id || null;
+          if (entryId) {
+            info.gemrateId = entryId;
+          }
         }
-        if (!info.cardSlug) {
-          info.cardSlug = entry.slug || entry.card_slug || entry.url_path || entry.path || null;
+        
+        // Only set cardSlug if it's preferred or we don't have one yet
+        if (isPreferred || !info.cardSlug) {
+          const entrySlug = entry.slug || entry.card_slug || entry.url_path || entry.path || null;
+          if (entrySlug) {
+            info.cardSlug = entrySlug;
+          }
         }
+        
+        // Fallback slug extraction
         if (!info.cardSlug) {
           Object.values(entry).forEach(val => {
             if (typeof val === 'string' && !info.cardSlug) {
@@ -428,19 +442,76 @@ class GemRateService {
         }
       };
 
-      const inspectAny = (data) => {
+      // First, try to find PSA or Universal entries
+      const findPreferredEntry = (data) => {
         if (!data) return;
+        
         if (Array.isArray(data)) {
-          data.forEach(item => inspectEntry(item));
+          // Look for PSA first (preferred)
+          const psaEntry = data.find(item => 
+            item && typeof item === 'object' && 
+            (item.population_type === 'PSA' || item.population_type === 'psa')
+          );
+          if (psaEntry) {
+            inspectEntry(psaEntry, true);
+            console.log('🔍 Found PSA entry in search results');
+            return;
+          }
+          
+          // Then look for Universal
+          const universalEntry = data.find(item => 
+            item && typeof item === 'object' && 
+            (item.population_type === 'Universal' || item.population_type === 'universal')
+          );
+          if (universalEntry) {
+            inspectEntry(universalEntry, true);
+            console.log('🔍 Found Universal entry in search results');
+            return;
+          }
+          
+          // If no preferred entry found, use first entry as fallback
+          if (data.length > 0) {
+            const firstEntry = data[0];
+            const popType = firstEntry?.population_type;
+            if (popType && popType !== 'PSA' && popType !== 'Universal' && popType !== 'psa' && popType !== 'universal') {
+              console.log(`⚠️ First entry has population_type "${popType}", will use as fallback but prefer PSA/Universal`);
+            }
+            inspectEntry(firstEntry, false);
+          }
         } else if (typeof data === 'object') {
-          inspectEntry(data);
+          // Check if this object itself is a preferred entry
+          const popType = data.population_type;
+          if (popType === 'PSA' || popType === 'psa' || popType === 'Universal' || popType === 'universal') {
+            inspectEntry(data, true);
+            console.log(`🔍 Found ${popType} entry in search results`);
+            return;
+          }
+          
+          // Recursively search nested objects
           Object.values(data).forEach(val => {
-            if (typeof val === 'object') inspectAny(val);
+            if (typeof val === 'object') findPreferredEntry(val);
           });
         }
       };
 
-      inspectAny(searchData);
+      // Try to find preferred entry first
+      findPreferredEntry(searchData);
+      
+      // Fallback: if we didn't find anything, use the old method
+      if (!info.gemrateId) {
+        const inspectAny = (data) => {
+          if (!data) return;
+          if (Array.isArray(data)) {
+            data.forEach(item => inspectEntry(item, false));
+          } else if (typeof data === 'object') {
+            inspectEntry(data, false);
+            Object.values(data).forEach(val => {
+              if (typeof val === 'object') inspectAny(val);
+            });
+          }
+        };
+        inspectAny(searchData);
+      }
 
       if (!info.gemrateId) {
         console.log('🔍 Unable to find gemrate_id in search data.');
