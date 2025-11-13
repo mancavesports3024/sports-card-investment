@@ -351,8 +351,10 @@ class EbayScraperService {
             // Format 2: "13 Nov 2024" (less common)
             // Format 3: "November 13, 2024"
             
+            let date;
+            
             // Try parsing the date
-            const date = new Date(cleanDateText);
+            date = new Date(cleanDateText);
             
             // Check if date is valid
             if (isNaN(date.getTime())) {
@@ -360,12 +362,21 @@ class EbayScraperService {
                 const altMatch = cleanDateText.match(/(\d{1,2})\s+([a-z]{3})\s+(\d{4})/i);
                 if (altMatch) {
                     const [, day, month, year] = altMatch;
-                    const altDate = new Date(`${month} ${day}, ${year}`);
-                    if (!isNaN(altDate.getTime())) {
-                        return altDate.toISOString();
+                    date = new Date(`${month} ${day}, ${year}`);
+                    if (isNaN(date.getTime())) {
+                        return null;
                     }
+                } else {
+                    return null;
                 }
-                return null;
+            }
+            
+            // If the date doesn't have a time component, set it to noon UTC to avoid timezone shifts
+            // This prevents dates from appearing as the previous day in some timezones
+            const hasTime = /(\d{1,2}):(\d{2})\s*(am|pm)/i.test(cleanDateText);
+            if (!hasTime) {
+                // No time specified, set to noon UTC to avoid timezone issues
+                date.setUTCHours(12, 0, 0, 0);
             }
             
             // Return ISO string

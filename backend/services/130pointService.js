@@ -217,9 +217,31 @@ class Point130Service {
             // Look for title and other info in cell2
             const title = cell2 || cell1;
             
-            // Look for date patterns
+            // Look for date patterns and convert to ISO format
             const dateMatch = fullText.match(/(\d{1,2}\/\d{1,2}\/\d{4}|\d{4}-\d{2}-\d{2})/);
-            const soldDate = dateMatch ? dateMatch[1] : null;
+            let soldDate = null;
+            if (dateMatch) {
+                const dateStr = dateMatch[1];
+                // Convert to ISO format to avoid timezone issues
+                try {
+                    let date;
+                    if (dateStr.includes('/')) {
+                        // Format: MM/DD/YYYY
+                        const [month, day, year] = dateStr.split('/');
+                        date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                    } else {
+                        // Format: YYYY-MM-DD
+                        date = new Date(dateStr);
+                    }
+                    if (!isNaN(date.getTime())) {
+                        // Set to noon UTC to avoid timezone shifts when displaying
+                        date.setUTCHours(12, 0, 0, 0);
+                        soldDate = date.toISOString();
+                    }
+                } catch (error) {
+                    console.error(`Error parsing 130point date: "${dateStr}"`, error);
+                }
+            }
             
             // Look for links
             const linkMatch = fullText.match(/https?:\/\/[^\s]+/);
