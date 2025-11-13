@@ -1203,11 +1203,17 @@ class EbayScraperService {
 
                 console.log(`📊 Final result for item: saleType="${saleType}", numBids=${numBids}`);
 
+                // Try to extract sold date from various selectors
                 for (const selector of soldDateSelectors) {
                     const soldDateEl = $item.find(selector).first();
                     if (soldDateEl.length > 0) {
                         const dateText = soldDateEl.text().trim();
-                        if (dateText) {
+                        if (dateText && dateText.length > 0) {
+                            // Log what we found for debugging
+                            if (dateText.length < 100) { // Only log if reasonable length
+                                console.log(`🔍 Found potential date text with selector "${selector}": "${dateText}"`);
+                            }
+                            
                             // Try to parse any date-like text (more flexible matching)
                             // Match patterns like:
                             // - "Sold Nov 13, 2024"
@@ -1230,6 +1236,11 @@ class EbayScraperService {
                             }
                         }
                     }
+                }
+                
+                // If no date found, log it for debugging
+                if (!soldDate) {
+                    console.log(`⚠️ No sold date found for item: ${title?.substring(0, 50)}...`);
                 }
 
                 let itemId = null;
