@@ -307,6 +307,26 @@ class EbayScraperService {
     }
 
     /**
+     * Check if text looks like a date
+     * @param {string} text - Text to check
+     * @returns {boolean} True if text looks like a date
+     */
+    isDateLikeText(text) {
+        if (!text || typeof text !== 'string') return false;
+        
+        // Check for common date patterns
+        const datePatterns = [
+            /(sold\s+)?[a-z]{3,9}\s+\d{1,2},\s+\d{4}(\s+\d{1,2}:\d{2}\s*[ap]m)?/i, // "Sold Nov 13, 2024" or "Nov 13, 2024 2:30 PM"
+            /(sold\s+)?\d{1,2}\s+[a-z]{3}\s+\d{4}/i, // "13 Nov 2024"
+            /(sold\s+)?[a-z]{3,9}\s+\d{1,2},\s+\d{4}/i, // "Nov 13, 2024"
+            /\d{1,2}\/\d{1,2}\/\d{4}/, // "11/13/2024"
+            /\d{4}-\d{2}-\d{2}/ // "2024-11-13"
+        ];
+        
+        return datePatterns.some(pattern => pattern.test(text));
+    }
+
+    /**
      * Parse sold date string from eBay and convert to ISO format
      * @param {string} dateText - Date string like "Sold Nov 13, 2024" or "Nov 13, 2024 2:30 PM"
      * @returns {string|null} ISO date string or null if invalid
