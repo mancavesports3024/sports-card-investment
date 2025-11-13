@@ -809,14 +809,26 @@ class EbayScraperService {
                 // Extract sold date and time
                 let soldDate = null; // Will be ISO string or null
                 const soldDateSelectors = [
+                    // Primary selectors for card container structure
+                    '.su-card-container__content .su-styled-text.positive.default',
+                    '.su-card-container__content .su-styled-text.positive',
+                    '.su-card-container__content .su-styled-text',
+                    '.su-card-container_header .su-styled-text.positive.default',
+                    '.su-card-container_header .su-styled-text.positive',
+                    '.su-card-container_header .su-styled-text',
+                    '.su-card-container_header span.su-styled-text',
+                    '.su-card-container_header span',
+                    // Legacy selectors
                     '.su-styled-text.positive.default',
+                    '.s-card__caption .su-styled-text.positive',
                     '.s-card__caption .su-styled-text',
+                    '.s-item__caption .su-styled-text.positive',
                     '.s-item__caption .su-styled-text',
+                    '.s-item__detail--primary .su-styled-text.positive',
                     '.s-item__detail--primary .su-styled-text',
                     '.s-item__time',
                     '.s-item__sold',
                     '.s-item__caption span',
-                    '.su-card-container_header span',
                     '.s-item__detail--secondary',
                     '.s-item__details',
                     '.s-item__subtitle',
@@ -1258,19 +1270,39 @@ class EbayScraperService {
                     }
                 }
                 
-                // If no date found with selectors, try searching all text in the item for date patterns
+                // If no date found with selectors, try searching in the content area specifically
                 if (!soldDate) {
-                    const allText = $item.text();
-                    // Look for date patterns in the entire item text
-                    const dateMatches = allText.match(/(sold\s+)?[a-z]{3,9}\s+\d{1,2},\s+\d{4}(\s+\d{1,2}:\d{2}\s*[ap]m)?/gi);
-                    if (dateMatches && dateMatches.length > 0) {
-                        // Try to parse the first date match found
-                        for (const match of dateMatches) {
-                            const parsedDate = this.parseSoldDate(match.trim());
-                            if (parsedDate) {
-                                soldDate = parsedDate;
-                                console.log(`✅ Found and parsed sold date from item text: "${match.trim()}" -> ${parsedDate}`);
-                                break;
+                    // First, try the content area specifically
+                    const contentArea = $item.find('.su-card-container__content, .su-card-container_header');
+                    if (contentArea.length > 0) {
+                        const contentText = contentArea.text();
+                        const dateMatches = contentText.match(/(sold\s+)?[a-z]{3,9}\s+\d{1,2},\s+\d{4}(\s+\d{1,2}:\d{2}\s*[ap]m)?/gi);
+                        if (dateMatches && dateMatches.length > 0) {
+                            for (const match of dateMatches) {
+                                const parsedDate = this.parseSoldDate(match.trim());
+                                if (parsedDate) {
+                                    soldDate = parsedDate;
+                                    console.log(`✅ Found and parsed sold date from content area: "${match.trim()}" -> ${parsedDate}`);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // If still no date, search all text in the item for date patterns
+                    if (!soldDate) {
+                        const allText = $item.text();
+                        // Look for date patterns in the entire item text
+                        const dateMatches = allText.match(/(sold\s+)?[a-z]{3,9}\s+\d{1,2},\s+\d{4}(\s+\d{1,2}:\d{2}\s*[ap]m)?/gi);
+                        if (dateMatches && dateMatches.length > 0) {
+                            // Try to parse the first date match found
+                            for (const match of dateMatches) {
+                                const parsedDate = this.parseSoldDate(match.trim());
+                                if (parsedDate) {
+                                    soldDate = parsedDate;
+                                    console.log(`✅ Found and parsed sold date from item text: "${match.trim()}" -> ${parsedDate}`);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -1278,10 +1310,16 @@ class EbayScraperService {
                     // If still no date, log it for debugging (but only for first few items to avoid spam)
                     if (!soldDate && finalResults.length < 3) {
                         console.log(`⚠️ No sold date found for item: ${title?.substring(0, 50)}...`);
-                        // Log a sample of the item HTML structure for debugging
-                        const sampleHtml = $item.html()?.substring(0, 500);
-                        if (sampleHtml) {
-                            console.log(`🔍 Sample HTML structure: ${sampleHtml}...`);
+                        // Log the content area HTML specifically
+                        const contentHtml = $item.find('.su-card-container__content, .su-card-container_header').html();
+                        if (contentHtml) {
+                            console.log(`🔍 Content area HTML: ${contentHtml.substring(0, 1000)}...`);
+                        } else {
+                            // Fallback to full item HTML
+                            const sampleHtml = $item.html()?.substring(0, 1000);
+                            if (sampleHtml) {
+                                console.log(`🔍 Sample HTML structure: ${sampleHtml}...`);
+                            }
                         }
                     }
                 }
