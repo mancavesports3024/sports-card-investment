@@ -1258,9 +1258,32 @@ class EbayScraperService {
                     }
                 }
                 
-                // If no date found, log it for debugging
+                // If no date found with selectors, try searching all text in the item for date patterns
                 if (!soldDate) {
-                    console.log(`⚠️ No sold date found for item: ${title?.substring(0, 50)}...`);
+                    const allText = $item.text();
+                    // Look for date patterns in the entire item text
+                    const dateMatches = allText.match(/(sold\s+)?[a-z]{3,9}\s+\d{1,2},\s+\d{4}(\s+\d{1,2}:\d{2}\s*[ap]m)?/gi);
+                    if (dateMatches && dateMatches.length > 0) {
+                        // Try to parse the first date match found
+                        for (const match of dateMatches) {
+                            const parsedDate = this.parseSoldDate(match.trim());
+                            if (parsedDate) {
+                                soldDate = parsedDate;
+                                console.log(`✅ Found and parsed sold date from item text: "${match.trim()}" -> ${parsedDate}`);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // If still no date, log it for debugging (but only for first few items to avoid spam)
+                    if (!soldDate && finalResults.length < 3) {
+                        console.log(`⚠️ No sold date found for item: ${title?.substring(0, 50)}...`);
+                        // Log a sample of the item HTML structure for debugging
+                        const sampleHtml = $item.html()?.substring(0, 500);
+                        if (sampleHtml) {
+                            console.log(`🔍 Sample HTML structure: ${sampleHtml}...`);
+                        }
+                    }
                 }
 
                 let itemId = null;
