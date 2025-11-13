@@ -809,7 +809,15 @@ class EbayScraperService {
                 // Extract sold date and time
                 let soldDate = null; // Will be ISO string or null
                 const soldDateSelectors = [
-                    // Primary selectors for card container structure
+                    // Primary selectors based on actual HTML structure: .su-card-container_content > .su-card-container_header > .s-card_caption > .su-styled-text.positive.default
+                    '.s-card_caption .su-styled-text.positive.default',
+                    '.su-card-container_header .s-card_caption .su-styled-text.positive.default',
+                    '.su-card-container__content .s-card_caption .su-styled-text.positive.default',
+                    '.su-card-container_content .s-card_caption .su-styled-text.positive.default',
+                    // Variations of the above
+                    '.s-card_caption .su-styled-text.positive',
+                    '.s-card_caption .su-styled-text',
+                    '.su-card-container_header .s-card_caption .su-styled-text',
                     '.su-card-container__content .su-styled-text.positive.default',
                     '.su-card-container__content .su-styled-text.positive',
                     '.su-card-container__content .su-styled-text',
