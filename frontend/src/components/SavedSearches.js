@@ -8,6 +8,7 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
   const [error, setError] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(!!tokenService.getAccessToken());
   const [open, setOpen] = useState(true);
+  const [gemrateData, setGemrateData] = useState({}); // Store GemRate data by search ID
 
   // Sync open state with forceOpen prop (counter: fold when it changes)
   useEffect(() => {
@@ -52,8 +53,14 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
         setError(data.error || 'Failed to load saved searches.');
         setOpen(false);
       } else {
-        setSearches(data.searches || []);
-        setOpen((data.searches || []).length > 0);
+        const loadedSearches = data.searches || [];
+        setSearches(loadedSearches);
+        setOpen(loadedSearches.length > 0);
+        
+        // Fetch GemRate data for each search
+        loadedSearches.forEach(search => {
+          fetchGemrateForSearch(search);
+        });
       }
     } catch (err) {
       console.error('Failed to load saved searches:', err);
@@ -118,6 +125,32 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
     window.location.href = 'https://web-production-9efa.up.railway.app/api/auth/google';
   };
 
+  const fetchGemrateForSearch = async (search) => {
+    const searchQuery = search.query || search.searchQuery;
+    if (!searchQuery) return;
+    
+    try {
+      // Clean the search query - remove exclusions for GemRate
+      let cleanQuery = searchQuery;
+      const exclusionIndex = cleanQuery.indexOf(' -(');
+      if (exclusionIndex !== -1) {
+        cleanQuery = cleanQuery.substring(0, exclusionIndex).trim();
+      }
+      
+      const response = await fetch(`${config.API_BASE_URL}/api/gemrate/search/${encodeURIComponent(cleanQuery)}`);
+      const data = await response.json();
+      
+      if (data.success && data.data && data.data.success && data.data.population) {
+        setGemrateData(prev => ({
+          ...prev,
+          [search.id || search._id]: data.data.population
+        }));
+      }
+    } catch (err) {
+      console.error(`Failed to fetch GemRate data for search ${search.id}:`, err);
+    }
+  };
+
   if (loading) return <div style={{ color: '#ffd700', textAlign: 'center', margin: '2rem' }}>Loading saved searches...</div>;
   if (!isLoggedIn) return <div style={{ color: '#fff', textAlign: 'center', margin: '2rem' }}><div style={{ color: 'red', marginBottom: 12 }}>{error}</div><button onClick={handleLogin} style={{ background: '#ffd700', color: '#000', border: 'none', borderRadius: 4, padding: '0.5rem 1.2rem', fontWeight: 'bold', cursor: 'pointer' }}>Log in to view saved searches</button></div>;
   if (error) return <div style={{ color: 'red', textAlign: 'center', margin: '2rem' }}>{error}</div>;
@@ -136,39 +169,104 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
       {open && (searches.length === 0 ? (
         <div style={{ color: '#fff', textAlign: 'center' }}>No saved searches found.</div>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {searches.map((search) => (
-            <li key={search.id || search._id} style={{ marginBottom: 18, background: '#333', borderRadius: 6, padding: '1rem 1.5rem', border: '1px solid #ffd700' }}>
-              <div style={{ fontWeight: 'bold', color: '#ffd700' }}>{search.query || search.searchQuery}</div>
-              {/* Show average prices for Raw, PSA 9, PSA 10 */}
-              {search.results && (
-                <div style={{ fontSize: '0.92em', color: '#bbb', marginTop: 2 }}>
-                  {(() => {
-                    const getAveragePrice = (cards) => {
-                      if (!cards || !Array.isArray(cards) || cards.length === 0) return 'N/A';
-                      const validPrices = cards
-                        .filter(card => card.price?.value && !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0)
-                        .map(card => Number(card.price.value));
-                      if (validPrices.length === 0) return 'N/A';
-                      const avg = validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length;
-                      return `$${avg.toFixed(2)}`;
-                    };
-                    
-                    const rawAvg = getAveragePrice(search.results.raw);
-                    const psa9Avg = getAveragePrice(search.results.psa9);
-                    const psa10Avg = getAveragePrice(search.results.psa10);
-                    
-                    return `Raw: ${rawAvg}, PSA 9: ${psa9Avg}, PSA 10: ${psa10Avg}`;
-                  })()}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
+          gap: '1rem',
+          listStyle: 'none',
+          padding: 0
+        }}>
+          {searches.map((search) => {
+            const searchId = search.id || search._id;
+            const gemrate = gemrateData[searchId];
+            
+            const getAveragePrice = (cards) => {
+              if (!cards || !Array.isArray(cards) || cards.length === 0) return 'N/A';
+              const validPrices = cards
+                .filter(card => card.price?.value && !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0)
+                .map(card => Number(card.price.value));
+              if (validPrices.length === 0) return 'N/A';
+              const avg = validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length;
+              return `$${avg.toFixed(2)}`;
+            };
+            
+            const rawAvg = search.results ? getAveragePrice(search.results.raw) : 'N/A';
+            const psa9Avg = search.results ? getAveragePrice(search.results.psa9) : 'N/A';
+            const psa10Avg = search.results ? getAveragePrice(search.results.psa10) : 'N/A';
+            
+            const totalPop = gemrate?.total || gemrate?.total_population || null;
+            const gemRate = gemrate?.gemRate || null;
+            
+            return (
+              <div 
+                key={searchId} 
+                style={{ 
+                  background: '#333', 
+                  borderRadius: 6, 
+                  padding: '0.75rem', 
+                  border: '1px solid #ffd700',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem'
+                }}
+              >
+                <div style={{ fontWeight: 'bold', color: '#ffd700', fontSize: '0.9rem', wordBreak: 'break-word' }}>
+                  {search.query || search.searchQuery}
                 </div>
-              )}
-              <div style={{ marginTop: 10, display: 'flex', gap: '1rem' }}>
-                <button onClick={() => onSearchAgain(search)} style={{ background: '#ffd700', color: '#000', border: 'none', borderRadius: 4, padding: '0.3rem 1rem', fontWeight: 'bold', cursor: 'pointer' }}>Search Again</button>
-                <button onClick={() => handleDelete(search.id || search._id)} style={{ background: '#b00', color: '#fff', border: 'none', borderRadius: 4, padding: '0.3rem 1rem', fontWeight: 'bold', cursor: 'pointer' }}>Delete</button>
+                
+                {/* Prices */}
+                {search.results && (
+                  <div style={{ fontSize: '0.8em', color: '#bbb' }}>
+                    <div>Raw: {rawAvg}</div>
+                    <div>PSA 9: {psa9Avg}</div>
+                    <div>PSA 10: {psa10Avg}</div>
+                  </div>
+                )}
+                
+                {/* GemRate Data */}
+                {(totalPop || gemRate !== null) && (
+                  <div style={{ fontSize: '0.8em', color: '#ffd700', borderTop: '1px solid #555', paddingTop: '0.5rem', marginTop: '0.25rem' }}>
+                    {gemRate !== null && <div>Gem Rate: {gemRate.toFixed(1)}%</div>}
+                    {totalPop && <div>Total Pop: {totalPop.toLocaleString()}</div>}
+                  </div>
+                )}
+                
+                <div style={{ marginTop: 'auto', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <button 
+                    onClick={() => onSearchAgain(search)} 
+                    style={{ 
+                      background: '#ffd700', 
+                      color: '#000', 
+                      border: 'none', 
+                      borderRadius: 4, 
+                      padding: '0.25rem 0.75rem', 
+                      fontWeight: 'bold', 
+                      cursor: 'pointer',
+                      fontSize: '0.85rem'
+                    }}
+                  >
+                    Search
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(searchId)} 
+                    style={{ 
+                      background: '#b00', 
+                      color: '#fff', 
+                      border: 'none', 
+                      borderRadius: 4, 
+                      padding: '0.25rem 0.75rem', 
+                      fontWeight: 'bold', 
+                      cursor: 'pointer',
+                      fontSize: '0.85rem'
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-            </li>
-          ))}
-        </ul>
+            );
+          })}
+        </div>
       ))}
     </div>
   );
