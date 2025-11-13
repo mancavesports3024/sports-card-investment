@@ -306,6 +306,39 @@ class EbayScraperService {
         return searchUrl;
     }
 
+    /**
+     * Parse sold date string from eBay and convert to ISO format
+     * @param {string} dateText - Date string like "Nov 13, 2024" or "Nov 13, 2024 2:30 PM"
+     * @returns {string|null} ISO date string or null if invalid
+     */
+    parseSoldDate(dateText) {
+        if (!dateText || typeof dateText !== 'string') {
+            return null;
+        }
+        
+        // Skip if it's a placeholder like "Recently sold"
+        if (dateText.toLowerCase().includes('recently') || dateText.toLowerCase().includes('sold')) {
+            return null;
+        }
+        
+        try {
+            // Try parsing common eBay date formats
+            // Format: "Nov 13, 2024" or "Nov 13, 2024 2:30 PM"
+            const date = new Date(dateText);
+            
+            // Check if date is valid
+            if (isNaN(date.getTime())) {
+                return null;
+            }
+            
+            // Return ISO string
+            return date.toISOString();
+        } catch (error) {
+            console.error(`Error parsing sold date: "${dateText}"`, error);
+            return null;
+        }
+    }
+
     async searchSoldCards(searchTerm, sport = null, maxResults = 200, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null, cardType = null, season = null, forceRefresh = false) {
         try {
             // Check cache first (unless forceRefresh is true)
@@ -737,7 +770,7 @@ class EbayScraperService {
                 // Reduced logging - price extracted
 
                 // Extract sold date and time
-                let soldDate = 'Recently sold';
+                let soldDate = null; // Will be ISO string or null
                 const soldDateSelectors = [
                     '.su-styled-text.positive.default',
                     '.s-card__caption .su-styled-text',
@@ -1158,11 +1191,21 @@ class EbayScraperService {
                     if (soldDateEl.length > 0) {
                         const dateText = soldDateEl.text().trim();
                         if (dateText && /(sold\s+)?[a-z]{3}\s+\d{1,2},\s+\d{4}(\s+\d{1,2}:\d{2}\s*[ap]m)?/i.test(dateText)) {
-                            soldDate = dateText.replace(/^sold\s+/i, '');
-                            break;
+                            const cleanDateText = dateText.replace(/^sold\s+/i, '');
+                            // Parse and convert to ISO format
+                            const parsedDate = this.parseSoldDate(cleanDateText);
+                            if (parsedDate) {
+                                soldDate = parsedDate;
+                                break;
+                            }
                         } else if (dateText && /(sold\s+)?[a-z]{3}\s+\d{1,2},\s+\d{4}/i.test(dateText)) {
-                            soldDate = dateText.replace(/^sold\s+/i, '');
-                            break;
+                            const cleanDateText = dateText.replace(/^sold\s+/i, '');
+                            // Parse and convert to ISO format
+                            const parsedDate = this.parseSoldDate(cleanDateText);
+                            if (parsedDate) {
+                                soldDate = parsedDate;
+                                break;
+                            }
                         }
                     }
                 }
@@ -1251,7 +1294,7 @@ class EbayScraperService {
                     itemUrl: itemUrl,
                     sport: this.detectSportFromTitle(title),
                     grade: expectedGrade || grade,
-                    soldDate: soldDate,
+                    soldDate: soldDate || new Date().toISOString(), // Use current date as fallback if no date found
                     ebayItemId: itemId,
                     autoConfidence: autoConfidence,
                     shippingCost: shippingCost,
@@ -1545,7 +1588,25 @@ class EbayScraperService {
             const imageUrl = summary.image?.imageUrl || summary.image?.imageUrlHttps || summary.galleryUrl || null;
             const popSport = this.detectSportFromTitle(title);
             const grade = expectedGrade || this.detectGradeFromTitle(title);
-            const soldDate = summary.itemEndDate || summary.itemEndDateString || summary.timeLeft || 'Recently sold';
+            
+            // Parse sold date from various possible fields
+            let soldDate = null;
+            const dateSource = summary.itemEndDate || summary.itemEndDateString || summary.timeLeft;
+            if (dateSource) {
+                // If it's already an ISO string or timestamp, use it
+                if (typeof dateSource === 'string' && dateSource.includes('T')) {
+                    soldDate = dateSource;
+                } else if (typeof dateSource === 'number') {
+                    soldDate = new Date(dateSource).toISOString();
+                } else {
+                    // Try parsing as date string
+                    soldDate = this.parseSoldDate(dateSource);
+                }
+            }
+            // Fallback to current date if no valid date found
+            if (!soldDate) {
+                soldDate = new Date().toISOString();
+            }
 
             let shippingCost = null;
             if (summary.shipping?.price?.value) {
