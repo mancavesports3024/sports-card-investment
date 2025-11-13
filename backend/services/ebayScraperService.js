@@ -1316,7 +1316,7 @@ class EbayScraperService {
                     itemUrl: itemUrl,
                     sport: this.detectSportFromTitle(title),
                     grade: expectedGrade || grade,
-                    soldDate: soldDate || new Date().toISOString(), // Use current date as fallback if no date found
+                    soldDate: soldDate || null, // Only include date if we actually found one
                     ebayItemId: itemId,
                     autoConfidence: autoConfidence,
                     shippingCost: shippingCost,
@@ -1625,10 +1625,8 @@ class EbayScraperService {
                     soldDate = this.parseSoldDate(dateSource);
                 }
             }
-            // Fallback to current date if no valid date found
-            if (!soldDate) {
-                soldDate = new Date().toISOString();
-            }
+            // Don't use fallback - only use actual sold date from eBay
+            // If no date found, leave as null
 
             let shippingCost = null;
             if (summary.shipping?.price?.value) {
