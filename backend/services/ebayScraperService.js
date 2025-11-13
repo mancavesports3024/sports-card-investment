@@ -308,7 +308,7 @@ class EbayScraperService {
 
     /**
      * Parse sold date string from eBay and convert to ISO format
-     * @param {string} dateText - Date string like "Nov 13, 2024" or "Nov 13, 2024 2:30 PM"
+     * @param {string} dateText - Date string like "Sold Nov 13, 2024" or "Nov 13, 2024 2:30 PM"
      * @returns {string|null} ISO date string or null if invalid
      */
     parseSoldDate(dateText) {
@@ -316,18 +316,35 @@ class EbayScraperService {
             return null;
         }
         
-        // Skip if it's a placeholder like "Recently sold"
-        if (dateText.toLowerCase().includes('recently') || dateText.toLowerCase().includes('sold')) {
+        // Skip if it's just a placeholder like "Recently sold" (no actual date)
+        const lowerText = dateText.toLowerCase().trim();
+        if (lowerText === 'recently sold' || lowerText === 'sold' || lowerText === 'recently') {
             return null;
         }
         
         try {
-            // Try parsing common eBay date formats
-            // Format: "Nov 13, 2024" or "Nov 13, 2024 2:30 PM"
-            const date = new Date(dateText);
+            // Remove "Sold" prefix if present (e.g., "Sold Nov 13, 2024" -> "Nov 13, 2024")
+            let cleanDateText = dateText.replace(/^sold\s+/i, '').trim();
+            
+            // Handle various date formats that eBay might use
+            // Format 1: "Nov 13, 2024" or "Nov 13, 2024 2:30 PM"
+            // Format 2: "13 Nov 2024" (less common)
+            // Format 3: "November 13, 2024"
+            
+            // Try parsing the date
+            const date = new Date(cleanDateText);
             
             // Check if date is valid
             if (isNaN(date.getTime())) {
+                // Try alternative parsing for formats like "13 Nov 2024"
+                const altMatch = cleanDateText.match(/(\d{1,2})\s+([a-z]{3})\s+(\d{4})/i);
+                if (altMatch) {
+                    const [, day, month, year] = altMatch;
+                    const altDate = new Date(`${month} ${day}, ${year}`);
+                    if (!isNaN(altDate.getTime())) {
+                        return altDate.toISOString();
+                    }
+                }
                 return null;
             }
             
@@ -1190,21 +1207,26 @@ class EbayScraperService {
                     const soldDateEl = $item.find(selector).first();
                     if (soldDateEl.length > 0) {
                         const dateText = soldDateEl.text().trim();
-                        if (dateText && /(sold\s+)?[a-z]{3}\s+\d{1,2},\s+\d{4}(\s+\d{1,2}:\d{2}\s*[ap]m)?/i.test(dateText)) {
-                            const cleanDateText = dateText.replace(/^sold\s+/i, '');
-                            // Parse and convert to ISO format
-                            const parsedDate = this.parseSoldDate(cleanDateText);
-                            if (parsedDate) {
-                                soldDate = parsedDate;
-                                break;
-                            }
-                        } else if (dateText && /(sold\s+)?[a-z]{3}\s+\d{1,2},\s+\d{4}/i.test(dateText)) {
-                            const cleanDateText = dateText.replace(/^sold\s+/i, '');
-                            // Parse and convert to ISO format
-                            const parsedDate = this.parseSoldDate(cleanDateText);
-                            if (parsedDate) {
-                                soldDate = parsedDate;
-                                break;
+                        if (dateText) {
+                            // Try to parse any date-like text (more flexible matching)
+                            // Match patterns like:
+                            // - "Sold Nov 13, 2024"
+                            // - "Nov 13, 2024"
+                            // - "Nov 13, 2024 2:30 PM"
+                            // - "13 Nov 2024"
+                            // - "November 13, 2024"
+                            if (/(sold\s+)?[a-z]{3,9}\s+\d{1,2},\s+\d{4}(\s+\d{1,2}:\d{2}\s*[ap]m)?/i.test(dateText) ||
+                                /(sold\s+)?\d{1,2}\s+[a-z]{3}\s+\d{4}/i.test(dateText) ||
+                                /(sold\s+)?[a-z]{3,9}\s+\d{1,2},\s+\d{4}/i.test(dateText)) {
+                                // Parse and convert to ISO format (parseSoldDate handles "Sold" prefix)
+                                const parsedDate = this.parseSoldDate(dateText);
+                                if (parsedDate) {
+                                    soldDate = parsedDate;
+                                    console.log(`✅ Parsed sold date: "${dateText}" -> ${parsedDate}`);
+                                    break;
+                                } else {
+                                    console.log(`⚠️ Failed to parse sold date: "${dateText}"`);
+                                }
                             }
                         }
                     }
