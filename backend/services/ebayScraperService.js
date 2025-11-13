@@ -809,27 +809,25 @@ class EbayScraperService {
                 // Extract sold date and time
                 let soldDate = null; // Will be ISO string or null
                 const soldDateSelectors = [
-                    // Primary selectors based on actual HTML structure: .su-card-container_content > .su-card-container_header > .s-card_caption > .su-styled-text.positive.default
-                    '.s-card_caption .su-styled-text.positive.default',
-                    '.su-card-container_header .s-card_caption .su-styled-text.positive.default',
-                    '.su-card-container__content .s-card_caption .su-styled-text.positive.default',
-                    '.su-card-container_content .s-card_caption .su-styled-text.positive.default',
+                    // Primary selectors based on actual HTML structure: .su-card-container__header > .s-card__caption > .su-styled-text.positive.default
+                    // Note: Using double underscores (__) not single (_)
+                    '.s-card__caption .su-styled-text.positive.default',
+                    '.su-card-container__header .s-card__caption .su-styled-text.positive.default',
+                    '.su-card-container__content .s-card__caption .su-styled-text.positive.default',
                     // Variations of the above
-                    '.s-card_caption .su-styled-text.positive',
-                    '.s-card_caption .su-styled-text',
-                    '.su-card-container_header .s-card_caption .su-styled-text',
+                    '.s-card__caption .su-styled-text.positive',
+                    '.s-card__caption .su-styled-text',
+                    '.su-card-container__header .s-card__caption .su-styled-text',
+                    '.su-card-container__header .su-styled-text.positive.default',
+                    '.su-card-container__header .su-styled-text.positive',
+                    '.su-card-container__header .su-styled-text',
                     '.su-card-container__content .su-styled-text.positive.default',
                     '.su-card-container__content .su-styled-text.positive',
                     '.su-card-container__content .su-styled-text',
-                    '.su-card-container_header .su-styled-text.positive.default',
-                    '.su-card-container_header .su-styled-text.positive',
-                    '.su-card-container_header .su-styled-text',
-                    '.su-card-container_header span.su-styled-text',
-                    '.su-card-container_header span',
+                    '.su-card-container__header span.su-styled-text',
+                    '.su-card-container__header span',
                     // Legacy selectors
                     '.su-styled-text.positive.default',
-                    '.s-card__caption .su-styled-text.positive',
-                    '.s-card__caption .su-styled-text',
                     '.s-item__caption .su-styled-text.positive',
                     '.s-item__caption .su-styled-text',
                     '.s-item__detail--primary .su-styled-text.positive',
@@ -1249,21 +1247,20 @@ class EbayScraperService {
                     if (soldDateEl.length > 0) {
                         const dateText = soldDateEl.text().trim();
                         if (dateText && dateText.length > 0) {
-                            // Log what we found for debugging
-                            if (dateText.length < 100) { // Only log if reasonable length
-                                console.log(`🔍 Found potential date text with selector "${selector}": "${dateText}"`);
+                            // Skip if this looks like a title (too long, contains card details)
+                            // Dates should be short (max ~30 chars) and contain month names
+                            if (dateText.length > 50 || 
+                                !/(sold|nov|dec|jan|feb|mar|apr|may|jun|jul|aug|sep|oct)/i.test(dateText)) {
+                                continue; // Skip titles and other non-date text
                             }
                             
-                            // Try to parse any date-like text (more flexible matching)
-                            // Match patterns like:
-                            // - "Sold Nov 13, 2024"
-                            // - "Nov 13, 2024"
-                            // - "Nov 13, 2024 2:30 PM"
-                            // - "13 Nov 2024"
-                            // - "November 13, 2024"
-                            if (/(sold\s+)?[a-z]{3,9}\s+\d{1,2},\s+\d{4}(\s+\d{1,2}:\d{2}\s*[ap]m)?/i.test(dateText) ||
-                                /(sold\s+)?\d{1,2}\s+[a-z]{3}\s+\d{4}/i.test(dateText) ||
-                                /(sold\s+)?[a-z]{3,9}\s+\d{1,2},\s+\d{4}/i.test(dateText)) {
+                            // Check if this looks like a date using the helper function
+                            if (this.isDateLikeText(dateText)) {
+                                // Log what we found for debugging
+                                if (dateText.length < 100) {
+                                    console.log(`🔍 Found potential date text with selector "${selector}": "${dateText}"`);
+                                }
+                                
                                 // Parse and convert to ISO format (parseSoldDate handles "Sold" prefix)
                                 const parsedDate = this.parseSoldDate(dateText);
                                 if (parsedDate) {
@@ -1278,38 +1275,44 @@ class EbayScraperService {
                     }
                 }
                 
-                // If no date found with selectors, try searching in the content area specifically
+                // If no date found with selectors, try searching in the caption area specifically
                 if (!soldDate) {
-                    // First, try the content area specifically
-                    const contentArea = $item.find('.su-card-container__content, .su-card-container_header');
-                    if (contentArea.length > 0) {
-                        const contentText = contentArea.text();
-                        const dateMatches = contentText.match(/(sold\s+)?[a-z]{3,9}\s+\d{1,2},\s+\d{4}(\s+\d{1,2}:\d{2}\s*[ap]m)?/gi);
-                        if (dateMatches && dateMatches.length > 0) {
-                            for (const match of dateMatches) {
-                                const parsedDate = this.parseSoldDate(match.trim());
+                    // First, try the caption area - this is where the date should be
+                    const captionArea = $item.find('.s-card__caption');
+                    if (captionArea.length > 0) {
+                        // Look for spans with the date classes
+                        const dateSpans = captionArea.find('.su-styled-text.positive.default, .su-styled-text.positive, .su-styled-text');
+                        dateSpans.each((i, el) => {
+                            const spanText = $(el).text().trim();
+                            if (spanText && this.isDateLikeText(spanText) && spanText.length < 50) {
+                                const parsedDate = this.parseSoldDate(spanText);
                                 if (parsedDate) {
                                     soldDate = parsedDate;
-                                    console.log(`✅ Found and parsed sold date from content area: "${match.trim()}" -> ${parsedDate}`);
-                                    break;
+                                    console.log(`✅ Found and parsed sold date from caption span: "${spanText}" -> ${parsedDate}`);
+                                    return false; // Break the loop
                                 }
                             }
-                        }
+                        });
                     }
                     
-                    // If still no date, search all text in the item for date patterns
+                    // If still no date, try searching in the header area
                     if (!soldDate) {
-                        const allText = $item.text();
-                        // Look for date patterns in the entire item text
-                        const dateMatches = allText.match(/(sold\s+)?[a-z]{3,9}\s+\d{1,2},\s+\d{4}(\s+\d{1,2}:\d{2}\s*[ap]m)?/gi);
-                        if (dateMatches && dateMatches.length > 0) {
-                            // Try to parse the first date match found
-                            for (const match of dateMatches) {
-                                const parsedDate = this.parseSoldDate(match.trim());
-                                if (parsedDate) {
-                                    soldDate = parsedDate;
-                                    console.log(`✅ Found and parsed sold date from item text: "${match.trim()}" -> ${parsedDate}`);
-                                    break;
+                        const headerArea = $item.find('.su-card-container__header');
+                        if (headerArea.length > 0) {
+                            const headerText = headerArea.text();
+                            const dateMatches = headerText.match(/(sold\s+)?[a-z]{3,9}\s+\d{1,2},\s+\d{4}(\s+\d{1,2}:\d{2}\s*[ap]m)?/gi);
+                            if (dateMatches && dateMatches.length > 0) {
+                                for (const match of dateMatches) {
+                                    const matchText = match.trim();
+                                    // Only process if it looks like a date (not a title)
+                                    if (this.isDateLikeText(matchText) && matchText.length < 50) {
+                                        const parsedDate = this.parseSoldDate(matchText);
+                                        if (parsedDate) {
+                                            soldDate = parsedDate;
+                                            console.log(`✅ Found and parsed sold date from header area: "${matchText}" -> ${parsedDate}`);
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1318,15 +1321,15 @@ class EbayScraperService {
                     // If still no date, log it for debugging (but only for first few items to avoid spam)
                     if (!soldDate && finalResults.length < 3) {
                         console.log(`⚠️ No sold date found for item: ${title?.substring(0, 50)}...`);
-                        // Log the content area HTML specifically
-                        const contentHtml = $item.find('.su-card-container__content, .su-card-container_header').html();
-                        if (contentHtml) {
-                            console.log(`🔍 Content area HTML: ${contentHtml.substring(0, 1000)}...`);
+                        // Log the caption HTML specifically
+                        const captionHtml = $item.find('.s-card__caption').html();
+                        if (captionHtml) {
+                            console.log(`🔍 Caption HTML: ${captionHtml}...`);
                         } else {
-                            // Fallback to full item HTML
-                            const sampleHtml = $item.html()?.substring(0, 1000);
-                            if (sampleHtml) {
-                                console.log(`🔍 Sample HTML structure: ${sampleHtml}...`);
+                            // Fallback to header HTML
+                            const headerHtml = $item.find('.su-card-container__header').html();
+                            if (headerHtml) {
+                                console.log(`🔍 Header HTML: ${headerHtml.substring(0, 1000)}...`);
                             }
                         }
                     }
