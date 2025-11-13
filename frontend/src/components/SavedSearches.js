@@ -156,7 +156,7 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
   if (error) return <div style={{ color: 'red', textAlign: 'center', margin: '2rem' }}>{error}</div>;
 
   return (
-    <div style={{ maxWidth: 700, margin: '2rem auto 0 auto', background: '#222', borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.08)', padding: '2rem', border: '1.5px solid #ffd700', color: '#fff' }}>
+    <div style={{ maxWidth: '100%', margin: '2rem auto 0 auto', background: '#222', borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.08)', padding: '2rem', border: '1.5px solid #ffd700', color: '#fff' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <h2 style={{ color: '#ffd700', marginBottom: 0 }}>My Saved Searches</h2>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -171,7 +171,7 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
       ) : (
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', 
           gap: '1rem',
           listStyle: 'none',
           padding: 0
