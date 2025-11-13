@@ -479,11 +479,15 @@ class GemRateService {
             inspectEntry(firstEntry, false);
           }
         } else if (typeof data === 'object') {
-          // Check if this object itself is a preferred entry
+          // Check if this object itself is a preferred entry (Universal first, then PSA)
           const popType = data.population_type;
-          if (popType === 'PSA' || popType === 'psa' || popType === 'Universal' || popType === 'universal') {
+          if (popType === 'Universal' || popType === 'universal') {
             inspectEntry(data, true);
-            console.log(`🔍 Found ${popType} entry in search results`);
+            console.log(`🔍 Found Universal entry in search results`);
+            return;
+          } else if (popType === 'PSA' || popType === 'psa') {
+            inspectEntry(data, true);
+            console.log(`🔍 Found PSA entry in search results`);
             return;
           }
           
