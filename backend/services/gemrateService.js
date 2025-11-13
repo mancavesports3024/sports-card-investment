@@ -442,23 +442,12 @@ class GemRateService {
         }
       };
 
-      // First, try to find PSA or Universal entries
+      // First, try to find Universal or PSA entries (Universal has priority)
       const findPreferredEntry = (data) => {
         if (!data) return;
         
         if (Array.isArray(data)) {
-          // Look for PSA first (preferred)
-          const psaEntry = data.find(item => 
-            item && typeof item === 'object' && 
-            (item.population_type === 'PSA' || item.population_type === 'psa')
-          );
-          if (psaEntry) {
-            inspectEntry(psaEntry, true);
-            console.log('🔍 Found PSA entry in search results');
-            return;
-          }
-          
-          // Then look for Universal
+          // Look for Universal first (preferred)
           const universalEntry = data.find(item => 
             item && typeof item === 'object' && 
             (item.population_type === 'Universal' || item.population_type === 'universal')
@@ -466,6 +455,17 @@ class GemRateService {
           if (universalEntry) {
             inspectEntry(universalEntry, true);
             console.log('🔍 Found Universal entry in search results');
+            return;
+          }
+          
+          // Then look for PSA
+          const psaEntry = data.find(item => 
+            item && typeof item === 'object' && 
+            (item.population_type === 'PSA' || item.population_type === 'psa')
+          );
+          if (psaEntry) {
+            inspectEntry(psaEntry, true);
+            console.log('🔍 Found PSA entry in search results');
             return;
           }
           
