@@ -255,16 +255,23 @@ class EbayScraperService {
     
 
     buildSearchUrl(searchTerm, sport = null, expectedGrade = null, originalIsAutograph = null, cardType = null, season = null, page = 1) {
-        // Simplify search term to avoid eBay detection
+        // Process search term and exclusions
         let processedTerm = searchTerm;
         
-        // Extract the main card name (before any exclusions)
-        const mainCardName = processedTerm.split(' -')[0].trim();
+        // Extract exclusions if present (format: "term -(exclusion1, exclusion2)")
+        let exclusions = null;
+        const exclusionMatch = processedTerm.match(/-\s*\(([^)]+)\)/);
+        if (exclusionMatch) {
+            exclusions = exclusionMatch[1].split(',').map(e => e.trim());
+            // Remove exclusions from processedTerm for now, we'll add them back in URL format
+            processedTerm = processedTerm.replace(/-\s*\(([^)]+)\)/, '').trim();
+        }
         
-        // Only use the main card name to avoid complex exclusions that trigger detection
-        // Preserve # character (will be URL-encoded as %23)
-        const cleanTerm = mainCardName
-            .replace(/[^\w\s#]/g, ' ') // Remove special characters but keep #
+        // Clean the main search term - replace # with %23 for proper URL encoding
+        // First replace # with a placeholder, then encode, then replace placeholder
+        let cleanTerm = processedTerm
+            .replace(/#/g, '%23') // URL-encode # as %23
+            .replace(/[^\w\s%]/g, ' ') // Remove special characters but keep % (for %23)
             .replace(/\s+/g, '+')
             .trim();
         
@@ -276,14 +283,20 @@ class EbayScraperService {
         }
         
         // Standard sports cards (non-Pokemon) — no grade filters; centralized price range
-        // Add cache buster to reduce bot-detection correlation
-        const rnd = Math.floor(Math.random() * 1e9);
-        let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1&rt=nc&_dcat=261328&_udlo=11&_udhi=3000&_rnd=${rnd}&_sop=12&_pgn=${page}`;
+        // Build base URL without _dcat
+        let searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1`;
         
-        // For Pokemon-related searches, try broader category
-        if (cleanTerm.toLowerCase().includes('pokemon') || cleanTerm.toLowerCase().includes('charmeleon') || cleanTerm.toLowerCase().includes('charizard')) {
-            searchUrl = `${this.baseUrl}/sch/i.html?_nkw=${cleanTerm}&_sacat=0&_from=R40&LH_Complete=1&LH_Sold=1&rt=nc&_dcat=183454&_udlo=11&_udhi=3000&_rnd=${rnd}&_sop=12&_pgn=${page}`;
+        // Add exclusions if present (format: -%28word1%2C+word2%2C+word3%29)
+        if (exclusions && exclusions.length > 0) {
+            const exclusionStr = exclusions.map(e => encodeURIComponent(e)).join('%2C+');
+            searchUrl += `+-%28${exclusionStr}%29`;
         }
+        
+        // Add page number if not page 1
+        if (page > 1) {
+            searchUrl += `&_pgn=${page}`;
+        }
+        // Add season filter if specified
         if (season) {
             searchUrl += `&Season=${encodeURIComponent(season)}`;
         }
