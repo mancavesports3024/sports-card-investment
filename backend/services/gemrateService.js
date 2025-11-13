@@ -473,8 +473,8 @@ class GemRateService {
           if (data.length > 0) {
             const firstEntry = data[0];
             const popType = firstEntry?.population_type;
-            if (popType && popType !== 'PSA' && popType !== 'Universal' && popType !== 'psa' && popType !== 'universal') {
-              console.log(`⚠️ First entry has population_type "${popType}", will use as fallback but prefer PSA/Universal`);
+            if (popType && popType !== 'Universal' && popType !== 'PSA' && popType !== 'universal' && popType !== 'psa') {
+              console.log(`⚠️ First entry has population_type "${popType}", will use as fallback but prefer Universal/PSA`);
             }
             inspectEntry(firstEntry, false);
           }
