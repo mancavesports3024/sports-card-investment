@@ -292,25 +292,14 @@ const SearchPage = () => {
         return 'N/A';
       }
       
+      // Only show date, no time
       const dateStr = date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
       });
       
-      // Only show time if it's not midnight (12:00 AM)
-      const timeStr = date.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-      });
-      
-      // If time is 12:00 AM, it likely means no time was provided, so don't show it
-      if (timeStr === '12:00 AM') {
-        return dateStr;
-      }
-      
-      return dateStr + ' ' + timeStr;
+      return dateStr;
     } catch (error) {
       return 'N/A';
     }
