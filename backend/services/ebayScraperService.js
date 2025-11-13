@@ -1329,13 +1329,41 @@ class EbayScraperService {
                         }
                     }
                     
+                    // If still no date, try a broader search in the entire item
+                    if (!soldDate) {
+                        const allItemText = $item.text();
+                        // Look for date patterns in the entire item text
+                        const datePatterns = [
+                            /(sold\s+)?([a-z]{3,9})\s+(\d{1,2}),\s+(\d{4})(\s+\d{1,2}:\d{2}\s*[ap]m)?/gi,
+                            /(sold\s+)?(\d{1,2})\s+([a-z]{3})\s+(\d{4})/gi
+                        ];
+                        
+                        for (const pattern of datePatterns) {
+                            const matches = allItemText.match(pattern);
+                            if (matches) {
+                                for (const match of matches) {
+                                    const matchText = match.trim();
+                                    if (this.isDateLikeText(matchText) && matchText.length < 50) {
+                                        const parsedDate = this.parseSoldDate(matchText);
+                                        if (parsedDate) {
+                                            soldDate = parsedDate;
+                                            console.log(`✅ Found and parsed sold date from item text (broad search): "${matchText}" -> ${parsedDate}`);
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (soldDate) break;
+                            }
+                        }
+                    }
+                    
                     // If still no date, log it for debugging (but only for first few items to avoid spam)
-                    if (!soldDate && finalResults.length < 3) {
+                    if (!soldDate && finalResults.length < 5) {
                         console.log(`⚠️ No sold date found for item: ${title?.substring(0, 50)}...`);
                         // Log the caption HTML specifically
                         const captionHtml = $item.find('.s-card__caption').html();
                         if (captionHtml) {
-                            console.log(`🔍 Caption HTML: ${captionHtml}...`);
+                            console.log(`🔍 Caption HTML: ${captionHtml.substring(0, 500)}...`);
                         } else {
                             // Fallback to header HTML
                             const headerHtml = $item.find('.su-card-container__header').html();
@@ -1343,6 +1371,9 @@ class EbayScraperService {
                                 console.log(`🔍 Header HTML: ${headerHtml.substring(0, 1000)}...`);
                             }
                         }
+                        // Also log all text in the item to see what's available
+                        const itemText = $item.text().substring(0, 200);
+                        console.log(`🔍 Item text sample: ${itemText}...`);
                     }
                 }
 
