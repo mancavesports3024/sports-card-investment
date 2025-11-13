@@ -68,7 +68,8 @@ async function addSearchForUser(user, searchData) {
         psa9: searchData.results?.psa9 || [],
         psa10: searchData.results?.psa10 || []
       },
-      priceAnalysis: searchData.priceAnalysis || null
+      priceAnalysis: searchData.priceAnalysis || null,
+      gemrateData: searchData.gemrateData || null // Store GemRate data with saved search
     };
 
     if (client) {

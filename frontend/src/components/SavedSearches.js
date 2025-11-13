@@ -57,10 +57,22 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
         setSearches(loadedSearches);
         setOpen(loadedSearches.length > 0);
         
-        // Fetch GemRate data for each search
+        // Use stored GemRate data if available, otherwise fetch it
+        const gemrateMap = {};
         loadedSearches.forEach(search => {
-          fetchGemrateForSearch(search);
+          const searchId = search.id || search._id;
+          if (search.gemrateData) {
+            // Use stored GemRate data
+            gemrateMap[searchId] = search.gemrateData;
+            console.log(`[SAVED SEARCHES] Using stored GemRate data for search ${searchId}`);
+          } else {
+            // Fetch GemRate data if not stored
+            fetchGemrateForSearch(search);
+          }
         });
+        if (Object.keys(gemrateMap).length > 0) {
+          setGemrateData(gemrateMap);
+        }
       }
     } catch (err) {
       console.error('Failed to load saved searches:', err);

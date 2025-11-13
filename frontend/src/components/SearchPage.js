@@ -231,6 +231,7 @@ const SearchPage = () => {
         ].length > 0;
         if (hasCards) {
           try {
+            // Include GemRate data if available
             await fetch(config.getSearchHistoryUrl(), {
               method: 'POST',
               headers: {
@@ -240,7 +241,8 @@ const SearchPage = () => {
               body: JSON.stringify({
                 searchQuery: combinedQuery,
                 results: data.results,
-                priceAnalysis: data.priceAnalysis
+                priceAnalysis: data.priceAnalysis,
+                gemrateData: baseballCardGemrateData // Store GemRate data with saved search
               })
             });
             setLastSavedQuery(combinedQuery);
@@ -280,26 +282,38 @@ const SearchPage = () => {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const dateStr = date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    if (!dateString) return 'N/A';
     
-    // Only show time if it's not midnight (12:00 AM)
-    const timeStr = date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-    
-    // If time is 12:00 AM, it likely means no time was provided, so don't show it
-    if (timeStr === '12:00 AM') {
-      return dateStr;
+    try {
+      const date = new Date(dateString);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return 'N/A';
+      }
+      
+      const dateStr = date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+      
+      // Only show time if it's not midnight (12:00 AM)
+      const timeStr = date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      
+      // If time is 12:00 AM, it likely means no time was provided, so don't show it
+      if (timeStr === '12:00 AM') {
+        return dateStr;
+      }
+      
+      return dateStr + ' ' + timeStr;
+    } catch (error) {
+      return 'N/A';
     }
-    
-    return dateStr + ' ' + timeStr;
   };
 
   // Helper to generate a unique key for live listings per section and query

@@ -152,8 +152,8 @@ router.get('/admin/all', requireUser, async (req, res) => {
 // POST /api/search-history - Save a new search for user
 router.post('/', requireUser, async (req, res) => {
   try {
-    const { searchQuery, results, priceAnalysis } = req.body;
-    console.log('📥 Received search data:', { searchQuery, results: results ? 'present' : 'missing', priceAnalysis: priceAnalysis ? 'present' : 'missing' });
+    const { searchQuery, results, priceAnalysis, gemrateData } = req.body;
+    console.log('📥 Received search data:', { searchQuery, results: results ? 'present' : 'missing', priceAnalysis: priceAnalysis ? 'present' : 'missing', gemrateData: gemrateData ? 'present' : 'missing' });
     
     if (!searchQuery) {
       return res.status(400).json({
@@ -165,7 +165,8 @@ router.post('/', requireUser, async (req, res) => {
     const savedSearch = await searchHistoryService.addSearchForUser(req.user, {
       searchQuery,
       results,
-      priceAnalysis
+      priceAnalysis,
+      gemrateData
     });
     
     console.log('✅ Search saved successfully for user:', req.user.email);
