@@ -570,16 +570,20 @@ class EbayScraperService {
                 if (results.length > 0) {
                     console.log(`✅ Found ${results.length} cards via direct HTTP request`);
                     return results;
+                } else {
+                    console.log(`⚠️ parseHtmlForCards returned 0 results, but HTML length is ${htmlToParse.length}. Trying browser fallback...`);
                 }
             }
 
-            // HTTP failed, try browser fallback
-            console.log('🔄 HTTP request failed, trying browser fallback...');
+            // HTTP failed or returned no results, try browser fallback
+            console.log('🔄 HTTP request returned no results, trying browser fallback...');
             const browserResults = await this.searchWithBrowser(searchUrl, maxResults);
             
             if (browserResults && browserResults.length > 0) {
                 console.log(`✅ Found ${browserResults.length} cards via browser fallback`);
                 return browserResults;
+            } else {
+                console.log(`⚠️ Browser fallback also returned 0 results. This might indicate eBay blocking or HTML structure changes.`);
             }
 
             return [];

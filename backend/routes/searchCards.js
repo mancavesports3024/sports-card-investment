@@ -1503,8 +1503,16 @@ router.post('/', requireUser, async (req, res) => {
         console.log(`[POST SEARCH] Fallback search query: "${fallbackQuery}"`);
         
         // Run fallback search with smaller maxResults to avoid getting blocked
+        // Use browser fallback more aggressively for fallback searches since they're critical
         const fallbackMaxResults = 200; // Smaller to reduce blocking risk
+        console.log(`[POST SEARCH] Running fallback search with forceRefresh=true to bypass cache`);
         const fallbackResult = await ebayScraper.searchSoldCards(fallbackQuery, null, fallbackMaxResults, null, null, null, null, null, true);
+        
+        // If fallback search returned no results, log more details for debugging
+        if (!fallbackResult.success || !fallbackResult.results || fallbackResult.results.length === 0) {
+          console.log(`[POST SEARCH] Fallback search details - success: ${fallbackResult?.success}, results: ${fallbackResult?.results?.length || 0}, error: ${fallbackResult?.error || 'none'}`);
+          console.log(`[POST SEARCH] This might indicate eBay blocking or HTML parsing issues. Manual search shows results exist.`);
+        }
         
         if (fallbackResult.success && fallbackResult.results && fallbackResult.results.length > 0) {
           console.log(`[POST SEARCH] Fallback search returned ${fallbackResult.results.length} results`);
