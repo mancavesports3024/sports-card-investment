@@ -1488,12 +1488,11 @@ router.post('/', requireUser, async (req, res) => {
     let categorized = categorizeCards(allCards);
     console.log(`[POST SEARCH] After categorization - PSA9: ${categorized.psa9?.length || 0}, PSA10: ${categorized.psa10?.length || 0}`);
     
-    // Fallback: If no PSA 9 or PSA 10 results, try a search with "PSA 9" added
+    // Fallback: If no PSA 9 results, try a search with "PSA 9" added (even if PSA 10 exists)
     const hasPsa9 = categorized.psa9 && categorized.psa9.length > 0;
-    const hasPsa10 = categorized.psa10 && categorized.psa10.length > 0;
     
-    if (!hasPsa9 && !hasPsa10) {
-      console.log(`[POST SEARCH] No PSA 9 or PSA 10 results found. Running fallback search with "PSA 9" added to query...`);
+    if (!hasPsa9) {
+      console.log(`[POST SEARCH] No PSA 9 results found (PSA 10: ${categorized.psa10?.length || 0}). Running fallback search with "PSA 9" added to query...`);
       
       try {
         // Build fallback search query - add "PSA 9" to the search term
