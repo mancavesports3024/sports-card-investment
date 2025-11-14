@@ -806,83 +806,53 @@ const SearchPage = () => {
                     );
                   })()}
                   
-                  {/* Item number - gray text (only for eBay cards) */}
+                  {/* Item number - gray text (show if available, regardless of source) */}
                   {(() => {
-                    const isEbayCard = card.source !== '130point' && card.itemWebUrl && (card.itemWebUrl.includes('ebay') || card.itemWebUrl.includes('ebay.com'));
-                    if (!isEbayCard) return null;
+                    if (!card.itemWebUrl) return null;
                     
+                    // Try to extract item number from eBay URL
                     const match = card.itemWebUrl.match(/\/itm\/(\d{6,})|\/(\d{6,})(?:\?.*)?$/);
                     const itemNum = match ? (match[1] || match[2]) : null;
-                    return itemNum ? (
+                    
+                    // For 130point, try to extract from link if possible
+                    let displayItemNum = itemNum;
+                    if (!displayItemNum && card.itemId && !card.itemId.includes('130point_')) {
+                      displayItemNum = card.itemId;
+                    }
+                    
+                    return displayItemNum ? (
                       <div className="custom-card-item-number" style={{ color: '#666', fontSize: '0.85em' }}>
-                        Item: {itemNum}
+                        Item: {displayItemNum}
                       </div>
                     ) : null;
                   })()}
                   
-                  {/* VIEW ON EBAY button - yellow, bold black text (only for eBay cards) */}
-                  {(() => {
-                    const isEbayCard = card.source !== '130point' && card.itemWebUrl && (card.itemWebUrl.includes('ebay') || card.itemWebUrl.includes('ebay.com'));
-                    if (!isEbayCard) return null;
-                    
-                    return (
-                      <a 
-                        href={card.itemWebUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="live-listings-btn"
-                        style={{ 
-                          background: '#ffd700', 
-                          color: '#000', 
-                          border: 'none', 
-                          borderRadius: 5, 
-                          padding: '0.4rem 0.8rem', 
-                          textDecoration: 'none', 
-                          marginTop: '0.2rem',
-                          alignSelf: 'flex-start',
-                          fontWeight: 'bold',
-                          fontSize: '0.9em',
-                          textAlign: 'center',
-                          display: 'inline-block',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        VIEW ON EBAY
-                      </a>
-                    );
-                  })()}
-                  
-                  {/* See listing button for 130point cards */}
-                  {(() => {
-                    const is130pointCard = card.source === '130point' || (card.itemWebUrl && !card.itemWebUrl.includes('ebay') && !card.itemWebUrl.includes('ebay.com'));
-                    if (!is130pointCard || !card.itemWebUrl) return null;
-                    
-                    return (
-                      <a 
-                        href={card.itemWebUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="live-listings-btn"
-                        style={{ 
-                          background: '#ffd700', 
-                          color: '#000', 
-                          border: 'none', 
-                          borderRadius: 5, 
-                          padding: '0.4rem 0.8rem', 
-                          textDecoration: 'none', 
-                          marginTop: '0.2rem',
-                          alignSelf: 'flex-start',
-                          fontWeight: 'bold',
-                          fontSize: '0.9em',
-                          textAlign: 'center',
-                          display: 'inline-block',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        See listing
-                      </a>
-                    );
-                  })()}
+                  {/* VIEW ON EBAY / See listing button - yellow, bold black text (always show if link exists) */}
+                  {card.itemWebUrl && (
+                    <a 
+                      href={card.itemWebUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="live-listings-btn"
+                      style={{ 
+                        background: '#ffd700', 
+                        color: '#000', 
+                        border: 'none', 
+                        borderRadius: 5, 
+                        padding: '0.4rem 0.8rem', 
+                        textDecoration: 'none', 
+                        marginTop: '0.2rem',
+                        alignSelf: 'flex-start',
+                        fontWeight: 'bold',
+                        fontSize: '0.9em',
+                        textAlign: 'center',
+                        display: 'inline-block',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {card.itemWebUrl.includes('ebay') || card.itemWebUrl.includes('ebay.com') ? 'VIEW ON EBAY' : 'See listing'}
+                    </a>
+                  )}
                 </div>
               </div>
             );
