@@ -680,8 +680,9 @@ const SearchPage = () => {
             
             return (
               <div key={`${card.id || index}-${card.title}`} className="card-item" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.6rem', minWidth: 220, maxWidth: 260, fontSize: '0.97em', marginBottom: 0 }}>
-                                  <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', width: '100%', overflow: 'visible' }}>
-                  <div className="custom-card-title">{(() => {
+                <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', width: '100%', overflow: 'visible' }}>
+                  {/* Title - bold black */}
+                  <div className="custom-card-title" style={{ fontWeight: 'bold', color: '#000', fontSize: '0.95em', lineHeight: '1.3' }}>{(() => {
                     const rawTitle = card.summaryTitle || card.title || '';
                     return rawTitle
                       .replace(/\s*#unknown\b.*$/i, '')
@@ -693,56 +694,58 @@ const SearchPage = () => {
                       .replace(/\s+/g, ' ')
                       .trim();
                   })()}</div>
-                  {/* Price row - listed price on left, sold price on right */}
-                  <div style={{ display: 'flex', justifyContent: card.listPrice ? 'space-between' : 'flex-start', alignItems: 'center', width: '100%' }}>
-                    {card.listPrice && (
-                      <div className="custom-card-list-price">
-                        ${Number(card.listPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </div>
-                    )}
-                    <div className="custom-card-price">{formatPrice(card.price)}</div>
-                  </div>
-                  {/* Sale type (auction/fixed/etc.) - normalize display */}
+                  
+                  {/* Yellow separator line */}
+                  <div style={{ height: '1px', backgroundColor: '#ffd700', width: '100%', margin: '0.2rem 0' }}></div>
+                  
+                  {/* Price - bold black */}
+                  <div className="custom-card-price" style={{ fontWeight: 'bold', color: '#000', fontSize: '1em' }}>{formatPrice(card.price)}</div>
+                  
+                  {/* Buy It Now button (green) - only show if not auction */}
                   {(() => {
-                    // Determine if this is an auction
                     const isAuction = card.listingType === 'AUCTION' || 
                                      card.saleType === 'auction' || 
                                      card.saleType === 'Auction' ||
                                      (card.numBids && card.numBids > 0) ||
                                      (card.auction && card.auction.bidCount > 0);
                     
-                    // Get bid count from multiple possible sources
-                    const bidCount = card.numBids || 
-                                   card.auction?.bidCount || 
-                                   card.bidCount || 
-                                   null;
-                    
-                    // Show sale type badge
-                    if (isAuction) {
+                    if (!isAuction) {
+                      return (
+                        <button style={{ 
+                          background: '#28a745', 
+                          color: '#fff', 
+                          border: 'none', 
+                          borderRadius: 5, 
+                          padding: '0.3rem 0.8rem', 
+                          fontWeight: 500, 
+                          fontSize: '0.85em',
+                          cursor: 'pointer',
+                          alignSelf: 'flex-start'
+                        }}>
+                          Buy It Now
+                        </button>
+                      );
+                    } else {
+                      // Show auction with bid count
+                      const bidCount = card.numBids || card.auction?.bidCount || card.bidCount || null;
                       return (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                          <div className="custom-card-sale-type">Auction</div>
+                          <div className="custom-card-sale-type" style={{ background: '#ffc107', color: '#000', padding: '0.2rem 0.5rem', borderRadius: 4, fontSize: '0.85em', fontWeight: 500 }}>Auction</div>
                           {bidCount !== null && bidCount !== undefined && (
-                            <div className="card-bids" style={{ fontSize: '0.85em', color: '#856404', backgroundColor: '#fff3cd', padding: '1px 4px', borderRadius: 3, border: '1px solid #ffeaa7', alignSelf: 'flex-start' }}>
+                            <div style={{ fontSize: '0.85em', color: '#856404', backgroundColor: '#fff3cd', padding: '2px 6px', borderRadius: 3, border: '1px solid #ffeaa7' }}>
                               {bidCount} {bidCount === 1 ? 'bid' : 'bids'}
                             </div>
                           )}
                         </div>
                       );
-                    } else if (card.saleType) {
-                      // For non-auction items, show the sale type (Buy It Now, Best Offer, etc.)
-                      // Normalize common variations
-                      const normalizedType = card.saleType === 'fixed_price' ? 'Buy It Now' : card.saleType;
-                      return (
-                        <div className="custom-card-sale-type">{normalizedType}</div>
-                      );
                     }
-                    return null;
                   })()}
-                  <div className="custom-card-date">Sold: {formatDate(card.soldDate)}</div>
-                  {/* Shipping cost - always render chip; show 'See listing' if missing */}
+                  
+                  {/* Sold date - gray text */}
+                  <div className="custom-card-date" style={{ color: '#666', fontSize: '0.9em' }}>Sold: {formatDate(card.soldDate)}</div>
+                  
+                  {/* Shipping cost - green button with box icon */}
                   {(() => {
-                    // Format shipping cost - handle both number and string formats
                     let shippingDisplay = 'See listing';
                     if (card.shippingCost !== undefined && card.shippingCost !== null) {
                       if (typeof card.shippingCost === 'number') {
@@ -766,43 +769,61 @@ const SearchPage = () => {
                       }
                     }
                     return (
-                      <div style={{ 
-                        fontSize: '0.9em', 
-                        color: '#2c5530', 
-                        backgroundColor: '#d4edda', 
-                        padding: '2px 6px', 
-                        borderRadius: 4, 
-                        border: '1px solid #c3e6cb',
+                      <button style={{ 
+                        background: '#28a745', 
+                        color: '#fff', 
+                        border: 'none', 
+                        borderRadius: 5, 
+                        padding: '0.25rem 0.6rem', 
+                        fontSize: '0.85em',
+                        fontWeight: 500,
+                        cursor: 'pointer',
                         alignSelf: 'flex-start',
-                        fontWeight: 500
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.3rem'
                       }}>
-                        📦 {shippingDisplay}
-                      </div>
+                        <span>📦</span>
+                        <span>{shippingDisplay}</span>
+                      </button>
                     );
                   })()}
-                  {card.seller && card.seller !== '130point' && (
-                    <div className="card-seller" style={{ fontSize: '0.85em', color: '#666' }}>Via: {card.seller}</div>
-                  )}
-                  {/* Item number, extract from itemWebUrl if possible */}
+                  
+                  {/* Item number - gray text */}
                   {card.itemWebUrl && (() => {
-                    // Try to extract eBay item number from URL
                     const match = card.itemWebUrl.match(/\/itm\/(\d{6,})|\/(\d{6,})(?:\?.*)?$/);
                     const itemNum = match ? (match[1] || match[2]) : null;
                     return itemNum ? (
-                      <div className="custom-card-item-number">
+                      <div className="custom-card-item-number" style={{ color: '#666', fontSize: '0.85em' }}>
                         Item: {itemNum}
                       </div>
                     ) : null;
                   })()}
+                  
+                  {/* VIEW ON EBAY button - yellow, bold black text */}
                   {card.itemWebUrl && (
                     <a 
                       href={card.itemWebUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="live-listings-btn"
-                      style={{ fontSize: '0.89em', padding: '0.18em 0.6em', background: '#ffd700', color: '#000', border: '1px solid #aaa', borderRadius: 5, textDecoration: 'none', marginTop: 2, alignSelf: 'flex-start' }}
+                      style={{ 
+                        background: '#ffd700', 
+                        color: '#000', 
+                        border: 'none', 
+                        borderRadius: 5, 
+                        padding: '0.4rem 0.8rem', 
+                        textDecoration: 'none', 
+                        marginTop: '0.2rem',
+                        alignSelf: 'flex-start',
+                        fontWeight: 'bold',
+                        fontSize: '0.9em',
+                        textAlign: 'center',
+                        display: 'inline-block',
+                        cursor: 'pointer'
+                      }}
                     >
-                      View on eBay
+                      VIEW ON EBAY
                     </a>
                   )}
                 </div>
