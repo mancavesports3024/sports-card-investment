@@ -385,7 +385,8 @@ const SearchPage = () => {
     const psa9Avg = psa9Prices.length > 0 ? psa9Prices.reduce((a, b) => a + b, 0) / psa9Prices.length : 0;
     const psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
 
-    // Get card image from first available sold card (priority: PSA 10, PSA 9, Raw)
+    // Get card image - prioritize PSA 10 cards (best quality), then PSA 9, then Raw
+    // Also prioritize eBay cards over 130point (eBay has better images)
     const getCardImage = (card) => {
       if (!card) return null;
       
@@ -420,24 +421,36 @@ const SearchPage = () => {
         imageUrl = card.imageUrl.url;
       }
       
-      // Validate URL
+      // Validate URL and prefer higher quality images
       if (imageUrl && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
+        // Prefer full-size eBay images (s-l1600) over thumbnails
+        if (imageUrl.includes('ebay') && imageUrl.includes('s-l') && !imageUrl.includes('s-l1600')) {
+          imageUrl = imageUrl.replace(/s-l\d+/, 's-l1600');
+        }
         return imageUrl;
       }
       
       return null;
     };
 
-    // Try to get image from cards, prioritizing those with images
+    // Try to get image from cards, prioritizing PSA 10 eBay cards first
     let cardImage = null;
     
-    // First, try all cards to find one with an image
-    const allCards = [...psa10Cards, ...psa9Cards, ...rawCards];
-    for (const card of allCards) {
+    // Priority order: PSA 10 eBay > PSA 10 130point > PSA 9 eBay > PSA 9 130point > Raw eBay > Raw 130point
+    const prioritizedCards = [
+      ...psa10Cards.filter(c => c.source !== '130point' && c.itemWebUrl && c.itemWebUrl.includes('ebay')),
+      ...psa10Cards.filter(c => c.source === '130point'),
+      ...psa9Cards.filter(c => c.source !== '130point' && c.itemWebUrl && c.itemWebUrl.includes('ebay')),
+      ...psa9Cards.filter(c => c.source === '130point'),
+      ...rawCards.filter(c => c.source !== '130point' && c.itemWebUrl && c.itemWebUrl.includes('ebay')),
+      ...rawCards.filter(c => c.source === '130point')
+    ];
+    
+    for (const card of prioritizedCards) {
       const img = getCardImage(card);
       if (img) {
         cardImage = img;
-        console.log('✅ Found card image:', img.substring(0, 50) + '...');
+        console.log('✅ Found card image from', card.source || 'eBay', ':', img.substring(0, 50) + '...');
         break;
       }
     }
@@ -789,8 +802,8 @@ const SearchPage = () => {
                     );
                   })()}
                   
-                  {/* Item number - gray text */}
-                  {card.itemWebUrl && (() => {
+                  {/* Item number - gray text (only for eBay cards) */}
+                  {card.itemWebUrl && card.itemWebUrl.includes('ebay') && (() => {
                     const match = card.itemWebUrl.match(/\/itm\/(\d{6,})|\/(\d{6,})(?:\?.*)?$/);
                     const itemNum = match ? (match[1] || match[2]) : null;
                     return itemNum ? (
@@ -800,8 +813,8 @@ const SearchPage = () => {
                     ) : null;
                   })()}
                   
-                  {/* VIEW ON EBAY button - yellow, bold black text */}
-                  {card.itemWebUrl && (
+                  {/* VIEW ON EBAY button - yellow, bold black text (only for eBay cards) */}
+                  {card.itemWebUrl && card.itemWebUrl.includes('ebay') && (
                     <a 
                       href={card.itemWebUrl} 
                       target="_blank" 
@@ -824,6 +837,33 @@ const SearchPage = () => {
                       }}
                     >
                       VIEW ON EBAY
+                    </a>
+                  )}
+                  
+                  {/* See listing button for 130point cards */}
+                  {card.itemWebUrl && !card.itemWebUrl.includes('ebay') && (
+                    <a 
+                      href={card.itemWebUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="live-listings-btn"
+                      style={{ 
+                        background: '#ffd700', 
+                        color: '#000', 
+                        border: 'none', 
+                        borderRadius: 5, 
+                        padding: '0.4rem 0.8rem', 
+                        textDecoration: 'none', 
+                        marginTop: '0.2rem',
+                        alignSelf: 'flex-start',
+                        fontWeight: 'bold',
+                        fontSize: '0.9em',
+                        textAlign: 'center',
+                        display: 'inline-block',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      See listing
                     </a>
                   )}
                 </div>
