@@ -1271,7 +1271,7 @@ router.post('/', requireUser, async (req, res) => {
           shippingCost: card.shippingCost,
           saleType: card.saleType,
           numBids: card.numBids,
-          source: 'ebay'
+          source: 'ebay' // Explicitly mark eBay cards
         }));
         
         // Merge eBay results with 130point results (if any)

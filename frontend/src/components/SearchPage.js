@@ -437,13 +437,17 @@ const SearchPage = () => {
     let cardImage = null;
     
     // Priority order: PSA 10 eBay > PSA 10 130point > PSA 9 eBay > PSA 9 130point > Raw eBay > Raw 130point
+    // Check source field first, then fall back to URL check
+    const is130point = (card) => card.source === '130point' || (card.itemWebUrl && !card.itemWebUrl.includes('ebay') && !card.itemWebUrl.includes('ebay.com'));
+    const isEbay = (card) => !is130point(card) && card.itemWebUrl && (card.itemWebUrl.includes('ebay') || card.itemWebUrl.includes('ebay.com'));
+    
     const prioritizedCards = [
-      ...psa10Cards.filter(c => c.source !== '130point' && c.itemWebUrl && c.itemWebUrl.includes('ebay')),
-      ...psa10Cards.filter(c => c.source === '130point'),
-      ...psa9Cards.filter(c => c.source !== '130point' && c.itemWebUrl && c.itemWebUrl.includes('ebay')),
-      ...psa9Cards.filter(c => c.source === '130point'),
-      ...rawCards.filter(c => c.source !== '130point' && c.itemWebUrl && c.itemWebUrl.includes('ebay')),
-      ...rawCards.filter(c => c.source === '130point')
+      ...psa10Cards.filter(c => isEbay(c)),
+      ...psa10Cards.filter(c => is130point(c)),
+      ...psa9Cards.filter(c => isEbay(c)),
+      ...psa9Cards.filter(c => is130point(c)),
+      ...rawCards.filter(c => isEbay(c)),
+      ...rawCards.filter(c => is130point(c))
     ];
     
     for (const card of prioritizedCards) {
@@ -803,7 +807,10 @@ const SearchPage = () => {
                   })()}
                   
                   {/* Item number - gray text (only for eBay cards) */}
-                  {card.itemWebUrl && card.itemWebUrl.includes('ebay') && (() => {
+                  {(() => {
+                    const isEbayCard = card.source !== '130point' && card.itemWebUrl && (card.itemWebUrl.includes('ebay') || card.itemWebUrl.includes('ebay.com'));
+                    if (!isEbayCard) return null;
+                    
                     const match = card.itemWebUrl.match(/\/itm\/(\d{6,})|\/(\d{6,})(?:\?.*)?$/);
                     const itemNum = match ? (match[1] || match[2]) : null;
                     return itemNum ? (
@@ -814,58 +821,68 @@ const SearchPage = () => {
                   })()}
                   
                   {/* VIEW ON EBAY button - yellow, bold black text (only for eBay cards) */}
-                  {card.itemWebUrl && card.itemWebUrl.includes('ebay') && (
-                    <a 
-                      href={card.itemWebUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="live-listings-btn"
-                      style={{ 
-                        background: '#ffd700', 
-                        color: '#000', 
-                        border: 'none', 
-                        borderRadius: 5, 
-                        padding: '0.4rem 0.8rem', 
-                        textDecoration: 'none', 
-                        marginTop: '0.2rem',
-                        alignSelf: 'flex-start',
-                        fontWeight: 'bold',
-                        fontSize: '0.9em',
-                        textAlign: 'center',
-                        display: 'inline-block',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      VIEW ON EBAY
-                    </a>
-                  )}
+                  {(() => {
+                    const isEbayCard = card.source !== '130point' && card.itemWebUrl && (card.itemWebUrl.includes('ebay') || card.itemWebUrl.includes('ebay.com'));
+                    if (!isEbayCard) return null;
+                    
+                    return (
+                      <a 
+                        href={card.itemWebUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="live-listings-btn"
+                        style={{ 
+                          background: '#ffd700', 
+                          color: '#000', 
+                          border: 'none', 
+                          borderRadius: 5, 
+                          padding: '0.4rem 0.8rem', 
+                          textDecoration: 'none', 
+                          marginTop: '0.2rem',
+                          alignSelf: 'flex-start',
+                          fontWeight: 'bold',
+                          fontSize: '0.9em',
+                          textAlign: 'center',
+                          display: 'inline-block',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        VIEW ON EBAY
+                      </a>
+                    );
+                  })()}
                   
                   {/* See listing button for 130point cards */}
-                  {card.itemWebUrl && !card.itemWebUrl.includes('ebay') && (
-                    <a 
-                      href={card.itemWebUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="live-listings-btn"
-                      style={{ 
-                        background: '#ffd700', 
-                        color: '#000', 
-                        border: 'none', 
-                        borderRadius: 5, 
-                        padding: '0.4rem 0.8rem', 
-                        textDecoration: 'none', 
-                        marginTop: '0.2rem',
-                        alignSelf: 'flex-start',
-                        fontWeight: 'bold',
-                        fontSize: '0.9em',
-                        textAlign: 'center',
-                        display: 'inline-block',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      See listing
-                    </a>
-                  )}
+                  {(() => {
+                    const is130pointCard = card.source === '130point' || (card.itemWebUrl && !card.itemWebUrl.includes('ebay') && !card.itemWebUrl.includes('ebay.com'));
+                    if (!is130pointCard || !card.itemWebUrl) return null;
+                    
+                    return (
+                      <a 
+                        href={card.itemWebUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="live-listings-btn"
+                        style={{ 
+                          background: '#ffd700', 
+                          color: '#000', 
+                          border: 'none', 
+                          borderRadius: 5, 
+                          padding: '0.4rem 0.8rem', 
+                          textDecoration: 'none', 
+                          marginTop: '0.2rem',
+                          alignSelf: 'flex-start',
+                          fontWeight: 'bold',
+                          fontSize: '0.9em',
+                          textAlign: 'center',
+                          display: 'inline-block',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        See listing
+                      </a>
+                    );
+                  })()}
                 </div>
               </div>
             );
