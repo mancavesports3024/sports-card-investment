@@ -1508,10 +1508,112 @@ router.post('/', requireUser, async (req, res) => {
         console.log(`[POST SEARCH] Running fallback search with forceRefresh=true to bypass cache`);
         const fallbackResult = await ebayScraper.searchSoldCards(fallbackQuery, null, fallbackMaxResults, null, null, null, null, null, true);
         
-        // If fallback search returned no results, log more details for debugging
+        // If fallback search returned no results, try 130point as final fallback
         if (!fallbackResult.success || !fallbackResult.results || fallbackResult.results.length === 0) {
           console.log(`[POST SEARCH] Fallback search details - success: ${fallbackResult?.success}, results: ${fallbackResult?.results?.length || 0}, error: ${fallbackResult?.error || 'none'}`);
-          console.log(`[POST SEARCH] This might indicate eBay blocking or HTML parsing issues. Manual search shows results exist.`);
+          console.log(`[POST SEARCH] eBay fallback search failed (likely blocked). Trying 130point as final fallback...`);
+          
+          try {
+            const Point130Service = require('../services/130pointService');
+            const point130Service = new Point130Service();
+            
+            // Process exclusions for 130point format
+            let processedFallbackQuery = fallbackQuery;
+            const exclusionMatch = fallbackQuery.match(/-\s*\(([^)]+)\)/);
+            if (exclusionMatch) {
+              const exclusions = exclusionMatch[1].split(',').map(e => e.trim());
+              processedFallbackQuery = `${fallbackQuery.split(' -')[0]} -(${exclusions.join(',')})`;
+            }
+            
+            console.log(`[POST SEARCH] 130point fallback search: "${processedFallbackQuery}"`);
+            const point130Results = await point130Service.searchSoldCards(processedFallbackQuery, {
+              type: '2',
+              sort: 'urlEndTimeSoonest'
+            });
+            
+            if (point130Results && point130Results.length > 0) {
+              console.log(`[POST SEARCH] ✅ 130point fallback found ${point130Results.length} results`);
+              
+              // Transform 130point results to match expected format
+              const fallbackCards = point130Results.map(card => ({
+                id: `130point_${Date.now()}_${Math.random()}`,
+                title: card.title || '',
+                price: card.price || { value: '0', currency: 'USD' },
+                condition: 'Raw',
+                soldDate: card.soldDate || 'Recently sold',
+                imageUrl: card.image || '',
+                itemWebUrl: card.link || '',
+                itemId: `130point_${Date.now()}_${Math.random()}`,
+                sport: 'unknown',
+                shippingCost: null,
+                saleType: '130point',
+                numBids: null,
+                source: '130point'
+              }));
+              
+              // Apply keyword filtering to 130point results (same as main search)
+              const lowerQuery = (searchQuery || '').toLowerCase();
+              const positivePart = lowerQuery.split(' -(')[0].trim();
+              const exclusionMatch = lowerQuery.match(/-\s*\(([^)]+)\)/);
+              const exclusions = exclusionMatch
+                ? exclusionMatch[1].split(',').map(s => s.trim()).filter(Boolean)
+                : [];
+              const positiveTokens = positivePart.split(/\s+/).filter(t => t.length > 0);
+              const primaryToken = positiveTokens.find(t => t.length >= 3) || positiveTokens[0] || '';
+              const fractionMatch = positivePart.match(/(\d+)\s*\/\s*(\d+)/);
+              const fractionVariants = fractionMatch
+                ? [
+                    `${fractionMatch[1]}/${fractionMatch[2]}`,
+                    `${fractionMatch[1]} ${fractionMatch[2]}`,
+                    `${fractionMatch[1]}-${fractionMatch[2]}`
+                  ]
+                : [];
+              
+              const filteredFallbackCards = fallbackCards.filter(card => {
+                const title = (card.title || '').toLowerCase();
+                if (!title) return false;
+                
+                if (exclusions.length > 0 && exclusions.some(ex => ex && title.includes(ex))) {
+                  return false;
+                }
+                
+                if (primaryToken && !title.includes(primaryToken)) {
+                  return false;
+                }
+                
+                if (fractionVariants.length > 0 && !fractionVariants.some(v => title.includes(v))) {
+                  return false;
+                }
+                
+                return true;
+              });
+              
+              console.log(`[POST SEARCH] 130point fallback filtered to ${filteredFallbackCards.length} cards (from ${fallbackCards.length})`);
+              
+              // Merge 130point results with existing cards (avoid duplicates)
+              const existingIds = new Set(allCards.map(c => c.id || c.itemId));
+              const newFallbackCards = filteredFallbackCards.filter(card => {
+                const cardId = card.id || card.itemId;
+                return cardId && !existingIds.has(cardId);
+              });
+              
+              if (newFallbackCards.length > 0) {
+                console.log(`[POST SEARCH] Adding ${newFallbackCards.length} new cards from 130point fallback`);
+                allCards = allCards.concat(newFallbackCards);
+                
+                // Re-categorize with merged results
+                categorized = categorizeCards(allCards);
+                console.log(`[POST SEARCH] After 130point fallback merge - PSA9: ${categorized.psa9?.length || 0}, PSA10: ${categorized.psa10?.length || 0}`);
+              } else {
+                console.log(`[POST SEARCH] No new cards from 130point fallback (all duplicates)`);
+              }
+            } else {
+              console.log(`[POST SEARCH] 130point fallback also returned no results`);
+            }
+          } catch (point130Error) {
+            console.error(`[POST SEARCH] 130point fallback error:`, point130Error);
+            // Continue with original results even if 130point fails
+          }
         }
         
         if (fallbackResult.success && fallbackResult.results && fallbackResult.results.length > 0) {
