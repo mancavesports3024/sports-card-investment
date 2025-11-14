@@ -215,31 +215,53 @@ class Point130Service {
             const price = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : null;
             
             // Look for title and other info in cell2
-            const title = cell2 || cell1;
+            let title = cell2 || cell1;
             
-            // Look for date patterns and convert to ISO format
-            const dateMatch = fullText.match(/(\d{1,2}\/\d{1,2}\/\d{4}|\d{4}-\d{2}-\d{2})/);
+            // Extract date from fullText - look for date patterns like "Wed 05 Nov 2025" or "Mon 06 Oct 2025"
             let soldDate = null;
-            if (dateMatch) {
-                const dateStr = dateMatch[1];
-                // Convert to ISO format to avoid timezone issues
-                try {
-                    let date;
-                    if (dateStr.includes('/')) {
-                        // Format: MM/DD/YYYY
-                        const [month, day, year] = dateStr.split('/');
-                        date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-                    } else {
-                        // Format: YYYY-MM-DD
-                        date = new Date(dateStr);
+            // Try multiple date formats
+            const datePatterns = [
+                /Date:\s*(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/i,
+                /(\d{1,2}\/\d{1,2}\/\d{4})/,
+                /(\d{4}-\d{2}-\d{2})/
+            ];
+            
+            for (const pattern of datePatterns) {
+                const dateMatch = fullText.match(pattern);
+                if (dateMatch) {
+                    try {
+                        let date;
+                        if (dateMatch[0].includes('Date:')) {
+                            // Format: "Date: Wed 05 Nov 2025 11:31:14"
+                            const [, dayName, day, monthName, year, hour, minute, second] = dateMatch;
+                            const monthMap = {
+                                'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+                                'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+                            };
+                            const month = monthMap[monthName.toLowerCase()];
+                            if (month !== undefined) {
+                                date = new Date(Date.UTC(parseInt(year), month, parseInt(day), parseInt(hour), parseInt(minute), parseInt(second)));
+                            }
+                        } else if (dateMatch[1].includes('/')) {
+                            // Format: MM/DD/YYYY
+                            const [month, day, year] = dateMatch[1].split('/');
+                            date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                        } else {
+                            // Format: YYYY-MM-DD
+                            date = new Date(dateMatch[1]);
+                        }
+                        
+                        if (date && !isNaN(date.getTime())) {
+                            // Set to noon UTC if no time component
+                            if (!dateMatch[0].includes('Date:')) {
+                                date.setUTCHours(12, 0, 0, 0);
+                            }
+                            soldDate = date.toISOString();
+                            break;
+                        }
+                    } catch (error) {
+                        console.error(`Error parsing 130point date: "${dateMatch[0]}"`, error);
                     }
-                    if (!isNaN(date.getTime())) {
-                        // Set to noon UTC to avoid timezone shifts when displaying
-                        date.setUTCHours(12, 0, 0, 0);
-                        soldDate = date.toISOString();
-                    }
-                } catch (error) {
-                    console.error(`Error parsing 130point date: "${dateStr}"`, error);
                 }
             }
             
@@ -319,19 +341,50 @@ class Point130Service {
 
     /**
      * Clean and sanitize card title
+     * Removes 130point metadata like "Sold Via: eBay", "Fixed Price", "Sale Price: X USD", etc.
      */
     cleanTitle(title) {
         if (!title) return '';
         
-        return title
-            .replace(/\s*#unknown\b.*$/i, '')
-            .replace(/\s*#Unknown\b.*$/i, '')
-            .replace(/\s*#UNKNOWN\b.*$/i, '')
-            .replace(/\s+unknown\s*$/i, '')
-            .replace(/\s+Unknown\s*$/i, '')
-            .replace(/\s+UNKNOWN\s*$/i, '')
+        let cleaned = title
+            // Remove "Sold Via: eBay" prefix
+            .replace(/^Sold\s+Via:\s*eBay\s*/i, '')
+            // Remove sale type prefixes (Fixed Price, Best Offer Accepted, Auction)
+            .replace(/^(Fixed\s+Price|Best\s+Offer\s+Accepted|Auction)\s*/i, '')
+            // Remove "List Price: X USD" patterns
+            .replace(/List\s+Price:\s*[\d,]+\.?\d*\s*USD\s*/gi, '')
+            // Remove "Sale Price: X USD" patterns
+            .replace(/Sale\s+Price:\s*[\d,]+\.?\d*\s*USD\s*/gi, '')
+            // Remove date patterns like "Date: Wed 05 Nov 2025 11:31:14 CDT"
+            .replace(/Date:\s*[A-Za-z]{3}\s+\d{1,2}\s+[A-Za-z]{3}\s+\d{4}\s+\d{2}:\d{2}:\d{2}\s+[A-Z]{3,4}\s*/gi, '')
+            // Remove "Shipping Price: N/A" or "Shipping Price: X USD"
+            .replace(/Shipping\s+Price:\s*(N\/A|[\d,]+\.?\d*\s*USD)\s*/gi, '')
+            // Remove price patterns like "79.99 USD Sale Price: 79.99"
+            .replace(/[\d,]+\.?\d*\s*USD\s*Sale\s+Price:\s*[\d,]+\.?\d*\s*/gi, '')
+            // Remove "Best Offer Price: X" patterns
+            .replace(/Best\s+Offer\s+Price:\s*[\d,]+\.?\d*\s*/gi, '')
+            // Remove "Current Price: X" patterns
+            .replace(/Current\s+Price:\s*[\d,]+\.?\d*\s*/gi, '')
+            // Remove "Bids: X (Click to View)" patterns
+            .replace(/Bids:\s*\d+\s*\(Click\s+to\s+View\)\s*/gi, '')
+            // Remove "Sale Type: X" patterns
+            .replace(/Sale\s+Type:\s*\w+\s*/gi, '')
+            // Remove "CurrentPriceFull: X USD" patterns
+            .replace(/CurrentPriceFull:\s*[\d,]+\.?\d*\s*USD\s*/gi, '')
+            // Remove "SalePriceFull: X USD" patterns
+            .replace(/SalePriceFull:\s*[\d,]+\.?\d*\s*USD\s*/gi, '')
+            // Remove remaining standalone price patterns at the end
+            .replace(/\s+[\d,]+\.?\d*\s*USD\s*$/gi, '')
+            // Remove " - " patterns that might be left
+            .replace(/\s*-\s*$/g, '')
+            // Clean up multiple spaces
             .replace(/\s+/g, ' ')
+            // Remove common suffixes
+            .replace(/\s*#unknown\b.*$/i, '')
+            .replace(/\s+unknown\s*$/i, '')
             .trim();
+        
+        return cleaned;
     }
 
     /**
