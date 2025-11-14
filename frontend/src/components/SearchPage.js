@@ -433,28 +433,37 @@ const SearchPage = () => {
       return null;
     };
 
-    // Try to get image from cards, prioritizing PSA 10 eBay cards first
+    // Try to get image from cards, prioritizing PSA 10 cards first (eBay or 130point)
     let cardImage = null;
     
-    // Priority order: PSA 10 eBay > PSA 10 130point > PSA 9 eBay > PSA 9 130point > Raw eBay > Raw 130point
-    // Check source field first, then fall back to URL check
-    const is130point = (card) => card.source === '130point' || (card.itemWebUrl && !card.itemWebUrl.includes('ebay') && !card.itemWebUrl.includes('ebay.com'));
-    const isEbay = (card) => !is130point(card) && card.itemWebUrl && (card.itemWebUrl.includes('ebay') || card.itemWebUrl.includes('ebay.com'));
-    
+    // Priority order: PSA 10 (any source) > PSA 9 (any source) > Raw (any source)
+    // Within each grade, prefer cards with images
     const prioritizedCards = [
-      ...psa10Cards.filter(c => isEbay(c)),
-      ...psa10Cards.filter(c => is130point(c)),
-      ...psa9Cards.filter(c => isEbay(c)),
-      ...psa9Cards.filter(c => is130point(c)),
-      ...rawCards.filter(c => isEbay(c)),
-      ...rawCards.filter(c => is130point(c))
+      ...psa10Cards,
+      ...psa9Cards,
+      ...rawCards
     ];
+    
+    // Sort by: has image first, then by source (eBay then 130point)
+    prioritizedCards.sort((a, b) => {
+      const aHasImage = getCardImage(a) !== null;
+      const bHasImage = getCardImage(b) !== null;
+      if (aHasImage && !bHasImage) return -1;
+      if (!aHasImage && bHasImage) return 1;
+      
+      // If both have or don't have images, prefer eBay
+      const aIsEbay = a.source === 'ebay' || (a.itemWebUrl && (a.itemWebUrl.includes('ebay') || a.itemWebUrl.includes('ebay.com')));
+      const bIsEbay = b.source === 'ebay' || (b.itemWebUrl && (b.itemWebUrl.includes('ebay') || b.itemWebUrl.includes('ebay.com')));
+      if (aIsEbay && !bIsEbay) return -1;
+      if (!aIsEbay && bIsEbay) return 1;
+      return 0;
+    });
     
     for (const card of prioritizedCards) {
       const img = getCardImage(card);
       if (img) {
         cardImage = img;
-        console.log('✅ Found card image from', card.source || 'eBay', ':', img.substring(0, 50) + '...');
+        console.log('✅ Found card image from', card.source || (card.itemWebUrl && card.itemWebUrl.includes('ebay') ? 'eBay' : '130point'), ':', img.substring(0, 50) + '...');
         break;
       }
     }
