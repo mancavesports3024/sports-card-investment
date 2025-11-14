@@ -1485,8 +1485,115 @@ router.post('/', requireUser, async (req, res) => {
 
     // Categorize and sort the results
     console.log(`[POST SEARCH] About to categorize ${allCards.length} cards`);
-    const categorized = categorizeCards(allCards);
+    let categorized = categorizeCards(allCards);
     console.log(`[POST SEARCH] After categorization - PSA9: ${categorized.psa9?.length || 0}, PSA10: ${categorized.psa10?.length || 0}`);
+    
+    // Fallback: If no PSA 9 or PSA 10 results, try a search with "PSA 9" added
+    const hasPsa9 = categorized.psa9 && categorized.psa9.length > 0;
+    const hasPsa10 = categorized.psa10 && categorized.psa10.length > 0;
+    
+    if (!hasPsa9 && !hasPsa10) {
+      console.log(`[POST SEARCH] No PSA 9 or PSA 10 results found. Running fallback search with "PSA 9" added to query...`);
+      
+      try {
+        // Build fallback search query - add "PSA 9" to the search term
+        // Remove any existing exclusions for the fallback search
+        const baseQuery = searchQuery.split(' -(')[0].trim();
+        const fallbackQuery = `${baseQuery} PSA 9`;
+        
+        console.log(`[POST SEARCH] Fallback search query: "${fallbackQuery}"`);
+        
+        // Run fallback search with smaller maxResults to avoid getting blocked
+        const fallbackMaxResults = 200; // Smaller to reduce blocking risk
+        const fallbackResult = await ebayScraper.searchSoldCards(fallbackQuery, null, fallbackMaxResults, null, null, null, null, null, true);
+        
+        if (fallbackResult.success && fallbackResult.results && fallbackResult.results.length > 0) {
+          console.log(`[POST SEARCH] Fallback search returned ${fallbackResult.results.length} results`);
+          
+          // Transform fallback results
+          const fallbackCards = fallbackResult.results.map(card => ({
+            id: card.ebayItemId || card.itemId,
+            title: (card.title || '').replace(/\s*#unknown\b.*$/i, '').trim(),
+            price: {
+              value: card.numericPrice ? card.numericPrice.toString() : (card.price || '0').replace(/[^\d.]/g, ''),
+              currency: 'USD'
+            },
+            condition: card.grade || 'Raw',
+            soldDate: card.soldDate || 'Recently sold',
+            imageUrl: card.imageUrl,
+            itemWebUrl: card.itemUrl,
+            itemId: card.ebayItemId || card.itemId,
+            sport: card.sport || 'unknown',
+            shippingCost: card.shippingCost,
+            saleType: card.saleType,
+            numBids: card.numBids
+          }));
+          
+          // Apply keyword filtering to fallback results (same as main search)
+          const lowerQuery = (searchQuery || '').toLowerCase();
+          const positivePart = lowerQuery.split(' -(')[0].trim();
+          const exclusionMatch = lowerQuery.match(/-\s*\(([^)]+)\)/);
+          const exclusions = exclusionMatch
+            ? exclusionMatch[1].split(',').map(s => s.trim()).filter(Boolean)
+            : [];
+          const positiveTokens = positivePart.split(/\s+/).filter(t => t.length > 0);
+          const primaryToken = positiveTokens.find(t => t.length >= 3) || positiveTokens[0] || '';
+          const fractionMatch = positivePart.match(/(\d+)\s*\/\s*(\d+)/);
+          const fractionVariants = fractionMatch
+            ? [
+                `${fractionMatch[1]}/${fractionMatch[2]}`,
+                `${fractionMatch[1]} ${fractionMatch[2]}`,
+                `${fractionMatch[1]}-${fractionMatch[2]}`
+              ]
+            : [];
+          
+          const filteredFallbackCards = fallbackCards.filter(card => {
+            const title = (card.title || '').toLowerCase();
+            if (!title) return false;
+            
+            if (exclusions.length > 0 && exclusions.some(ex => ex && title.includes(ex))) {
+              return false;
+            }
+            
+            if (primaryToken && !title.includes(primaryToken)) {
+              return false;
+            }
+            
+            if (fractionVariants.length > 0 && !fractionVariants.some(v => title.includes(v))) {
+              return false;
+            }
+            
+            return true;
+          });
+          
+          console.log(`[POST SEARCH] Fallback search filtered to ${filteredFallbackCards.length} cards (from ${fallbackCards.length})`);
+          
+          // Merge fallback cards with existing cards (avoid duplicates)
+          const existingIds = new Set(allCards.map(c => c.id || c.itemId));
+          const newFallbackCards = filteredFallbackCards.filter(card => {
+            const cardId = card.id || card.itemId;
+            return cardId && !existingIds.has(cardId);
+          });
+          
+          if (newFallbackCards.length > 0) {
+            console.log(`[POST SEARCH] Adding ${newFallbackCards.length} new cards from fallback search`);
+            allCards = allCards.concat(newFallbackCards);
+            
+            // Re-categorize with merged results
+            categorized = categorizeCards(allCards);
+            console.log(`[POST SEARCH] After fallback merge - PSA9: ${categorized.psa9?.length || 0}, PSA10: ${categorized.psa10?.length || 0}`);
+          } else {
+            console.log(`[POST SEARCH] No new cards from fallback search (all duplicates)`);
+          }
+        } else {
+          console.log(`[POST SEARCH] Fallback search failed or returned no results`);
+        }
+      } catch (fallbackError) {
+        console.error(`[POST SEARCH] Fallback search error:`, fallbackError);
+        // Continue with original results even if fallback fails
+      }
+    }
+    
     const sorted = sortByDate(categorized); // Sort by date for search page
     console.log(`[POST SEARCH] After sorting - PSA9: ${sorted.psa9?.length || 0}, PSA10: ${sorted.psa10?.length || 0}`);
 
