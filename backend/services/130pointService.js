@@ -151,12 +151,14 @@ class Point130Service {
                 const cells = $row.find('td');
                 
                 if (cells.length >= 2) {
-                    const cell1 = $(cells[0]).text().trim();
-                    const cell2 = $(cells[1]).text().trim();
+                    const $cell1 = $(cells[0]);
+                    const $cell2 = $(cells[1]);
+                    const cell1Text = $cell1.text().trim();
+                    const cell2Text = $cell2.text().trim();
                     
                     // Skip empty rows
-                    if (cell1 || cell2) {
-                        const card = this.extractCardFromRow(cell1, cell2);
+                    if (cell1Text || cell2Text) {
+                        const card = this.extractCardFromRow($cell1, $cell2, $row);
                         if (card && card.title) {
                             cards.push(card);
                         }
@@ -206,16 +208,54 @@ class Point130Service {
     /**
      * Extract card data from table row cells
      */
-    extractCardFromRow(cell1, cell2) {
+    extractCardFromRow($cell1, $cell2, $row) {
         try {
+            // Extract text from cells
+            const cell1Text = $cell1.text().trim();
+            const cell2Text = $cell2.text().trim();
+            
             // Look for price in both cells - 130point embeds prices in the text
-            const fullText = (cell1 + ' ' + cell2);
+            const fullText = (cell1Text + ' ' + cell2Text);
             const priceMatch = fullText.match(/Sale Price:\s*\$?([\d,]+\.?\d*)/i) || 
                              fullText.match(/\$([\d,]+\.?\d*)/);
             const price = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : null;
             
             // Look for title and other info in cell2
-            let title = cell2 || cell1;
+            let title = cell2Text || cell1Text;
+            
+            // Extract image from the row - images are in <td id="imgCol"> with <img src="...">
+            let imageUrl = null;
+            if ($row) {
+                // Try to find image in the imgCol cell first
+                const $imgCol = $row.find('td#imgCol');
+                if ($imgCol.length > 0) {
+                    const $img = $imgCol.find('img').first();
+                    if ($img.length > 0) {
+                        imageUrl = $img.attr('src') || $img.attr('data-src') || $img.attr('data-lazy') || $img.attr('data-original');
+                    }
+                }
+                
+                // Fallback: look for any image in the row
+                if (!imageUrl) {
+                    const $img = $row.find('img').first();
+                    if ($img.length > 0) {
+                        imageUrl = $img.attr('src') || $img.attr('data-src') || $img.attr('data-lazy') || $img.attr('data-original');
+                    }
+                }
+                
+                // Upgrade eBay image size if it's an eBay image
+                if (imageUrl && imageUrl.includes('i.ebayimg.com')) {
+                    // Upgrade from s-1150, s-l150, etc. to s-l1600 for better quality
+                    if (imageUrl.match(/s-\d+|s-l\d+/)) {
+                        imageUrl = imageUrl.replace(/s-\d+|s-l\d+/, 's-l1600');
+                    }
+                }
+                
+                // Normalize the image URL
+                if (imageUrl) {
+                    imageUrl = this.normalizeUrl(imageUrl);
+                }
+            }
             
             // Extract date from fullText - look for date patterns like "Wed 05 Nov 2025" or "Mon 06 Oct 2025"
             let soldDate = null;
@@ -275,6 +315,7 @@ class Point130Service {
                     price: price ? { value: price, currency: 'USD' } : null,
                     soldDate: soldDate,
                     link: link,
+                    image: imageUrl, // Add image to the result
                     source: '130point'
                 };
             }
@@ -349,7 +390,8 @@ class Point130Service {
         let cleaned = title
             // Remove "Sold Via: eBay" prefix
             .replace(/^Sold\s+Via:\s*eBay\s*/i, '')
-            // Remove sale type prefixes (Fixed Price, Best Offer Accepted, Auction)
+            // Remove sale type prefixes (Fixed Price, Best Offer Accepted, Auction) - handle concatenated "hipping Price"
+            .replace(/^(Fixed\s+Price|Best\s+Offer\s+Accepted|Auction)hipping\s+Price/gi, '')
             .replace(/^(Fixed\s+Price|Best\s+Offer\s+Accepted|Auction)\s*/i, '')
             // Remove "List Price: X USD" patterns
             .replace(/List\s+Price:\s*[\d,]+\.?\d*\s*USD\s*/gi, '')
@@ -357,7 +399,8 @@ class Point130Service {
             .replace(/Sale\s+Price:\s*[\d,]+\.?\d*\s*USD\s*/gi, '')
             // Remove date patterns like "Date: Wed 05 Nov 2025 11:31:14 CDT"
             .replace(/Date:\s*[A-Za-z]{3}\s+\d{1,2}\s+[A-Za-z]{3}\s+\d{4}\s+\d{2}:\d{2}:\d{2}\s+[A-Z]{3,4}\s*/gi, '')
-            // Remove "Shipping Price: N/A" or "Shipping Price: X USD"
+            // Remove "Shipping Price: N/A" or "Shipping Price: X USD" - handle variations
+            .replace(/\s*hipping\s+Price:\s*(N\/A|[\d,]+\.?\d*\s*USD)\s*/gi, '')
             .replace(/Shipping\s+Price:\s*(N\/A|[\d,]+\.?\d*\s*USD)\s*/gi, '')
             // Remove price patterns like "79.99 USD Sale Price: 79.99"
             .replace(/[\d,]+\.?\d*\s*USD\s*Sale\s+Price:\s*[\d,]+\.?\d*\s*/gi, '')
@@ -365,14 +408,17 @@ class Point130Service {
             .replace(/Best\s+Offer\s+Price:\s*[\d,]+\.?\d*\s*/gi, '')
             // Remove "Current Price: X" patterns
             .replace(/Current\s+Price:\s*[\d,]+\.?\d*\s*/gi, '')
-            // Remove "Bids: X (Click to View)" patterns
-            .replace(/Bids:\s*\d+\s*\(Click\s+to\s+View\)\s*/gi, '')
+            // Remove "Bids: X" patterns (with or without parentheses, with or without dashes)
+            .replace(/\s*Bids:\s*\d+\s*\(Click\s+to\s+View\)\s*/gi, '')
+            .replace(/\s*Bids:\s*\d+\s*-?\s*/gi, '')
             // Remove "Sale Type: X" patterns
             .replace(/Sale\s+Type:\s*\w+\s*/gi, '')
             // Remove "CurrentPriceFull: X USD" patterns
             .replace(/CurrentPriceFull:\s*[\d,]+\.?\d*\s*USD\s*/gi, '')
             // Remove "SalePriceFull: X USD" patterns
             .replace(/SalePriceFull:\s*[\d,]+\.?\d*\s*USD\s*/gi, '')
+            // Remove multiple dashes and separators
+            .replace(/\s*-\s*-\s*-?\s*/g, '')
             // Remove remaining standalone price patterns at the end
             .replace(/\s+[\d,]+\.?\d*\s*USD\s*$/gi, '')
             // Remove " - " patterns that might be left
