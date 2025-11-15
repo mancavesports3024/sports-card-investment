@@ -705,7 +705,7 @@ const SearchPage = () => {
             console.log(`✅ Rendering card: "${card.title}" - Price: $${priceValue}`);
             
             return (
-              <div key={`${card.id || index}-${card.title}`} style={{ background: '#fff', border: '1px solid #eee', borderColor: '#eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.6rem', minWidth: 220, maxWidth: 260, fontSize: '0.97em', marginBottom: 0 }}>
+              <div key={`${card.id || index}-${card.title}`} className="sold-card-tile" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.6rem', minWidth: 220, maxWidth: 260, fontSize: '0.97em', marginBottom: 0 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', width: '100%', overflow: 'visible' }}>
                   {/* Title - bold black */}
                   <div className="custom-card-title" style={{ fontWeight: 'bold', color: '#000', fontSize: '0.95em', lineHeight: '1.3' }}>{(() => {
@@ -729,6 +729,11 @@ const SearchPage = () => {
                   
                   {/* Sale type button - Auction, Buy It Now, or Best Offer Accepted */}
                   {(() => {
+                    // Debug logging (temporary)
+                    if (index < 3) {
+                      console.log(`[CARD ${index}] saleType: "${card.saleType}", numBids: ${card.numBids}, title: "${card.title?.substring(0, 50)}..."`);
+                    }
+                    
                     // Check sale type explicitly - don't rely on numBids to determine auction
                     const isAuction = card.saleType === 'auction' || card.listingType === 'AUCTION';
                     const isBestOffer = card.saleType === 'best_offer';

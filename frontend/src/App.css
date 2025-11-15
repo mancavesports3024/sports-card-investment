@@ -508,6 +508,12 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* Override for sold card tiles - no yellow border */
+.sold-card-tile {
+  border: 1px solid #eee !important;
+  border-color: #eee !important;
+}
+
 .card-item:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);

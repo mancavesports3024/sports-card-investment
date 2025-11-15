@@ -312,18 +312,31 @@ class Point130Service {
             // Extract sale type from title before cleaning (check in order: most specific to least specific)
             let saleType = null;
             const titleLower = title.toLowerCase();
+            const fullTextLower = fullText.toLowerCase();
             
-            // Check Fixed Price first (most specific)
-            if (titleLower.includes('fixed price')) {
+            // Debug logging for first few cards (use a static counter since cards array isn't available here)
+            const debugCardIndex = Math.floor(Math.random() * 100); // Temporary: log randomly
+            if (debugCardIndex < 5) {
+                console.log(`[130POINT EXTRACT] Raw title: "${title.substring(0, 100)}..."`);
+                console.log(`[130POINT EXTRACT] Full text sample: "${fullText.substring(0, 150)}..."`);
+            }
+            
+            // Check Fixed Price first (most specific) - check both title and fullText
+            if (titleLower.includes('fixed price') || fullTextLower.includes('fixed price')) {
                 saleType = 'fixed_price';
+                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Fixed Price`);
             } 
             // Then Best Offer Accepted
-            else if (titleLower.includes('best offer accepted') || titleLower.includes('best offer')) {
+            else if (titleLower.includes('best offer accepted') || titleLower.includes('best offer') || 
+                     fullTextLower.includes('best offer accepted') || fullTextLower.includes('best offer')) {
                 saleType = 'best_offer';
+                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Best Offer`);
             } 
             // Then Auction (most general)
-            else if (titleLower.includes('auction') || titleLower.includes('card auction')) {
+            else if (titleLower.includes('auction') || titleLower.includes('card auction') ||
+                     fullTextLower.includes('auction') || fullTextLower.includes('card auction')) {
                 saleType = 'auction';
+                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Auction`);
             }
             
             // Extract bid count from fullText before cleaning (extract regardless, filter later)
@@ -331,10 +344,16 @@ class Point130Service {
             const bidMatch = fullText.match(/Bids:\s*(\d+)/i);
             if (bidMatch) {
                 numBids = parseInt(bidMatch[1], 10);
+                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] Found ${numBids} bids`);
                 // Only keep bid count if it's actually an auction
                 if (saleType !== 'auction') {
                     numBids = null;
+                    if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] Discarded bid count (not auction)`);
                 }
+            }
+            
+            if (debugCardIndex < 5) {
+                console.log(`[130POINT EXTRACT] Final: saleType="${saleType}", numBids=${numBids}`);
             }
             
             if (title && title.length > 5) {
