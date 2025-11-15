@@ -727,7 +727,7 @@ const SearchPage = () => {
                   {/* Price - bold black */}
                   <div className="custom-card-price" style={{ fontWeight: 'bold', color: '#000', fontSize: '1em' }}>{formatPrice(card.price)}</div>
                   
-                  {/* Buy It Now button (green) - only show if not auction */}
+                  {/* Sale type button - Auction, Buy It Now, or Best Offer Accepted */}
                   {(() => {
                     const isAuction = card.listingType === 'AUCTION' || 
                                      card.saleType === 'auction' || 
@@ -735,7 +735,42 @@ const SearchPage = () => {
                                      (card.numBids && card.numBids > 0) ||
                                      (card.auction && card.auction.bidCount > 0);
                     
-                    if (!isAuction) {
+                    const isBestOffer = card.saleType === 'best_offer' || 
+                                       card.saleType === 'Best Offer Accepted' ||
+                                       (card.title && card.title.toLowerCase().includes('best offer accepted'));
+                    
+                    if (isAuction) {
+                      // Show auction with bid count
+                      const bidCount = card.numBids || card.auction?.bidCount || card.bidCount || null;
+                      return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                          <div className="custom-card-sale-type" style={{ background: '#ffc107', color: '#000', padding: '0.2rem 0.5rem', borderRadius: 4, fontSize: '0.85em', fontWeight: 500 }}>Auction</div>
+                          {bidCount !== null && bidCount !== undefined && (
+                            <div style={{ fontSize: '0.85em', color: '#856404', backgroundColor: '#fff3cd', padding: '2px 6px', borderRadius: 3, border: '1px solid #ffeaa7' }}>
+                              {bidCount} {bidCount === 1 ? 'bid' : 'bids'}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    } else if (isBestOffer) {
+                      // Show Best Offer Accepted button
+                      return (
+                        <button style={{ 
+                          background: '#28a745', 
+                          color: '#fff', 
+                          border: 'none', 
+                          borderRadius: 5, 
+                          padding: '0.3rem 0.8rem', 
+                          fontWeight: 500, 
+                          fontSize: '0.85em',
+                          cursor: 'pointer',
+                          alignSelf: 'flex-start'
+                        }}>
+                          Best Offer Accepted
+                        </button>
+                      );
+                    } else {
+                      // Show Buy It Now button (default for fixed price)
                       return (
                         <button style={{ 
                           background: '#28a745', 
@@ -750,19 +785,6 @@ const SearchPage = () => {
                         }}>
                           Buy It Now
                         </button>
-                      );
-                    } else {
-                      // Show auction with bid count
-                      const bidCount = card.numBids || card.auction?.bidCount || card.bidCount || null;
-                      return (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                          <div className="custom-card-sale-type" style={{ background: '#ffc107', color: '#000', padding: '0.2rem 0.5rem', borderRadius: 4, fontSize: '0.85em', fontWeight: 500 }}>Auction</div>
-                          {bidCount !== null && bidCount !== undefined && (
-                            <div style={{ fontSize: '0.85em', color: '#856404', backgroundColor: '#fff3cd', padding: '2px 6px', borderRadius: 3, border: '1px solid #ffeaa7' }}>
-                              {bidCount} {bidCount === 1 ? 'bid' : 'bids'}
-                            </div>
-                          )}
-                        </div>
                       );
                     }
                   })()}

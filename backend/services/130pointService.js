@@ -309,6 +309,17 @@ class Point130Service {
             const linkMatch = fullText.match(/https?:\/\/[^\s]+/);
             const link = linkMatch ? linkMatch[0] : null;
             
+            // Extract sale type from title before cleaning (Auction, Fixed Price, Best Offer Accepted)
+            let saleType = null;
+            const titleLower = title.toLowerCase();
+            if (titleLower.includes('auction') || titleLower.includes('card auction')) {
+                saleType = 'auction';
+            } else if (titleLower.includes('best offer accepted') || titleLower.includes('best offer')) {
+                saleType = 'best_offer';
+            } else if (titleLower.includes('fixed price')) {
+                saleType = 'fixed_price';
+            }
+            
             if (title && title.length > 5) {
                 return {
                     title: this.cleanTitle(title),
@@ -316,6 +327,7 @@ class Point130Service {
                     soldDate: soldDate,
                     link: link,
                     image: imageUrl, // Add image to the result
+                    saleType: saleType, // Add sale type
                     source: '130point'
                 };
             }

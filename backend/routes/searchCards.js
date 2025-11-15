@@ -1224,7 +1224,7 @@ router.post('/', requireUser, async (req, res) => {
           itemId: card.link ? `130point_${card.link.split('/').pop()}` : `130point_${Date.now()}_${index}`,
           sport: 'unknown',
           shippingCost: null,
-          saleType: '130point',
+          saleType: card.saleType || null, // Use extracted sale type from 130point
           numBids: null,
           source: '130point'
         }));
