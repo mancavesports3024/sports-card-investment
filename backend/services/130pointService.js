@@ -309,7 +309,9 @@ class Point130Service {
             const linkMatch = fullText.match(/https?:\/\/[^\s]+/);
             const link = linkMatch ? linkMatch[0] : null;
             
-            // Extract sale type from title before cleaning (check in order: most specific to least specific)
+            // Extract sale type from title before cleaning
+            // PRIORITY: Check TITLE first (most reliable), then fall back to fullText
+            // This prevents fullText metadata from overriding explicit title information
             let saleType = null;
             const titleLower = title.toLowerCase();
             const fullTextLower = fullText.toLowerCase();
@@ -321,22 +323,35 @@ class Point130Service {
                 console.log(`[130POINT EXTRACT] Full text sample: "${fullText.substring(0, 150)}..."`);
             }
             
-            // Check Fixed Price first (most specific) - check both title and fullText
-            if (titleLower.includes('fixed price') || fullTextLower.includes('fixed price')) {
+            // STEP 1: Check TITLE first (most reliable source)
+            // Check Fixed Price first (most specific)
+            if (titleLower.includes('fixed price')) {
                 saleType = 'fixed_price';
-                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Fixed Price`);
+                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Fixed Price from TITLE`);
             } 
             // Then Best Offer Accepted
-            else if (titleLower.includes('best offer accepted') || titleLower.includes('best offer') || 
-                     fullTextLower.includes('best offer accepted') || fullTextLower.includes('best offer')) {
+            else if (titleLower.includes('best offer accepted') || titleLower.includes('best offer')) {
                 saleType = 'best_offer';
-                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Best Offer`);
+                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Best Offer from TITLE`);
             } 
             // Then Auction (most general)
-            else if (titleLower.includes('auction') || titleLower.includes('card auction') ||
-                     fullTextLower.includes('auction') || fullTextLower.includes('card auction')) {
+            else if (titleLower.includes('auction') || titleLower.includes('card auction')) {
                 saleType = 'auction';
-                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Auction`);
+                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Auction from TITLE`);
+            }
+            
+            // STEP 2: Only if title didn't have sale type, check fullText as fallback
+            if (!saleType) {
+                if (fullTextLower.includes('fixed price')) {
+                    saleType = 'fixed_price';
+                    if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Fixed Price from FULLTEXT`);
+                } else if (fullTextLower.includes('best offer accepted') || fullTextLower.includes('best offer')) {
+                    saleType = 'best_offer';
+                    if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Best Offer from FULLTEXT`);
+                } else if (fullTextLower.includes('auction') || fullTextLower.includes('card auction')) {
+                    saleType = 'auction';
+                    if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Auction from FULLTEXT`);
+                }
             }
             
             // Extract bid count from fullText before cleaning (extract regardless, filter later)
