@@ -705,8 +705,8 @@ const SearchPage = () => {
             console.log(`✅ Rendering card: "${card.title}" - Price: $${priceValue}`);
             
             return (
-              <div key={`${card.id || index}-${card.title}`} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.6rem', minWidth: 220, maxWidth: 260, fontSize: '0.97em', marginBottom: 0 }}>
-                <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', width: '100%', overflow: 'visible' }}>
+              <div key={`${card.id || index}-${card.title}`} style={{ background: '#fff', border: '1px solid #eee', borderColor: '#eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.6rem', minWidth: 220, maxWidth: 260, fontSize: '0.97em', marginBottom: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', width: '100%', overflow: 'visible' }}>
                   {/* Title - bold black */}
                   <div className="custom-card-title" style={{ fontWeight: 'bold', color: '#000', fontSize: '0.95em', lineHeight: '1.3' }}>{(() => {
                     const rawTitle = card.summaryTitle || card.title || '';
@@ -729,23 +729,18 @@ const SearchPage = () => {
                   
                   {/* Sale type button - Auction, Buy It Now, or Best Offer Accepted */}
                   {(() => {
-                    const isAuction = card.listingType === 'AUCTION' || 
-                                     card.saleType === 'auction' || 
-                                     card.saleType === 'Auction' ||
-                                     (card.numBids && card.numBids > 0) ||
-                                     (card.auction && card.auction.bidCount > 0);
-                    
-                    const isBestOffer = card.saleType === 'best_offer' || 
-                                       card.saleType === 'Best Offer Accepted' ||
-                                       (card.title && card.title.toLowerCase().includes('best offer accepted'));
+                    // Check sale type explicitly - don't rely on numBids to determine auction
+                    const isAuction = card.saleType === 'auction' || card.listingType === 'AUCTION';
+                    const isBestOffer = card.saleType === 'best_offer';
+                    const isFixedPrice = card.saleType === 'fixed_price';
                     
                     if (isAuction) {
                       // Show auction with bid count
-                      const bidCount = card.numBids || card.auction?.bidCount || card.bidCount || null;
+                      const bidCount = card.numBids !== null && card.numBids !== undefined ? card.numBids : (card.auction?.bidCount || card.bidCount || null);
                       return (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                           <div className="custom-card-sale-type" style={{ background: '#ffc107', color: '#000', padding: '0.2rem 0.5rem', borderRadius: 4, fontSize: '0.85em', fontWeight: 500 }}>Auction</div>
-                          {bidCount !== null && bidCount !== undefined && (
+                          {(bidCount !== null && bidCount !== undefined && bidCount >= 0) && (
                             <div style={{ fontSize: '0.85em', color: '#856404', backgroundColor: '#fff3cd', padding: '2px 6px', borderRadius: 3, border: '1px solid #ffeaa7' }}>
                               {bidCount} {bidCount === 1 ? 'bid' : 'bids'}
                             </div>
@@ -770,7 +765,7 @@ const SearchPage = () => {
                         </button>
                       );
                     } else {
-                      // Show Buy It Now button (default for fixed price)
+                      // Show Buy It Now button (default for fixed price or unknown)
                       return (
                         <button style={{ 
                           background: '#28a745', 

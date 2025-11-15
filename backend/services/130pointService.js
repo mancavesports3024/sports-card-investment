@@ -309,23 +309,31 @@ class Point130Service {
             const linkMatch = fullText.match(/https?:\/\/[^\s]+/);
             const link = linkMatch ? linkMatch[0] : null;
             
-            // Extract sale type from title before cleaning (Auction, Fixed Price, Best Offer Accepted)
+            // Extract sale type from title before cleaning (check in order: most specific to least specific)
             let saleType = null;
             const titleLower = title.toLowerCase();
-            if (titleLower.includes('auction') || titleLower.includes('card auction')) {
-                saleType = 'auction';
-            } else if (titleLower.includes('best offer accepted') || titleLower.includes('best offer')) {
-                saleType = 'best_offer';
-            } else if (titleLower.includes('fixed price')) {
+            
+            // Check Fixed Price first (most specific)
+            if (titleLower.includes('fixed price')) {
                 saleType = 'fixed_price';
+            } 
+            // Then Best Offer Accepted
+            else if (titleLower.includes('best offer accepted') || titleLower.includes('best offer')) {
+                saleType = 'best_offer';
+            } 
+            // Then Auction (most general)
+            else if (titleLower.includes('auction') || titleLower.includes('card auction')) {
+                saleType = 'auction';
             }
             
-            // Extract bid count from fullText before cleaning (for auctions)
+            // Extract bid count from fullText before cleaning (extract regardless, filter later)
             let numBids = null;
-            if (saleType === 'auction') {
-                const bidMatch = fullText.match(/Bids:\s*(\d+)/i);
-                if (bidMatch) {
-                    numBids = parseInt(bidMatch[1], 10);
+            const bidMatch = fullText.match(/Bids:\s*(\d+)/i);
+            if (bidMatch) {
+                numBids = parseInt(bidMatch[1], 10);
+                // Only keep bid count if it's actually an auction
+                if (saleType !== 'auction') {
+                    numBids = null;
                 }
             }
             
