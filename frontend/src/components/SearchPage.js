@@ -705,7 +705,7 @@ const SearchPage = () => {
             console.log(`✅ Rendering card: "${card.title}" - Price: $${priceValue}`);
             
             return (
-              <div key={`${card.id || index}-${card.title}`} className="card-item" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.6rem', minWidth: 220, maxWidth: 260, fontSize: '0.97em', marginBottom: 0, borderColor: '#eee' }}>
+              <div key={`${card.id || index}-${card.title}`} style={{ background: '#fff', border: '1px solid #eee', borderColor: '#eee !important', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.6rem', minWidth: 220, maxWidth: 260, fontSize: '0.97em', marginBottom: 0 }}>
                 <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', width: '100%', overflow: 'visible' }}>
                   {/* Title - bold black */}
                   <div className="custom-card-title" style={{ fontWeight: 'bold', color: '#000', fontSize: '0.95em', lineHeight: '1.3' }}>{(() => {

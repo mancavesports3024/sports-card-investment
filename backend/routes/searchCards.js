@@ -1225,7 +1225,7 @@ router.post('/', requireUser, async (req, res) => {
           sport: 'unknown',
           shippingCost: null,
           saleType: card.saleType || null, // Use extracted sale type from 130point
-          numBids: null,
+          numBids: card.numBids || null, // Use extracted bid count from 130point
           source: '130point'
         }));
       } else {

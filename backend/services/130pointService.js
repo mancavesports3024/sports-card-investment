@@ -320,6 +320,15 @@ class Point130Service {
                 saleType = 'fixed_price';
             }
             
+            // Extract bid count from fullText before cleaning (for auctions)
+            let numBids = null;
+            if (saleType === 'auction') {
+                const bidMatch = fullText.match(/Bids:\s*(\d+)/i);
+                if (bidMatch) {
+                    numBids = parseInt(bidMatch[1], 10);
+                }
+            }
+            
             if (title && title.length > 5) {
                 return {
                     title: this.cleanTitle(title),
@@ -328,6 +337,7 @@ class Point130Service {
                     link: link,
                     image: imageUrl, // Add image to the result
                     saleType: saleType, // Add sale type
+                    numBids: numBids, // Add bid count for auctions
                     source: '130point'
                 };
             }
