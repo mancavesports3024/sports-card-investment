@@ -210,6 +210,9 @@ class Point130Service {
      */
     extractCardFromRow($cell1, $cell2, $row) {
         try {
+            // Debug logging for first few cards (use a static counter since cards array isn't available here)
+            const debugCardIndex = Math.floor(Math.random() * 100); // Temporary: log randomly
+            
             // Extract text from cells
             const cell1Text = $cell1.text().trim();
             const cell2Text = $cell2.text().trim();
@@ -338,8 +341,7 @@ class Point130Service {
             const titleLower = title.toLowerCase();
             const fullTextLower = fullText.toLowerCase();
             
-            // Debug logging for first few cards (use a static counter since cards array isn't available here)
-            const debugCardIndex = Math.floor(Math.random() * 100); // Temporary: log randomly
+            // Debug logging (debugCardIndex already defined at top of function)
             if (debugCardIndex < 5) {
                 console.log(`[130POINT EXTRACT] Raw title: "${title.substring(0, 100)}..."`);
                 console.log(`[130POINT EXTRACT] Full text sample: "${fullText.substring(0, 150)}..."`);
