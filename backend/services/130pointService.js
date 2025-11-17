@@ -305,9 +305,31 @@ class Point130Service {
                 }
             }
             
-            // Look for links
-            const linkMatch = fullText.match(/https?:\/\/[^\s]+/);
-            const link = linkMatch ? linkMatch[0] : null;
+            // Look for links - try multiple methods
+            let link = null;
+            
+            // Method 1: Look for <a> tag with href in the row
+            if ($row) {
+                const $link = $row.find('a[href]').first();
+                if ($link.length > 0) {
+                    link = $link.attr('href');
+                    if (link && !link.startsWith('http')) {
+                        // Relative URL, make it absolute
+                        link = link.startsWith('/') ? `https://www.ebay.com${link}` : `https://www.ebay.com/${link}`;
+                    }
+                }
+            }
+            
+            // Method 2: Extract from fullText if not found in HTML
+            if (!link) {
+                const linkMatch = fullText.match(/https?:\/\/[^\s]+/);
+                link = linkMatch ? linkMatch[0] : null;
+            }
+            
+            // Log the link for debugging (first few cards)
+            if (debugCardIndex < 5 && link) {
+                console.log(`[130POINT EXTRACT] Found link: "${link.substring(0, 100)}..."`);
+            }
             
             // Extract sale type from title before cleaning
             // PRIORITY: Check TITLE first (most reliable), then fall back to fullText
