@@ -509,9 +509,26 @@
 }
 
 /* Override for sold card tiles - no yellow border */
-.sold-card-tile {
+/* Use higher specificity to override .card-item and any other yellow borders */
+.sold-card-tile,
+div.sold-card-tile,
+.cards-grid .sold-card-tile,
+.cards-grid div.sold-card-tile {
   border: 1px solid #eee !important;
   border-color: #eee !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-top: 1px solid #eee !important;
+  border-right: 1px solid #eee !important;
+  border-bottom: 1px solid #eee !important;
+  border-left: 1px solid #eee !important;
+}
+
+/* Also override any child elements that might have yellow borders */
+.sold-card-tile .custom-card-title,
+.sold-card-tile .card-title {
+  border-bottom: none !important;
+  border: none !important;
 }
 
 .card-item:hover {

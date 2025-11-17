@@ -324,47 +324,53 @@ class Point130Service {
             }
             
             // STEP 1: Check TITLE first (most reliable source)
-            // Check Fixed Price first (most specific)
+            // Priority order: Fixed Price > Auction > Best Offer Accepted
+            // This ensures "Auction" is detected even if title also contains "Best Offer Accepted"
             if (titleLower.includes('fixed price')) {
                 saleType = 'fixed_price';
                 if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Fixed Price from TITLE`);
             } 
-            // Then Best Offer Accepted
-            else if (titleLower.includes('best offer accepted') || titleLower.includes('best offer')) {
-                saleType = 'best_offer';
-                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Best Offer from TITLE`);
-            } 
-            // Then Auction (most general)
+            // Check Auction BEFORE Best Offer (Auction is more specific)
             else if (titleLower.includes('auction') || titleLower.includes('card auction')) {
                 saleType = 'auction';
                 if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Auction from TITLE`);
+            } 
+            // Then Best Offer Accepted (least specific, checked last)
+            else if (titleLower.includes('best offer accepted') || titleLower.includes('best offer')) {
+                saleType = 'best_offer';
+                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Best Offer from TITLE`);
             }
             
             // STEP 2: Only if title didn't have sale type, check fullText as fallback
+            // Use same priority order
             if (!saleType) {
                 if (fullTextLower.includes('fixed price')) {
                     saleType = 'fixed_price';
                     if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Fixed Price from FULLTEXT`);
-                } else if (fullTextLower.includes('best offer accepted') || fullTextLower.includes('best offer')) {
-                    saleType = 'best_offer';
-                    if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Best Offer from FULLTEXT`);
                 } else if (fullTextLower.includes('auction') || fullTextLower.includes('card auction')) {
                     saleType = 'auction';
                     if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Auction from FULLTEXT`);
+                } else if (fullTextLower.includes('best offer accepted') || fullTextLower.includes('best offer')) {
+                    saleType = 'best_offer';
+                    if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Detected Best Offer from FULLTEXT`);
                 }
             }
             
-            // Extract bid count from fullText before cleaning (extract regardless, filter later)
+            // Extract bid count from fullText (extract BEFORE determining sale type to ensure we don't lose it)
             let numBids = null;
             const bidMatch = fullText.match(/Bids:\s*(\d+)/i);
             if (bidMatch) {
                 numBids = parseInt(bidMatch[1], 10);
-                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] Found ${numBids} bids`);
-                // Only keep bid count if it's actually an auction
-                if (saleType !== 'auction') {
-                    numBids = null;
-                    if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] Discarded bid count (not auction)`);
-                }
+                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] Found ${numBids} bids in fullText`);
+            }
+            
+            // Only keep bid count if it's actually an auction
+            // If we have bids but sale type isn't auction, it might be wrong - log it
+            if (numBids !== null && saleType !== 'auction') {
+                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ⚠️ Found ${numBids} bids but saleType is "${saleType}" - discarding bid count`);
+                numBids = null;
+            } else if (numBids !== null && saleType === 'auction') {
+                if (debugCardIndex < 5) console.log(`[130POINT EXTRACT] ✅ Keeping ${numBids} bids for auction`);
             }
             
             if (debugCardIndex < 5) {

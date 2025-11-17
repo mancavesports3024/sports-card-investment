@@ -705,10 +705,10 @@ const SearchPage = () => {
             console.log(`✅ Rendering card: "${card.title}" - Price: $${priceValue}`);
             
             return (
-              <div key={`${card.id || index}-${card.title}`} className="sold-card-tile" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.6rem', minWidth: 220, maxWidth: 260, fontSize: '0.97em', marginBottom: 0 }}>
+              <div key={`${card.id || index}-${card.title}`} className="sold-card-tile" style={{ background: '#fff', border: '1px solid #eee', borderColor: '#eee', borderWidth: '1px', borderStyle: 'solid', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.6rem', minWidth: 220, maxWidth: 260, fontSize: '0.97em', marginBottom: 0 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', width: '100%', overflow: 'visible' }}>
                   {/* Title - bold black */}
-                  <div className="custom-card-title" style={{ fontWeight: 'bold', color: '#000', fontSize: '0.95em', lineHeight: '1.3' }}>{(() => {
+                  <div className="custom-card-title" style={{ fontWeight: 'bold', color: '#000', fontSize: '0.95em', lineHeight: '1.3', border: 'none', borderBottom: 'none' }}>{(() => {
                     const rawTitle = card.summaryTitle || card.title || '';
                     return rawTitle
                       .replace(/\s*#unknown\b.*$/i, '')
@@ -742,13 +742,23 @@ const SearchPage = () => {
                     if (isAuction) {
                       // Show auction with bid count
                       const bidCount = card.numBids !== null && card.numBids !== undefined ? card.numBids : (card.auction?.bidCount || card.bidCount || null);
+                      
+                      // Debug logging for auctions
+                      if (index < 3) {
+                        console.log(`[CARD ${index} AUCTION] saleType: "${card.saleType}", numBids: ${card.numBids}, bidCount: ${bidCount}`);
+                      }
+                      
                       return (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                           <div className="custom-card-sale-type" style={{ background: '#ffc107', color: '#000', padding: '0.2rem 0.5rem', borderRadius: 4, fontSize: '0.85em', fontWeight: 500 }}>Auction</div>
-                          {(bidCount !== null && bidCount !== undefined && bidCount >= 0) && (
+                          {/* Show bid count if available, or show "0 bids" if auction but no count */}
+                          {bidCount !== null && bidCount !== undefined && bidCount >= 0 ? (
                             <div style={{ fontSize: '0.85em', color: '#856404', backgroundColor: '#fff3cd', padding: '2px 6px', borderRadius: 3, border: '1px solid #ffeaa7' }}>
                               {bidCount} {bidCount === 1 ? 'bid' : 'bids'}
                             </div>
+                          ) : (
+                            // If it's an auction but no bid count, show "See listing" or nothing
+                            null
                           )}
                         </div>
                       );
