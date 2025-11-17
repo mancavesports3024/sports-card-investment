@@ -706,7 +706,7 @@ const SearchPage = () => {
             
             return (
               <div key={`${card.id || index}-${card.title}`} className="sold-card-tile" style={{ background: '#fff', border: '1px solid #eee', borderColor: '#eee', borderWidth: '1px', borderStyle: 'solid', borderRadius: 7, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '0.6rem 0.6rem', minWidth: 220, maxWidth: 260, fontSize: '0.97em', marginBottom: 0 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', width: '100%', overflow: 'visible' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', width: '100%', overflow: 'visible', alignItems: 'flex-start' }}>
                   {/* Title - bold black */}
                   <div className="custom-card-title" style={{ fontWeight: 'bold', color: '#000', fontSize: '0.95em', lineHeight: '1.3', border: 'none', borderBottom: 'none' }}>{(() => {
                     const rawTitle = card.summaryTitle || card.title || '';
@@ -749,7 +749,7 @@ const SearchPage = () => {
                       }
                       
                       return (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', alignSelf: 'flex-start' }}>
                           <div className="custom-card-sale-type" style={{ background: '#ffc107', color: '#000', padding: '0.2rem 0.5rem', borderRadius: 4, fontSize: '0.85em', fontWeight: 500 }}>Auction</div>
                           {/* Show bid count if available, or show "0 bids" if auction but no count */}
                           {bidCount !== null && bidCount !== undefined && bidCount >= 0 ? (
