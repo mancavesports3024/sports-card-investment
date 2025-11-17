@@ -802,8 +802,13 @@ const SearchPage = () => {
                   {/* Sold date - gray text */}
                   <div className="custom-card-date" style={{ color: '#666', fontSize: '0.9em' }}>Sold: {formatDate(card.soldDate)}</div>
                   
-                  {/* Shipping cost - green button with box icon */}
+                  {/* Shipping cost - green button with box icon (only show if not 130point and shipping data exists) */}
                   {(() => {
+                    // Don't show shipping button for 130point cards (they don't have shipping data)
+                    if (card.source === '130point' || (!card.shippingCost && card.source === '130point')) {
+                      return null;
+                    }
+                    
                     let shippingDisplay = 'See listing';
                     if (card.shippingCost !== undefined && card.shippingCost !== null) {
                       if (typeof card.shippingCost === 'number') {
@@ -851,19 +856,38 @@ const SearchPage = () => {
                   {(() => {
                     if (!card.itemWebUrl) return null;
                     
-                    // Try to extract item number from eBay URL
-                    const match = card.itemWebUrl.match(/\/itm\/(\d{6,})|\/(\d{6,})(?:\?.*)?$/);
-                    const itemNum = match ? (match[1] || match[2]) : null;
-                    
-                    // For 130point, try to extract from link if possible
-                    let displayItemNum = itemNum;
-                    if (!displayItemNum && card.itemId && !card.itemId.includes('130point_')) {
-                      displayItemNum = card.itemId;
+                    // Try to extract item number from eBay URL (multiple patterns)
+                    // Pattern 1: /itm/123456789
+                    // Pattern 2: /123456789 (at end of URL)
+                    // Pattern 3: ?itm=123456789 or &itm=123456789
+                    let itemNum = null;
+                    const itmMatch = card.itemWebUrl.match(/\/itm\/(\d{6,})/);
+                    if (itmMatch) {
+                      itemNum = itmMatch[1];
+                    } else {
+                      const endMatch = card.itemWebUrl.match(/\/(\d{10,})(?:\?|$)/);
+                      if (endMatch) {
+                        itemNum = endMatch[1];
+                      } else {
+                        const paramMatch = card.itemWebUrl.match(/[?&]itm=(\d{6,})/);
+                        if (paramMatch) {
+                          itemNum = paramMatch[1];
+                        }
+                      }
                     }
                     
-                    return displayItemNum ? (
+                    // For 130point, also try to extract from itemId if it's not a 130point_ prefixed ID
+                    if (!itemNum && card.itemId && !card.itemId.includes('130point_') && !card.itemId.includes('130point')) {
+                      // Check if itemId is just a number
+                      const numMatch = card.itemId.match(/^(\d{6,})$/);
+                      if (numMatch) {
+                        itemNum = numMatch[1];
+                      }
+                    }
+                    
+                    return itemNum ? (
                       <div className="custom-card-item-number" style={{ color: '#666', fontSize: '0.85em' }}>
-                        Item: {displayItemNum}
+                        Item: {itemNum}
                       </div>
                     ) : null;
                   })()}

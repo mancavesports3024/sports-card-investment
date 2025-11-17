@@ -463,6 +463,11 @@ class Point130Service {
             // Remove sale type prefixes (Fixed Price, Best Offer Accepted, Auction) - handle concatenated "hipping Price"
             .replace(/^(Fixed\s+Price|Best\s+Offer\s+Accepted|Auction)hipping\s+Price/gi, '')
             .replace(/^(Fixed\s+Price|Best\s+Offer\s+Accepted|Auction)\s*/i, '')
+            // Remove sale type from anywhere in the title (not just at start)
+            .replace(/\s+Fixed\s+Price\s*/gi, ' ')
+            .replace(/\s+Best\s+Offer\s+Accepted\s*/gi, ' ')
+            .replace(/\s+Auction\s*/gi, ' ')
+            .replace(/\s+Card\s+Auction\s*/gi, ' ')
             // Remove "List Price: X USD" patterns
             .replace(/List\s+Price:\s*[\d,]+\.?\d*\s*USD\s*/gi, '')
             // Remove "Sale Price: X USD" patterns
