@@ -101,7 +101,8 @@ class TCDBService {
                 ]
             };
 
-            // Try to find system Chromium
+            // First: Probe system for Chromium using 'which' command (most reliable)
+            console.log('🔍 Probing system for Chromium...');
             const whichNames = ['chromium-browser', 'chromium', 'google-chrome', 'google-chrome-stable'];
             let systemChromium = null;
             
@@ -118,40 +119,68 @@ class TCDBService {
                 }
             }
 
-            if (systemChromium) {
-                launchOptions.executablePath = systemChromium;
-                this.browserEnabled = true;
-            } else if (this.serverlessChromium) {
-                try {
-                    launchOptions.args = this.serverlessChromium.args || launchOptions.args;
-                    launchOptions.headless = (typeof this.serverlessChromium.headless !== 'undefined') ? this.serverlessChromium.headless : launchOptions.headless;
-                    const sparticuzPath = await this.serverlessChromium.executablePath();
-                    if (fs.existsSync(sparticuzPath)) {
-                        launchOptions.executablePath = sparticuzPath;
-                        console.log(`🧭 Using @sparticuz/chromium: ${sparticuzPath}`);
-                        this.browserEnabled = true;
+            // Second: Check common installation paths
+            if (!systemChromium) {
+                console.log('🔍 Checking common Chromium paths...');
+                const commonPaths = [
+                    '/usr/bin/chromium-browser',
+                    '/usr/bin/chromium',
+                    '/usr/bin/google-chrome',
+                    '/usr/bin/google-chrome-stable',
+                    '/snap/bin/chromium'
+                ];
+                
+                for (const commonPath of commonPaths) {
+                    try {
+                        if (fs.existsSync(commonPath)) {
+                            systemChromium = commonPath;
+                            console.log(`✅ Found Chromium at: ${commonPath}`);
+                            break;
+                        }
+                    } catch (e) {
+                        // Continue
                     }
-                } catch (error) {
-                    console.log('⚠️ Serverless Chromium not available');
                 }
             }
 
-            if (!launchOptions.executablePath) {
-                console.log('ℹ️ Browser fallback disabled (normal in serverless environments)');
+            // Third: Try serverless Chromium
+            if (!systemChromium && this.serverlessChromium) {
+                try {
+                    console.log('🔍 Trying serverless Chromium...');
+                    launchOptions.args = this.serverlessChromium.args || launchOptions.args;
+                    launchOptions.headless = (typeof this.serverlessChromium.headless !== 'undefined') ? this.serverlessChromium.headless : launchOptions.headless;
+                    const sparticuzPath = await this.serverlessChromium.executablePath();
+                    if (sparticuzPath && fs.existsSync(sparticuzPath)) {
+                        systemChromium = sparticuzPath;
+                        console.log(`🧭 Using @sparticuz/chromium: ${sparticuzPath}`);
+                    } else {
+                        console.log('⚠️ @sparticuz/chromium path does not exist');
+                    }
+                } catch (error) {
+                    console.log('⚠️ Serverless Chromium not available:', error.message);
+                }
+            }
+
+            if (!systemChromium) {
+                console.log('ℹ️ Browser fallback disabled - Chromium not found on system');
                 this.browserEnabled = false;
                 return false;
             }
 
+            launchOptions.executablePath = systemChromium;
             this.browser = await puppeteer.launch(launchOptions);
             this.page = await this.browser.newPage();
             await this.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
             await this.page.setViewport({ width: 1366, height: 768 });
             
+            this.browserEnabled = true;
             console.log('✅ Browser initialized successfully for TCDB');
             return true;
         } catch (error) {
             console.error('❌ Browser initialization failed:', error.message);
             this.browserEnabled = false;
+            this.browser = null;
+            this.page = null;
             return false;
         }
     }
@@ -176,11 +205,14 @@ class TCDBService {
      */
     async fetchWithBrowser(url) {
         if (!this.browserEnabled || !this.browser) {
-            await this.initializeBrowser();
+            const initialized = await this.initializeBrowser();
+            if (!initialized) {
+                throw new Error('Browser not available for TCDB scraping - Chromium not found on system');
+            }
         }
         
         if (!this.browser || !this.page) {
-            throw new Error('Browser not available for TCDB scraping');
+            throw new Error('Browser not available for TCDB scraping - initialization failed');
         }
 
         try {
@@ -197,6 +229,8 @@ class TCDBService {
             return html;
         } catch (error) {
             console.error('❌ Error fetching with browser:', error.message);
+            // Close browser on error to allow retry
+            await this.closeBrowser();
             throw error;
         }
     }
