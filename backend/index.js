@@ -915,6 +915,131 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
+  // DELETE endpoint to clear all cards from database (admin only)
+  app.delete('/api/admin/cards/clear-all', requireUser, async (req, res) => {
+    try {
+      const NewPricingDatabase = require('./create-new-pricing-database.js');
+      const db = new NewPricingDatabase();
+      await db.connect();
+      
+      // Get count before deletion
+      const countBefore = await db.getQuery('SELECT COUNT(*) as total FROM cards', []);
+      const totalBefore = countBefore.total || 0;
+      
+      // Delete all cards
+      await db.runQuery('DELETE FROM cards', []);
+      
+      // Get count after deletion
+      const countAfter = await db.getQuery('SELECT COUNT(*) as total FROM cards', []);
+      const totalAfter = countAfter.total || 0;
+      
+      await db.close();
+      
+      console.log(`🗑️ Admin cleared card database: ${totalBefore} cards deleted`);
+      
+      res.json({
+        success: true,
+        message: `Successfully cleared ${totalBefore} cards from database`,
+        deletedCount: totalBefore,
+        remainingCount: totalAfter
+      });
+      
+    } catch (error) {
+      console.error('❌ Error clearing cards:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
+  // TCDB Integration Endpoints
+  const TCDBService = require('./services/tcdbService');
+  const tcdbService = new TCDBService();
+
+  // GET /api/tcdb/sports - Get list of sports
+  app.get('/api/tcdb/sports', async (req, res) => {
+    try {
+      const sports = await tcdbService.getSports();
+      res.json({
+        success: true,
+        sports: sports
+      });
+    } catch (error) {
+      console.error('❌ Error fetching sports:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
+  // GET /api/tcdb/years/:sport - Get years for a sport
+  app.get('/api/tcdb/years/:sport', async (req, res) => {
+    try {
+      const { sport } = req.params;
+      const years = await tcdbService.getYears(sport);
+      res.json({
+        success: true,
+        sport: sport,
+        years: years
+      });
+    } catch (error) {
+      console.error(`❌ Error fetching years for ${req.params.sport}:`, error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
+  // GET /api/tcdb/sets/:sport/:year - Get sets for a sport/year
+  app.get('/api/tcdb/sets/:sport/:year', async (req, res) => {
+    try {
+      const { sport, year } = req.params;
+      const yearNum = parseInt(year);
+      if (isNaN(yearNum)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid year'
+        });
+      }
+      const sets = await tcdbService.getSets(sport, yearNum);
+      res.json({
+        success: true,
+        sport: sport,
+        year: yearNum,
+        sets: sets
+      });
+    } catch (error) {
+      console.error(`❌ Error fetching sets for ${req.params.sport} ${req.params.year}:`, error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
+  // GET /api/tcdb/checklist/:setId - Get checklist for a set
+  app.get('/api/tcdb/checklist/:setId', async (req, res) => {
+    try {
+      const { setId } = req.params;
+      const { sport, year } = req.query;
+      const checklist = await tcdbService.getChecklist(setId, sport, year ? parseInt(year) : null);
+      res.json({
+        success: true,
+        setId: setId,
+        checklist: checklist
+      });
+    } catch (error) {
+      console.error(`❌ Error fetching checklist for set ${req.params.setId}:`, error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
   // API endpoint to analyze database quality (admin only)
   app.get('/api/admin/database-quality', async (req, res) => {
     try {
