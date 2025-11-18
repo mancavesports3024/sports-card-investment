@@ -1,11 +1,25 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
 class TCDBService {
     constructor() {
         this.baseUrl = 'https://www.tcdb.com';
         this.cache = new Map(); // Simple in-memory cache
         this.cookieJar = null; // For maintaining session cookies
+        
+        // Puppeteer setup with stealth plugin
+        puppeteer.use(StealthPlugin());
+        // Optional serverless Chromium (if available)
+        try {
+            this.serverlessChromium = require('@sparticuz/chromium');
+        } catch (e) {
+            this.serverlessChromium = null;
+        }
+        this.browser = null;
+        this.page = null;
+        this.browserEnabled = false;
     }
 
     /**
@@ -63,6 +77,131 @@ class TCDBService {
     }
 
     /**
+     * Initialize headless browser (similar to eBay scraper)
+     */
+    async initializeBrowser() {
+        if (this.browser) return true;
+        
+        try {
+            console.log('🚀 Initializing headless browser for TCDB...');
+            const fs = require('fs');
+            const { execFileSync } = require('child_process');
+            const path = require('path');
+            
+            const launchOptions = {
+                headless: 'new',
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--disable-gpu'
+                ]
+            };
+
+            // Try to find system Chromium
+            const whichNames = ['chromium-browser', 'chromium', 'google-chrome', 'google-chrome-stable'];
+            let systemChromium = null;
+            
+            for (const name of whichNames) {
+                try {
+                    const pathOut = execFileSync('which', [name], { encoding: 'utf8' }).trim();
+                    if (pathOut && fs.existsSync(pathOut)) {
+                        systemChromium = pathOut;
+                        console.log(`✅ Found system Chromium: ${name} -> ${pathOut}`);
+                        break;
+                    }
+                } catch (e) {
+                    // Continue searching
+                }
+            }
+
+            if (systemChromium) {
+                launchOptions.executablePath = systemChromium;
+                this.browserEnabled = true;
+            } else if (this.serverlessChromium) {
+                try {
+                    launchOptions.args = this.serverlessChromium.args || launchOptions.args;
+                    launchOptions.headless = (typeof this.serverlessChromium.headless !== 'undefined') ? this.serverlessChromium.headless : launchOptions.headless;
+                    const sparticuzPath = await this.serverlessChromium.executablePath();
+                    if (fs.existsSync(sparticuzPath)) {
+                        launchOptions.executablePath = sparticuzPath;
+                        console.log(`🧭 Using @sparticuz/chromium: ${sparticuzPath}`);
+                        this.browserEnabled = true;
+                    }
+                } catch (error) {
+                    console.log('⚠️ Serverless Chromium not available');
+                }
+            }
+
+            if (!launchOptions.executablePath) {
+                console.log('ℹ️ Browser fallback disabled (normal in serverless environments)');
+                this.browserEnabled = false;
+                return false;
+            }
+
+            this.browser = await puppeteer.launch(launchOptions);
+            this.page = await this.browser.newPage();
+            await this.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+            await this.page.setViewport({ width: 1366, height: 768 });
+            
+            console.log('✅ Browser initialized successfully for TCDB');
+            return true;
+        } catch (error) {
+            console.error('❌ Browser initialization failed:', error.message);
+            this.browserEnabled = false;
+            return false;
+        }
+    }
+
+    /**
+     * Close browser
+     */
+    async closeBrowser() {
+        if (this.browser) {
+            try {
+                await this.browser.close();
+                this.browser = null;
+                this.page = null;
+            } catch (error) {
+                console.error('❌ Error closing browser:', error.message);
+            }
+        }
+    }
+
+    /**
+     * Fetch page using browser (fallback when axios is blocked)
+     */
+    async fetchWithBrowser(url) {
+        if (!this.browserEnabled || !this.browser) {
+            await this.initializeBrowser();
+        }
+        
+        if (!this.browser || !this.page) {
+            throw new Error('Browser not available for TCDB scraping');
+        }
+
+        try {
+            console.log(`🌐 Fetching TCDB page with browser: ${url}`);
+            await this.page.goto(url, { 
+                waitUntil: 'networkidle2', 
+                timeout: 30000 
+            });
+            
+            // Wait a bit for any dynamic content
+            await this.page.waitForTimeout(2000);
+            
+            const html = await this.page.content();
+            return html;
+        } catch (error) {
+            console.error('❌ Error fetching with browser:', error.message);
+            throw error;
+        }
+    }
+
+    /**
      * Get years for a specific sport
      * @param {string} sport - Sport name (e.g., 'Baseball', 'Football')
      * @returns {Array} Array of year objects
@@ -74,28 +213,31 @@ class TCDBService {
                 return this.cache.get(cacheKey);
             }
 
-            // First, try to visit the homepage to establish a session
-            try {
-                await axios.get(this.baseUrl + '/', {
-                    headers: this.getDefaultHeaders(),
-                    timeout: 10000,
-                    maxRedirects: 5
-                });
-            } catch (err) {
-                console.log('⚠️ Could not visit homepage first, continuing anyway...');
-            }
-
             const url = `${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}?MODE=Years`;
             console.log(`🔍 Fetching years for ${sport}: ${url}`);
             
-            const response = await axios.get(url, {
-                headers: this.getDefaultHeaders(this.baseUrl + '/'),
-                timeout: 20000,
-                maxRedirects: 5,
-                validateStatus: (status) => status >= 200 && status < 400
-            });
+            let html = null;
+            
+            // Try axios first
+            try {
+                const response = await axios.get(url, {
+                    headers: this.getDefaultHeaders(this.baseUrl + '/'),
+                    timeout: 20000,
+                    maxRedirects: 5,
+                    validateStatus: (status) => status >= 200 && status < 400
+                });
+                html = response.data;
+            } catch (axiosError) {
+                // If 403, try browser fallback
+                if (axiosError.response && axiosError.response.status === 403) {
+                    console.log('⚠️ Axios request blocked (403), trying browser fallback...');
+                    html = await this.fetchWithBrowser(url);
+                } else {
+                    throw axiosError;
+                }
+            }
 
-            const $ = cheerio.load(response.data);
+            const $ = cheerio.load(html);
             const years = [];
 
             // Look for year links - TCDB typically has links like "ViewAll.cfm/sp/Baseball/year/2025"
@@ -135,12 +277,40 @@ class TCDBService {
                 console.error(`❌ Error getting years for ${sport}: HTTP ${status} ${statusText}`);
                 
                 if (status === 403) {
-                    console.error('⚠️ TCDB is blocking the request (403 Forbidden). This may be due to:');
-                    console.error('   - Rate limiting');
-                    console.error('   - Bot detection');
-                    console.error('   - IP blocking');
-                    console.error('   - Missing required headers/cookies');
-                    throw new Error(`TCDB blocked request (403): ${error.response.statusText || 'Forbidden'}`);
+                    console.error('⚠️ TCDB is blocking the request (403 Forbidden). Trying browser fallback...');
+                    // Try browser fallback one more time
+                    try {
+                        const url = `${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}?MODE=Years`;
+                        const html = await this.fetchWithBrowser(url);
+                        const $ = cheerio.load(html);
+                        const years = [];
+                        
+                        $('a[href*="/year/"]').each((index, element) => {
+                            const $link = $(element);
+                            const href = $link.attr('href');
+                            const yearText = $link.text().trim();
+                            const yearMatch = href.match(/\/year\/(\d{4})/) || yearText.match(/(\d{4})/);
+                            if (yearMatch) {
+                                const year = parseInt(yearMatch[1]);
+                                if (year >= 1900 && year <= new Date().getFullYear() + 1) {
+                                    years.push({
+                                        year: year,
+                                        display: year.toString(),
+                                        url: href.startsWith('http') ? href : `${this.baseUrl}${href}`
+                                    });
+                                }
+                            }
+                        });
+                        
+                        const uniqueYears = Array.from(new Map(years.map(y => [y.year, y])).values())
+                            .sort((a, b) => b.year - a.year);
+                        
+                        console.log(`✅ Found ${uniqueYears.length} years for ${sport} via browser`);
+                        return uniqueYears;
+                    } catch (browserError) {
+                        console.error('❌ Browser fallback also failed:', browserError.message);
+                        throw new Error(`TCDB blocked request (403): Both axios and browser failed`);
+                    }
                 } else if (status === 404) {
                     throw new Error(`TCDB page not found (404): Sport "${sport}" may not exist or URL structure changed`);
                 } else {
