@@ -915,6 +915,14 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
+  // Helper middleware to require admin user
+  const requireUser = (req, res, next) => {
+    if (req.user && req.user.email === 'mancavesportscardsllc@gmail.com') {
+      return next();
+    }
+    return res.status(401).json({ success: false, error: 'Unauthorized - Admin access required' });
+  };
+
   // DELETE endpoint to clear all cards from database (admin only)
   app.delete('/api/admin/cards/clear-all', requireUser, async (req, res) => {
     try {
