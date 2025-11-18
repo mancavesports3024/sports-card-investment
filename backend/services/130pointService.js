@@ -79,9 +79,9 @@ class Point130Service {
             }
             
             // Check if response is HTML error page (Cloudflare protection, etc.)
-            if (response.status >= 400 || (response.data && typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>'))) {
-                console.log(`❌ 130point returned error page (status: ${response.status})`);
-                throw new Error(`130point returned error page (status: ${response.status})`);
+            if (response.status >= 400 || (response.data && typeof response.data === 'string' && (response.data.includes('<!DOCTYPE html>') || response.data.includes('cloudflare') || response.data.includes('cf-ray')))) {
+                console.log(`❌ 130point returned error page (status: ${response.status}) - likely Cloudflare protection`);
+                throw new Error(`130point Cloudflare protection active (status: ${response.status})`);
             }
 
             // Parse the response

@@ -1232,7 +1232,13 @@ router.post('/', requireUser, async (req, res) => {
         console.log(`⚠️ 130point returned no results, will try eBay scraper as fallback`);
       }
     } catch (point130Error) {
-      console.log(`❌ 130point primary error: ${point130Error.message}, will try eBay scraper as fallback`);
+      const errorMsg = point130Error.message || 'Unknown error';
+      console.log(`❌ 130point primary error: ${errorMsg}, will try eBay scraper as fallback`);
+      
+      // If it's a Cloudflare/500 error, log it clearly
+      if (errorMsg.includes('Cloudflare') || errorMsg.includes('500') || errorMsg.includes('server error')) {
+        console.log(`⚠️ 130point is experiencing Cloudflare protection/server issues - using eBay fallback`);
+      }
     }
     
     // If 130point didn't return results, try eBay scraper as fallback
