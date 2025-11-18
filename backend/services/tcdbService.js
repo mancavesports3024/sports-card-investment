@@ -46,16 +46,25 @@ class TCDBService {
                 return this.cache.get(cacheKey);
             }
 
+            // First, try to visit the homepage to establish a session
+            try {
+                await axios.get(this.baseUrl + '/', {
+                    headers: this.getDefaultHeaders(),
+                    timeout: 10000,
+                    maxRedirects: 5
+                });
+            } catch (err) {
+                console.log('⚠️ Could not visit homepage first, continuing anyway...');
+            }
+
             const url = `${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}?MODE=Years`;
             console.log(`🔍 Fetching years for ${sport}: ${url}`);
             
             const response = await axios.get(url, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5'
-                },
-                timeout: 15000
+                headers: this.getDefaultHeaders(this.baseUrl + '/'),
+                timeout: 20000,
+                maxRedirects: 5,
+                validateStatus: (status) => status >= 200 && status < 400
             });
 
             const $ = cheerio.load(response.data);
@@ -114,12 +123,10 @@ class TCDBService {
             console.log(`🔍 Fetching sets for ${sport} ${year}: ${url}`);
             
             const response = await axios.get(url, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5'
-                },
-                timeout: 15000
+                headers: this.getDefaultHeaders(`${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}?MODE=Years`),
+                timeout: 20000,
+                maxRedirects: 5,
+                validateStatus: (status) => status >= 200 && status < 400
             });
 
             const $ = cheerio.load(response.data);
@@ -206,13 +213,15 @@ class TCDBService {
 
             console.log(`🔍 Fetching checklist for set ${setId}: ${url}`);
             
+            const refererUrl = sport && year 
+                ? `${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}/year/${year}`
+                : this.baseUrl + '/';
+            
             const response = await axios.get(url, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5'
-                },
-                timeout: 15000
+                headers: this.getDefaultHeaders(refererUrl),
+                timeout: 20000,
+                maxRedirects: 5,
+                validateStatus: (status) => status >= 200 && status < 400
             });
 
             const $ = cheerio.load(response.data);
