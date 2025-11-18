@@ -510,8 +510,10 @@ class Point130Service {
             // Remove "Bids: X" patterns (with or without parentheses, with or without dashes)
             .replace(/\s*Bids:\s*\d+\s*\(Click\s+to\s+View\)\s*/gi, '')
             .replace(/\s*Bids:\s*\d+\s*-?\s*/gi, '')
-            // Remove "Sale Type: X" patterns
-            .replace(/Sale\s+Type:\s*\w+\s*/gi, '')
+            // Remove "Sale Type: X" patterns (with or without the value)
+            .replace(/Sale\s+Type:\s*\w*\s*/gi, '')
+            .replace(/\s*Sale\s+Type:\s*/gi, ' ')
+            .replace(/Sale\s+Type:\s*/gi, ' ')
             // Remove "CurrentPriceFull: X USD" patterns
             .replace(/CurrentPriceFull:\s*[\d,]+\.?\d*\s*USD\s*/gi, '')
             // Remove "SalePriceFull: X USD" patterns
