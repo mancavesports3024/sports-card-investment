@@ -5,6 +5,34 @@ class TCDBService {
     constructor() {
         this.baseUrl = 'https://www.tcdb.com';
         this.cache = new Map(); // Simple in-memory cache
+        this.cookieJar = null; // For maintaining session cookies
+    }
+
+    /**
+     * Get default headers that mimic a real browser
+     */
+    getDefaultHeaders(referer = null) {
+        const headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': referer ? 'same-origin' : 'none',
+            'Sec-Fetch-User': '?1',
+            'Cache-Control': 'max-age=0'
+        };
+        
+        if (referer) {
+            headers['Referer'] = referer;
+        } else {
+            headers['Referer'] = this.baseUrl + '/';
+        }
+        
+        return headers;
     }
 
     /**
@@ -101,8 +129,30 @@ class TCDBService {
             return uniqueYears;
 
         } catch (error) {
-            console.error(`❌ Error getting years for ${sport}:`, error.message);
-            throw error;
+            if (error.response) {
+                const status = error.response.status;
+                const statusText = error.response.statusText;
+                console.error(`❌ Error getting years for ${sport}: HTTP ${status} ${statusText}`);
+                
+                if (status === 403) {
+                    console.error('⚠️ TCDB is blocking the request (403 Forbidden). This may be due to:');
+                    console.error('   - Rate limiting');
+                    console.error('   - Bot detection');
+                    console.error('   - IP blocking');
+                    console.error('   - Missing required headers/cookies');
+                    throw new Error(`TCDB blocked request (403): ${error.response.statusText || 'Forbidden'}`);
+                } else if (status === 404) {
+                    throw new Error(`TCDB page not found (404): Sport "${sport}" may not exist or URL structure changed`);
+                } else {
+                    throw new Error(`TCDB server error (${status}): ${statusText}`);
+                }
+            } else if (error.request) {
+                console.error(`❌ Error getting years for ${sport}: No response received`);
+                throw new Error(`Network error: No response from TCDB server`);
+            } else {
+                console.error(`❌ Error getting years for ${sport}:`, error.message);
+                throw error;
+            }
         }
     }
 
