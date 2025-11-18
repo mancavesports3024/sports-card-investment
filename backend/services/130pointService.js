@@ -29,6 +29,9 @@ class Point130Service {
      */
     async searchSoldCards(searchTerm, options = {}) {
         try {
+            if (!searchTerm || searchTerm.trim().length === 0) {
+                return [];
+            }
             // Check cache first
             const cacheKey = `130point_${searchTerm.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
             if (this.redisClient) {
@@ -43,21 +46,43 @@ class Point130Service {
             const searchParams = this.buildSearchParams(searchTerm, options);
             
             // Make API request
-            const response = await axios.post(`${this.baseUrl}/sales/`, searchParams.toString(), {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                    'Origin': 'https://130point.com',
-                    'Referer': 'https://130point.com/',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                timeout: 20000,
-                responseType: 'text',
-                maxRedirects: 0,
-                validateStatus: status => status >= 200 && status < 400
-            });
+            let response;
+            try {
+                response = await axios.post(`${this.baseUrl}/sales/`, searchParams.toString(), {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        'Accept-Language': 'en-US,en;q=0.5',
+                        'Origin': 'https://130point.com',
+                        'Referer': 'https://130point.com/',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    timeout: 20000,
+                    responseType: 'text',
+                    maxRedirects: 0,
+                    validateStatus: status => status >= 200 && status < 500 // Accept 2xx, 3xx, 4xx but not 5xx
+                });
+            } catch (axiosError) {
+                // Handle axios errors (network errors, timeouts, etc.)
+                if (axiosError.response) {
+                    // Server responded with error status
+                    const status = axiosError.response.status;
+                    const isHtmlError = axiosError.response.data && typeof axiosError.response.data === 'string' && axiosError.response.data.includes('<!DOCTYPE html>');
+                    
+                    if (status >= 500 || isHtmlError) {
+                        console.log(`❌ 130point server error (${status}): ${isHtmlError ? 'HTML error page returned' : 'Server error'}`);
+                        throw new Error(`130point server error: ${status} - ${isHtmlError ? 'HTML error page (likely Cloudflare protection)' : 'Server error'}`);
+                    }
+                }
+                throw axiosError;
+            }
+            
+            // Check if response is HTML error page (Cloudflare protection, etc.)
+            if (response.status >= 400 || (response.data && typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>'))) {
+                console.log(`❌ 130point returned error page (status: ${response.status})`);
+                throw new Error(`130point returned error page (status: ${response.status})`);
+            }
 
             // Parse the response
             const cardData = this.parseResponse(response.data, searchTerm);
