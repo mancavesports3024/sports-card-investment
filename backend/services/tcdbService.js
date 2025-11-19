@@ -693,27 +693,36 @@ class TCDBService {
                 if (!number && indexFallback !== null) {
                     number = (indexFallback + 1).toString();
                 }
-                if (!nameText) return false;
+                if (!nameText && !playerName) return false;
 
-                const $link = $cells.eq(nameCellIndex).find('a').first();
-                const player = $link.length > 0 ? $link.text().trim() : nameText;
-
-                let cardLink = $link.attr('href') || null;
+                // Get card link from ViewCard link (first td) - already extracted above
+                let cardLink = $firstLink.length > 0 ? $firstLink.attr('href') : null;
                 let tcdbCardId = null;
+                
+                // Extract TCDB card ID from ViewCard link (format: /ViewCard.cfm/sid/482758/cid/27980431/...)
                 if (cardLink) {
-                    const idMatch = cardLink.match(/tid\/(\d+)|cardId=(\d+)|cid\/(\d+)|pid\/(\d+)/i);
-                    if (idMatch) {
-                        tcdbCardId = idMatch[1] || idMatch[2] || idMatch[3] || idMatch[4];
+                    const cidMatch = cardLink.match(/cid\/(\d+)/i);
+                    if (cidMatch) {
+                        tcdbCardId = cidMatch[1];
                     }
                     if (!cardLink.startsWith('http')) {
                         cardLink = `${this.baseUrl}${cardLink.startsWith('/') ? '' : '/'}${cardLink}`;
+                    }
+                } else {
+                    // Fallback: try to get any link from the row
+                    const $anyLink = $row.find('a').first();
+                    if ($anyLink.length > 0) {
+                        cardLink = $anyLink.attr('href');
+                        if (cardLink && !cardLink.startsWith('http')) {
+                            cardLink = `${this.baseUrl}${cardLink.startsWith('/') ? '' : '/'}${cardLink}`;
+                        }
                     }
                 }
 
                 cards.push({
                     number: number || '',
-                    name: nameText,
-                    player,
+                    name: nameText || playerName,
+                    player: playerName || nameText,
                     tcdbId: tcdbCardId,
                     url: cardLink
                 });
