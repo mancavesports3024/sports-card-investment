@@ -676,7 +676,7 @@ class TCDBService {
                     playerName = $playerLink.text().trim();
                     nameText = playerName;
                 } else {
-                    nameCellIndex = $cells.length > 1 ? 1 : 0;
+                    const nameCellIndex = $cells.length > 1 ? 1 : 0;
                     nameText = $cells.eq(nameCellIndex).text().trim();
                     playerName = nameText;
                 }
