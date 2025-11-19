@@ -292,6 +292,12 @@ class TCDBService {
                 // Check if any of the network responses contain checklist data
                 if (networkResponses.length > 0) {
                     console.log(`📡 Found ${networkResponses.length} network responses, checking for checklist data...`);
+                    
+                    // Log first few URLs for debugging
+                    networkResponses.slice(0, 10).forEach((resp, i) => {
+                        console.log(`   Response ${i + 1}: ${resp.url.substring(0, 100)} (${resp.length} chars)`);
+                    });
+                    
                     for (const resp of networkResponses) {
                         // Check if this looks like checklist HTML
                         if (resp.content.includes('<tr') && resp.content.includes('td')) {
@@ -304,6 +310,40 @@ class TCDBService {
                             }
                         }
                     }
+                }
+                
+                // Try to wait for checklist to appear in DOM by checking repeatedly
+                console.log('⏳ Waiting for checklist to appear in DOM...');
+                let checklistFound = false;
+                for (let attempt = 0; attempt < 10; attempt++) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Check if a large table has appeared
+                    const tableCount = await this.page.evaluate(() => {
+                        const tables = document.querySelectorAll('table');
+                        let maxRows = 0;
+                        tables.forEach(table => {
+                            const rows = table.querySelectorAll('tr');
+                            if (rows.length > maxRows) {
+                                maxRows = rows.length;
+                            }
+                        });
+                        return { tableCount: tables.length, maxRows: maxRows };
+                    });
+                    
+                    console.log(`   Attempt ${attempt + 1}: ${tableCount.tableCount} tables, max ${tableCount.maxRows} rows`);
+                    
+                    if (tableCount.maxRows > 10) {
+                        console.log(`✅ Found checklist table with ${tableCount.maxRows} rows!`);
+                        checklistFound = true;
+                        html = await this.page.content();
+                        break;
+                    }
+                }
+                
+                if (!checklistFound) {
+                    console.log('⚠️ Checklist table never appeared in DOM, using current HTML');
+                    html = await this.page.content();
                 }
             } catch (timeoutError) {
                 // If domcontentloaded times out, try with a shorter wait
