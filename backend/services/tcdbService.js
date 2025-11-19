@@ -263,6 +263,9 @@ class TCDBService {
                 }
             }
             
+            // Clean up network listeners
+            this.page.removeAllListeners('response');
+            
             if (!html || html.length < 100) {
                 throw new Error('Page did not load - HTML too short or empty');
             }
