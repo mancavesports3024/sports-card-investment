@@ -574,6 +574,16 @@ class TCDBService {
                 console.warn(html.substring(0, 500));
             }
 
+            // If still no cards, log more details for debugging
+            if (cards.length === 0) {
+                console.warn(`⚠️ No cards parsed for set ${setId}. Debugging info:`);
+                console.warn(`   - HTML length: ${html.length} characters`);
+                console.warn(`   - Tables found: ${$('table').length}`);
+                console.warn(`   - Table rows found: ${$('table tr').length}`);
+                console.warn(`   - Links with /tid/: ${$('a[href*="/tid/"]').length}`);
+                console.warn(`   - Sample HTML (first 1000 chars): ${html.substring(0, 1000)}`);
+            }
+            
             // Cache for 1 hour
             this.cache.set(cacheKey, cards);
             
