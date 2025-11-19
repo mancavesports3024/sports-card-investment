@@ -501,6 +501,15 @@ class TCDBService {
                 let nameCellIndex = $cells.length > 1 ? 1 : 0;
                 let nameText = $cells.eq(nameCellIndex).text().trim();
 
+                const normalizedNumber = number.replace(/[^a-z0-9]/gi, '').toLowerCase();
+                const normalizedName = nameText.replace(/\s+/g, ' ').trim().toLowerCase();
+                const headerNumbers = new Set(['', '#', 'no', 'no.', 'card', 'checklist', 'card#']);
+                const headerNames = new Set(['player', 'name', 'card', 'team', 'event', 'checklist']);
+
+                if (headerNumbers.has(normalizedNumber) || headerNames.has(normalizedName)) {
+                    return false;
+                }
+
                 if (!number && indexFallback !== null) {
                     number = (indexFallback + 1).toString();
                 }
