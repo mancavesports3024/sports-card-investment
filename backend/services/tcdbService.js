@@ -223,7 +223,7 @@ class TCDBService {
             });
             
             // Wait a bit for any dynamic content
-            await this.page.waitForTimeout(2000);
+            await new Promise(resolve => setTimeout(resolve, 2000));
             
             const html = await this.page.content();
             return html;
