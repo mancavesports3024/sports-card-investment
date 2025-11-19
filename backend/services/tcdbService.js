@@ -493,45 +493,47 @@ class TCDBService {
             const $ = cheerio.load(html);
             const cards = [];
 
-            // Look for card rows in tables - TCDB typically displays checklist in tables
-            $('table tr').each((index, element) => {
-                const $row = $(element);
+            const extractCardInfo = ($row, indexFallback = null) => {
                 const $cells = $row.find('td');
-                
-                if ($cells.length >= 2) {
-                    // Try to extract card number and name
-                    const cardNumber = $cells.eq(0).text().trim();
-                    const cardName = $cells.eq(1).text().trim();
-                    
-                    // Look for player name (might be in a link or specific cell)
-                    let playerName = '';
-                    const $link = $cells.eq(1).find('a').first();
-                    if ($link.length > 0) {
-                        playerName = $link.text().trim();
-                    } else {
-                        playerName = cardName;
-                    }
+                if ($cells.length === 0) return false;
 
-                    // Try to extract TCDB card ID from links
-                    let tcdbCardId = null;
-                    const cardLink = $cells.eq(1).find('a').attr('href');
-                    if (cardLink) {
-                        const idMatch = cardLink.match(/tid\/(\d+)|cardId=(\d+)/);
-                        if (idMatch) {
-                            tcdbCardId = idMatch[1] || idMatch[2];
-                        }
-                    }
+                let number = $cells.eq(0).text().trim();
+                let nameCellIndex = $cells.length > 1 ? 1 : 0;
+                let nameText = $cells.eq(nameCellIndex).text().trim();
 
-                    if (cardNumber && cardName) {
-                        cards.push({
-                            number: cardNumber,
-                            name: cardName,
-                            player: playerName,
-                            tcdbId: tcdbCardId,
-                            url: cardLink ? (cardLink.startsWith('http') ? cardLink : `${this.baseUrl}${cardLink}`) : null
-                        });
+                if (!number && indexFallback !== null) {
+                    number = (indexFallback + 1).toString();
+                }
+                if (!nameText) return false;
+
+                const $link = $cells.eq(nameCellIndex).find('a').first();
+                const player = $link.length > 0 ? $link.text().trim() : nameText;
+
+                let cardLink = $link.attr('href') || null;
+                let tcdbCardId = null;
+                if (cardLink) {
+                    const idMatch = cardLink.match(/tid\/(\d+)|cardId=(\d+)|cid\/(\d+)|pid\/(\d+)/i);
+                    if (idMatch) {
+                        tcdbCardId = idMatch[1] || idMatch[2] || idMatch[3] || idMatch[4];
+                    }
+                    if (!cardLink.startsWith('http')) {
+                        cardLink = `${this.baseUrl}${cardLink.startsWith('/') ? '' : '/'}${cardLink}`;
                     }
                 }
+
+                cards.push({
+                    number: number || '',
+                    name: nameText,
+                    player,
+                    tcdbId: tcdbCardId,
+                    url: cardLink
+                });
+                return true;
+            };
+
+            // Look for card rows in tables - TCDB typically displays checklist in tables
+            $('table tr').each((index, element) => {
+                extractCardInfo($(element), index);
             });
 
             // If no cards found in table format, try alternative selectors
@@ -542,15 +544,25 @@ class TCDBService {
                     const $link = $item.find('a').first();
                     
                     if (text && $link.length > 0) {
+                        let cardLink = $link.attr('href');
+                        if (cardLink && !cardLink.startsWith('http')) {
+                            cardLink = `${this.baseUrl}${cardLink.startsWith('/') ? '' : '/'}${cardLink}`;
+                        }
+
                         cards.push({
                             number: (index + 1).toString(),
                             name: text,
                             player: $link.text().trim(),
                             tcdbId: null,
-                            url: $link.attr('href')
+                            url: cardLink
                         });
                     }
                 });
+            }
+
+            if (cards.length === 0) {
+                console.warn(`⚠️ No cards parsed for set ${setId}. Sample HTML snippet:`);
+                console.warn(html.substring(0, 500));
             }
 
             // Cache for 1 hour
