@@ -98,7 +98,8 @@ class TCDBService {
                     '--no-first-run',
                     '--no-zygote',
                     '--disable-gpu'
-                ]
+                ],
+                protocolTimeout: 180000 // 3 minutes for protocol operations
             };
 
             // First: Probe system for Chromium using 'which' command (most reliable)
@@ -170,6 +171,11 @@ class TCDBService {
             launchOptions.executablePath = systemChromium;
             this.browser = await puppeteer.launch(launchOptions);
             this.page = await this.browser.newPage();
+            
+            // Set timeouts for page operations
+            this.page.setDefaultTimeout(120000); // 2 minutes for page operations
+            this.page.setDefaultNavigationTimeout(120000); // 2 minutes for navigation
+            
             await this.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
             await this.page.setViewport({ width: 1366, height: 768 });
             
@@ -316,31 +322,40 @@ class TCDBService {
                     }
                     
                     // Try to wait for checklist to appear in DOM by checking repeatedly
+                    // Reduced attempts and timeout to avoid protocol timeouts
                     console.log('⏳ Waiting for checklist to appear in DOM...');
                     let checklistFound = false;
-                    for (let attempt = 0; attempt < 10; attempt++) {
+                    for (let attempt = 0; attempt < 5; attempt++) { // Reduced from 10 to 5
                         await new Promise(resolve => setTimeout(resolve, 2000));
                         
-                        // Check if a large table has appeared
-                        const tableCount = await this.page.evaluate(() => {
-                            const tables = document.querySelectorAll('table');
-                            let maxRows = 0;
-                            tables.forEach(table => {
-                                const rows = table.querySelectorAll('tr');
-                                if (rows.length > maxRows) {
-                                    maxRows = rows.length;
-                                }
-                            });
-                            return { tableCount: tables.length, maxRows: maxRows };
-                        });
-                        
-                        console.log(`   Attempt ${attempt + 1}: ${tableCount.tableCount} tables, max ${tableCount.maxRows} rows`);
-                        
-                        if (tableCount.maxRows > 10) {
-                            console.log(`✅ Found checklist table with ${tableCount.maxRows} rows!`);
-                            checklistFound = true;
-                            html = await this.page.content();
-                            break;
+                        // Check if a large table has appeared (with timeout protection)
+                        try {
+                            const tableCount = await Promise.race([
+                                this.page.evaluate(() => {
+                                    const tables = document.querySelectorAll('table');
+                                    let maxRows = 0;
+                                    tables.forEach(table => {
+                                        const rows = table.querySelectorAll('tr');
+                                        if (rows.length > maxRows) {
+                                            maxRows = rows.length;
+                                        }
+                                    });
+                                    return { tableCount: tables.length, maxRows: maxRows };
+                                }),
+                                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+                            ]);
+                            
+                            console.log(`   Attempt ${attempt + 1}: ${tableCount.tableCount} tables, max ${tableCount.maxRows} rows`);
+                            
+                            if (tableCount.maxRows > 10) {
+                                console.log(`✅ Found checklist table with ${tableCount.maxRows} rows!`);
+                                checklistFound = true;
+                                html = await this.page.content();
+                                break;
+                            }
+                        } catch (e) {
+                            console.log(`   Attempt ${attempt + 1}: Evaluation timeout, continuing...`);
+                            // Continue to next attempt
                         }
                     }
                     
