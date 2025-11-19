@@ -517,13 +517,13 @@ class TCDBService {
             }
 
             // Try to construct URL - TCDB might use different patterns
-            let url;
-            if (sport && year) {
-                url = `${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}/year/${year}/set/${setId}`;
-            } else {
-                // Try to find set URL from a search or use a generic pattern
-                url = `${this.baseUrl}/ViewSet.cfm/sid/${setId}`;
-            }
+            // TCDB checklists are typically at ViewSet.cfm with sid parameter
+            let url = `${this.baseUrl}/ViewSet.cfm/sid/${setId}`;
+            
+            // Also try the ViewAll pattern as fallback
+            const alternativeUrl = sport && year 
+                ? `${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}/year/${year}/set/${setId}`
+                : null;
 
             console.log(`🔍 Fetching checklist for set ${setId}: ${url}`);
             
@@ -531,7 +531,16 @@ class TCDBService {
                 ? `${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}/year/${year}`
                 : this.baseUrl + '/';
             
-            const html = await this.fetchHtmlWithFallback(url, refererUrl);
+            let html = await this.fetchHtmlWithFallback(url, refererUrl);
+            
+            // If we got HTML but no cards, and we have an alternative URL, try it
+            if (cards.length === 0 && alternativeUrl) {
+                console.log(`⚠️ No cards found with ViewSet.cfm, trying alternative URL: ${alternativeUrl}`);
+                html = await this.fetchHtmlWithFallback(alternativeUrl, refererUrl);
+                // Re-parse with the new HTML
+                $ = cheerio.load(html);
+                cards = []; // Reset cards array
+            }
 
             const $ = cheerio.load(html);
             const cards = [];
