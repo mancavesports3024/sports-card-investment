@@ -712,11 +712,14 @@ class TCDBService {
                     return false;
                 }
 
-                // Skip rows that look like trivia/comments (contain dates, usernames, ratings)
+                // Skip rows that look like trivia/comments/affiliate links (contain dates, usernames, ratings, eBay links)
                 const rowText = $row.text().toLowerCase();
                 if (rowText.includes('rating:') || rowText.includes('trivia') || 
+                    rowText.includes('ebay') || rowText.includes('affiliate') || 
+                    rowText.includes('commission') || rowText.includes('search') ||
                     rowText.match(/\d{1,2}\/\d{1,2}\/\d{4}/) || // Date pattern
                     rowText.match(/\d{1,2}:\d{2}(am|pm)/i)) { // Time pattern
+                    console.log(`   ⏭️ Skipping row (non-card content): ${rowText.substring(0, 100)}`);
                     return false;
                 }
 
@@ -754,6 +757,18 @@ class TCDBService {
                     }
                 }
 
+                // Final validation: make sure we're not getting affiliate text
+                const finalName = (nameText || playerName || '').toLowerCase();
+                if (finalName.includes('ebay') || finalName.includes('affiliate') || finalName.includes('commission')) {
+                    console.log(`   ⏭️ Skipping card (affiliate text in name): ${finalName.substring(0, 100)}`);
+                    return false;
+                }
+                
+                // Log first few cards for debugging
+                if (cards.length < 3) {
+                    console.log(`   📋 Card ${cards.length + 1}: #${number}, Player: ${playerName || nameText}, Name: ${nameText || playerName}`);
+                }
+                
                 cards.push({
                     number: number || '',
                     name: nameText || playerName,
@@ -771,24 +786,44 @@ class TCDBService {
                 console.log('✅ Found div.block1 with Cards header');
                 const $checklistTable = $block1.find('table').first();
                 if ($checklistTable.length > 0) {
-                    console.log(`   - Found checklist table with ${$checklistTable.find('tr').length} rows`);
+                    const totalRows = $checklistTable.find('tr').length;
+                    const rowsWithViewCard = $checklistTable.find('tr').filter((i, row) => $(row).find('a[href*="ViewCard"]').length > 0);
+                    console.log(`   - Found checklist table with ${totalRows} rows (${rowsWithViewCard.length} have ViewCard links)`);
+                    
+                    let parsedCount = 0;
+                    let skippedCount = 0;
                     $checklistTable.find('tr').each((index, element) => {
-                        extractCardInfo($(element), index);
+                        const wasParsed = extractCardInfo($(element), index);
+                        if (wasParsed) {
+                            parsedCount++;
+                        } else {
+                            skippedCount++;
+                        }
                     });
+                    console.log(`   - Parsed ${parsedCount} cards, skipped ${skippedCount} rows`);
+                } else {
+                    console.log('   ⚠️ No table found in block1');
                 }
+            } else {
+                console.log('⚠️ div.block1 with Cards header not found');
             }
             
-            // If no cards found in block1, try all tables
+            // If no cards found in block1, try all tables but be more selective
             if (cards.length === 0) {
                 console.log('⚠️ No cards in block1, trying all tables...');
                 $('table').each((tableIndex, tableElement) => {
                     const $table = $(tableElement);
                     const $rows = $table.find('tr');
-                    console.log(`   - Table ${tableIndex + 1}: ${$rows.length} rows`);
+                    const rowsWithViewCard = $rows.filter((i, row) => $(row).find('a[href*="ViewCard"]').length > 0);
                     
-                    $rows.each((index, element) => {
-                        extractCardInfo($(element), index);
-                    });
+                    if (rowsWithViewCard.length > 0) {
+                        console.log(`   - Table ${tableIndex + 1}: ${$rows.length} rows, ${rowsWithViewCard.length} have ViewCard links`);
+                        $rows.each((index, element) => {
+                            extractCardInfo($(element), index);
+                        });
+                    } else {
+                        console.log(`   - Table ${tableIndex + 1}: ${$rows.length} rows, none have ViewCard links (skipping)`);
+                    }
                 });
             }
 
