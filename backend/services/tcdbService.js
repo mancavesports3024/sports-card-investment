@@ -218,6 +218,33 @@ class TCDBService {
         try {
             console.log(`🌐 Fetching TCDB page with browser: ${url}`);
             
+            // Set up network request monitoring to catch AJAX calls
+            const networkResponses = [];
+            const cheerio = require('cheerio');
+            
+            const responseHandler = async (response) => {
+                const responseUrl = response.url();
+                // Look for AJAX/API calls that might contain checklist data
+                if (responseUrl.includes('ViewSet') || responseUrl.includes('checklist') || 
+                    responseUrl.includes('card') || responseUrl.includes('.cfm') || 
+                    responseUrl.includes('ajax') || response.request().resourceType() === 'xhr') {
+                    try {
+                        const text = await response.text();
+                        if (text && text.length > 500) {
+                            networkResponses.push({
+                                url: responseUrl,
+                                content: text,
+                                length: text.length
+                            });
+                        }
+                    } catch (e) {
+                        // Ignore errors reading response
+                    }
+                }
+            };
+            
+            this.page.on('response', responseHandler);
+            
             // Try with domcontentloaded first (faster), then fallback to networkidle2
             let html = null;
             try {
@@ -228,20 +255,59 @@ class TCDBService {
                 
                 // Wait longer for JavaScript to render dynamic content (checklists are often loaded via JS)
                 console.log('⏳ Waiting for dynamic content to load...');
-                await new Promise(resolve => setTimeout(resolve, 5000));
                 
-                // Try to wait for specific elements that indicate checklist is loaded
+                // Wait for network to be idle (all AJAX calls complete)
                 try {
-                    // Wait for tables or card-related elements
-                    await this.page.waitForSelector('table, .checklist, [class*="card"]', { timeout: 10000 }).catch(() => {});
+                    await this.page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {});
+                } catch (e) {
+                    // Continue anyway
+                }
+                
+                // Wait additional time for any remaining JS execution
+                await new Promise(resolve => setTimeout(resolve, 8000));
+                
+                // Try to wait for tables with multiple rows (checklist tables usually have many rows)
+                try {
+                    await this.page.waitForFunction(
+                        () => {
+                            const tables = document.querySelectorAll('table');
+                            for (let table of tables) {
+                                const rows = table.querySelectorAll('tr');
+                                if (rows.length > 10) {
+                                    return true; // Found a table with many rows (likely checklist)
+                                }
+                            }
+                            return false;
+                        },
+                        { timeout: 20000 }
+                    ).catch(() => {
+                        console.log('⚠️ Checklist table not found in DOM, checking network responses...');
+                    });
                 } catch (e) {
                     // Continue even if selector not found
                 }
                 
                 // Wait a bit more for any remaining dynamic content
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 3000));
                 
                 html = await this.page.content();
+                
+                // Check if any of the network responses contain checklist data
+                if (networkResponses.length > 0) {
+                    console.log(`📡 Found ${networkResponses.length} network responses, checking for checklist data...`);
+                    for (const resp of networkResponses) {
+                        // Check if this looks like checklist HTML
+                        if (resp.content.includes('<tr') && resp.content.includes('td')) {
+                            const $test = cheerio.load(resp.content);
+                            const rowCount = $test('tr').length;
+                            if (rowCount > 10) {
+                                console.log(`✅ Found checklist data in network response: ${resp.url.substring(0, 80)} (${rowCount} rows, ${resp.length} chars)`);
+                                html = resp.content;
+                                break;
+                            }
+                        }
+                    }
+                }
             } catch (timeoutError) {
                 // If domcontentloaded times out, try with a shorter wait
                 console.log('⚠️ domcontentloaded timed out, trying with load event...');
