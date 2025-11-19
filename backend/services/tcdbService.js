@@ -671,35 +671,66 @@ class TCDBService {
                 if ($cells.length === 0) return false;
 
                 // CRITICAL: Only parse rows that have a ViewCard link - this ensures we're getting actual cards, not trivia/comments
-                const $viewCardLink = $row.find('a[href*="ViewCard"]').first();
-                if ($viewCardLink.length === 0) {
+                const $viewCardLinks = $row.find('a[href*="ViewCard"]');
+                if ($viewCardLinks.length === 0) {
                     // Skip rows without ViewCard links (these are trivia/comments/other content)
                     return false;
                 }
 
-                // TCDB structure: first td has card number (ViewCard link), second td has player (Person link), third td has team (Team link)
+                // TCDB structure can vary:
+                // Option 1: First 2 cells are images, 3rd cell has card number (ViewCard link), 4th cell has player (Person link)
+                // Option 2: First cell has card number (ViewCard link), second cell has player (Person link)
                 let number = '';
                 let nameText = '';
                 let playerName = '';
                 
-                // Extract card number from first td (ViewCard link) - REQUIRED
-                const $firstLink = $cells.eq(0).find('a[href*="ViewCard"]').first();
-                if ($firstLink.length > 0) {
-                    number = $firstLink.text().trim();
-                } else {
-                    // If ViewCard link is not in first cell, try to find it anywhere in the row
-                    number = $viewCardLink.text().trim();
+                // Find the ViewCard link that contains the card number (not an image)
+                // Look through all cells to find the one with a ViewCard link that has text (not just an image)
+                let $numberLink = null;
+                for (let i = 0; i < $cells.length; i++) {
+                    const $cell = $cells.eq(i);
+                    const $link = $cell.find('a[href*="ViewCard"]').first();
+                    if ($link.length > 0) {
+                        const linkText = $link.text().trim();
+                        // If the link has text (not just an image), this is likely the card number
+                        if (linkText && linkText.length > 0 && linkText.length < 20) {
+                            $numberLink = $link;
+                            number = linkText;
+                            break;
+                        }
+                    }
                 }
                 
-                // Extract player name from second td (Person link)
-                const $playerLink = $cells.eq(1).find('a[href*="Person"]').first();
-                if ($playerLink.length > 0) {
-                    playerName = $playerLink.text().trim();
-                    nameText = playerName;
-                } else {
-                    const nameCellIndex = $cells.length > 1 ? 1 : 0;
-                    nameText = $cells.eq(nameCellIndex).text().trim();
-                    playerName = nameText;
+                // If we didn't find a text-based ViewCard link, try the first one
+                if (!$numberLink && $viewCardLinks.length > 0) {
+                    $numberLink = $viewCardLinks.first();
+                    number = $numberLink.text().trim();
+                }
+                
+                // Extract player name from Person link - look in cells after the number cell
+                let $playerLink = null;
+                for (let i = 0; i < $cells.length; i++) {
+                    const $cell = $cells.eq(i);
+                    const $link = $cell.find('a[href*="Person"]').first();
+                    if ($link.length > 0) {
+                        $playerLink = $link;
+                        playerName = $link.text().trim();
+                        nameText = playerName;
+                        break;
+                    }
+                }
+                
+                // If no Person link found, try to get text from cells
+                if (!playerName) {
+                    // Skip image cells (first 2) and number cell, get text from remaining cells
+                    for (let i = 2; i < $cells.length; i++) {
+                        const cellText = $cells.eq(i).text().trim();
+                        if (cellText && cellText.length > 0 && !cellText.match(/^\d+$/)) {
+                            playerName = cellText;
+                            nameText = cellText;
+                            break;
+                        }
+                    }
                 }
 
                 const normalizedNumber = number.replace(/[^a-z0-9]/gi, '').toLowerCase();
@@ -733,8 +764,8 @@ class TCDBService {
                     return false;
                 }
 
-                // Get card link from ViewCard link (first td) - already extracted above
-                let cardLink = $firstLink.length > 0 ? $firstLink.attr('href') : null;
+                // Get card link from ViewCard link - use the number link we found
+                let cardLink = $numberLink ? $numberLink.attr('href') : null;
                 let tcdbCardId = null;
                 
                 // Extract TCDB card ID from ViewCard link (format: /ViewCard.cfm/sid/482758/cid/27980431/...)
@@ -747,10 +778,10 @@ class TCDBService {
                         cardLink = `${this.baseUrl}${cardLink.startsWith('/') ? '' : '/'}${cardLink}`;
                     }
                 } else {
-                    // Fallback: try to get any link from the row
-                    const $anyLink = $row.find('a').first();
-                    if ($anyLink.length > 0) {
-                        cardLink = $anyLink.attr('href');
+                    // Fallback: try to get any ViewCard link from the row
+                    const $anyViewCardLink = $row.find('a[href*="ViewCard"]').first();
+                    if ($anyViewCardLink.length > 0) {
+                        cardLink = $anyViewCardLink.attr('href');
                         if (cardLink && !cardLink.startsWith('http')) {
                             cardLink = `${this.baseUrl}${cardLink.startsWith('/') ? '' : '/'}${cardLink}`;
                         }
