@@ -532,6 +532,11 @@ class TCDBService {
                 : this.baseUrl + '/';
             
             let html = await this.fetchHtmlWithFallback(url, refererUrl);
+            let $ = cheerio.load(html);
+            let cards = [];
+            
+            // Parse the first URL
+            // (cards will be populated by extractCardInfo below)
             
             // If we got HTML but no cards, and we have an alternative URL, try it
             if (cards.length === 0 && alternativeUrl) {
@@ -541,9 +546,6 @@ class TCDBService {
                 $ = cheerio.load(html);
                 cards = []; // Reset cards array
             }
-
-            const $ = cheerio.load(html);
-            const cards = [];
 
             const extractCardInfo = ($row, indexFallback = null) => {
                 const $cells = $row.find('td');
