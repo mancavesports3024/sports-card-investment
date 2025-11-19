@@ -226,8 +226,20 @@ class TCDBService {
                     timeout: 45000 
                 });
                 
-                // Wait a bit for any dynamic content to load
-                await new Promise(resolve => setTimeout(resolve, 3000));
+                // Wait longer for JavaScript to render dynamic content (checklists are often loaded via JS)
+                console.log('⏳ Waiting for dynamic content to load...');
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                
+                // Try to wait for specific elements that indicate checklist is loaded
+                try {
+                    // Wait for tables or card-related elements
+                    await this.page.waitForSelector('table, .checklist, [class*="card"]', { timeout: 10000 }).catch(() => {});
+                } catch (e) {
+                    // Continue even if selector not found
+                }
+                
+                // Wait a bit more for any remaining dynamic content
+                await new Promise(resolve => setTimeout(resolve, 2000));
                 
                 html = await this.page.content();
             } catch (timeoutError) {
@@ -238,7 +250,8 @@ class TCDBService {
                         waitUntil: 'load', 
                         timeout: 60000 
                     });
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    // Wait even longer for JS-rendered content
+                    await new Promise(resolve => setTimeout(resolve, 5000));
                     html = await this.page.content();
                 } catch (loadError) {
                     // Last resort: just get whatever HTML we have
@@ -571,8 +584,15 @@ class TCDBService {
             };
 
             // Look for card rows in tables - TCDB typically displays checklist in tables
-            $('table tr').each((index, element) => {
-                extractCardInfo($(element), index);
+            // Try all tables, not just the first one
+            $('table').each((tableIndex, tableElement) => {
+                const $table = $(tableElement);
+                const $rows = $table.find('tr');
+                console.log(`   - Table ${tableIndex + 1}: ${$rows.length} rows`);
+                
+                $rows.each((index, element) => {
+                    extractCardInfo($(element), index);
+                });
             });
 
             // If no cards found in table format, try alternative selectors
@@ -611,7 +631,19 @@ class TCDBService {
                 console.warn(`   - Tables found: ${$('table').length}`);
                 console.warn(`   - Table rows found: ${$('table tr').length}`);
                 console.warn(`   - Links with /tid/: ${$('a[href*="/tid/"]').length}`);
-                console.warn(`   - Sample HTML (first 1000 chars): ${html.substring(0, 1000)}`);
+                console.warn(`   - Links with ViewCard: ${$('a[href*="ViewCard"]').length}`);
+                console.warn(`   - Links with card: ${$('a[href*="card"]').length}`);
+                
+                // Log table details
+                $('table').each((i, table) => {
+                    const $t = $(table);
+                    console.warn(`   - Table ${i + 1}: ${$t.find('tr').length} rows, ${$t.find('td').length} cells`);
+                    if ($t.find('tr').length > 0 && $t.find('tr').length < 20) {
+                        console.warn(`     Sample rows: ${$t.find('tr').slice(0, 3).map((i, r) => $(r).text().substring(0, 100)).get().join(' | ')}`);
+                    }
+                });
+                
+                console.warn(`   - Sample HTML (first 2000 chars): ${html.substring(0, 2000)}`);
             }
             
             // Cache for 1 hour
