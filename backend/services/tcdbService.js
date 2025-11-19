@@ -800,10 +800,21 @@ class TCDBService {
                     console.log(`   📋 Card ${cards.length + 1}: #${number}, Player: ${playerName || nameText}, Name: ${nameText || playerName}`);
                 }
                 
+                // Extract team name if available (Team link in cells)
+                let teamName = '';
+                for (let i = 0; i < $cells.length; i++) {
+                    const $cell = $cells.eq(i);
+                    const $teamLink = $cell.find('a[href*="Team"]').first();
+                    if ($teamLink.length > 0) {
+                        teamName = $teamLink.text().trim();
+                        break;
+                    }
+                }
+                
                 cards.push({
                     number: number || '',
-                    name: nameText || playerName,
-                    player: playerName || nameText,
+                    player: playerName || nameText || '',
+                    team: teamName || '',
                     tcdbId: tcdbCardId,
                     url: cardLink
                 });
