@@ -202,8 +202,13 @@ class TCDBService {
 
     /**
      * Fetch page using browser (fallback when axios is blocked)
+     * @param {string} url - URL to fetch
+     * @param {Object} options - Options for fetching
+     * @param {boolean} options.waitForTables - Whether to wait for tables with many rows (for checklists)
+     * @param {number} options.waitTime - Additional wait time in ms (default: 5000)
      */
-    async fetchWithBrowser(url) {
+    async fetchWithBrowser(url, options = {}) {
+        const { waitForTables = false, waitTime = 5000 } = options;
         if (!this.browserEnabled || !this.browser) {
             const initialized = await this.initializeBrowser();
             if (!initialized) {
@@ -257,98 +262,94 @@ class TCDBService {
                     timeout: 45000 
                 });
                 
-                // Wait longer for JavaScript to render dynamic content (checklists are often loaded via JS)
+                // Wait for JavaScript to render dynamic content
                 console.log('⏳ Waiting for dynamic content to load...');
+                await new Promise(resolve => setTimeout(resolve, waitTime));
                 
-                // Wait for network to be idle (all AJAX calls complete)
-                // Note: Puppeteer doesn't have waitForLoadState, so we'll just wait longer
-                // The network response handler will capture AJAX calls
-                
-                // Wait additional time for any remaining JS execution
-                await new Promise(resolve => setTimeout(resolve, 8000));
-                
-                // Try to wait for tables with multiple rows (checklist tables usually have many rows)
-                try {
-                    await this.page.waitForFunction(
-                        () => {
-                            const tables = document.querySelectorAll('table');
-                            for (let table of tables) {
-                                const rows = table.querySelectorAll('tr');
-                                if (rows.length > 10) {
-                                    return true; // Found a table with many rows (likely checklist)
+                // If waiting for tables (checklists), do additional waiting
+                if (waitForTables) {
+                    // Try to wait for tables with multiple rows (checklist tables usually have many rows)
+                    try {
+                        await this.page.waitForFunction(
+                            () => {
+                                const tables = document.querySelectorAll('table');
+                                for (let table of tables) {
+                                    const rows = table.querySelectorAll('tr');
+                                    if (rows.length > 10) {
+                                        return true; // Found a table with many rows (likely checklist)
+                                    }
                                 }
-                            }
-                            return false;
-                        },
-                        { timeout: 20000 }
-                    ).catch(() => {
-                        console.log('⚠️ Checklist table not found in DOM, checking network responses...');
-                    });
-                } catch (e) {
-                    // Continue even if selector not found
-                }
-                
-                // Wait a bit more for any remaining dynamic content
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                
-                html = await this.page.content();
-                
-                // Check if any of the network responses contain checklist data
-                if (networkResponses.length > 0) {
-                    console.log(`📡 Found ${networkResponses.length} TCDB network responses (filtered out ads/tracking), checking for checklist data...`);
+                                return false;
+                            },
+                            { timeout: 20000 }
+                        ).catch(() => {
+                            console.log('⚠️ Checklist table not found in DOM, checking network responses...');
+                        });
+                    } catch (e) {
+                        // Continue even if selector not found
+                    }
                     
-                    // Log first few URLs for debugging
-                    networkResponses.slice(0, 5).forEach((resp, i) => {
-                        console.log(`   Response ${i + 1}: ${resp.url.substring(0, 100)} (${resp.length} chars)`);
-                    });
-                    
-                    for (const resp of networkResponses) {
-                        // Check if this looks like checklist HTML (has div.block1 or ViewCard links)
-                        if (resp.content.includes('div class="block1"') || 
-                            (resp.content.includes('<tr') && resp.content.includes('td') && resp.content.includes('ViewCard'))) {
-                            const $test = cheerio.load(resp.content);
-                            const $block1 = $test('div.block1').has('h1.site:contains("Cards")');
-                            const rowCount = $test('tr').length;
-                            if ($block1.length > 0 || rowCount > 10) {
-                                console.log(`✅ Found checklist data in network response: ${resp.url.substring(0, 80)} (${rowCount} rows, ${resp.length} chars)`);
-                                html = resp.content;
-                                break;
+                    // Check if any of the network responses contain checklist data
+                    if (networkResponses.length > 0) {
+                        console.log(`📡 Found ${networkResponses.length} TCDB network responses (filtered out ads/tracking), checking for checklist data...`);
+                        
+                        // Log first few URLs for debugging
+                        networkResponses.slice(0, 5).forEach((resp, i) => {
+                            console.log(`   Response ${i + 1}: ${resp.url.substring(0, 100)} (${resp.length} chars)`);
+                        });
+                        
+                        for (const resp of networkResponses) {
+                            // Check if this looks like checklist HTML (has div.block1 or ViewCard links)
+                            if (resp.content.includes('div class="block1"') || 
+                                (resp.content.includes('<tr') && resp.content.includes('td') && resp.content.includes('ViewCard'))) {
+                                const $test = cheerio.load(resp.content);
+                                const $block1 = $test('div.block1').has('h1.site:contains("Cards")');
+                                const rowCount = $test('tr').length;
+                                if ($block1.length > 0 || rowCount > 10) {
+                                    console.log(`✅ Found checklist data in network response: ${resp.url.substring(0, 80)} (${rowCount} rows, ${resp.length} chars)`);
+                                    html = resp.content;
+                                    break;
+                                }
                             }
                         }
                     }
-                }
-                
-                // Try to wait for checklist to appear in DOM by checking repeatedly
-                console.log('⏳ Waiting for checklist to appear in DOM...');
-                let checklistFound = false;
-                for (let attempt = 0; attempt < 10; attempt++) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
                     
-                    // Check if a large table has appeared
-                    const tableCount = await this.page.evaluate(() => {
-                        const tables = document.querySelectorAll('table');
-                        let maxRows = 0;
-                        tables.forEach(table => {
-                            const rows = table.querySelectorAll('tr');
-                            if (rows.length > maxRows) {
-                                maxRows = rows.length;
-                            }
+                    // Try to wait for checklist to appear in DOM by checking repeatedly
+                    console.log('⏳ Waiting for checklist to appear in DOM...');
+                    let checklistFound = false;
+                    for (let attempt = 0; attempt < 10; attempt++) {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        
+                        // Check if a large table has appeared
+                        const tableCount = await this.page.evaluate(() => {
+                            const tables = document.querySelectorAll('table');
+                            let maxRows = 0;
+                            tables.forEach(table => {
+                                const rows = table.querySelectorAll('tr');
+                                if (rows.length > maxRows) {
+                                    maxRows = rows.length;
+                                }
+                            });
+                            return { tableCount: tables.length, maxRows: maxRows };
                         });
-                        return { tableCount: tables.length, maxRows: maxRows };
-                    });
-                    
-                    console.log(`   Attempt ${attempt + 1}: ${tableCount.tableCount} tables, max ${tableCount.maxRows} rows`);
-                    
-                    if (tableCount.maxRows > 10) {
-                        console.log(`✅ Found checklist table with ${tableCount.maxRows} rows!`);
-                        checklistFound = true;
-                        html = await this.page.content();
-                        break;
+                        
+                        console.log(`   Attempt ${attempt + 1}: ${tableCount.tableCount} tables, max ${tableCount.maxRows} rows`);
+                        
+                        if (tableCount.maxRows > 10) {
+                            console.log(`✅ Found checklist table with ${tableCount.maxRows} rows!`);
+                            checklistFound = true;
+                            html = await this.page.content();
+                            break;
+                        }
                     }
-                }
-                
-                if (!checklistFound) {
-                    console.log('⚠️ Checklist table never appeared in DOM, using current HTML');
+                    
+                    if (!checklistFound) {
+                        console.log('⚠️ Checklist table never appeared in DOM, using current HTML');
+                        html = await this.page.content();
+                    }
+                } else {
+                    // For sets/years pages, just wait a bit more and get the HTML
+                    await new Promise(resolve => setTimeout(resolve, 3000));
                     html = await this.page.content();
                 }
             } catch (timeoutError) {
@@ -392,11 +393,14 @@ class TCDBService {
 
     /**
      * Fetch HTML - skip axios (always blocked) and go straight to browser
+     * @param {string} url - URL to fetch
+     * @param {string} referer - Referer URL (for headers, not used now)
+     * @param {Object} options - Options for browser fetch
      */
-    async fetchHtmlWithFallback(url, referer = null) {
+    async fetchHtmlWithFallback(url, referer = null, options = {}) {
         // TCDB always blocks axios requests, so skip it and use browser directly
         console.log('🌐 Fetching TCDB page with browser (skipping axios - always blocked)');
-        return await this.fetchWithBrowser(url);
+        return await this.fetchWithBrowser(url, options);
     }
 
     /**
@@ -630,7 +634,7 @@ class TCDBService {
                 ? `${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}/year/${year}`
                 : this.baseUrl + '/';
             
-            let html = await this.fetchHtmlWithFallback(url, refererUrl);
+            let html = await this.fetchHtmlWithFallback(url, refererUrl, { waitForTables: true, waitTime: 8000 });
             let $ = cheerio.load(html);
             let cards = [];
             
