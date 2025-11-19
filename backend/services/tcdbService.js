@@ -257,11 +257,8 @@ class TCDBService {
                 console.log('⏳ Waiting for dynamic content to load...');
                 
                 // Wait for network to be idle (all AJAX calls complete)
-                try {
-                    await this.page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {});
-                } catch (e) {
-                    // Continue anyway
-                }
+                // Note: Puppeteer doesn't have waitForLoadState, so we'll just wait longer
+                // The network response handler will capture AJAX calls
                 
                 // Wait additional time for any remaining JS execution
                 await new Promise(resolve => setTimeout(resolve, 8000));
