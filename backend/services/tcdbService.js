@@ -389,49 +389,63 @@ class TCDBService {
             const $ = cheerio.load(html);
             const sets = [];
 
+            const normalizeSetLink = (href, text) => {
+                if (!href) return null;
+                const setIdMatch = href.match(/\/set\/(\d+)|sid\/(\d+)|SetID=(\d+)|setId=(\d+)/i);
+                if (!setIdMatch) return null;
+                const setId = setIdMatch[1] || setIdMatch[2] || setIdMatch[3] || setIdMatch[4];
+                const name = (text || '').trim();
+                if (!setId || !name) return null;
+                const absoluteUrl = href.startsWith('http') ? href : `${this.baseUrl}${href.startsWith('/') ? '' : '/'}${href}`;
+                return { id: setId, name, url: absoluteUrl };
+            };
+
             // Look for set links - TCDB typically has links to sets
-            // Pattern might be: ViewAll.cfm/sp/Baseball/year/2025/set/12345
-            $('a[href*="/set/"]').each((index, element) => {
+            $('a[href*="/set/"], a[href*="ViewSet.cfm"], a[href*="sid="], a[href*="SetID="]').each((index, element) => {
                 const $link = $(element);
                 const href = $link.attr('href');
                 const setName = $link.text().trim();
-                
-                // Extract set ID from href
-                const setIdMatch = href.match(/\/set\/(\d+)/);
-                if (setIdMatch && setName) {
-                    const setId = setIdMatch[1];
-                    sets.push({
-                        id: setId,
-                        name: setName,
-                        url: href.startsWith('http') ? href : `${this.baseUrl}${href}`
-                    });
-                }
+                const normalized = normalizeSetLink(href, setName);
+                if (normalized) sets.push(normalized);
             });
 
             // Also try looking in tables or lists
             if (sets.length === 0) {
                 // Try alternative selectors
-                $('table a, .set-list a, .checklist a').each((index, element) => {
+                $('table a, .set-list a, .checklist a, td a, li a').each((index, element) => {
                     const $link = $(element);
                     const href = $link.attr('href');
                     const text = $link.text().trim();
                     
-                    if (href && text && (href.includes('/set/') || href.includes('ViewSet'))) {
-                        const setIdMatch = href.match(/\/set\/(\d+)|setId=(\d+)/);
-                        if (setIdMatch) {
-                            const setId = setIdMatch[1] || setIdMatch[2];
-                            sets.push({
-                                id: setId,
-                                name: text,
-                                url: href.startsWith('http') ? href : `${this.baseUrl}${href}`
-                            });
-                        }
+                    const normalized = normalizeSetLink(href, text);
+                    if (normalized) {
+                        sets.push(normalized);
                     }
                 });
+
+                // Another fallback: inspect table rows without direct links
+                if (sets.length === 0) {
+                    $('table tr').each((index, row) => {
+                        const $row = $(row);
+                        const $link = $row.find('a').first();
+                        if ($link.length === 0) return;
+                        const href = $link.attr('href');
+                        const rowText = $row.text().replace(/\s+/g, ' ').trim();
+                        const normalized = normalizeSetLink(href, rowText || $link.text());
+                        if (normalized) {
+                            sets.push(normalized);
+                        }
+                    });
+                }
             }
 
             // Remove duplicates
             const uniqueSets = Array.from(new Map(sets.map(s => [s.id, s])).values());
+
+            if (uniqueSets.length === 0) {
+                console.warn(`⚠️ No sets parsed for ${sport} ${year}. Sample HTML snippet:`);
+                console.warn(html.substring(0, 500));
+            }
 
             // Cache for 1 hour
             this.cache.set(cacheKey, uniqueSets);
