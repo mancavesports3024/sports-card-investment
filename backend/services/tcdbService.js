@@ -212,9 +212,11 @@ class TCDBService {
      * @param {Object} options - Options for fetching
      * @param {boolean} options.waitForTables - Whether to wait for tables with many rows (for checklists)
      * @param {number} options.waitTime - Additional wait time in ms (default: 5000)
+     * @param {boolean} options.clickMoreButton - Whether to click "More" button to load more cards
+     * @param {boolean} options.loadAllPages - Whether to paginate through all pages
      */
     async fetchWithBrowser(url, options = {}) {
-        const { waitForTables = false, waitTime = 5000 } = options;
+        const { waitForTables = false, waitTime = 5000, clickMoreButton = false, loadAllPages = false } = options;
         if (!this.browserEnabled || !this.browser) {
             const initialized = await this.initializeBrowser();
             if (!initialized) {
@@ -650,7 +652,8 @@ class TCDBService {
                 ? `${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}/year/${year}`
                 : this.baseUrl + '/';
             
-            let html = await this.fetchHtmlWithFallback(url, refererUrl, { waitForTables: true, waitTime: 8000 });
+            // Use browser to load page and handle "More" button + pagination
+            let html = await this.fetchHtmlWithFallback(url, refererUrl, { waitForTables: true, waitTime: 8000, clickMoreButton: true, loadAllPages: true });
             let $ = cheerio.load(html);
             let cards = [];
             
@@ -660,7 +663,7 @@ class TCDBService {
             // If we got HTML but no cards, and we have an alternative URL, try it
             if (cards.length === 0 && alternativeUrl) {
                 console.log(`⚠️ No cards found with first URL, trying alternative URL: ${alternativeUrl}`);
-                html = await this.fetchHtmlWithFallback(alternativeUrl, refererUrl, { waitForTables: true, waitTime: 8000 });
+                html = await this.fetchHtmlWithFallback(alternativeUrl, refererUrl, { waitForTables: true, waitTime: 8000, clickMoreButton: true, loadAllPages: true });
                 // Re-parse with the new HTML
                 $ = cheerio.load(html);
                 cards = []; // Reset cards array
