@@ -365,6 +365,89 @@ class TCDBService {
                         console.log('⚠️ Checklist table never appeared in DOM, using current HTML');
                         html = await this.page.content();
                     }
+                    
+                    // If this is a checklist page, handle "More" button and pagination
+                    if (clickMoreButton || loadAllPages) {
+                        console.log('🔄 Handling "More" button and pagination for checklist...');
+                        
+                        // Step 1: Click "More" button to load ~100 cards
+                        try {
+                            // Look for "More" button - could be text "More", "More >", or similar
+                            const moreButton = await this.page.evaluateHandle(() => {
+                                // Try different selectors for the More button
+                                const buttons = Array.from(document.querySelectorAll('button, a, input[type="button"]'));
+                                return buttons.find(btn => {
+                                    const text = btn.textContent?.toLowerCase().trim() || '';
+                                    return text.includes('more') && !text.includes('comments');
+                                });
+                            });
+                            
+                            if (moreButton && moreButton.asElement()) {
+                                console.log('   ✅ Found "More" button, clicking...');
+                                await moreButton.asElement().click();
+                                await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for content to load
+                                console.log('   ✅ "More" button clicked, waiting for content...');
+                            } else {
+                                console.log('   ⚠️ "More" button not found (may already be expanded)');
+                            }
+                        } catch (e) {
+                            console.log(`   ⚠️ Error clicking "More" button: ${e.message}`);
+                        }
+                        
+                        // Step 2: If loadAllPages is true, paginate through all pages
+                        if (loadAllPages) {
+                            let pageCount = 1;
+                            let hasNextPage = true;
+                            
+                            while (hasNextPage && pageCount < 20) { // Safety limit of 20 pages
+                                // Get current page HTML and parse cards
+                                const currentHtml = await this.page.content();
+                                const $current = cheerio.load(currentHtml);
+                                
+                                // Count cards on current page
+                                const currentCardCount = $current('a[href*="ViewCard"]').length;
+                                console.log(`   📄 Page ${pageCount}: Found ${currentCardCount} ViewCard links`);
+                                
+                                // Look for "Next" button or pagination
+                                try {
+                                    const nextButton = await this.page.evaluateHandle(() => {
+                                        const buttons = Array.from(document.querySelectorAll('button, a, input[type="button"]'));
+                                        const links = Array.from(document.querySelectorAll('a'));
+                                        const allElements = [...buttons, ...links];
+                                        
+                                        return allElements.find(el => {
+                                            const text = el.textContent?.toLowerCase().trim() || '';
+                                            const href = el.getAttribute('href') || '';
+                                            // Look for "Next", ">", "Next >", or pagination links
+                                            return (text.includes('next') || text === '>' || text === '»') &&
+                                                   !text.includes('comments') &&
+                                                   (href.includes('ViewSet') || href.includes('sid/'));
+                                        });
+                                    });
+                                    
+                                    if (nextButton && nextButton.asElement()) {
+                                        console.log(`   ➡️ Found "Next" button, clicking to load page ${pageCount + 1}...`);
+                                        await nextButton.asElement().click();
+                                        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for next page to load
+                                        pageCount++;
+                                    } else {
+                                        console.log('   ✅ No more pages found');
+                                        hasNextPage = false;
+                                    }
+                                } catch (e) {
+                                    console.log(`   ⚠️ Error finding/clicking "Next" button: ${e.message}`);
+                                    hasNextPage = false;
+                                }
+                            }
+                            
+                            if (pageCount >= 20) {
+                                console.log('   ⚠️ Reached page limit (20), stopping pagination');
+                            }
+                        }
+                        
+                        // Get final HTML after all interactions
+                        html = await this.page.content();
+                    }
                 } else {
                     // For sets/years pages, just wait a bit more and get the HTML
                     await new Promise(resolve => setTimeout(resolve, 3000));
