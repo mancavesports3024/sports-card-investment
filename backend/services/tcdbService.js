@@ -372,23 +372,64 @@ class TCDBService {
                         
                         // Step 1: Click "More" button to load ~100 cards
                         try {
-                            // Look for "More" button - could be text "More", "More >", or similar
-                            const moreButton = await this.page.evaluateHandle(() => {
-                                // Try different selectors for the More button
-                                const buttons = Array.from(document.querySelectorAll('button, a, input[type="button"]'));
-                                return buttons.find(btn => {
-                                    const text = btn.textContent?.toLowerCase().trim() || '';
-                                    return text.includes('more') && !text.includes('comments');
-                                });
+                            // Wait a bit for page to fully render
+                            await new Promise(resolve => setTimeout(resolve, 2000));
+                            
+                            // Look for "More" button - try multiple strategies
+                            const moreButtonClicked = await this.page.evaluate(async () => {
+                                // Strategy 1: Look for button/link with "More" text
+                                const allElements = Array.from(document.querySelectorAll('button, a, input[type="button"], div[onclick], span[onclick]'));
+                                
+                                for (const el of allElements) {
+                                    const text = el.textContent?.toLowerCase().trim() || '';
+                                    const innerHTML = el.innerHTML?.toLowerCase() || '';
+                                    
+                                    // Look for "More", "More >", "Show More", etc.
+                                    if ((text.includes('more') || innerHTML.includes('more')) && 
+                                        !text.includes('comments') && 
+                                        !text.includes('trivia')) {
+                                        console.log('Found More button:', text);
+                                        el.click();
+                                        return true;
+                                    }
+                                }
+                                
+                                // Strategy 2: Look for button with specific classes or IDs
+                                const moreByClass = document.querySelector('button.more, a.more, .more-button, [class*="more"]');
+                                if (moreByClass) {
+                                    moreByClass.click();
+                                    return true;
+                                }
+                                
+                                return false;
                             });
                             
-                            if (moreButton && moreButton.asElement()) {
-                                console.log('   ✅ Found "More" button, clicking...');
-                                await moreButton.asElement().click();
-                                await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for content to load
-                                console.log('   ✅ "More" button clicked, waiting for content...');
+                            if (moreButtonClicked) {
+                                console.log('   ✅ Found and clicked "More" button');
+                                // Wait longer for content to load (AJAX call)
+                                await new Promise(resolve => setTimeout(resolve, 5000));
+                                
+                                // Wait for additional rows to appear
+                                try {
+                                    await this.page.waitForFunction(
+                                        () => {
+                                            const tables = document.querySelectorAll('table');
+                                            for (let table of tables) {
+                                                const rows = table.querySelectorAll('tr');
+                                                if (rows.length > 50) { // Should have ~100 cards after More click
+                                                    return true;
+                                                }
+                                            }
+                                            return false;
+                                        },
+                                        { timeout: 10000 }
+                                    );
+                                    console.log('   ✅ More cards loaded after clicking "More"');
+                                } catch (e) {
+                                    console.log('   ⚠️ Timeout waiting for more cards, continuing...');
+                                }
                             } else {
-                                console.log('   ⚠️ "More" button not found (may already be expanded)');
+                                console.log('   ⚠️ "More" button not found (may already be expanded or not present)');
                             }
                         } catch (e) {
                             console.log(`   ⚠️ Error clicking "More" button: ${e.message}`);
@@ -904,6 +945,7 @@ class TCDBService {
                 }
                 
                 // Extract team name if available (Team link in cells)
+                // Team is typically in a cell after the player cell
                 let teamName = '';
                 for (let i = 0; i < $cells.length; i++) {
                     const $cell = $cells.eq(i);
@@ -911,6 +953,21 @@ class TCDBService {
                     if ($teamLink.length > 0) {
                         teamName = $teamLink.text().trim();
                         break;
+                    }
+                    // Also check if cell text looks like a team name (no link)
+                    const cellText = $cell.text().trim();
+                    if (cellText && cellText.length > 0 && 
+                        !cellText.match(/^\d+$/) && // Not just a number
+                        !cellText.includes('ViewCard') && // Not a link text
+                        cellText.length < 50) { // Reasonable team name length
+                        // Check if it's likely a team (common team name patterns)
+                        if (cellText.includes('Royals') || cellText.includes('Phillies') || 
+                            cellText.includes('Dodgers') || cellText.includes('Yankees') ||
+                            cellText.includes('Red Sox') || cellText.includes('Cardinals') ||
+                            cellText.match(/\b(Team|Athletics|Giants|Braves|Mets)\b/i)) {
+                            teamName = cellText;
+                            break;
+                        }
                     }
                 }
                 
