@@ -659,11 +659,28 @@ class TCDBService {
             
             // If we got HTML but no cards, and we have an alternative URL, try it
             if (cards.length === 0 && alternativeUrl) {
-                console.log(`⚠️ No cards found with ViewSet.cfm, trying alternative URL: ${alternativeUrl}`);
+                console.log(`⚠️ No cards found with first URL, trying alternative URL: ${alternativeUrl}`);
                 html = await this.fetchHtmlWithFallback(alternativeUrl, refererUrl, { waitForTables: true, waitTime: 8000 });
                 // Re-parse with the new HTML
                 $ = cheerio.load(html);
                 cards = []; // Reset cards array
+            }
+            
+            // After initial parse, check if we need to load more pages
+            // TCDB paginates checklists - typically 10-50 cards per page
+            // Look for pagination links or "Show All" option
+            const $allPages = $('a').filter((i, el) => {
+                const href = $(el).attr('href') || '';
+                const text = $(el).text().toLowerCase().trim();
+                // Look for "Show All" or pagination that might load all cards
+                return (text.includes('show all') || text.includes('all cards') || 
+                        (href.includes('ViewSet') && text.match(/^\d+$/))) && 
+                       href.includes('sid/' + setId);
+            });
+            
+            if ($allPages.length > 0 && cards.length < 50) {
+                console.log(`   📄 Found ${$allPages.length} pagination links - checklist may be paginated`);
+                console.log(`   ⚠️ Only found ${cards.length} cards - may need to load additional pages`);
             }
 
             const extractCardInfo = ($row, indexFallback = null) => {
