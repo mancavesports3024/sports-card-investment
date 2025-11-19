@@ -655,17 +655,25 @@ class TCDBService {
                 const $cells = $row.find('td');
                 if ($cells.length === 0) return false;
 
+                // CRITICAL: Only parse rows that have a ViewCard link - this ensures we're getting actual cards, not trivia/comments
+                const $viewCardLink = $row.find('a[href*="ViewCard"]').first();
+                if ($viewCardLink.length === 0) {
+                    // Skip rows without ViewCard links (these are trivia/comments/other content)
+                    return false;
+                }
+
                 // TCDB structure: first td has card number (ViewCard link), second td has player (Person link), third td has team (Team link)
                 let number = '';
                 let nameText = '';
                 let playerName = '';
                 
-                // Extract card number from first td (ViewCard link)
+                // Extract card number from first td (ViewCard link) - REQUIRED
                 const $firstLink = $cells.eq(0).find('a[href*="ViewCard"]').first();
                 if ($firstLink.length > 0) {
                     number = $firstLink.text().trim();
                 } else {
-                    number = $cells.eq(0).text().trim();
+                    // If ViewCard link is not in first cell, try to find it anywhere in the row
+                    number = $viewCardLink.text().trim();
                 }
                 
                 // Extract player name from second td (Person link)
@@ -682,9 +690,18 @@ class TCDBService {
                 const normalizedNumber = number.replace(/[^a-z0-9]/gi, '').toLowerCase();
                 const normalizedName = nameText.replace(/\s+/g, ' ').trim().toLowerCase();
                 const headerNumbers = new Set(['', '#', 'no', 'no.', 'card', 'checklist', 'card#']);
-                const headerNames = new Set(['player', 'name', 'card', 'team', 'event', 'checklist']);
+                const headerNames = new Set(['player', 'name', 'card', 'team', 'event', 'checklist', 'trivia', 'user comments', 'comments']);
 
+                // Skip header rows and non-card content
                 if (headerNumbers.has(normalizedNumber) || headerNames.has(normalizedName)) {
+                    return false;
+                }
+
+                // Skip rows that look like trivia/comments (contain dates, usernames, ratings)
+                const rowText = $row.text().toLowerCase();
+                if (rowText.includes('rating:') || rowText.includes('trivia') || 
+                    rowText.match(/\d{1,2}\/\d{1,2}\/\d{4}/) || // Date pattern
+                    rowText.match(/\d{1,2}:\d{2}(am|pm)/i)) { // Time pattern
                     return false;
                 }
 
@@ -692,6 +709,11 @@ class TCDBService {
                     number = (indexFallback + 1).toString();
                 }
                 if (!nameText && !playerName) return false;
+                
+                // Must have a valid card number (not empty, not just whitespace)
+                if (!number || number.trim().length === 0) {
+                    return false;
+                }
 
                 // Get card link from ViewCard link (first td) - already extracted above
                 let cardLink = $firstLink.length > 0 ? $firstLink.attr('href') : null;
