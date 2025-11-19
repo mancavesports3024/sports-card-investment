@@ -254,12 +254,13 @@ class TCDBService {
             
             this.page.on('response', responseHandler);
             
-            // Try with domcontentloaded first (faster), then fallback to networkidle2
+            // Use networkidle2 for sets/years (content loads via JS), domcontentloaded for checklists
             let html = null;
             try {
+                const waitUntil = waitForTables ? 'domcontentloaded' : 'networkidle2';
                 await this.page.goto(url, { 
-                    waitUntil: 'domcontentloaded', 
-                    timeout: 45000 
+                    waitUntil: waitUntil, 
+                    timeout: 60000 
                 });
                 
                 // Wait for JavaScript to render dynamic content
