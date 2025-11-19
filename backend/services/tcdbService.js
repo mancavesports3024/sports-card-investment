@@ -224,10 +224,14 @@ class TCDBService {
             
             const responseHandler = async (response) => {
                 const responseUrl = response.url();
+                // Only capture TCDB-specific responses (filter out ads/tracking scripts)
                 // Look for AJAX/API calls that might contain checklist data
-                if (responseUrl.includes('ViewSet') || responseUrl.includes('checklist') || 
-                    responseUrl.includes('card') || responseUrl.includes('.cfm') || 
-                    responseUrl.includes('ajax') || response.request().resourceType() === 'xhr') {
+                if ((responseUrl.includes('ViewSet') || responseUrl.includes('ViewAll') || 
+                     responseUrl.includes('ViewCard') || responseUrl.includes('checklist') || 
+                     (responseUrl.includes('tcdb.com') && responseUrl.includes('.cfm'))) &&
+                    !responseUrl.includes('adthrive') && !responseUrl.includes('amazon-adsystem') &&
+                    !responseUrl.includes('scorecardresearch') && !responseUrl.includes('imasdk') &&
+                    !responseUrl.includes('brandmetrics') && !responseUrl.includes('pubmatic')) {
                     try {
                         const text = await response.text();
                         if (text && text.length > 500) {
@@ -291,19 +295,21 @@ class TCDBService {
                 
                 // Check if any of the network responses contain checklist data
                 if (networkResponses.length > 0) {
-                    console.log(`📡 Found ${networkResponses.length} network responses, checking for checklist data...`);
+                    console.log(`📡 Found ${networkResponses.length} TCDB network responses (filtered out ads/tracking), checking for checklist data...`);
                     
                     // Log first few URLs for debugging
-                    networkResponses.slice(0, 10).forEach((resp, i) => {
+                    networkResponses.slice(0, 5).forEach((resp, i) => {
                         console.log(`   Response ${i + 1}: ${resp.url.substring(0, 100)} (${resp.length} chars)`);
                     });
                     
                     for (const resp of networkResponses) {
-                        // Check if this looks like checklist HTML
-                        if (resp.content.includes('<tr') && resp.content.includes('td')) {
+                        // Check if this looks like checklist HTML (has div.block1 or ViewCard links)
+                        if (resp.content.includes('div class="block1"') || 
+                            (resp.content.includes('<tr') && resp.content.includes('td') && resp.content.includes('ViewCard'))) {
                             const $test = cheerio.load(resp.content);
+                            const $block1 = $test('div.block1').has('h1.site:contains("Cards")');
                             const rowCount = $test('tr').length;
-                            if (rowCount > 10) {
+                            if ($block1.length > 0 || rowCount > 10) {
                                 console.log(`✅ Found checklist data in network response: ${resp.url.substring(0, 80)} (${rowCount} rows, ${resp.length} chars)`);
                                 html = resp.content;
                                 break;
@@ -385,27 +391,12 @@ class TCDBService {
     }
 
     /**
-     * Fetch HTML with axios first, then browser fallback on 403
+     * Fetch HTML - skip axios (always blocked) and go straight to browser
      */
     async fetchHtmlWithFallback(url, referer = null) {
-        let html = null;
-        try {
-            const response = await axios.get(url, {
-                headers: this.getDefaultHeaders(referer || this.baseUrl + '/'),
-                timeout: 20000,
-                maxRedirects: 5,
-                validateStatus: (status) => status >= 200 && status < 400
-            });
-            html = response.data;
-            return html;
-        } catch (axiosError) {
-            if (axiosError.response && axiosError.response.status === 403) {
-                console.log('⚠️ Axios request blocked (403), trying browser fallback...');
-                html = await this.fetchWithBrowser(url);
-                return html;
-            }
-            throw axiosError;
-        }
+        // TCDB always blocks axios requests, so skip it and use browser directly
+        console.log('🌐 Fetching TCDB page with browser (skipping axios - always blocked)');
+        return await this.fetchWithBrowser(url);
     }
 
     /**
@@ -622,14 +613,16 @@ class TCDBService {
                 return this.cache.get(cacheKey);
             }
 
-            // Try to construct URL - TCDB might use different patterns
-            // TCDB checklists are typically at ViewSet.cfm with sid parameter
-            let url = `${this.baseUrl}/ViewSet.cfm/sid/${setId}`;
-            
-            // Also try the ViewAll pattern as fallback
-            const alternativeUrl = sport && year 
+            // Try the ViewAll pattern first (this is what appears in network tab)
+            // Format: ViewAll.cfm/sp/Baseball/year/2025/set/482758
+            let url = sport && year 
                 ? `${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}/year/${year}/set/${setId}`
-                : null;
+                : `${this.baseUrl}/ViewSet.cfm/sid/${setId}`;
+            
+            // Alternative URL as fallback
+            const alternativeUrl = url.includes('ViewAll') 
+                ? `${this.baseUrl}/ViewSet.cfm/sid/${setId}`
+                : (sport && year ? `${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}/year/${year}/set/${setId}` : null);
 
             console.log(`🔍 Fetching checklist for set ${setId}: ${url}`);
             
