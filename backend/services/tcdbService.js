@@ -236,6 +236,30 @@ class TCDBService {
     }
 
     /**
+     * Fetch HTML with axios first, then browser fallback on 403
+     */
+    async fetchHtmlWithFallback(url, referer = null) {
+        let html = null;
+        try {
+            const response = await axios.get(url, {
+                headers: this.getDefaultHeaders(referer || this.baseUrl + '/'),
+                timeout: 20000,
+                maxRedirects: 5,
+                validateStatus: (status) => status >= 200 && status < 400
+            });
+            html = response.data;
+            return html;
+        } catch (axiosError) {
+            if (axiosError.response && axiosError.response.status === 403) {
+                console.log('⚠️ Axios request blocked (403), trying browser fallback...');
+                html = await this.fetchWithBrowser(url);
+                return html;
+            }
+            throw axiosError;
+        }
+    }
+
+    /**
      * Get years for a specific sport
      * @param {string} sport - Sport name (e.g., 'Baseball', 'Football')
      * @returns {Array} Array of year objects
@@ -250,26 +274,7 @@ class TCDBService {
             const url = `${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}?MODE=Years`;
             console.log(`🔍 Fetching years for ${sport}: ${url}`);
             
-            let html = null;
-            
-            // Try axios first
-            try {
-                const response = await axios.get(url, {
-                    headers: this.getDefaultHeaders(this.baseUrl + '/'),
-                    timeout: 20000,
-                    maxRedirects: 5,
-                    validateStatus: (status) => status >= 200 && status < 400
-                });
-                html = response.data;
-            } catch (axiosError) {
-                // If 403, try browser fallback
-                if (axiosError.response && axiosError.response.status === 403) {
-                    console.log('⚠️ Axios request blocked (403), trying browser fallback...');
-                    html = await this.fetchWithBrowser(url);
-                } else {
-                    throw axiosError;
-                }
-            }
+            const html = await this.fetchHtmlWithFallback(url, this.baseUrl + '/');
 
             const $ = cheerio.load(html);
             const years = [];
@@ -376,14 +381,12 @@ class TCDBService {
             const url = `${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}/year/${year}`;
             console.log(`🔍 Fetching sets for ${sport} ${year}: ${url}`);
             
-            const response = await axios.get(url, {
-                headers: this.getDefaultHeaders(`${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}?MODE=Years`),
-                timeout: 20000,
-                maxRedirects: 5,
-                validateStatus: (status) => status >= 200 && status < 400
-            });
+            const html = await this.fetchHtmlWithFallback(
+                url,
+                `${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}?MODE=Years`
+            );
 
-            const $ = cheerio.load(response.data);
+            const $ = cheerio.load(html);
             const sets = [];
 
             // Look for set links - TCDB typically has links to sets
@@ -471,14 +474,9 @@ class TCDBService {
                 ? `${this.baseUrl}/ViewAll.cfm/sp/${encodeURIComponent(sport)}/year/${year}`
                 : this.baseUrl + '/';
             
-            const response = await axios.get(url, {
-                headers: this.getDefaultHeaders(refererUrl),
-                timeout: 20000,
-                maxRedirects: 5,
-                validateStatus: (status) => status >= 200 && status < 400
-            });
+            const html = await this.fetchHtmlWithFallback(url, refererUrl);
 
-            const $ = cheerio.load(response.data);
+            const $ = cheerio.load(html);
             const cards = [];
 
             // Look for card rows in tables - TCDB typically displays checklist in tables
