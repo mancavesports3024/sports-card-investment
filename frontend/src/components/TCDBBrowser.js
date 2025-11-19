@@ -315,8 +315,8 @@ const TCDBBrowser = () => {
                   <tr>
                     <th style={{ width: '50px' }}>Select</th>
                     <th style={{ width: '100px' }}>Card #</th>
-                    <th>Card Name</th>
                     <th>Player</th>
+                    <th>Team</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -332,8 +332,8 @@ const TCDBBrowser = () => {
                           />
                         </td>
                         <td>{card.number}</td>
-                        <td>{card.name}</td>
-                        <td>{card.player}</td>
+                        <td>{card.player || 'N/A'}</td>
+                        <td>{card.team || 'N/A'}</td>
                       </tr>
                     );
                   })}
@@ -351,7 +351,7 @@ const TCDBBrowser = () => {
           <div className="selected-cards-list">
             {selectedCards.map((card, index) => (
               <div key={index} className="selected-card-item">
-                #{card.number} - {card.name}
+                #{card.number} - {card.player || 'N/A'} {card.team ? `(${card.team})` : ''}
               </div>
             ))}
           </div>
