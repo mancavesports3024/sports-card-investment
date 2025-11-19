@@ -657,9 +657,29 @@ class TCDBService {
                 const $cells = $row.find('td');
                 if ($cells.length === 0) return false;
 
-                let number = $cells.eq(0).text().trim();
-                let nameCellIndex = $cells.length > 1 ? 1 : 0;
-                let nameText = $cells.eq(nameCellIndex).text().trim();
+                // TCDB structure: first td has card number (ViewCard link), second td has player (Person link), third td has team (Team link)
+                let number = '';
+                let nameText = '';
+                let playerName = '';
+                
+                // Extract card number from first td (ViewCard link)
+                const $firstLink = $cells.eq(0).find('a[href*="ViewCard"]').first();
+                if ($firstLink.length > 0) {
+                    number = $firstLink.text().trim();
+                } else {
+                    number = $cells.eq(0).text().trim();
+                }
+                
+                // Extract player name from second td (Person link)
+                const $playerLink = $cells.eq(1).find('a[href*="Person"]').first();
+                if ($playerLink.length > 0) {
+                    playerName = $playerLink.text().trim();
+                    nameText = playerName;
+                } else {
+                    nameCellIndex = $cells.length > 1 ? 1 : 0;
+                    nameText = $cells.eq(nameCellIndex).text().trim();
+                    playerName = nameText;
+                }
 
                 const normalizedNumber = number.replace(/[^a-z0-9]/gi, '').toLowerCase();
                 const normalizedName = nameText.replace(/\s+/g, ' ').trim().toLowerCase();
@@ -700,17 +720,33 @@ class TCDBService {
                 return true;
             };
 
-            // Look for card rows in tables - TCDB typically displays checklist in tables
-            // Try all tables, not just the first one
-            $('table').each((tableIndex, tableElement) => {
-                const $table = $(tableElement);
-                const $rows = $table.find('tr');
-                console.log(`   - Table ${tableIndex + 1}: ${$rows.length} rows`);
-                
-                $rows.each((index, element) => {
-                    extractCardInfo($(element), index);
+            // TCDB checklist is in a div.block1 with h1.site="Cards"
+            // Look for the specific structure the user identified
+            const $block1 = $('div.block1').has('h1.site:contains("Cards")');
+            if ($block1.length > 0) {
+                console.log('✅ Found div.block1 with Cards header');
+                const $checklistTable = $block1.find('table').first();
+                if ($checklistTable.length > 0) {
+                    console.log(`   - Found checklist table with ${$checklistTable.find('tr').length} rows`);
+                    $checklistTable.find('tr').each((index, element) => {
+                        extractCardInfo($(element), index);
+                    });
+                }
+            }
+            
+            // If no cards found in block1, try all tables
+            if (cards.length === 0) {
+                console.log('⚠️ No cards in block1, trying all tables...');
+                $('table').each((tableIndex, tableElement) => {
+                    const $table = $(tableElement);
+                    const $rows = $table.find('tr');
+                    console.log(`   - Table ${tableIndex + 1}: ${$rows.length} rows`);
+                    
+                    $rows.each((index, element) => {
+                        extractCardInfo($(element), index);
+                    });
                 });
-            });
+            }
 
             // If no cards found in table format, try alternative selectors
             if (cards.length === 0) {
