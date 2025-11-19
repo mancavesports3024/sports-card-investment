@@ -644,7 +644,7 @@ class TCDBService {
             // If we got HTML but no cards, and we have an alternative URL, try it
             if (cards.length === 0 && alternativeUrl) {
                 console.log(`⚠️ No cards found with ViewSet.cfm, trying alternative URL: ${alternativeUrl}`);
-                html = await this.fetchHtmlWithFallback(alternativeUrl, refererUrl);
+                html = await this.fetchHtmlWithFallback(alternativeUrl, refererUrl, { waitForTables: true, waitTime: 8000 });
                 // Re-parse with the new HTML
                 $ = cheerio.load(html);
                 cards = []; // Reset cards array
