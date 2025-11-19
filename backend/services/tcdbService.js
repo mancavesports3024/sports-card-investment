@@ -217,20 +217,50 @@ class TCDBService {
 
         try {
             console.log(`🌐 Fetching TCDB page with browser: ${url}`);
-            await this.page.goto(url, { 
-                waitUntil: 'networkidle2', 
-                timeout: 30000 
-            });
             
-            // Wait a bit for any dynamic content
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Try with domcontentloaded first (faster), then fallback to networkidle2
+            let html = null;
+            try {
+                await this.page.goto(url, { 
+                    waitUntil: 'domcontentloaded', 
+                    timeout: 45000 
+                });
+                
+                // Wait a bit for any dynamic content to load
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                html = await this.page.content();
+            } catch (timeoutError) {
+                // If domcontentloaded times out, try with a shorter wait
+                console.log('⚠️ domcontentloaded timed out, trying with load event...');
+                try {
+                    await this.page.goto(url, { 
+                        waitUntil: 'load', 
+                        timeout: 60000 
+                    });
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    html = await this.page.content();
+                } catch (loadError) {
+                    // Last resort: just get whatever HTML we have
+                    console.log('⚠️ Load event timed out, getting current HTML...');
+                    html = await this.page.content();
+                    if (!html || html.length < 100) {
+                        throw new Error('Page did not load - HTML too short or empty');
+                    }
+                }
+            }
             
-            const html = await this.page.content();
+            if (!html || html.length < 100) {
+                throw new Error('Page did not load - HTML too short or empty');
+            }
+            
             return html;
         } catch (error) {
             console.error('❌ Error fetching with browser:', error.message);
-            // Close browser on error to allow retry
-            await this.closeBrowser();
+            // Don't close browser on timeout - might be recoverable
+            if (!error.message.includes('timeout')) {
+                await this.closeBrowser();
+            }
             throw error;
         }
     }
