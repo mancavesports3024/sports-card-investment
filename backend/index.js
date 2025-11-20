@@ -969,10 +969,10 @@ app.use('/api/live-listings', require('./routes/liveListings'));
   app.get('/api/tcdb/sports', async (req, res) => {
     try {
       const sports = await checklistService.getSports();
-      // Transform to match expected format
+      // Transform to match expected format - frontend expects {name, value}
       const formattedSports = sports.map(s => ({
         name: s.name,
-        value: s.name
+        value: s.name // Use name as value for compatibility
       }));
       res.json({
         success: true,
@@ -993,20 +993,32 @@ app.use('/api/live-listings', require('./routes/liveListings'));
       const { sport } = req.params;
       // First, find the sport category ID
       const allSports = await checklistService.getSports();
-      const sportData = allSports.find(s => s.name.toLowerCase() === sport.toLowerCase() || s.slug.toLowerCase() === sport.toLowerCase());
+      const sportData = allSports.find(s => 
+        s.name.toLowerCase() === sport.toLowerCase() || 
+        s.slug.toLowerCase() === sport.toLowerCase() ||
+        s.name.toLowerCase().includes(sport.toLowerCase()) ||
+        sport.toLowerCase().includes(s.name.toLowerCase())
+      );
       
       if (!sportData) {
+        console.error(`❌ Sport "${sport}" not found. Available sports:`, allSports.map(s => s.name));
         return res.status(404).json({
           success: false,
-          error: `Sport "${sport}" not found`
+          error: `Sport "${sport}" not found. Available: ${allSports.map(s => s.name).join(', ')}`
         });
       }
 
       const years = await checklistService.getYears(sportData.id, sportData.name);
+      // Transform to match expected format - frontend expects {year, display}
+      const formattedYears = years.map(y => ({
+        year: y.year,
+        display: y.display || y.year.toString()
+      }));
+      
       res.json({
         success: true,
         sport: sport,
-        years: years
+        years: formattedYears
       });
     } catch (error) {
       console.error(`❌ Error fetching years for ${req.params.sport}:`, error);
