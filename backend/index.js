@@ -1092,14 +1092,36 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
-  // GET /api/tcdb/checklist/:setId - Get checklist for a set (postId)
-  app.get('/api/tcdb/checklist/:setId', async (req, res) => {
+  // GET /api/tcdb/checklist-sections/:setId - Get available checklist sections for a set
+  app.get('/api/tcdb/checklist-sections/:setId', async (req, res) => {
     try {
       const { setId } = req.params;
-      const checklist = await checklistService.getChecklist(setId);
+      const sections = await checklistService.getChecklistSections(setId);
       res.json({
         success: true,
         setId: setId,
+        sections: sections
+      });
+    } catch (error) {
+      console.error(`❌ Error fetching checklist sections for set ${req.params.setId}:`, error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
+  // GET /api/tcdb/checklist/:setId - Get checklist for a set (postId)
+  // Optional query param: ?section=sectionId to get a specific section
+  app.get('/api/tcdb/checklist/:setId', async (req, res) => {
+    try {
+      const { setId } = req.params;
+      const { section } = req.query; // Optional section ID
+      const checklist = await checklistService.getChecklist(setId, section || null);
+      res.json({
+        success: true,
+        setId: setId,
+        section: section || null,
         checklist: checklist
       });
     } catch (error) {

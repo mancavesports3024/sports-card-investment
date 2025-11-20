@@ -435,13 +435,76 @@ class ChecklistInsiderService {
     }
 
     /**
-     * Get checklist for a specific set (post)
+     * Get available checklist sections for a specific set (post)
      * @param {string} postId - Post ID
+     * @returns {Array} Array of section objects {id, name, description}
+     */
+    async getChecklistSections(postId) {
+        try {
+            const cacheKey = `checklist_sections_${postId}`;
+            if (this.cache.has(cacheKey)) {
+                return this.cache.get(cacheKey);
+            }
+
+            const response = await axios.get(`${this.baseUrl}/wp/v2/posts/${postId}`, {
+                timeout: 15000
+            });
+
+            const post = response.data;
+            const html = post.content.rendered;
+            const $ = cheerio.load(html);
+            const sections = [];
+
+            // Find all h3 headers which typically mark different checklist sections
+            $('h3').each((index, element) => {
+                const $header = $(element);
+                const sectionName = $header.text().trim();
+                
+                // Skip empty headers
+                if (!sectionName) return;
+                
+                // Create a section ID from the name (sanitized)
+                const sectionId = sectionName.toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+                
+                sections.push({
+                    id: sectionId,
+                    name: sectionName,
+                    description: '' // Could extract description from next paragraph if needed
+                });
+            });
+
+            // If no h3 headers found, create a default "Base Checklist" section
+            if (sections.length === 0) {
+                sections.push({
+                    id: 'base-checklist',
+                    name: 'Base Checklist',
+                    description: ''
+                });
+            }
+
+            // Cache for 1 hour
+            this.cache.set(cacheKey, sections);
+
+            console.log(`✅ Found ${sections.length} checklist sections for post ${postId}`);
+            return sections;
+
+        } catch (error) {
+            console.error(`❌ Error getting checklist sections for post ${postId}:`, error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Get checklist for a specific set (post) and optionally a specific section
+     * @param {string} postId - Post ID
+     * @param {string} sectionId - Optional section ID (e.g., 'base-checklist', 'parallels')
      * @returns {Array} Array of card objects {number, player, team}
      */
-    async getChecklist(postId) {
+    async getChecklist(postId, sectionId = null) {
         try {
-            const cacheKey = `checklist_${postId}`;
+            const cacheKey = `checklist_${postId}_${sectionId || 'all'}`;
             if (this.cache.has(cacheKey)) {
                 return this.cache.get(cacheKey);
             }
@@ -455,6 +518,46 @@ class ChecklistInsiderService {
             const $ = cheerio.load(html);
             const cards = [];
 
+            // If sectionId is provided, only parse content after that section's h3 header
+            let contentToParse = $;
+            if (sectionId) {
+                // Find the h3 header that matches this section
+                let $sectionStart = null;
+                $('h3').each((index, element) => {
+                    const $header = $(element);
+                    const headerText = $header.text().trim();
+                    const headerId = headerText.toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                    
+                    if (headerId === sectionId) {
+                        $sectionStart = $header;
+                        return false; // Break the loop
+                    }
+                });
+
+                if ($sectionStart && $sectionStart.length > 0) {
+                    // Get all content between this h3 and the next h3 (or end of document)
+                    const $sectionContent = $('<div>');
+                    let $current = $sectionStart.next();
+                    
+                    while ($current.length > 0) {
+                        // Stop if we hit another h3 (next section)
+                        if ($current.is('h3')) {
+                            break;
+                        }
+                        // Clone and append this element
+                        $sectionContent.append($current.clone());
+                        $current = $current.next();
+                    }
+                    
+                    contentToParse = cheerio.load($sectionContent.html() || '');
+                    console.log(`   📋 Parsing section "${sectionId}"`);
+                } else {
+                    console.log(`   ⚠️ Section "${sectionId}" not found, parsing entire checklist`);
+                }
+            }
+
             // Parse checklist from HTML - look for tables, lists, or text blocks
             // Common patterns: 
             // 1. Tables with card numbers, player names, teams
@@ -463,7 +566,7 @@ class ChecklistInsiderService {
             
             // Strategy 0: Look for text blocks with pattern "NUMBER Player Name - Team Name"
             // This is common in Checklist Insider posts
-            const textContent = $.text();
+            const textContent = contentToParse.text();
             const lines = textContent.split(/\n|\r|<br\s*\/?>/i);
             
             for (const line of lines) {
@@ -605,9 +708,95 @@ class ChecklistInsiderService {
                 }
             });
 
-            // Strategy 2: If no cards from text parsing, try tables
+            // Strategy 2: If no cards from text parsing, try tables (using contentToParse)
             if (cards.length === 0) {
-                $('ul li, ol li').each((index, element) => {
+                contentToParse('table tr').each((index, element) => {
+                    const $row = contentToParse(element);
+                    const $cells = $row.find('td, th');
+                    
+                    if ($cells.length >= 2) {
+                        const rowText = $row.text().trim().toLowerCase();
+                        
+                        // Skip header rows
+                        if (rowText.includes('card') && 
+                            (rowText.includes('player') || rowText.includes('#')) &&
+                            (rowText.includes('select') || rowText.includes('team'))) {
+                            return;
+                        }
+                        
+                        // Skip summary rows
+                        const summaryKeywords = [
+                            'cards per pack', 'packs per box', 'boxes per case',
+                            'autograph or relic', 'autograph and', 'total cards',
+                            'silver pack', 'silver packs', 'cards per', 'per pack', 'per box', 'per case'
+                        ];
+                        
+                        if (summaryKeywords.some(keyword => rowText.includes(keyword))) {
+                            return;
+                        }
+                        
+                        let number = '';
+                        let player = '';
+                        let team = '';
+                        
+                        const firstCell = $cells.eq(0).text().trim();
+                        if (firstCell.match(/^[\d\w]+$/)) {
+                            number = firstCell;
+                        }
+                        
+                        for (let i = 1; i < $cells.length; i++) {
+                            const cellText = $cells.eq(i).text().trim();
+                            if (cellText && !player) {
+                                const cellLower = cellText.toLowerCase();
+                                const isSummary = summaryKeywords.some(kw => cellLower.includes(kw)) ||
+                                                 cellText.includes(';') ||
+                                                 cellText.length > 60 ||
+                                                 cellLower.includes('total') ||
+                                                 cellLower.includes('autograph') ||
+                                                 cellLower.includes('relic');
+                                
+                                if (!isSummary && !cellText.match(/^\d+$/) && cellText.length < 60) {
+                                    player = cellText;
+                                }
+                            } else if (cellText && !team && player) {
+                                const cellLower = cellText.toLowerCase();
+                                const isSummary = cellText === 'N/A' ||
+                                                 cellText === 'n/a' ||
+                                                 summaryKeywords.some(kw => cellLower.includes(kw)) ||
+                                                 cellText.length > 60;
+                                
+                                if (!isSummary && cellText.length < 60 && !cellText.match(/^\d+$/)) {
+                                    team = cellText;
+                                }
+                            }
+                        }
+                        
+                        if (player && player.length > 0 && player.length < 60) {
+                            const playerLower = player.toLowerCase();
+                            const isValidPlayer = !summaryKeywords.some(kw => playerLower.includes(kw)) &&
+                                               !playerLower.includes(';') &&
+                                               !playerLower.includes('total') &&
+                                               !playerLower.includes('cards per') &&
+                                               !playerLower.includes('packs per') &&
+                                               !playerLower.includes('boxes per');
+                            
+                            if (isValidPlayer) {
+                                cards.push({
+                                    number: number || '',
+                                    player: player,
+                                    team: team || '',
+                                    tcdbId: null,
+                                    url: post.link
+                                });
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Strategy 3: If still no cards, try lists
+            if (cards.length === 0) {
+                contentToParse('ul li, ol li').each((index, element) => {
                     const text = $(element).text().trim();
                     // Look for patterns like "#1 Player Name" or "1. Player Name"
                     const match = text.match(/^#?(\d+[\w]*)\s+(.+?)(?:\s+-\s+(.+))?$/);
