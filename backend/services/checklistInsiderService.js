@@ -564,8 +564,9 @@ class ChecklistInsiderService {
             // 2. Text blocks like "1 Player Name - Team Name<br/>"
             // 3. Lists with card information
             
-            // Strategy 0: Look for text blocks with pattern "NUMBER Player Name - Team Name"
+            // Strategy 0: Look for text blocks with pattern "CARDNUMBER Player Name - Team Name"
             // This is common in Checklist Insider posts
+            // Card numbers can be: "1", "FPA-AB", "BSA-AA", "20", etc.
             const textContent = contentToParse.text();
             const lines = textContent.split(/\n|\r|<br\s*\/?>/i);
             
@@ -573,22 +574,47 @@ class ChecklistInsiderService {
                 const trimmed = line.trim();
                 if (!trimmed) continue;
                 
-                // Pattern: "NUMBER Player Name - Team Name" or "NUMBER Player Name - Team Name RC"
-                // Examples: "1 Shohei Ohtani - Los Angeles Dodgers", "6 Tyler Gentry - Kansas City Royals RC"
-                const cardMatch = trimmed.match(/^(\d+[\w]*)\s+(.+?)\s+-\s+(.+?)(?:\s+(RC|Rookie|Rookie Card))?$/i);
+                // Skip lines that are clearly odds/summary information
+                const lineLower = trimmed.toLowerCase();
+                const oddsKeywords = [
+                    'odds', '1:', 'hobby', 'jumbo', 'display', 'hanger', 'blaster', 'mega',
+                    'buy on ebay', 'cards.', 'packs.', 'parallels:', 'exclusive to'
+                ];
+                if (oddsKeywords.some(kw => lineLower.includes(kw))) {
+                    continue; // Skip odds/summary lines
+                }
+                
+                // Pattern: "CARDNUMBER Player Name - Team Name" or "CARDNUMBER Player Name - Team Name RC"
+                // Card number can be: digits only, or alphanumeric with dashes (e.g., "FPA-AB", "BSA-AA", "1", "20")
+                // Examples: 
+                // - "1 Shohei Ohtani - Los Angeles Dodgers"
+                // - "FPA-AB Adrían Beltré - Texas Rangers"
+                // - "BSA-AA Adael Amador - Colorado Rockies"
+                // - "6 Tyler Gentry - Kansas City Royals RC"
+                const cardMatch = trimmed.match(/^([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+(.+?)\s+-\s+(.+?)(?:\s+(RC|Rookie|Rookie Card))?$/i);
                 if (cardMatch) {
                     const number = cardMatch[1].trim();
                     const player = cardMatch[2].trim();
                     const team = cardMatch[3].trim();
-                    const isRookie = cardMatch[4] ? true : false;
                     
-                    // Skip if it looks like summary text
+                    // Additional validation: skip if player or team contains odds information
                     const playerLower = player.toLowerCase();
                     const teamLower = team.toLowerCase();
-                    const summaryKeywords = ['cards per pack', 'packs per box', 'total cards', 'autograph', 'relic', 'silver pack'];
-                    const isSummary = summaryKeywords.some(kw => playerLower.includes(kw) || teamLower.includes(kw));
+                    const summaryKeywords = [
+                        'cards per pack', 'packs per box', 'total cards', 'autograph', 'relic', 'silver pack',
+                        'odds', '1:', 'hobby', 'jumbo', 'display', 'hanger', 'blaster', 'mega',
+                        'buy on ebay', 'cards.', 'packs.', 'parallels:', 'exclusive to', 'print run'
+                    ];
+                    const isSummary = summaryKeywords.some(kw => 
+                        playerLower.includes(kw) || teamLower.includes(kw) ||
+                        playerLower.includes(';') || teamLower.includes(';') // Odds often have semicolons
+                    );
                     
-                    if (!isSummary && player.length > 0 && player.length < 100) {
+                    // Skip if player name is too long (likely contains odds info) or contains numbers with colons (odds)
+                    const hasOddsPattern = /\d+:\d+/.test(player) || /\d+:\d+/.test(team);
+                    const isTooLong = player.length > 80 || team.length > 80;
+                    
+                    if (!isSummary && !hasOddsPattern && !isTooLong && player.length > 0 && player.length < 100) {
                         cards.push({
                             number: number,
                             player: player,
