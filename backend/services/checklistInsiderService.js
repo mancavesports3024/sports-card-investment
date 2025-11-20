@@ -129,34 +129,54 @@ class ChecklistInsiderService {
                 console.log(`   🔍 Searching ${categoryIds.length} categories: ${categoryIds.join(', ')}`);
                 const categoryResults = [];
                 
-                // Fetch all categories in parallel
+                // Fetch all categories in parallel with retry logic
                 const categoryPromises = categoryIds.map(async (catId) => {
-                    try {
-                        console.log(`   🔍 Fetching posts for category ${catId}...`);
-                        const catResponse = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
-                            params: {
-                                categories: catId,
-                                per_page: 100, // WordPress API max is 100
-                                orderby: 'date',
-                                order: 'desc'
-                            },
-                            timeout: 15000
-                        });
-                        
-                        const postCount = catResponse.data ? catResponse.data.length : 0;
-                        const result = { id: catId, count: postCount, posts: catResponse.data || [] };
-                        
-                        if (postCount > 0) {
-                            console.log(`   ✅ Category ${catId}: Found ${postCount} posts`);
-                        } else {
-                            console.log(`   ⚠️ Category ${catId}: Found 0 posts (API returned empty array)`);
+                    const maxRetries = 2;
+                    let lastError = null;
+                    
+                    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                        try {
+                            const timeout = attempt === 1 ? 30000 : 45000; // 30s first try, 45s retry
+                            console.log(`   🔍 Fetching posts for category ${catId} (attempt ${attempt}/${maxRetries}, timeout: ${timeout}ms)...`);
+                            
+                            const catResponse = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
+                                params: {
+                                    categories: catId,
+                                    per_page: 100, // WordPress API max is 100
+                                    orderby: 'date',
+                                    order: 'desc'
+                                },
+                                timeout: timeout
+                            });
+                            
+                            const postCount = catResponse.data ? catResponse.data.length : 0;
+                            const result = { id: catId, count: postCount, posts: catResponse.data || [] };
+                            
+                            if (postCount > 0) {
+                                console.log(`   ✅ Category ${catId}: Found ${postCount} posts`);
+                            } else {
+                                console.log(`   ⚠️ Category ${catId}: Found 0 posts (API returned empty array)`);
+                            }
+                            
+                            return result;
+                        } catch (e) {
+                            lastError = e;
+                            if (e.code === 'ECONNABORTED' || e.message.includes('timeout')) {
+                                console.log(`   ⏱️ Category ${catId} timeout on attempt ${attempt}, ${attempt < maxRetries ? 'retrying...' : 'giving up'}`);
+                                if (attempt < maxRetries) {
+                                    // Wait a bit before retry
+                                    await new Promise(resolve => setTimeout(resolve, 2000));
+                                    continue;
+                                }
+                            } else {
+                                console.log(`   ❌ Category ${catId} failed on attempt ${attempt}: ${e.message}`);
+                                break; // Don't retry for non-timeout errors
+                            }
                         }
-                        
-                        return result;
-                    } catch (e) {
-                        console.log(`   ❌ Category ${catId} failed: ${e.message}`);
-                        return { id: catId, count: 0, posts: [], error: e.message };
                     }
+                    
+                    console.log(`   ❌ Category ${catId} failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
+                    return { id: catId, count: 0, posts: [], error: lastError?.message || 'Unknown error' };
                 });
                 
                 // Wait for all category fetches to complete
