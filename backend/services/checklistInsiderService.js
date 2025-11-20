@@ -64,6 +64,32 @@ class ChecklistInsiderService {
     }
 
     /**
+     * Get subcategories for a parent category
+     * @param {number} parentId - Parent category ID
+     * @returns {Array} Array of subcategory objects
+     */
+    async getSubcategories(parentId) {
+        try {
+            const response = await axios.get(`${this.baseUrl}/wp/v2/categories`, {
+                params: {
+                    parent: parentId,
+                    per_page: 100
+                },
+                timeout: 10000
+            });
+            return response.data.map(cat => ({
+                id: cat.id,
+                name: cat.name,
+                slug: cat.slug,
+                count: cat.count
+            }));
+        } catch (error) {
+            console.error(`❌ Error getting subcategories for ${parentId}:`, error.message);
+            return [];
+        }
+    }
+
+    /**
      * Get years for a specific sport (by searching posts)
      * @param {string} sportId - Sport category ID
      * @param {string} sportName - Sport name (for filtering)
@@ -76,6 +102,20 @@ class ChecklistInsiderService {
                 return this.cache.get(cacheKey);
             }
 
+            // First, check if there are subcategories (posts might be in subcategories)
+            console.log(`   🔍 Checking for subcategories of category ${sportId}...`);
+            const subcategories = await this.getSubcategories(sportId);
+            console.log(`   📋 Found ${subcategories.length} subcategories`);
+            
+            // Collect all category IDs to search (parent + subcategories)
+            const categoryIds = [parseInt(sportId)];
+            if (subcategories.length > 0) {
+                subcategories.forEach(sub => {
+                    categoryIds.push(sub.id);
+                    console.log(`      - ${sub.name} (ID: ${sub.id}, ${sub.count} posts)`);
+                });
+            }
+
             // Get recent posts to extract years
             // Try multiple strategies: by category ID, by search term, and without filter
             console.log(`   🔍 Fetching posts for category ID ${sportId} (${sportName})...`);
@@ -83,19 +123,33 @@ class ChecklistInsiderService {
             let response = null;
             let posts = [];
             
-            // Strategy 1: Filter by category ID
+            // Strategy 1: Filter by category ID and all subcategories
             try {
-                response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
-                    params: {
-                        categories: sportId,
-                        per_page: 100,
-                        orderby: 'date',
-                        order: 'desc'
-                    },
-                    timeout: 15000
-                });
-                posts = response.data;
-                console.log(`   📄 Strategy 1 (category filter): Received ${posts.length} posts`);
+                // Try each category ID (parent + subcategories)
+                for (const catId of categoryIds) {
+                    try {
+                        response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
+                            params: {
+                                categories: catId,
+                                per_page: 100,
+                                orderby: 'date',
+                                order: 'desc'
+                            },
+                            timeout: 15000
+                        });
+                        if (response.data.length > 0) {
+                            posts = posts.concat(response.data);
+                            console.log(`   📄 Category ${catId}: Found ${response.data.length} posts`);
+                        }
+                    } catch (e) {
+                        // Continue to next category
+                    }
+                }
+                
+                // Remove duplicates by post ID
+                const uniquePosts = Array.from(new Map(posts.map(p => [p.id, p])).values());
+                posts = uniquePosts;
+                console.log(`   📄 Strategy 1 (category filter): Total ${posts.length} unique posts`);
             } catch (e) {
                 console.log(`   ⚠️ Strategy 1 failed: ${e.message}`);
             }
