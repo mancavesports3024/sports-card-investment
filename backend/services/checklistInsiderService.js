@@ -77,33 +77,97 @@ class ChecklistInsiderService {
             }
 
             // Get recent posts to extract years
-            console.log(`   🔍 Fetching posts for category ID ${sportId}...`);
-            const response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
-                params: {
-                    categories: sportId,
-                    per_page: 100,
-                    orderby: 'date',
-                    order: 'desc'
-                },
-                timeout: 15000
-            });
-
-            console.log(`   📄 Received ${response.data.length} posts from Checklist Insider`);
+            // Try multiple strategies: by category ID, by search term, and without filter
+            console.log(`   🔍 Fetching posts for category ID ${sportId} (${sportName})...`);
+            
+            let response = null;
+            let posts = [];
+            
+            // Strategy 1: Filter by category ID
+            try {
+                response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
+                    params: {
+                        categories: sportId,
+                        per_page: 100,
+                        orderby: 'date',
+                        order: 'desc'
+                    },
+                    timeout: 15000
+                });
+                posts = response.data;
+                console.log(`   📄 Strategy 1 (category filter): Received ${posts.length} posts`);
+            } catch (e) {
+                console.log(`   ⚠️ Strategy 1 failed: ${e.message}`);
+            }
+            
+            // Strategy 2: If no posts, try searching by sport name
+            if (posts.length === 0) {
+                try {
+                    const searchTerm = sportName.replace(/\s+Cards?$/i, '').toLowerCase(); // "Baseball Cards" -> "baseball"
+                    console.log(`   🔍 Strategy 2: Searching for posts with "${searchTerm}"...`);
+                    response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
+                        params: {
+                            search: searchTerm,
+                            per_page: 100,
+                            orderby: 'date',
+                            order: 'desc'
+                        },
+                        timeout: 15000
+                    });
+                    posts = response.data;
+                    console.log(`   📄 Strategy 2 (search): Received ${posts.length} posts`);
+                } catch (e) {
+                    console.log(`   ⚠️ Strategy 2 failed: ${e.message}`);
+                }
+            }
+            
+            // Strategy 3: If still no posts, try getting all recent posts (no filter)
+            if (posts.length === 0) {
+                try {
+                    console.log(`   🔍 Strategy 3: Getting all recent posts...`);
+                    response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
+                        params: {
+                            per_page: 100,
+                            orderby: 'date',
+                            order: 'desc'
+                        },
+                        timeout: 15000
+                    });
+                    // Filter posts that might be related to this sport
+                    const searchTerm = sportName.replace(/\s+Cards?$/i, '').toLowerCase();
+                    posts = response.data.filter(post => {
+                        const title = (post.title.rendered || '').toLowerCase();
+                        const content = (post.content.rendered || '').toLowerCase();
+                        return title.includes(searchTerm) || content.includes(searchTerm);
+                    });
+                    console.log(`   📄 Strategy 3 (all posts, filtered): Received ${posts.length} posts`);
+                } catch (e) {
+                    console.log(`   ⚠️ Strategy 3 failed: ${e.message}`);
+                }
+            }
+            
+            console.log(`   📄 Total posts found: ${posts.length}`);
             
             // Extract years from post titles (e.g., "2025 Topps", "2024 Panini")
             const years = new Set();
             const currentYear = new Date().getFullYear();
             
             // Log first few post titles for debugging
-            if (response.data.length > 0) {
+            if (posts.length > 0) {
                 console.log(`   📋 Sample post titles:`);
-                response.data.slice(0, 5).forEach((post, i) => {
+                posts.slice(0, 5).forEach((post, i) => {
                     const title = post.title.rendered || '';
-                    console.log(`      ${i + 1}. ${title.replace(/<[^>]*>/g, '')}`);
+                    const cleanTitle = title.replace(/<[^>]*>/g, '');
+                    console.log(`      ${i + 1}. ${cleanTitle}`);
                 });
+            } else {
+                console.log(`   ⚠️ No posts found for ${sportName}. This might mean:`);
+                console.log(`      - Checklist Insider doesn't have posts in this category`);
+                console.log(`      - The category ID (${sportId}) might be incorrect`);
+                console.log(`      - Posts might be in a different category structure`);
             }
             
-            response.data.forEach(post => {
+            posts.forEach(post => {
                 const title = post.title.rendered || '';
                 const cleanTitle = title.replace(/<[^>]*>/g, ''); // Remove HTML tags
                 // Look for 4-digit years (1900-2100)
