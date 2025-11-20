@@ -127,8 +127,11 @@ class ChecklistInsiderService {
             try {
                 // Try each category ID (parent + subcategories)
                 console.log(`   🔍 Searching ${categoryIds.length} categories: ${categoryIds.join(', ')}`);
+                const categoryResults = [];
+                
                 for (const catId of categoryIds) {
                     try {
+                        console.log(`   🔍 Fetching posts for category ${catId}...`);
                         const catResponse = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
                             params: {
                                 categories: catId,
@@ -138,14 +141,19 @@ class ChecklistInsiderService {
                             },
                             timeout: 15000
                         });
-                        if (catResponse.data && catResponse.data.length > 0) {
+                        
+                        const postCount = catResponse.data ? catResponse.data.length : 0;
+                        categoryResults.push({ id: catId, count: postCount });
+                        
+                        if (postCount > 0) {
                             posts = posts.concat(catResponse.data);
-                            console.log(`   📄 Category ${catId}: Found ${catResponse.data.length} posts`);
+                            console.log(`   ✅ Category ${catId}: Found ${postCount} posts`);
                         } else {
-                            console.log(`   📄 Category ${catId}: Found 0 posts`);
+                            console.log(`   ⚠️ Category ${catId}: Found 0 posts (might be empty or API issue)`);
                         }
                     } catch (e) {
-                        console.log(`   ⚠️ Category ${catId} failed: ${e.message}`);
+                        console.log(`   ❌ Category ${catId} failed: ${e.message}`);
+                        categoryResults.push({ id: catId, count: 0, error: e.message });
                         // Continue to next category
                     }
                 }
@@ -153,7 +161,9 @@ class ChecklistInsiderService {
                 // Remove duplicates by post ID
                 const uniquePosts = Array.from(new Map(posts.map(p => [p.id, p])).values());
                 posts = uniquePosts;
-                console.log(`   📄 Strategy 1 (category filter): Total ${posts.length} unique posts from ${categoryIds.length} categories`);
+                
+                const totalFromCategories = categoryResults.reduce((sum, r) => sum + r.count, 0);
+                console.log(`   📊 Summary: ${totalFromCategories} total posts from ${categoryResults.length} categories, ${posts.length} unique after deduplication`);
             } catch (e) {
                 console.log(`   ⚠️ Strategy 1 failed: ${e.message}`);
             }
