@@ -126,9 +126,10 @@ class ChecklistInsiderService {
             // Strategy 1: Filter by category ID and all subcategories
             try {
                 // Try each category ID (parent + subcategories)
+                console.log(`   🔍 Searching ${categoryIds.length} categories: ${categoryIds.join(', ')}`);
                 for (const catId of categoryIds) {
                     try {
-                        response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
+                        const catResponse = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
                             params: {
                                 categories: catId,
                                 per_page: 100,
@@ -137,11 +138,14 @@ class ChecklistInsiderService {
                             },
                             timeout: 15000
                         });
-                        if (response.data.length > 0) {
-                            posts = posts.concat(response.data);
-                            console.log(`   📄 Category ${catId}: Found ${response.data.length} posts`);
+                        if (catResponse.data && catResponse.data.length > 0) {
+                            posts = posts.concat(catResponse.data);
+                            console.log(`   📄 Category ${catId}: Found ${catResponse.data.length} posts`);
+                        } else {
+                            console.log(`   📄 Category ${catId}: Found 0 posts`);
                         }
                     } catch (e) {
+                        console.log(`   ⚠️ Category ${catId} failed: ${e.message}`);
                         // Continue to next category
                     }
                 }
@@ -149,7 +153,7 @@ class ChecklistInsiderService {
                 // Remove duplicates by post ID
                 const uniquePosts = Array.from(new Map(posts.map(p => [p.id, p])).values());
                 posts = uniquePosts;
-                console.log(`   📄 Strategy 1 (category filter): Total ${posts.length} unique posts`);
+                console.log(`   📄 Strategy 1 (category filter): Total ${posts.length} unique posts from ${categoryIds.length} categories`);
             } catch (e) {
                 console.log(`   ⚠️ Strategy 1 failed: ${e.message}`);
             }
