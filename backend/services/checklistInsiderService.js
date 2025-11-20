@@ -591,6 +591,7 @@ class ChecklistInsiderService {
                 if (!cardMatch) {
                     // Strategy: Find all potential card patterns, then validate each one
                     // Look for pattern: NUMBER/CODE + Player Name (capitalized, 2-40 chars) + " - " + Team Name (capitalized, 2-50 chars)
+                    // Use a more restrictive pattern that requires player/team to look like actual names
                     const flexiblePattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z][A-Za-z\s\.'-]{2,40}?)\s+-\s+([A-Z][A-Za-z\s\.'-]{2,50}?)(?:\s+(RC|Rookie|Rookie Card))?/gi;
                     let matches = [];
                     let match;
@@ -603,33 +604,49 @@ class ChecklistInsiderService {
                         // Try matches from end to start (last match is usually the actual card)
                         for (let i = matches.length - 1; i >= 0; i--) {
                             const testMatch = matches[i];
+                            const testNumber = testMatch[1].trim();
                             const testPlayer = testMatch[2].trim();
                             const testTeam = testMatch[3].trim();
                             const testPlayerLower = testPlayer.toLowerCase();
                             const testTeamLower = testTeam.toLowerCase();
                             
-                            // Skip if player/team contains summary keywords
+                            // Skip if player/team contains summary keywords (be more specific)
                             const summaryKeywords = [
-                                'cards', 'lists', 'all rookie', 'from base set', 'above',
+                                'cards.', 'cards per', 'lists all', 'all rookie', 'from base set', 'above',
                                 'odds', '1:', 'hobby', 'jumbo', 'display', 'hanger', 'blaster', 'mega',
-                                'buy on ebay', 'packs.', 'parallels:', 'exclusive to', 'print run'
+                                'buy on ebay', 'packs.', 'parallels:', 'exclusive to', 'print run',
+                                'foil pattern', 'crackle', 'diamante', 'holo foil'
                             ];
                             const hasSummary = summaryKeywords.some(kw => 
-                                testPlayerLower.includes(kw) || testTeamLower.includes(kw) ||
-                                testPlayerLower.startsWith('cards') || testTeamLower.startsWith('cards') ||
-                                testPlayerLower.startsWith('lists') || testTeamLower.startsWith('lists')
+                                testPlayerLower.includes(kw) || testTeamLower.includes(kw)
                             );
+                            
+                            // Skip if player/team starts with summary words
+                            const startsWithSummary = testPlayerLower.startsWith('cards') || 
+                                                    testPlayerLower.startsWith('lists') ||
+                                                    testPlayerLower.startsWith('parallels') ||
+                                                    testTeamLower.startsWith('cards') ||
+                                                    testTeamLower.startsWith('odds');
                             
                             // Skip if it has semicolons or odds patterns
                             const hasSemicolons = testPlayer.includes(';') || testTeam.includes(';');
                             const hasOddsPattern = /\d+:\d+/.test(testPlayer) || /\d+:\d+/.test(testTeam);
                             
+                            // Skip if player/team are too long (likely contains extra text)
+                            const isTooLong = testPlayer.length > 50 || testTeam.length > 50;
+                            
+                            // Additional validation: player and team should look like actual names
+                            // They should start with capital letter, contain mostly letters, and not be too short
+                            const looksLikeName = /^[A-Z][A-Za-z\s\.'-]{1,}$/.test(testPlayer) && 
+                                                 /^[A-Z][A-Za-z\s\.'-]{1,}$/.test(testTeam) &&
+                                                 testPlayer.length >= 2 && testPlayer.length <= 50 &&
+                                                 testTeam.length >= 2 && testTeam.length <= 50 &&
+                                                 // Player should have at least 2 consecutive letters (not just "cards.Lists")
+                                                 /[A-Za-z]{2,}/.test(testPlayer) && /[A-Za-z]{2,}/.test(testTeam);
+                            
                             // If this looks like a valid card, use it
-                            if (!hasSummary && !hasSemicolons && !hasOddsPattern &&
-                                testPlayer.length >= 2 && testPlayer.length <= 50 &&
-                                testTeam.length >= 2 && testTeam.length <= 50 &&
-                                /^[A-Z]/.test(testPlayer) && /^[A-Z]/.test(testTeam) &&
-                                /[A-Za-z]{2,}/.test(testPlayer) && /[A-Za-z]{2,}/.test(testTeam)) {
+                            if (!hasSummary && !startsWithSummary && !hasSemicolons && !hasOddsPattern && 
+                                !isTooLong && looksLikeName) {
                                 cardMatch = testMatch;
                                 break; // Use the first valid match (from the end)
                             }
