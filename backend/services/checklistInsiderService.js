@@ -589,23 +589,50 @@ class ChecklistInsiderService {
                 // If no match at start, try to find card pattern anywhere in the line
                 // This handles cases like "62 cards. ... 6 Tyler Gentry - Kansas City Royals"
                 if (!cardMatch) {
-                    // Look for card pattern anywhere in the line (after summary text)
-                    // Pattern: number/letter code, then player name, then dash, then team
-                    const cardPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z][A-Za-z\s\.'-]+?)\s+-\s+([A-Z][A-Za-z\s\.'-]+?)(?:\s+(RC|Rookie|Rookie Card))?$/i;
-                    cardMatch = trimmed.match(cardPattern);
+                    // Strategy: Find all potential card patterns, then validate each one
+                    // Look for pattern: NUMBER/CODE + Player Name (capitalized, 2-40 chars) + " - " + Team Name (capitalized, 2-50 chars)
+                    const flexiblePattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z][A-Za-z\s\.'-]{2,40}?)\s+-\s+([A-Z][A-Za-z\s\.'-]{2,50}?)(?:\s+(RC|Rookie|Rookie Card))?/gi;
+                    let matches = [];
+                    let match;
+                    while ((match = flexiblePattern.exec(trimmed)) !== null) {
+                        matches.push(match);
+                    }
                     
-                    // If still no match, try a more flexible pattern that allows for text before the card
-                    if (!cardMatch) {
-                        // Find the last occurrence of a pattern that looks like "NUMBER Player - Team"
-                        const flexiblePattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z][A-Za-z\s\.'-]{2,40}?)\s+-\s+([A-Z][A-Za-z\s\.'-]{2,50}?)(?:\s+(RC|Rookie|Rookie Card))?/gi;
-                        let matches = [];
-                        let match;
-                        while ((match = flexiblePattern.exec(trimmed)) !== null) {
-                            matches.push(match);
-                        }
-                        // Use the last match (most likely to be the actual card)
-                        if (matches.length > 0) {
-                            cardMatch = matches[matches.length - 1];
+                    // Validate each match to find the actual card (not summary text)
+                    if (matches.length > 0) {
+                        // Try matches from end to start (last match is usually the actual card)
+                        for (let i = matches.length - 1; i >= 0; i--) {
+                            const testMatch = matches[i];
+                            const testPlayer = testMatch[2].trim();
+                            const testTeam = testMatch[3].trim();
+                            const testPlayerLower = testPlayer.toLowerCase();
+                            const testTeamLower = testTeam.toLowerCase();
+                            
+                            // Skip if player/team contains summary keywords
+                            const summaryKeywords = [
+                                'cards', 'lists', 'all rookie', 'from base set', 'above',
+                                'odds', '1:', 'hobby', 'jumbo', 'display', 'hanger', 'blaster', 'mega',
+                                'buy on ebay', 'packs.', 'parallels:', 'exclusive to', 'print run'
+                            ];
+                            const hasSummary = summaryKeywords.some(kw => 
+                                testPlayerLower.includes(kw) || testTeamLower.includes(kw) ||
+                                testPlayerLower.startsWith('cards') || testTeamLower.startsWith('cards') ||
+                                testPlayerLower.startsWith('lists') || testTeamLower.startsWith('lists')
+                            );
+                            
+                            // Skip if it has semicolons or odds patterns
+                            const hasSemicolons = testPlayer.includes(';') || testTeam.includes(';');
+                            const hasOddsPattern = /\d+:\d+/.test(testPlayer) || /\d+:\d+/.test(testTeam);
+                            
+                            // If this looks like a valid card, use it
+                            if (!hasSummary && !hasSemicolons && !hasOddsPattern &&
+                                testPlayer.length >= 2 && testPlayer.length <= 50 &&
+                                testTeam.length >= 2 && testTeam.length <= 50 &&
+                                /^[A-Z]/.test(testPlayer) && /^[A-Z]/.test(testTeam) &&
+                                /[A-Za-z]{2,}/.test(testPlayer) && /[A-Za-z]{2,}/.test(testTeam)) {
+                                cardMatch = testMatch;
+                                break; // Use the first valid match (from the end)
+                            }
                         }
                     }
                 }
