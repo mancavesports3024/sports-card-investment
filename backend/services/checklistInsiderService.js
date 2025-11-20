@@ -574,16 +574,6 @@ class ChecklistInsiderService {
                 const trimmed = line.trim();
                 if (!trimmed) continue;
                 
-                // Skip lines that are clearly odds/summary information
-                const lineLower = trimmed.toLowerCase();
-                const oddsKeywords = [
-                    'odds', '1:', 'hobby', 'jumbo', 'display', 'hanger', 'blaster', 'mega',
-                    'buy on ebay', 'cards.', 'packs.', 'parallels:', 'exclusive to'
-                ];
-                if (oddsKeywords.some(kw => lineLower.includes(kw))) {
-                    continue; // Skip odds/summary lines
-                }
-                
                 // Pattern: "CARDNUMBER Player Name - Team Name" or "CARDNUMBER Player Name - Team Name RC"
                 // Card number can be: digits only, or alphanumeric with dashes (e.g., "FPA-AB", "BSA-AA", "1", "20")
                 // Examples: 
@@ -597,24 +587,36 @@ class ChecklistInsiderService {
                     const player = cardMatch[2].trim();
                     const team = cardMatch[3].trim();
                     
-                    // Additional validation: skip if player or team contains odds information
+                    // Check if this looks like a valid card (not odds/summary info)
                     const playerLower = player.toLowerCase();
                     const teamLower = team.toLowerCase();
+                    const lineLower = trimmed.toLowerCase();
+                    
+                    // Skip if the line contains odds patterns BEFORE the card match
+                    // (e.g., "Odds 1:150. 1 Player Name - Team" would be caught here)
+                    const hasOddsBeforeCard = /(?:odds|1:\d+|hobby|jumbo|display|hanger|blaster|mega|buy on ebay|cards\.|packs\.|parallels?:|exclusive to)/i.test(trimmed.substring(0, trimmed.indexOf(number) + number.length + 20));
+                    
+                    // Skip if player or team contains odds information
                     const summaryKeywords = [
-                        'cards per pack', 'packs per box', 'total cards', 'autograph', 'relic', 'silver pack',
+                        'cards per pack', 'packs per box', 'total cards', 'silver pack',
                         'odds', '1:', 'hobby', 'jumbo', 'display', 'hanger', 'blaster', 'mega',
                         'buy on ebay', 'cards.', 'packs.', 'parallels:', 'exclusive to', 'print run'
                     ];
                     const isSummary = summaryKeywords.some(kw => 
-                        playerLower.includes(kw) || teamLower.includes(kw) ||
-                        playerLower.includes(';') || teamLower.includes(';') // Odds often have semicolons
+                        playerLower.includes(kw) || teamLower.includes(kw)
                     );
+                    
+                    // Skip if player or team has semicolons (odds often use semicolons)
+                    const hasSemicolons = player.includes(';') || team.includes(';');
                     
                     // Skip if player name is too long (likely contains odds info) or contains numbers with colons (odds)
                     const hasOddsPattern = /\d+:\d+/.test(player) || /\d+:\d+/.test(team);
                     const isTooLong = player.length > 80 || team.length > 80;
                     
-                    if (!isSummary && !hasOddsPattern && !isTooLong && player.length > 0 && player.length < 100) {
+                    // Only skip if it's clearly not a card - be more lenient to avoid missing valid cards
+                    if (!hasOddsBeforeCard && !isSummary && !hasSemicolons && !hasOddsPattern && !isTooLong && 
+                        player.length > 0 && player.length < 100 && 
+                        !playerLower.startsWith('cards') && !teamLower.startsWith('cards')) {
                         cards.push({
                             number: number,
                             player: player,
@@ -622,6 +624,24 @@ class ChecklistInsiderService {
                             tcdbId: null,
                             url: post.link
                         });
+                    } else {
+                        // Log skipped lines for debugging (only first few to avoid spam)
+                        if (cards.length < 3) {
+                            console.log(`   ⏭️ Skipped line: "${trimmed.substring(0, 80)}..." (hasOddsBeforeCard: ${hasOddsBeforeCard}, isSummary: ${isSummary}, hasSemicolons: ${hasSemicolons}, hasOddsPattern: ${hasOddsPattern}, isTooLong: ${isTooLong})`);
+                        }
+                    }
+                } else {
+                    // If it doesn't match card pattern, check if it's clearly odds to skip it
+                    const lineLower = trimmed.toLowerCase();
+                    const oddsKeywords = [
+                        'odds', '1:', 'hobby', 'jumbo', 'display', 'hanger', 'blaster', 'mega',
+                        'buy on ebay', 'cards.', 'packs.', 'parallels:', 'exclusive to'
+                    ];
+                    // Only skip if it's clearly odds AND doesn't look like it could be a card
+                    if (oddsKeywords.some(kw => lineLower.includes(kw)) && 
+                        !lineLower.match(/^[a-z0-9]+(?:-[a-z0-9]+)?\s+[a-z]/i)) {
+                        // This is likely odds info, skip it
+                        continue;
                     }
                 }
             }
