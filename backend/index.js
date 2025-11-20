@@ -1,4 +1,4 @@
-// Trigger redeploy - Summary title fix deployment
+// Trigger redeploy - Checklist parsing fixes
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
