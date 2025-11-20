@@ -581,7 +581,35 @@ class ChecklistInsiderService {
                 // - "FPA-AB Adrían Beltré - Texas Rangers"
                 // - "BSA-AA Adael Amador - Colorado Rockies"
                 // - "6 Tyler Gentry - Kansas City Royals RC"
-                const cardMatch = trimmed.match(/^([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+(.+?)\s+-\s+(.+?)(?:\s+(RC|Rookie|Rookie Card))?$/i);
+                // - "62 cards.Lists all rookie cards from base set above. 6 Tyler Gentry - Kansas City Royals" (card embedded in summary)
+                
+                // First, try to match card pattern at the start of the line
+                let cardMatch = trimmed.match(/^([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+(.+?)\s+-\s+(.+?)(?:\s+(RC|Rookie|Rookie Card))?$/i);
+                
+                // If no match at start, try to find card pattern anywhere in the line
+                // This handles cases like "62 cards. ... 6 Tyler Gentry - Kansas City Royals"
+                if (!cardMatch) {
+                    // Look for card pattern anywhere in the line (after summary text)
+                    // Pattern: number/letter code, then player name, then dash, then team
+                    const cardPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z][A-Za-z\s\.'-]+?)\s+-\s+([A-Z][A-Za-z\s\.'-]+?)(?:\s+(RC|Rookie|Rookie Card))?$/i;
+                    cardMatch = trimmed.match(cardPattern);
+                    
+                    // If still no match, try a more flexible pattern that allows for text before the card
+                    if (!cardMatch) {
+                        // Find the last occurrence of a pattern that looks like "NUMBER Player - Team"
+                        const flexiblePattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z][A-Za-z\s\.'-]{2,40}?)\s+-\s+([A-Z][A-Za-z\s\.'-]{2,50}?)(?:\s+(RC|Rookie|Rookie Card))?/gi;
+                        let matches = [];
+                        let match;
+                        while ((match = flexiblePattern.exec(trimmed)) !== null) {
+                            matches.push(match);
+                        }
+                        // Use the last match (most likely to be the actual card)
+                        if (matches.length > 0) {
+                            cardMatch = matches[matches.length - 1];
+                        }
+                    }
+                }
+                
                 if (cardMatch) {
                     const number = cardMatch[1].trim();
                     const player = cardMatch[2].trim();
@@ -590,17 +618,13 @@ class ChecklistInsiderService {
                     // Check if this looks like a valid card (not odds/summary info)
                     const playerLower = player.toLowerCase();
                     const teamLower = team.toLowerCase();
-                    const lineLower = trimmed.toLowerCase();
-                    
-                    // Skip if the line contains odds patterns BEFORE the card match
-                    // (e.g., "Odds 1:150. 1 Player Name - Team" would be caught here)
-                    const hasOddsBeforeCard = /(?:odds|1:\d+|hobby|jumbo|display|hanger|blaster|mega|buy on ebay|cards\.|packs\.|parallels?:|exclusive to)/i.test(trimmed.substring(0, trimmed.indexOf(number) + number.length + 20));
                     
                     // Skip if player or team contains odds information
                     const summaryKeywords = [
                         'cards per pack', 'packs per box', 'total cards', 'silver pack',
                         'odds', '1:', 'hobby', 'jumbo', 'display', 'hanger', 'blaster', 'mega',
-                        'buy on ebay', 'cards.', 'packs.', 'parallels:', 'exclusive to', 'print run'
+                        'buy on ebay', 'cards.', 'packs.', 'parallels:', 'exclusive to', 'print run',
+                        'lists all', 'all rookie cards', 'from base set'
                     ];
                     const isSummary = summaryKeywords.some(kw => 
                         playerLower.includes(kw) || teamLower.includes(kw)
@@ -613,10 +637,19 @@ class ChecklistInsiderService {
                     const hasOddsPattern = /\d+:\d+/.test(player) || /\d+:\d+/.test(team);
                     const isTooLong = player.length > 80 || team.length > 80;
                     
+                    // Additional check: if player or team starts with common summary words, skip
+                    const startsWithSummary = playerLower.startsWith('cards') || 
+                                            playerLower.startsWith('lists') ||
+                                            teamLower.startsWith('cards') ||
+                                            teamLower.startsWith('odds');
+                    
                     // Only skip if it's clearly not a card - be more lenient to avoid missing valid cards
-                    if (!hasOddsBeforeCard && !isSummary && !hasSemicolons && !hasOddsPattern && !isTooLong && 
+                    if (!isSummary && !hasSemicolons && !hasOddsPattern && !isTooLong && !startsWithSummary &&
                         player.length > 0 && player.length < 100 && 
-                        !playerLower.startsWith('cards') && !teamLower.startsWith('cards')) {
+                        player.length >= 2 && team.length >= 2 &&
+                        // Make sure player and team look like names (start with capital letter, contain letters)
+                        /^[A-Z]/.test(player) && /^[A-Z]/.test(team) &&
+                        /[A-Za-z]/.test(player) && /[A-Za-z]/.test(team)) {
                         cards.push({
                             number: number,
                             player: player,
@@ -627,7 +660,7 @@ class ChecklistInsiderService {
                     } else {
                         // Log skipped lines for debugging (only first few to avoid spam)
                         if (cards.length < 3) {
-                            console.log(`   ⏭️ Skipped line: "${trimmed.substring(0, 80)}..." (hasOddsBeforeCard: ${hasOddsBeforeCard}, isSummary: ${isSummary}, hasSemicolons: ${hasSemicolons}, hasOddsPattern: ${hasOddsPattern}, isTooLong: ${isTooLong})`);
+                            console.log(`   ⏭️ Skipped line: "${trimmed.substring(0, 100)}..." (isSummary: ${isSummary}, hasSemicolons: ${hasSemicolons}, hasOddsPattern: ${hasOddsPattern}, isTooLong: ${isTooLong}, startsWithSummary: ${startsWithSummary})`);
                         }
                     }
                 } else {
@@ -639,7 +672,7 @@ class ChecklistInsiderService {
                     ];
                     // Only skip if it's clearly odds AND doesn't look like it could be a card
                     if (oddsKeywords.some(kw => lineLower.includes(kw)) && 
-                        !lineLower.match(/^[a-z0-9]+(?:-[a-z0-9]+)?\s+[a-z]/i)) {
+                        !lineLower.match(/[a-z0-9]+(?:-[a-z0-9]+)?\s+[a-z]/i)) {
                         // This is likely odds info, skip it
                         continue;
                     }
