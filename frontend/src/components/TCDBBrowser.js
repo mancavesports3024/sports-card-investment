@@ -5,18 +5,20 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://web-production-9e
 
 const TCDBBrowser = () => {
   // Step tracking
-  const [currentStep, setCurrentStep] = useState('sport'); // sport -> year -> set -> checklist
+  const [currentStep, setCurrentStep] = useState('sport'); // sport -> year -> set -> checklist-section -> checklist
   
   // Data states
   const [sports, setSports] = useState([]);
   const [years, setYears] = useState([]);
   const [sets, setSets] = useState([]);
+  const [checklistSections, setChecklistSections] = useState([]);
   const [checklist, setChecklist] = useState([]);
   
   // Selected values
   const [selectedSport, setSelectedSport] = useState(null);
   const [selectedYear, setSelectedYear] = useState(null);
   const [selectedSet, setSelectedSet] = useState(null);
+  const [selectedSection, setSelectedSection] = useState(null);
   const [selectedCards, setSelectedCards] = useState([]);
   
   // Loading and error states
@@ -100,11 +102,14 @@ const TCDBBrowser = () => {
     }
   };
 
-  const fetchChecklist = async (setId, sport, year) => {
+  const fetchChecklist = async (setId, sport, year, sectionId = null) => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(`${API_BASE_URL}/api/tcdb/checklist/${setId}?sport=${encodeURIComponent(sport)}&year=${year}`);
+      const url = sectionId 
+        ? `${API_BASE_URL}/api/tcdb/checklist/${setId}?sport=${encodeURIComponent(sport)}&year=${year}&section=${encodeURIComponent(sectionId)}`
+        : `${API_BASE_URL}/api/tcdb/checklist/${setId}?sport=${encodeURIComponent(sport)}&year=${year}`;
+      const response = await fetch(url);
       const data = await response.json();
       if (data.success) {
         setChecklist(data.checklist);
@@ -129,9 +134,33 @@ const TCDBBrowser = () => {
     fetchSets(selectedSport.value, year.year);
   };
 
+  const fetchChecklistSections = async (setId) => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tcdb/checklist-sections/${setId}`);
+      const data = await response.json();
+      if (data.success) {
+        setChecklistSections(data.sections);
+        setCurrentStep('checklist-section');
+      } else {
+        setError(data.error || 'Failed to fetch checklist sections');
+      }
+    } catch (err) {
+      setError('Error fetching checklist sections: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSetSelect = (set) => {
     setSelectedSet(set);
-    fetchChecklist(set.id, selectedSport.value, selectedYear.year);
+    fetchChecklistSections(set.id);
+  };
+
+  const handleSectionSelect = (section) => {
+    setSelectedSection(section);
+    fetchChecklist(selectedSet.id, selectedSport.value, selectedYear.year, section.id);
   };
 
   const handleCardToggle = (card) => {
@@ -190,9 +219,13 @@ const TCDBBrowser = () => {
       setCurrentStep('year');
       setSelectedYear(null);
       setSets([]);
-    } else if (currentStep === 'checklist') {
+    } else if (currentStep === 'checklist-section') {
       setCurrentStep('set');
       setSelectedSet(null);
+      setChecklistSections([]);
+    } else if (currentStep === 'checklist') {
+      setCurrentStep('checklist-section');
+      setSelectedSection(null);
       setChecklist([]);
       setSelectedCards([]);
     }
@@ -291,12 +324,44 @@ const TCDBBrowser = () => {
         </div>
       )}
 
-      {/* Step 4: Checklist View */}
+      {/* Step 4: Checklist Section Selection */}
+      {currentStep === 'checklist-section' && (
+        <div className="step-container">
+          <div className="step-header">
+            <button onClick={handleBack} className="back-btn">← Back</button>
+            <h2>Step 4: Select Checklist Section - {selectedSet?.name}</h2>
+          </div>
+          {loading ? (
+            <div className="loading">Loading checklist sections...</div>
+          ) : (
+            <div className="sections-list">
+              {checklistSections.length === 0 ? (
+                <div className="no-results">No checklist sections found</div>
+              ) : (
+                checklistSections.map((section, index) => (
+                  <button
+                    key={index}
+                    className="section-item"
+                    onClick={() => handleSectionSelect(section)}
+                  >
+                    <div className="section-name">{section.name}</div>
+                    {section.description && (
+                      <div className="section-description">{section.description}</div>
+                    )}
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Step 5: Checklist View */}
       {currentStep === 'checklist' && (
         <div className="step-container">
           <div className="step-header">
             <button onClick={handleBack} className="back-btn">← Back</button>
-            <h2>Step 4: Checklist - {selectedSet?.name}</h2>
+            <h2>Step 5: Checklist - {selectedSet?.name}{selectedSection ? ` - ${selectedSection.name}` : ''}</h2>
             <div className="checklist-actions">
               <button onClick={handleSelectAll} className="select-all-btn">
                 {selectedCards.length === checklist.length ? 'Deselect All' : 'Select All'}
