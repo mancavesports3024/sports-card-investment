@@ -961,17 +961,22 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
-  // TCDB Integration Endpoints
-  const TCDBService = require('./services/tcdbService');
-  const tcdbService = new TCDBService();
+  // Checklist Insider API Integration Endpoints
+  const ChecklistInsiderService = require('./services/checklistInsiderService');
+  const checklistService = new ChecklistInsiderService();
 
-  // GET /api/tcdb/sports - Get list of sports
+  // GET /api/checklist/sports - Get list of sports (maintains compatibility with /api/tcdb/sports)
   app.get('/api/tcdb/sports', async (req, res) => {
     try {
-      const sports = await tcdbService.getSports();
+      const sports = await checklistService.getSports();
+      // Transform to match expected format
+      const formattedSports = sports.map(s => ({
+        name: s.name,
+        value: s.name
+      }));
       res.json({
         success: true,
-        sports: sports
+        sports: formattedSports
       });
     } catch (error) {
       console.error('❌ Error fetching sports:', error);
@@ -986,7 +991,18 @@ app.use('/api/live-listings', require('./routes/liveListings'));
   app.get('/api/tcdb/years/:sport', async (req, res) => {
     try {
       const { sport } = req.params;
-      const years = await tcdbService.getYears(sport);
+      // First, find the sport category ID
+      const allSports = await checklistService.getSports();
+      const sportData = allSports.find(s => s.name.toLowerCase() === sport.toLowerCase() || s.slug.toLowerCase() === sport.toLowerCase());
+      
+      if (!sportData) {
+        return res.status(404).json({
+          success: false,
+          error: `Sport "${sport}" not found`
+        });
+      }
+
+      const years = await checklistService.getYears(sportData.id, sportData.name);
       res.json({
         success: true,
         sport: sport,
@@ -1012,12 +1028,31 @@ app.use('/api/live-listings', require('./routes/liveListings'));
           error: 'Invalid year'
         });
       }
-      const sets = await tcdbService.getSets(sport, yearNum);
+
+      // Find the sport category ID
+      const allSports = await checklistService.getSports();
+      const sportData = allSports.find(s => s.name.toLowerCase() === sport.toLowerCase() || s.slug.toLowerCase() === sport.toLowerCase());
+      
+      if (!sportData) {
+        return res.status(404).json({
+          success: false,
+          error: `Sport "${sport}" not found`
+        });
+      }
+
+      const sets = await checklistService.getSets(sportData.id, yearNum);
+      // Transform to match expected format
+      const formattedSets = sets.map(s => ({
+        id: s.id.toString(),
+        name: s.name,
+        url: s.link
+      }));
+
       res.json({
         success: true,
         sport: sport,
         year: yearNum,
-        sets: sets
+        sets: formattedSets
       });
     } catch (error) {
       console.error(`❌ Error fetching sets for ${req.params.sport} ${req.params.year}:`, error);
@@ -1028,12 +1063,11 @@ app.use('/api/live-listings', require('./routes/liveListings'));
     }
   });
 
-  // GET /api/tcdb/checklist/:setId - Get checklist for a set
+  // GET /api/tcdb/checklist/:setId - Get checklist for a set (postId)
   app.get('/api/tcdb/checklist/:setId', async (req, res) => {
     try {
       const { setId } = req.params;
-      const { sport, year } = req.query;
-      const checklist = await tcdbService.getChecklist(setId, sport, year ? parseInt(year) : null);
+      const checklist = await checklistService.getChecklist(setId);
       res.json({
         success: true,
         setId: setId,
