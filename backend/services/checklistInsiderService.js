@@ -123,26 +123,26 @@ class ChecklistInsiderService {
             let response = null;
             let posts = [];
             
-            // Strategy 1: Filter by category ID and all subcategories
+            // Strategy 1: Try fetching posts sequentially (one at a time) to avoid overwhelming the API
             try {
-                // Try each category ID (parent + subcategories) - fetch them in parallel for speed
-                console.log(`   🔍 Searching ${categoryIds.length} categories: ${categoryIds.join(', ')}`);
+                console.log(`   🔍 Searching ${categoryIds.length} categories sequentially: ${categoryIds.join(', ')}`);
                 const categoryResults = [];
                 
-                // Fetch all categories in parallel with retry logic
-                const categoryPromises = categoryIds.map(async (catId) => {
-                    const maxRetries = 2;
+                // Fetch categories sequentially to avoid rate limiting/timeouts
+                for (const catId of categoryIds) {
+                    const maxRetries = 1; // Only 1 retry since we're doing sequential
                     let lastError = null;
+                    let success = false;
                     
-                    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                    for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
                         try {
-                            const timeout = attempt === 1 ? 30000 : 45000; // 30s first try, 45s retry
-                            console.log(`   🔍 Fetching posts for category ${catId} (attempt ${attempt}/${maxRetries}, timeout: ${timeout}ms)...`);
+                            const timeout = 60000; // 60s timeout
+                            console.log(`   🔍 Fetching posts for category ${catId} (attempt ${attempt}, timeout: ${timeout}ms)...`);
                             
                             const catResponse = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
                                 params: {
                                     categories: catId,
-                                    per_page: 100, // WordPress API max is 100
+                                    per_page: 100,
                                     orderby: 'date',
                                     order: 'desc'
                                 },
@@ -150,45 +150,44 @@ class ChecklistInsiderService {
                             });
                             
                             const postCount = catResponse.data ? catResponse.data.length : 0;
-                            const result = { id: catId, count: postCount, posts: catResponse.data || [] };
+                            categoryResults.push({ id: catId, count: postCount });
                             
                             if (postCount > 0) {
+                                posts = posts.concat(catResponse.data);
                                 console.log(`   ✅ Category ${catId}: Found ${postCount} posts`);
+                                success = true;
+                                break; // Success, move to next category
                             } else {
                                 console.log(`   ⚠️ Category ${catId}: Found 0 posts (API returned empty array)`);
+                                success = true; // Not an error, just empty
+                                break;
                             }
-                            
-                            return result;
                         } catch (e) {
                             lastError = e;
                             if (e.code === 'ECONNABORTED' || e.message.includes('timeout')) {
-                                console.log(`   ⏱️ Category ${catId} timeout on attempt ${attempt}, ${attempt < maxRetries ? 'retrying...' : 'giving up'}`);
-                                if (attempt < maxRetries) {
-                                    // Wait a bit before retry
-                                    await new Promise(resolve => setTimeout(resolve, 2000));
+                                console.log(`   ⏱️ Category ${catId} timeout on attempt ${attempt}`);
+                                if (attempt <= maxRetries) {
+                                    console.log(`   ⏳ Waiting 3 seconds before retry...`);
+                                    await new Promise(resolve => setTimeout(resolve, 3000));
                                     continue;
                                 }
                             } else {
-                                console.log(`   ❌ Category ${catId} failed on attempt ${attempt}: ${e.message}`);
+                                console.log(`   ❌ Category ${catId} failed: ${e.message}`);
                                 break; // Don't retry for non-timeout errors
                             }
                         }
                     }
                     
-                    console.log(`   ❌ Category ${catId} failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
-                    return { id: catId, count: 0, posts: [], error: lastError?.message || 'Unknown error' };
-                });
-                
-                // Wait for all category fetches to complete
-                const results = await Promise.all(categoryPromises);
-                
-                // Combine all posts
-                results.forEach(result => {
-                    categoryResults.push({ id: result.id, count: result.count });
-                    if (result.posts && result.posts.length > 0) {
-                        posts = posts.concat(result.posts);
+                    if (!success) {
+                        console.log(`   ❌ Category ${catId} failed after all attempts: ${lastError?.message || 'Unknown error'}`);
+                        categoryResults.push({ id: catId, count: 0, error: lastError?.message });
                     }
-                });
+                    
+                    // Small delay between categories to be gentle on the API
+                    if (catId !== categoryIds[categoryIds.length - 1]) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                }
                 
                 // Remove duplicates by post ID
                 const uniquePosts = Array.from(new Map(posts.map(p => [p.id, p])).values());
@@ -198,6 +197,51 @@ class ChecklistInsiderService {
                 console.log(`   📊 Summary: ${totalFromCategories} total posts from ${categoryResults.length} categories, ${posts.length} unique after deduplication`);
             } catch (e) {
                 console.log(`   ⚠️ Strategy 1 failed: ${e.message}`);
+            }
+            
+            // Strategy 1.5: If some categories failed, try fetching all posts and filtering client-side
+            if (posts.length < 50) { // If we got very few posts, try alternative approach
+                try {
+                    console.log(`   🔍 Strategy 1.5: Fetching all recent posts and filtering by sport name...`);
+                    const searchTerm = sportName.replace(/\s+Cards?$/i, '').toLowerCase(); // "Baseball Cards" -> "baseball"
+                    
+                    // Fetch posts without category filter (should be faster)
+                    const allPostsResponse = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
+                        params: {
+                            search: searchTerm,
+                            per_page: 100,
+                            orderby: 'date',
+                            order: 'desc'
+                        },
+                        timeout: 60000
+                    });
+                    
+                    const allPosts = allPostsResponse.data || [];
+                    console.log(`   📄 Found ${allPosts.length} posts from search, filtering for ${sportName}...`);
+                    
+                    // Filter posts that match our sport (check title and categories)
+                    const filteredPosts = allPosts.filter(post => {
+                        const title = (post.title?.rendered || '').toLowerCase();
+                        const content = (post.content?.rendered || '').toLowerCase();
+                        const categories = post.categories || [];
+                        
+                        // Check if title/content contains sport name, or if it's in one of our target categories
+                        const titleMatch = title.includes(searchTerm);
+                        const contentMatch = content.includes(searchTerm);
+                        const categoryMatch = categoryIds.some(catId => categories.includes(catId));
+                        
+                        return titleMatch || contentMatch || categoryMatch;
+                    });
+                    
+                    if (filteredPosts.length > posts.length) {
+                        console.log(`   ✅ Strategy 1.5: Found ${filteredPosts.length} additional posts via search`);
+                        // Merge with existing posts
+                        const allMerged = posts.concat(filteredPosts);
+                        posts = Array.from(new Map(allMerged.map(p => [p.id, p])).values());
+                    }
+                } catch (e) {
+                    console.log(`   ⚠️ Strategy 1.5 failed: ${e.message}`);
+                }
             }
             
             // Strategy 2: If no posts, try searching by sport name
