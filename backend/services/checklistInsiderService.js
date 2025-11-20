@@ -728,15 +728,16 @@ class ChecklistInsiderService {
                     const team = cardMatch[3].trim();
                     
                     // Check if this looks like a valid card (not odds/summary info)
+                    // IMPORTANT: Only check the extracted player/team, not the whole line
                     const playerLower = player.toLowerCase();
                     const teamLower = team.toLowerCase();
                     
-                    // Skip if player or team contains odds information
+                    // Skip if player or team contains odds information (but be specific)
                     const summaryKeywords = [
                         'cards per pack', 'packs per box', 'total cards', 'silver pack',
                         'odds', '1:', 'hobby', 'jumbo', 'display', 'hanger', 'blaster', 'mega',
-                        'buy on ebay', 'cards.', 'packs.', 'parallels:', 'exclusive to', 'print run',
-                        'lists all', 'all rookie cards', 'from base set'
+                        'buy on ebay', 'packs.', 'parallels:', 'exclusive to', 'print run',
+                        'foil pattern', 'crackle', 'diamante', 'holo foil'
                     ];
                     const isSummary = summaryKeywords.some(kw => 
                         playerLower.includes(kw) || teamLower.includes(kw)
@@ -747,21 +748,25 @@ class ChecklistInsiderService {
                     
                     // Skip if player name is too long (likely contains odds info) or contains numbers with colons (odds)
                     const hasOddsPattern = /\d+:\d+/.test(player) || /\d+:\d+/.test(team);
-                    const isTooLong = player.length > 80 || team.length > 80;
+                    const isTooLong = player.length > 50 || team.length > 50;
                     
                     // Additional check: if player or team starts with common summary words, skip
-                    const startsWithSummary = playerLower.startsWith('cards') || 
+                    // But be careful - "Cards" as a team name might be valid, so check more carefully
+                    const startsWithSummary = (playerLower.startsWith('cards') && playerLower !== 'cards') || 
                                             playerLower.startsWith('lists') ||
-                                            teamLower.startsWith('cards') ||
+                                            playerLower.startsWith('parallels') ||
+                                            teamLower.startsWith('cards') && teamLower !== 'cards' ||
                                             teamLower.startsWith('odds');
                     
+                    // Validate that player and team look like actual names
+                    const looksLikeName = /^[A-Z][A-Za-z\s\.'-]{1,}$/.test(player) && 
+                                        /^[A-Z][A-Za-z\s\.'-]{1,}$/.test(team) &&
+                                        player.length >= 2 && player.length <= 50 &&
+                                        team.length >= 2 && team.length <= 50 &&
+                                        /[A-Za-z]{2,}/.test(player) && /[A-Za-z]{2,}/.test(team);
+                    
                     // Only skip if it's clearly not a card - be more lenient to avoid missing valid cards
-                    if (!isSummary && !hasSemicolons && !hasOddsPattern && !isTooLong && !startsWithSummary &&
-                        player.length > 0 && player.length < 100 && 
-                        player.length >= 2 && team.length >= 2 &&
-                        // Make sure player and team look like names (start with capital letter, contain letters)
-                        /^[A-Z]/.test(player) && /^[A-Z]/.test(team) &&
-                        /[A-Za-z]/.test(player) && /[A-Za-z]/.test(team)) {
+                    if (!isSummary && !hasSemicolons && !hasOddsPattern && !isTooLong && !startsWithSummary && looksLikeName) {
                         cards.push({
                             number: number,
                             player: player,
@@ -772,7 +777,7 @@ class ChecklistInsiderService {
                     } else {
                         // Log skipped lines for debugging (only first few to avoid spam)
                         if (cards.length < 3) {
-                            console.log(`   ⏭️ Skipped line: "${trimmed.substring(0, 100)}..." (isSummary: ${isSummary}, hasSemicolons: ${hasSemicolons}, hasOddsPattern: ${hasOddsPattern}, isTooLong: ${isTooLong}, startsWithSummary: ${startsWithSummary})`);
+                            console.log(`   ⏭️ Skipped line: "${trimmed.substring(0, 100)}..." (isSummary: ${isSummary}, hasSemicolons: ${hasSemicolons}, hasOddsPattern: ${hasOddsPattern}, isTooLong: ${isTooLong}, startsWithSummary: ${startsWithSummary}, looksLikeName: ${looksLikeName})`);
                         }
                     }
                 } else {
