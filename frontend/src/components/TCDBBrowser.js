@@ -201,7 +201,7 @@ const TCDBBrowser = () => {
   return (
     <div className="tcdb-browser">
       <div className="tcdb-header">
-        <h1>📚 TCDB Card Database Browser</h1>
+        <h1>📚 Card Database Browser</h1>
         <div className="db-info">
           <span>Current Database: {dbInfo.total} cards</span>
           {dbInfo.total > 0 && (
