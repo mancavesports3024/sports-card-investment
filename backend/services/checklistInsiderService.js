@@ -77,6 +77,7 @@ class ChecklistInsiderService {
             }
 
             // Get recent posts to extract years
+            console.log(`   🔍 Fetching posts for category ID ${sportId}...`);
             const response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
                 params: {
                     categories: sportId,
@@ -87,14 +88,26 @@ class ChecklistInsiderService {
                 timeout: 15000
             });
 
+            console.log(`   📄 Received ${response.data.length} posts from Checklist Insider`);
+            
             // Extract years from post titles (e.g., "2025 Topps", "2024 Panini")
             const years = new Set();
             const currentYear = new Date().getFullYear();
             
+            // Log first few post titles for debugging
+            if (response.data.length > 0) {
+                console.log(`   📋 Sample post titles:`);
+                response.data.slice(0, 5).forEach((post, i) => {
+                    const title = post.title.rendered || '';
+                    console.log(`      ${i + 1}. ${title.replace(/<[^>]*>/g, '')}`);
+                });
+            }
+            
             response.data.forEach(post => {
                 const title = post.title.rendered || '';
+                const cleanTitle = title.replace(/<[^>]*>/g, ''); // Remove HTML tags
                 // Look for 4-digit years (1900-2100)
-                const yearMatches = title.match(/\b(19|20)\d{2}\b/g);
+                const yearMatches = cleanTitle.match(/\b(19|20)\d{2}\b/g);
                 if (yearMatches) {
                     yearMatches.forEach(yearStr => {
                         const year = parseInt(yearStr);
@@ -104,6 +117,8 @@ class ChecklistInsiderService {
                     });
                 }
             });
+            
+            console.log(`   📅 Extracted years:`, Array.from(years).sort((a, b) => b - a));
 
             const yearArray = Array.from(years)
                 .sort((a, b) => b - a) // Most recent first
