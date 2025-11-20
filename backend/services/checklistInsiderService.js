@@ -563,8 +563,76 @@ class ChecklistInsiderService {
             // 1. Tables with card numbers, player names, teams
             // 2. Text blocks like "1 Player Name - Team Name<br/>"
             // 3. Lists with card information
+            // 4. Individual div elements containing cards (e.g., <div>6 Tyler Gentry - Kansas City Royals RC</div>)
             
-            // Strategy 0: Look for text blocks with pattern "CARDNUMBER Player Name - Team Name"
+            // Strategy 0: Look for card patterns in individual div elements first
+            // This handles cases where cards are in separate divs, not on the same line as summary text
+            contentToParse('div').each((index, element) => {
+                const $div = contentToParse(element);
+                const divText = $div.text().trim();
+                
+                if (!divText) return;
+                
+                // Skip divs that are clearly summary/info (not cards)
+                const divLower = divText.toLowerCase();
+                const summaryPatterns = [
+                    /^\d+\s*cards?\.?$/i,  // "62 cards." or "62 cards"
+                    /^lists?\s+all/i,      // "Lists all..."
+                    /^parallels?:/i,       // "Parallels:"
+                    /odds/i,               // Contains "odds"
+                    /buy on ebay/i,         // "Buy on eBay"
+                    /cards per pack/i,     // "cards per pack"
+                    /packs per box/i       // "packs per box"
+                ];
+                
+                const isSummaryDiv = summaryPatterns.some(pattern => pattern.test(divText));
+                if (isSummaryDiv) return; // Skip summary divs
+                
+                // Try to match card pattern in this div
+                const cardMatch = divText.match(/^([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+(.+?)\s+-\s+(.+?)(?:\s+(RC|Rookie|Rookie Card))?$/i);
+                if (cardMatch) {
+                    const number = cardMatch[1].trim();
+                    const player = cardMatch[2].trim();
+                    const team = cardMatch[3].trim();
+                    
+                    // Validate it's a real card
+                    const playerLower = player.toLowerCase();
+                    const teamLower = team.toLowerCase();
+                    
+                    // Skip if it contains summary keywords
+                    const summaryKeywords = [
+                        'cards per pack', 'packs per box', 'total cards', 'silver pack',
+                        'odds', '1:', 'hobby', 'jumbo', 'display', 'hanger', 'blaster', 'mega',
+                        'buy on ebay', 'cards.', 'packs.', 'parallels:', 'exclusive to', 'print run',
+                        'lists all', 'all rookie cards', 'from base set'
+                    ];
+                    const isSummary = summaryKeywords.some(kw => 
+                        playerLower.includes(kw) || teamLower.includes(kw)
+                    );
+                    
+                    const hasSemicolons = player.includes(';') || team.includes(';');
+                    const hasOddsPattern = /\d+:\d+/.test(player) || /\d+:\d+/.test(team);
+                    const isTooLong = player.length > 50 || team.length > 50;
+                    const startsWithSummary = playerLower.startsWith('cards') || 
+                                            playerLower.startsWith('lists') ||
+                                            teamLower.startsWith('cards');
+                    
+                    if (!isSummary && !hasSemicolons && !hasOddsPattern && !isTooLong && !startsWithSummary &&
+                        player.length >= 2 && player.length <= 50 &&
+                        team.length >= 2 && team.length <= 50 &&
+                        /^[A-Z]/.test(player) && /^[A-Z]/.test(team)) {
+                        cards.push({
+                            number: number,
+                            player: player,
+                            team: team,
+                            tcdbId: null,
+                            url: post.link
+                        });
+                    }
+                }
+            });
+            
+            // Strategy 0.5: Look for text blocks with pattern "CARDNUMBER Player Name - Team Name"
             // This is common in Checklist Insider posts
             // Card numbers can be: "1", "FPA-AB", "BSA-AA", "20", etc.
             const textContent = contentToParse.text();
