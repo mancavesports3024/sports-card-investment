@@ -991,24 +991,41 @@ app.use('/api/live-listings', require('./routes/liveListings'));
   app.get('/api/tcdb/years/:sport', async (req, res) => {
     try {
       const { sport } = req.params;
+      console.log(`🔍 Fetching years for sport: "${sport}"`);
+      
       // First, find the sport category ID
       const allSports = await checklistService.getSports();
-      const sportData = allSports.find(s => 
-        s.name.toLowerCase() === sport.toLowerCase() || 
-        s.slug.toLowerCase() === sport.toLowerCase() ||
-        s.name.toLowerCase().includes(sport.toLowerCase()) ||
-        sport.toLowerCase().includes(s.name.toLowerCase())
-      );
+      console.log(`📋 Available sports:`, allSports.map(s => s.name));
+      
+      // Handle "Baseball Cards" -> "Baseball", "Football Cards" -> "Football", etc.
+      const normalizedSport = sport.replace(/\s+Cards?$/i, '').trim();
+      console.log(`🔍 Normalized sport: "${normalizedSport}"`);
+      
+      const sportData = allSports.find(s => {
+        const nameLower = s.name.toLowerCase();
+        const slugLower = s.slug.toLowerCase();
+        const searchLower = normalizedSport.toLowerCase();
+        
+        return nameLower === searchLower || 
+               slugLower === searchLower ||
+               nameLower.includes(searchLower) ||
+               searchLower.includes(nameLower) ||
+               nameLower.replace(/\s+cards?$/i, '') === searchLower;
+      });
       
       if (!sportData) {
-        console.error(`❌ Sport "${sport}" not found. Available sports:`, allSports.map(s => s.name));
+        console.error(`❌ Sport "${sport}" (normalized: "${normalizedSport}") not found.`);
+        console.error(`   Available sports:`, allSports.map(s => `${s.name} (slug: ${s.slug})`));
         return res.status(404).json({
           success: false,
           error: `Sport "${sport}" not found. Available: ${allSports.map(s => s.name).join(', ')}`
         });
       }
 
+      console.log(`✅ Found sport: ${sportData.name} (ID: ${sportData.id})`);
       const years = await checklistService.getYears(sportData.id, sportData.name);
+      console.log(`📅 Found ${years.length} years`);
+      
       // Transform to match expected format - frontend expects {year, display}
       const formattedYears = years.map(y => ({
         year: y.year,

@@ -29,13 +29,17 @@ class ChecklistInsiderService {
             });
 
             // Filter for common sports (baseball, football, basketball, etc.)
+            // Also include categories that might have "Cards" in the name
             const sports = response.data
                 .filter(cat => {
                     const name = cat.name.toLowerCase();
+                    const slug = cat.slug.toLowerCase();
                     return name.includes('baseball') || name.includes('football') || 
                            name.includes('basketball') || name.includes('hockey') ||
                            name.includes('soccer') || name.includes('racing') ||
-                           name.includes('golf') || name.includes('wrestling');
+                           name.includes('golf') || name.includes('wrestling') ||
+                           slug.includes('baseball') || slug.includes('football') ||
+                           slug.includes('basketball') || slug.includes('hockey');
                 })
                 .map(cat => ({
                     id: cat.id,
@@ -43,6 +47,9 @@ class ChecklistInsiderService {
                     slug: cat.slug,
                     count: cat.count
                 }));
+            
+            // Log what we found for debugging
+            console.log(`📋 Checklist Insider categories found:`, sports.map(s => `${s.name} (ID: ${s.id}, slug: ${s.slug})`));
 
             // Cache for 1 hour
             this.cache.set(cacheKey, sports);
