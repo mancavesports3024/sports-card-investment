@@ -465,13 +465,33 @@ class ChecklistInsiderService {
                 
                 if ($cells.length >= 2) {
                     // Try to extract card number and player
-                    const rowText = $row.text().trim();
+                    const rowText = $row.text().trim().toLowerCase();
                     
                     // Skip header rows
-                    if (rowText.toLowerCase().includes('card') && 
-                        rowText.toLowerCase().includes('player') && 
-                        rowText.toLowerCase().includes('#')) {
+                    if (rowText.includes('card') && 
+                        (rowText.includes('player') || rowText.includes('#')) &&
+                        (rowText.includes('select') || rowText.includes('team'))) {
                         return; // Skip header
+                    }
+                    
+                    // Skip summary/info rows (not actual cards)
+                    const summaryKeywords = [
+                        'cards per pack',
+                        'packs per box',
+                        'boxes per case',
+                        'autograph or relic',
+                        'autograph and',
+                        'total cards',
+                        'silver pack',
+                        'silver packs',
+                        'cards per',
+                        'per pack',
+                        'per box',
+                        'per case'
+                    ];
+                    
+                    if (summaryKeywords.some(keyword => rowText.includes(keyword))) {
+                        return; // Skip summary rows
                     }
                     
                     // Look for card number (usually first cell or in text)
@@ -489,27 +509,54 @@ class ChecklistInsiderService {
                     for (let i = 1; i < $cells.length; i++) {
                         const cellText = $cells.eq(i).text().trim();
                         if (cellText && !player) {
-                            // Check if it looks like a player name (not a number, not too long)
-                            if (!cellText.match(/^\d+$/) && cellText.length < 50) {
+                            // Check if it looks like a player name
+                            // Skip if it's summary text (contains keywords, too long, or has semicolons)
+                            const cellLower = cellText.toLowerCase();
+                            const isSummary = summaryKeywords.some(kw => cellLower.includes(kw)) ||
+                                             cellText.includes(';') ||
+                                             cellText.length > 60 ||
+                                             cellLower.includes('total') ||
+                                             cellLower.includes('autograph') ||
+                                             cellLower.includes('relic');
+                            
+                            if (!isSummary && !cellText.match(/^\d+$/) && cellText.length < 60) {
                                 player = cellText;
                             }
                         } else if (cellText && !team && player) {
                             // Team might be in next cell
-                            if (cellText.length < 50 && !cellText.match(/^\d+$/)) {
+                            // Skip "N/A" or summary text
+                            const cellLower = cellText.toLowerCase();
+                            const isSummary = cellText === 'N/A' ||
+                                             cellText === 'n/a' ||
+                                             summaryKeywords.some(kw => cellLower.includes(kw)) ||
+                                             cellText.length > 60;
+                            
+                            if (!isSummary && cellText.length < 60 && !cellText.match(/^\d+$/)) {
                                 team = cellText;
                             }
                         }
                     }
                     
-                    // If we found a card number, add it
-                    if (number || player) {
-                        cards.push({
-                            number: number || '',
-                            player: player || '',
-                            team: team || '',
-                            tcdbId: null, // Not applicable for Checklist Insider
-                            url: post.link
-                        });
+                    // Only add if we have a valid player name (not summary text)
+                    // Player name should be reasonable length and not contain summary keywords
+                    if (player && player.length > 0 && player.length < 60) {
+                        const playerLower = player.toLowerCase();
+                        const isValidPlayer = !summaryKeywords.some(kw => playerLower.includes(kw)) &&
+                                           !playerLower.includes(';') &&
+                                           !playerLower.includes('total') &&
+                                           !playerLower.includes('cards per') &&
+                                           !playerLower.includes('packs per') &&
+                                           !playerLower.includes('boxes per');
+                        
+                        if (isValidPlayer) {
+                            cards.push({
+                                number: number || '',
+                                player: player,
+                                team: team || '',
+                                tcdbId: null, // Not applicable for Checklist Insider
+                                url: post.link
+                            });
+                        }
                     }
                 }
             });
