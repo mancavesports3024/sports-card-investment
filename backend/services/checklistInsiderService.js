@@ -125,17 +125,18 @@ class ChecklistInsiderService {
             
             // Strategy 1: Filter by category ID and all subcategories
             try {
-                // Try each category ID (parent + subcategories)
+                // Try each category ID (parent + subcategories) - fetch them in parallel for speed
                 console.log(`   🔍 Searching ${categoryIds.length} categories: ${categoryIds.join(', ')}`);
                 const categoryResults = [];
                 
-                for (const catId of categoryIds) {
+                // Fetch all categories in parallel
+                const categoryPromises = categoryIds.map(async (catId) => {
                     try {
                         console.log(`   🔍 Fetching posts for category ${catId}...`);
                         const catResponse = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
                             params: {
                                 categories: catId,
-                                per_page: 100,
+                                per_page: 100, // WordPress API max is 100
                                 orderby: 'date',
                                 order: 'desc'
                             },
@@ -143,20 +144,31 @@ class ChecklistInsiderService {
                         });
                         
                         const postCount = catResponse.data ? catResponse.data.length : 0;
-                        categoryResults.push({ id: catId, count: postCount });
+                        const result = { id: catId, count: postCount, posts: catResponse.data || [] };
                         
                         if (postCount > 0) {
-                            posts = posts.concat(catResponse.data);
                             console.log(`   ✅ Category ${catId}: Found ${postCount} posts`);
                         } else {
-                            console.log(`   ⚠️ Category ${catId}: Found 0 posts (might be empty or API issue)`);
+                            console.log(`   ⚠️ Category ${catId}: Found 0 posts (API returned empty array)`);
                         }
+                        
+                        return result;
                     } catch (e) {
                         console.log(`   ❌ Category ${catId} failed: ${e.message}`);
-                        categoryResults.push({ id: catId, count: 0, error: e.message });
-                        // Continue to next category
+                        return { id: catId, count: 0, posts: [], error: e.message };
                     }
-                }
+                });
+                
+                // Wait for all category fetches to complete
+                const results = await Promise.all(categoryPromises);
+                
+                // Combine all posts
+                results.forEach(result => {
+                    categoryResults.push({ id: result.id, count: result.count });
+                    if (result.posts && result.posts.length > 0) {
+                        posts = posts.concat(result.posts);
+                    }
+                });
                 
                 // Remove duplicates by post ID
                 const uniquePosts = Array.from(new Map(posts.map(p => [p.id, p])).values());
