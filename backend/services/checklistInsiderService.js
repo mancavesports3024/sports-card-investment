@@ -455,8 +455,52 @@ class ChecklistInsiderService {
             const $ = cheerio.load(html);
             const cards = [];
 
-            // Parse checklist from HTML - look for tables or lists
-            // Common patterns: tables with card numbers, player names, teams
+            // Parse checklist from HTML - look for tables, lists, or text blocks
+            // Common patterns: 
+            // 1. Tables with card numbers, player names, teams
+            // 2. Text blocks like "1 Player Name - Team Name<br/>"
+            // 3. Lists with card information
+            
+            // Strategy 0: Look for text blocks with pattern "NUMBER Player Name - Team Name"
+            // This is common in Checklist Insider posts
+            const textContent = $.text();
+            const lines = textContent.split(/\n|\r|<br\s*\/?>/i);
+            
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+                
+                // Pattern: "NUMBER Player Name - Team Name" or "NUMBER Player Name - Team Name RC"
+                // Examples: "1 Shohei Ohtani - Los Angeles Dodgers", "6 Tyler Gentry - Kansas City Royals RC"
+                const cardMatch = trimmed.match(/^(\d+[\w]*)\s+(.+?)\s+-\s+(.+?)(?:\s+(RC|Rookie|Rookie Card))?$/i);
+                if (cardMatch) {
+                    const number = cardMatch[1].trim();
+                    const player = cardMatch[2].trim();
+                    const team = cardMatch[3].trim();
+                    const isRookie = cardMatch[4] ? true : false;
+                    
+                    // Skip if it looks like summary text
+                    const playerLower = player.toLowerCase();
+                    const teamLower = team.toLowerCase();
+                    const summaryKeywords = ['cards per pack', 'packs per box', 'total cards', 'autograph', 'relic', 'silver pack'];
+                    const isSummary = summaryKeywords.some(kw => playerLower.includes(kw) || teamLower.includes(kw));
+                    
+                    if (!isSummary && player.length > 0 && player.length < 100) {
+                        cards.push({
+                            number: number,
+                            player: player,
+                            team: team,
+                            tcdbId: null,
+                            url: post.link
+                        });
+                    }
+                }
+            }
+            
+            // If we found cards from text parsing, use those (they're usually more accurate)
+            if (cards.length > 0) {
+                console.log(`   ✅ Found ${cards.length} cards from text format parsing`);
+            }
             
             // Strategy 1: Look for tables
             $('table tr').each((index, element) => {
@@ -561,7 +605,7 @@ class ChecklistInsiderService {
                 }
             });
 
-            // Strategy 2: If no cards from tables, try lists
+            // Strategy 2: If no cards from text parsing, try tables
             if (cards.length === 0) {
                 $('ul li, ol li').each((index, element) => {
                     const text = $(element).text().trim();
