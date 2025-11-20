@@ -349,7 +349,7 @@ class ChecklistInsiderService {
 
     /**
      * Get sets for a specific sport and year
-     * @param {string} sportId - Sport category ID
+     * @param {string} sportId - Sport category ID (parent category)
      * @param {number} year - Year
      * @returns {Array} Array of set objects {id, name, slug, link}
      */
@@ -360,18 +360,61 @@ class ChecklistInsiderService {
                 return this.cache.get(cacheKey);
             }
 
-            const response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
-                params: {
-                    categories: sportId,
-                    search: year.toString(),
-                    per_page: 100,
-                    orderby: 'date',
-                    order: 'desc'
-                },
-                timeout: 15000
+            // First, find the subcategory that matches this year (e.g., "2025 Baseball Cards")
+            console.log(`   🔍 Finding subcategory for ${year}...`);
+            const subcategories = await this.getSubcategories(sportId);
+            const yearSubcategory = subcategories.find(sub => {
+                const subName = sub.name.toLowerCase();
+                return subName.includes(year.toString());
             });
 
-            const sets = response.data.map(post => ({
+            let categoryIdsToSearch = [sportId]; // Start with parent category
+            if (yearSubcategory) {
+                console.log(`   ✅ Found year subcategory: ${yearSubcategory.name} (ID: ${yearSubcategory.id})`);
+                categoryIdsToSearch = [yearSubcategory.id]; // Use the year-specific subcategory
+            } else {
+                console.log(`   ⚠️ No year-specific subcategory found, searching all subcategories...`);
+                // Add all subcategories to search
+                subcategories.forEach(sub => categoryIdsToSearch.push(sub.id));
+            }
+
+            // Try fetching from each category
+            let allPosts = [];
+            for (const catId of categoryIdsToSearch) {
+                try {
+                    console.log(`   🔍 Fetching sets from category ${catId} for year ${year}...`);
+                    const response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
+                        params: {
+                            categories: catId,
+                            per_page: 100,
+                            orderby: 'title',
+                            order: 'asc'
+                        },
+                        timeout: 60000
+                    });
+
+                    // Filter posts that contain the year in the title
+                    const yearPosts = (response.data || []).filter(post => {
+                        const title = (post.title?.rendered || '').toLowerCase();
+                        return title.includes(year.toString());
+                    });
+
+                    if (yearPosts.length > 0) {
+                        console.log(`   ✅ Category ${catId}: Found ${yearPosts.length} posts for ${year}`);
+                        allPosts = allPosts.concat(yearPosts);
+                    } else {
+                        console.log(`   ⚠️ Category ${catId}: Found ${response.data?.length || 0} posts, but none match year ${year}`);
+                    }
+                } catch (error) {
+                    console.log(`   ❌ Category ${catId} failed: ${error.message}`);
+                    // Continue to next category
+                }
+            }
+
+            // Remove duplicates by post ID
+            const uniquePosts = Array.from(new Map(allPosts.map(p => [p.id, p])).values());
+
+            const sets = uniquePosts.map(post => ({
                 id: post.id,
                 name: post.title.rendered.replace(/<[^>]*>/g, '').trim(), // Strip HTML
                 slug: post.slug,
