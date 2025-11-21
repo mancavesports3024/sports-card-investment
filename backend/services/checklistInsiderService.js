@@ -661,31 +661,49 @@ class ChecklistInsiderService {
                     // The actual card is usually at the end of the line, after summary text
                     // Use a pattern that matches: NUMBER + Player Name (2-30 chars, no summary words) + " - " + Team Name (2-50 chars)
                     
-                    // First, try to find a pattern at the very end of the line (last 150 chars)
-                    // This should catch cards that are embedded in summary text
-                    const lineEnd = trimmed.slice(-150);
+                    // First, try to find ALL card patterns in the line and validate them
+                    // This helps us avoid matching "62 cards" when the actual card is "6 Tyler Gentry"
+                    const allCardPatterns = [];
+                    const cardPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]{1,28}?)\s+-\s+([A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card))?/gu;
+                    let patternMatch;
+                    while ((patternMatch = cardPattern.exec(trimmed)) !== null) {
+                        allCardPatterns.push(patternMatch);
+                    }
                     
-                    // Try multiple patterns - be more restrictive about player names
-                    // Pattern 1: Standard card pattern at end
-                    let endMatch = lineEnd.match(/([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z][A-Za-z\s\.'-]{2,25})\s+-\s+([A-Z][A-Za-z\s\.'-]{2,50})(?:\s+(RC|Rookie|Rookie Card))?$/i);
-                    
-                    // Pattern 2: If that doesn't work, try finding the pattern that ends the line
-                    if (!endMatch) {
-                        // Look for any card pattern in the last 150 chars, but prefer ones that end the line
-                        const allMatches = [];
-                        const pattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z][A-Za-z\s\.'-]{2,25})\s+-\s+([A-Z][A-Za-z\s\.'-]{2,50})(?:\s+(RC|Rookie|Rookie Card))?/gi;
-                        let match;
-                        while ((match = pattern.exec(lineEnd)) !== null) {
-                            allMatches.push(match);
-                        }
-                        // Use the last match (closest to end of line)
-                        if (allMatches.length > 0) {
-                            endMatch = allMatches[allMatches.length - 1];
+                    // If we found patterns, validate them from the END (last match is usually the actual card)
+                    let endMatch = null;
+                    if (allCardPatterns.length > 0) {
+                        // Check each match from the end, find the first valid one
+                        for (let i = allCardPatterns.length - 1; i >= 0; i--) {
+                            const testMatch = allCardPatterns[i];
+                            const testPlayer = testMatch[2].trim();
+                            const testTeam = testMatch[3].trim();
+                            const testPlayerLower = testPlayer.toLowerCase();
+                            const testTeamLower = testTeam.toLowerCase();
+                            
+                            // Quick validation - skip if it's clearly summary text
+                            if (testPlayerLower.startsWith('cards') || 
+                                testPlayerLower.startsWith('lists') ||
+                                testPlayerLower.startsWith('parallels') ||
+                                testPlayerLower.startsWith('foil') ||
+                                testPlayerLower.includes('cards.') ||
+                                testPlayerLower.includes('lists all') ||
+                                testPlayerLower.includes('from base set') ||
+                                testTeamLower.startsWith('cards') ||
+                                testTeamLower.startsWith('odds') ||
+                                testPlayer.length > 30 ||
+                                testTeam.length > 50) {
+                                continue;
+                            }
+                            
+                            // This looks like a valid card - use it
+                            endMatch = testMatch;
+                            break;
                         }
                     }
                     
                     if (endMatch) {
-                        // Validate this match - be very strict
+                        // Additional validation - be very strict
                         const testPlayer = endMatch[2].trim();
                         const testTeam = endMatch[3].trim();
                         const testPlayerLower = testPlayer.toLowerCase();
@@ -711,13 +729,13 @@ class ChecklistInsiderService {
                         
                         const hasSemicolons = testPlayer.includes(';') || testTeam.includes(';');
                         const hasOddsPattern = /\d+:\d+/.test(testPlayer) || /\d+:\d+/.test(testTeam);
-                        const isTooLong = testPlayer.length > 25 || testTeam.length > 50;
+                        const isTooLong = testPlayer.length > 30 || testTeam.length > 50;
                         
                         // Very strict name validation - must look like a real name
                         // Allow accented characters, periods (for Jr./Sr.), but not in the middle of words
                         const looksLikeName = /^[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]+$/.test(testPlayer) && 
                                              /^[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]+$/.test(testTeam) &&
-                                             testPlayer.length >= 2 && testPlayer.length <= 25 &&
+                                             testPlayer.length >= 2 && testPlayer.length <= 30 &&
                                              testTeam.length >= 2 && testTeam.length <= 50 &&
                                              !testPlayer.includes(':') && // No colons
                                              !testPlayer.match(/\.\w/) && // No periods followed by letters (like "cards.")
@@ -731,7 +749,7 @@ class ChecklistInsiderService {
                     
                     // If that didn't work, try finding all matches and validate each one
                     if (!cardMatch) {
-                        const flexiblePattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z][A-Za-z\s\.'-]{2,30}?)\s+-\s+([A-Z][A-Za-z\s\.'-]{2,50}?)(?:\s+(RC|Rookie|Rookie Card))?/gi;
+                        const flexiblePattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]{1,28}?)\s+-\s+([A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card))?/giu;
                         let matches = [];
                         let match;
                         while ((match = flexiblePattern.exec(trimmed)) !== null) {
@@ -766,11 +784,13 @@ class ChecklistInsiderService {
                                 const hasSemicolons = testPlayer.includes(';') || testTeam.includes(';');
                                 const hasOddsPattern = /\d+:\d+/.test(testPlayer) || /\d+:\d+/.test(testTeam);
                                 const isTooLong = testPlayer.length > 30 || testTeam.length > 50;
-                                const looksLikeName = /^[A-Z][A-Za-z\s\.'-]{1,}$/.test(testPlayer) && 
-                                                     /^[A-Z][A-Za-z\s\.'-]{1,}$/.test(testTeam) &&
+                                const looksLikeName = /^[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]+$/.test(testPlayer) && 
+                                                     /^[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]+$/.test(testTeam) &&
                                                      testPlayer.length >= 2 && testPlayer.length <= 30 &&
                                                      testTeam.length >= 2 && testTeam.length <= 50 &&
-                                                     /[A-Za-z]{2,}/.test(testPlayer) && /[A-Za-z]{2,}/.test(testTeam);
+                                                     !testPlayer.includes(':') && // No colons
+                                                     !testPlayer.match(/\.\w/) && // No periods followed by letters (like "cards.")
+                                                     /[A-Za-zÀ-ÿ]{2,}/.test(testPlayer) && /[A-Za-zÀ-ÿ]{2,}/.test(testTeam);
                                 
                                 if (!hasSummary && !startsWithSummary && !hasSemicolons && !hasOddsPattern && 
                                     !isTooLong && looksLikeName) {
