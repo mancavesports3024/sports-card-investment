@@ -664,7 +664,8 @@ class ChecklistInsiderService {
                     // First, try to find ALL card patterns in the line and validate them
                     // This helps us avoid matching "62 cards" when the actual card is "6 Tyler Gentry"
                     const allCardPatterns = [];
-                    const cardPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]{1,28}?)\s+-\s+([A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card))?/gu;
+                    // Use Unicode escapes to avoid encoding issues in build environments
+                    const cardPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]{1,28}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card))?/gu;
                     let patternMatch;
                     while ((patternMatch = cardPattern.exec(trimmed)) !== null) {
                         allCardPatterns.push(patternMatch);
@@ -733,13 +734,14 @@ class ChecklistInsiderService {
                         
                         // Very strict name validation - must look like a real name
                         // Allow accented characters, periods (for Jr./Sr.), but not in the middle of words
-                        const looksLikeName = /^[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]+$/.test(testPlayer) && 
-                                             /^[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]+$/.test(testTeam) &&
+                        // Use Unicode escapes (\u00C0-\u017F) to avoid encoding issues in build environments
+                        const looksLikeName = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(testPlayer) && 
+                                             /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(testTeam) &&
                                              testPlayer.length >= 2 && testPlayer.length <= 30 &&
                                              testTeam.length >= 2 && testTeam.length <= 50 &&
                                              !testPlayer.includes(':') && // No colons
                                              !testPlayer.match(/\.\w/) && // No periods followed by letters (like "cards.")
-                                             /[A-Za-zÀ-ÿ]{2,}/.test(testPlayer) && /[A-Za-zÀ-ÿ]{2,}/.test(testTeam);
+                                             /[A-Za-z\u00C0-\u017F]{2,}/.test(testPlayer) && /[A-Za-z\u00C0-\u017F]{2,}/.test(testTeam);
                         
                         if (!hasSummary && !startsWithSummary && !hasSemicolons && !hasOddsPattern && 
                             !isTooLong && looksLikeName) {
@@ -749,7 +751,8 @@ class ChecklistInsiderService {
                     
                     // If that didn't work, try finding all matches and validate each one
                     if (!cardMatch) {
-                        const flexiblePattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]{1,28}?)\s+-\s+([A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card))?/giu;
+                        // Use Unicode escapes to avoid encoding issues in build environments
+                        const flexiblePattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]{1,28}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card))?/giu;
                         let matches = [];
                         let match;
                         while ((match = flexiblePattern.exec(trimmed)) !== null) {
@@ -784,13 +787,14 @@ class ChecklistInsiderService {
                                 const hasSemicolons = testPlayer.includes(';') || testTeam.includes(';');
                                 const hasOddsPattern = /\d+:\d+/.test(testPlayer) || /\d+:\d+/.test(testTeam);
                                 const isTooLong = testPlayer.length > 30 || testTeam.length > 50;
-                                const looksLikeName = /^[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]+$/.test(testPlayer) && 
-                                                     /^[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]+$/.test(testTeam) &&
+                                // Use Unicode escapes (\u00C0-\u017F) to avoid encoding issues in build environments
+                                const looksLikeName = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(testPlayer) && 
+                                                     /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(testTeam) &&
                                                      testPlayer.length >= 2 && testPlayer.length <= 30 &&
                                                      testTeam.length >= 2 && testTeam.length <= 50 &&
                                                      !testPlayer.includes(':') && // No colons
                                                      !testPlayer.match(/\.\w/) && // No periods followed by letters (like "cards.")
-                                                     /[A-Za-zÀ-ÿ]{2,}/.test(testPlayer) && /[A-Za-zÀ-ÿ]{2,}/.test(testTeam);
+                                                     /[A-Za-z\u00C0-\u017F]{2,}/.test(testPlayer) && /[A-Za-z\u00C0-\u017F]{2,}/.test(testTeam);
                                 
                                 if (!hasSummary && !startsWithSummary && !hasSemicolons && !hasOddsPattern && 
                                     !isTooLong && looksLikeName) {
