@@ -646,7 +646,7 @@ class ChecklistInsiderService {
                 // Card number can be: digits only, or alphanumeric with dashes (e.g., "FPA-AB", "BSA-AA", "1", "20")
                 // Examples: 
                 // - "1 Shohei Ohtani - Los Angeles Dodgers"
-                // - "FPA-AB Adrían Beltré - Texas Rangers"
+                // - "FPA-AB Adrian Beltre - Texas Rangers"
                 // - "BSA-AA Adael Amador - Colorado Rockies"
                 // - "6 Tyler Gentry - Kansas City Royals RC"
                 // - "62 cards.Lists all rookie cards from base set above. 6 Tyler Gentry - Kansas City Royals" (card embedded in summary)
