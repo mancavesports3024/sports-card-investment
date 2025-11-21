@@ -714,13 +714,14 @@ class ChecklistInsiderService {
                         const isTooLong = testPlayer.length > 25 || testTeam.length > 50;
                         
                         // Very strict name validation - must look like a real name
-                        const looksLikeName = /^[A-Z][a-z]+(\s+[A-Z][a-z]+)*(\s+[A-Z][a-z]+)?$/.test(testPlayer) && 
-                                             /^[A-Z][A-Za-z\s\.'-]+$/.test(testTeam) &&
+                        // Allow accented characters, periods (for Jr./Sr.), but not in the middle of words
+                        const looksLikeName = /^[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]+$/.test(testPlayer) && 
+                                             /^[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ][A-Za-zÀ-ÿ\s\.'-]+$/.test(testTeam) &&
                                              testPlayer.length >= 2 && testPlayer.length <= 25 &&
                                              testTeam.length >= 2 && testTeam.length <= 50 &&
-                                             !testPlayer.includes('.') && // No periods in player names
                                              !testPlayer.includes(':') && // No colons
-                                             /[A-Za-z]{2,}/.test(testPlayer) && /[A-Za-z]{2,}/.test(testTeam);
+                                             !testPlayer.match(/\.\w/) && // No periods followed by letters (like "cards.")
+                                             /[A-Za-zÀ-ÿ]{2,}/.test(testPlayer) && /[A-Za-zÀ-ÿ]{2,}/.test(testTeam);
                         
                         if (!hasSummary && !startsWithSummary && !hasSemicolons && !hasOddsPattern && 
                             !isTooLong && looksLikeName) {
