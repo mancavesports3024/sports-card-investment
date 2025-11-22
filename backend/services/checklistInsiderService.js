@@ -1431,9 +1431,12 @@ class ChecklistInsiderService {
             // Cache for 1 hour
             this.cache.set(cacheKey, result);
 
-            console.log(`✅ Found ${cards.length} cards in checklist ${postId}`);
+            console.log(`✅ Found ${cards.length} cards in checklist ${postId}${sectionId ? ` (section: ${sectionId})` : ''}`);
             if (oddsInfo.length > 0) {
                 console.log(`   📊 Odds info: ${oddsInfo.join('; ')}`);
+            }
+            if (cards.length === 0 && sectionId) {
+                console.log(`   ⚠️ WARNING: No cards found in section "${sectionId}"`);
             }
             
             return result;
