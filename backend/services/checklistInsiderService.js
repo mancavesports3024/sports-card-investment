@@ -756,13 +756,23 @@ class ChecklistInsiderService {
                         cleanPlayer2 = cleanPlayer2.replace(/\s+SP\s*$/i, '').trim();
                         cleanTeam2 = cleanTeam2.replace(/\s+SP\s*$/i, '').trim();
                         // Use Unicode flag (u) for proper accented character matching
-                        const looksLikeName = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/u.test(cleanPlayer2) && 
-                                             /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/u.test(cleanTeam2) &&
+                        const playerRegexTest = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/u.test(cleanPlayer2);
+                        const teamRegexTest = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/u.test(cleanTeam2);
+                        const playerHasLetters = /[A-Za-z\u00C0-\u017F]{2,}/u.test(cleanPlayer2);
+                        const teamHasLetters = /[A-Za-z\u00C0-\u017F]{2,}/u.test(cleanTeam2);
+                        
+                        const looksLikeName = playerRegexTest && teamRegexTest &&
                                              cleanPlayer2.length >= 2 && cleanPlayer2.length <= 35 &&
                                              cleanTeam2.length >= 2 && cleanTeam2.length <= 50 &&
                                              !cleanPlayer2.includes(':') && // No colons
                                              !cleanPlayer2.match(/\.\w/) && // No periods followed by letters (like "cards.")
-                                             /[A-Za-z\u00C0-\u017F]{2,}/u.test(cleanPlayer2) && /[A-Za-z\u00C0-\u017F]{2,}/u.test(cleanTeam2);
+                                             playerHasLetters && teamHasLetters;
+                        
+                        // Debug logging for accented character issues
+                        if (!looksLikeName && (cleanPlayer2.includes('ó') || cleanPlayer2.includes('ñ') || cleanPlayer2.includes('á'))) {
+                            console.log(`   🔍 DEBUG accented name: player="${cleanPlayer2}" (${cleanPlayer2.length} chars), team="${cleanTeam2}" (${cleanTeam2.length} chars)`);
+                            console.log(`      playerRegex: ${playerRegexTest}, teamRegex: ${teamRegexTest}, playerHasLetters: ${playerHasLetters}, teamHasLetters: ${teamHasLetters}`);
+                        }
                         
                         if (!hasSummary && !startsWithSummary && !hasSemicolons && !hasOddsPattern && 
                             !isTooLong && looksLikeName) {
