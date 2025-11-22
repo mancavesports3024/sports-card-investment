@@ -735,13 +735,16 @@ class ChecklistInsiderService {
                         // Very strict name validation - must look like a real name
                         // Allow accented characters, periods (for Jr./Sr.), but not in the middle of words
                         // Use Unicode escapes (\u00C0-\u017F) to avoid encoding issues in build environments
-                        const looksLikeName = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(testPlayer) && 
-                                             /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(testTeam) &&
-                                             testPlayer.length >= 2 && testPlayer.length <= 30 &&
-                                             testTeam.length >= 2 && testTeam.length <= 50 &&
-                                             !testPlayer.includes(':') && // No colons
-                                             !testPlayer.match(/\.\w/) && // No periods followed by letters (like "cards.")
-                                             /[A-Za-z\u00C0-\u017F]{2,}/.test(testPlayer) && /[A-Za-z\u00C0-\u017F]{2,}/.test(testTeam);
+                        // Remove trailing ellipsis (...) before validation
+                        const cleanPlayer = testPlayer.replace(/\.{2,}$/, '').trim();
+                        const cleanTeam = testTeam.replace(/\.{2,}$/, '').trim();
+                        const looksLikeName = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(cleanPlayer) && 
+                                             /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(cleanTeam) &&
+                                             cleanPlayer.length >= 2 && cleanPlayer.length <= 30 &&
+                                             cleanTeam.length >= 2 && cleanTeam.length <= 50 &&
+                                             !cleanPlayer.includes(':') && // No colons
+                                             !cleanPlayer.match(/\.\w/) && // No periods followed by letters (like "cards.")
+                                             /[A-Za-z\u00C0-\u017F]{2,}/.test(cleanPlayer) && /[A-Za-z\u00C0-\u017F]{2,}/.test(cleanTeam);
                         
                         if (!hasSummary && !startsWithSummary && !hasSemicolons && !hasOddsPattern && 
                             !isTooLong && looksLikeName) {
@@ -788,13 +791,16 @@ class ChecklistInsiderService {
                                 const hasOddsPattern = /\d+:\d+/.test(testPlayer) || /\d+:\d+/.test(testTeam);
                                 const isTooLong = testPlayer.length > 30 || testTeam.length > 50;
                                 // Use Unicode escapes (\u00C0-\u017F) to avoid encoding issues in build environments
-                                const looksLikeName = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(testPlayer) && 
-                                                     /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(testTeam) &&
-                                                     testPlayer.length >= 2 && testPlayer.length <= 30 &&
-                                                     testTeam.length >= 2 && testTeam.length <= 50 &&
-                                                     !testPlayer.includes(':') && // No colons
-                                                     !testPlayer.match(/\.\w/) && // No periods followed by letters (like "cards.")
-                                                     /[A-Za-z\u00C0-\u017F]{2,}/.test(testPlayer) && /[A-Za-z\u00C0-\u017F]{2,}/.test(testTeam);
+                                // Remove trailing ellipsis (...) before validation
+                                const cleanPlayer = testPlayer.replace(/\.{2,}$/, '').trim();
+                                const cleanTeam = testTeam.replace(/\.{2,}$/, '').trim();
+                                const looksLikeName = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(cleanPlayer) && 
+                                                     /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(cleanTeam) &&
+                                                     cleanPlayer.length >= 2 && cleanPlayer.length <= 30 &&
+                                                     cleanTeam.length >= 2 && cleanTeam.length <= 50 &&
+                                                     !cleanPlayer.includes(':') && // No colons
+                                                     !cleanPlayer.match(/\.\w/) && // No periods followed by letters (like "cards.")
+                                                     /[A-Za-z\u00C0-\u017F]{2,}/.test(cleanPlayer) && /[A-Za-z\u00C0-\u017F]{2,}/.test(cleanTeam);
                                 
                                 if (!hasSummary && !startsWithSummary && !hasSemicolons && !hasOddsPattern && 
                                     !isTooLong && looksLikeName) {
