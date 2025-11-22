@@ -538,17 +538,26 @@ class ChecklistInsiderService {
                     types.add('Base Checklist');
                 }
                 
-                // Look for divs that contain <em>Parallels</em> or <em>Variations</em>
+                // Look for the FIRST div that contains <em>Parallels</em> (not sub-sections like "Spring Training Blaster Parallels" or "Holiday Egg Tins Parallels")
                 // Structure: <div><em>Parallels</em>: Type1; Type2; Type3</div>
+                // We only want the main "Parallels:" list, not sub-sections
+                let foundMainParallels = false;
                 $temp('div').each((i, div) => {
+                    if (foundMainParallels) return; // Stop after finding the main Parallels section
+                    
                     const $div = $temp(div);
                     const html = $div.html() || '';
                     
-                    // Check if this div contains a Parallels or Variations label
-                    const hasParallelsLabel = /<em>\s*Parallels?\s*<\/em>/i.test(html) || 
-                                           /<em>\s*Variations?\s*<\/em>/i.test(html);
+                    // Check if this div contains EXACTLY "Parallels" or "Parallel" (not "Spring Training Blaster Parallels", etc.)
+                    // The pattern should match <em>Parallels</em> or <em>Parallel</em> but not other text before it
+                    const hasMainParallelsLabel = /<em>\s*Parallels?\s*<\/em>\s*:/i.test(html);
                     
-                    if (hasParallelsLabel) {
+                    // Make sure it's not a sub-section by checking the text doesn't have other words before "Parallels"
+                    const divText = $div.text().trim();
+                    const isSubSection = /(?:Spring Training|Holiday Egg|Blaster|Tins)\s+Parallels/i.test(divText);
+                    
+                    if (hasMainParallelsLabel && !isSubSection) {
+                        foundMainParallels = true;
                         // Get the text content after the label
                         const text = $div.text().trim();
                         // Extract everything after "Parallels:" or "Variations:"
@@ -563,11 +572,13 @@ class ChecklistInsiderService {
                                 let cleanPart = part.replace(/\([^)]*\)/g, '').trim();
                                 // Remove odds patterns like "1:3" or "1:197"
                                 cleanPart = cleanPart.replace(/\d+:\d+/g, '').trim();
-                                // Remove numbering like "/99" or "/2,025" or "1/1"
+                                // Remove numbering like "/99" or "/2,025" or "1/1" (handle with or without spaces)
                                 cleanPart = cleanPart.replace(/\/[\d,]+/g, '').trim();
-                                cleanPart = cleanPart.replace(/\d+\/\d+/g, '').trim();
-                                // Remove trailing periods
+                                cleanPart = cleanPart.replace(/\s*\d+\/\d+\s*/g, ' ').trim(); // Remove "1/1" with spaces around it
+                                cleanPart = cleanPart.replace(/\d+\/\d+/g, '').trim(); // Remove "1/1" without spaces
+                                // Remove trailing periods and any remaining numbers at the end
                                 cleanPart = cleanPart.replace(/\.+$/, '').trim();
+                                cleanPart = cleanPart.replace(/\s+\d+$/, '').trim(); // Remove trailing " 1" or " 2" etc.
                                 
                                 // Only add if it looks like a valid parallel name
                                 // Must be 3-50 chars, start with a letter, and not be just numbers
@@ -594,8 +605,10 @@ class ChecklistInsiderService {
                             let cleanPart = part.replace(/\([^)]*\)/g, '').trim();
                             cleanPart = cleanPart.replace(/\d+:\d+/g, '').trim();
                             cleanPart = cleanPart.replace(/\/[\d,]+/g, '').trim();
-                            cleanPart = cleanPart.replace(/\d+\/\d+/g, '').trim();
+                            cleanPart = cleanPart.replace(/\s*\d+\/\d+\s*/g, ' ').trim(); // Remove "1/1" with spaces
+                            cleanPart = cleanPart.replace(/\d+\/\d+/g, '').trim(); // Remove "1/1" without spaces
                             cleanPart = cleanPart.replace(/\.+$/, '').trim();
+                            cleanPart = cleanPart.replace(/\s+\d+$/, '').trim(); // Remove trailing " 1" or " 2" etc.
                             
                             if (cleanPart.length >= 3 && cleanPart.length <= 50 && 
                                 /^[A-Za-z]/.test(cleanPart) && 
