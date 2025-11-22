@@ -639,9 +639,18 @@ class ChecklistInsiderService {
             const textContent = contentToParse.text();
             const lines = textContent.split(/\n|\r|<br\s*\/?>/i);
             
+            // DEBUG: Enable detailed logging
+            const DEBUG_MODE = true;
+            
             for (const line of lines) {
                 const trimmed = line.trim();
                 if (!trimmed) continue;
+                
+                // [DEBUG-LINE] Log lines that might contain cards or odds
+                if (DEBUG_MODE && (trimmed.toLowerCase().includes('odds') || 
+                    /[A-Z0-9]+(?:-[A-Z0-9]+)?\s+[A-Z]/.test(trimmed))) {
+                    console.log(`   [DEBUG-LINE] Processing: "${trimmed.substring(0, 150)}${trimmed.length > 150 ? '...' : ''}"`);
+                }
                 
                 // DEBUG: Log lines that contain odds to see what we're working with
                 if (trimmed.toLowerCase().includes('odds') && trimmed.includes('HL-')) {
@@ -657,15 +666,30 @@ class ChecklistInsiderService {
                 if (oddsMatch && oddsMatch[1]) {
                     const fullOddsText = oddsMatch[1].trim();
                     
+                    // [DEBUG-ODDS] Log odds extraction
+                    if (DEBUG_MODE) {
+                        console.log(`   [DEBUG-ODDS] Found odds line, fullOddsText length: ${fullOddsText.length}`);
+                        console.log(`   [DEBUG-ODDS] Full odds text: "${fullOddsText.substring(0, 200)}${fullOddsText.length > 200 ? '...' : ''}"`);
+                    }
+                    
                     // Try to find a card pattern at the END of the odds line
                     // Pattern: "Odds - ... 1:786 Tins. HL-1 Juan Soto - New York Yankees"
                     // Look for card pattern in the last 100 characters (to handle trailing ellipsis)
                     const lastPart = fullOddsText.slice(-100);
                     // Remove trailing ellipsis and whitespace for matching
                     const cleanedLastPart = lastPart.replace(/\.{2,}\s*$/, '').trim();
+                    
+                    if (DEBUG_MODE) {
+                        console.log(`   [DEBUG-ODDS] Last 100 chars: "${lastPart}"`);
+                        console.log(`   [DEBUG-ODDS] Cleaned last part: "${cleanedLastPart}"`);
+                    }
+                    
                     const cardAtEnd = cleanedLastPart.match(/([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,35}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?$/u);
                     
                     if (cardAtEnd) {
+                        if (DEBUG_MODE) {
+                            console.log(`   [DEBUG-ODDS] ✅ Found card at end of odds: "${cardAtEnd[1]} ${cardAtEnd[2]} - ${cardAtEnd[3]}"`);
+                        }
                         // Found a card at the end - extract odds text BEFORE the card
                         // Find the card in the original fullOddsText
                         const cardPatternStr = cardAtEnd[0];
@@ -676,7 +700,13 @@ class ChecklistInsiderService {
                             // Fallback: try to find it without the exact match
                             oddsTextOnly = fullOddsText.replace(cardPatternStr, '').trim();
                         }
+                        if (DEBUG_MODE) {
+                            console.log(`   [DEBUG-ODDS] Extracted odds only: "${oddsTextOnly.substring(0, 150)}${oddsTextOnly.length > 150 ? '...' : ''}"`);
+                        }
                     } else {
+                        if (DEBUG_MODE) {
+                            console.log(`   [DEBUG-ODDS] ❌ No card pattern found at end of odds text`);
+                        }
                         oddsTextOnly = fullOddsText;
                     }
                     
