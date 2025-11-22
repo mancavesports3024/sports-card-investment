@@ -103,21 +103,28 @@ const TCDBBrowser = () => {
   };
 
   const fetchChecklist = async (setId, sport, year, sectionId = null) => {
+    console.log('🔍 [DEBUG] fetchChecklist called:', { setId, sport, year, sectionId });
     setLoading(true);
     setError('');
     try {
       const url = sectionId 
         ? `${API_BASE_URL}/api/tcdb/checklist/${setId}?sport=${encodeURIComponent(sport)}&year=${year}&section=${encodeURIComponent(sectionId)}`
         : `${API_BASE_URL}/api/tcdb/checklist/${setId}?sport=${encodeURIComponent(sport)}&year=${year}`;
+      console.log('🔍 [DEBUG] Fetching URL:', url);
       const response = await fetch(url);
+      console.log('🔍 [DEBUG] Response status:', response.status, response.statusText);
       const data = await response.json();
+      console.log('🔍 [DEBUG] Response data:', data);
       if (data.success) {
+        console.log('🔍 [DEBUG] Checklist fetched successfully, cards count:', data.checklist?.length || 0);
         setChecklist(data.checklist);
         setCurrentStep('checklist');
       } else {
+        console.error('❌ [DEBUG] Failed to fetch checklist:', data.error);
         setError(data.error || 'Failed to fetch checklist');
       }
     } catch (err) {
+      console.error('❌ [DEBUG] Error fetching checklist:', err);
       setError('Error fetching checklist: ' + err.message);
     } finally {
       setLoading(false);
@@ -159,6 +166,12 @@ const TCDBBrowser = () => {
   };
 
   const handleSectionSelect = (section) => {
+    console.log('🔍 [DEBUG] handleSectionSelect called:', {
+      section: section,
+      selectedSet: selectedSet,
+      selectedSport: selectedSport,
+      selectedYear: selectedYear
+    });
     setSelectedSection(section);
     fetchChecklist(selectedSet.id, selectedSport.value, selectedYear.year, section.id);
   };
