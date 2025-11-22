@@ -654,15 +654,23 @@ class ChecklistInsiderService {
                     
                     // Try to find a card pattern at the END of the odds line
                     // Pattern: "Odds - ... 1:786 Tins. HL-1 Juan Soto - New York Yankees"
-                    // Look for card pattern in the last part of the line
-                    const cardAtEnd = fullOddsText.match(/([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,35}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?$/u);
+                    // Look for card pattern in the last 100 characters (to handle trailing ellipsis)
+                    const lastPart = fullOddsText.slice(-100);
+                    // Remove trailing ellipsis and whitespace for matching
+                    const cleanedLastPart = lastPart.replace(/\.{2,}\s*$/, '').trim();
+                    const cardAtEnd = cleanedLastPart.match(/([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,35}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?$/u);
                     
                     if (cardAtEnd) {
                         // Found a card at the end - extract odds text BEFORE the card
-                        const cardStart = fullOddsText.lastIndexOf(cardAtEnd[0]);
-                        oddsTextOnly = fullOddsText.substring(0, cardStart).trim();
-                        // Remove the card from the odds text, but keep it in the line for card extraction
-                        lineWithoutOdds = trimmed.replace(cardAtEnd[0], '').trim();
+                        // Find the card in the original fullOddsText
+                        const cardPatternStr = cardAtEnd[0];
+                        const cardStartInFull = fullOddsText.lastIndexOf(cardPatternStr);
+                        if (cardStartInFull >= 0) {
+                            oddsTextOnly = fullOddsText.substring(0, cardStartInFull).trim();
+                        } else {
+                            // Fallback: try to find it without the exact match
+                            oddsTextOnly = fullOddsText.replace(cardPatternStr, '').trim();
+                        }
                     } else {
                         oddsTextOnly = fullOddsText;
                     }
@@ -696,7 +704,11 @@ class ChecklistInsiderService {
                     const allCardPatterns = [];
                     // Use Unicode escapes to avoid encoding issues in build environments
                     // Allow parentheses for "(eBay)" and "SP" in card names
+                    // IMPORTANT: Use non-greedy matching and look for patterns, especially at the end of the line
                     const cardPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,35}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?/gu;
+                    
+                    // Reset regex lastIndex to ensure we search the entire string
+                    cardPattern.lastIndex = 0;
                     let patternMatch;
                     while ((patternMatch = cardPattern.exec(trimmed)) !== null) {
                         allCardPatterns.push(patternMatch);
