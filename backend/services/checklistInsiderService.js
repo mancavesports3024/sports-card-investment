@@ -755,13 +755,14 @@ class ChecklistInsiderService {
                         // Remove "SP" suffix if present
                         cleanPlayer2 = cleanPlayer2.replace(/\s+SP\s*$/i, '').trim();
                         cleanTeam2 = cleanTeam2.replace(/\s+SP\s*$/i, '').trim();
-                        const looksLikeName = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(cleanPlayer2) && 
-                                             /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(cleanTeam2) &&
+                        // Use Unicode flag (u) for proper accented character matching
+                        const looksLikeName = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/u.test(cleanPlayer2) && 
+                                             /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/u.test(cleanTeam2) &&
                                              cleanPlayer2.length >= 2 && cleanPlayer2.length <= 35 &&
                                              cleanTeam2.length >= 2 && cleanTeam2.length <= 50 &&
                                              !cleanPlayer2.includes(':') && // No colons
                                              !cleanPlayer2.match(/\.\w/) && // No periods followed by letters (like "cards.")
-                                             /[A-Za-z\u00C0-\u017F]{2,}/.test(cleanPlayer2) && /[A-Za-z\u00C0-\u017F]{2,}/.test(cleanTeam2);
+                                             /[A-Za-z\u00C0-\u017F]{2,}/u.test(cleanPlayer2) && /[A-Za-z\u00C0-\u017F]{2,}/u.test(cleanTeam2);
                         
                         if (!hasSummary && !startsWithSummary && !hasSemicolons && !hasOddsPattern && 
                             !isTooLong && looksLikeName) {
@@ -814,13 +815,14 @@ class ChecklistInsiderService {
                                 // Remove "SP" suffix if present
                                 cleanPlayer = cleanPlayer.replace(/\s+SP\s*$/i, '').trim();
                                 cleanTeam = cleanTeam.replace(/\s+SP\s*$/i, '').trim();
-                                const looksLikeName = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(cleanPlayer) && 
-                                                     /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(cleanTeam) &&
+                                // Use Unicode flag (u) for proper accented character matching
+                                const looksLikeName = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/u.test(cleanPlayer) && 
+                                                     /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/u.test(cleanTeam) &&
                                                      cleanPlayer.length >= 2 && cleanPlayer.length <= 35 &&
                                                      cleanTeam.length >= 2 && cleanTeam.length <= 50 &&
                                                      !cleanPlayer.includes(':') && // No colons
                                                      !cleanPlayer.match(/\.\w/) && // No periods followed by letters (like "cards.")
-                                                     /[A-Za-z\u00C0-\u017F]{2,}/.test(cleanPlayer) && /[A-Za-z\u00C0-\u017F]{2,}/.test(cleanTeam);
+                                                     /[A-Za-z\u00C0-\u017F]{2,}/u.test(cleanPlayer) && /[A-Za-z\u00C0-\u017F]{2,}/u.test(cleanTeam);
                                 
                                 if (!hasSummary && !startsWithSummary && !hasSemicolons && !hasOddsPattern && 
                                     !isTooLong && looksLikeName) {
