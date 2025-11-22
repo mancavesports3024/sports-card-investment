@@ -992,7 +992,7 @@ class ChecklistInsiderService {
                         'buy on ebay', 'packs.', 'parallels:', 'exclusive to', 'print run',
                         'foil pattern', 'crackle', 'diamante', 'holo foil', 'cards.', 'buy on ebay'
                     ];
-                    const isSummary = summaryKeywords.some(kw => 
+                    let isSummary = summaryKeywords.some(kw => 
                         playerLower.includes(kw) || teamLower.includes(kw)
                     );
                     
@@ -1088,6 +1088,12 @@ class ChecklistInsiderService {
                         // Recalculate playerLower and teamLower after updating player/team
                         playerLower = player.toLowerCase();
                         teamLower = team.toLowerCase();
+                        
+                        // CRITICAL: Recalculate isSummary with the new player/team values!
+                        // The old isSummary was based on the summary text, not the actual card
+                        isSummary = summaryKeywords.some(kw => 
+                            playerLower.includes(kw) || teamLower.includes(kw)
+                        );
                     }
                     
                     // Skip if player or team has semicolons ONLY if it's very short (likely just odds)
