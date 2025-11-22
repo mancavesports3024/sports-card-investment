@@ -989,11 +989,81 @@ class ChecklistInsiderService {
                         'cards per pack', 'packs per box', 'total cards', 'silver pack',
                         'odds', '1:', 'hobby', 'jumbo', 'display', 'hanger', 'blaster', 'mega',
                         'buy on ebay', 'packs.', 'parallels:', 'exclusive to', 'print run',
-                        'foil pattern', 'crackle', 'diamante', 'holo foil'
+                        'foil pattern', 'crackle', 'diamante', 'holo foil', 'cards.', 'buy on ebay'
                     ];
                     const isSummary = summaryKeywords.some(kw => 
                         playerLower.includes(kw) || teamLower.includes(kw)
                     );
+                    
+                    // CRITICAL FIX: If the player name contains summary keywords, the actual card is likely
+                    // embedded later in the line. Look for another card pattern, especially at the end.
+                    // Example: "350 cards.Parallels: ... 1 Shohei Ohtani - Los Angeles Dodgers"
+                    // The regex matched "350" as number, but "cards.Parallels: ... 1 Shohei Ohtani" as player.
+                    // We need to find "1 Shohei Ohtani - Los Angeles Dodgers" instead.
+                    if (isSummary || playerLower.includes('cards.') || playerLower.includes('parallels:') || 
+                        playerLower.includes('buy on ebay') || player.length > 100) {
+                        if (DEBUG_MODE) {
+                            console.log(`   [DEBUG-CARD] ⚠️ First match looks like summary text, searching for actual card in line...`);
+                            console.log(`   [DEBUG-CARD]    First match: "${number}" | "${player.substring(0, 100)}..." | "${team}"`);
+                        }
+                        
+                        // Look for card patterns in the line, especially at the end
+                        // The actual card is usually the LAST valid pattern
+                        const allPatterns = [];
+                        const searchPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{1,50}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{1,50}?)(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?/gu;
+                        searchPattern.lastIndex = 0;
+                        let patternMatch;
+                        while ((patternMatch = searchPattern.exec(trimmed)) !== null) {
+                            allPatterns.push(patternMatch);
+                        }
+                        
+                        // Try patterns from the END (last match is usually the actual card)
+                        let foundValidCard = false;
+                        for (let i = allPatterns.length - 1; i >= 0; i--) {
+                            const testMatch = allPatterns[i];
+                            const testPlayer = testMatch[2].trim().replace(/\.{2,}$/, '').replace(/\s*\([^)]*\)$/, '').trim();
+                            const testTeam = testMatch[3].trim().replace(/\.{2,}$/, '').replace(/\s*\([^)]*\)$/, '').trim();
+                            const testPlayerLower = testPlayer.toLowerCase();
+                            const testTeamLower = testTeam.toLowerCase();
+                            
+                            // Check if this looks like a real card (not summary text)
+                            const hasSummaryInTest = summaryKeywords.some(kw => 
+                                testPlayerLower.includes(kw) || testTeamLower.includes(kw)
+                            );
+                            
+                            // Valid card: short player name (under 50 chars), no summary keywords, looks like a name
+                            if (!hasSummaryInTest && 
+                                testPlayer.length >= 2 && testPlayer.length <= 50 &&
+                                testTeam.length >= 2 && testTeam.length <= 50 &&
+                                !testPlayerLower.startsWith('cards') &&
+                                !testPlayerLower.startsWith('parallels') &&
+                                !testPlayerLower.startsWith('buy on') &&
+                                !testPlayerLower.includes('odds') &&
+                                !testTeamLower.startsWith('odds') &&
+                                !/\d+:\d+/.test(testPlayer) &&
+                                !/\d+:\d+/.test(testTeam)) {
+                                
+                                // Found a valid card!
+                                number = testMatch[1].trim();
+                                player = testPlayer;
+                                team = testTeam;
+                                foundValidCard = true;
+                                
+                                if (DEBUG_MODE) {
+                                    console.log(`   [DEBUG-CARD] ✅ Found actual card: "${number}" | "${player}" | "${team}"`);
+                                }
+                                break;
+                            }
+                        }
+                        
+                        // If we didn't find a valid card, skip this line
+                        if (!foundValidCard) {
+                            if (DEBUG_MODE) {
+                                console.log(`   [DEBUG-CARD] ❌ No valid card found in line, skipping`);
+                            }
+                            continue;
+                        }
+                    }
                     
                     // Skip if player or team has semicolons ONLY if it's very short (likely just odds)
                     // Longer text with semicolons might be valid (like parallel info)
