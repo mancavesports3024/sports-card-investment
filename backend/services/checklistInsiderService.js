@@ -528,15 +528,7 @@ class ChecklistInsiderService {
                 const $temp = cheerio.load(htmlContent);
                 const types = new Set();
                 
-                // First, always add "Base Checklist" if we see the h3 header or "350 cards"
-                const hasBaseChecklist = $temp('h3').filter((i, el) => {
-                    const text = $temp(el).text().trim().toLowerCase();
-                    return text === 'base checklist';
-                }).length > 0;
-                
-                if (hasBaseChecklist || $temp.text().toLowerCase().includes('350 cards')) {
-                    types.add('Base Checklist');
-                }
+                // Don't add "Base Checklist" to parallel types - it's a section name, not a parallel type
                 
                 // Look for the FIRST div that contains <em>Parallels</em> (not sub-sections like "Spring Training Blaster Parallels" or "Holiday Egg Tins Parallels")
                 // Structure: <div><em>Parallels</em>: Type1; Type2; Type3</div>
@@ -554,7 +546,9 @@ class ChecklistInsiderService {
                     
                     // Make sure it's not a sub-section by checking the text doesn't have other words before "Parallels"
                     const divText = $div.text().trim();
-                    const isSubSection = /(?:Spring Training|Holiday Egg|Blaster|Tins)\s+Parallels/i.test(divText);
+                    // Exclude sub-sections: Spring Training Blaster Parallels, Holiday Egg Tins Parallels, etc.
+                    const isSubSection = /(?:Spring Training|Holiday Egg|Blaster|Tins|Cactus|Palm Tree)\s+Parallels/i.test(divText) ||
+                                       /Parallels\s*\(/i.test(divText); // Exclude "Parallels (Cactus/Palm Tree)" type patterns
                     
                     if (hasMainParallelsLabel && !isSubSection) {
                         foundMainParallels = true;
@@ -593,29 +587,39 @@ class ChecklistInsiderService {
                 });
                 
                 // Also check for text-based patterns as fallback (but be more careful)
-                const textContent = $temp.text();
-                const textPattern = /(?:Parallels?|Variations?):\s*([^\.]+?)(?:\.|$)/gi;
-                let textMatch;
-                while ((textMatch = textPattern.exec(textContent)) !== null) {
-                    const parallelText = textMatch[1].trim();
-                    // Only process if we haven't already extracted from HTML structure
-                    if (parallelText.length > 10) { // Only process substantial matches
-                        const parts = parallelText.split(';').map(p => p.trim()).filter(p => p.length > 0);
-                        parts.forEach(part => {
-                            let cleanPart = part.replace(/\([^)]*\)/g, '').trim();
-                            cleanPart = cleanPart.replace(/\d+:\d+/g, '').trim();
-                            cleanPart = cleanPart.replace(/\/[\d,]+/g, '').trim();
-                            cleanPart = cleanPart.replace(/\s*\d+\/\d+\s*/g, ' ').trim(); // Remove "1/1" with spaces
-                            cleanPart = cleanPart.replace(/\d+\/\d+/g, '').trim(); // Remove "1/1" without spaces
-                            cleanPart = cleanPart.replace(/\.+$/, '').trim();
-                            cleanPart = cleanPart.replace(/\s+\d+$/, '').trim(); // Remove trailing " 1" or " 2" etc.
-                            
-                            if (cleanPart.length >= 3 && cleanPart.length <= 50 && 
-                                /^[A-Za-z]/.test(cleanPart) && 
-                                !/^\d+$/.test(cleanPart)) {
-                                types.add(cleanPart);
+                // Only use this if we didn't find the main Parallels section via HTML structure
+                if (!foundMainParallels) {
+                    const textContent = $temp.text();
+                    const textPattern = /(?:^|\n)\s*(?:Parallels?|Variations?):\s*([^\.]+?)(?:\.|$)/gi;
+                    let textMatch;
+                    while ((textMatch = textPattern.exec(textContent)) !== null) {
+                        const fullMatch = textMatch[0];
+                        // Exclude sub-sections in the text-based extraction too
+                        const isSubSection = /(?:Spring Training|Holiday Egg|Blaster|Tins|Cactus|Palm Tree)\s+Parallels/i.test(fullMatch) ||
+                                           /Parallels\s*\(/i.test(fullMatch);
+                        
+                        if (!isSubSection) {
+                            const parallelText = textMatch[1].trim();
+                            // Only process if we haven't already extracted from HTML structure
+                            if (parallelText.length > 10) { // Only process substantial matches
+                                const parts = parallelText.split(';').map(p => p.trim()).filter(p => p.length > 0);
+                                parts.forEach(part => {
+                                    let cleanPart = part.replace(/\([^)]*\)/g, '').trim();
+                                    cleanPart = cleanPart.replace(/\d+:\d+/g, '').trim();
+                                    cleanPart = cleanPart.replace(/\/[\d,]+/g, '').trim();
+                                    cleanPart = cleanPart.replace(/\s*\d+\/\d+\s*/g, ' ').trim(); // Remove "1/1" with spaces
+                                    cleanPart = cleanPart.replace(/\d+\/\d+/g, '').trim(); // Remove "1/1" without spaces
+                                    cleanPart = cleanPart.replace(/\.+$/, '').trim();
+                                    cleanPart = cleanPart.replace(/\s+\d+$/, '').trim(); // Remove trailing " 1" or " 2" etc.
+                                    
+                                    if (cleanPart.length >= 3 && cleanPart.length <= 50 && 
+                                        /^[A-Za-z]/.test(cleanPart) && 
+                                        !/^\d+$/.test(cleanPart)) {
+                                        types.add(cleanPart);
+                                    }
+                                });
                             }
-                        });
+                        }
                     }
                 }
                 
