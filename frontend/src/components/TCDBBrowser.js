@@ -394,7 +394,36 @@ const TCDBBrowser = () => {
         </div>
       )}
 
-      {/* Step 5: Checklist View */}
+      {/* Step 5: Parallel Type Selection */}
+      {currentStep === 'parallel' && (
+        <div className="step-container">
+          <div className="step-header">
+            <button onClick={handleBack} className="back-btn">← Back</button>
+            <h2>Step 5: Select Parallel/Variation Type - {selectedSection?.name}</h2>
+          </div>
+          {loading ? (
+            <div className="loading">Loading parallel types...</div>
+          ) : (
+            <div className="sections-list">
+              {parallelTypes.length === 0 ? (
+                <div className="no-results">No parallel types found</div>
+              ) : (
+                parallelTypes.map((parallel, index) => (
+                  <button
+                    key={index}
+                    className="section-item"
+                    onClick={() => handleParallelSelect(parallel)}
+                  >
+                    <div className="section-name">{parallel}</div>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Step 6: Checklist View */}
       {currentStep === 'checklist' && (
         <div className="step-container">
           <div className="step-header">
