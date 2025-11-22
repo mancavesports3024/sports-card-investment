@@ -893,11 +893,18 @@ class ChecklistInsiderService {
                                             teamLower.startsWith('odds');
                     
                     // Validate that player and team look like actual names
-                    const looksLikeName = /^[A-Z][A-Za-z\s\.'-]{1,}$/.test(player) && 
-                                        /^[A-Z][A-Za-z\s\.'-]{1,}$/.test(team) &&
+                    // Use Unicode flag (u) and Unicode character ranges for accented characters
+                    const playerRegexTest = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/u.test(player);
+                    const teamRegexTest = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/u.test(team);
+                    const playerHasLetters = /[A-Za-z\u00C0-\u017F]{2,}/u.test(player);
+                    const teamHasLetters = /[A-Za-z\u00C0-\u017F]{2,}/u.test(team);
+                    
+                    const looksLikeName = playerRegexTest && teamRegexTest &&
                                         player.length >= 2 && player.length <= 50 &&
                                         team.length >= 2 && team.length <= 50 &&
-                                        /[A-Za-z]{2,}/.test(player) && /[A-Za-z]{2,}/.test(team);
+                                        !player.includes(':') && // No colons
+                                        !player.match(/\.\w/) && // No periods followed by letters (like "cards.")
+                                        playerHasLetters && teamHasLetters;
                     
                     // Only skip if it's clearly not a card - be more lenient to avoid missing valid cards
                     if (!isSummary && !hasSemicolons && !hasOddsPattern && !isTooLong && !startsWithSummary && looksLikeName) {
