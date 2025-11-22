@@ -747,15 +747,15 @@ class ChecklistInsiderService {
                     let patternMatch;
                     while ((patternMatch = cardPattern.exec(trimmed)) !== null) {
                         allCardPatterns.push(patternMatch);
-                        // DEBUG: Log matches for odds lines
-                        if (trimmed.toLowerCase().includes('odds') && trimmed.includes('HL-')) {
-                            console.log(`   🔍 DEBUG found pattern match: "${patternMatch[1]} ${patternMatch[2]} - ${patternMatch[3]}"`);
+                        // [DEBUG-PATTERN] Log every pattern match
+                        if (DEBUG_MODE) {
+                            console.log(`   [DEBUG-PATTERN] Match #${allCardPatterns.length}: "${patternMatch[1]}" | "${patternMatch[2]}" | "${patternMatch[3]}"`);
                         }
                     }
                     
-                    // DEBUG: Log if we found patterns for odds lines
-                    if (trimmed.toLowerCase().includes('odds') && trimmed.includes('HL-')) {
-                        console.log(`   🔍 DEBUG total patterns found: ${allCardPatterns.length}`);
+                    // [DEBUG-PATTERN] Log summary
+                    if (DEBUG_MODE) {
+                        console.log(`   [DEBUG-PATTERN] Total patterns found in line: ${allCardPatterns.length}`);
                     }
                     
                     // If we found patterns, validate them from the END (last match is usually the actual card)
@@ -769,12 +769,17 @@ class ChecklistInsiderService {
                             const testPlayerLower = testPlayer.toLowerCase();
                             const testTeamLower = testTeam.toLowerCase();
                             
+                            // [DEBUG-VALIDATION] Log validation attempt
+                            if (DEBUG_MODE) {
+                                console.log(`   [DEBUG-VALIDATION] Testing pattern #${i + 1}/${allCardPatterns.length}: "${testMatch[1]}" | "${testPlayer}" | "${testTeam}"`);
+                            }
+                            
                             // Quick validation - skip if it's clearly summary text
                             // Remove ellipsis for length check
                             const quickCheckPlayer = testPlayer.replace(/\.{2,}$/, '').trim();
                             const quickCheckTeam = testTeam.replace(/\.{2,}$/, '').trim();
                             
-                            if (testPlayerLower.startsWith('cards') || 
+                            const quickCheckFailed = testPlayerLower.startsWith('cards') || 
                                 testPlayerLower.startsWith('lists') ||
                                 testPlayerLower.startsWith('parallels') ||
                                 testPlayerLower.startsWith('foil') ||
@@ -784,11 +789,19 @@ class ChecklistInsiderService {
                                 testTeamLower.startsWith('cards') ||
                                 testTeamLower.startsWith('odds') ||
                                 quickCheckPlayer.length > 35 ||
-                                quickCheckTeam.length > 50) {
+                                quickCheckTeam.length > 50;
+                            
+                            if (quickCheckFailed) {
+                                if (DEBUG_MODE) {
+                                    console.log(`   [DEBUG-VALIDATION] ❌ Quick check failed for pattern #${i + 1}`);
+                                }
                                 continue;
                             }
                             
                             // This looks like a valid card - use it
+                            if (DEBUG_MODE) {
+                                console.log(`   [DEBUG-VALIDATION] ✅ Quick check passed for pattern #${i + 1}, using as endMatch`);
+                            }
                             endMatch = testMatch;
                             break;
                         }
@@ -800,6 +813,11 @@ class ChecklistInsiderService {
                         const testTeam = endMatch[3].trim();
                         const testPlayerLower = testPlayer.toLowerCase();
                         const testTeamLower = testTeam.toLowerCase();
+                        
+                        // [DEBUG-VALIDATION] Log the card being validated
+                        if (DEBUG_MODE) {
+                            console.log(`   [DEBUG-VALIDATION] Validating endMatch: "${endMatch[1]}" | "${testPlayer}" | "${testTeam}"`);
+                        }
                         
                         // Check if player/team are valid (not summary text)
                         const summaryKeywords = [
@@ -822,6 +840,11 @@ class ChecklistInsiderService {
                         const hasSemicolons = testPlayer.includes(';') || testTeam.includes(';');
                         const hasOddsPattern = /\d+:\d+/.test(testPlayer) || /\d+:\d+/.test(testTeam);
                         const isTooLong = testPlayer.length > 30 || testTeam.length > 50;
+                        
+                        // [DEBUG-VALIDATION] Log each validation check
+                        if (DEBUG_MODE) {
+                            console.log(`   [DEBUG-VALIDATION] Checks: hasSummary=${hasSummary}, startsWithSummary=${startsWithSummary}, hasSemicolons=${hasSemicolons}, hasOddsPattern=${hasOddsPattern}, isTooLong=${isTooLong}`);
+                        }
                         
                         // Very strict name validation - must look like a real name
                         // Allow accented characters, periods (for Jr./Sr.), but not in the middle of words
@@ -848,15 +871,27 @@ class ChecklistInsiderService {
                                              !cleanPlayer2.match(/\.\w/) && // No periods followed by letters (like "cards.")
                                              playerHasLetters && teamHasLetters;
                         
-                        // Debug logging for accented character issues - always log when looksLikeName fails
-                        if (!looksLikeName) {
-                            console.log(`   🔍 DEBUG validation failed: player="${cleanPlayer2}" (${cleanPlayer2.length} chars), team="${cleanTeam2}" (${cleanTeam2.length} chars)`);
-                            console.log(`      playerRegex: ${playerRegexTest}, teamRegex: ${teamRegexTest}, playerHasLetters: ${playerHasLetters}, teamHasLetters: ${teamHasLetters}`);
-                            console.log(`      hasSummary: ${hasSummary}, startsWithSummary: ${startsWithSummary}, hasSemicolons: ${hasSemicolons}, hasOddsPattern: ${hasOddsPattern}, isTooLong: ${isTooLong}`);
+                        // [DEBUG-VALIDATION] Log name validation details
+                        if (DEBUG_MODE) {
+                            console.log(`   [DEBUG-VALIDATION] Name validation: playerRegex=${playerRegexTest}, teamRegex=${teamRegexTest}, playerHasLetters=${playerHasLetters}, teamHasLetters=${teamHasLetters}`);
+                            console.log(`   [DEBUG-VALIDATION] Cleaned names: player="${cleanPlayer2}" (${cleanPlayer2.length}), team="${cleanTeam2}" (${cleanTeam2.length})`);
+                            console.log(`   [DEBUG-VALIDATION] looksLikeName=${looksLikeName}`);
                         }
                         
-                        if (!hasSummary && !startsWithSummary && !hasSemicolons && !hasOddsPattern && 
-                            !isTooLong && looksLikeName) {
+                        const allChecksPass = !hasSummary && !startsWithSummary && !hasSemicolons && !hasOddsPattern && 
+                            !isTooLong && looksLikeName;
+                        
+                        // [DEBUG-VALIDATION] Log final validation result
+                        if (DEBUG_MODE) {
+                            if (allChecksPass) {
+                                console.log(`   [DEBUG-VALIDATION] ✅ ALL CHECKS PASSED - Card will be added`);
+                            } else {
+                                console.log(`   [DEBUG-VALIDATION] ❌ VALIDATION FAILED - Card rejected`);
+                                console.log(`   [DEBUG-VALIDATION]    hasSummary=${hasSummary}, startsWithSummary=${startsWithSummary}, hasSemicolons=${hasSemicolons}, hasOddsPattern=${hasOddsPattern}, isTooLong=${isTooLong}, looksLikeName=${looksLikeName}`);
+                            }
+                        }
+                        
+                        if (allChecksPass) {
                             cardMatch = endMatch;
                         }
                     }
@@ -983,7 +1018,13 @@ class ChecklistInsiderService {
                                         playerHasLetters && teamHasLetters;
                     
                     // Only skip if it's clearly not a card - be more lenient to avoid missing valid cards
-                    if (!isSummary && !hasSemicolons && !hasOddsPattern && !isTooLong && !startsWithSummary && looksLikeName) {
+                    const cardWillBeAdded = !isSummary && !hasSemicolons && !hasOddsPattern && !isTooLong && !startsWithSummary && looksLikeName;
+                    
+                    if (cardWillBeAdded) {
+                        // [DEBUG-CARD] Log successful card addition
+                        if (DEBUG_MODE) {
+                            console.log(`   [DEBUG-CARD] ✅ Adding card: "${number}" | "${player}" | "${team}"`);
+                        }
                         cards.push({
                             number: number,
                             player: player,
@@ -992,9 +1033,15 @@ class ChecklistInsiderService {
                             url: post.link
                         });
                     } else {
-                        // Log skipped lines for debugging (only first few to avoid spam)
-                        if (cards.length < 3) {
-                            console.log(`   ⏭️ Skipped line: "${trimmed.substring(0, 100)}..." (isSummary: ${isSummary}, hasSemicolons: ${hasSemicolons}, hasOddsPattern: ${hasOddsPattern}, isTooLong: ${isTooLong}, startsWithSummary: ${startsWithSummary}, looksLikeName: ${looksLikeName})`);
+                        // [DEBUG-CARD] Log why card was skipped
+                        if (DEBUG_MODE) {
+                            console.log(`   [DEBUG-CARD] ❌ Skipping card: "${number}" | "${player}" | "${team}"`);
+                            console.log(`   [DEBUG-CARD]    Reason: isSummary=${isSummary}, hasSemicolons=${hasSemicolons}, hasOddsPattern=${hasOddsPattern}, isTooLong=${isTooLong}, startsWithSummary=${startsWithSummary}, looksLikeName=${looksLikeName}`);
+                        } else {
+                            // Log skipped lines for debugging (only first few to avoid spam)
+                            if (cards.length < 3) {
+                                console.log(`   ⏭️ Skipped line: "${trimmed.substring(0, 100)}..." (isSummary: ${isSummary}, hasSemicolons: ${hasSemicolons}, hasOddsPattern: ${hasOddsPattern}, isTooLong: ${isTooLong}, startsWithSummary: ${startsWithSummary}, looksLikeName: ${looksLikeName})`);
+                            }
                         }
                     }
                 } else {
