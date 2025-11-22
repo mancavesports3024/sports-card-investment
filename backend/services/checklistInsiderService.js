@@ -528,57 +528,110 @@ class ChecklistInsiderService {
                 const $temp = cheerio.load(htmlContent);
                 const types = new Set();
                 
-                // Look for "Parallels:" or "Parallel:" followed by types
-                const parallelPatterns = [
-                    /Parallels?:\s*([^\.]+)/gi,
-                    /Variations?:\s*([^\.]+)/gi,
-                    /Base\s+Checklist/gi
-                ];
+                // First, always add "Base Checklist" if we see the h3 header or "350 cards"
+                const hasBaseChecklist = $temp('h3').filter((i, el) => {
+                    const text = $temp(el).text().trim().toLowerCase();
+                    return text === 'base checklist';
+                }).length > 0;
                 
-                const textContent = $temp.text();
+                if (hasBaseChecklist || $temp.text().toLowerCase().includes('350 cards')) {
+                    types.add('Base Checklist');
+                }
                 
-                // Extract from "Parallels:" patterns
-                parallelPatterns.forEach(pattern => {
-                    let match;
-                    while ((match = pattern.exec(textContent)) !== null) {
-                        const parallelText = match[1] || match[0];
-                        // Split by semicolons and clean up
-                        const parts = parallelText.split(';').map(p => p.trim()).filter(p => p.length > 0);
-                        parts.forEach(part => {
-                            // Extract individual parallel names (remove odds, numbers, etc.)
-                            // Match patterns like "Topps Foil Pattern", "Silver Crackle Foilboard", etc.
-                            const cleanPart = part
-                                .replace(/\([^)]+\)/g, '') // Remove parentheses (odds)
-                                .replace(/\d+:\d+/g, '') // Remove odds like "1:3"
-                                .replace(/\/\d+/g, '') // Remove "/99" type numbering
-                                .replace(/\d+/g, '') // Remove standalone numbers
-                                .trim();
+                // Look for divs that contain <em>Parallels</em> or <em>Variations</em>
+                // Structure: <div><em>Parallels</em>: Type1; Type2; Type3</div>
+                $temp('div').each((i, div) => {
+                    const $div = $temp(div);
+                    const html = $div.html() || '';
+                    
+                    // Check if this div contains a Parallels or Variations label
+                    const hasParallelsLabel = /<em>\s*Parallels?\s*<\/em>/i.test(html) || 
+                                           /<em>\s*Variations?\s*<\/em>/i.test(html);
+                    
+                    if (hasParallelsLabel) {
+                        // Get the text content after the label
+                        const text = $div.text().trim();
+                        // Extract everything after "Parallels:" or "Variations:"
+                        const match = text.match(/(?:Parallels?|Variations?):\s*(.+)/i);
+                        if (match && match[1]) {
+                            const parallelText = match[1].trim();
+                            // Split by semicolons
+                            const parts = parallelText.split(';').map(p => p.trim()).filter(p => p.length > 0);
                             
-                            if (cleanPart.length > 3 && cleanPart.length < 50) {
-                                // Split by common separators and add each part
-                                const subParts = cleanPart.split(/[;,]/).map(sp => sp.trim()).filter(sp => sp.length > 3);
-                                subParts.forEach(subPart => {
-                                    if (subPart.length > 3 && subPart.length < 50) {
-                                        types.add(subPart);
-                                    }
-                                });
-                            }
-                        });
+                            parts.forEach(part => {
+                                // Remove odds in parentheses like "(1:3)" or "(1:197)"
+                                let cleanPart = part.replace(/\([^)]*\)/g, '').trim();
+                                // Remove odds patterns like "1:3" or "1:197"
+                                cleanPart = cleanPart.replace(/\d+:\d+/g, '').trim();
+                                // Remove numbering like "/99" or "/2,025" or "1/1"
+                                cleanPart = cleanPart.replace(/\/[\d,]+/g, '').trim();
+                                cleanPart = cleanPart.replace(/\d+\/\d+/g, '').trim();
+                                // Remove trailing periods
+                                cleanPart = cleanPart.replace(/\.+$/, '').trim();
+                                
+                                // Only add if it looks like a valid parallel name
+                                // Must be 3-50 chars, start with a letter, and not be just numbers
+                                if (cleanPart.length >= 3 && cleanPart.length <= 50 && 
+                                    /^[A-Za-z]/.test(cleanPart) && 
+                                    !/^\d+$/.test(cleanPart)) {
+                                    types.add(cleanPart);
+                                }
+                            });
+                        }
                     }
                 });
                 
-                // Always add "Base Checklist" as the first option
-                if (textContent.toLowerCase().includes('base checklist') || textContent.toLowerCase().includes('350 cards')) {
-                    types.add('Base Checklist');
+                // Also check for text-based patterns as fallback (but be more careful)
+                const textContent = $temp.text();
+                const textPattern = /(?:Parallels?|Variations?):\s*([^\.]+?)(?:\.|$)/gi;
+                let textMatch;
+                while ((textMatch = textPattern.exec(textContent)) !== null) {
+                    const parallelText = textMatch[1].trim();
+                    // Only process if we haven't already extracted from HTML structure
+                    if (parallelText.length > 10) { // Only process substantial matches
+                        const parts = parallelText.split(';').map(p => p.trim()).filter(p => p.length > 0);
+                        parts.forEach(part => {
+                            let cleanPart = part.replace(/\([^)]*\)/g, '').trim();
+                            cleanPart = cleanPart.replace(/\d+:\d+/g, '').trim();
+                            cleanPart = cleanPart.replace(/\/[\d,]+/g, '').trim();
+                            cleanPart = cleanPart.replace(/\d+\/\d+/g, '').trim();
+                            cleanPart = cleanPart.replace(/\.+$/, '').trim();
+                            
+                            if (cleanPart.length >= 3 && cleanPart.length <= 50 && 
+                                /^[A-Za-z]/.test(cleanPart) && 
+                                !/^\d+$/.test(cleanPart)) {
+                                types.add(cleanPart);
+                            }
+                        });
+                    }
                 }
                 
                 return Array.from(types).sort();
             };
             
-            // Extract parallel types from the full HTML before section filtering
-            const allParallelTypes = extractParallelTypes(html);
+            // Extract parallel types from the Base Checklist section only
+            // Find the Base Checklist section first
+            let baseChecklistHtml = html;
+            $('h3').each((i, el) => {
+                const $h3 = $(el);
+                const h3Text = $h3.text().trim().toLowerCase();
+                if (h3Text === 'base checklist') {
+                    // Get all content between this h3 and the next h3
+                    const $sectionContent = $('<div>');
+                    let $current = $h3.next();
+                    while ($current.length > 0 && !$current.is('h3')) {
+                        $sectionContent.append($current.clone());
+                        $current = $current.next();
+                    }
+                    baseChecklistHtml = $sectionContent.html() || '';
+                    return false; // Break the loop
+                }
+            });
+            
+            // Only extract from Base Checklist section
+            const allParallelTypes = extractParallelTypes(baseChecklistHtml);
             parallelTypes.push(...allParallelTypes);
-            console.log(`🔍 [DEBUG] Extracted ${parallelTypes.length} parallel types:`, parallelTypes);
+            console.log(`🔍 [DEBUG] Extracted ${parallelTypes.length} parallel types from Base Checklist:`, parallelTypes);
 
             // If sectionId is provided, only parse content after that section's h3 header
             let contentToParse = $;
