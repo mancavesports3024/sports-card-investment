@@ -504,8 +504,10 @@ class ChecklistInsiderService {
      */
     async getChecklist(postId, sectionId = null) {
         try {
+            console.log(`🔍 [DEBUG] getChecklist called: postId=${postId}, sectionId=${sectionId}`);
             const cacheKey = `checklist_${postId}_${sectionId || 'all'}`;
             if (this.cache.has(cacheKey)) {
+                console.log(`🔍 [DEBUG] Returning cached result for ${cacheKey}`);
                 return this.cache.get(cacheKey);
             }
 
@@ -522,6 +524,14 @@ class ChecklistInsiderService {
             // If sectionId is provided, only parse content after that section's h3 header
             let contentToParse = $;
             if (sectionId) {
+                console.log(`🔍 [DEBUG] Looking for section: ${sectionId}`);
+                // Find all h3 headers to see what sections exist
+                const allH3s = $('h3').map((i, el) => {
+                    const text = $(el).text().trim();
+                    const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                    return { text, id, index: i };
+                }).get();
+                console.log(`🔍 [DEBUG] Found ${allH3s.length} h3 headers:`, allH3s.map(h => `${h.id} (${h.text.substring(0, 50)})`)); {
                 // Find the h3 header that matches this section
                 let $sectionStart = null;
                 $('h3').each((index, element) => {
@@ -538,21 +548,29 @@ class ChecklistInsiderService {
                 });
 
                 if ($sectionStart && $sectionStart.length > 0) {
+                    console.log(`   ✅ Found section header: "${$sectionStart.text().trim()}"`);
                     // Get all content between this h3 and the next h3 (or end of document)
                     const $sectionContent = $('<div>');
                     let $current = $sectionStart.next();
+                    let contentLength = 0;
                     
                     while ($current.length > 0) {
                         // Stop if we hit another h3 (next section)
                         if ($current.is('h3')) {
+                            console.log(`   🔍 Stopped at next h3: "${$current.text().trim()}"`);
                             break;
                         }
                         // Clone and append this element
-                        $sectionContent.append($current.clone());
+                        const cloned = $current.clone();
+                        $sectionContent.append(cloned);
+                        contentLength += cloned.text().length;
                         $current = $current.next();
                     }
                     
-                    contentToParse = cheerio.load($sectionContent.html() || '');
+                    const sectionHtml = $sectionContent.html() || '';
+                    console.log(`   📋 Section content length: ${sectionHtml.length} chars, text length: ${contentLength} chars`);
+                    console.log(`   📋 Section content preview (first 500 chars): ${sectionHtml.substring(0, 500)}`);
+                    contentToParse = cheerio.load(sectionHtml);
                     console.log(`   📋 Parsing section "${sectionId}"`);
                 } else {
                     console.log(`   ⚠️ Section "${sectionId}" not found, parsing entire checklist`);
