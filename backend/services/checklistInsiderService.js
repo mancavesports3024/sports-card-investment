@@ -694,6 +694,10 @@ class ChecklistInsiderService {
                             const testTeamLower = testTeam.toLowerCase();
                             
                             // Quick validation - skip if it's clearly summary text
+                            // Remove ellipsis for length check
+                            const quickCheckPlayer = testPlayer.replace(/\.{2,}$/, '').trim();
+                            const quickCheckTeam = testTeam.replace(/\.{2,}$/, '').trim();
+                            
                             if (testPlayerLower.startsWith('cards') || 
                                 testPlayerLower.startsWith('lists') ||
                                 testPlayerLower.startsWith('parallels') ||
@@ -703,8 +707,8 @@ class ChecklistInsiderService {
                                 testPlayerLower.includes('from base set') ||
                                 testTeamLower.startsWith('cards') ||
                                 testTeamLower.startsWith('odds') ||
-                                testPlayer.length > 30 ||
-                                testTeam.length > 50) {
+                                quickCheckPlayer.length > 35 ||
+                                quickCheckTeam.length > 50) {
                                 continue;
                             }
                             
@@ -768,10 +772,11 @@ class ChecklistInsiderService {
                                              !cleanPlayer2.match(/\.\w/) && // No periods followed by letters (like "cards.")
                                              playerHasLetters && teamHasLetters;
                         
-                        // Debug logging for accented character issues
-                        if (!looksLikeName && (cleanPlayer2.includes('ó') || cleanPlayer2.includes('ñ') || cleanPlayer2.includes('á'))) {
-                            console.log(`   🔍 DEBUG accented name: player="${cleanPlayer2}" (${cleanPlayer2.length} chars), team="${cleanTeam2}" (${cleanTeam2.length} chars)`);
+                        // Debug logging for accented character issues - always log when looksLikeName fails
+                        if (!looksLikeName) {
+                            console.log(`   🔍 DEBUG validation failed: player="${cleanPlayer2}" (${cleanPlayer2.length} chars), team="${cleanTeam2}" (${cleanTeam2.length} chars)`);
                             console.log(`      playerRegex: ${playerRegexTest}, teamRegex: ${teamRegexTest}, playerHasLetters: ${playerHasLetters}, teamHasLetters: ${teamHasLetters}`);
+                            console.log(`      hasSummary: ${hasSummary}, startsWithSummary: ${startsWithSummary}, hasSemicolons: ${hasSemicolons}, hasOddsPattern: ${hasOddsPattern}, isTooLong: ${isTooLong}`);
                         }
                         
                         if (!hasSummary && !startsWithSummary && !hasSemicolons && !hasOddsPattern && 
