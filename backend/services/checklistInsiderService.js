@@ -716,17 +716,16 @@ class ChecklistInsiderService {
             const textContent = contentToParse.text();
             const lines = textContent.split(/\n|\r|<br\s*\/?>/i);
             
-            // DEBUG: Enable detailed logging
-            const DEBUG_MODE = true;
+            // DEBUG: Enable detailed logging (set to false to reduce log spam)
+            const DEBUG_MODE = false;
             
             for (const line of lines) {
                 const trimmed = line.trim();
                 if (!trimmed) continue;
                 
-                // [DEBUG-LINE] Log lines that might contain cards or odds
-                if (DEBUG_MODE && (trimmed.toLowerCase().includes('odds') || 
-                    /[A-Z0-9]+(?:-[A-Z0-9]+)?\s+[A-Z]/.test(trimmed))) {
-                    console.log(`   [DEBUG-LINE] Processing: "${trimmed.substring(0, 150)}${trimmed.length > 150 ? '...' : ''}"`);
+                // [DEBUG-LINE] Only log odds lines, not every card line
+                if (DEBUG_MODE && trimmed.toLowerCase().includes('odds')) {
+                    console.log(`   [DEBUG-LINE] Processing odds line: "${trimmed.substring(0, 150)}${trimmed.length > 150 ? '...' : ''}"`);
                 }
                 
                 // DEBUG: Log lines that contain odds to see what we're working with
@@ -1230,7 +1229,7 @@ class ChecklistInsiderService {
                     const cardWillBeAdded = !isSummary && !hasSemicolons && !hasOddsPattern && !isTooLong && !startsWithSummary && !teamTooShort && looksLikeName;
                     
                     if (cardWillBeAdded) {
-                        // [DEBUG-CARD] Log successful card addition
+                        // Only log card additions in debug mode
                         if (DEBUG_MODE) {
                             console.log(`   [DEBUG-CARD] ✅ Adding card: "${number}" | "${player}" | "${team}"`);
                         }
@@ -1242,7 +1241,7 @@ class ChecklistInsiderService {
                             url: post.link
                         });
                     } else {
-                        // [DEBUG-CARD] Log why card was skipped
+                        // [DEBUG-CARD] Log why card was skipped (only in debug mode or first few)
                         if (DEBUG_MODE) {
                             console.log(`   [DEBUG-CARD] ❌ Skipping card: "${number}" | "${player}" | "${team}"`);
                             console.log(`   [DEBUG-CARD]    Reason: isSummary=${isSummary}, hasSemicolons=${hasSemicolons}, hasOddsPattern=${hasOddsPattern}, isTooLong=${isTooLong}, startsWithSummary=${startsWithSummary}, teamTooShort=${teamTooShort}, looksLikeName=${looksLikeName}`);

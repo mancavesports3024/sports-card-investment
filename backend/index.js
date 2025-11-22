@@ -1118,15 +1118,17 @@ app.use('/api/live-listings', require('./routes/liveListings'));
       const { setId } = req.params;
       const { section } = req.query; // Optional section ID
       const result = await checklistService.getChecklist(setId, section || null);
-      // Handle both old format (array) and new format (object with cards and odds)
+      // Handle both old format (array) and new format (object with cards, odds, and parallelTypes)
       const checklist = Array.isArray(result) ? result : result.cards;
       const odds = Array.isArray(result) ? null : result.odds;
+      const parallelTypes = Array.isArray(result) ? null : result.parallelTypes;
       res.json({
         success: true,
         setId: setId,
         section: section || null,
         checklist: checklist,
-        odds: odds
+        odds: odds,
+        parallelTypes: parallelTypes
       });
     } catch (error) {
       console.error(`❌ Error fetching checklist for set ${req.params.setId}:`, error);
