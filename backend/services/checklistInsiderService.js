@@ -684,7 +684,8 @@ class ChecklistInsiderService {
                         console.log(`   [DEBUG-ODDS] Cleaned last part: "${cleanedLastPart}"`);
                     }
                     
-                    const cardAtEnd = cleanedLastPart.match(/([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,35}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?$/u);
+                    // Allow "/" for multi-player cards and combo cards
+                    const cardAtEnd = cleanedLastPart.match(/([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{1,35}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?$/u);
                     
                     if (cardAtEnd) {
                         if (DEBUG_MODE) {
@@ -739,8 +740,9 @@ class ChecklistInsiderService {
                     const allCardPatterns = [];
                     // Use Unicode escapes to avoid encoding issues in build environments
                     // Allow parentheses for "(eBay)" and "SP" in card names
+                    // IMPORTANT: Allow "/" for multi-player cards (e.g., "Player1/Player2") and combo cards (e.g., "Team Combo Card/Checklist")
                     // IMPORTANT: Use non-greedy matching and look for patterns, especially at the end of the line
-                    const cardPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,35}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?/gu;
+                    const cardPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{1,35}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?/gu;
                     
                     // Reset regex lastIndex to ensure we search the entire string
                     cardPattern.lastIndex = 0;
@@ -783,13 +785,13 @@ class ChecklistInsiderService {
                                 testPlayerLower.startsWith('lists') ||
                                 testPlayerLower.startsWith('parallels') ||
                                 testPlayerLower.startsWith('foil') ||
-                                testPlayerLower.includes('cards.') ||
+                                (testPlayerLower.includes('cards.') && testPlayerLower.length < 20) || // Only reject if it's clearly summary text
                                 testPlayerLower.includes('lists all') ||
                                 testPlayerLower.includes('from base set') ||
-                                testTeamLower.startsWith('cards') ||
+                                (testTeamLower.startsWith('cards') && testTeamLower.length < 20) ||
                                 testTeamLower.startsWith('odds') ||
-                                quickCheckPlayer.length > 35 ||
-                                quickCheckTeam.length > 50;
+                                quickCheckPlayer.length > 200 ||
+                                quickCheckTeam.length > 200;
                             
                             if (quickCheckFailed) {
                                 if (DEBUG_MODE) {
@@ -837,9 +839,12 @@ class ChecklistInsiderService {
                                                 testTeamLower.startsWith('cards') ||
                                                 testTeamLower.startsWith('odds');
                         
-                        const hasSemicolons = testPlayer.includes(';') || testTeam.includes(';');
+                        // Don't reject cards with semicolons if they're in the middle of valid text (like parallel info)
+                        // Only reject if the entire player/team is just odds/summary text
+                        const hasSemicolons = (testPlayer.includes(';') && testPlayer.length < 10) || (testTeam.includes(';') && testTeam.length < 10);
                         const hasOddsPattern = /\d+:\d+/.test(testPlayer) || /\d+:\d+/.test(testTeam);
-                        const isTooLong = testPlayer.length > 30 || testTeam.length > 50;
+                        // Increase length limits - some cards have longer names with parallel info
+                        const isTooLong = testPlayer.length > 200 || testTeam.length > 200;
                         
                         // [DEBUG-VALIDATION] Log each validation check
                         if (DEBUG_MODE) {
@@ -859,14 +864,15 @@ class ChecklistInsiderService {
                         cleanPlayer2 = cleanPlayer2.replace(/\s+SP\s*$/i, '').trim();
                         cleanTeam2 = cleanTeam2.replace(/\s+SP\s*$/i, '').trim();
                         // Use Unicode flag (u) for proper accented character matching
-                        const playerRegexTest = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/u.test(cleanPlayer2);
-                        const teamRegexTest = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/u.test(cleanTeam2);
+                        // Allow "/" for multi-player cards and combo cards
+                        const playerRegexTest = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'/-]+$/u.test(cleanPlayer2);
+                        const teamRegexTest = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'/-]+$/u.test(cleanTeam2);
                         const playerHasLetters = /[A-Za-z\u00C0-\u017F]{2,}/u.test(cleanPlayer2);
                         const teamHasLetters = /[A-Za-z\u00C0-\u017F]{2,}/u.test(cleanTeam2);
                         
                         const looksLikeName = playerRegexTest && teamRegexTest &&
-                                             cleanPlayer2.length >= 2 && cleanPlayer2.length <= 35 &&
-                                             cleanTeam2.length >= 2 && cleanTeam2.length <= 50 &&
+                                             cleanPlayer2.length >= 2 && cleanPlayer2.length <= 200 &&
+                                             cleanTeam2.length >= 2 && cleanTeam2.length <= 200 &&
                                              !cleanPlayer2.includes(':') && // No colons
                                              !cleanPlayer2.match(/\.\w/) && // No periods followed by letters (like "cards.")
                                              playerHasLetters && teamHasLetters;
@@ -899,7 +905,8 @@ class ChecklistInsiderService {
                     // If that didn't work, try finding all matches and validate each one
                     if (!cardMatch) {
                         // Use Unicode escapes to avoid encoding issues in build environments
-                        const flexiblePattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]{1,28}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card))?/giu;
+                        // Allow "/" for multi-player cards and combo cards
+                        const flexiblePattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'/-]{1,28}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'/-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card))?/giu;
                         let matches = [];
                         let match;
                         while ((match = flexiblePattern.exec(trimmed)) !== null) {
@@ -988,12 +995,14 @@ class ChecklistInsiderService {
                         playerLower.includes(kw) || teamLower.includes(kw)
                     );
                     
-                    // Skip if player or team has semicolons (odds often use semicolons)
-                    const hasSemicolons = player.includes(';') || team.includes(';');
+                    // Skip if player or team has semicolons ONLY if it's very short (likely just odds)
+                    // Longer text with semicolons might be valid (like parallel info)
+                    const hasSemicolons = (player.includes(';') && player.length < 10) || (team.includes(';') && team.length < 10);
                     
                     // Skip if player name is too long (likely contains odds info) or contains numbers with colons (odds)
                     const hasOddsPattern = /\d+:\d+/.test(player) || /\d+:\d+/.test(team);
-                    const isTooLong = player.length > 50 || team.length > 50;
+                    // Increase length limits - some cards have longer names with parallel info, but cap at reasonable limit
+                    const isTooLong = player.length > 200 || team.length > 200;
                     
                     // Additional check: if player or team starts with common summary words, skip
                     // But be careful - "Cards" as a team name might be valid, so check more carefully
@@ -1005,14 +1014,15 @@ class ChecklistInsiderService {
                     
                     // Validate that player and team look like actual names
                     // Use Unicode flag (u) and Unicode character ranges for accented characters
-                    const playerRegexTest = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/u.test(player);
-                    const teamRegexTest = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/u.test(team);
+                    // Allow "/" for multi-player cards and combo cards
+                    const playerRegexTest = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'/-]+$/u.test(player);
+                    const teamRegexTest = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'/-]+$/u.test(team);
                     const playerHasLetters = /[A-Za-z\u00C0-\u017F]{2,}/u.test(player);
                     const teamHasLetters = /[A-Za-z\u00C0-\u017F]{2,}/u.test(team);
                     
                     const looksLikeName = playerRegexTest && teamRegexTest &&
-                                        player.length >= 2 && player.length <= 50 &&
-                                        team.length >= 2 && team.length <= 50 &&
+                                        player.length >= 2 && player.length <= 200 &&
+                                        team.length >= 2 && team.length <= 200 &&
                                         !player.includes(':') && // No colons
                                         !player.match(/\.\w/) && // No periods followed by letters (like "cards.")
                                         playerHasLetters && teamHasLetters;
