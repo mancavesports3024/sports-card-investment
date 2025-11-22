@@ -590,7 +590,7 @@ class ChecklistInsiderService {
                     const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
                     return { text, id, index: i };
                 }).get();
-                console.log(`🔍 [DEBUG] Found ${allH3s.length} h3 headers:`, allH3s.map(h => `${h.id} (${h.text.substring(0, 50)})`)); {
+                console.log(`🔍 [DEBUG] Found ${allH3s.length} h3 headers:`, allH3s.map(h => `${h.id} (${h.text.substring(0, 50)})`));
                 // Find the h3 header that matches this section
                 let $sectionStart = null;
                 $('h3').each((index, element) => {
@@ -1274,9 +1274,9 @@ class ChecklistInsiderService {
                 console.log(`   ✅ Found ${cards.length} cards from text format parsing`);
             }
             
-            // Strategy 1: Look for tables
-            $('table tr').each((index, element) => {
-                const $row = $(element);
+            // Strategy 1: Look for tables (using original $ for full HTML)
+            contentToParse('table tr').each((index, element) => {
+                const $row = contentToParse(element);
                 const $cells = $row.find('td, th');
                 
                 if ($cells.length >= 2) {
@@ -1466,7 +1466,7 @@ class ChecklistInsiderService {
             // Strategy 3: If still no cards, try lists
             if (cards.length === 0) {
                 contentToParse('ul li, ol li').each((index, element) => {
-                    const text = $(element).text().trim();
+                    const text = contentToParse(element).text().trim();
                     // Look for patterns like "#1 Player Name" or "1. Player Name"
                     const match = text.match(/^#?(\d+[\w]*)\s+(.+?)(?:\s+-\s+(.+))?$/);
                     if (match) {
