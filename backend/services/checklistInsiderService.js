@@ -643,6 +643,11 @@ class ChecklistInsiderService {
                 const trimmed = line.trim();
                 if (!trimmed) continue;
                 
+                // DEBUG: Log lines that contain odds to see what we're working with
+                if (trimmed.toLowerCase().includes('odds') && trimmed.includes('HL-')) {
+                    console.log(`   🔍 DEBUG odds line: "${trimmed.substring(0, 200)}..."`);
+                }
+                
                 // Extract odds information if this line contains odds
                 // IMPORTANT: Cards can appear at the end of odds lines, so we need to handle both
                 let oddsTextOnly = null;
@@ -712,6 +717,15 @@ class ChecklistInsiderService {
                     let patternMatch;
                     while ((patternMatch = cardPattern.exec(trimmed)) !== null) {
                         allCardPatterns.push(patternMatch);
+                        // DEBUG: Log matches for odds lines
+                        if (trimmed.toLowerCase().includes('odds') && trimmed.includes('HL-')) {
+                            console.log(`   🔍 DEBUG found pattern match: "${patternMatch[1]} ${patternMatch[2]} - ${patternMatch[3]}"`);
+                        }
+                    }
+                    
+                    // DEBUG: Log if we found patterns for odds lines
+                    if (trimmed.toLowerCase().includes('odds') && trimmed.includes('HL-')) {
+                        console.log(`   🔍 DEBUG total patterns found: ${allCardPatterns.length}`);
                     }
                     
                     // If we found patterns, validate them from the END (last match is usually the actual card)
