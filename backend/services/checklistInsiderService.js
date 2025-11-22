@@ -978,6 +978,10 @@ class ChecklistInsiderService {
                     // Remove "SP" suffix if present
                     player = player.replace(/\s+SP\s*$/i, '').trim();
                     team = team.replace(/\s+SP\s*$/i, '').trim();
+                    // Remove trailing "/" and numbers (e.g., "Los Angeles Dodgers /22" -> "Los Angeles Dodgers")
+                    team = team.replace(/\s*\/\s*\d+\s*$/, '').trim();
+                    // Remove trailing "/" alone (e.g., "Los Angeles Dodgers /" -> "Los Angeles Dodgers")
+                    team = team.replace(/\s*\/\s*$/, '').trim();
                     
                     // Check if this looks like a valid card (not odds/summary info)
                     // IMPORTANT: Only check the extracted player/team, not the whole line
@@ -1084,6 +1088,10 @@ class ChecklistInsiderService {
                         team = team.replace(/\.{2,}$/, '').replace(/\s*\([^)]*\)$/, '').trim();
                         player = player.replace(/\s+SP\s*$/i, '').trim();
                         team = team.replace(/\s+SP\s*$/i, '').trim();
+                        // Remove trailing "/" and numbers (e.g., "Los Angeles Dodgers /22" -> "Los Angeles Dodgers")
+                        team = team.replace(/\s*\/\s*\d+\s*$/, '').trim();
+                        // Remove trailing "/" alone (e.g., "Los Angeles Dodgers /" -> "Los Angeles Dodgers")
+                        team = team.replace(/\s*\/\s*$/, '').trim();
                         
                         // Recalculate playerLower and teamLower after updating player/team
                         playerLower = player.toLowerCase();
