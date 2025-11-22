@@ -644,11 +644,31 @@ class ChecklistInsiderService {
                 if (!trimmed) continue;
                 
                 // Extract odds information if this line contains odds
+                // IMPORTANT: Cards can appear at the end of odds lines, so we need to handle both
+                let oddsTextOnly = null;
+                let lineWithoutOdds = trimmed;
+                
                 const oddsMatch = trimmed.match(/Odds\s*-\s*(.+?)(?:\.\.\.|$)/i);
                 if (oddsMatch && oddsMatch[1]) {
-                    const oddsText = oddsMatch[1].trim();
-                    if (oddsText && !oddsInfo.includes(oddsText)) {
-                        oddsInfo.push(oddsText);
+                    const fullOddsText = oddsMatch[1].trim();
+                    
+                    // Try to find a card pattern at the END of the odds line
+                    // Pattern: "Odds - ... 1:786 Tins. HL-1 Juan Soto - New York Yankees"
+                    // Look for card pattern in the last part of the line
+                    const cardAtEnd = fullOddsText.match(/([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,35}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?$/u);
+                    
+                    if (cardAtEnd) {
+                        // Found a card at the end - extract odds text BEFORE the card
+                        const cardStart = fullOddsText.lastIndexOf(cardAtEnd[0]);
+                        oddsTextOnly = fullOddsText.substring(0, cardStart).trim();
+                        // Remove the card from the odds text, but keep it in the line for card extraction
+                        lineWithoutOdds = trimmed.replace(cardAtEnd[0], '').trim();
+                    } else {
+                        oddsTextOnly = fullOddsText;
+                    }
+                    
+                    if (oddsTextOnly && !oddsInfo.includes(oddsTextOnly)) {
+                        oddsInfo.push(oddsTextOnly);
                     }
                 }
                 
