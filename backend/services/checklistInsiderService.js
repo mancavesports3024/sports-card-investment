@@ -1014,11 +1014,12 @@ class ChecklistInsiderService {
                         
                         // Look for card patterns in the line, especially at the end
                         // The actual card is usually the LAST valid pattern
-                        // Use GREEDY matching (remove ?) to capture full names, and look for patterns at the END of the line
+                        // Use GREEDY matching to capture full names, and look for patterns at the END of the line
                         const allPatterns = [];
                         // Match from the END of the line - look for the last occurrence of a card pattern
-                        // Use greedy matching to capture full team names like "New York Yankees"
-                        const searchPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{2,50})\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{2,50})(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?/gu;
+                        // Use greedy matching (no ?) to capture full team names like "New York Yankees" or "Kansas City Royals"
+                        // Increase max length to 100 to handle longer team names
+                        const searchPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{2,100})\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{3,100})(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?/gu;
                         searchPattern.lastIndex = 0;
                         let patternMatch;
                         while ((patternMatch = searchPattern.exec(trimmed)) !== null) {
@@ -1040,15 +1041,20 @@ class ChecklistInsiderService {
                             );
                             
                             // Valid card: 
-                            // - Player name: 2-50 chars, no summary keywords, looks like a name
-                            // - Team name: MINIMUM 3 chars (to avoid "Ne", "Lo", etc.), no summary keywords
+                            // - Player name: 2-100 chars, no summary keywords, looks like a name
+                            // - Team name: MINIMUM 3 chars (to avoid "Ne", "Lo", "Ka", etc.), no summary keywords
                             // - Both must have at least 2 letters
+                            // - Team name must NOT be "Buy on eBay" or similar
                             const playerHasLetters = /[A-Za-z\u00C0-\u017F]{2,}/u.test(testPlayer);
                             const teamHasLetters = /[A-Za-z\u00C0-\u017F]{2,}/u.test(testTeam);
                             
+                            // Reject if team is "Buy on eBay" or similar
+                            const isBuyOnEbay = testTeamLower.includes('buy on ebay') || testTeamLower === 'buy on ebay';
+                            
                             if (!hasSummaryInTest && 
-                                testPlayer.length >= 2 && testPlayer.length <= 50 &&
-                                testTeam.length >= 3 && testTeam.length <= 50 && // Minimum 3 chars for team
+                                !isBuyOnEbay &&
+                                testPlayer.length >= 2 && testPlayer.length <= 100 &&
+                                testTeam.length >= 3 && testTeam.length <= 100 && // Minimum 3 chars for team, max 100
                                 playerHasLetters && teamHasLetters &&
                                 !testPlayerLower.startsWith('cards') &&
                                 !testPlayerLower.startsWith('parallels') &&
