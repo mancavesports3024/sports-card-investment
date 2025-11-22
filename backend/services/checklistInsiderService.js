@@ -520,6 +520,65 @@ class ChecklistInsiderService {
             const $ = cheerio.load(html);
             const cards = [];
             const oddsInfo = []; // Store odds information
+            const parallelTypes = []; // Store parallel/variation types
+
+            // Extract parallel types from the content (before parsing cards)
+            // Look for patterns like "Parallels: Type1; Type2; Type3" or "Base Checklist"
+            const extractParallelTypes = (htmlContent) => {
+                const $temp = cheerio.load(htmlContent);
+                const types = new Set();
+                
+                // Look for "Parallels:" or "Parallel:" followed by types
+                const parallelPatterns = [
+                    /Parallels?:\s*([^\.]+)/gi,
+                    /Variations?:\s*([^\.]+)/gi,
+                    /Base\s+Checklist/gi
+                ];
+                
+                const textContent = $temp.text();
+                
+                // Extract from "Parallels:" patterns
+                parallelPatterns.forEach(pattern => {
+                    let match;
+                    while ((match = pattern.exec(textContent)) !== null) {
+                        const parallelText = match[1] || match[0];
+                        // Split by semicolons and clean up
+                        const parts = parallelText.split(';').map(p => p.trim()).filter(p => p.length > 0);
+                        parts.forEach(part => {
+                            // Extract individual parallel names (remove odds, numbers, etc.)
+                            // Match patterns like "Topps Foil Pattern", "Silver Crackle Foilboard", etc.
+                            const cleanPart = part
+                                .replace(/\([^)]+\)/g, '') // Remove parentheses (odds)
+                                .replace(/\d+:\d+/g, '') // Remove odds like "1:3"
+                                .replace(/\/\d+/g, '') // Remove "/99" type numbering
+                                .replace(/\d+/g, '') // Remove standalone numbers
+                                .trim();
+                            
+                            if (cleanPart.length > 3 && cleanPart.length < 50) {
+                                // Split by common separators and add each part
+                                const subParts = cleanPart.split(/[;,]/).map(sp => sp.trim()).filter(sp => sp.length > 3);
+                                subParts.forEach(subPart => {
+                                    if (subPart.length > 3 && subPart.length < 50) {
+                                        types.add(subPart);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+                
+                // Always add "Base Checklist" as the first option
+                if (textContent.toLowerCase().includes('base checklist') || textContent.toLowerCase().includes('350 cards')) {
+                    types.add('Base Checklist');
+                }
+                
+                return Array.from(types).sort();
+            };
+            
+            // Extract parallel types from the full HTML before section filtering
+            const allParallelTypes = extractParallelTypes(html);
+            parallelTypes.push(...allParallelTypes);
+            console.log(`🔍 [DEBUG] Extracted ${parallelTypes.length} parallel types:`, parallelTypes);
 
             // If sectionId is provided, only parse content after that section's h3 header
             let contentToParse = $;
@@ -1422,10 +1481,11 @@ class ChecklistInsiderService {
                 });
             }
 
-            // Return cards with odds info if available
+            // Return cards with odds info and parallel types if available
             const result = {
                 cards: cards,
-                odds: oddsInfo.length > 0 ? oddsInfo : null
+                odds: oddsInfo.length > 0 ? oddsInfo : null,
+                parallelTypes: parallelTypes.length > 0 ? parallelTypes : null
             };
             
             // Cache for 1 hour

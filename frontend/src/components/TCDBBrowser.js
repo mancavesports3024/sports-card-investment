@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://web-production-9e
 
 const TCDBBrowser = () => {
   // Step tracking
-  const [currentStep, setCurrentStep] = useState('sport'); // sport -> year -> set -> checklist-section -> checklist
+  const [currentStep, setCurrentStep] = useState('sport'); // sport -> year -> set -> checklist-section -> parallel -> checklist
   
   // Data states
   const [sports, setSports] = useState([]);
@@ -13,12 +13,14 @@ const TCDBBrowser = () => {
   const [sets, setSets] = useState([]);
   const [checklistSections, setChecklistSections] = useState([]);
   const [checklist, setChecklist] = useState([]);
+  const [parallelTypes, setParallelTypes] = useState([]);
   
   // Selected values
   const [selectedSport, setSelectedSport] = useState(null);
   const [selectedYear, setSelectedYear] = useState(null);
   const [selectedSet, setSelectedSet] = useState(null);
   const [selectedSection, setSelectedSection] = useState(null);
+  const [selectedParallel, setSelectedParallel] = useState(null);
   const [selectedCards, setSelectedCards] = useState([]);
   
   // Loading and error states
@@ -118,7 +120,13 @@ const TCDBBrowser = () => {
       if (data.success) {
         console.log('🔍 [DEBUG] Checklist fetched successfully, cards count:', data.checklist?.length || 0);
         setChecklist(data.checklist);
-        setCurrentStep('checklist');
+        setParallelTypes(data.parallelTypes || []);
+        // If parallel types exist, go to parallel selection step, otherwise go directly to checklist
+        if (data.parallelTypes && data.parallelTypes.length > 0) {
+          setCurrentStep('parallel');
+        } else {
+          setCurrentStep('checklist');
+        }
       } else {
         console.error('❌ [DEBUG] Failed to fetch checklist:', data.error);
         setError(data.error || 'Failed to fetch checklist');
@@ -173,7 +181,14 @@ const TCDBBrowser = () => {
       selectedYear: selectedYear
     });
     setSelectedSection(section);
+    setSelectedParallel(null); // Reset parallel selection
     fetchChecklist(selectedSet.id, selectedSport.value, selectedYear.year, section.id);
+  };
+
+  const handleParallelSelect = (parallel) => {
+    console.log('🔍 [DEBUG] handleParallelSelect called:', parallel);
+    setSelectedParallel(parallel);
+    setCurrentStep('checklist');
   };
 
   const handleCardToggle = (card) => {
@@ -236,10 +251,20 @@ const TCDBBrowser = () => {
       setCurrentStep('set');
       setSelectedSet(null);
       setChecklistSections([]);
-    } else if (currentStep === 'checklist') {
+    } else if (currentStep === 'parallel') {
       setCurrentStep('checklist-section');
       setSelectedSection(null);
+      setParallelTypes([]);
       setChecklist([]);
+    } else if (currentStep === 'checklist') {
+      // If we have parallel types, go back to parallel selection, otherwise go to section selection
+      if (parallelTypes && parallelTypes.length > 0) {
+        setCurrentStep('parallel');
+        setSelectedParallel(null);
+      } else {
+        setCurrentStep('checklist-section');
+        setSelectedSection(null);
+      }
       setSelectedCards([]);
     }
   };
@@ -374,7 +399,7 @@ const TCDBBrowser = () => {
         <div className="step-container">
           <div className="step-header">
             <button onClick={handleBack} className="back-btn">← Back</button>
-            <h2>Step 5: Checklist - {selectedSet?.name}{selectedSection ? ` - ${selectedSection.name}` : ''}</h2>
+            <h2>Step 6: Checklist - {selectedSet?.name}{selectedSection ? ` - ${selectedSection.name}` : ''}{selectedParallel ? ` - ${selectedParallel}` : ''}</h2>
             <div className="checklist-actions">
               <button onClick={handleSelectAll} className="select-all-btn">
                 {selectedCards.length === checklist.length ? 'Deselect All' : 'Select All'}
