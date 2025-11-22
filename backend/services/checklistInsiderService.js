@@ -685,7 +685,8 @@ class ChecklistInsiderService {
                     }
                     
                     // Allow "/" for multi-player cards and combo cards
-                    const cardAtEnd = cleanedLastPart.match(/([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{1,35}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?$/u);
+                    // Use greedy matching (no ?) and increase max length to capture full team names
+                    const cardAtEnd = cleanedLastPart.match(/([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{2,100})\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{3,100})(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?$/u);
                     
                     if (cardAtEnd) {
                         if (DEBUG_MODE) {
@@ -741,8 +742,9 @@ class ChecklistInsiderService {
                     // Use Unicode escapes to avoid encoding issues in build environments
                     // Allow parentheses for "(eBay)" and "SP" in card names
                     // IMPORTANT: Allow "/" for multi-player cards (e.g., "Player1/Player2") and combo cards (e.g., "Team Combo Card/Checklist")
-                    // IMPORTANT: Use non-greedy matching and look for patterns, especially at the end of the line
-                    const cardPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{1,35}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?/gu;
+                    // IMPORTANT: Use GREEDY matching (no ?) to capture full team names like "Kansas City Royals"
+                    // Increase max length to 100 to handle longer team names
+                    const cardPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{2,100})\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{3,100})(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?/gu;
                     
                     // Reset regex lastIndex to ensure we search the entire string
                     cardPattern.lastIndex = 0;
