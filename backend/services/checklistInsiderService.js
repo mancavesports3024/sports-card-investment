@@ -981,8 +981,8 @@ class ChecklistInsiderService {
                     
                     // Check if this looks like a valid card (not odds/summary info)
                     // IMPORTANT: Only check the extracted player/team, not the whole line
-                    const playerLower = player.toLowerCase();
-                    const teamLower = team.toLowerCase();
+                    // Note: playerLower and teamLower are calculated AFTER the block above
+                    // (in case we found the actual card and updated player/team)
                     
                     // Skip if player or team contains odds information (but be specific)
                     const summaryKeywords = [
@@ -1075,7 +1075,20 @@ class ChecklistInsiderService {
                             }
                             continue;
                         }
+                        
+                        // CRITICAL: After finding the actual card, we updated player and team
+                        // Now we need to recalculate playerLower and teamLower for validation checks below
+                        // Also clean them again to ensure they're ready for validation
+                        player = player.replace(/\.{2,}$/, '').replace(/\s*\([^)]*\)$/, '').trim();
+                        team = team.replace(/\.{2,}$/, '').replace(/\s*\([^)]*\)$/, '').trim();
+                        player = player.replace(/\s+SP\s*$/i, '').trim();
+                        team = team.replace(/\s+SP\s*$/i, '').trim();
                     }
+                    
+                    // Recalculate playerLower and teamLower in case we updated player/team above
+                    // (This happens when we found the actual card after detecting summary text)
+                    const playerLower = player.toLowerCase();
+                    const teamLower = team.toLowerCase();
                     
                     // Skip if player or team has semicolons ONLY if it's very short (likely just odds)
                     // Longer text with semicolons might be valid (like parallel info)
