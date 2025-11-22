@@ -1009,8 +1009,11 @@ class ChecklistInsiderService {
                         
                         // Look for card patterns in the line, especially at the end
                         // The actual card is usually the LAST valid pattern
+                        // Use GREEDY matching (remove ?) to capture full names, and look for patterns at the END of the line
                         const allPatterns = [];
-                        const searchPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{1,50}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{1,50}?)(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?/gu;
+                        // Match from the END of the line - look for the last occurrence of a card pattern
+                        // Use greedy matching to capture full team names like "New York Yankees"
+                        const searchPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{2,50})\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()/-]{2,50})(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?/gu;
                         searchPattern.lastIndex = 0;
                         let patternMatch;
                         while ((patternMatch = searchPattern.exec(trimmed)) !== null) {
@@ -1031,17 +1034,26 @@ class ChecklistInsiderService {
                                 testPlayerLower.includes(kw) || testTeamLower.includes(kw)
                             );
                             
-                            // Valid card: short player name (under 50 chars), no summary keywords, looks like a name
+                            // Valid card: 
+                            // - Player name: 2-50 chars, no summary keywords, looks like a name
+                            // - Team name: MINIMUM 3 chars (to avoid "Ne", "Lo", etc.), no summary keywords
+                            // - Both must have at least 2 letters
+                            const playerHasLetters = /[A-Za-z\u00C0-\u017F]{2,}/u.test(testPlayer);
+                            const teamHasLetters = /[A-Za-z\u00C0-\u017F]{2,}/u.test(testTeam);
+                            
                             if (!hasSummaryInTest && 
                                 testPlayer.length >= 2 && testPlayer.length <= 50 &&
-                                testTeam.length >= 2 && testTeam.length <= 50 &&
+                                testTeam.length >= 3 && testTeam.length <= 50 && // Minimum 3 chars for team
+                                playerHasLetters && teamHasLetters &&
                                 !testPlayerLower.startsWith('cards') &&
                                 !testPlayerLower.startsWith('parallels') &&
                                 !testPlayerLower.startsWith('buy on') &&
                                 !testPlayerLower.includes('odds') &&
                                 !testTeamLower.startsWith('odds') &&
                                 !/\d+:\d+/.test(testPlayer) &&
-                                !/\d+:\d+/.test(testTeam)) {
+                                !/\d+:\d+/.test(testTeam) &&
+                                !testPlayer.match(/\.\w/) && // No periods followed by letters
+                                !testTeam.match(/\.\w/)) {
                                 
                                 // Found a valid card!
                                 number = testMatch[1].trim();
@@ -1076,11 +1088,15 @@ class ChecklistInsiderService {
                     
                     // Additional check: if player or team starts with common summary words, skip
                     // But be careful - "Cards" as a team name might be valid, so check more carefully
+                    // Also check if team name is too short (like "Ne" or "Lo") - these are likely incomplete matches
                     const startsWithSummary = (playerLower.startsWith('cards') && playerLower !== 'cards') || 
                                             playerLower.startsWith('lists') ||
                                             playerLower.startsWith('parallels') ||
-                                            teamLower.startsWith('cards') && teamLower !== 'cards' ||
+                                            (teamLower.startsWith('cards') && teamLower !== 'cards') ||
                                             teamLower.startsWith('odds');
+                    
+                    // Reject if team name is too short (likely incomplete match)
+                    const teamTooShort = team.length < 3;
                     
                     // Validate that player and team look like actual names
                     // Use Unicode flag (u) and Unicode character ranges for accented characters
@@ -1098,7 +1114,8 @@ class ChecklistInsiderService {
                                         playerHasLetters && teamHasLetters;
                     
                     // Only skip if it's clearly not a card - be more lenient to avoid missing valid cards
-                    const cardWillBeAdded = !isSummary && !hasSemicolons && !hasOddsPattern && !isTooLong && !startsWithSummary && looksLikeName;
+                    // Also reject if team name is too short (incomplete match)
+                    const cardWillBeAdded = !isSummary && !hasSemicolons && !hasOddsPattern && !isTooLong && !startsWithSummary && !teamTooShort && looksLikeName;
                     
                     if (cardWillBeAdded) {
                         // [DEBUG-CARD] Log successful card addition
@@ -1116,7 +1133,7 @@ class ChecklistInsiderService {
                         // [DEBUG-CARD] Log why card was skipped
                         if (DEBUG_MODE) {
                             console.log(`   [DEBUG-CARD] ❌ Skipping card: "${number}" | "${player}" | "${team}"`);
-                            console.log(`   [DEBUG-CARD]    Reason: isSummary=${isSummary}, hasSemicolons=${hasSemicolons}, hasOddsPattern=${hasOddsPattern}, isTooLong=${isTooLong}, startsWithSummary=${startsWithSummary}, looksLikeName=${looksLikeName}`);
+                            console.log(`   [DEBUG-CARD]    Reason: isSummary=${isSummary}, hasSemicolons=${hasSemicolons}, hasOddsPattern=${hasOddsPattern}, isTooLong=${isTooLong}, startsWithSummary=${startsWithSummary}, teamTooShort=${teamTooShort}, looksLikeName=${looksLikeName}`);
                         } else {
                             // Log skipped lines for debugging (only first few to avoid spam)
                             if (cards.length < 3) {
