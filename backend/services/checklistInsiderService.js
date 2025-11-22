@@ -517,6 +517,7 @@ class ChecklistInsiderService {
             const html = post.content.rendered;
             const $ = cheerio.load(html);
             const cards = [];
+            const oddsInfo = []; // Store odds information
 
             // If sectionId is provided, only parse content after that section's h3 header
             let contentToParse = $;
@@ -642,6 +643,15 @@ class ChecklistInsiderService {
                 const trimmed = line.trim();
                 if (!trimmed) continue;
                 
+                // Extract odds information if this line contains odds
+                const oddsMatch = trimmed.match(/Odds\s*-\s*(.+?)(?:\.\.\.|$)/i);
+                if (oddsMatch && oddsMatch[1]) {
+                    const oddsText = oddsMatch[1].trim();
+                    if (oddsText && !oddsInfo.includes(oddsText)) {
+                        oddsInfo.push(oddsText);
+                    }
+                }
+                
                 // Pattern: "CARDNUMBER Player Name - Team Name" or "CARDNUMBER Player Name - Team Name RC"
                 // Card number can be: digits only, or alphanumeric with dashes (e.g., "FPA-AB", "BSA-AA", "1", "20")
                 // Examples: 
@@ -665,7 +675,8 @@ class ChecklistInsiderService {
                     // This helps us avoid matching "62 cards" when the actual card is "6 Tyler Gentry"
                     const allCardPatterns = [];
                     // Use Unicode escapes to avoid encoding issues in build environments
-                    const cardPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]{1,28}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card))?/gu;
+                    // Allow parentheses for "(eBay)" and "SP" in card names
+                    const cardPattern = /([A-Z0-9]+(?:-[A-Z0-9]+)?)\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,35}?)\s+-\s+([A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'()-]{1,48}?)(?:\s+(RC|Rookie|Rookie Card|SP))?(?:\s*\([^)]+\))?/gu;
                     let patternMatch;
                     while ((patternMatch = cardPattern.exec(trimmed)) !== null) {
                         allCardPatterns.push(patternMatch);
@@ -791,12 +802,15 @@ class ChecklistInsiderService {
                                 const hasOddsPattern = /\d+:\d+/.test(testPlayer) || /\d+:\d+/.test(testTeam);
                                 const isTooLong = testPlayer.length > 30 || testTeam.length > 50;
                                 // Use Unicode escapes (\u00C0-\u017F) to avoid encoding issues in build environments
-                                // Remove trailing ellipsis (...) before validation
-                                const cleanPlayer = testPlayer.replace(/\.{2,}$/, '').trim();
-                                const cleanTeam = testTeam.replace(/\.{2,}$/, '').trim();
+                                // Remove trailing ellipsis (...) and "(eBay)" before validation
+                                let cleanPlayer = testPlayer.replace(/\.{2,}$/, '').replace(/\s*\([^)]*\)$/, '').trim();
+                                let cleanTeam = testTeam.replace(/\.{2,}$/, '').replace(/\s*\([^)]*\)$/, '').trim();
+                                // Remove "SP" suffix if present
+                                cleanPlayer = cleanPlayer.replace(/\s+SP\s*$/i, '').trim();
+                                cleanTeam = cleanTeam.replace(/\s+SP\s*$/i, '').trim();
                                 const looksLikeName = /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(cleanPlayer) && 
                                                      /^[A-Z\u00C0-\u017F][A-Za-z\u00C0-\u017F\s\.'-]+$/.test(cleanTeam) &&
-                                                     cleanPlayer.length >= 2 && cleanPlayer.length <= 30 &&
+                                                     cleanPlayer.length >= 2 && cleanPlayer.length <= 35 &&
                                                      cleanTeam.length >= 2 && cleanTeam.length <= 50 &&
                                                      !cleanPlayer.includes(':') && // No colons
                                                      !cleanPlayer.match(/\.\w/) && // No periods followed by letters (like "cards.")
@@ -813,9 +827,16 @@ class ChecklistInsiderService {
                 }
                 
                 if (cardMatch) {
-                    const number = cardMatch[1].trim();
-                    const player = cardMatch[2].trim();
-                    const team = cardMatch[3].trim();
+                    let number = cardMatch[1].trim();
+                    let player = cardMatch[2].trim();
+                    let team = cardMatch[3].trim();
+                    
+                    // Remove trailing ellipsis and "(eBay)" from player and team
+                    player = player.replace(/\.{2,}$/, '').replace(/\s*\([^)]*\)$/, '').trim();
+                    team = team.replace(/\.{2,}$/, '').replace(/\s*\([^)]*\)$/, '').trim();
+                    // Remove "SP" suffix if present
+                    player = player.replace(/\s+SP\s*$/i, '').trim();
+                    team = team.replace(/\s+SP\s*$/i, '').trim();
                     
                     // Check if this looks like a valid card (not odds/summary info)
                     // IMPORTANT: Only check the extracted player/team, not the whole line
@@ -1098,11 +1119,21 @@ class ChecklistInsiderService {
                 });
             }
 
+            // Return cards with odds info if available
+            const result = {
+                cards: cards,
+                odds: oddsInfo.length > 0 ? oddsInfo : null
+            };
+            
             // Cache for 1 hour
-            this.cache.set(cacheKey, cards);
+            this.cache.set(cacheKey, result);
 
             console.log(`✅ Found ${cards.length} cards in checklist ${postId}`);
-            return cards;
+            if (oddsInfo.length > 0) {
+                console.log(`   📊 Odds info: ${oddsInfo.join('; ')}`);
+            }
+            
+            return result;
 
         } catch (error) {
             console.error(`❌ Error getting checklist for post ${postId}:`, error.message);
