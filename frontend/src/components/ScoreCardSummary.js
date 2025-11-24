@@ -22,6 +22,13 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       const searchQuery = buildSearchQuery();
       console.log('🔍 Fetching card data for:', searchQuery);
 
+      // Validate search query
+      if (!searchQuery || searchQuery.trim().length === 0) {
+        setError('Unable to build search query. Missing required information.');
+        setLoading(false);
+        return;
+      }
+
       // Fetch comprehensive card data
       const response = await fetch(`${API_BASE_URL}/api/add-comprehensive-card`, {
         method: 'POST',
@@ -29,7 +36,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: searchQuery,
+          title: searchQuery.trim(),
           sport: setInfo?.sport || 'Baseball',
           maxResults: 20
         }),
@@ -50,16 +57,26 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
   };
 
   const buildSearchQuery = () => {
-    // Build a search query from the card information
+    // Build a search query in format: "2025 Topps Series 1 Player Name Rainbow Foil"
     const parts = [];
     
+    // Year first
     if (setInfo?.year) parts.push(setInfo.year);
-    if (setInfo?.setName) parts.push(setInfo.setName);
-    if (card?.player) parts.push(card.player);
-    if (card?.number) parts.push(`#${card.number}`);
-    if (setInfo?.parallel) parts.push(setInfo.parallel);
     
-    return parts.join(' ');
+    // Set name (e.g., "Topps Series 1")
+    if (setInfo?.setName) parts.push(setInfo.setName);
+    
+    // Player name
+    if (card?.player) parts.push(card.player);
+    
+    // Parallel type last (e.g., "Rainbow Foil")
+    if (setInfo?.parallel && setInfo.parallel !== 'Base Checklist') {
+      parts.push(setInfo.parallel);
+    }
+    
+    const query = parts.join(' ');
+    console.log('🔍 Built search query:', query);
+    return query;
   };
 
   const formatPrice = (price) => {
