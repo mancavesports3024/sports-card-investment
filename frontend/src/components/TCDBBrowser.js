@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './TCDBBrowser.css';
+import ScoreCardSummary from './ScoreCardSummary';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://web-production-9efa.up.railway.app';
 
@@ -22,6 +23,7 @@ const TCDBBrowser = () => {
   const [selectedSection, setSelectedSection] = useState(null);
   const [selectedParallel, setSelectedParallel] = useState(null);
   const [selectedCards, setSelectedCards] = useState([]);
+  const [selectedCardForSummary, setSelectedCardForSummary] = useState(null);
   
   // Loading and error states
   const [loading, setLoading] = useState(false);
@@ -202,6 +204,11 @@ const TCDBBrowser = () => {
     });
   };
 
+  const handleCardClick = (card) => {
+    setSelectedCardForSummary(card);
+    setCurrentStep('score-card-summary');
+  };
+
   const handleSelectAll = () => {
     if (selectedCards.length === checklist.length) {
       setSelectedCards([]);
@@ -266,6 +273,9 @@ const TCDBBrowser = () => {
         setSelectedSection(null);
       }
       setSelectedCards([]);
+    } else if (currentStep === 'score-card-summary') {
+      setCurrentStep('checklist');
+      setSelectedCardForSummary(null);
     }
   };
 
@@ -455,8 +465,13 @@ const TCDBBrowser = () => {
                   {checklist.map((card, index) => {
                     const isSelected = selectedCards.some(c => c.tcdbId === card.tcdbId && c.number === card.number);
                     return (
-                      <tr key={index} className={isSelected ? 'selected' : ''}>
-                        <td>
+                      <tr 
+                        key={index} 
+                        className={isSelected ? 'selected' : ''}
+                        onClick={() => handleCardClick(card)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <td onClick={(e) => e.stopPropagation()}>
                           <input
                             type="checkbox"
                             checked={isSelected}
@@ -476,8 +491,25 @@ const TCDBBrowser = () => {
         </div>
       )}
 
+      {/* Score Card Summary View */}
+      {currentStep === 'score-card-summary' && selectedCardForSummary && (
+        <ScoreCardSummary
+          card={selectedCardForSummary}
+          setInfo={{
+            sport: selectedSport?.name || selectedSport?.value,
+            year: selectedYear?.year || selectedYear?.display,
+            setName: selectedSet?.name,
+            parallel: selectedParallel
+          }}
+          onBack={() => {
+            setCurrentStep('checklist');
+            setSelectedCardForSummary(null);
+          }}
+        />
+      )}
+
       {/* Selected Cards Panel */}
-      {selectedCards.length > 0 && (
+      {selectedCards.length > 0 && currentStep !== 'score-card-summary' && (
         <div className="selected-cards-panel">
           <h3>Selected Cards ({selectedCards.length})</h3>
           <div className="selected-cards-list">

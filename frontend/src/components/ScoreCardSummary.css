@@ -1,0 +1,197 @@
+.score-card-summary {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #000;
+  color: #fff;
+  min-height: 100vh;
+}
+
+.score-card-header {
+  text-align: center;
+  margin-bottom: 30px;
+  border-bottom: 3px solid #FFD700;
+  padding-bottom: 20px;
+}
+
+.score-card-header .back-btn {
+  position: absolute;
+  left: 20px;
+  background: #FFD700;
+  color: #000;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.score-card-header .back-btn:hover {
+  background: #FFC700;
+}
+
+.score-card-header h1 {
+  color: #FFD700;
+  font-size: 24px;
+  margin: 10px 0;
+  text-transform: uppercase;
+}
+
+.score-card-header h2 {
+  color: #fff;
+  font-size: 32px;
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.score-card-header h3 {
+  color: #FFD700;
+  font-size: 20px;
+  margin: 5px 0;
+}
+
+.score-card-content {
+  display: flex;
+  gap: 30px;
+  margin: 30px 0;
+  align-items: flex-start;
+}
+
+.card-image-section {
+  flex: 1;
+  max-width: 400px;
+}
+
+.card-image {
+  width: 100%;
+  height: auto;
+  border: 3px solid #FFD700;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3);
+}
+
+.card-image-placeholder {
+  width: 100%;
+  aspect-ratio: 2.5 / 3.5;
+  border: 3px solid #FFD700;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a1a;
+  color: #FFD700;
+  font-size: 18px;
+}
+
+.price-boxes {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.price-box {
+  border: 3px solid #FFD700;
+  border-radius: 10px;
+  padding: 20px;
+  background: #1a1a1a;
+  text-align: center;
+}
+
+.price-label {
+  color: #FFD700;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.price-value {
+  color: #fff;
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.price-population {
+  color: #ccc;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.price-description {
+  color: #ccc;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.price-comparison {
+  margin-top: 10px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.price-comparison.positive {
+  background: #00ff00;
+  color: #000;
+}
+
+.price-comparison.negative {
+  background: #ff0000;
+  color: #fff;
+}
+
+.gem-rate-box .gem-rate-value {
+  color: #FFD700;
+  font-size: 48px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.score-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 2px solid #FFD700;
+  color: #ccc;
+  font-size: 14px;
+}
+
+.footer-website {
+  color: #FFD700;
+  font-weight: bold;
+}
+
+.loading, .error-message {
+  text-align: center;
+  padding: 40px;
+  color: #FFD700;
+  font-size: 18px;
+}
+
+.error-message {
+  color: #ff4444;
+}
+
+@media (max-width: 768px) {
+  .score-card-content {
+    flex-direction: column;
+  }
+
+  .price-boxes {
+    grid-template-columns: 1fr;
+  }
+
+  .score-card-header .back-btn {
+    position: relative;
+    left: 0;
+    margin-bottom: 20px;
+  }
+}
+
