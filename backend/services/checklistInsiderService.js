@@ -193,8 +193,8 @@ class ChecklistInsiderService {
                 const uniquePosts = Array.from(new Map(posts.map(p => [p.id, p])).values());
                 posts = uniquePosts;
                 
-                const totalFromCategories = categoryResults.reduce((sum, r) => sum + r.count, 0);
-                console.log(`   📊 Summary: ${totalFromCategories} total posts from ${categoryResults.length} categories, ${posts.length} unique after deduplication`);
+                const totalFromCategories = categoryResultsData.reduce((sum, r) => sum + (r.count || 0), 0);
+                console.log(`   📊 Summary: ${totalFromCategories} total posts from ${categoryResultsData.length} categories, ${posts.length} unique after deduplication`);
             } catch (e) {
                 console.log(`   ⚠️ Strategy 1 failed: ${e.message}`);
             }
