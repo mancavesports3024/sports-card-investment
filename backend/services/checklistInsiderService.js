@@ -378,23 +378,63 @@ class ChecklistInsiderService {
                 subcategories.forEach(sub => categoryIdsToSearch.push(sub.id));
             }
 
+            const fetchPostsByCategory = async (catId) => {
+                const perPage = 25;
+                const maxPages = 10; // safeguard
+                let page = 1;
+                let posts = [];
+                let totalPages = null;
+
+                while (page <= maxPages) {
+                    try {
+                        console.log(`      🔄 Category ${catId}: fetching page ${page} (per_page=${perPage})`);
+                        const response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
+                            params: {
+                                categories: catId,
+                                per_page: perPage,
+                                page,
+                                orderby: 'title',
+                                order: 'asc'
+                            },
+                            timeout: 30000
+                        });
+
+                        const data = response.data || [];
+                        posts = posts.concat(data);
+
+                        if (totalPages === null) {
+                            const headerValue = response.headers?.['x-wp-totalpages'];
+                            totalPages = headerValue ? parseInt(headerValue, 10) : null;
+                        }
+
+                        if (data.length < perPage || (totalPages && page >= totalPages)) {
+                            break;
+                        }
+
+                        page += 1;
+                    } catch (error) {
+                        console.log(`      ❌ Category ${catId} page ${page} failed: ${error.message}`);
+                        break;
+                    }
+                }
+
+                return posts;
+            };
+
             // Try fetching from each category
             let allPosts = [];
             for (const catId of categoryIdsToSearch) {
                 try {
                     console.log(`   🔍 Fetching sets from category ${catId} for year ${year}...`);
-                    const response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
-                        params: {
-                            categories: catId,
-                            per_page: 100,
-                            orderby: 'title',
-                            order: 'asc'
-                        },
-                        timeout: 60000
-                    });
+                    const posts = await fetchPostsByCategory(catId);
+
+                    if (posts.length === 0) {
+                        console.log(`   ⚠️ Category ${catId}: No posts returned from API`);
+                        continue;
+                    }
 
                     // Filter posts that contain the year in the title
-                    const yearPosts = (response.data || []).filter(post => {
+                    const yearPosts = posts.filter(post => {
                         const title = (post.title?.rendered || '').toLowerCase();
                         return title.includes(year.toString());
                     });
@@ -403,7 +443,7 @@ class ChecklistInsiderService {
                         console.log(`   ✅ Category ${catId}: Found ${yearPosts.length} posts for ${year}`);
                         allPosts = allPosts.concat(yearPosts);
                     } else {
-                        console.log(`   ⚠️ Category ${catId}: Found ${response.data?.length || 0} posts, but none match year ${year}`);
+                        console.log(`   ⚠️ Category ${catId}: Found ${posts.length} posts, but none match year ${year}`);
                     }
                 } catch (error) {
                     console.log(`   ❌ Category ${catId} failed: ${error.message}`);
