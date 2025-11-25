@@ -57,7 +57,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
   };
 
   const buildSearchQuery = () => {
-    // Build a search query in format: "2025 Topps Series 1 Player Name Rainbow Foil"
+    // Build a search query in format: "2025 Topps Series 1 #123 Player Name Rainbow Foil"
     const parts = [];
     
     // Year first
@@ -65,6 +65,9 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     
     // Set name (e.g., "Topps Series 1")
     if (setInfo?.setName) parts.push(setInfo.setName);
+    
+    // Card number with # prefix
+    if (card?.number) parts.push(`#${card.number}`);
     
     // Player name
     if (card?.player) parts.push(card.player);
