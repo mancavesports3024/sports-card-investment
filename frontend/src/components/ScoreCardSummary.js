@@ -57,14 +57,42 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
   };
 
   const buildSearchQuery = () => {
-    // Build a search query in format: "2025 Topps Series 1 #123 Player Name Rainbow Foil"
+    // Build a search query in format: "2025 Topps Series 1 Baseball #1 Shohei Ohtani Rainbow Foil"
     const parts = [];
     
-    // Year first
-    if (setInfo?.year) parts.push(setInfo.year);
+    // Year first (only once)
+    if (setInfo?.year) {
+      const year = typeof setInfo.year === 'number' ? setInfo.year.toString() : setInfo.year;
+      parts.push(year);
+    }
     
-    // Set name (e.g., "Topps Series 1")
-    if (setInfo?.setName) parts.push(setInfo.setName);
+    // Clean up set name - remove "Checklist Guide", "Baseball Checklist Guide", etc.
+    let cleanSetName = setInfo?.setName || '';
+    if (cleanSetName) {
+      // Remove common suffixes
+      cleanSetName = cleanSetName
+        .replace(/\s*Checklist\s*Guide\s*/gi, ' ')
+        .replace(/\s*Checklist\s*/gi, ' ')
+        .trim();
+      
+      // Remove year if it's at the start (to avoid duplication)
+      cleanSetName = cleanSetName.replace(/^\d{4}\s+/, '');
+      
+      // Remove "Baseball" from set name if it's there (we'll add it separately)
+      cleanSetName = cleanSetName.replace(/\s*Baseball\s*/gi, ' ').trim();
+      
+      if (cleanSetName) {
+        parts.push(cleanSetName);
+      }
+    }
+    
+    // Add sport (e.g., "Baseball")
+    if (setInfo?.sport) {
+      const sport = setInfo.sport.replace(/\s+Cards?$/i, '').trim(); // Remove "Cards" suffix
+      if (sport) {
+        parts.push(sport);
+      }
+    }
     
     // Card number with # prefix
     if (card?.number) parts.push(`#${card.number}`);
@@ -77,7 +105,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       parts.push(setInfo.parallel);
     }
     
-    const query = parts.join(' ');
+    const query = parts.join(' ').replace(/\s+/g, ' ').trim(); // Clean up multiple spaces
     console.log('🔍 Built search query:', query);
     return query;
   };
