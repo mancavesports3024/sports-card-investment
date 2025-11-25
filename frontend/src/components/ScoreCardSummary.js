@@ -57,7 +57,8 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
   };
 
   const buildSearchQuery = () => {
-    // Build a search query in format: "2025 Topps Series 1 Baseball #1 Shohei Ohtani Rainbow Foil"
+    // Build a search query in format: "2025 Topps Series 1 #1 Shohei Ohtani Rainbow Foil"
+    // Note: Sport (Baseball) is NOT included in the search query
     const parts = [];
     
     // Year first (only once)
@@ -78,19 +79,17 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       // Remove year if it's at the start (to avoid duplication)
       cleanSetName = cleanSetName.replace(/^\d{4}\s+/, '');
       
-      // Remove "Baseball" from set name if it's there (we'll add it separately)
-      cleanSetName = cleanSetName.replace(/\s*Baseball\s*/gi, ' ').trim();
+      // Remove sport names from set name (Baseball, Football, Basketball, etc.)
+      cleanSetName = cleanSetName
+        .replace(/\s*Baseball\s*/gi, ' ')
+        .replace(/\s*Football\s*/gi, ' ')
+        .replace(/\s*Basketball\s*/gi, ' ')
+        .replace(/\s*Hockey\s*/gi, ' ')
+        .replace(/\s*Soccer\s*/gi, ' ')
+        .trim();
       
       if (cleanSetName) {
         parts.push(cleanSetName);
-      }
-    }
-    
-    // Add sport (e.g., "Baseball")
-    if (setInfo?.sport) {
-      const sport = setInfo.sport.replace(/\s+Cards?$/i, '').trim(); // Remove "Cards" suffix
-      if (sport) {
-        parts.push(sport);
       }
     }
     
