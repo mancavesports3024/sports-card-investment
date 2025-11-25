@@ -36,7 +36,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: searchQuery.trim(),
+          searchTerm: searchQuery.trim(), // Backend expects 'searchTerm', not 'title'
           sport: setInfo?.sport || 'Baseball',
           maxResults: 20
         }),
