@@ -7929,107 +7929,119 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
             });
         }
 
-        console.log(`🔍 Comprehensive card addition: ${searchTerm} (sport: ${sport || 'any'})`);
+        console.log(`🔍 Comprehensive card addition using 130point: ${searchTerm} (sport: ${sport || 'any'})`);
         
-        const EbayScraperService = require('./services/ebayScraperService.js');
-        const ebayService = new EbayScraperService();
+        // Use 130point service instead of eBay
+        const Point130Service = require('./services/130pointService.js');
+        const point130Service = new Point130Service();
         
-        // Step 1: Get PSA 10 cards first (Grade=10 filter handles PSA 10 requirement)
-        const psa10Result = await ebayService.searchSoldCards(searchTerm, sport, maxResults, 'PSA 10');
+        // Step 1: Search 130point for all cards (single search, faster)
+        console.log(`🔍 Searching 130point for: ${searchTerm}`);
+        const all130pointCards = await point130Service.searchSoldCards(searchTerm, {
+            type: '2',
+            sort: 'urlEndTimeSoonest'
+        });
         
-        if (!psa10Result.success || psa10Result.results.length === 0) {
+        if (!all130pointCards || all130pointCards.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'No cards found on 130point'
+            });
+        }
+        
+        console.log(`✅ Found ${all130pointCards.length} total cards from 130point`);
+        
+        // Helper function to extract grade from title
+        const extractGrade = (title) => {
+            const titleLower = title.toLowerCase();
+            // Check for PSA grades
+            const psaMatch = titleLower.match(/\bpsa[\s:-]*([0-9]{1,2}(?:\.5)?)\b/i);
+            if (psaMatch) {
+                return { company: 'psa', grade: psaMatch[1] };
+            }
+            // Check for raw/ungraded
+            if (titleLower.includes('raw') || titleLower.includes('ungraded') || 
+                titleLower.includes('not graded') || titleLower.includes('no grade')) {
+                return { company: 'raw', grade: null };
+            }
+            // Check for other grading companies
+            const gradingRegex = /\b(bgs|beckett|sgc|cgc|tag)[\s:-]*([0-9]{1,2}(?:\.5)?)\b/i;
+            const match = titleLower.match(gradingRegex);
+            if (match) {
+                return { company: match[1].toLowerCase(), grade: match[2] };
+            }
+            return { company: 'raw', grade: null };
+        };
+        
+        // Transform 130point results and categorize by grade
+        const transformedCards = all130pointCards.map(card => {
+            const numericPrice = card.price?.value ? parseFloat(card.price.value) : 0;
+            const gradeInfo = extractGrade(card.title || '');
+            
+            return {
+                title: (card.title || '').substring(0, 200),
+                price: card.price || { value: 0, currency: 'USD' },
+                numericPrice: numericPrice,
+                itemUrl: card.link || card.itemWebUrl || '',
+                sport: sport || 'unknown',
+                grade: gradeInfo.company === 'psa' && gradeInfo.grade ? `PSA ${gradeInfo.grade}` : 
+                       gradeInfo.company === 'raw' ? 'Raw' : 
+                       gradeInfo.company && gradeInfo.grade ? `${gradeInfo.company.toUpperCase()} ${gradeInfo.grade}` : 'Raw',
+                soldDate: card.soldDate || null,
+                source: '130point'
+            };
+        });
+        
+        // Categorize cards by grade
+        const psa10Cards = transformedCards.filter(card => {
+            const titleLower = (card.title || '').toLowerCase();
+            return titleLower.includes('psa 10') || titleLower.includes('psa10') || 
+                   (card.grade === 'PSA 10' && card.numericPrice >= 50 && card.numericPrice <= 50000);
+        });
+        
+        const psa9Cards = transformedCards.filter(card => {
+            const titleLower = (card.title || '').toLowerCase();
+            return titleLower.includes('psa 9') || titleLower.includes('psa9') || 
+                   (card.grade === 'PSA 9' && card.numericPrice >= 25 && card.numericPrice <= 50000);
+        });
+        
+        const rawCards = transformedCards.filter(card => {
+            const titleLower = (card.title || '').toLowerCase();
+            const isRaw = !titleLower.match(/\b(psa|bgs|beckett|sgc|cgc|tag)[\s:-]*[0-9]/i) &&
+                          (titleLower.includes('raw') || titleLower.includes('ungraded') || 
+                           titleLower.includes('not graded') || card.grade === 'Raw');
+            return isRaw && card.numericPrice >= 10 && card.numericPrice <= 50000;
+        });
+        
+        if (psa10Cards.length === 0) {
             return res.status(404).json({
                 success: false,
                 error: 'No PSA 10 cards found'
             });
         }
-
-        // Filter PSA 10 cards ($50+)
-        const psa10Cards = psa10Result.results
-            .filter(item => item.numericPrice >= 50 && item.numericPrice <= 50000)
-            .map(item => ({
-                title: item.title.substring(0, 200),
-                price: item.price,
-                numericPrice: item.numericPrice,
-                itemUrl: item.itemUrl,
-                sport: item.sport,
-                grade: 'PSA 10',
-                soldDate: item.soldDate,
-                ebayItemId: item.rawData?.itemId || null
-            }));
-
-        if (psa10Cards.length === 0) {
-            return res.status(404).json({
-                success: false,
-                error: 'No PSA 10 cards meet price criteria ($50+)'
-            });
-        }
-
+        
         // Step 2: Generate structured summary title from first PSA 10 card
         const firstPsa10Card = psa10Cards[0];
-        
-        // Extract card components and build proper summary title
         const cardComponents = extractCardComponents(firstPsa10Card.title, firstPsa10Card.sport);
         const summaryTitle = buildSummaryTitle(cardComponents);
         
         console.log(`📝 Generated structured summary title: ${summaryTitle}`);
-
-        // Step 3: Use three dedicated searches with specific eBay filters
-        console.log(`🔍 Using three dedicated search strategy with eBay filters for: ${summaryTitle}`);
+        console.log(`🔍 Filtered results: ${psa10Cards.length} PSA 10, ${psa9Cards.length} PSA 9, ${rawCards.length} Raw`);
         
-        // Search 1: PSA 10 with graded filters (Graded=Yes, Grade=10, PSA, Autographed=No)
-        const psa10DedicatedResult = await ebayService.searchSoldCards(summaryTitle, sport, maxResults, 'PSA 10', cardComponents.isAutograph, cardComponents.printRun);
-        const psa10DedicatedCards = psa10DedicatedResult.success ? psa10DedicatedResult.results
-            .filter(item => item.numericPrice >= 50 && item.numericPrice <= 50000)
-            .map(item => ({
-                title: item.title.substring(0, 200),
-                price: item.price,
-                numericPrice: item.numericPrice,
-                itemUrl: item.itemUrl,
-                sport: item.sport,
-                grade: 'PSA 10',
-                soldDate: item.soldDate,
-                ebayItemId: item.rawData?.itemId || null
-            })) : [];
+        // Use the categorized results
+        const finalPsa10Cards = psa10Cards;
+        const finalPsa9Cards = psa9Cards;
+        const finalRawCards = rawCards;
         
-        // Search 2: PSA 9 with graded filters (Graded=Yes, Grade=9, PSA, Autographed=No)
-        const psa9DedicatedResult = await ebayService.searchSoldCards(summaryTitle, sport, maxResults, 'PSA 9', cardComponents.isAutograph, cardComponents.printRun);
-        const psa9DedicatedCards = psa9DedicatedResult.success ? psa9DedicatedResult.results
-            .filter(item => item.numericPrice >= 25 && item.numericPrice <= 50000)
-            .map(item => ({
-                title: item.title.substring(0, 200),
-                price: item.price,
-                numericPrice: item.numericPrice,
-                itemUrl: item.itemUrl,
-                sport: item.sport,
-                grade: 'PSA 9',
-                soldDate: item.soldDate,
-                ebayItemId: item.rawData?.itemId || null
-            })) : [];
-        
-        // Search 3: Raw with raw filters (Graded=No, Autographed=No)
-        const rawDedicatedResult = await ebayService.searchSoldCards(summaryTitle, sport, maxResults, 'Raw', cardComponents.isAutograph, cardComponents.printRun);
-        const rawDedicatedCards = rawDedicatedResult.success ? rawDedicatedResult.results
-            .filter(item => item.numericPrice >= 10 && item.numericPrice <= 50000)
-            .map(item => ({
-                title: item.title.substring(0, 200),
-                price: item.price,
-                numericPrice: item.numericPrice,
-                itemUrl: item.itemUrl,
-                sport: item.sport,
-                grade: 'Raw',
-                soldDate: item.soldDate,
-                ebayItemId: item.rawData?.itemId || null
-            })) : [];
-        
-        // Use the dedicated search results
-        const finalPsa10Cards = psa10DedicatedCards.length > 0 ? psa10DedicatedCards : psa10Cards;
-        const finalPsa9Cards = psa9DedicatedCards;
-        const finalRawCards = rawDedicatedCards;
-        
-        console.log(`🔍 Filtered results: ${finalRawCards.length} Raw, ${finalPsa9Cards.length} PSA 9`);
 
         // Step 5: Prepare comprehensive results
+        const psa10AveragePrice = finalPsa10Cards.length > 0 ? 
+            Math.round(finalPsa10Cards.reduce((a, b) => a + b.numericPrice, 0) / finalPsa10Cards.length) : 0;
+        const psa9AveragePrice = finalPsa9Cards.length > 0 ? 
+            Math.round(finalPsa9Cards.reduce((a, b) => a + b.numericPrice, 0) / finalPsa9Cards.length) : 0;
+        const rawAveragePrice = finalRawCards.length > 0 ? 
+            Math.round(finalRawCards.reduce((a, b) => a + b.numericPrice, 0) / finalRawCards.length) : 0;
+        
         const comprehensiveResults = {
             summaryTitle: summaryTitle,
             searchTerm: searchTerm,
@@ -8037,21 +8049,29 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
             psa10: {
                 count: finalPsa10Cards.length,
                 cards: finalPsa10Cards,
-                averagePrice: finalPsa10Cards.length > 0 ? 
-                    Math.round(finalPsa10Cards.reduce((a, b) => a + b.numericPrice, 0) / finalPsa10Cards.length) : 0
+                averagePrice: psa10AveragePrice
             },
             psa9: {
                 count: finalPsa9Cards.length,
                 cards: finalPsa9Cards,
-                averagePrice: finalPsa9Cards.length > 0 ? 
-                    Math.round(finalPsa9Cards.reduce((a, b) => a + b.numericPrice, 0) / finalPsa9Cards.length) : 0
+                averagePrice: psa9AveragePrice
             },
             raw: {
                 count: finalRawCards.length,
                 cards: finalRawCards,
-                averagePrice: finalRawCards.length > 0 ? 
-                    Math.round(finalRawCards.reduce((a, b) => a + b.numericPrice, 0) / finalRawCards.length) : 0
-            }
+                averagePrice: rawAveragePrice
+            },
+            // Add fields expected by frontend
+            psa10AveragePrice: psa10AveragePrice,
+            psa9AveragePrice: psa9AveragePrice,
+            rawAveragePrice: rawAveragePrice,
+            psa10Cards: finalPsa10Cards,
+            psa9Cards: finalPsa9Cards,
+            rawCards: finalRawCards,
+            // Population data (would need to be fetched separately, but adding structure for now)
+            psa10Population: null,
+            psa9Population: null,
+            totalPopulation: null
         };
 
         // Step 6: Calculate multipliers if we have both PSA 10 and raw
@@ -8149,7 +8169,7 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
                 rawPrice,
                 comprehensiveResults.multiplier,
                 searchTerm,
-                'ebay_comprehensive'
+                '130point_comprehensive'
             ]);
                     
                     console.log(`✅ Added new card: ${comprehensiveResults.summaryTitle}`);
@@ -8168,11 +8188,11 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
             data: comprehensiveResults,
             stored: 'processed',
             searchDetails: {
-                psa10Search: summaryTitle,
-                psa9Search: summaryTitle,
-                rawSearch: summaryTitle,
-                method: psa10Result.method,
-                strategy: 'three_dedicated_searches'
+                psa10Search: searchTerm,
+                psa9Search: searchTerm,
+                rawSearch: searchTerm,
+                method: '130point',
+                strategy: 'single_search_with_grade_filtering'
             }
         });
         
