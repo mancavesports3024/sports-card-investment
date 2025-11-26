@@ -352,7 +352,29 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       </div>
 
       <div className="score-card-content">
-        {/* Card Image Section */}
+        {/* Left column: PSA 10 + RAW */}
+        <div className="price-column left-column">
+          {/* PSA 10 Box */}
+          <div className="price-box psa10-box">
+            <div className="price-label">PSA 10</div>
+            <div className="price-value">{formatPrice(psa10Price)}</div>
+            <div className="price-population">Pop: {psa10Pop.toLocaleString()}</div>
+            {rawPrice > 0 && (
+              <div className="price-comparison positive">
+                {calculatePercentageChange(psa10Price, rawPrice)} vs Raw
+              </div>
+            )}
+          </div>
+
+          {/* Raw Box */}
+          <div className="price-box raw-box">
+            <div className="price-label">RAW</div>
+            <div className="price-value">{formatPrice(rawPrice)}</div>
+            <div className="price-description">Average recent ungraded sale price</div>
+          </div>
+        </div>
+
+        {/* Middle column: Card Image */}
         <div className="card-image-section">
           {cardData.cardImage || cardData.imageUrl || cardData.image ? (
             <img 
@@ -373,20 +395,8 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
           )}
         </div>
 
-        {/* Price Information Boxes */}
-        <div className="price-boxes">
-          {/* PSA 10 Box */}
-          <div className="price-box psa10-box">
-            <div className="price-label">PSA 10</div>
-            <div className="price-value">{formatPrice(psa10Price)}</div>
-            <div className="price-population">Pop: {psa10Pop.toLocaleString()}</div>
-            {rawPrice > 0 && (
-              <div className="price-comparison positive">
-                {calculatePercentageChange(psa10Price, rawPrice)} vs Raw
-              </div>
-            )}
-          </div>
-
+        {/* Right column: PSA 9 + Gem Rate */}
+        <div className="price-column right-column">
           {/* PSA 9 Box */}
           <div className="price-box psa9-box">
             <div className="price-label">PSA 9</div>
@@ -397,13 +407,6 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
                 {calculatePercentageChange(psa9Price, rawPrice)} vs Raw
               </div>
             )}
-          </div>
-
-          {/* Raw Box */}
-          <div className="price-box raw-box">
-            <div className="price-label">RAW</div>
-            <div className="price-value">{formatPrice(rawPrice)}</div>
-            <div className="price-description">Average recent ungraded sale price</div>
           </div>
 
           {/* Gem Rate Box */}
