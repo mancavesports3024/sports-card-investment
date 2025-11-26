@@ -265,36 +265,67 @@ class ChecklistInsiderService {
                 let totalPages = null;
 
                 while (page <= maxPages) {
-                    try {
-                        console.log(`      🔄 Category ${catId}: fetching page ${page} (per_page=${perPage})`);
-                        const response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
-                            params: {
-                                categories: catId,
-                                per_page: perPage,
-                                page,
-                                orderby: 'title',
-                                order: 'asc'
-                            },
-                            timeout: 30000
-                        });
+                    const maxRetries = 2; // Retry up to 2 times
+                    let lastError = null;
+                    let success = false;
+                    
+                    for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
+                        try {
+                            const timeout = attempt === 1 ? 60000 : 90000; // 60s first attempt, 90s retry
+                            console.log(`      🔄 Category ${catId}: fetching page ${page} (per_page=${perPage}, attempt ${attempt}, timeout: ${timeout}ms)`);
+                            
+                            const response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
+                                params: {
+                                    categories: catId,
+                                    per_page: perPage,
+                                    page,
+                                    orderby: 'title',
+                                    order: 'asc'
+                                },
+                                timeout: timeout
+                            });
 
-                        const data = response.data || [];
-                        posts = posts.concat(data);
+                            const data = response.data || [];
+                            posts = posts.concat(data);
 
-                        if (totalPages === null) {
-                            const headerValue = response.headers?.['x-wp-totalpages'];
-                            totalPages = headerValue ? parseInt(headerValue, 10) : null;
+                            if (totalPages === null) {
+                                const headerValue = response.headers?.['x-wp-totalpages'];
+                                totalPages = headerValue ? parseInt(headerValue, 10) : null;
+                            }
+
+                            console.log(`      ✅ Category ${catId} page ${page}: Got ${data.length} posts (total so far: ${posts.length})`);
+                            success = true;
+                            
+                            // Check if we should continue to next page
+                            if (data.length < perPage || (totalPages && page >= totalPages)) {
+                                // No more pages, exit both loops
+                                page = maxPages + 1; // Force exit outer loop
+                            }
+                            break; // Success, exit retry loop
+                            
+                        } catch (error) {
+                            lastError = error;
+                            if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+                                console.log(`      ⏱️ Category ${catId} page ${page} timeout on attempt ${attempt}`);
+                                if (attempt <= maxRetries) {
+                                    const delay = attempt * 2000; // 2s, 4s delays
+                                    console.log(`      ⏳ Waiting ${delay}ms before retry...`);
+                                    await new Promise(resolve => setTimeout(resolve, delay));
+                                    continue;
+                                }
+                            } else {
+                                console.log(`      ❌ Category ${catId} page ${page} failed: ${error.message}`);
+                                break; // Don't retry for non-timeout errors
+                            }
                         }
-
-                        if (data.length < perPage || (totalPages && page >= totalPages)) {
-                            break;
-                        }
-
-                        page += 1;
-                    } catch (error) {
-                        console.log(`      ❌ Category ${catId} page ${page} failed: ${error.message}`);
-                        break;
                     }
+                    
+                    if (!success) {
+                        console.log(`      ❌ Category ${catId} page ${page} failed after all attempts: ${lastError?.message || 'Unknown error'}`);
+                        break; // Exit pagination loop
+                    }
+
+                    page += 1;
                 }
 
                 return posts;
