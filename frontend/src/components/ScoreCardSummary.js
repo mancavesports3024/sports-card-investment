@@ -213,6 +213,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
           summaryTitle: cardTitle,
           imageUrl: cardImage,
           image: cardImage,
+          cardImage: cardImage, // Also add cardImage for the render
           rawAveragePrice: rawAvg,
           psa9AveragePrice: psa9Avg,
           psa10Price: psa10Avg,
@@ -353,8 +354,17 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       <div className="score-card-content">
         {/* Card Image Section */}
         <div className="card-image-section">
-          {cardData.cardImage ? (
-            <img src={cardData.cardImage} alt={card?.player} className="card-image" />
+          {cardData.cardImage || cardData.imageUrl || cardData.image ? (
+            <img 
+              src={cardData.cardImage || cardData.imageUrl || cardData.image} 
+              alt={card?.player || 'Card'} 
+              className="card-image"
+              onError={(e) => {
+                // If image fails to load, show placeholder
+                e.target.style.display = 'none';
+                e.target.nextElementSibling?.style.display || (e.target.parentElement.innerHTML = '<div class="card-image-placeholder"><p>Card Image</p><p>Not Available</p></div>');
+              }}
+            />
           ) : (
             <div className="card-image-placeholder">
               <p>Card Image</p>
