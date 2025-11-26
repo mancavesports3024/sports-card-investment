@@ -294,12 +294,6 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     return change > 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
   };
 
-  const calculateGemRate = () => {
-    if (!cardData?.psa10Population || !cardData?.totalPopulation) return null;
-    const rate = (cardData.psa10Population / cardData.totalPopulation) * 100;
-    return rate.toFixed(1);
-  };
-
   if (loading) {
     return (
       <div className="score-card-summary">
