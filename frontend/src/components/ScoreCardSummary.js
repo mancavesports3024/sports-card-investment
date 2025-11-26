@@ -7,6 +7,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
   const [cardData, setCardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [gemrateData, setGemrateData] = useState(null);
 
   useEffect(() => {
     if (card) {
@@ -14,13 +15,112 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     }
   }, [card]);
 
+  // Fetch gemrate data after search results are loaded
+  useEffect(() => {
+    if (cardData?.searchQuery) {
+      fetchGemrateData();
+    }
+  }, [cardData]);
+
+  const fetchGemrateData = async () => {
+    try {
+      const searchQuery = cardData.searchQuery;
+      // Clean the search query - remove exclusions for GemRate
+      let cleanQuery = searchQuery;
+      const exclusionIndex = cleanQuery.indexOf(' -(');
+      if (exclusionIndex !== -1) {
+        cleanQuery = cleanQuery.substring(0, exclusionIndex).trim();
+      }
+      
+      console.log(`[ScoreCardSummary] Fetching GemRate data for: "${cleanQuery}"`);
+      const response = await fetch(`${API_BASE_URL}/api/gemrate/search/${encodeURIComponent(cleanQuery)}`);
+      const data = await response.json();
+      console.log(`[ScoreCardSummary] GemRate response:`, data);
+      
+      // Check for population data in multiple possible locations
+      const populationData = data.data?.population || data.data?.data?.population || data.data;
+      
+      if (data.success && data.data && data.data.success && populationData) {
+        console.log(`[ScoreCardSummary] Setting GemRate data:`, populationData);
+        setGemrateData(populationData);
+      } else {
+        console.log(`[ScoreCardSummary] GemRate data not available`);
+        setGemrateData(null);
+      }
+    } catch (err) {
+      console.error('[ScoreCardSummary] Failed to fetch gemrate data:', err);
+      setGemrateData(null);
+    }
+  };
+
+  // Filter raw cards (same logic as SearchPage)
+  const filterRawCards = (cards) => {
+    if (!Array.isArray(cards)) return [];
+    // Only filter to valid, non-graded cards
+    return cards.filter(card => {
+      // Exclude if title contains grading company and grade in any order
+      const gradeRegex = /(?:(?:psa|bgs|sgc|cgc|tag|gm|gem|mint)[\s:(-]*(?:9\.5|10|9|8|7))|(?:(?:9\.5|10|9|8|7)[\s:)-]*(?:psa|bgs|sgc|cgc|tag|gm|gem|mint))/i;
+      const isGraded = gradeRegex.test(card.title || '');
+      // Exclude if price is missing or not a number
+      const priceValue = Number(card.price?.value);
+      const validPrice = !isNaN(priceValue) && priceValue > 0;
+      return !isGraded && validPrice;
+    });
+  };
+
+  // Get card image (same logic as SearchPage)
+  const getCardImage = (card) => {
+    if (!card) return null;
+    
+    let imageUrl = null;
+    
+    // Direct imageUrl field (most common)
+    if (card.imageUrl && typeof card.imageUrl === 'string' && card.imageUrl.startsWith('http')) {
+      imageUrl = card.imageUrl;
+    }
+    // Image object with imageUrl property
+    else if (card.image && typeof card.image === 'object' && card.image.imageUrl) {
+      imageUrl = card.image.imageUrl;
+    }
+    // Image as string
+    else if (typeof card.image === 'string' && card.image.startsWith('http')) {
+      imageUrl = card.image;
+    }
+    // Image object with url property
+    else if (card.image?.url && typeof card.image.url === 'string' && card.image.url.startsWith('http')) {
+      imageUrl = card.image.url;
+    }
+    // Thumbnail fields
+    else if (card.thumbnail && typeof card.thumbnail === 'string' && card.thumbnail.startsWith('http')) {
+      imageUrl = card.thumbnail;
+    }
+    else if (card.thumbnailUrl && typeof card.thumbnailUrl === 'string' && card.thumbnailUrl.startsWith('http')) {
+      imageUrl = card.thumbnailUrl;
+    }
+    // Check nested image objects
+    else if (card.imageUrl && typeof card.imageUrl === 'object' && card.imageUrl.url) {
+      imageUrl = card.imageUrl.url;
+    }
+    
+    // Validate URL and prefer higher quality images
+    if (imageUrl && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
+      // Prefer full-size eBay images (s-l1600) over thumbnails
+      if (imageUrl.includes('ebay') && imageUrl.includes('s-l') && !imageUrl.includes('s-l1600')) {
+        imageUrl = imageUrl.replace(/s-l\d+/, 's-l1600');
+      }
+      return imageUrl;
+    }
+    
+    return null;
+  };
+
   const fetchCardData = async () => {
     setLoading(true);
     setError('');
     try {
       // Build search query from card info
       const searchQuery = buildSearchQuery();
-      console.log('🔍 Fetching card data for:', searchQuery);
+      console.log('🔍 [ScoreCardSummary] Fetching card data for:', searchQuery);
 
       // Validate search query
       if (!searchQuery || searchQuery.trim().length === 0) {
@@ -29,22 +129,90 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
         return;
       }
 
-      // Fetch comprehensive card data
-      const response = await fetch(`${API_BASE_URL}/api/add-comprehensive-card`, {
+      // Fetch search results (same as SearchPage)
+      const response = await fetch(`${API_BASE_URL}/api/search-cards`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          searchTerm: searchQuery.trim(), // Backend expects 'searchTerm', not 'title'
-          sport: setInfo?.sport || 'Baseball',
-          maxResults: 20
+          searchQuery: searchQuery.trim(),
+          numSales: 200
         }),
       });
 
       const data = await response.json();
-      if (data.success) {
-        setCardData(data);
+      if (data.results) {
+        // Process results the same way SearchPage does
+        const rawCards = filterRawCards(data.results.raw || []);
+        const psa9Cards = (data.results.psa9 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
+        const psa10Cards = (data.results.psa10 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
+
+        // Calculate average prices
+        const rawPrices = rawCards.map(card => Number(card.price?.value)).filter(v => !isNaN(v) && v > 0);
+        const psa9Prices = psa9Cards.map(card => Number(card.price?.value)).filter(v => !isNaN(v) && v > 0);
+        const psa10Prices = psa10Cards.map(card => Number(card.price?.value)).filter(v => !isNaN(v) && v > 0);
+
+        const rawAvg = rawPrices.length > 0 ? rawPrices.reduce((a, b) => a + b, 0) / rawPrices.length : 0;
+        const psa9Avg = psa9Prices.length > 0 ? psa9Prices.reduce((a, b) => a + b, 0) / psa9Prices.length : 0;
+        const psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
+
+        // Get card image - prioritize PSA 10 cards first (eBay or 130point)
+        let cardImage = null;
+        const prioritizedCards = [
+          ...psa10Cards,
+          ...psa9Cards,
+          ...rawCards
+        ];
+        
+        // Sort by: has image first, then by source (eBay then 130point)
+        prioritizedCards.sort((a, b) => {
+          const aHasImage = getCardImage(a) !== null;
+          const bHasImage = getCardImage(b) !== null;
+          if (aHasImage && !bHasImage) return -1;
+          if (!aHasImage && bHasImage) return 1;
+          
+          // If both have or don't have images, prefer eBay
+          const aIsEbay = a.source === 'ebay' || (a.itemWebUrl && (a.itemWebUrl.includes('ebay') || a.itemWebUrl.includes('ebay.com')));
+          const bIsEbay = b.source === 'ebay' || (b.itemWebUrl && (b.itemWebUrl.includes('ebay') || b.itemWebUrl.includes('ebay.com')));
+          if (aIsEbay && !bIsEbay) return -1;
+          if (!aIsEbay && bIsEbay) return 1;
+          return 0;
+        });
+        
+        for (const cardItem of prioritizedCards) {
+          const img = getCardImage(cardItem);
+          if (img) {
+            cardImage = img;
+            break;
+          }
+        }
+
+        // Get card title
+        const cardTitle = searchQuery || 
+                         psa10Cards[0]?.summaryTitle || 
+                         psa10Cards[0]?.title || 
+                         psa9Cards[0]?.summaryTitle || 
+                         psa9Cards[0]?.title || 
+                         rawCards[0]?.summaryTitle || 
+                         rawCards[0]?.title || 
+                         'Card';
+
+        // Build card data object (same structure as SearchPage)
+        setCardData({
+          title: cardTitle,
+          summaryTitle: cardTitle,
+          imageUrl: cardImage,
+          image: cardImage,
+          rawAveragePrice: rawAvg,
+          psa9AveragePrice: psa9Avg,
+          psa10Price: psa10Avg,
+          rawCards: rawCards,
+          psa9Cards: psa9Cards,
+          psa10Cards: psa10Cards,
+          searchQuery: searchQuery,
+          createdAt: new Date().toISOString()
+        });
       } else {
         setError(data.error || 'Failed to fetch card data');
       }
@@ -158,13 +326,15 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     );
   }
 
-  const psa10Price = cardData.psa10AveragePrice || cardData.psa10Cards?.[0]?.numericPrice || 0;
-  const psa9Price = cardData.psa9AveragePrice || cardData.psa9Cards?.[0]?.numericPrice || 0;
-  const rawPrice = cardData.rawAveragePrice || cardData.rawCards?.[0]?.numericPrice || 0;
-  const psa10Pop = cardData.psa10Population || 0;
-  const psa9Pop = cardData.psa9Population || 0;
-  const totalPop = cardData.totalPopulation || (psa10Pop + psa9Pop);
-  const gemRate = calculateGemRate();
+  const psa10Price = cardData.psa10Price || 0;
+  const psa9Price = cardData.psa9AveragePrice || 0;
+  const rawPrice = cardData.rawAveragePrice || 0;
+  
+  // Get population data from gemrate
+  const psa10Pop = gemrateData?.psa10Population || gemrateData?.psa10_population || 0;
+  const psa9Pop = gemrateData?.psa9Population || gemrateData?.psa9_population || 0;
+  const totalPop = gemrateData?.totalPopulation || gemrateData?.total_population || (psa10Pop + psa9Pop);
+  const gemRate = totalPop > 0 && psa10Pop > 0 ? ((psa10Pop / totalPop) * 100).toFixed(1) : null;
 
   return (
     <div className="score-card-summary">
