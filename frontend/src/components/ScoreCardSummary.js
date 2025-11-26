@@ -101,7 +101,13 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     
     // Parallel type last (e.g., "Rainbow Foil")
     if (setInfo?.parallel && setInfo.parallel !== 'Base Checklist') {
-      parts.push(setInfo.parallel);
+      // Remove trailing "s" from plural parallel types (e.g., "Silver Prizms" -> "Silver Prizm")
+      let cleanParallel = setInfo.parallel;
+      // Remove trailing "s" if the word ends with common plural patterns
+      cleanParallel = cleanParallel.replace(/\b(\w+)s\b$/i, '$1');
+      // Also handle cases where the last word is plural (e.g., "Silver Prizms" -> "Silver Prizm")
+      cleanParallel = cleanParallel.replace(/\s+(\w+)s\b$/i, ' $1');
+      parts.push(cleanParallel);
     }
     
     const query = parts.join(' ').replace(/\s+/g, ' ').trim(); // Clean up multiple spaces
