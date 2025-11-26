@@ -333,11 +333,13 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
   const psa9Price = cardData.psa9AveragePrice || 0;
   const rawPrice = cardData.rawAveragePrice || 0;
   
-  // Get population data from gemrate
-  const psa10Pop = gemrateData?.psa10Population || gemrateData?.psa10_population || 0;
-  const psa9Pop = gemrateData?.psa9Population || gemrateData?.psa9_population || 0;
-  const totalPop = gemrateData?.totalPopulation || gemrateData?.total_population || (psa10Pop + psa9Pop);
-  const gemRate = totalPop > 0 && psa10Pop > 0 ? ((psa10Pop / totalPop) * 100).toFixed(1) : null;
+  // Get population data from gemrate (check multiple possible field names)
+  // GemRate returns: perfect/gemMint (PSA 10), grade9 (PSA 9), total (total population)
+  const psa10Pop = gemrateData?.perfect || gemrateData?.gemMint || gemrateData?.psa10Population || gemrateData?.psa10_population || 0;
+  const psa9Pop = gemrateData?.grade9 || gemrateData?.psa9Population || gemrateData?.psa9_population || 0;
+  const totalPop = gemrateData?.total || gemrateData?.totalPopulation || gemrateData?.total_population || (psa10Pop + psa9Pop);
+  // GemRate also provides gemRate as a percentage, use it if available, otherwise calculate
+  const gemRate = gemrateData?.gemRate ? gemrateData.gemRate.toFixed(1) : (totalPop > 0 && psa10Pop > 0 ? ((psa10Pop / totalPop) * 100).toFixed(1) : null);
 
   return (
     <div className="score-card-summary">
