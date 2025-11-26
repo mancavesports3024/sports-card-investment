@@ -107,224 +107,103 @@ class ChecklistInsiderService {
             const subcategories = await this.getSubcategories(sportId);
             console.log(`   📋 Found ${subcategories.length} subcategories`);
             
-            // Collect all category IDs to search (parent + subcategories)
-            const categoryIds = [parseInt(sportId)];
-            if (subcategories.length > 0) {
-                subcategories.forEach(sub => {
-                    categoryIds.push(sub.id);
-                    console.log(`      - ${sub.name} (ID: ${sub.id}, ${sub.count} posts)`);
-                });
-            }
-
-            // Get recent posts to extract years
-            // Try multiple strategies: by category ID, by search term, and without filter
-            console.log(`   🔍 Fetching posts for category ID ${sportId} (${sportName})...`);
-            
-            let response = null;
-            let posts = [];
-            
-            // Strategy 1: Try fetching posts sequentially (one at a time) to avoid overwhelming the API
-            try {
-                console.log(`   🔍 Searching ${categoryIds.length} categories sequentially: ${categoryIds.join(', ')}`);
-                const categoryResults = [];
-                
-                // Fetch categories sequentially to avoid rate limiting/timeouts
-                for (const catId of categoryIds) {
-                    const maxRetries = 1; // Only 1 retry since we're doing sequential
-                    let lastError = null;
-                    let success = false;
-                    
-                    for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
-                        try {
-                            const timeout = 60000; // 60s timeout
-                            console.log(`   🔍 Fetching posts for category ${catId} (attempt ${attempt}, timeout: ${timeout}ms)...`);
-                            
-                            const catResponse = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
-                                params: {
-                                    categories: catId,
-                                    per_page: 100,
-                                    orderby: 'date',
-                                    order: 'desc'
-                                },
-                                timeout: timeout
-                            });
-                            
-                            const postCount = catResponse.data ? catResponse.data.length : 0;
-                            categoryResults.push({ id: catId, count: postCount });
-                            
-                            if (postCount > 0) {
-                                posts = posts.concat(catResponse.data);
-                                console.log(`   ✅ Category ${catId}: Found ${postCount} posts`);
-                                success = true;
-                                break; // Success, move to next category
-                            } else {
-                                console.log(`   ⚠️ Category ${catId}: Found 0 posts (API returned empty array)`);
-                                success = true; // Not an error, just empty
-                                break;
-                            }
-                        } catch (e) {
-                            lastError = e;
-                            if (e.code === 'ECONNABORTED' || e.message.includes('timeout')) {
-                                console.log(`   ⏱️ Category ${catId} timeout on attempt ${attempt}`);
-                                if (attempt <= maxRetries) {
-                                    console.log(`   ⏳ Waiting 3 seconds before retry...`);
-                                    await new Promise(resolve => setTimeout(resolve, 3000));
-                                    continue;
-                                }
-                            } else {
-                                console.log(`   ❌ Category ${catId} failed: ${e.message}`);
-                                break; // Don't retry for non-timeout errors
-                            }
-                        }
-                    }
-                    
-                    if (!success) {
-                        console.log(`   ❌ Category ${catId} failed after all attempts: ${lastError?.message || 'Unknown error'}`);
-                        categoryResults.push({ id: catId, count: 0, error: lastError?.message });
-                    }
-                    
-                    // Small delay between categories to be gentle on the API
-                    if (catId !== categoryIds[categoryIds.length - 1]) {
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                    }
-                }
-                
-                // Remove duplicates by post ID
-                const uniquePosts = Array.from(new Map(posts.map(p => [p.id, p])).values());
-                posts = uniquePosts;
-                
-                const totalFromCategories = categoryResultsData.reduce((sum, r) => sum + (r.count || 0), 0);
-                console.log(`   📊 Summary: ${totalFromCategories} total posts from ${categoryResultsData.length} categories, ${posts.length} unique after deduplication`);
-            } catch (e) {
-                console.log(`   ⚠️ Strategy 1 failed: ${e.message}`);
-            }
-            
-            // Strategy 1.5: If some categories failed, try fetching all posts and filtering client-side
-            if (posts.length < 50) { // If we got very few posts, try alternative approach
-                try {
-                    console.log(`   🔍 Strategy 1.5: Fetching all recent posts and filtering by sport name...`);
-                    const searchTerm = sportName.replace(/\s+Cards?$/i, '').toLowerCase(); // "Baseball Cards" -> "baseball"
-                    
-                    // Fetch posts without category filter (should be faster)
-                    const allPostsResponse = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
-                        params: {
-                            search: searchTerm,
-                            per_page: 100,
-                            orderby: 'date',
-                            order: 'desc'
-                        },
-                        timeout: 60000
-                    });
-                    
-                    const allPosts = allPostsResponse.data || [];
-                    console.log(`   📄 Found ${allPosts.length} posts from search, filtering for ${sportName}...`);
-                    
-                    // Filter posts that match our sport (check title and categories)
-                    const filteredPosts = allPosts.filter(post => {
-                        const title = (post.title?.rendered || '').toLowerCase();
-                        const content = (post.content?.rendered || '').toLowerCase();
-                        const categories = post.categories || [];
-                        
-                        // Check if title/content contains sport name, or if it's in one of our target categories
-                        const titleMatch = title.includes(searchTerm);
-                        const contentMatch = content.includes(searchTerm);
-                        const categoryMatch = categoryIds.some(catId => categories.includes(catId));
-                        
-                        return titleMatch || contentMatch || categoryMatch;
-                    });
-                    
-                    if (filteredPosts.length > posts.length) {
-                        console.log(`   ✅ Strategy 1.5: Found ${filteredPosts.length} additional posts via search`);
-                        // Merge with existing posts
-                        const allMerged = posts.concat(filteredPosts);
-                        posts = Array.from(new Map(allMerged.map(p => [p.id, p])).values());
-                    }
-                } catch (e) {
-                    console.log(`   ⚠️ Strategy 1.5 failed: ${e.message}`);
-                }
-            }
-            
-            // Strategy 2: If no posts, try searching by sport name
-            if (posts.length === 0) {
-                try {
-                    const searchTerm = sportName.replace(/\s+Cards?$/i, '').toLowerCase(); // "Baseball Cards" -> "baseball"
-                    console.log(`   🔍 Strategy 2: Searching for posts with "${searchTerm}"...`);
-                    response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
-                        params: {
-                            search: searchTerm,
-                            per_page: 100,
-                            orderby: 'date',
-                            order: 'desc'
-                        },
-                        timeout: 15000
-                    });
-                    posts = response.data;
-                    console.log(`   📄 Strategy 2 (search): Received ${posts.length} posts`);
-                } catch (e) {
-                    console.log(`   ⚠️ Strategy 2 failed: ${e.message}`);
-                }
-            }
-            
-            // Strategy 3: If still no posts, try getting all recent posts (no filter)
-            if (posts.length === 0) {
-                try {
-                    console.log(`   🔍 Strategy 3: Getting all recent posts...`);
-                    response = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
-                        params: {
-                            per_page: 100,
-                            orderby: 'date',
-                            order: 'desc'
-                        },
-                        timeout: 15000
-                    });
-                    // Filter posts that might be related to this sport
-                    const searchTerm = sportName.replace(/\s+Cards?$/i, '').toLowerCase();
-                    posts = response.data.filter(post => {
-                        const title = (post.title.rendered || '').toLowerCase();
-                        const content = (post.content.rendered || '').toLowerCase();
-                        return title.includes(searchTerm) || content.includes(searchTerm);
-                    });
-                    console.log(`   📄 Strategy 3 (all posts, filtered): Received ${posts.length} posts`);
-                } catch (e) {
-                    console.log(`   ⚠️ Strategy 3 failed: ${e.message}`);
-                }
-            }
-            
-            console.log(`   📄 Total posts found: ${posts.length}`);
-            
-            // Extract years from post titles (e.g., "2025 Topps", "2024 Panini")
+            // Extract years directly from subcategory names (e.g., "2023 Football Cards", "2024 Football Cards")
+            // This is much faster than fetching posts!
             const years = new Set();
             const currentYear = new Date().getFullYear();
             
-            // Log first few post titles for debugging
-            if (posts.length > 0) {
-                console.log(`   📋 Sample post titles:`);
-                posts.slice(0, 5).forEach((post, i) => {
-                    const title = post.title.rendered || '';
-                    const cleanTitle = title.replace(/<[^>]*>/g, '');
-                    console.log(`      ${i + 1}. ${cleanTitle}`);
-                });
-            } else {
-                console.log(`   ⚠️ No posts found for ${sportName}. This might mean:`);
-                console.log(`      - Checklist Insider doesn't have posts in this category`);
-                console.log(`      - The category ID (${sportId}) might be incorrect`);
-                console.log(`      - Posts might be in a different category structure`);
-            }
-            
-            posts.forEach(post => {
-                const title = post.title.rendered || '';
-                const cleanTitle = title.replace(/<[^>]*>/g, ''); // Remove HTML tags
-                // Look for 4-digit years (1900-2100)
-                const yearMatches = cleanTitle.match(/\b(19|20)\d{2}\b/g);
-                if (yearMatches) {
-                    yearMatches.forEach(yearStr => {
-                        const year = parseInt(yearStr);
+            if (subcategories.length > 0) {
+                console.log(`   📅 Extracting years from subcategory names...`);
+                subcategories.forEach(sub => {
+                    console.log(`      - ${sub.name} (ID: ${sub.id}, ${sub.count} posts)`);
+                    // Extract year from subcategory name (e.g., "2023 Football Cards" -> 2023)
+                    const yearMatch = sub.name.match(/\b(19|20)\d{2}\b/);
+                    if (yearMatch) {
+                        const year = parseInt(yearMatch[0]);
                         if (year >= 1900 && year <= currentYear + 1) {
                             years.add(year);
                         }
-                    });
+                    }
+                });
+            }
+            
+            // If no years found from subcategories, fall back to fetching posts (legacy fallback)
+            if (years.size === 0) {
+                console.log(`   ⚠️ No years found in subcategory names, falling back to post extraction...`);
+                let posts = [];
+                
+                // Strategy: Try fetching posts from subcategories
+                const categoryIds = subcategories.map(sub => sub.id);
+                if (categoryIds.length > 0) {
+                    try {
+                        console.log(`   🔍 Fetching posts from ${categoryIds.length} subcategories to extract years...`);
+                        
+                        // Use parallel fetching with Promise.allSettled for speed
+                        const categoryPromises = categoryIds.map(async (catId) => {
+                            try {
+                                const catResponse = await axios.get(`${this.baseUrl}/wp/v2/posts`, {
+                                    params: {
+                                        categories: catId,
+                                        per_page: 25, // Only need a few posts to extract years
+                                        orderby: 'date',
+                                        order: 'desc'
+                                    },
+                                    timeout: 30000
+                                });
+                                return catResponse.data || [];
+                            } catch (e) {
+                                console.log(`   ⚠️ Category ${catId} failed: ${e.message}`);
+                                return [];
+                            }
+                        });
+                        
+                        const categoryResults = await Promise.allSettled(categoryPromises);
+                        categoryResults.forEach((result, index) => {
+                            if (result.status === 'fulfilled' && result.value.length > 0) {
+                                posts = posts.concat(result.value);
+                            }
+                        });
+                        
+                        // Remove duplicates by post ID
+                        posts = Array.from(new Map(posts.map(p => [p.id, p])).values());
+                        console.log(`   📄 Found ${posts.length} posts for year extraction`);
+                    } catch (e) {
+                        console.log(`   ⚠️ Post fetching failed: ${e.message}`);
+                    }
                 }
-            });
+                
+                // Extract years from post titles
+                if (posts.length > 0) {
+                    console.log(`   📅 Extracting years from post titles...`);
+                    // Log first few post titles for debugging
+                    console.log(`   📋 Sample post titles:`);
+                    posts.slice(0, 5).forEach((post, i) => {
+                        const title = post.title?.rendered || '';
+                        const cleanTitle = title.replace(/<[^>]*>/g, '');
+                        console.log(`      ${i + 1}. ${cleanTitle}`);
+                    });
+                    
+                    posts.forEach(post => {
+                        const title = post.title?.rendered || '';
+                        const cleanTitle = title.replace(/<[^>]*>/g, ''); // Remove HTML tags
+                        // Look for 4-digit years (1900-2100)
+                        const yearMatches = cleanTitle.match(/\b(19|20)\d{2}\b/g);
+                        if (yearMatches) {
+                            yearMatches.forEach(yearStr => {
+                                const year = parseInt(yearStr);
+                                if (year >= 1900 && year <= currentYear + 1) {
+                                    years.add(year);
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    console.log(`   ⚠️ No posts found for ${sportName}. This might mean:`);
+                    console.log(`      - Checklist Insider doesn't have posts in this category`);
+                    console.log(`      - The category ID (${sportId}) might be incorrect`);
+                    console.log(`      - Posts might be in a different category structure`);
+                }
+            }
             
             console.log(`   📅 Extracted years:`, Array.from(years).sort((a, b) => b - a));
 
