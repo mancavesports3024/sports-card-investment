@@ -130,11 +130,20 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       }
 
       // Fetch search results (same as SearchPage)
+      // Prepare headers with authentication if available
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add authentication token if user is logged in (same as SearchPage)
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch(`${API_BASE_URL}/api/search-cards`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           searchQuery: searchQuery.trim(),
           numSales: 200
