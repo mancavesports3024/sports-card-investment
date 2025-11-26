@@ -53,16 +53,17 @@
 
 .score-card-content {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;           /* Put image beside PSA info */
   gap: 20px;
   margin: 24px 0;
-  align-items: center;
+  align-items: center;           /* Vertically center image vs boxes */
+  justify-content: center;       /* Center the whole block */
 }
 
 .card-image-section {
-  width: 100%;
+  flex: 0 0 260px;               /* Fixed-ish width column for image */
   max-width: 260px;
-  margin: 0 auto 12px;
+  margin: 0 20px 0 0;            /* Space between image and boxes */
 }
 
 .card-image {
@@ -88,7 +89,7 @@
 }
 
 .price-boxes {
-  width: 100%;
+  flex: 1;                       /* Take remaining space next to image */
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
