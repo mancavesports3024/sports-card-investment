@@ -1413,17 +1413,65 @@ class GemRateService {
           });
           
           if (rowDataCards && Array.isArray(rowDataCards) && rowDataCards.length > 0) {
-            console.log(`✅ Extracted ${rowDataCards.length} cards from rowData`);
-            const cards = rowDataCards.map(item => ({
-              number: item.card_number || item.number || item.cardNumber || '',
-              player: item.player_name || item.player || item.name || item.playerName || '',
-              team: item.team_name || item.team || item.teamName || ''
-            })).filter(card => card.number || card.player);
+            console.log(`✅ Extracted ${rowDataCards.length} items from rowData`);
+            console.log(`📊 First item sample:`, JSON.stringify(rowDataCards[0], null, 2));
+            
+            // Filter to only items that look like actual cards
+            // Cards should have card_number, number, or player_name fields
+            const cards = rowDataCards
+              .map(item => {
+                // Try various field name patterns
+                const cardNumber = item.card_number || item.number || item.cardNumber || item.card_num || item.cardNumber || '';
+                const playerName = item.player_name || item.player || item.name || item.playerName || item.player_name_full || '';
+                const teamName = item.team_name || item.team || item.teamName || '';
+                
+                return {
+                  number: cardNumber,
+                  player: playerName,
+                  team: teamName,
+                  rawItem: item // Keep for debugging
+                };
+              })
+              .filter(card => {
+                // Only include if it has a card number (numeric) OR a player name
+                // Exclude items that look like navigation/statistics
+                const hasCardNumber = card.number && /^\d+$/.test(card.number.toString().trim());
+                const hasPlayerName = card.player && card.player.trim().length > 0;
+                const looksLikeCard = hasCardNumber || (hasPlayerName && card.player.length < 100); // Player names shouldn't be too long
+                
+                // Exclude items that look like navigation/statistics
+                const isNavigation = card.player && (
+                  card.player.includes('Grading Trends') ||
+                  card.player.includes('Sales Trends') ||
+                  card.player.includes('Universal Search') ||
+                  card.player.includes('Universal Pop Report') ||
+                  card.player.includes('Player Pop Data') ||
+                  card.player.includes('Total Grades') ||
+                  card.player.includes('Total Gems') ||
+                  card.player.includes('Gem Rate') ||
+                  card.player.includes('Share of Grades') ||
+                  card.player.includes('PSA Total') ||
+                  card.player.includes('Beckett Total') ||
+                  card.player.includes('SGC Total') ||
+                  card.player.includes('CGC Total')
+                );
+                
+                return looksLikeCard && !isNavigation;
+              })
+              .map(card => ({
+                number: card.number,
+                player: card.player,
+                team: card.team
+              }));
+            
+            console.log(`📋 Filtered to ${cards.length} actual cards (removed ${rowDataCards.length - cards.length} non-card items)`);
             
             await this.closeBrowser();
             if (cards.length > 0) {
               console.log(`✅ Found ${cards.length} cards from rowData`);
               return cards;
+            } else {
+              console.log(`⚠️ No valid cards found in rowData, falling back to table extraction`);
             }
           }
           
@@ -1440,17 +1488,21 @@ class GemRateService {
             
             console.log('Page structure:', JSON.stringify(debug));
             
-            // Try multiple table selectors
+            // Try multiple table selectors - prioritize checklist-specific selectors
             const selectors = [
-              'table tbody tr',
+              'table[class*="checklist"] tbody tr',
+              'table[class*="card"] tbody tr',
               '#cardTableBody tr',
+              'table tbody tr',
               'tbody tr',
               '.card-row',
               '[data-card-id]',
               'table tr',
               '.card-item',
               'tr[data-card]',
-              'table#cardTable tbody tr'
+              'table#cardTable tbody tr',
+              '[id*="checklist"] table tr',
+              '[id*="card"] table tr'
             ];
             
             let rows = [];
@@ -1468,13 +1520,35 @@ class GemRateService {
               // Try to find any table and get all rows
               const tables = document.querySelectorAll('table');
               console.log(`Found ${tables.length} tables on page`);
+              
+              // Look for table with "Card #" or "Player" headers (actual card checklist)
               for (let i = 0; i < tables.length; i++) {
-                const tableRows = tables[i].querySelectorAll('tr');
-                console.log(`Table ${i} has ${tableRows.length} rows`);
-                if (tableRows.length > 1) { // More than just header
-                  rows = tableRows;
-                  usedSelector = `table[${i}] tr`;
-                  break;
+                const table = tables[i];
+                const headerText = table.textContent.toLowerCase();
+                const hasCardHeader = headerText.includes('card #') || headerText.includes('card number') || 
+                                     headerText.includes('player') && headerText.includes('team');
+                
+                if (hasCardHeader) {
+                  const tableRows = table.querySelectorAll('tr');
+                  console.log(`Table ${i} looks like card checklist (${tableRows.length} rows)`);
+                  if (tableRows.length > 1) {
+                    rows = tableRows;
+                    usedSelector = `table[${i}] tr (card checklist)`;
+                    break;
+                  }
+                }
+              }
+              
+              // If still no rows, try any table with multiple rows
+              if (rows.length === 0) {
+                for (let i = 0; i < tables.length; i++) {
+                  const tableRows = tables[i].querySelectorAll('tr');
+                  console.log(`Table ${i} has ${tableRows.length} rows`);
+                  if (tableRows.length > 1) { // More than just header
+                    rows = tableRows;
+                    usedSelector = `table[${i}] tr`;
+                    break;
+                  }
                 }
               }
             }
@@ -1533,16 +1607,44 @@ class GemRateService {
                 // Skip if it looks like a header
                 if (cardNumber.toLowerCase() === 'card #' || 
                     cardNumber.toLowerCase() === 'number' ||
+                    cardNumber.toLowerCase() === 'n/a' ||
                     playerName.toLowerCase() === 'player' ||
                     playerName.toLowerCase() === 'name') {
                   continue;
                 }
                 
-                if (cardNumber || playerName) {
+                // Skip navigation/statistics rows
+                const isNavigation = playerName && (
+                  playerName.includes('Grading Trends') ||
+                  playerName.includes('Sales Trends') ||
+                  playerName.includes('Universal Search') ||
+                  playerName.includes('Universal Pop Report') ||
+                  playerName.includes('Player Pop Data') ||
+                  playerName.includes('Total Grades') ||
+                  playerName.includes('Total Gems') ||
+                  playerName.includes('Gem Rate') ||
+                  playerName.includes('Share of Grades') ||
+                  playerName.includes('PSA Total') ||
+                  playerName.includes('Beckett Total') ||
+                  playerName.includes('SGC Total') ||
+                  playerName.includes('CGC Total') ||
+                  playerName.includes('list Sports') ||
+                  playerName.includes('list Pokemon')
+                );
+                
+                if (isNavigation) {
+                  continue;
+                }
+                
+                // Only include if it has a valid card number (numeric) OR a reasonable player name
+                const hasValidCardNumber = cardNumber && /^\d+$/.test(cardNumber.trim());
+                const hasValidPlayerName = playerName && playerName.trim().length > 0 && playerName.length < 100;
+                
+                if (hasValidCardNumber || hasValidPlayerName) {
                   cards.push({
-                    number: cardNumber,
-                    player: playerName,
-                    team: teamName
+                    number: cardNumber || 'N/A',
+                    player: playerName || '',
+                    team: teamName || ''
                   });
                 }
               } else {
