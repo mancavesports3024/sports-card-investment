@@ -247,4 +247,54 @@ router.get('/details/:gemrateId', async (req, res) => {
   }
 });
 
+// GET /api/gemrate/universal-pop-report - Get all sets from universal-pop-report organized by category
+router.get('/universal-pop-report', async (req, res) => {
+  try {
+    console.log('📊 GemRate universal-pop-report request');
+    
+    const result = await gemrateService.getUniversalPopReportSets();
+    
+    res.json({
+      success: true,
+      data: result,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ GemRate universal-pop-report error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get universal-pop-report data',
+      details: error.message
+    });
+  }
+});
+
+// GET /api/gemrate/universal-pop-report/checklist/:setPath - Get checklist for a specific set
+router.get('/universal-pop-report/checklist/:setPath', async (req, res) => {
+  try {
+    const { setPath } = req.params;
+    const decodedPath = decodeURIComponent(setPath);
+    
+    console.log(`📋 GemRate checklist request for set: ${decodedPath}`);
+    
+    const cards = await gemrateService.getSetChecklist(decodedPath);
+    
+    res.json({
+      success: true,
+      data: {
+        setPath: decodedPath,
+        cards: cards
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ GemRate checklist error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get set checklist',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;

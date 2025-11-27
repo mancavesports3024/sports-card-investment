@@ -739,6 +739,204 @@ class GemRateService {
   }
 
   /**
+   * Get all sets from universal-pop-report, organized by category
+   * @returns {Promise<Object>} Sets organized by category {category: [{set_name, year, set_id, ...}]}
+   */
+  async getUniversalPopReportSets() {
+    try {
+      await this.ensureSession();
+      
+      console.log('📊 Fetching universal-pop-report sets...');
+      
+      // First, try to find an API endpoint that returns JSON
+      let setsData = null;
+      try {
+        // Try common API patterns
+        const apiEndpoints = [
+          '/api/universal-pop-report',
+          '/api/sets',
+          '/universal-pop-report/data',
+          '/universal-pop-report.json'
+        ];
+        
+        for (const endpoint of apiEndpoints) {
+          try {
+            const apiResponse = await this.httpClient.get(endpoint, {
+              headers: {
+                ...this.baseHeaders,
+                'Accept': 'application/json'
+              },
+              timeout: 30000
+            });
+            
+            if (apiResponse.data && Array.isArray(apiResponse.data)) {
+              setsData = apiResponse.data;
+              console.log(`✅ Found sets data via API endpoint: ${endpoint} (${setsData.length} sets)`);
+              break;
+            }
+          } catch (e) {
+            // Endpoint doesn't exist, try next
+            continue;
+          }
+        }
+      } catch (e) {
+        console.log('⚠️ No API endpoint found, trying HTML parsing...');
+      }
+
+      // If no API endpoint, fetch HTML and parse
+      if (!setsData) {
+        const response = await this.httpClient.get('/universal-pop-report', {
+          headers: this.pageHeaders,
+          timeout: 60000
+        });
+
+        const html = response.data;
+        const $ = cheerio.load(html);
+
+        // Try to find embedded JSON data in script tags
+        $('script').each((_, el) => {
+          const scriptContent = $(el).html() || '';
+          
+          // Look for various patterns: const data = [...], var data = [...], let data = [...]
+          const patterns = [
+            /(?:const|var|let)\s+data\s*=\s*(\[[\s\S]*?\]);/,
+            /window\.data\s*=\s*(\[[\s\S]*?\]);/,
+            /data\s*:\s*(\[[\s\S]*?\])/,
+            /setsData\s*=\s*(\[[\s\S]*?\]);/,
+            /"sets"\s*:\s*(\[[\s\S]*?\])/
+          ];
+          
+          for (const pattern of patterns) {
+            const match = scriptContent.match(pattern);
+            if (match) {
+              try {
+                // Try to extract and parse JSON
+                let jsonStr = match[1];
+                // Handle trailing commas and other issues
+                jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
+                setsData = JSON.parse(jsonStr);
+                if (Array.isArray(setsData) && setsData.length > 0) {
+                  console.log(`✅ Found sets data in script tag: ${setsData.length} sets`);
+                  return false; // Break out of each loop
+                }
+              } catch (e) {
+                // Try next pattern
+                continue;
+              }
+            }
+          }
+        });
+
+        // If no JSON found, try to parse from table
+        if (!setsData || setsData.length === 0) {
+          console.log('⚠️ No JSON data found, attempting to parse from HTML table...');
+          setsData = this.parseSetsFromTable($);
+        }
+      }
+
+      if (!setsData || setsData.length === 0) {
+        console.log('❌ No sets data found in universal-pop-report');
+        return { categories: {} };
+      }
+
+      // Organize sets by category
+      const categories = {};
+      setsData.forEach(set => {
+        const category = set.category || 'Other';
+        if (!categories[category]) {
+          categories[category] = [];
+        }
+        categories[category].push({
+          id: set.set_id || set.id,
+          set_id: set.set_id || set.id,
+          name: set.set_name || set.name,
+          year: set.year,
+          category: set.category,
+          total_grades: set.total_grades || 0,
+          psa_share: set.psa_share || 0,
+          beckett_share: set.beckett_share || 0,
+          sgc_share: set.sgc_share || 0,
+          cgc_share: set.cgc_share || 0,
+          checklist_size: set.checklist_size || 0,
+          percent_with_grades: set.percent_with_grades || 0
+        });
+      });
+
+      // Sort sets within each category by year (descending), then by name
+      Object.keys(categories).forEach(cat => {
+        categories[cat].sort((a, b) => {
+          if (b.year !== a.year) return (b.year || 0) - (a.year || 0);
+          return (a.name || '').localeCompare(b.name || '');
+        });
+      });
+
+      console.log(`✅ Organized ${setsData.length} sets into ${Object.keys(categories).length} categories`);
+      
+      return { categories };
+    } catch (error) {
+      console.error('❌ Error fetching universal-pop-report sets:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Parse sets from HTML table (fallback method)
+   */
+  parseSetsFromTable($) {
+    const sets = [];
+    // This is a fallback - would need to inspect actual HTML structure
+    // For now, return empty array
+    return sets;
+  }
+
+  /**
+   * Get checklist for a specific set from universal-pop-report
+   * @param {string} setPath - Set path like "44c3b5603eb0c1bd9907f957e68ba3f2cf499b03-2024%20Prizm-Football"
+   * @returns {Promise<Array>} Array of card objects
+   */
+  async getSetChecklist(setPath) {
+    try {
+      await this.ensureSession();
+      
+      console.log(`📋 Fetching checklist for set: ${setPath}`);
+      
+      const url = `/universal-pop-report/${setPath}`;
+      const response = await this.httpClient.get(url, {
+        headers: this.pageHeaders,
+        timeout: 60000
+      });
+
+      const html = response.data;
+      const $ = cheerio.load(html);
+
+      const cards = [];
+      
+      // Parse cards from the page - need to inspect actual structure
+      // Look for table rows or card elements
+      $('tbody tr, .card-row, [data-card-id]').each((_, el) => {
+        const $el = $(el);
+        const cardNumber = $el.find('.card-number, [data-number]').text().trim();
+        const playerName = $el.find('.player-name, [data-player]').text().trim();
+        const teamName = $el.find('.team-name, [data-team]').text().trim();
+        
+        if (cardNumber || playerName) {
+          cards.push({
+            number: cardNumber,
+            player: playerName,
+            team: teamName
+          });
+        }
+      });
+
+      console.log(`✅ Found ${cards.length} cards in set`);
+      return cards;
+    } catch (error) {
+      console.error('❌ Error fetching set checklist:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Analyze card investment potential using GemRate PSA data
    * @param {string} cardName - Name of the card
    * @param {Object} priceData - Current price data from eBay
