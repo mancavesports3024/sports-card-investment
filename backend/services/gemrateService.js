@@ -1029,23 +1029,39 @@ class GemRateService {
             const cacheBuster = Date.now();
             const url = `https://www.gemrate.com/universal-pop-report?_nocache=${cacheBuster}`;
             
-            await this.page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+            await this.page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
             
-            // Wait for table to populate
-            await this.page.waitForSelector('#setsTableBody', { timeout: 10000 }).catch(() => {});
-            await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for JS to execute
+            // Wait for table to populate with a shorter timeout
+            await this.page.waitForSelector('#setsTableBody', { timeout: 5000 }).catch(() => {});
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Shorter wait
             
-            // Try to extract data from JavaScript variables
+            // Try to extract data from JavaScript variables first (more efficient)
             setsData = await this.page.evaluate(() => {
               // Try to find data in window or global scope
-              if (window.data && Array.isArray(window.data)) {
+              if (window.data && Array.isArray(window.data) && window.data.length > 0) {
                 return window.data;
               }
-              // Try to get data from table rows
-              const rows = document.querySelectorAll('#setsTableBody tr');
-              if (rows.length > 0) {
+              // Try other common variable names
+              if (window.setsData && Array.isArray(window.setsData)) {
+                return window.setsData;
+              }
+              if (window.sets && Array.isArray(window.sets)) {
+                return window.sets;
+              }
+              return null;
+            });
+            
+            // If no data in variables, try table (but limit to first 1000 rows to avoid memory issues)
+            if (!setsData || setsData.length === 0) {
+              setsData = await this.page.evaluate(() => {
+                const rows = document.querySelectorAll('#setsTableBody tr');
+                if (rows.length === 0) return null;
+                
                 const sets = [];
-                rows.forEach(row => {
+                const maxRows = Math.min(rows.length, 1000); // Limit to prevent memory issues
+                
+                for (let i = 0; i < maxRows; i++) {
+                  const row = rows[i];
                   const cells = row.querySelectorAll('td');
                   if (cells.length >= 2) {
                     const link = row.querySelector('a');
@@ -1071,17 +1087,20 @@ class GemRateService {
                       });
                     }
                   }
-                });
+                }
                 return sets.length > 0 ? sets : null;
-              }
-              return null;
-            });
+              });
+            }
             
             if (setsData && setsData.length > 0) {
               console.log(`✅ Found ${setsData.length} sets using Puppeteer`);
             }
+            
+            // Close browser to free memory
+            await this.closeBrowser();
           } catch (e) {
             console.log(`⚠️ Puppeteer extraction failed: ${e.message}`);
+            await this.closeBrowser();
           }
         }
       }
@@ -1250,10 +1269,69 @@ class GemRateService {
       
       console.log(`📋 Fetching checklist for set: ${setPath}`);
       
+      // Clean up the setPath - remove "null" if present
+      let cleanPath = setPath.replace(/-null\s+/g, '-').replace(/\s+null\s+/g, ' ');
+      
       // Add cache-busting parameter
       const cacheBuster = Date.now();
-      const url = `/universal-pop-report/${setPath}?_nocache=${cacheBuster}`;
+      const url = `/universal-pop-report/${cleanPath}?_nocache=${cacheBuster}`;
       
+      // Try Puppeteer first for dynamic content (more reliable)
+      const browserInitialized = await this.initializeBrowser();
+      if (browserInitialized && this.page) {
+        try {
+          const fullUrl = `https://www.gemrate.com${url}`;
+          console.log(`🌐 Loading page with Puppeteer: ${fullUrl}`);
+          
+          await this.page.goto(fullUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+          
+          // Wait for table to populate
+          await this.page.waitForSelector('table tbody tr, #cardTableBody tr', { timeout: 10000 }).catch(() => {});
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Extract cards from table
+          const cards = await this.page.evaluate(() => {
+            const cards = [];
+            const rows = document.querySelectorAll('table tbody tr, #cardTableBody tr');
+            
+            // Limit to prevent memory issues
+            const maxRows = Math.min(rows.length, 2000);
+            
+            for (let i = 0; i < maxRows; i++) {
+              const row = rows[i];
+              const cells = row.querySelectorAll('td');
+              
+              if (cells.length >= 2) {
+                const cardNumber = cells[0]?.textContent.trim() || '';
+                const playerName = cells[1]?.textContent.trim() || '';
+                const teamName = cells[2]?.textContent.trim() || '';
+                
+                if (cardNumber || playerName) {
+                  cards.push({
+                    number: cardNumber,
+                    player: playerName,
+                    team: teamName
+                  });
+                }
+              }
+            }
+            
+            return cards;
+          });
+          
+          await this.closeBrowser();
+          
+          if (cards.length > 0) {
+            console.log(`✅ Found ${cards.length} cards using Puppeteer`);
+            return cards;
+          }
+        } catch (e) {
+          console.log(`⚠️ Puppeteer extraction failed: ${e.message}`);
+          await this.closeBrowser();
+        }
+      }
+      
+      // Fallback to HTTP request
       const response = await this.httpClient.get(url, {
         headers: {
           ...this.pageHeaders,
@@ -1262,11 +1340,16 @@ class GemRateService {
           'Expires': '0',
           'Referer': 'https://www.gemrate.com/universal-pop-report'
         },
-        timeout: 60000
+        timeout: 30000 // Reduced timeout
       });
 
       const html = response.data;
-      const $ = cheerio.load(html);
+      
+      // Limit HTML size to prevent memory issues
+      const maxHtmlSize = 500000; // 500KB
+      const limitedHtml = html.length > maxHtmlSize ? html.substring(0, maxHtmlSize) : html;
+      
+      const $ = cheerio.load(limitedHtml);
 
       const cards = [];
       

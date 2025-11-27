@@ -78,7 +78,17 @@ const TCDBBrowser = () => {
     setError('');
     try {
       // Build set path: {set_id}-{year} {set_name}-{category}
-      const setPath = `${set.set_id || set.id}-${set.year} ${set.name}-${set.category}`;
+      // Handle null/undefined year
+      const year = set.year || '';
+      const setName = set.name || set.set_name || '';
+      const category = set.category || '';
+      const setId = set.set_id || set.id || '';
+      
+      // Build path: {set_id}-{year} {set_name}-{category}
+      // If year is null/empty, just use the set name
+      const setPath = year 
+        ? `${setId}-${year} ${setName}-${category}`
+        : `${setId}-${setName}-${category}`;
       const encodedPath = encodeURIComponent(setPath);
       
       const response = await fetch(`${API_BASE_URL}/api/gemrate/universal-pop-report/checklist/${encodedPath}`);
