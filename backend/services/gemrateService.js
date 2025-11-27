@@ -1584,8 +1584,8 @@ class GemRateService {
 
             // -------- Try AG Grid rows (div-based grid) --------
             try {
-              const agRows = document.querySelectorAll('div[role="row"]');
-              console.log(`AG Grid rows found: ${agRows.length}`);
+              const initialRows = document.querySelectorAll('div[role="row"]');
+              console.log(`AG Grid rows found (initial): ${initialRows.length}`);
 
               // Try to infer column indexes from AG Grid headers
               const headerCells = Array.from(document.querySelectorAll('.ag-header-cell-text'));
@@ -1604,56 +1604,86 @@ class GemRateService {
               if (numberCol === -1) numberCol = 2;
               if (setCol === -1) setCol = 3;
 
-              if (agRows.length > 0) {
-                agRows.forEach((row) => {
-                  const cells = row.querySelectorAll('div[role="gridcell"]');
-                  if (cells.length === 0) return;
+              // Helper to safely extract card data from a single row element
+              const extractFromRow = (row, seenKeys, cards) => {
+                const cells = row.querySelectorAll('div[role="gridcell"]');
+                if (cells.length === 0) return;
 
-                  const safeText = (idx) =>
-                    cells[idx] && cells[idx].textContent
-                      ? cells[idx].textContent.trim()
-                      : '';
+                const safeText = (idx) =>
+                  cells[idx] && cells[idx].textContent
+                    ? cells[idx].textContent.trim()
+                    : '';
 
-                  const name = safeText(nameCol);
-                  const number = safeText(numberCol);
-                  const cardSet = safeText(setCol);
+                const name = safeText(nameCol);
+                const number = safeText(numberCol);
+                const cardSet = safeText(setCol);
 
-                  // PSA graded count: prefer explicit PSA column, else use Total grades
-                  let psaText = '';
-                  if (psaCol !== -1 && psaCol < cells.length) {
-                    psaText = safeText(psaCol);
-                  } else if (totalCol !== -1 && totalCol < cells.length) {
-                    psaText = safeText(totalCol);
-                  }
-                  const psaCountStr = psaText.replace(/[,\\s]/g, '');
-
-                  const hasNumber = number && /^\\d+$/.test(number);
-                  const hasName = name && name.length > 0 && name.length < 100;
-
-                  // Skip obvious header / non-card rows
-                  if (!hasNumber && (!hasName || name.toLowerCase() === 'name')) {
-                    return;
-                  }
-
-                  cards.push({
-                    number: number || '',
-                    player: name,
-                    team: cardSet || '',
-                    psaGraded: psaCountStr && /^\\d+$/.test(psaCountStr) ? parseInt(psaCountStr, 10) : null
-                  });
-                });
-
-                if (cards.length > 0) {
-                  console.log(`✅ Extracted ${cards.length} cards from AG Grid rows`);
-                  // Sort by PSA graded count (descending) when available
-                  cards.sort((a, b) => {
-                    const aPsa = typeof a.psaGraded === 'number' ? a.psaGraded : -1;
-                    const bPsa = typeof b.psaGraded === 'number' ? b.psaGraded : -1;
-                    return bPsa - aPsa;
-                  });
-                  console.log(`📊 Top AG Grid card sample:`, JSON.stringify(cards[0], null, 2));
-                  return { cards, debug };
+                // PSA graded count: prefer explicit PSA column, else use Total grades
+                let psaText = '';
+                if (psaCol !== -1 && psaCol < cells.length) {
+                  psaText = safeText(psaCol);
+                } else if (totalCol !== -1 && totalCol < cells.length) {
+                  psaText = safeText(totalCol);
                 }
+                const psaCountStr = psaText.replace(/[,\\s]/g, '');
+
+                const hasNumber = number && /^\\d+$/.test(number);
+                const hasName = name && name.length > 0 && name.length < 100;
+
+                // Skip obvious header / non-card rows
+                if (!hasNumber && (!hasName || name.toLowerCase() === 'name')) {
+                  return;
+                }
+
+                const key = `${number || ''}|${name}|${cardSet}`;
+                if (seenKeys.has(key)) return;
+                seenKeys.add(key);
+
+                cards.push({
+                  number: number || '',
+                  player: name,
+                  team: cardSet || '',
+                  psaGraded: psaCountStr && /^\\d+$/.test(psaCountStr) ? parseInt(psaCountStr, 10) : null
+                });
+              };
+
+              const cards = [];
+              const seenKeys = new Set();
+
+              // Scroll through the grid to capture top N rows (virtualized)
+              const maxCards = 100;
+              const maxScrolls = 20;
+              const viewport =
+                document.querySelector('.ag-center-cols-viewport') ||
+                document.querySelector('div[ref="eCenterViewport"]') ||
+                document.querySelector('div[role="grid"]');
+
+              if (viewport) {
+                for (let s = 0; s < maxScrolls && cards.length < maxCards; s++) {
+                  const rows = document.querySelectorAll('div[role="row"]');
+                  rows.forEach((row) => extractFromRow(row, seenKeys, cards));
+
+                  if (cards.length >= maxCards) break;
+
+                  // Scroll down a bit to load more virtual rows
+                  viewport.scrollBy(0, 400);
+                }
+              } else {
+                // Fallback: just use whatever rows are present
+                const rows = document.querySelectorAll('div[role="row"]');
+                rows.forEach((row) => extractFromRow(row, seenKeys, cards));
+              }
+
+              if (cards.length > 0) {
+                console.log(`✅ Extracted ${cards.length} cards from AG Grid rows (top virtual rows)`);
+                // Sort by PSA graded count (descending) when available
+                cards.sort((a, b) => {
+                  const aPsa = typeof a.psaGraded === 'number' ? a.psaGraded : -1;
+                  const bPsa = typeof b.psaGraded === 'number' ? b.psaGraded : -1;
+                  return bPsa - aPsa;
+                });
+                console.log(`📊 Top AG Grid card sample:`, JSON.stringify(cards[0], null, 2));
+                return { cards, debug };
               }
             } catch (e) {
               console.log('⚠️ AG Grid extraction failed:', e.message);

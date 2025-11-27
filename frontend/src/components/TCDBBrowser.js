@@ -22,6 +22,7 @@ const TCDBBrowser = () => {
   // Loading and error states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [playerSearch, setPlayerSearch] = useState('');
   
   // Database info
   const [dbInfo, setDbInfo] = useState({ total: 0 });
@@ -285,6 +286,15 @@ const TCDBBrowser = () => {
             <div className="loading">Loading checklist...</div>
           ) : (
             <div className="checklist-container">
+              <div className="checklist-toolbar">
+                <input
+                  type="text"
+                  placeholder="Search player..."
+                  value={playerSearch}
+                  onChange={(e) => setPlayerSearch(e.target.value)}
+                  className="checklist-search-input"
+                />
+              </div>
               <table className="checklist-table">
                 <thead>
                   <tr>
@@ -296,7 +306,12 @@ const TCDBBrowser = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {checklist.map((card, index) => {
+                  {checklist
+                    .filter(card =>
+                      !playerSearch ||
+                      (card.player || '').toLowerCase().includes(playerSearch.toLowerCase())
+                    )
+                    .map((card, index) => {
                     const isSelected = selectedCards.some(c => c.number === card.number && c.player === card.player);
                     const psaGraded = typeof card.psaGraded === 'number'
                       ? card.psaGraded.toLocaleString()
