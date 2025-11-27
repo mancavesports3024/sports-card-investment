@@ -1283,102 +1283,136 @@ class GemRateService {
           const fullUrl = `https://www.gemrate.com${url}`;
           console.log(`🌐 Loading page with Puppeteer: ${fullUrl}`);
           
-          // Set up network request interception BEFORE navigation
-          const networkRequests = [];
-          this.page.on('response', response => {
+          // Set up network request interception BEFORE navigation to capture API responses
+          const apiResponses = [];
+          this.page.on('response', async (response) => {
             const url = response.url();
-            if (url.includes('api') || url.includes('data') || url.includes('cards') || url.includes('checklist') || url.includes('pop-report')) {
-              networkRequests.push(url);
-              console.log(`📡 Network request: ${url}`);
+            // Look for API endpoints that might contain card data
+            if (url.includes('api') || url.includes('data') || url.includes('cards') || 
+                url.includes('checklist') || url.includes('pop-report') || 
+                url.includes('universal-pop-report') || url.endsWith('.json')) {
+              try {
+                const contentType = response.headers()['content-type'] || '';
+                if (contentType.includes('json') || url.includes('api') || url.includes('data')) {
+                  const responseData = await response.json().catch(() => null);
+                  if (responseData) {
+                    apiResponses.push({ url, data: responseData });
+                    console.log(`📡 Found API response: ${url}`);
+                    // Check if this looks like card data
+                    if (Array.isArray(responseData) || (responseData.data && Array.isArray(responseData.data))) {
+                      console.log(`✅ Potential card data found in: ${url}`);
+                    }
+                  }
+                }
+              } catch (e) {
+                // Not JSON, skip
+              }
             }
           });
           
-          await this.page.goto(fullUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+          await this.page.goto(fullUrl, { waitUntil: 'networkidle0', timeout: 60000 });
           
-          console.log('⏳ Waiting for page to load and data to populate...');
+          console.log('⏳ Waiting for data to load...');
           
-          // Wait for table to populate - try multiple selectors with longer timeouts
+          // Wait a short time for any additional API calls
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          
+          // Check if we got card data from API responses
+          for (const apiResponse of apiResponses) {
+            let cardData = null;
+            if (Array.isArray(apiResponse.data)) {
+              cardData = apiResponse.data;
+            } else if (apiResponse.data.data && Array.isArray(apiResponse.data.data)) {
+              cardData = apiResponse.data.data;
+            } else if (apiResponse.data.cards && Array.isArray(apiResponse.data.cards)) {
+              cardData = apiResponse.data.cards;
+            }
+            
+            if (cardData && cardData.length > 0) {
+              console.log(`✅ Found ${cardData.length} cards from API: ${apiResponse.url}`);
+              const cards = cardData
+                .map(item => ({
+                  number: item.card_number || item.number || item.cardNumber || item.card_num || '',
+                  player: item.player_name || item.player || item.name || item.playerName || '',
+                  team: item.team_name || item.team || item.teamName || ''
+                }))
+                .filter(card => card.number || card.player);
+              
+              if (cards.length > 0) {
+                await this.closeBrowser();
+                return cards;
+              }
+            }
+          }
+          
+          // Try to find table - but with shorter timeouts since we're looking for API data first
           const tableSelectors = [
             'table tbody tr',
             '#cardTableBody tr',
             'tbody tr',
-            'table tr',
-            '.card-row',
-            '[data-card-id]',
-            '.card-item',
-            'tr[data-card]'
+            'table tr'
           ];
           
           let foundTable = false;
           for (const selector of tableSelectors) {
             try {
-              // Wait up to 30 seconds for the selector to appear
-              await this.page.waitForSelector(selector, { timeout: 30000 });
+              await this.page.waitForSelector(selector, { timeout: 5000 });
               console.log(`✅ Found table with selector: ${selector}`);
-              
-              // Wait for the table to actually have data (more than just header row)
-              await this.page.waitForFunction(
-                (sel) => {
-                  const rows = document.querySelectorAll(sel);
-                  return rows.length > 1; // More than just header
-                },
-                { timeout: 30000 },
-                selector
-              ).catch(() => {
-                console.log('⚠️ Table found but may not have data yet');
-              });
-              
               foundTable = true;
               break;
             } catch (e) {
-              // Try next selector
-              console.log(`⚠️ Selector "${selector}" not found, trying next...`);
+              // Continue
             }
           }
           
           if (!foundTable) {
-            console.log('⚠️ No table found with standard selectors, waiting longer and checking page structure...');
-            // Wait additional time for slow-loading content
-            await new Promise(resolve => setTimeout(resolve, 10000));
-          } else {
-            // Even if table found, wait a bit more for data to fully load
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            console.log('⚠️ No table found, trying to extract from page content...');
+            // Only wait 2 seconds if no table found
+            await new Promise(resolve => setTimeout(resolve, 2000));
           }
           
-          // First, try to extract rowData from script tags
-          console.log('🔍 Looking for rowData in script tags...');
+          // First, try to extract data from script tags - look for any array with card-like data
+          console.log('🔍 Looking for card data in script tags...');
           const rowDataCards = await this.page.evaluate(() => {
             const scripts = document.querySelectorAll('script');
+            const foundArrays = [];
+            
             for (const script of scripts) {
               const content = script.textContent || script.innerHTML;
               
-              // Look for: const rowData = JSON.parse('[...]') or JSON.parse("[...]")
-              // Handle both single and double quotes, and multi-line JSON
-              const rowDataPatterns = [
-                /const\s+rowData\s*=\s*JSON\.parse\(['"](\[[\s\S]*?\])['"]\)/,
-                /const\s+rowData\s*=\s*JSON\.parse\(`(\[[\s\S]*?\])`\)/,
-                /const\s+rowData\s*=\s*(\[[\s\S]*?\]);/
+              // Look for various variable names that might contain card data
+              const variablePatterns = [
+                /const\s+(rowData|cardData|cards|checklist|data)\s*=\s*JSON\.parse\(['"](\[[\s\S]*?\])['"]\)/,
+                /const\s+(rowData|cardData|cards|checklist|data)\s*=\s*JSON\.parse\(`(\[[\s\S]*?\])`\)/,
+                /const\s+(rowData|cardData|cards|checklist|data)\s*=\s*(\[[\s\S]*?\]);/,
+                /(?:var|let)\s+(rowData|cardData|cards|checklist|data)\s*=\s*(\[[\s\S]*?\]);/
               ];
               
-              for (const pattern of rowDataPatterns) {
+              // Also look for populateTable or similar function calls with data
+              const functionPatterns = [
+                /populateTable\s*\(\s*(\[[\s\S]*?\])\s*\)/,
+                /populateCards\s*\(\s*(\[[\s\S]*?\])\s*\)/,
+                /renderCards\s*\(\s*(\[[\s\S]*?\])\s*\)/
+              ];
+              
+              // Try variable patterns
+              for (const pattern of variablePatterns) {
                 const match = content.match(pattern);
                 if (match) {
                   try {
-                    let jsonStr = match[1];
+                    let jsonStr = match[2] || match[1]; // match[2] is the array, match[1] is variable name
                     // Unescape quotes if needed
                     jsonStr = jsonStr.replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, '\n');
                     // Clean up trailing commas
                     jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
                     const data = JSON.parse(jsonStr);
                     if (Array.isArray(data) && data.length > 0) {
-                      console.log(`✅ Found rowData with ${data.length} items`);
-                      return data;
+                      console.log(`✅ Found data in variable "${match[1]}" with ${data.length} items`);
+                      foundArrays.push({ source: match[1], data });
                     }
                   } catch (e) {
-                    console.log(`⚠️ Failed to parse rowData (pattern ${pattern}):`, e.message);
-                    // Try to extract just the array part more carefully
+                    // Try precise extraction
                     try {
-                      // Find the array boundaries more precisely
                       const arrayStart = content.indexOf('[', match.index);
                       if (arrayStart !== -1) {
                         let bracketCount = 0;
@@ -1397,18 +1431,45 @@ class GemRateService {
                           jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
                           const data = JSON.parse(jsonStr);
                           if (Array.isArray(data) && data.length > 0) {
-                            console.log(`✅ Found rowData (precise extraction) with ${data.length} items`);
-                            return data;
+                            console.log(`✅ Found data (precise) in "${match[1]}" with ${data.length} items`);
+                            foundArrays.push({ source: match[1], data });
                           }
                         }
                       }
                     } catch (e2) {
-                      // Continue to next pattern
+                      // Continue
                     }
                   }
                 }
               }
+              
+              // Try function patterns
+              for (const pattern of functionPatterns) {
+                const match = content.match(pattern);
+                if (match) {
+                  try {
+                    let jsonStr = match[1];
+                    jsonStr = jsonStr.replace(/\\"/g, '"').replace(/\\'/g, "'");
+                    jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
+                    const data = JSON.parse(jsonStr);
+                    if (Array.isArray(data) && data.length > 0) {
+                      console.log(`✅ Found data in function call with ${data.length} items`);
+                      foundArrays.push({ source: 'function', data });
+                    }
+                  } catch (e) {
+                    // Continue
+                  }
+                }
+              }
             }
+            
+            // Return the largest array found (likely to be the card data)
+            if (foundArrays.length > 0) {
+              foundArrays.sort((a, b) => b.data.length - a.data.length);
+              console.log(`📊 Found ${foundArrays.length} data arrays, using largest (${foundArrays[0].data.length} items)`);
+              return foundArrays[0].data;
+            }
+            
             return null;
           });
           
