@@ -1185,7 +1185,7 @@ router.post('/', requireUser, async (req, res) => {
     // ]);
 
     // Remove emojis from search query (safety net - should be removed in frontend but just in case)
-    const cleanSearchQuery = searchQuery.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+    let cleanSearchQuery = searchQuery.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
     if (cleanSearchQuery !== searchQuery) {
       console.log(`[POST SEARCH] Removed emojis from search query: "${searchQuery}" -> "${cleanSearchQuery}"`);
     }
@@ -1196,8 +1196,8 @@ router.post('/', requireUser, async (req, res) => {
     const EbayScraperService = require('../services/ebayScraperService');
     let ebayScraper = new EbayScraperService();
     
-    // Use cleaned search query for all searches
-    searchQuery = cleanSearchQuery;
+    // Use cleaned search query for all searches (create a variable we can modify)
+    let workingQuery = cleanSearchQuery;
     
     // Try 130point first (faster and more reliable)
     console.log(`[POST SEARCH] Trying 130point as primary source (faster than eBay scraper)...`);
@@ -1209,11 +1209,11 @@ router.post('/', requireUser, async (req, res) => {
       const point130Service = new Point130Service();
       
       // Process exclusions for 130point format
-      let processedQuery = searchQuery;
-      const exclusionMatch = searchQuery.match(/-\s*\(([^)]+)\)/);
+      let processedQuery = workingQuery;
+      const exclusionMatch = workingQuery.match(/-\s*\(([^)]+)\)/);
       if (exclusionMatch) {
         const exclusions = exclusionMatch[1].split(',').map(e => e.trim());
-        processedQuery = `${searchQuery.split(' -')[0]} -(${exclusions.join(',')})`;
+        processedQuery = `${workingQuery.split(' -')[0]} -(${exclusions.join(',')})`;
       }
       
       const point130Results = await point130Service.searchSoldCards(processedQuery, {
@@ -1264,7 +1264,7 @@ router.post('/', requireUser, async (req, res) => {
       
       let scraperResult;
       try {
-        scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, maxResults, null, null, null, null, null, true);
+        scraperResult = await ebayScraper.searchSoldCards(workingQuery, null, maxResults, null, null, null, null, null, true);
         console.log(`[POST SEARCH] eBay scraper returned: success=${scraperResult?.success}, results count=${scraperResult?.results?.length || 0}, error=${scraperResult?.error || 'none'}`);
       } catch (scraperError) {
         console.error(`[POST SEARCH] eBay scraper threw error:`, scraperError);
@@ -1310,7 +1310,7 @@ router.post('/', requireUser, async (req, res) => {
 
     // 1) Enforce search-term keyword matching to avoid unrelated results
     try {
-      const lowerQuery = (searchQuery || '').toLowerCase();
+      const lowerQuery = (workingQuery || '').toLowerCase();
       const positivePart = lowerQuery.split(' -(')[0].trim();
       const exclusionMatch = lowerQuery.match(/-\s*\(([^)]+)\)/);
       const exclusions = exclusionMatch
@@ -1535,7 +1535,7 @@ router.post('/', requireUser, async (req, res) => {
       try {
         // Build fallback search query - add "PSA 9" to the search term
         // Remove any existing exclusions for the fallback search
-        let baseQuery = searchQuery.split(' -(')[0].trim();
+        let baseQuery = workingQuery.split(' -(')[0].trim();
         // Remove any emojis that might have slipped through
         baseQuery = baseQuery.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
         const fallbackQuery = `${baseQuery} PSA 9`;
@@ -1592,7 +1592,7 @@ router.post('/', requireUser, async (req, res) => {
               }));
               
               // Apply keyword filtering to 130point results (same as main search)
-              const lowerQuery = (searchQuery || '').toLowerCase();
+              const lowerQuery = (workingQuery || '').toLowerCase();
               const positivePart = lowerQuery.split(' -(')[0].trim();
               const exclusionMatch = lowerQuery.match(/-\s*\(([^)]+)\)/);
               const exclusions = exclusionMatch
@@ -1679,7 +1679,7 @@ router.post('/', requireUser, async (req, res) => {
           }));
           
           // Apply keyword filtering to fallback results (same as main search)
-          const lowerQuery = (searchQuery || '').toLowerCase();
+          const lowerQuery = (workingQuery || '').toLowerCase();
           const positivePart = lowerQuery.split(' -(')[0].trim();
           const exclusionMatch = lowerQuery.match(/-\s*\(([^)]+)\)/);
           const exclusions = exclusionMatch
@@ -1843,9 +1843,9 @@ router.post('/', requireUser, async (req, res) => {
         (responseData.results.psa10 && responseData.results.psa10.length > 0)
       )
     ) {
-      const cacheKey = cacheService.generateSearchKey(searchQuery, { numSales });
+      const cacheKey = cacheService.generateSearchKey(workingQuery, { numSales });
       await cacheService.set(cacheKey, responseData, cacheService.searchTTL || 1800);
-      console.log(`💾 Cached search results for: ${searchQuery}`);
+      console.log(`💾 Cached search results for: ${workingQuery}`);
     }
   } catch (error) {
     // Improved error logging and safe access
