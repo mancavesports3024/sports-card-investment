@@ -767,49 +767,119 @@ class GemRateService {
 
       // Try to find embedded JSON data in script tags
       let setsData = null;
+      let scriptCount = 0;
+      
       $('script').each((_, el) => {
+        scriptCount++;
         const scriptContent = $(el).html() || '';
+        
+        // Skip empty scripts
+        if (!scriptContent || scriptContent.length < 100) {
+          return;
+        }
         
         // Look for various patterns: const data = [...], var data = [...], let data = [...]
         const patterns = [
-          /(?:const|var|let)\s+data\s*=\s*(\[[\s\S]*?\]);/,
-          /window\.data\s*=\s*(\[[\s\S]*?\]);/,
-          /data\s*:\s*(\[[\s\S]*?\])/,
-          /setsData\s*=\s*(\[[\s\S]*?\]);/,
-          /"sets"\s*:\s*(\[[\s\S]*?\])/,
-          // Try to find data in function calls like populateTable(data)
-          /populateTable\s*\(\s*(\[[\s\S]*?\])\s*\)/,
-          // Try to find data assignments with more context
-          /function\s+populateTable\s*\([^)]*\)\s*\{[\s\S]*?const\s+data\s*=\s*(\[[\s\S]*?\]);/
+          // Pattern 1: const data = [...];
+          /(?:const|var|let)\s+data\s*=\s*(\[[\s\S]{100,}?\]);/,
+          // Pattern 2: window.data = [...];
+          /window\.data\s*=\s*(\[[\s\S]{100,}?\]);/,
+          // Pattern 3: data: [...]
+          /data\s*:\s*(\[[\s\S]{100,}?\])/,
+          // Pattern 4: setsData = [...];
+          /setsData\s*=\s*(\[[\s\S]{100,}?\]);/,
+          // Pattern 5: "sets": [...]
+          /"sets"\s*:\s*(\[[\s\S]{100,}?\])/,
+          // Pattern 6: populateTable([...]) - most likely based on user's code
+          /populateTable\s*\(\s*(\[[\s\S]{100,}?\])\s*\)/,
+          // Pattern 7: fetch(...).then(data => populateTable(data)) or similar
+          /\.then\s*\(\s*data\s*=>\s*populateTable\s*\(\s*data\s*\)/,
+          // Pattern 8: Look for large JSON arrays in the script
+          /(\[[\s\S]{500,}?\])/
         ];
         
-        for (const pattern of patterns) {
-          const match = scriptContent.match(pattern);
-          if (match) {
+        for (let i = 0; i < patterns.length; i++) {
+          const pattern = patterns[i];
+          const matches = scriptContent.match(pattern);
+          
+          if (matches) {
             try {
-              // Try to extract and parse JSON
-              let jsonStr = match[1];
-              // Handle trailing commas and other issues
+              let jsonStr = matches[1] || matches[0];
+              
+              // If pattern 7 matched, we need to find the actual data
+              if (i === 6) {
+                // Look backwards for the data assignment
+                const beforeMatch = scriptContent.substring(0, scriptContent.indexOf(matches[0]));
+                const dataMatch = beforeMatch.match(/(?:const|var|let)\s+data\s*=\s*(\[[\s\S]{100,}?\]);/);
+                if (dataMatch) {
+                  jsonStr = dataMatch[1];
+                } else {
+                  continue;
+                }
+              }
+              
+              // Clean up the JSON string
+              // Remove trailing commas before ] or }
               jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
-              // Try to clean up any function calls or other JS code
-              jsonStr = jsonStr.split(';')[0].split(')')[0];
+              // Remove any trailing semicolons or function calls
+              jsonStr = jsonStr.split(';')[0].split(')')[0].trim();
+              
+              // Try to parse
               setsData = JSON.parse(jsonStr);
+              
               if (Array.isArray(setsData) && setsData.length > 0) {
-                console.log(`✅ Found sets data in script tag: ${setsData.length} sets`);
+                console.log(`✅ Found sets data in script tag #${scriptCount} using pattern ${i + 1}: ${setsData.length} sets`);
+                // Log first set as sample
+                if (setsData[0]) {
+                  console.log(`📋 Sample set: ${JSON.stringify(setsData[0]).substring(0, 200)}...`);
+                }
                 return false; // Break out of each loop
               }
             } catch (e) {
-              // Try next pattern
+              // Log the error for debugging
+              if (i === patterns.length - 1) { // Only log for the last pattern to avoid spam
+                console.log(`⚠️ Could not parse JSON from pattern ${i + 1}: ${e.message}`);
+                console.log(`📝 Sample of matched text (first 500 chars): ${(matches[1] || matches[0]).substring(0, 500)}`);
+              }
               continue;
             }
           }
         }
       });
+      
+      console.log(`🔍 Checked ${scriptCount} script tags for data`);
 
       // If no JSON found, try to parse from table
       if (!setsData || setsData.length === 0) {
-        console.log('⚠️ No JSON data found, attempting to parse from HTML table...');
+        console.log('⚠️ No JSON data found in script tags, attempting to parse from HTML table...');
+        console.log(`📄 HTML length: ${html.length} characters`);
+        console.log(`📊 Found ${$('table').length} tables in HTML`);
         setsData = this.parseSetsFromTable($);
+      }
+      
+      // If still no data, try to find any JSON-like structures in the entire HTML
+      if (!setsData || setsData.length === 0) {
+        console.log('⚠️ No data from table parsing, trying to find JSON in entire HTML...');
+        const jsonMatches = html.match(/(\[[\s\S]{500,}?\])/g);
+        if (jsonMatches) {
+          console.log(`🔍 Found ${jsonMatches.length} potential JSON arrays in HTML`);
+          for (const jsonMatch of jsonMatches) {
+            try {
+              const cleaned = jsonMatch.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
+              const parsed = JSON.parse(cleaned);
+              if (Array.isArray(parsed) && parsed.length > 0 && parsed[0] && typeof parsed[0] === 'object') {
+                // Check if it looks like set data
+                if (parsed[0].set_name || parsed[0].set_id || parsed[0].name) {
+                  setsData = parsed;
+                  console.log(`✅ Found sets data in HTML: ${setsData.length} sets`);
+                  break;
+                }
+              }
+            } catch (e) {
+              continue;
+            }
+          }
+        }
       }
 
       if (!setsData || setsData.length === 0) {
