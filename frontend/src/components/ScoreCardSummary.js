@@ -159,7 +159,23 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
         }),
       });
 
+      // Check if response is OK
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[ScoreCardSummary] API error (${response.status}):`, errorText);
+        setError(`API error (${response.status}): ${response.statusText}`);
+        setLoading(false);
+        return;
+      }
+
       const data = await response.json();
+      console.log('[ScoreCardSummary] API response:', { 
+        hasResults: !!data.results, 
+        resultsKeys: data.results ? Object.keys(data.results) : [],
+        error: data.error,
+        success: data.success
+      });
+      
       if (data.results) {
         // Filter out parallels if this is a base card
         const isBaseCard = !card?.team || card.team.toLowerCase() === 'base';
@@ -272,7 +288,11 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
           createdAt: new Date().toISOString()
         });
       } else {
-        setError(data.error || 'Failed to fetch card data');
+        // More detailed error message
+        const errorMsg = data.error || 
+                        (data.success === false ? 'Search returned no results' : 'Failed to fetch card data');
+        console.error('[ScoreCardSummary] No results in response:', data);
+        setError(errorMsg);
       }
     } catch (err) {
       console.error('Error fetching card data:', err);
