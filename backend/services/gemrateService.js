@@ -748,24 +748,72 @@ class GemRateService {
       
       console.log('📊 Fetching universal-pop-report sets...');
       
-      // Add cache-busting parameter to avoid 304 responses
-      const cacheBuster = Date.now();
-      const url = `/universal-pop-report?_nocache=${cacheBuster}`;
+      // First, try to find an API endpoint that returns JSON directly
+      let setsData = null;
+      const apiEndpoints = [
+        '/api/universal-pop-report',
+        '/api/sets',
+        '/api/pop-report',
+        '/universal-pop-report/data',
+        '/universal-pop-report.json',
+        '/api/v1/universal-pop-report',
+        '/api/v1/sets'
+      ];
       
-      const response = await this.httpClient.get(url, {
-        headers: {
-          ...this.pageHeaders,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-        timeout: 60000
-      });
+      for (const endpoint of apiEndpoints) {
+        try {
+          const cacheBuster = Date.now();
+          const apiResponse = await this.httpClient.get(`${endpoint}?_nocache=${cacheBuster}`, {
+            headers: {
+              ...this.baseHeaders,
+              'Accept': 'application/json, text/plain, */*',
+              'Referer': 'https://www.gemrate.com/universal-pop-report'
+            },
+            timeout: 30000
+          });
+          
+          if (apiResponse.data) {
+            // Check if it's an array or has a data property
+            if (Array.isArray(apiResponse.data)) {
+              setsData = apiResponse.data;
+              console.log(`✅ Found sets data via API endpoint: ${endpoint} (${setsData.length} sets)`);
+              break;
+            } else if (apiResponse.data.data && Array.isArray(apiResponse.data.data)) {
+              setsData = apiResponse.data.data;
+              console.log(`✅ Found sets data via API endpoint: ${endpoint} (${setsData.length} sets)`);
+              break;
+            } else if (apiResponse.data.sets && Array.isArray(apiResponse.data.sets)) {
+              setsData = apiResponse.data.sets;
+              console.log(`✅ Found sets data via API endpoint: ${endpoint} (${setsData.length} sets)`);
+              break;
+            }
+          }
+        } catch (e) {
+          // Endpoint doesn't exist or returned error, try next
+          continue;
+        }
+      }
+      
+      // If no API endpoint found, fetch HTML and parse
+      if (!setsData || setsData.length === 0) {
+        // Add cache-busting parameter to avoid 304 responses
+        const cacheBuster = Date.now();
+        const url = `/universal-pop-report?_nocache=${cacheBuster}`;
+        
+        const response = await this.httpClient.get(url, {
+          headers: {
+            ...this.pageHeaders,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          timeout: 60000
+        });
 
-      const html = response.data;
-      const $ = cheerio.load(html);
+        const html = response.data;
+        const $ = cheerio.load(html);
 
-      // Try to find embedded JSON data in script tags
+        // Try to find embedded JSON data in script tags
       let setsData = null;
       let scriptCount = 0;
       
