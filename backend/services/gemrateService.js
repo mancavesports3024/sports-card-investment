@@ -74,6 +74,13 @@ class GemRateService {
     this.sessionInitialized = false;
     this.latestCardDetailsToken = null;
     
+    // Default AG Grid state for universal-pop-report set checklist pages:
+    // - Sort by totalGrades desc
+    // - Page size 100
+    // - Includes name, number, cardSet, totalGrades, psaGrades, etc.
+    // This is taken from GemRate's "Share With Current Sort & Filters" link for a set.
+    this.defaultGridStateParam = 'grid_state=%7B%22filter%22%3A%7B%22filterModel%22%3A%7B%22totalGrades%22%3A%7B%22filterType%22%3A%22number%22%2C%22type%22%3A%22greaterThan%22%2C%22filter%22%3A0%7D%7D%7D%2C%22sideBar%22%3A%7B%22visible%22%3Afalse%2C%22openToolPanel%22%3Anull%2C%22toolPanels%22%3A%7B%7D%7D%2C%22sort%22%3A%7B%22sortModel%22%3A%5B%7B%22colId%22%3A%22totalGrades%22%2C%22sort%22%3A%22desc%22%7D%5D%7D%2C%22columnSizing%22%3A%7B%22columnSizingModel%22%3A%5B%7B%22colId%22%3A%22graderDetails%22%2C%22width%22%3A128%7D%2C%7B%22colId%22%3A%22name%22%2C%22width%22%3A200%7D%2C%7B%22colId%22%3A%22number%22%2C%22width%22%3A110%7D%2C%7B%22colId%22%3A%22cardSet%22%2C%22width%22%3A237%7D%2C%7B%22colId%22%3A%22totalGrades%22%2C%22width%22%3A102%7D%2C%7B%22colId%22%3A%22psaGrades%22%2C%22width%22%3A96%7D%2C%7B%22colId%22%3A%22beckettGrades%22%2C%22width%22%3A118%7D%2C%7B%22colId%22%3A%22sgcGrades%22%2C%22width%22%3A97%7D%2C%7B%22colId%22%3A%22cgcGrades%22%2C%22width%22%3A97%7D%2C%7B%22colId%22%3A%22totalGemRate%22%2C%22width%22%3A102%7D%2C%7B%22colId%22%3A%22psaGemRate%22%2C%22width%22%3A100%7D%2C%7B%22colId%22%3A%22beckettGemRate%22%2C%22width%22%3A118%7D%2C%7B%22colId%22%3A%22sgcGemRate%22%2C%22width%22%3A100%7D%2C%7B%22colId%22%3A%22cgcGemRate%22%2C%22width%22%3A97%7D%2C%7B%22colId%22%3A%22gemRateSparkline%22%2C%22width%22%3A200%7D%5D%7D%2C%22columnOrder%22%3A%7B%22orderedColIds%22%3A%5B%22graderDetails%22%2C%22name%22%2C%22number%22%2C%22cardSet%22%2C%22totalGrades%22%2C%22psaGrades%22%2C%22beckettGrades%22%2C%22sgcGrades%22%2C%22cgcGrades%22%2C%22totalGemRate%22%2C%22psaGemRate%22%2C%22beckettGemRate%22%2C%22sgcGemRate%22%2C%22cgcGemRate%22%2C%22gemRateSparkline%22%5D%7D%2C%22pagination%22%3A%7B%22page%22%3A0%2C%22pageSize%22%3A100%7D%2C%22scroll%22%3A%7B%22top%22%3A0%2C%22left%22%3A0%7D%7D';
+    
     // Puppeteer setup for dynamic content
     puppeteer.use(StealthPlugin());
     this.browser = null;
@@ -1272,9 +1279,10 @@ class GemRateService {
       // Clean up the setPath - remove "null" if present
       let cleanPath = setPath.replace(/-null\s+/g, '-').replace(/\s+null\s+/g, ' ');
       
-      // Add cache-busting parameter
+      // Add cache-busting and AG Grid state parameters
       const cacheBuster = Date.now();
-      const url = `/universal-pop-report/${cleanPath}?_nocache=${cacheBuster}`;
+      const gridState = this.defaultGridStateParam || '';
+      const url = `/universal-pop-report/${cleanPath}?_nocache=${cacheBuster}${gridState ? `&${gridState}` : ''}`;
       
       // Try Puppeteer first for dynamic content (more reliable)
       const browserInitialized = await this.initializeBrowser();
@@ -1314,8 +1322,16 @@ class GemRateService {
           
           console.log('⏳ Waiting for data to load...');
           
+          // Wait for AG Grid rows (the checklist table) to render
+          try {
+            await this.page.waitForSelector('div[role="row"]', { timeout: 30000 });
+            console.log('✅ AG Grid rows detected on page');
+          } catch (e) {
+            console.log('⚠️ AG Grid rows not detected before extraction:', e.message);
+          }
+          
           // Wait a short time for any additional API calls
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          await new Promise(resolve => setTimeout(resolve, 2000));
           
           // Check if we got card-like data from API responses
           for (const apiResponse of apiResponses) {
