@@ -814,8 +814,7 @@ class GemRateService {
         const $ = cheerio.load(html);
 
         // Try to find embedded JSON data in script tags
-      let setsData = null;
-      let scriptCount = 0;
+        let scriptCount = 0;
       
       $('script').each((_, el) => {
         scriptCount++;
