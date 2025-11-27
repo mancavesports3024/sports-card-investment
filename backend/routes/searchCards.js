@@ -1186,6 +1186,10 @@ router.post('/', requireUser, async (req, res) => {
 
     console.log(`[POST SEARCH] Starting search for: "${searchQuery}" with numSales: ${numSales} (type: ${typeof numSales})`);
     
+    // Initialize eBay scraper service (needed for fallback searches)
+    const EbayScraperService = require('../services/ebayScraperService');
+    let ebayScraper = new EbayScraperService();
+    
     // Try 130point first (faster and more reliable)
     console.log(`[POST SEARCH] Trying 130point as primary source (faster than eBay scraper)...`);
     let allCards = [];
@@ -1244,8 +1248,7 @@ router.post('/', requireUser, async (req, res) => {
     // If 130point didn't return results, try eBay scraper as fallback
     if (!used130point || allCards.length === 0) {
       console.log(`[POST SEARCH] Trying eBay scraper as fallback...`);
-      const EbayScraperService = require('../services/ebayScraperService');
-      const ebayScraper = new EbayScraperService();
+      // ebayScraper already initialized above
       // Use 500 as maxResults for comprehensive search results
       const maxResults = 500;
       console.log(`[POST SEARCH] Calling eBay scraper with maxResults: ${maxResults}`);
