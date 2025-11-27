@@ -248,7 +248,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     // Note: Sport (Baseball) is NOT included in the search query
     const parts = [];
     
-    // Year first (only once)
+    // Year first (only once) - always include if available
     if (setInfo?.year) {
       const year = typeof setInfo.year === 'number' ? setInfo.year.toString() : setInfo.year;
       parts.push(year);
@@ -266,7 +266,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
         .replace(/\s*Checklist\s*/gi, ' ')
         .trim();
       
-      // Remove year if it's at the start (to avoid duplication)
+      // Remove year if it's at the start (to avoid duplication, but we already added it above)
       cleanSetName = cleanSetName.replace(/^\d{4}\s+/, '');
       
       // Remove sport names from set name (Baseball, Football, Basketball, etc.)
@@ -362,7 +362,10 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     <div className="score-card-summary">
       <div className="score-card-header">
         <button onClick={onBack} className="back-btn">← Back to Checklist</button>
-        <h1>{setInfo?.setName || 'Card Summary'}</h1>
+        <h1>
+          {setInfo?.setName || 'Card Summary'}
+          {card?.team && card.team.toLowerCase() !== 'base' && ` ${card.team}`}
+        </h1>
         <h2>{card?.player || 'Unknown Player'}</h2>
         {card?.number && <h3>#{card.number}</h3>}
       </div>

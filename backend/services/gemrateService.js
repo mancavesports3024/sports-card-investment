@@ -1318,6 +1318,14 @@ class GemRateService {
             }
           });
           
+          // Capture console logs from page.evaluate()
+          this.page.on('console', msg => {
+            const text = msg.text();
+            if (text.includes('📊') || text.includes('AG Grid') || text.includes('Column mapping') || text.includes('Card') || text.includes('extraction')) {
+              console.log(`[Browser Console] ${text}`);
+            }
+          });
+          
           await this.page.goto(fullUrl, { waitUntil: 'networkidle0', timeout: 60000 });
           
           console.log('⏳ Waiting for data to load...');
@@ -1330,8 +1338,8 @@ class GemRateService {
             console.log('⚠️ AG Grid rows not detected before extraction:', e.message);
           }
           
-          // Wait a short time for any additional API calls
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          // Wait a bit longer for grid to fully populate with data
+          await new Promise(resolve => setTimeout(resolve, 5000));
           
           // Check if we got card-like data from API responses
           for (const apiResponse of apiResponses) {
