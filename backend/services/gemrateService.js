@@ -1345,6 +1345,88 @@ class GemRateService {
             await new Promise(resolve => setTimeout(resolve, 5000));
           }
           
+          // First, try to extract rowData from script tags
+          console.log('🔍 Looking for rowData in script tags...');
+          const rowDataCards = await this.page.evaluate(() => {
+            const scripts = document.querySelectorAll('script');
+            for (const script of scripts) {
+              const content = script.textContent || script.innerHTML;
+              
+              // Look for: const rowData = JSON.parse('[...]') or JSON.parse("[...]")
+              // Handle both single and double quotes, and multi-line JSON
+              const rowDataPatterns = [
+                /const\s+rowData\s*=\s*JSON\.parse\(['"](\[[\s\S]*?\])['"]\)/,
+                /const\s+rowData\s*=\s*JSON\.parse\(`(\[[\s\S]*?\])`\)/,
+                /const\s+rowData\s*=\s*(\[[\s\S]*?\]);/
+              ];
+              
+              for (const pattern of rowDataPatterns) {
+                const match = content.match(pattern);
+                if (match) {
+                  try {
+                    let jsonStr = match[1];
+                    // Unescape quotes if needed
+                    jsonStr = jsonStr.replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, '\n');
+                    // Clean up trailing commas
+                    jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
+                    const data = JSON.parse(jsonStr);
+                    if (Array.isArray(data) && data.length > 0) {
+                      console.log(`✅ Found rowData with ${data.length} items`);
+                      return data;
+                    }
+                  } catch (e) {
+                    console.log(`⚠️ Failed to parse rowData (pattern ${pattern}):`, e.message);
+                    // Try to extract just the array part more carefully
+                    try {
+                      // Find the array boundaries more precisely
+                      const arrayStart = content.indexOf('[', match.index);
+                      if (arrayStart !== -1) {
+                        let bracketCount = 0;
+                        let arrayEnd = arrayStart;
+                        for (let i = arrayStart; i < content.length; i++) {
+                          if (content[i] === '[') bracketCount++;
+                          if (content[i] === ']') bracketCount--;
+                          if (bracketCount === 0) {
+                            arrayEnd = i + 1;
+                            break;
+                          }
+                        }
+                        if (arrayEnd > arrayStart) {
+                          let jsonStr = content.substring(arrayStart, arrayEnd);
+                          jsonStr = jsonStr.replace(/\\"/g, '"').replace(/\\'/g, "'");
+                          jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
+                          const data = JSON.parse(jsonStr);
+                          if (Array.isArray(data) && data.length > 0) {
+                            console.log(`✅ Found rowData (precise extraction) with ${data.length} items`);
+                            return data;
+                          }
+                        }
+                      }
+                    } catch (e2) {
+                      // Continue to next pattern
+                    }
+                  }
+                }
+              }
+            }
+            return null;
+          });
+          
+          if (rowDataCards && Array.isArray(rowDataCards) && rowDataCards.length > 0) {
+            console.log(`✅ Extracted ${rowDataCards.length} cards from rowData`);
+            const cards = rowDataCards.map(item => ({
+              number: item.card_number || item.number || item.cardNumber || '',
+              player: item.player_name || item.player || item.name || item.playerName || '',
+              team: item.team_name || item.team || item.teamName || ''
+            })).filter(card => card.number || card.player);
+            
+            await this.closeBrowser();
+            if (cards.length > 0) {
+              console.log(`✅ Found ${cards.length} cards from rowData`);
+              return cards;
+            }
+          }
+          
           // Extract cards from table - try multiple selectors and methods
           const cards = await this.page.evaluate(() => {
             const cards = [];
@@ -1531,7 +1613,61 @@ class GemRateService {
       $('script').each((_, el) => {
         const scriptContent = $(el).html() || '';
         
-        // Look for card data in various patterns
+        // Look for rowData first (most common pattern)
+        const rowDataPatterns = [
+          /const\s+rowData\s*=\s*JSON\.parse\(['"](\[[\s\S]*?\])['"]\)/,
+          /const\s+rowData\s*=\s*JSON\.parse\(`(\[[\s\S]*?\])`\)/,
+          /const\s+rowData\s*=\s*(\[[\s\S]*?\]);/
+        ];
+        
+        for (const pattern of rowDataPatterns) {
+          const match = scriptContent.match(pattern);
+          if (match && !cardsData) {
+            try {
+              let jsonStr = match[1];
+              // Unescape quotes if needed
+              jsonStr = jsonStr.replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, '\n');
+              // Clean up trailing commas
+              jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
+              cardsData = JSON.parse(jsonStr);
+              if (Array.isArray(cardsData) && cardsData.length > 0) {
+                console.log(`✅ Found rowData in script tag: ${cardsData.length} items`);
+                return false; // Break out of each loop
+              }
+            } catch (e) {
+              // Try precise extraction if simple parse fails
+              try {
+                const arrayStart = scriptContent.indexOf('[', match.index);
+                if (arrayStart !== -1) {
+                  let bracketCount = 0;
+                  let arrayEnd = arrayStart;
+                  for (let i = arrayStart; i < scriptContent.length; i++) {
+                    if (scriptContent[i] === '[') bracketCount++;
+                    if (scriptContent[i] === ']') bracketCount--;
+                    if (bracketCount === 0) {
+                      arrayEnd = i + 1;
+                      break;
+                    }
+                  }
+                  if (arrayEnd > arrayStart) {
+                    let jsonStr = scriptContent.substring(arrayStart, arrayEnd);
+                    jsonStr = jsonStr.replace(/\\"/g, '"').replace(/\\'/g, "'");
+                    jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
+                    cardsData = JSON.parse(jsonStr);
+                    if (Array.isArray(cardsData) && cardsData.length > 0) {
+                      console.log(`✅ Found rowData (precise extraction) in script tag: ${cardsData.length} items`);
+                      return false; // Break out of each loop
+                    }
+                  }
+                }
+              } catch (e2) {
+                // Continue to next pattern
+              }
+            }
+          }
+        }
+        
+        // Look for card data in various other patterns
         const patterns = [
           /(?:const|var|let)\s+cards\s*=\s*(\[[\s\S]*?\]);/,
           /(?:const|var|let)\s+data\s*=\s*(\[[\s\S]*?\]);/,
@@ -1541,14 +1677,14 @@ class GemRateService {
         
         for (const pattern of patterns) {
           const match = scriptContent.match(pattern);
-          if (match) {
+          if (match && !cardsData) {
             try {
               let jsonStr = match[1];
               jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
               cardsData = JSON.parse(jsonStr);
               if (Array.isArray(cardsData) && cardsData.length > 0) {
                 console.log(`✅ Found cards data in script tag: ${cardsData.length} cards`);
-                break;
+                return false; // Break out of each loop
               }
             } catch (e) {
               continue;
@@ -1560,12 +1696,20 @@ class GemRateService {
       // If JSON found, use it
       if (cardsData && Array.isArray(cardsData)) {
         cardsData.forEach(card => {
-          cards.push({
-            number: card.card_number || card.number || '',
-            player: card.player_name || card.player || card.name || '',
-            team: card.team_name || card.team || ''
-          });
+          // Try various field name patterns
+          const cardNumber = card.card_number || card.number || card.cardNumber || card.card_num || '';
+          const playerName = card.player_name || card.player || card.name || card.playerName || card.player_name_full || '';
+          const teamName = card.team_name || card.team || card.teamName || '';
+          
+          if (cardNumber || playerName) {
+            cards.push({
+              number: cardNumber,
+              player: playerName,
+              team: teamName
+            });
+          }
         });
+        console.log(`✅ Processed ${cards.length} cards from JSON data`);
       } else {
         // Parse from HTML table
         $('tbody tr, table tr, .card-row, [data-card-id]').each((_, el) => {
