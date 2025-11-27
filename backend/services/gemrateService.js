@@ -2,6 +2,8 @@ const axios = require('axios');
 const { CookieJar } = require('tough-cookie');
 const { wrapper } = require('axios-cookiejar-support');
 const cheerio = require('cheerio');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
 class GemRateService {
   constructor() {
@@ -71,6 +73,58 @@ class GemRateService {
 
     this.sessionInitialized = false;
     this.latestCardDetailsToken = null;
+    
+    // Puppeteer setup for dynamic content
+    puppeteer.use(StealthPlugin());
+    this.browser = null;
+    this.page = null;
+  }
+  
+  async initializeBrowser() {
+    if (this.browser) return true;
+    
+    try {
+      const launchOptions = {
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--disable-gpu'
+        ]
+      };
+      
+      // Try to find Chromium
+      const chromiumPath = process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROMIUM_PATH;
+      if (chromiumPath && require('fs').existsSync(chromiumPath)) {
+        launchOptions.executablePath = chromiumPath;
+      }
+      
+      this.browser = await puppeteer.launch(launchOptions);
+      this.page = await this.browser.newPage();
+      await this.page.setUserAgent(this.baseHeaders['User-Agent']);
+      await this.page.setViewport({ width: 1366, height: 768 });
+      
+      console.log('✅ Puppeteer browser initialized for GemRate');
+      return true;
+    } catch (error) {
+      console.log('⚠️ Puppeteer not available:', error.message);
+      return false;
+    }
+  }
+  
+  async closeBrowser() {
+    if (this.browser) {
+      try {
+        await this.browser.close();
+        this.browser = null;
+        this.page = null;
+      } catch (e) {
+        // Ignore
+      }
+    }
   }
 
   normalizePath(href) {
@@ -962,6 +1016,72 @@ class GemRateService {
             } catch (e) {
               continue;
             }
+          }
+        }
+      }
+      
+      // Last resort: Use Puppeteer to execute JavaScript and extract data
+      if (!setsData || setsData.length === 0) {
+        console.log('⚠️ Trying Puppeteer to execute JavaScript and extract data...');
+        const browserInitialized = await this.initializeBrowser();
+        if (browserInitialized && this.page) {
+          try {
+            const cacheBuster = Date.now();
+            const url = `https://www.gemrate.com/universal-pop-report?_nocache=${cacheBuster}`;
+            
+            await this.page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+            
+            // Wait for table to populate
+            await this.page.waitForSelector('#setsTableBody', { timeout: 10000 }).catch(() => {});
+            await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for JS to execute
+            
+            // Try to extract data from JavaScript variables
+            setsData = await this.page.evaluate(() => {
+              // Try to find data in window or global scope
+              if (window.data && Array.isArray(window.data)) {
+                return window.data;
+              }
+              // Try to get data from table rows
+              const rows = document.querySelectorAll('#setsTableBody tr');
+              if (rows.length > 0) {
+                const sets = [];
+                rows.forEach(row => {
+                  const cells = row.querySelectorAll('td');
+                  if (cells.length >= 2) {
+                    const link = row.querySelector('a');
+                    if (link) {
+                      const href = link.getAttribute('href') || '';
+                      const setIdMatch = href.match(/\/universal-pop-report\/([^-]+)-/);
+                      const yearMatch = href.match(/-(\d{4})\s/);
+                      const categoryMatch = href.match(/-([A-Za-z]+)$/);
+                      
+                      sets.push({
+                        set_id: setIdMatch ? setIdMatch[1] : null,
+                        set_name: link.textContent.trim(),
+                        name: link.textContent.trim(),
+                        year: yearMatch ? parseInt(yearMatch[1]) : null,
+                        category: categoryMatch ? categoryMatch[1] : null,
+                        total_grades: parseInt(cells[1]?.textContent.replace(/,/g, '')) || 0,
+                        psa_share: parseFloat(cells[2]?.textContent.replace('%', '')) || 0,
+                        beckett_share: parseFloat(cells[3]?.textContent.replace('%', '')) || 0,
+                        sgc_share: parseFloat(cells[4]?.textContent.replace('%', '')) || 0,
+                        cgc_share: parseFloat(cells[5]?.textContent.replace('%', '')) || 0,
+                        checklist_size: parseInt(cells[6]?.textContent.replace(/,/g, '')) || 0,
+                        percent_with_grades: parseFloat(cells[7]?.textContent.replace('%', '')) || 0
+                      });
+                    }
+                  }
+                });
+                return sets.length > 0 ? sets : null;
+              }
+              return null;
+            });
+            
+            if (setsData && setsData.length > 0) {
+              console.log(`✅ Found ${setsData.length} sets using Puppeteer`);
+            }
+          } catch (e) {
+            console.log(`⚠️ Puppeteer extraction failed: ${e.message}`);
           }
         }
       }
