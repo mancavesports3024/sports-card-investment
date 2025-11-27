@@ -1587,36 +1587,60 @@ class GemRateService {
               const agRows = document.querySelectorAll('div[role="row"]');
               console.log(`AG Grid rows found: ${agRows.length}`);
 
+              // Try to infer column indexes from AG Grid headers
+              const headerCells = Array.from(document.querySelectorAll('.ag-header-cell-text'));
+              const headerTexts = headerCells.map(h => (h.textContent || '').trim());
+              console.log('AG Grid headers:', headerTexts);
+
+              // Map specific fields
+              let nameCol = headerTexts.findIndex(h => h.toLowerCase() === 'name' || h.toLowerCase().includes('player'));
+              let numberCol = headerTexts.findIndex(h => h.toLowerCase() === 'number' || h.toLowerCase().includes('card #'));
+              let setCol = headerTexts.findIndex(h => h.toLowerCase().includes('card set') || h.toLowerCase().includes('set'));
+              let psaCol = headerTexts.findIndex(h => h.toLowerCase() === 'psa');
+              let totalCol = headerTexts.findIndex(h => h.toLowerCase() === 'total');
+
+              // Fallbacks if some columns weren't found
+              if (nameCol === -1) nameCol = 1;
+              if (numberCol === -1) numberCol = 2;
+              if (setCol === -1) setCol = 3;
+
               if (agRows.length > 0) {
                 agRows.forEach((row) => {
                   const cells = row.querySelectorAll('div[role="gridcell"]');
-                  // Expect columns: [Pop Data, Name, Number, Card Set, Grades...]
-                  if (cells.length >= 4) {
-                    const name = cells[1]?.textContent.trim() || '';
-                    const number = cells[2]?.textContent.trim() || '';
-                    const cardSet = cells[3]?.textContent.trim() || '';
+                  if (cells.length === 0) return;
 
-                    // PSA graded count is typically in the Grades group; try a few likely positions
-                    let psaText = '';
-                    if (cells.length > 5) {
-                      psaText = cells[5]?.textContent.trim() || '';
-                    } else if (cells.length > 4) {
-                      psaText = cells[4]?.textContent.trim() || '';
-                    }
-                    const psaCountStr = psaText.replace(/[,\\s]/g, '');
+                  const safeText = (idx) =>
+                    cells[idx] && cells[idx].textContent
+                      ? cells[idx].textContent.trim()
+                      : '';
 
-                    const hasNumber = number && /^\\d+$/.test(number);
-                    const hasName = name && name.length > 0 && name.length < 100;
+                  const name = safeText(nameCol);
+                  const number = safeText(numberCol);
+                  const cardSet = safeText(setCol);
 
-                    if (hasName || hasNumber) {
-                      cards.push({
-                        number: number || '',
-                        player: name,
-                        team: cardSet || '',
-                        psaGraded: psaCountStr && /^\\d+$/.test(psaCountStr) ? parseInt(psaCountStr, 10) : null
-                      });
-                    }
+                  // PSA graded count: prefer explicit PSA column, else use Total grades
+                  let psaText = '';
+                  if (psaCol !== -1 && psaCol < cells.length) {
+                    psaText = safeText(psaCol);
+                  } else if (totalCol !== -1 && totalCol < cells.length) {
+                    psaText = safeText(totalCol);
                   }
+                  const psaCountStr = psaText.replace(/[,\\s]/g, '');
+
+                  const hasNumber = number && /^\\d+$/.test(number);
+                  const hasName = name && name.length > 0 && name.length < 100;
+
+                  // Skip obvious header / non-card rows
+                  if (!hasNumber && (!hasName || name.toLowerCase() === 'name')) {
+                    return;
+                  }
+
+                  cards.push({
+                    number: number || '',
+                    player: name,
+                    team: cardSet || '',
+                    psaGraded: psaCountStr && /^\\d+$/.test(psaCountStr) ? parseInt(psaCountStr, 10) : null
+                  });
                 });
 
                 if (cards.length > 0) {
