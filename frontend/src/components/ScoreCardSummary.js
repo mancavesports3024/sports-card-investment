@@ -15,12 +15,21 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     }
   }, [card]);
 
-  // Fetch gemrate data after search results are loaded
+  // Use PSA graded count from card prop if available, otherwise fetch from GemRate
   useEffect(() => {
-    if (cardData?.searchQuery) {
+    // If we already have psaGraded from the checklist, use it directly
+    if (card?.psaGraded !== undefined && card?.psaGraded !== null) {
+      console.log(`[ScoreCardSummary] Using PSA graded count from card prop: ${card.psaGraded}`);
+      setGemrateData({
+        perfect: card.psaGraded,
+        gemMint: card.psaGraded,
+        total: card.psaGraded
+      });
+    } else if (cardData?.searchQuery) {
+      // Fallback: fetch from GemRate if not in card prop
       fetchGemrateData();
     }
-  }, [cardData]);
+  }, [card, cardData]);
 
   const fetchGemrateData = async () => {
     try {
@@ -248,6 +257,9 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     // Clean up set name - remove "Checklist Guide", "Baseball Checklist Guide", etc.
     let cleanSetName = setInfo?.setName || '';
     if (cleanSetName) {
+      // Remove emojis first
+      cleanSetName = cleanSetName.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+      
       // Remove common suffixes
       cleanSetName = cleanSetName
         .replace(/\s*Checklist\s*Guide\s*/gi, ' ')
@@ -336,9 +348,11 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
   
   // Get population data from gemrate (check multiple possible field names)
   // GemRate returns: perfect/gemMint (PSA 10), grade9 (PSA 9), total (total population)
+  // If we have psaGraded from the card prop, use it as total PSA population
+  const totalPsaGraded = card?.psaGraded || gemrateData?.total || gemrateData?.totalPopulation || gemrateData?.total_population || 0;
   const psa10Pop = gemrateData?.perfect || gemrateData?.gemMint || gemrateData?.psa10Population || gemrateData?.psa10_population || 0;
   const psa9Pop = gemrateData?.grade9 || gemrateData?.psa9Population || gemrateData?.psa9_population || 0;
-  const totalPop = gemrateData?.total || gemrateData?.totalPopulation || gemrateData?.total_population || (psa10Pop + psa9Pop);
+  const totalPop = totalPsaGraded || (psa10Pop + psa9Pop);
   // GemRate also provides gemRate as a percentage, use it if available, otherwise calculate
   const gemRate = gemrateData?.gemRate ? gemrateData.gemRate.toFixed(1) : (totalPop > 0 && psa10Pop > 0 ? ((psa10Pop / totalPop) * 100).toFixed(1) : null);
 

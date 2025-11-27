@@ -1641,7 +1641,7 @@ class GemRateService {
                 } else if (totalCol !== -1 && totalCol < cells.length) {
                   psaText = safeText(totalCol);
                 }
-                const psaCountStr = psaText.replace(/[,\\s]/g, '');
+                const psaCountStr = psaText.replace(/[,\s]/g, '');
 
                 const hasNumber = number && /^\\d+$/.test(number);
                 const hasName = name && name.length > 0 && name.length < 100;
