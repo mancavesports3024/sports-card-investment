@@ -161,10 +161,49 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
 
       const data = await response.json();
       if (data.results) {
+        // Filter out parallels if this is a base card
+        const isBaseCard = !card?.team || card.team.toLowerCase() === 'base';
+        const excludeParallels = isBaseCard;
+        
+        // Helper to check if a card title contains parallel keywords
+        const isParallel = (title) => {
+          if (!title) return false;
+          const lowerTitle = title.toLowerCase();
+          const parallelKeywords = [
+            'silver', 'gold', 'rainbow', 'refractor', 'prizm', 'chrome', 'foil',
+            'holo', 'autograph', 'auto', 'patch', 'relic', 'numbered', '/', '#' 
+          ];
+          // If it's a base card search, exclude anything with parallel keywords
+          // But allow "prizm" if it's part of the set name (e.g., "2024 Prizm")
+          return parallelKeywords.some(keyword => {
+            if (keyword === 'prizm' && lowerTitle.includes('prizm')) {
+              // Only exclude if it's clearly a parallel (e.g., "Silver Prizm", "Gold Prizm")
+              return lowerTitle.includes('silver prizm') || 
+                     lowerTitle.includes('gold prizm') ||
+                     lowerTitle.includes('rainbow prizm') ||
+                     (lowerTitle.includes('prizm') && !lowerTitle.match(/\d{4}\s+prizm/i));
+            }
+            return lowerTitle.includes(keyword);
+          });
+        };
+        
         // Process results the same way SearchPage does
-        const rawCards = filterRawCards(data.results.raw || []);
-        const psa9Cards = (data.results.psa9 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
-        const psa10Cards = (data.results.psa10 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
+        let rawCards = filterRawCards(data.results.raw || []);
+        let psa9Cards = (data.results.psa9 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
+        let psa10Cards = (data.results.psa10 || []).filter(card => !isNaN(Number(card.price?.value)) && Number(card.price?.value) > 0);
+        
+        // Filter out parallels if this is a base card
+        if (excludeParallels) {
+          const beforeRaw = rawCards.length;
+          const beforePsa9 = psa9Cards.length;
+          const beforePsa10 = psa10Cards.length;
+          
+          rawCards = rawCards.filter(card => !isParallel(card.title));
+          psa9Cards = psa9Cards.filter(card => !isParallel(card.title));
+          psa10Cards = psa10Cards.filter(card => !isParallel(card.title));
+          
+          console.log(`[ScoreCardSummary] Filtered parallels: Raw ${beforeRaw}→${rawCards.length}, PSA9 ${beforePsa9}→${psa9Cards.length}, PSA10 ${beforePsa10}→${psa10Cards.length}`);
+        }
 
         // Calculate average prices
         const rawPrices = rawCards.map(card => Number(card.price?.value)).filter(v => !isNaN(v) && v > 0);

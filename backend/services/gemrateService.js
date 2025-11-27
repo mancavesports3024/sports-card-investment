@@ -1341,6 +1341,22 @@ class GemRateService {
           // Wait a bit longer for grid to fully populate with data
           await new Promise(resolve => setTimeout(resolve, 5000));
           
+          // Scroll the grid to load more virtual rows (do this outside evaluate)
+          const viewport = await this.page.$('.ag-center-cols-viewport') || 
+                          await this.page.$('div[ref="eCenterViewport"]') ||
+                          await this.page.$('div[role="grid"]');
+          
+          if (viewport) {
+            console.log('📜 Scrolling grid to load more rows...');
+            for (let s = 0; s < 25; s++) {
+              await this.page.evaluate((el) => {
+                if (el) el.scrollBy(0, 600);
+              }, viewport);
+              await new Promise(resolve => setTimeout(resolve, 300));
+            }
+            console.log('✅ Finished scrolling grid');
+          }
+          
           // Check if we got card-like data from API responses
           for (const apiResponse of apiResponses) {
             try {
@@ -1685,7 +1701,7 @@ class GemRateService {
                   console.log(`📊 All cell texts:`, Array.from(cells).map((c, i) => `${i}: "${c.textContent?.trim() || ''}"`).join(', '));
                 }
 
-                const hasNumber = number && /^\\d+$/.test(number);
+                const hasNumber = number && /^\d+$/.test(number);
                 const hasName = name && name.length > 0 && name.length < 100;
 
                 // Skip obvious header / non-card rows
@@ -1701,36 +1717,20 @@ class GemRateService {
                   number: number || '',
                   player: name,
                   team: cardSet || '',
-                  psaGraded: psaCountStr && /^\\d+$/.test(psaCountStr) ? parseInt(psaCountStr, 10) : null
+                  psaGraded: psaCountStr && /^\d+$/.test(psaCountStr) ? parseInt(psaCountStr, 10) : null
                 });
               };
 
               const cards = [];
               const seenKeys = new Set();
 
-              // Scroll through the grid to capture top N rows (virtualized)
-              const maxCards = 100;
-              const maxScrolls = 20;
-              const viewport =
-                document.querySelector('.ag-center-cols-viewport') ||
-                document.querySelector('div[ref="eCenterViewport"]') ||
-                document.querySelector('div[role="grid"]');
-
-              if (viewport) {
-                for (let s = 0; s < maxScrolls && cards.length < maxCards; s++) {
-                  const rows = document.querySelectorAll('div[role="row"]');
-                  rows.forEach((row) => extractFromRow(row, seenKeys, cards));
-
-                  if (cards.length >= maxCards) break;
-
-                  // Scroll down a bit to load more virtual rows
-                  viewport.scrollBy(0, 400);
-                }
-              } else {
-                // Fallback: just use whatever rows are present
-                const rows = document.querySelectorAll('div[role="row"]');
-                rows.forEach((row) => extractFromRow(row, seenKeys, cards));
-              }
+              // Extract all visible rows (grid should already be scrolled by Puppeteer)
+              const rows = document.querySelectorAll('div[role="row"]');
+              console.log(`📊 Extracting from ${rows.length} visible AG Grid rows`);
+              
+              rows.forEach((row) => extractFromRow(row, seenKeys, cards));
+              
+              console.log(`✅ Extracted ${cards.length} unique cards from AG Grid`);
 
               if (cards.length > 0) {
                 console.log(`✅ Extracted ${cards.length} cards from AG Grid rows (top virtual rows)`);
