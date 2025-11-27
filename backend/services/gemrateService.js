@@ -1596,14 +1596,24 @@ class GemRateService {
                     const number = cells[2]?.textContent.trim() || '';
                     const cardSet = cells[3]?.textContent.trim() || '';
 
-                    const hasNumber = number && /^\d+$/.test(number);
+                    // PSA graded count is typically in the Grades group; try a few likely positions
+                    let psaText = '';
+                    if (cells.length > 5) {
+                      psaText = cells[5]?.textContent.trim() || '';
+                    } else if (cells.length > 4) {
+                      psaText = cells[4]?.textContent.trim() || '';
+                    }
+                    const psaCountStr = psaText.replace(/[,\\s]/g, '');
+
+                    const hasNumber = number && /^\\d+$/.test(number);
                     const hasName = name && name.length > 0 && name.length < 100;
 
                     if (hasName || hasNumber) {
                       cards.push({
                         number: number || '',
                         player: name,
-                        team: cardSet || ''
+                        team: cardSet || '',
+                        psaGraded: psaCountStr && /^\\d+$/.test(psaCountStr) ? parseInt(psaCountStr, 10) : null
                       });
                     }
                   }
@@ -1611,6 +1621,13 @@ class GemRateService {
 
                 if (cards.length > 0) {
                   console.log(`✅ Extracted ${cards.length} cards from AG Grid rows`);
+                  // Sort by PSA graded count (descending) when available
+                  cards.sort((a, b) => {
+                    const aPsa = typeof a.psaGraded === 'number' ? a.psaGraded : -1;
+                    const bPsa = typeof b.psaGraded === 'number' ? b.psaGraded : -1;
+                    return bPsa - aPsa;
+                  });
+                  console.log(`📊 Top AG Grid card sample:`, JSON.stringify(cards[0], null, 2));
                   return { cards, debug };
                 }
               }
