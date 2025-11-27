@@ -78,17 +78,30 @@ const TCDBBrowser = () => {
     setError('');
     try {
       // Build set path: {set_id}-{year} {set_name}-{category}
-      // Handle null/undefined year
+      // Handle null/undefined year and remove emojis
       const year = set.year || '';
-      const setName = set.name || set.set_name || '';
+      let setName = (set.name || set.set_name || '').trim();
       const category = set.category || '';
       const setId = set.set_id || set.id || '';
       
+      // Remove emojis and special characters from set name for URL
+      setName = setName.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+      
       // Build path: {set_id}-{year} {set_name}-{category}
-      // If year is null/empty, just use the set name
-      const setPath = year 
-        ? `${setId}-${year} ${setName}-${category}`
-        : `${setId}-${setName}-${category}`;
+      // If year is null/empty, try to extract from set name or skip it
+      let setPath;
+      if (year) {
+        setPath = `${setId}-${year} ${setName}-${category}`;
+      } else {
+        // Try to extract year from set name (e.g., "2024 Prizm" -> "2024")
+        const yearMatch = setName.match(/\b(19|20)\d{2}\b/);
+        if (yearMatch) {
+          setPath = `${setId}-${yearMatch[0]} ${setName.replace(/\b(19|20)\d{2}\b\s*/, '').trim()}-${category}`;
+        } else {
+          setPath = `${setId}-${setName}-${category}`;
+        }
+      }
+      
       const encodedPath = encodeURIComponent(setPath);
       
       const response = await fetch(`${API_BASE_URL}/api/gemrate/universal-pop-report/checklist/${encodedPath}`);
