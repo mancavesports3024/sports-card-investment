@@ -757,8 +757,14 @@ class GemRateService {
         '/universal-pop-report/data',
         '/universal-pop-report.json',
         '/api/v1/universal-pop-report',
-        '/api/v1/sets'
+        '/api/v1/sets',
+        '/api/universal-pop-report/data',
+        '/api/sets/all',
+        '/api/pop-report/sets'
       ];
+      
+      // Also try to find fetch calls in the HTML that might reveal the API endpoint
+      console.log('🔍 Searching for API endpoints in HTML...');
       
       for (const endpoint of apiEndpoints) {
         try {
@@ -811,6 +817,37 @@ class GemRateService {
         });
 
         const html = response.data;
+        
+        // Try to find API endpoints in fetch calls or script tags
+        const fetchMatches = html.match(/fetch\s*\(\s*['"`]([^'"`]+)['"`]/gi);
+        if (fetchMatches) {
+          console.log(`🔍 Found ${fetchMatches.length} fetch calls in HTML`);
+          for (const match of fetchMatches) {
+            const urlMatch = match.match(/['"`]([^'"`]+)['"`]/);
+            if (urlMatch && (urlMatch[1].includes('api') || urlMatch[1].includes('data') || urlMatch[1].includes('sets'))) {
+              console.log(`📡 Potential API endpoint found: ${urlMatch[1]}`);
+              // Try this endpoint
+              try {
+                const apiUrl = urlMatch[1].startsWith('http') ? urlMatch[1] : `https://www.gemrate.com${urlMatch[1]}`;
+                const apiResponse = await this.httpClient.get(apiUrl, {
+                  headers: {
+                    ...this.baseHeaders,
+                    'Accept': 'application/json, text/plain, */*'
+                  },
+                  timeout: 30000
+                });
+                if (apiResponse.data && Array.isArray(apiResponse.data)) {
+                  setsData = apiResponse.data;
+                  console.log(`✅ Found sets data via discovered API: ${urlMatch[1]} (${setsData.length} sets)`);
+                  break;
+                }
+              } catch (e) {
+                // Continue
+              }
+            }
+          }
+        }
+        
         const $ = cheerio.load(html);
 
         // Try to find embedded JSON data in script tags
@@ -981,59 +1018,99 @@ class GemRateService {
   parseSetsFromTable($) {
     const sets = [];
     try {
-      // Look for table rows in the sets table
-      $('table tbody tr, #setsTableBody tr, .sets-table tr').each((_, row) => {
-        const $row = $(row);
-        const cells = $row.find('td');
+      // Look for table rows in the sets table - try multiple selectors
+      const selectors = [
+        '#setsTableBody tr',
+        'table#setsTable tbody tr',
+        'table tbody tr',
+        '.sets-table tbody tr',
+        '[id*="setsTable"] tr',
+        'tbody tr'
+      ];
+      
+      let foundRows = false;
+      for (const selector of selectors) {
+        const rows = $(selector);
+        console.log(`🔍 Trying selector "${selector}": found ${rows.length} rows`);
         
-        if (cells.length >= 2) {
-          // Try to extract set information from table cells
-          const setName = $row.find('a').first().text().trim() || cells.eq(0).text().trim();
-          const totalGrades = parseInt(cells.eq(1).text().replace(/,/g, '')) || 0;
-          const psaShare = parseFloat(cells.eq(2).text().replace('%', '')) || 0;
-          
-          // Try to extract set_id from link href
-          const link = $row.find('a').first().attr('href') || '';
-          let setId = null;
-          if (link) {
-            // Extract set_id from URL like /universal-pop-report/{set_id}-{year} {name}-{category}
-            const match = link.match(/\/universal-pop-report\/([^-]+)-/);
-            if (match) {
-              setId = match[1];
+        if (rows.length > 0) {
+          foundRows = true;
+          rows.each((_, row) => {
+            const $row = $(row);
+            const cells = $row.find('td');
+            
+            // Skip header rows
+            if (cells.length < 2) return;
+            
+            // Try to extract set information from table cells
+            const $link = $row.find('a').first();
+            const setName = $link.text().trim() || cells.eq(0).text().trim();
+            
+            // Skip if it's a header or empty
+            if (!setName || setName === 'Set Name' || setName.toLowerCase().includes('iconic')) {
+              return;
             }
-          }
-          
-          // Try to extract year and category from the link or set name
-          let year = null;
-          let category = null;
-          if (link) {
-            const yearMatch = link.match(/-(\d{4})\s/);
-            if (yearMatch) {
-              year = parseInt(yearMatch[1]);
+            
+            // Try to extract set_id from link href
+            const link = $link.attr('href') || '';
+            let setId = null;
+            let year = null;
+            let category = null;
+            
+            if (link) {
+              // Extract set_id from URL like /universal-pop-report/{set_id}-{year} {name}-{category}
+              const match = link.match(/\/universal-pop-report\/([^-]+)-/);
+              if (match) {
+                setId = match[1];
+              }
+              
+              // Extract year and category from URL
+              const yearMatch = link.match(/-(\d{4})\s/);
+              if (yearMatch) {
+                year = parseInt(yearMatch[1]);
+              }
+              
+              const categoryMatch = link.match(/-([A-Za-z]+)$/);
+              if (categoryMatch) {
+                category = categoryMatch[1];
+              }
             }
-            const categoryMatch = link.match(/-([A-Za-z]+)$/);
-            if (categoryMatch) {
-              category = categoryMatch[1];
-            }
-          }
-          
-          if (setName && setName !== 'Set Name') {
+            
+            // Parse numeric values from cells
+            const totalGrades = parseInt(cells.eq(1)?.text().replace(/,/g, '')) || 0;
+            const psaShare = parseFloat(cells.eq(2)?.text().replace('%', '')) || 0;
+            const beckettShare = parseFloat(cells.eq(3)?.text().replace('%', '')) || 0;
+            const sgcShare = parseFloat(cells.eq(4)?.text().replace('%', '')) || 0;
+            const cgcShare = parseFloat(cells.eq(5)?.text().replace('%', '')) || 0;
+            const checklistSize = parseInt(cells.eq(6)?.text().replace(/,/g, '')) || 0;
+            const percentWithGrades = parseFloat(cells.eq(7)?.text().replace('%', '')) || 0;
+            
             sets.push({
               set_id: setId,
               set_name: setName,
+              name: setName,
               year: year,
               category: category,
               total_grades: totalGrades,
               psa_share: psaShare,
-              beckett_share: parseFloat(cells.eq(3)?.text().replace('%', '')) || 0,
-              sgc_share: parseFloat(cells.eq(4)?.text().replace('%', '')) || 0,
-              cgc_share: parseFloat(cells.eq(5)?.text().replace('%', '')) || 0,
-              checklist_size: parseInt(cells.eq(6)?.text().replace(/,/g, '')) || 0,
-              percent_with_grades: parseFloat(cells.eq(7)?.text().replace('%', '')) || 0
+              beckett_share: beckettShare,
+              sgc_share: sgcShare,
+              cgc_share: cgcShare,
+              checklist_size: checklistSize,
+              percent_with_grades: percentWithGrades
             });
+          });
+          
+          if (sets.length > 0) {
+            console.log(`✅ Found ${sets.length} sets using selector "${selector}"`);
+            break;
           }
         }
-      });
+      }
+      
+      if (!foundRows) {
+        console.log('⚠️ No table rows found with any selector');
+      }
       
       console.log(`✅ Parsed ${sets.length} sets from HTML table`);
     } catch (error) {
@@ -1310,3 +1387,4 @@ class GemRateService {
 }
 
 module.exports = new GemRateService();
+
