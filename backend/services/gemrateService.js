@@ -748,90 +748,68 @@ class GemRateService {
       
       console.log('📊 Fetching universal-pop-report sets...');
       
-      // First, try to find an API endpoint that returns JSON
+      // Add cache-busting parameter to avoid 304 responses
+      const cacheBuster = Date.now();
+      const url = `/universal-pop-report?_nocache=${cacheBuster}`;
+      
+      const response = await this.httpClient.get(url, {
+        headers: {
+          ...this.pageHeaders,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        timeout: 60000
+      });
+
+      const html = response.data;
+      const $ = cheerio.load(html);
+
+      // Try to find embedded JSON data in script tags
       let setsData = null;
-      try {
-        // Try common API patterns
-        const apiEndpoints = [
-          '/api/universal-pop-report',
-          '/api/sets',
-          '/universal-pop-report/data',
-          '/universal-pop-report.json'
+      $('script').each((_, el) => {
+        const scriptContent = $(el).html() || '';
+        
+        // Look for various patterns: const data = [...], var data = [...], let data = [...]
+        const patterns = [
+          /(?:const|var|let)\s+data\s*=\s*(\[[\s\S]*?\]);/,
+          /window\.data\s*=\s*(\[[\s\S]*?\]);/,
+          /data\s*:\s*(\[[\s\S]*?\])/,
+          /setsData\s*=\s*(\[[\s\S]*?\]);/,
+          /"sets"\s*:\s*(\[[\s\S]*?\])/,
+          // Try to find data in function calls like populateTable(data)
+          /populateTable\s*\(\s*(\[[\s\S]*?\])\s*\)/,
+          // Try to find data assignments with more context
+          /function\s+populateTable\s*\([^)]*\)\s*\{[\s\S]*?const\s+data\s*=\s*(\[[\s\S]*?\]);/
         ];
         
-        for (const endpoint of apiEndpoints) {
-          try {
-            const apiResponse = await this.httpClient.get(endpoint, {
-              headers: {
-                ...this.baseHeaders,
-                'Accept': 'application/json'
-              },
-              timeout: 30000
-            });
-            
-            if (apiResponse.data && Array.isArray(apiResponse.data)) {
-              setsData = apiResponse.data;
-              console.log(`✅ Found sets data via API endpoint: ${endpoint} (${setsData.length} sets)`);
-              break;
-            }
-          } catch (e) {
-            // Endpoint doesn't exist, try next
-            continue;
-          }
-        }
-      } catch (e) {
-        console.log('⚠️ No API endpoint found, trying HTML parsing...');
-      }
-
-      // If no API endpoint, fetch HTML and parse
-      if (!setsData) {
-        const response = await this.httpClient.get('/universal-pop-report', {
-          headers: this.pageHeaders,
-          timeout: 60000
-        });
-
-        const html = response.data;
-        const $ = cheerio.load(html);
-
-        // Try to find embedded JSON data in script tags
-        $('script').each((_, el) => {
-          const scriptContent = $(el).html() || '';
-          
-          // Look for various patterns: const data = [...], var data = [...], let data = [...]
-          const patterns = [
-            /(?:const|var|let)\s+data\s*=\s*(\[[\s\S]*?\]);/,
-            /window\.data\s*=\s*(\[[\s\S]*?\]);/,
-            /data\s*:\s*(\[[\s\S]*?\])/,
-            /setsData\s*=\s*(\[[\s\S]*?\]);/,
-            /"sets"\s*:\s*(\[[\s\S]*?\])/
-          ];
-          
-          for (const pattern of patterns) {
-            const match = scriptContent.match(pattern);
-            if (match) {
-              try {
-                // Try to extract and parse JSON
-                let jsonStr = match[1];
-                // Handle trailing commas and other issues
-                jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
-                setsData = JSON.parse(jsonStr);
-                if (Array.isArray(setsData) && setsData.length > 0) {
-                  console.log(`✅ Found sets data in script tag: ${setsData.length} sets`);
-                  return false; // Break out of each loop
-                }
-              } catch (e) {
-                // Try next pattern
-                continue;
+        for (const pattern of patterns) {
+          const match = scriptContent.match(pattern);
+          if (match) {
+            try {
+              // Try to extract and parse JSON
+              let jsonStr = match[1];
+              // Handle trailing commas and other issues
+              jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
+              // Try to clean up any function calls or other JS code
+              jsonStr = jsonStr.split(';')[0].split(')')[0];
+              setsData = JSON.parse(jsonStr);
+              if (Array.isArray(setsData) && setsData.length > 0) {
+                console.log(`✅ Found sets data in script tag: ${setsData.length} sets`);
+                return false; // Break out of each loop
               }
+            } catch (e) {
+              // Try next pattern
+              continue;
             }
           }
-        });
-
-        // If no JSON found, try to parse from table
-        if (!setsData || setsData.length === 0) {
-          console.log('⚠️ No JSON data found, attempting to parse from HTML table...');
-          setsData = this.parseSetsFromTable($);
         }
+      });
+
+      // If no JSON found, try to parse from table
+      if (!setsData || setsData.length === 0) {
+        console.log('⚠️ No JSON data found, attempting to parse from HTML table...');
+        setsData = this.parseSetsFromTable($);
       }
 
       if (!setsData || setsData.length === 0) {
@@ -884,8 +862,65 @@ class GemRateService {
    */
   parseSetsFromTable($) {
     const sets = [];
-    // This is a fallback - would need to inspect actual HTML structure
-    // For now, return empty array
+    try {
+      // Look for table rows in the sets table
+      $('table tbody tr, #setsTableBody tr, .sets-table tr').each((_, row) => {
+        const $row = $(row);
+        const cells = $row.find('td');
+        
+        if (cells.length >= 2) {
+          // Try to extract set information from table cells
+          const setName = $row.find('a').first().text().trim() || cells.eq(0).text().trim();
+          const totalGrades = parseInt(cells.eq(1).text().replace(/,/g, '')) || 0;
+          const psaShare = parseFloat(cells.eq(2).text().replace('%', '')) || 0;
+          
+          // Try to extract set_id from link href
+          const link = $row.find('a').first().attr('href') || '';
+          let setId = null;
+          if (link) {
+            // Extract set_id from URL like /universal-pop-report/{set_id}-{year} {name}-{category}
+            const match = link.match(/\/universal-pop-report\/([^-]+)-/);
+            if (match) {
+              setId = match[1];
+            }
+          }
+          
+          // Try to extract year and category from the link or set name
+          let year = null;
+          let category = null;
+          if (link) {
+            const yearMatch = link.match(/-(\d{4})\s/);
+            if (yearMatch) {
+              year = parseInt(yearMatch[1]);
+            }
+            const categoryMatch = link.match(/-([A-Za-z]+)$/);
+            if (categoryMatch) {
+              category = categoryMatch[1];
+            }
+          }
+          
+          if (setName && setName !== 'Set Name') {
+            sets.push({
+              set_id: setId,
+              set_name: setName,
+              year: year,
+              category: category,
+              total_grades: totalGrades,
+              psa_share: psaShare,
+              beckett_share: parseFloat(cells.eq(3)?.text().replace('%', '')) || 0,
+              sgc_share: parseFloat(cells.eq(4)?.text().replace('%', '')) || 0,
+              cgc_share: parseFloat(cells.eq(5)?.text().replace('%', '')) || 0,
+              checklist_size: parseInt(cells.eq(6)?.text().replace(/,/g, '')) || 0,
+              percent_with_grades: parseFloat(cells.eq(7)?.text().replace('%', '')) || 0
+            });
+          }
+        }
+      });
+      
+      console.log(`✅ Parsed ${sets.length} sets from HTML table`);
+    } catch (error) {
+      console.error('❌ Error parsing sets from table:', error);
+    }
     return sets;
   }
 
@@ -900,9 +935,18 @@ class GemRateService {
       
       console.log(`📋 Fetching checklist for set: ${setPath}`);
       
-      const url = `/universal-pop-report/${setPath}`;
+      // Add cache-busting parameter
+      const cacheBuster = Date.now();
+      const url = `/universal-pop-report/${setPath}?_nocache=${cacheBuster}`;
+      
       const response = await this.httpClient.get(url, {
-        headers: this.pageHeaders,
+        headers: {
+          ...this.pageHeaders,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'Referer': 'https://www.gemrate.com/universal-pop-report'
+        },
         timeout: 60000
       });
 
@@ -911,22 +955,80 @@ class GemRateService {
 
       const cards = [];
       
-      // Parse cards from the page - need to inspect actual structure
-      // Look for table rows or card elements
-      $('tbody tr, .card-row, [data-card-id]').each((_, el) => {
-        const $el = $(el);
-        const cardNumber = $el.find('.card-number, [data-number]').text().trim();
-        const playerName = $el.find('.player-name, [data-player]').text().trim();
-        const teamName = $el.find('.team-name, [data-team]').text().trim();
+      // First, try to find embedded JSON data in script tags
+      let cardsData = null;
+      $('script').each((_, el) => {
+        const scriptContent = $(el).html() || '';
         
-        if (cardNumber || playerName) {
-          cards.push({
-            number: cardNumber,
-            player: playerName,
-            team: teamName
-          });
+        // Look for card data in various patterns
+        const patterns = [
+          /(?:const|var|let)\s+cards\s*=\s*(\[[\s\S]*?\]);/,
+          /(?:const|var|let)\s+data\s*=\s*(\[[\s\S]*?\]);/,
+          /cards\s*:\s*(\[[\s\S]*?\])/,
+          /populateCards\s*\(\s*(\[[\s\S]*?\])\s*\)/
+        ];
+        
+        for (const pattern of patterns) {
+          const match = scriptContent.match(pattern);
+          if (match) {
+            try {
+              let jsonStr = match[1];
+              jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
+              cardsData = JSON.parse(jsonStr);
+              if (Array.isArray(cardsData) && cardsData.length > 0) {
+                console.log(`✅ Found cards data in script tag: ${cardsData.length} cards`);
+                break;
+              }
+            } catch (e) {
+              continue;
+            }
+          }
         }
       });
+      
+      // If JSON found, use it
+      if (cardsData && Array.isArray(cardsData)) {
+        cardsData.forEach(card => {
+          cards.push({
+            number: card.card_number || card.number || '',
+            player: card.player_name || card.player || card.name || '',
+            team: card.team_name || card.team || ''
+          });
+        });
+      } else {
+        // Parse from HTML table
+        $('tbody tr, table tr, .card-row, [data-card-id]').each((_, el) => {
+          const $el = $(el);
+          const cells = $el.find('td');
+          
+          if (cells.length >= 2) {
+            const cardNumber = cells.eq(0).text().trim();
+            const playerName = cells.eq(1).text().trim();
+            const teamName = cells.eq(2)?.text().trim() || '';
+            
+            if (cardNumber || playerName) {
+              cards.push({
+                number: cardNumber,
+                player: playerName,
+                team: teamName
+              });
+            }
+          } else {
+            // Try alternative selectors
+            const cardNumber = $el.find('.card-number, [data-number]').text().trim();
+            const playerName = $el.find('.player-name, [data-player]').text().trim();
+            const teamName = $el.find('.team-name, [data-team]').text().trim();
+            
+            if (cardNumber || playerName) {
+              cards.push({
+                number: cardNumber,
+                player: playerName,
+                team: teamName
+              });
+            }
+          }
+        });
+      }
 
       console.log(`✅ Found ${cards.length} cards in set`);
       return cards;
