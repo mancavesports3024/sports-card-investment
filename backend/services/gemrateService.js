@@ -815,8 +815,8 @@ class GemRateService {
 
         // Try to find embedded JSON data in script tags
         let scriptCount = 0;
-      
-      $('script').each((_, el) => {
+        
+        $('script').each((_, el) => {
         scriptCount++;
         const scriptContent = $(el).html() || '';
         
@@ -928,6 +928,7 @@ class GemRateService {
           }
         }
       }
+      } // Close the if (!setsData || setsData.length === 0) block
 
       if (!setsData || setsData.length === 0) {
         console.log('❌ No sets data found in universal-pop-report');
