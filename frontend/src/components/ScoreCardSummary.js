@@ -289,10 +289,12 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     // Player name
     if (card?.player) parts.push(card.player);
     
-    // Parallel type last (e.g., "Rainbow Foil")
-    if (setInfo?.parallel && setInfo.parallel !== 'Base Checklist') {
+    // Parallel type last (e.g., "Rainbow Foil" or "Silver Prizm")
+    // Use card.team if available (from GemRate checklist), otherwise use setInfo.parallel
+    let parallel = card?.team || setInfo?.parallel;
+    if (parallel && parallel.toLowerCase() !== 'base' && parallel !== 'Base Checklist') {
       // Remove trailing "s" from plural parallel types (e.g., "Silver Prizms" -> "Silver Prizm")
-      let cleanParallel = setInfo.parallel;
+      let cleanParallel = parallel;
       // Remove trailing "s" if the word ends with common plural patterns
       cleanParallel = cleanParallel.replace(/\b(\w+)s\b$/i, '$1');
       // Also handle cases where the last word is plural (e.g., "Silver Prizms" -> "Silver Prizm")

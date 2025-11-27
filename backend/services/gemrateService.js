@@ -1608,17 +1608,42 @@ class GemRateService {
               const headerTexts = headerCells.map(h => (h.textContent || '').trim());
               console.log('AG Grid headers:', headerTexts);
 
-              // Map specific fields
+              // Map specific fields with detailed logging
               let nameCol = headerTexts.findIndex(h => h.toLowerCase() === 'name' || h.toLowerCase().includes('player'));
               let numberCol = headerTexts.findIndex(h => h.toLowerCase() === 'number' || h.toLowerCase().includes('card #'));
               let setCol = headerTexts.findIndex(h => h.toLowerCase().includes('card set') || h.toLowerCase().includes('set'));
-              let psaCol = headerTexts.findIndex(h => h.toLowerCase() === 'psa');
-              let totalCol = headerTexts.findIndex(h => h.toLowerCase() === 'total');
+              let psaCol = headerTexts.findIndex(h => h.toLowerCase() === 'psa' || h.toLowerCase().includes('psa'));
+              let totalCol = headerTexts.findIndex(h => h.toLowerCase() === 'total' || h.toLowerCase().includes('total'));
+
+              console.log(`📊 Column mapping: nameCol=${nameCol}, numberCol=${numberCol}, setCol=${setCol}, psaCol=${psaCol}, totalCol=${totalCol}`);
+              console.log(`📊 Full header array:`, headerTexts.map((h, i) => `${i}: "${h}"`).join(', '));
 
               // Fallbacks if some columns weren't found
-              if (nameCol === -1) nameCol = 1;
-              if (numberCol === -1) numberCol = 2;
-              if (setCol === -1) setCol = 3;
+              if (nameCol === -1) {
+                nameCol = 1;
+                console.log(`⚠️ Name column not found, using fallback index ${nameCol}`);
+              }
+              if (numberCol === -1) {
+                numberCol = 2;
+                console.log(`⚠️ Number column not found, using fallback index ${numberCol}`);
+              }
+              if (setCol === -1) {
+                setCol = 3;
+                console.log(`⚠️ Set column not found, using fallback index ${setCol}`);
+              }
+              if (psaCol === -1 && totalCol === -1) {
+                console.log(`⚠️ Neither PSA nor Total column found! Trying alternative patterns...`);
+                // Try alternative patterns
+                psaCol = headerTexts.findIndex(h => {
+                  const lower = h.toLowerCase();
+                  return lower.includes('psa') || lower.includes('grades') && lower.includes('psa');
+                });
+                totalCol = headerTexts.findIndex(h => {
+                  const lower = h.toLowerCase();
+                  return lower === 'total' || (lower.includes('total') && lower.includes('grade'));
+                });
+                console.log(`📊 After alternative search: psaCol=${psaCol}, totalCol=${totalCol}`);
+              }
 
               // Helper to safely extract card data from a single row element
               const extractFromRow = (row, seenKeys, cards) => {
@@ -1636,12 +1661,21 @@ class GemRateService {
 
                 // PSA graded count: prefer explicit PSA column, else use Total grades
                 let psaText = '';
+                let psaSource = 'none';
                 if (psaCol !== -1 && psaCol < cells.length) {
                   psaText = safeText(psaCol);
+                  psaSource = `PSA column (index ${psaCol})`;
                 } else if (totalCol !== -1 && totalCol < cells.length) {
                   psaText = safeText(totalCol);
+                  psaSource = `Total column (index ${totalCol})`;
                 }
                 const psaCountStr = psaText.replace(/[,\s]/g, '');
+                
+                // Log extraction details for first few cards
+                if (cards.length < 3) {
+                  console.log(`📊 Card ${cards.length + 1} extraction: name="${name}", number="${number}", set="${cardSet}", psaText="${psaText}", psaCountStr="${psaCountStr}", source=${psaSource}, cells.length=${cells.length}`);
+                  console.log(`📊 All cell texts:`, Array.from(cells).map((c, i) => `${i}: "${c.textContent?.trim() || ''}"`).join(', '));
+                }
 
                 const hasNumber = number && /^\\d+$/.test(number);
                 const hasName = name && name.length > 0 && name.length < 100;
