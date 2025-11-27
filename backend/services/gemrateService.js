@@ -1569,7 +1569,7 @@ class GemRateService {
             }
           }
           
-          // Extract cards from table - try multiple selectors and methods
+          // Extract cards from DOM - try AG Grid rows first, then tables/lists
           const cards = await this.page.evaluate(() => {
             const cards = [];
             const debug = {
@@ -1581,7 +1581,44 @@ class GemRateService {
             };
             
             console.log('Page structure:', JSON.stringify(debug));
+
+            // -------- Try AG Grid rows (div-based grid) --------
+            try {
+              const agRows = document.querySelectorAll('div[role="row"]');
+              console.log(`AG Grid rows found: ${agRows.length}`);
+
+              if (agRows.length > 0) {
+                agRows.forEach((row) => {
+                  const cells = row.querySelectorAll('div[role="gridcell"]');
+                  // Expect columns: [Pop Data, Name, Number, Card Set, Grades...]
+                  if (cells.length >= 4) {
+                    const name = cells[1]?.textContent.trim() || '';
+                    const number = cells[2]?.textContent.trim() || '';
+                    const cardSet = cells[3]?.textContent.trim() || '';
+
+                    const hasNumber = number && /^\d+$/.test(number);
+                    const hasName = name && name.length > 0 && name.length < 100;
+
+                    if (hasName || hasNumber) {
+                      cards.push({
+                        number: number || '',
+                        player: name,
+                        team: cardSet || ''
+                      });
+                    }
+                  }
+                });
+
+                if (cards.length > 0) {
+                  console.log(`✅ Extracted ${cards.length} cards from AG Grid rows`);
+                  return { cards, debug };
+                }
+              }
+            } catch (e) {
+              console.log('⚠️ AG Grid extraction failed:', e.message);
+            }
             
+            // -------- Fallback: table/list-based extraction --------
             // Try multiple table selectors - prioritize checklist-specific selectors
             const selectors = [
               'table[class*="checklist"] tbody tr',
