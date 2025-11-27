@@ -341,7 +341,11 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       parts.push(cleanParallel);
     }
     
-    const query = parts.join(' ').replace(/\s+/g, ' ').trim(); // Clean up multiple spaces
+    let query = parts.join(' ').replace(/\s+/g, ' ').trim(); // Clean up multiple spaces
+    
+    // Remove any remaining emojis (in case they came from category name or elsewhere)
+    query = query.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+    
     console.log('🔍 Built search query:', query);
     return query;
   };
