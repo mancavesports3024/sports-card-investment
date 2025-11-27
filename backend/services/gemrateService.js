@@ -1283,22 +1283,21 @@ class GemRateService {
           const fullUrl = `https://www.gemrate.com${url}`;
           console.log(`🌐 Loading page with Puppeteer: ${fullUrl}`);
           
-          await this.page.goto(fullUrl, { waitUntil: 'networkidle2', timeout: 60000 });
-          
-          // Wait a bit for JavaScript to execute
-          await new Promise(resolve => setTimeout(resolve, 3000));
-          
-          // First, try to intercept network requests to find API calls
+          // Set up network request interception BEFORE navigation
           const networkRequests = [];
           this.page.on('response', response => {
             const url = response.url();
-            if (url.includes('api') || url.includes('data') || url.includes('cards') || url.includes('checklist')) {
+            if (url.includes('api') || url.includes('data') || url.includes('cards') || url.includes('checklist') || url.includes('pop-report')) {
               networkRequests.push(url);
               console.log(`📡 Network request: ${url}`);
             }
           });
           
-          // Wait for table to populate - try multiple selectors
+          await this.page.goto(fullUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+          
+          console.log('⏳ Waiting for page to load and data to populate...');
+          
+          // Wait for table to populate - try multiple selectors with longer timeouts
           const tableSelectors = [
             'table tbody tr',
             '#cardTableBody tr',
@@ -1313,17 +1312,37 @@ class GemRateService {
           let foundTable = false;
           for (const selector of tableSelectors) {
             try {
-              await this.page.waitForSelector(selector, { timeout: 5000 });
+              // Wait up to 30 seconds for the selector to appear
+              await this.page.waitForSelector(selector, { timeout: 30000 });
               console.log(`✅ Found table with selector: ${selector}`);
+              
+              // Wait for the table to actually have data (more than just header row)
+              await this.page.waitForFunction(
+                (sel) => {
+                  const rows = document.querySelectorAll(sel);
+                  return rows.length > 1; // More than just header
+                },
+                { timeout: 30000 },
+                selector
+              ).catch(() => {
+                console.log('⚠️ Table found but may not have data yet');
+              });
+              
               foundTable = true;
               break;
             } catch (e) {
               // Try next selector
+              console.log(`⚠️ Selector "${selector}" not found, trying next...`);
             }
           }
           
           if (!foundTable) {
-            console.log('⚠️ No table found with standard selectors, checking page structure...');
+            console.log('⚠️ No table found with standard selectors, waiting longer and checking page structure...');
+            // Wait additional time for slow-loading content
+            await new Promise(resolve => setTimeout(resolve, 10000));
+          } else {
+            // Even if table found, wait a bit more for data to fully load
+            await new Promise(resolve => setTimeout(resolve, 5000));
           }
           
           // Extract cards from table - try multiple selectors and methods
