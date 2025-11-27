@@ -58,10 +58,10 @@ class Point130Service {
                         'Referer': 'https://130point.com/',
                         'X-Requested-With': 'XMLHttpRequest'
                     },
-                    timeout: 20000,
+                    timeout: 30000, // Increased timeout
                     responseType: 'text',
                     maxRedirects: 0,
-                    validateStatus: status => status >= 200 && status < 500 // Accept 2xx, 3xx, 4xx but not 5xx
+                    validateStatus: status => status >= 200 && status < 600 // Accept all status codes to handle them manually
                 });
             } catch (axiosError) {
                 // Handle axios errors (network errors, timeouts, etc.)
@@ -72,10 +72,24 @@ class Point130Service {
                     
                     if (status >= 500 || isHtmlError) {
                         console.log(`❌ 130point server error (${status}): ${isHtmlError ? 'HTML error page returned' : 'Server error'}`);
+                        console.log(`❌ Response preview: ${String(axiosError.response.data || '').slice(0, 500)}`);
                         throw new Error(`130point server error: ${status} - ${isHtmlError ? 'HTML error page (likely Cloudflare protection)' : 'Server error'}`);
                     }
                 }
+                // Network/timeout errors
+                if (axiosError.code === 'ECONNABORTED' || axiosError.code === 'ETIMEDOUT') {
+                    console.log(`❌ 130point timeout: ${axiosError.message}`);
+                    throw new Error(`130point request timeout: ${axiosError.message}`);
+                }
                 throw axiosError;
+            }
+            
+            // Check for 5xx errors in response (now that validateStatus accepts them)
+            if (response.status >= 500) {
+                const isHtmlError = response.data && typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>');
+                console.log(`❌ 130point server error (${response.status}): ${isHtmlError ? 'HTML error page returned' : 'Server error'}`);
+                console.log(`❌ Response preview: ${String(response.data || '').slice(0, 500)}`);
+                throw new Error(`130point server error: ${response.status} - ${isHtmlError ? 'HTML error page (likely Cloudflare protection)' : 'Server error'}`);
             }
             
             // Check if response is HTML error page (Cloudflare protection, etc.)
