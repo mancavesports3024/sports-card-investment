@@ -1317,20 +1317,50 @@ class GemRateService {
           // Wait a short time for any additional API calls
           await new Promise(resolve => setTimeout(resolve, 3000));
           
-          // Check if we got card data from API responses
+          // Check if we got card-like data from API responses
           for (const apiResponse of apiResponses) {
-            let cardData = null;
-            if (Array.isArray(apiResponse.data)) {
-              cardData = apiResponse.data;
-            } else if (apiResponse.data.data && Array.isArray(apiResponse.data.data)) {
-              cardData = apiResponse.data.data;
-            } else if (apiResponse.data.cards && Array.isArray(apiResponse.data.cards)) {
-              cardData = apiResponse.data.cards;
-            }
-            
-            if (cardData && cardData.length > 0) {
-              console.log(`✅ Found ${cardData.length} cards from API: ${apiResponse.url}`);
+            try {
+              let cardData = null;
+              const data = apiResponse.data;
+
+              if (Array.isArray(data)) {
+                cardData = data;
+              } else if (data && Array.isArray(data.data)) {
+                cardData = data.data;
+              } else if (data && Array.isArray(data.cards)) {
+                cardData = data.cards;
+              }
+              
+              if (!cardData || cardData.length === 0) {
+                continue;
+              }
+
+              // Skip analytics/telemetry payloads – require at least one object
+              // that has obvious card fields
+              const sampleItem = cardData.find(
+                (item) =>
+                  item &&
+                  typeof item === 'object' &&
+                  (
+                    item.card_number ||
+                    item.number ||
+                    item.cardNumber ||
+                    item.card_num ||
+                    item.player_name ||
+                    item.player ||
+                    item.name
+                  )
+              );
+
+              if (!sampleItem) {
+                console.log(`⚠️ API response does not look like card data, skipping: ${apiResponse.url}`);
+                continue;
+              }
+
+              console.log(`✅ Found potential card array (${cardData.length} items) from API: ${apiResponse.url}`);
+
               const cards = cardData
+                .filter((item) => item && typeof item === 'object')
                 .map(item => ({
                   number: item.card_number || item.number || item.cardNumber || item.card_num || '',
                   player: item.player_name || item.player || item.name || item.playerName || '',
@@ -1342,6 +1372,9 @@ class GemRateService {
                 await this.closeBrowser();
                 return cards;
               }
+            } catch (apiErr) {
+              console.log(`⚠️ Failed to parse API response as card data (${apiResponse.url}): ${apiErr.message}`);
+              // Keep trying other responses
             }
           }
           
