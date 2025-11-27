@@ -1184,11 +1184,20 @@ router.post('/', requireUser, async (req, res) => {
     //   ebayScraperService.scrapeEbaySales(searchQuery, 100)
     // ]);
 
-    console.log(`[POST SEARCH] Starting search for: "${searchQuery}" with numSales: ${numSales} (type: ${typeof numSales})`);
+    // Remove emojis from search query (safety net - should be removed in frontend but just in case)
+    const cleanSearchQuery = searchQuery.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+    if (cleanSearchQuery !== searchQuery) {
+      console.log(`[POST SEARCH] Removed emojis from search query: "${searchQuery}" -> "${cleanSearchQuery}"`);
+    }
+    
+    console.log(`[POST SEARCH] Starting search for: "${cleanSearchQuery}" with numSales: ${numSales} (type: ${typeof numSales})`);
     
     // Initialize eBay scraper service (needed for fallback searches)
     const EbayScraperService = require('../services/ebayScraperService');
     let ebayScraper = new EbayScraperService();
+    
+    // Use cleaned search query for all searches
+    searchQuery = cleanSearchQuery;
     
     // Try 130point first (faster and more reliable)
     console.log(`[POST SEARCH] Trying 130point as primary source (faster than eBay scraper)...`);
@@ -1526,7 +1535,9 @@ router.post('/', requireUser, async (req, res) => {
       try {
         // Build fallback search query - add "PSA 9" to the search term
         // Remove any existing exclusions for the fallback search
-        const baseQuery = searchQuery.split(' -(')[0].trim();
+        let baseQuery = searchQuery.split(' -(')[0].trim();
+        // Remove any emojis that might have slipped through
+        baseQuery = baseQuery.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
         const fallbackQuery = `${baseQuery} PSA 9`;
         
         console.log(`[POST SEARCH] Fallback search query: "${fallbackQuery}"`);

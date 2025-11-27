@@ -349,9 +349,9 @@ const TCDBBrowser = () => {
         <ScoreCardSummary
           card={selectedCardForSummary}
           setInfo={{
-            sport: selectedCategory?.name,
+            sport: selectedCategory?.name ? selectedCategory.name.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim() : null,
             year: selectedSet?.year,
-            setName: selectedSet?.name,
+            setName: selectedSet?.name ? selectedSet.name.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim() : null,
             parallel: null
           }}
           onBack={() => {
