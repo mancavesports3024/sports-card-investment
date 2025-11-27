@@ -15,21 +15,12 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     }
   }, [card]);
 
-  // Use PSA graded count from card prop if available, otherwise fetch from GemRate
+  // Always fetch GemRate data for accurate population breakdown (PSA 10, PSA 9, total, gem rate)
   useEffect(() => {
-    // If we already have psaGraded from the checklist, use it directly
-    if (card?.psaGraded !== undefined && card?.psaGraded !== null) {
-      console.log(`[ScoreCardSummary] Using PSA graded count from card prop: ${card.psaGraded}`);
-      setGemrateData({
-        perfect: card.psaGraded,
-        gemMint: card.psaGraded,
-        total: card.psaGraded
-      });
-    } else if (cardData?.searchQuery) {
-      // Fallback: fetch from GemRate if not in card prop
+    if (cardData?.searchQuery) {
       fetchGemrateData();
     }
-  }, [card, cardData]);
+  }, [cardData]);
 
   const fetchGemrateData = async () => {
     try {
@@ -422,14 +413,22 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
   const rawPrice = cardData.rawAveragePrice || 0;
   
   // Get population data from gemrate (check multiple possible field names)
-  // GemRate returns: perfect/gemMint (PSA 10), grade9 (PSA 9), total (total population)
-  // If we have psaGraded from the card prop, use it as total PSA population
-  const totalPsaGraded = card?.psaGraded || gemrateData?.total || gemrateData?.totalPopulation || gemrateData?.total_population || 0;
+  // GemRate returns: perfect/gemMint (PSA 10), grade9 (PSA 9), total (total population), gemRate (percentage)
   const psa10Pop = gemrateData?.perfect || gemrateData?.gemMint || gemrateData?.psa10Population || gemrateData?.psa10_population || 0;
   const psa9Pop = gemrateData?.grade9 || gemrateData?.psa9Population || gemrateData?.psa9_population || 0;
-  const totalPop = totalPsaGraded || (psa10Pop + psa9Pop);
-  // GemRate also provides gemRate as a percentage, use it if available, otherwise calculate
-  const gemRate = gemrateData?.gemRate ? gemrateData.gemRate.toFixed(1) : (totalPop > 0 && psa10Pop > 0 ? ((psa10Pop / totalPop) * 100).toFixed(1) : null);
+  const totalPop = gemrateData?.total || gemrateData?.totalPopulation || gemrateData?.total_population || 0;
+  
+  // GemRate provides gemRate as a percentage, use it if available, otherwise calculate
+  // gemRate from GemRate is already a percentage (e.g., 3.5 for 3.5%), not a decimal
+  let gemRate = null;
+  if (gemrateData?.gemRate !== undefined && gemrateData?.gemRate !== null) {
+    // If it's already a percentage (0-100), use it directly
+    // If it's a decimal (0-1), multiply by 100
+    gemRate = gemrateData.gemRate > 1 ? gemrateData.gemRate.toFixed(1) : (gemrateData.gemRate * 100).toFixed(1);
+  } else if (totalPop > 0 && psa10Pop > 0) {
+    // Calculate from PSA 10 / Total
+    gemRate = ((psa10Pop / totalPop) * 100).toFixed(1);
+  }
 
   return (
     <div className="score-card-summary">
