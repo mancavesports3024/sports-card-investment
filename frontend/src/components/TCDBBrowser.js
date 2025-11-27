@@ -292,11 +292,15 @@ const TCDBBrowser = () => {
                     <th style={{ width: '100px' }}>Card #</th>
                     <th>Player</th>
                     <th>Team</th>
+                    <th style={{ width: '140px' }}>PSA Graded</th>
                   </tr>
                 </thead>
                 <tbody>
                   {checklist.map((card, index) => {
                     const isSelected = selectedCards.some(c => c.number === card.number && c.player === card.player);
+                    const psaGraded = typeof card.psaGraded === 'number'
+                      ? card.psaGraded.toLocaleString()
+                      : 'N/A';
                     return (
                       <tr 
                         key={index} 
@@ -314,6 +318,7 @@ const TCDBBrowser = () => {
                         <td>{card.number || 'N/A'}</td>
                         <td>{card.player || 'N/A'}</td>
                         <td>{card.team || 'N/A'}</td>
+                        <td>{psaGraded}</td>
                       </tr>
                     );
                   })}
