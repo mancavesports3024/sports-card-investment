@@ -1283,15 +1283,61 @@ class GemRateService {
           const fullUrl = `https://www.gemrate.com${url}`;
           console.log(`🌐 Loading page with Puppeteer: ${fullUrl}`);
           
-          await this.page.goto(fullUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+          await this.page.goto(fullUrl, { waitUntil: 'networkidle2', timeout: 60000 });
           
-          // Wait for table to populate
-          await this.page.waitForSelector('table tbody tr, #cardTableBody tr', { timeout: 10000 }).catch(() => {});
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          // Wait a bit for JavaScript to execute
+          await new Promise(resolve => setTimeout(resolve, 3000));
           
-          // Extract cards from table - try multiple selectors
+          // First, try to intercept network requests to find API calls
+          const networkRequests = [];
+          this.page.on('response', response => {
+            const url = response.url();
+            if (url.includes('api') || url.includes('data') || url.includes('cards') || url.includes('checklist')) {
+              networkRequests.push(url);
+              console.log(`📡 Network request: ${url}`);
+            }
+          });
+          
+          // Wait for table to populate - try multiple selectors
+          const tableSelectors = [
+            'table tbody tr',
+            '#cardTableBody tr',
+            'tbody tr',
+            'table tr',
+            '.card-row',
+            '[data-card-id]',
+            '.card-item',
+            'tr[data-card]'
+          ];
+          
+          let foundTable = false;
+          for (const selector of tableSelectors) {
+            try {
+              await this.page.waitForSelector(selector, { timeout: 5000 });
+              console.log(`✅ Found table with selector: ${selector}`);
+              foundTable = true;
+              break;
+            } catch (e) {
+              // Try next selector
+            }
+          }
+          
+          if (!foundTable) {
+            console.log('⚠️ No table found with standard selectors, checking page structure...');
+          }
+          
+          // Extract cards from table - try multiple selectors and methods
           const cards = await this.page.evaluate(() => {
             const cards = [];
+            const debug = {
+              tables: document.querySelectorAll('table').length,
+              tableBodies: document.querySelectorAll('tbody').length,
+              allRows: document.querySelectorAll('tr').length,
+              cardTableBody: document.getElementById('cardTableBody') ? 'exists' : 'not found',
+              pageText: document.body.textContent.substring(0, 500)
+            };
+            
+            console.log('Page structure:', JSON.stringify(debug));
             
             // Try multiple table selectors
             const selectors = [
@@ -1300,88 +1346,138 @@ class GemRateService {
               'tbody tr',
               '.card-row',
               '[data-card-id]',
-              'table tr'
+              'table tr',
+              '.card-item',
+              'tr[data-card]',
+              'table#cardTable tbody tr'
             ];
             
             let rows = [];
+            let usedSelector = '';
             for (const selector of selectors) {
               rows = document.querySelectorAll(selector);
               if (rows.length > 0) {
-                console.log(`Found ${rows.length} rows with selector: ${selector}`);
+                usedSelector = selector;
+                console.log(`✅ Found ${rows.length} rows with selector: ${selector}`);
                 break;
               }
             }
             
             if (rows.length === 0) {
-              // Try to find any table
+              // Try to find any table and get all rows
               const tables = document.querySelectorAll('table');
               console.log(`Found ${tables.length} tables on page`);
-              if (tables.length > 0) {
-                rows = tables[0].querySelectorAll('tr');
-                console.log(`Found ${rows.length} rows in first table`);
+              for (let i = 0; i < tables.length; i++) {
+                const tableRows = tables[i].querySelectorAll('tr');
+                console.log(`Table ${i} has ${tableRows.length} rows`);
+                if (tableRows.length > 1) { // More than just header
+                  rows = tableRows;
+                  usedSelector = `table[${i}] tr`;
+                  break;
+                }
+              }
+            }
+            
+            // Also try to find cards in list items or divs
+            if (rows.length === 0) {
+              const listItems = document.querySelectorAll('li, .card, [class*="card"]');
+              console.log(`Found ${listItems.length} potential card elements`);
+              if (listItems.length > 0) {
+                // Convert to array-like structure
+                rows = Array.from(listItems);
+                usedSelector = 'list/div items';
               }
             }
             
             // Limit to prevent memory issues
             const maxRows = Math.min(rows.length, 2000);
-            console.log(`Processing ${maxRows} rows`);
+            console.log(`Processing ${maxRows} rows using selector: ${usedSelector}`);
             
             for (let i = 0; i < maxRows; i++) {
               const row = rows[i];
-              const cells = row.querySelectorAll('td');
               
-              // Skip header rows
-              if (cells.length < 2) continue;
-              
-              // Try different cell positions
-              let cardNumber = '';
-              let playerName = '';
-              let teamName = '';
-              
-              // Common patterns:
-              // Pattern 1: Card # | Player | Team
-              if (cells.length >= 3) {
-                cardNumber = cells[0]?.textContent.trim() || '';
-                playerName = cells[1]?.textContent.trim() || '';
-                teamName = cells[2]?.textContent.trim() || '';
-              } else if (cells.length >= 2) {
-                // Pattern 2: Card # | Player Name
-                cardNumber = cells[0]?.textContent.trim() || '';
-                playerName = cells[1]?.textContent.trim() || '';
-              }
-              
-              // Also try to find in links or other elements
-              const link = row.querySelector('a');
-              if (link && !playerName) {
-                playerName = link.textContent.trim();
-              }
-              
-              // Skip if it looks like a header
-              if (cardNumber.toLowerCase() === 'card #' || 
-                  cardNumber.toLowerCase() === 'number' ||
-                  playerName.toLowerCase() === 'player' ||
-                  playerName.toLowerCase() === 'name') {
-                continue;
-              }
-              
-              if (cardNumber || playerName) {
-                cards.push({
-                  number: cardNumber,
-                  player: playerName,
-                  team: teamName
-                });
+              // Handle table rows
+              if (row.tagName === 'TR') {
+                const cells = row.querySelectorAll('td, th');
+                
+                // Skip header rows
+                if (cells.length < 2) continue;
+                
+                let cardNumber = '';
+                let playerName = '';
+                let teamName = '';
+                
+                // Try different cell positions
+                if (cells.length >= 3) {
+                  cardNumber = cells[0]?.textContent.trim() || '';
+                  playerName = cells[1]?.textContent.trim() || '';
+                  teamName = cells[2]?.textContent.trim() || '';
+                } else if (cells.length >= 2) {
+                  cardNumber = cells[0]?.textContent.trim() || '';
+                  playerName = cells[1]?.textContent.trim() || '';
+                }
+                
+                // Also try to find in links
+                const link = row.querySelector('a');
+                if (link) {
+                  if (!playerName) playerName = link.textContent.trim();
+                  // Try to extract card number from link text or href
+                  const linkText = link.textContent.trim();
+                  const numberMatch = linkText.match(/#?\s*(\d+)/);
+                  if (numberMatch && !cardNumber) {
+                    cardNumber = numberMatch[1];
+                  }
+                }
+                
+                // Skip if it looks like a header
+                if (cardNumber.toLowerCase() === 'card #' || 
+                    cardNumber.toLowerCase() === 'number' ||
+                    playerName.toLowerCase() === 'player' ||
+                    playerName.toLowerCase() === 'name') {
+                  continue;
+                }
+                
+                if (cardNumber || playerName) {
+                  cards.push({
+                    number: cardNumber,
+                    player: playerName,
+                    team: teamName
+                  });
+                }
+              } else {
+                // Handle list items or divs
+                const text = row.textContent.trim();
+                if (text && text.length > 0 && text.length < 200) {
+                  // Try to parse card info from text
+                  const numberMatch = text.match(/#?\s*(\d+)/);
+                  const cardNumber = numberMatch ? numberMatch[1] : '';
+                  const restOfText = text.replace(/#?\s*\d+\s*/, '').trim();
+                  
+                  if (cardNumber || restOfText) {
+                    cards.push({
+                      number: cardNumber,
+                      player: restOfText,
+                      team: ''
+                    });
+                  }
+                }
               }
             }
             
             console.log(`Extracted ${cards.length} cards`);
-            return cards;
+            return { cards, debug };
           });
+          
+          console.log(`📊 Page debug info:`, cards.debug);
+          const extractedCards = cards.cards || cards;
           
           await this.closeBrowser();
           
-          if (cards.length > 0) {
-            console.log(`✅ Found ${cards.length} cards using Puppeteer`);
-            return cards;
+          if (extractedCards.length > 0) {
+            console.log(`✅ Found ${extractedCards.length} cards using Puppeteer`);
+            return extractedCards;
+          } else {
+            console.log(`⚠️ No cards found. Debug info: ${JSON.stringify(cards.debug || {})}`);
           }
         } catch (e) {
           console.log(`⚠️ Puppeteer extraction failed: ${e.message}`);
