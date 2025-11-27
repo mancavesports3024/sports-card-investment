@@ -1185,7 +1185,24 @@ router.post('/', requireUser, async (req, res) => {
     // ]);
 
     // Remove emojis from search query (safety net - should be removed in frontend but just in case)
-    let cleanSearchQuery = searchQuery.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+    // Use broader emoji regex to catch all emoji ranges including sports emojis (⚾️🏈🏀 etc.)
+    let cleanSearchQuery = searchQuery
+      .replace(/[\u{1F300}-\u{1F9FF}]/gu, '') // Miscellaneous Symbols and Pictographs
+      .replace(/[\u{2600}-\u{26FF}]/gu, '') // Miscellaneous Symbols (includes sports)
+      .replace(/[\u{2700}-\u{27BF}]/gu, '') // Dingbats
+      .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // Emoticons
+      .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // Transport and Map Symbols
+      .replace(/[\u{1F700}-\u{1F77F}]/gu, '') // Alchemical Symbols
+      .replace(/[\u{1F780}-\u{1F7FF}]/gu, '') // Geometric Shapes Extended
+      .replace(/[\u{1F800}-\u{1F8FF}]/gu, '') // Supplemental Arrows-C
+      .replace(/[\u{1F900}-\u{1F9FF}]/gu, '') // Supplemental Symbols and Pictographs
+      .replace(/[\u{1FA00}-\u{1FA6F}]/gu, '') // Chess Symbols
+      .replace(/[\u{1FA70}-\u{1FAFF}]/gu, '') // Symbols and Pictographs Extended-A
+      .replace(/[\u{FE00}-\u{FE0F}]/gu, '') // Variation Selectors
+      .replace(/[\u{200D}]/gu, '') // Zero Width Joiner
+      .replace(/[\u{20E3}]/gu, '') // Combining Enclosing Keycap
+      .trim();
+    
     if (cleanSearchQuery !== searchQuery) {
       console.log(`[POST SEARCH] Removed emojis from search query: "${searchQuery}" -> "${cleanSearchQuery}"`);
     }
