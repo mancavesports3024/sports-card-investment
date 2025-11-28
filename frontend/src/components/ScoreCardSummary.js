@@ -173,18 +173,34 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
         const excludeParallels = isBaseCard;
         
         // Helper to check if a card title contains parallel keywords
+        // This is a more comprehensive filter that catches parallels the search query might have missed
         const isParallel = (title) => {
           if (!title) return false;
           const lowerTitle = title.toLowerCase();
+          
+          // Comprehensive list of parallel keywords (more extensive than search exclusions)
           const parallelKeywords = [
-            'silver', 'gold', 'rainbow', 'refractor', 'prizm', 'chrome', 'foil',
-            'holo', 'autograph', 'auto', 'patch', 'relic', 'numbered'
+            // Colors
+            'silver', 'gold', 'rainbow', 'red', 'blue', 'green', 'purple', 'pink', 'orange',
+            'yellow', 'black', 'white', 'bronze', 'platinum', 'diamond', 'emerald', 'ruby',
+            'amethyst', 'teal', 'neon', 'camo', 'tie-dye', 'disco',
+            // Refractor and special finishes
+            'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
+            'holo', 'holographic', 'chrome', 'foil', 'lazer',
+            // Panini Select parallels
+            'flash', 'velocity', 'scope', 'hyper', 'wave', 'cosmic', 'planetary', 'pursuit',
+            'eris', 'aqua', 'sapphire', 'red/white/blue',
+            // Special inserts
+            'downtown', 'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania',
+            'geometric', 'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'splash', 'rising',
+            // Other parallel types
+            'snakeskin', 'pulsar', 'dragon scale'
           ];
-          // If it's a base card search, exclude anything with parallel keywords
-          // But allow "prizm" if it's part of the set name (e.g., "2024 Prizm")
+          
+          // Check for parallel keywords, but allow "prizm" if it's part of the set name (e.g., "2024 Prizm")
           const hasParallelKeyword = parallelKeywords.some(keyword => {
+            // Special handling for "prizm" - only exclude if it's clearly a parallel
             if (keyword === 'prizm' && lowerTitle.includes('prizm')) {
-              // Only exclude if it's clearly a parallel (e.g., "Silver Prizm", "Gold Prizm")
               return lowerTitle.includes('silver prizm') || 
                      lowerTitle.includes('gold prizm') ||
                      lowerTitle.includes('rainbow prizm') ||
@@ -382,7 +398,9 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
         // Panini Select most common parallels
         'flash', 'velocity', 'scope', 'hyper', 'wave', 'cosmic',
         // Special inserts
-        'downtown', 'genesis', 'fast break'
+        'downtown', 'genesis', 'fast break',
+        // Additional parallel types
+        'lazer'
       ];
       
       // Format exclusions as: -(keyword1, keyword2, keyword3, ...)
