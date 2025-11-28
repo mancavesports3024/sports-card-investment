@@ -1385,13 +1385,39 @@ class GemRateService {
           
           if (viewport) {
             console.log('📜 Scrolling grid to load more rows...');
-            for (let s = 0; s < 25; s++) {
+            // Scroll more aggressively to load all virtualized rows
+            // AG Grid typically shows ~24 rows per viewport, so we need to scroll many times
+            let previousRowCount = 0;
+            for (let s = 0; s < 100; s++) {
               await this.page.evaluate((el) => {
-                if (el) el.scrollBy(0, 600);
+                if (el) el.scrollBy(0, 500);
               }, viewport);
-              await new Promise(resolve => setTimeout(resolve, 300));
+              await new Promise(resolve => setTimeout(resolve, 200));
+              
+              // Check if we've reached the bottom or if row count stopped increasing
+              if (s % 10 === 0 && s > 20) {
+                const currentRowCount = await this.page.evaluate(() => {
+                  return document.querySelectorAll('div[role="row"]').length;
+                });
+                console.log(`📊 After ${s} scrolls: ${currentRowCount} rows visible`);
+                
+                if (currentRowCount === previousRowCount && currentRowCount > 0) {
+                  console.log(`📜 Row count stabilized at ${currentRowCount}, stopping scroll`);
+                  break;
+                }
+                previousRowCount = currentRowCount;
+              }
             }
             console.log('✅ Finished scrolling grid');
+            
+            // Wait a bit for any remaining rows to render
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Final row count check
+            const finalRowCount = await this.page.evaluate(() => {
+              return document.querySelectorAll('div[role="row"]').length;
+            });
+            console.log(`📊 Final row count after scrolling: ${finalRowCount}`);
           }
           
           // Check if we got card-like data from API responses

@@ -272,7 +272,7 @@ const TCDBBrowser = () => {
         <div className="step-container">
           <div className="step-header">
             <button onClick={handleBack} className="back-btn">← Back</button>
-            <h2>Step 3: Checklist - {selectedSet?.name}</h2>
+            <h2 style={{ flex: 1, margin: 0 }}>Step 3: Checklist - {selectedSet?.name}</h2>
             <div className="checklist-actions">
               <button onClick={handleSelectAll} className="select-all-btn">
                 {selectedCards.length === checklist.length ? 'Deselect All' : 'Select All'}
@@ -301,7 +301,7 @@ const TCDBBrowser = () => {
                     <th style={{ width: '50px' }}>Select</th>
                     <th style={{ width: '100px' }}>Card #</th>
                     <th>Player</th>
-                    <th>Team</th>
+                    <th>Parallel</th>
                     <th style={{ width: '140px' }}>PSA Graded</th>
                   </tr>
                 </thead>
