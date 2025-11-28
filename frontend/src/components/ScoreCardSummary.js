@@ -368,30 +368,21 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     query = query.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
     
     // If this is a base card, add exclusion terms for parallel types
-    // Only include terms that clearly indicate parallels, not base cards
+    // Only include the most common parallel indicators to avoid overly long queries
     const isBaseCard = !parallel || parallel.toLowerCase() === 'base' || parallel === 'Base Checklist';
     if (isBaseCard) {
-      // Focused list of parallel keywords that clearly indicate parallels
-      // Excluded: chrome, prizm, select, numbered (too common), auto/autograph (might want those), sp/ssp (might be in titles)
+      // Minimal list of the most common parallel keywords
+      // Focus on terms that are almost always parallels, not base cards
       const parallelExclusions = [
-        // Color parallels (most common)
-        'silver prizm', 'gold prizm', 'silver', 'gold', 'rainbow prizm', 'rainbow',
-        'red prizm', 'blue prizm', 'green prizm', 'purple prizm', 'pink prizm',
-        'orange prizm', 'yellow prizm', 'black prizm', 'white prizm',
+        // Most common color parallels
+        'silver prizm', 'gold prizm', 'rainbow prizm',
+        'red prizm', 'blue prizm', 'green prizm', 'purple prizm',
         // Refractor and special finishes
-        'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut',
-        'holo', 'holographic', 'foil',
-        // Panini Select specific parallels (only when clearly parallel)
-        'flash', 'velocity', 'scope', 'hyper', 'wave', 'cosmic', 'planetary',
-        'pursuit', 'eris', 'aqua', 'sapphire', 'red/white/blue',
-        // Special parallel types
-        'downtown', 'genesis', 'fast break', 'zoom', 'flashback', 'emergent',
-        'mania', 'geometric', 'honeycomb', 'pride', 'kaleidoscopic',
-        'vintage', 'splash', 'rising', 'best',
-        // Additional color parallels
-        'bronze', 'platinum', 'diamond', 'emerald', 'ruby', 'amethyst',
-        'teal', 'neon', 'camo', 'tie-dye', 'disco', 'dragon scale',
-        'snakeskin', 'pulsar'
+        'refractor', 'x-fractor', 'cracked ice', 'stained glass',
+        // Panini Select most common parallels
+        'flash', 'velocity', 'scope', 'hyper', 'wave', 'cosmic',
+        // Special inserts
+        'downtown', 'genesis', 'fast break'
       ];
       
       // Format exclusions as: -(keyword1, keyword2, keyword3, ...)
