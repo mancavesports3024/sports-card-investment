@@ -194,7 +194,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
             'downtown', 'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania',
             'geometric', 'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'splash', 'rising',
             // Other parallel types
-            'snakeskin', 'pulsar', 'dragon scale'
+            'snakeskin', 'pulsar', 'dragon scale', 'pandora'
           ];
           
           // Check for parallel keywords, but allow "prizm" if it's part of the set name (e.g., "2024 Prizm")
@@ -400,7 +400,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
         // Special inserts
         'downtown', 'genesis', 'fast break',
         // Additional parallel types
-        'lazer'
+        'lazer', 'pandora'
       ];
       
       // Format exclusions as: -(keyword1, keyword2, keyword3, ...)
