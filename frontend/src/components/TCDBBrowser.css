@@ -266,6 +266,20 @@
   font-weight: bold;
 }
 
+/* Center align Card #, Player, and Parallel column headers */
+.checklist-table th:nth-child(2),
+.checklist-table th:nth-child(3),
+.checklist-table th:nth-child(4) {
+  text-align: center;
+}
+
+/* Also center align the corresponding table cells */
+.checklist-table td:nth-child(2),
+.checklist-table td:nth-child(3),
+.checklist-table td:nth-child(4) {
+  text-align: center;
+}
+
 .checklist-table td {
   color: #ccc;
   padding: 10px 12px;
