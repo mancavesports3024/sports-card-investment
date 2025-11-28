@@ -367,34 +367,31 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     // Remove any remaining emojis (in case they came from category name or elsewhere)
     query = query.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
     
-    // If this is a base card, add exclusion terms for all parallel types
+    // If this is a base card, add exclusion terms for parallel types
+    // Only include terms that clearly indicate parallels, not base cards
     const isBaseCard = !parallel || parallel.toLowerCase() === 'base' || parallel === 'Base Checklist';
     if (isBaseCard) {
-      // Comprehensive list of parallel keywords to exclude
+      // Focused list of parallel keywords that clearly indicate parallels
+      // Excluded: chrome, prizm, select, numbered (too common), auto/autograph (might want those), sp/ssp (might be in titles)
       const parallelExclusions = [
-        // Color parallels
-        'silver', 'gold', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink',
-        'bronze', 'white', 'teal', 'neon', 'camo', 'tie-dye', 'disco', 'dragon scale',
-        'snakeskin', 'pulsar', 'logo', 'variation', 'clear cut', 'real one', 'downtown',
-        'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania', 'geometric',
-        'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'splash', 'rising', 'best',
-        // Refractor and foil types
-        'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut', 'die cut',
-        'holo', 'holographic', 'chrome', 'foil', 'rainbow',
-        // Panini Select parallels
-        'flash', 'velocity', 'scope', 'hyper', 'optic', 'mosaic', 'select', 'finest',
-        'wave', 'cosmic', 'planetary', 'pursuit', 'eris', 'autos', 'aqua', 'sapphire',
-        'woo', 'draft', 'red/white/blue', 'tf1', 'invicta', 'all-etch', 'night',
-        // Special features
-        'autograph', 'auto', 'patch', 'relic', 'numbered', 'limited', 'rookie', 'rc',
-        'jersey', 'memorabilia', 'short print', 'sp', 'ssp', 'super short print',
-        // Additional parallel types
-        'platinum', 'diamond', 'emerald', 'ruby', 'amethyst', 'onyx', 'cyan', 'lime',
-        'mint', 'peach', 'salmon', 'tan', 'brown', 'gray', 'grey', 'navy', 'maroon',
-        'burgundy', 'crimson', 'scarlet', 'coral', 'apricot', 'tangerine', 'amber',
-        'golden', 'metallic', 'copper', 'cream', 'ivory', 'beige', 'khaki', 'olive',
-        'turquoise', 'magenta', 'fuchsia', 'independence day', 'father\'s day',
-        'mother\'s day', 'memorial day'
+        // Color parallels (most common)
+        'silver prizm', 'gold prizm', 'silver', 'gold', 'rainbow prizm', 'rainbow',
+        'red prizm', 'blue prizm', 'green prizm', 'purple prizm', 'pink prizm',
+        'orange prizm', 'yellow prizm', 'black prizm', 'white prizm',
+        // Refractor and special finishes
+        'refractor', 'x-fractor', 'cracked ice', 'stained glass', 'die-cut',
+        'holo', 'holographic', 'foil',
+        // Panini Select specific parallels (only when clearly parallel)
+        'flash', 'velocity', 'scope', 'hyper', 'wave', 'cosmic', 'planetary',
+        'pursuit', 'eris', 'aqua', 'sapphire', 'red/white/blue',
+        // Special parallel types
+        'downtown', 'genesis', 'fast break', 'zoom', 'flashback', 'emergent',
+        'mania', 'geometric', 'honeycomb', 'pride', 'kaleidoscopic',
+        'vintage', 'splash', 'rising', 'best',
+        // Additional color parallels
+        'bronze', 'platinum', 'diamond', 'emerald', 'ruby', 'amethyst',
+        'teal', 'neon', 'camo', 'tie-dye', 'disco', 'dragon scale',
+        'snakeskin', 'pulsar'
       ];
       
       // Format exclusions as: -(keyword1, keyword2, keyword3, ...)
