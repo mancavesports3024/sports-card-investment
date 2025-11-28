@@ -1326,14 +1326,51 @@ class GemRateService {
             }
           });
           
-          await this.page.goto(fullUrl, { waitUntil: 'networkidle0', timeout: 60000 });
+          // Use 'load' instead of 'networkidle0' for faster initial load, then wait for specific elements
+          console.log(`🌐 Navigating to page (timeout: 120s)...`);
+          try {
+            await this.page.goto(fullUrl, { waitUntil: 'load', timeout: 120000 });
+            console.log('✅ Page loaded successfully');
+          } catch (navError) {
+            console.log(`⚠️ Navigation error: ${navError.message}`);
+            // Continue anyway - page might have partially loaded
+          }
           
-          console.log('⏳ Waiting for data to load...');
+          console.log('⏳ Waiting for AG Grid to load...');
+          
+          // Wait for AG Grid container to appear first
+          try {
+            await this.page.waitForSelector('[role="grid"], .ag-root-wrapper, div[role="row"]', { timeout: 60000 });
+            console.log('✅ AG Grid container detected');
+          } catch (e) {
+            console.log('⚠️ AG Grid container not found, checking page state...');
+            // Check what's actually on the page
+            const pageState = await this.page.evaluate(() => {
+              return {
+                hasGrid: !!document.querySelector('[role="grid"]'),
+                hasAgWrapper: !!document.querySelector('.ag-root-wrapper'),
+                hasRows: document.querySelectorAll('div[role="row"]').length,
+                bodyText: document.body.textContent.substring(0, 200)
+              };
+            });
+            console.log('📄 Page state:', pageState);
+          }
+          
+          // Give the grid time to populate with data
+          console.log('⏳ Waiting 5 seconds for grid data to populate...');
+          await new Promise(resolve => setTimeout(resolve, 5000));
           
           // Wait for AG Grid rows (the checklist table) to render
           try {
-            await this.page.waitForSelector('div[role="row"]', { timeout: 30000 });
-            console.log('✅ AG Grid rows detected on page');
+            const rowCount = await this.page.evaluate(() => document.querySelectorAll('div[role="row"]').length);
+            console.log(`📊 Found ${rowCount} AG Grid rows on page`);
+            
+            if (rowCount === 0) {
+              console.log('⚠️ No rows found, waiting longer...');
+              await this.page.waitForSelector('div[role="row"]', { timeout: 30000 });
+              const newRowCount = await this.page.evaluate(() => document.querySelectorAll('div[role="row"]').length);
+              console.log(`📊 After wait: Found ${newRowCount} rows`);
+            }
           } catch (e) {
             console.log('⚠️ AG Grid rows not detected before extraction:', e.message);
           }
