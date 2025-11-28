@@ -204,6 +204,13 @@
 }
 
 /* Checklist */
+.checklist-title {
+  color: #ffd700;
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
 .checklist-actions {
   display: flex;
   align-items: center;

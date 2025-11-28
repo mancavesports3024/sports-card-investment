@@ -1383,41 +1383,115 @@ class GemRateService {
                           await this.page.$('div[ref="eCenterViewport"]') ||
                           await this.page.$('div[role="grid"]');
           
+          // Extract rows during scrolling to capture all virtualized rows
+          const allExtractedCards = new Map(); // Use Map to deduplicate by key
+          
           if (viewport) {
-            console.log('📜 Scrolling grid to load more rows...');
-            // Scroll more aggressively to load all virtualized rows
-            // AG Grid typically shows ~24 rows per viewport, so we need to scroll many times
-            let previousRowCount = 0;
-            for (let s = 0; s < 100; s++) {
-              await this.page.evaluate((el) => {
-                if (el) el.scrollBy(0, 500);
-              }, viewport);
-              await new Promise(resolve => setTimeout(resolve, 200));
-              
-              // Check if we've reached the bottom or if row count stopped increasing
-              if (s % 10 === 0 && s > 20) {
-                const currentRowCount = await this.page.evaluate(() => {
-                  return document.querySelectorAll('div[role="row"]').length;
-                });
-                console.log(`📊 After ${s} scrolls: ${currentRowCount} rows visible`);
-                
-                if (currentRowCount === previousRowCount && currentRowCount > 0) {
-                  console.log(`📜 Row count stabilized at ${currentRowCount}, stopping scroll`);
-                  break;
-                }
-                previousRowCount = currentRowCount;
-              }
-            }
-            console.log('✅ Finished scrolling grid');
+            console.log('📜 Scrolling grid and extracting rows incrementally...');
             
-            // Wait a bit for any remaining rows to render
+            // First, scroll to the very bottom to ensure all rows are loaded
+            console.log('📜 Scrolling to bottom first...');
+            await this.page.evaluate((el) => {
+              if (el) {
+                el.scrollTop = el.scrollHeight;
+              }
+            }, viewport);
             await new Promise(resolve => setTimeout(resolve, 2000));
             
-            // Final row count check
-            const finalRowCount = await this.page.evaluate(() => {
-              return document.querySelectorAll('div[role="row"]').length;
+            // Now scroll back up slowly, extracting rows as we go
+            console.log('📜 Scrolling back up and extracting all rows...');
+            const scrollHeight = await this.page.evaluate((el) => {
+              return el ? el.scrollHeight : 0;
+            }, viewport);
+            
+            // Scroll from bottom to top in chunks, extracting at each step
+            const scrollStep = 500;
+            const totalSteps = Math.ceil(scrollHeight / scrollStep);
+            
+            for (let step = totalSteps; step >= 0; step--) {
+              const scrollPosition = step * scrollStep;
+              await this.page.evaluate((el, pos) => {
+                if (el) el.scrollTop = pos;
+              }, viewport, scrollPosition);
+              await new Promise(resolve => setTimeout(resolve, 300));
+              
+              // Extract rows at this scroll position
+              const cardsAtPosition = await this.page.evaluate(() => {
+                const cards = [];
+                const rows = document.querySelectorAll('div[role="row"]');
+                
+                // Get column indexes from headers
+                const headerCells = Array.from(document.querySelectorAll('.ag-header-cell-text'));
+                const headerTexts = headerCells.map(h => (h.textContent || '').trim());
+                const nameCol = headerTexts.findIndex(h => h.toLowerCase() === 'name' || h.toLowerCase().includes('player'));
+                const numberCol = headerTexts.findIndex(h => h.toLowerCase() === 'number' || h.toLowerCase().includes('card #'));
+                const setCol = headerTexts.findIndex(h => h.toLowerCase().includes('card set') || h.toLowerCase().includes('set'));
+                const psaCol = headerTexts.findIndex(h => h.toLowerCase() === 'psa' || h.toLowerCase().includes('psa'));
+                
+                rows.forEach((row) => {
+                  const cells = row.querySelectorAll('div[role="gridcell"]');
+                  if (cells.length === 0) return;
+                  
+                  const safeText = (idx) => cells[idx] && cells[idx].textContent ? cells[idx].textContent.trim() : '';
+                  const name = safeText(nameCol >= 0 ? nameCol : 1);
+                  const number = safeText(numberCol >= 0 ? numberCol : 2);
+                  const cardSet = safeText(setCol >= 0 ? setCol : 3);
+                  const psaText = safeText(psaCol >= 0 ? psaCol : 5);
+                  
+                  const hasNumber = number && /^\d+$/.test(number);
+                  const hasName = name && name.length > 0 && name.length < 100;
+                  
+                  if (hasNumber || hasName) {
+                    const psaCountStr = psaText ? psaText.replace(/[,\s]/g, '') : '';
+                    cards.push({
+                      number: number || '',
+                      player: name,
+                      team: cardSet || '',
+                      psaGraded: psaCountStr && /^\d+$/.test(psaCountStr) ? parseInt(psaCountStr, 10) : null,
+                      key: `${number || ''}|${name}|${cardSet}`
+                    });
+                  }
+                });
+                
+                return cards;
+              });
+              
+              // Add to our collection (Map will handle deduplication)
+              cardsAtPosition.forEach(card => {
+                if (!allExtractedCards.has(card.key)) {
+                  allExtractedCards.set(card.key, card);
+                }
+              });
+              
+              if (step % 10 === 0) {
+                console.log(`📊 Step ${step}/${totalSteps}: Extracted ${allExtractedCards.size} unique cards so far`);
+              }
+            }
+            
+            console.log(`✅ Finished scrolling and extraction: ${allExtractedCards.size} unique cards found`);
+            
+            // Convert Map to array for return
+            const finalCards = Array.from(allExtractedCards.values()).map(card => ({
+              number: card.number,
+              player: card.player,
+              team: card.team,
+              psaGraded: card.psaGraded
+            }));
+            
+            // Sort by PSA graded count (descending) when available
+            finalCards.sort((a, b) => {
+              const aPsa = typeof a.psaGraded === 'number' ? a.psaGraded : -1;
+              const bPsa = typeof b.psaGraded === 'number' ? b.psaGraded : -1;
+              return bPsa - aPsa;
             });
-            console.log(`📊 Final row count after scrolling: ${finalRowCount}`);
+            
+            if (finalCards.length > 0) {
+              console.log(`✅ Returning ${finalCards.length} cards from incremental extraction`);
+              await this.closeBrowser();
+              return finalCards;
+            }
+          } else {
+            console.log('⚠️ No viewport found for scrolling, will try standard extraction');
           }
           
           // Check if we got card-like data from API responses
