@@ -374,9 +374,9 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       // Minimal list of the most common parallel keywords
       // Focus on terms that are almost always parallels, not base cards
       const parallelExclusions = [
-        // Most common color parallels
-        'silver prizm', 'gold prizm', 'rainbow prizm',
-        'red prizm', 'blue prizm', 'green prizm', 'purple prizm',
+        // Most common color parallels (without "prizm" since it's already in the set name)
+        'silver', 'gold', 'rainbow',
+        'red', 'blue', 'green', 'purple',
         // Refractor and special finishes
         'refractor', 'x-fractor', 'cracked ice', 'stained glass',
         // Panini Select most common parallels
