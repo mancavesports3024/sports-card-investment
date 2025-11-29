@@ -28,6 +28,11 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
 
   useEffect(() => {
     if (card) {
+      // Reset state when card changes to ensure title and data update immediately
+      setCardData(null);
+      setGemrateData(null);
+      setError('');
+      setLoading(true);
       fetchCardData();
     }
   }, [card]);
@@ -513,8 +518,10 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       <div className="score-card-header">
         <button onClick={onBack} className="back-btn">← Back to Checklist</button>
         <h1>
-          {setInfo?.setName || 'Card Summary'}
-          {card?.team && card.team.toLowerCase() !== 'base' && ` ${card.team}`}
+          {card?.set || setInfo?.setName || 'Card Summary'}
+          {(card?.parallel || card?.team) && 
+           (card?.parallel || card?.team).toLowerCase() !== 'base' && 
+           ` ${card?.parallel || card?.team}`}
         </h1>
         <h2>{card?.player || 'Unknown Player'}</h2>
         {card?.number && <h3>#{card.number}</h3>}
