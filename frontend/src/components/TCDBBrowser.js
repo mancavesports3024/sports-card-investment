@@ -252,9 +252,9 @@ const TCDBBrowser = () => {
         </div>
       </div>
 
-      {/* GemRate Player Search Section */}
+      {/* Player Search Section */}
       <div className="player-search-section">
-        <h2>GemRate Player Search</h2>
+        <h2>Player Search</h2>
         <div className="player-search-form">
           <input
             type="text"

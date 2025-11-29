@@ -3,6 +3,23 @@ import './ScoreCardSummary.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://web-production-9efa.up.railway.app';
 
+const formatTimestamp = (timestamp) => {
+  if (!timestamp) return '';
+  try {
+    const date = new Date(timestamp);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (e) {
+    return '';
+  }
+};
+
 const ScoreCardSummary = ({ card, setInfo, onBack }) => {
   const [cardData, setCardData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -553,14 +570,13 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       {/* Footer */}
       <div className="score-card-footer">
         <div className="footer-date">
-          Created: {new Date().toLocaleString('en-US', { 
-            month: 'short', 
-            day: 'numeric', 
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-          })}
+          {(() => {
+            const created =
+              card?.createdAt
+                ? formatTimestamp(card.createdAt)
+                : formatTimestamp(new Date().toISOString());
+            return created ? `Created: ${created}` : 'Created:';
+          })()}
         </div>
         <div className="footer-website">MANCAVESPORTSCARDSLLC.COM</div>
       </div>

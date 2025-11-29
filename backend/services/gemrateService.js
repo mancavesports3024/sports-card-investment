@@ -2436,64 +2436,98 @@ class GemRateService {
           }
         };
 
-        // Top
-        let cards = await extractCardsSafely();
-        cards.forEach(card => {
-          if (!allExtractedCards.has(card.key)) {
-            allExtractedCards.set(card.key, card);
+        // Helper to scroll within current page and extract visible rows
+        const scrollAndExtractCurrentPage = async (pageLabel) => {
+          // Top
+          let cards = await extractCardsSafely();
+          cards.forEach(card => {
+            if (!allExtractedCards.has(card.key)) {
+              allExtractedCards.set(card.key, card);
+            }
+          });
+          console.log(`📊 GemRate player ${pageLabel} initial extraction: ${allExtractedCards.size} unique cards`);
+
+          // Middle
+          try {
+            await this.page.evaluate((el) => {
+              if (el) el.scrollTop = el.scrollHeight / 2;
+            }, viewport);
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            cards = await extractCardsSafely();
+            cards.forEach(card => {
+              if (!allExtractedCards.has(card.key)) {
+                allExtractedCards.set(card.key, card);
+              }
+            });
+            console.log(`📊 GemRate player ${pageLabel} after middle scroll: ${allExtractedCards.size} unique cards`);
+          } catch (e) {
+            console.log(`⚠️ GemRate player ${pageLabel} middle scroll error: ${e.message}`);
           }
-        });
-        console.log(`📊 GemRate player initial extraction: ${allExtractedCards.size} unique cards`);
 
-        // Middle
-        try {
-          await this.page.evaluate((el) => {
-            if (el) el.scrollTop = el.scrollHeight / 2;
-          }, viewport);
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          cards = await extractCardsSafely();
-          cards.forEach(card => {
-            if (!allExtractedCards.has(card.key)) {
-              allExtractedCards.set(card.key, card);
-            }
-          });
-          console.log(`📊 GemRate player after middle scroll: ${allExtractedCards.size} unique cards`);
-        } catch (e) {
-          console.log(`⚠️ GemRate player middle scroll error: ${e.message}`);
-        }
+          // Bottom
+          try {
+            await this.page.evaluate((el) => {
+              if (el) el.scrollTop = el.scrollHeight;
+            }, viewport);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            cards = await extractCardsSafely();
+            cards.forEach(card => {
+              if (!allExtractedCards.has(card.key)) {
+                allExtractedCards.set(card.key, card);
+              }
+            });
+            console.log(`📊 GemRate player ${pageLabel} after bottom scroll: ${allExtractedCards.size} unique cards`);
+          } catch (e) {
+            console.log(`⚠️ GemRate player ${pageLabel} bottom scroll error: ${e.message}`);
+          }
 
-        // Bottom
-        try {
-          await this.page.evaluate((el) => {
-            if (el) el.scrollTop = el.scrollHeight;
-          }, viewport);
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          cards = await extractCardsSafely();
-          cards.forEach(card => {
-            if (!allExtractedCards.has(card.key)) {
-              allExtractedCards.set(card.key, card);
-            }
-          });
-          console.log(`📊 GemRate player after bottom scroll: ${allExtractedCards.size} unique cards`);
-        } catch (e) {
-          console.log(`⚠️ GemRate player bottom scroll error: ${e.message}`);
-        }
+          // Back to top
+          try {
+            await this.page.evaluate((el) => {
+              if (el) el.scrollTop = 0;
+            }, viewport);
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            cards = await extractCardsSafely();
+            cards.forEach(card => {
+              if (!allExtractedCards.has(card.key)) {
+                allExtractedCards.set(card.key, card);
+              }
+            });
+            console.log(`📊 GemRate player ${pageLabel} after top scroll: ${allExtractedCards.size} unique cards`);
+          } catch (e) {
+            console.log(`⚠️ GemRate player ${pageLabel} top scroll error: ${e.message}`);
+          }
+        };
 
-        // Back to top
-        try {
-          await this.page.evaluate((el) => {
-            if (el) el.scrollTop = 0;
-          }, viewport);
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          cards = await extractCardsSafely();
-          cards.forEach(card => {
-            if (!allExtractedCards.has(card.key)) {
-              allExtractedCards.set(card.key, card);
+        // Extract from first page
+        await scrollAndExtractCurrentPage('page 1');
+
+        // Try to paginate through additional pages (each page is typically 25 cards)
+        for (let pageIndex = 0; pageIndex < 3; pageIndex++) {
+          const movedToNext = await this.page.evaluate(() => {
+            const selectors = [
+              '.ag-paging-button[ref="btNext"]',
+              '.ag-paging-panel button[aria-label="Next Page"]',
+              '.ag-paging-button.ag-paging-next'
+            ];
+            for (const sel of selectors) {
+              const btn = document.querySelector(sel);
+              if (btn && !btn.classList.contains('ag-disabled') && !(btn instanceof HTMLButtonElement && btn.disabled)) {
+                (btn).click();
+                return true;
+              }
             }
+            return false;
           });
-          console.log(`📊 GemRate player after top scroll: ${allExtractedCards.size} unique cards`);
-        } catch (e) {
-          console.log(`⚠️ GemRate player top scroll error: ${e.message}`);
+
+          if (!movedToNext) {
+            console.log('ℹ️ GemRate player pagination: no further pages detected');
+            break;
+          }
+
+          console.log(`⏭️ GemRate player pagination: moved to page ${pageIndex + 2}`);
+          await new Promise(resolve => setTimeout(resolve, 2500));
+          await scrollAndExtractCurrentPage(`page ${pageIndex + 2}`);
         }
       } else {
         console.log('⚠️ GemRate player viewport not found for scrolling');
