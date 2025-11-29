@@ -272,6 +272,15 @@ const TCDBBrowser = () => {
             <option value="baseball-cards">Baseball</option>
             <option value="basketball-cards">Basketball</option>
             <option value="hockey-cards">Hockey</option>
+            <option value="soccer-cards">Soccer</option>
+            <option value="boxing-wrestling-cards">Boxing/Wrestling</option>
+            <option value="golf-cards">Golf</option>
+            <option value="misc-cards">Misc</option>
+            <option value="multi-sport-cards">Multi-Sport</option>
+            <option value="non-sport-cards">Non-Sport</option>
+            <option value="packs">Packs</option>
+            <option value="tcg-cards">TCG</option>
+            <option value="tickets">Tickets</option>
           </select>
           <select
             value={playerSearchGrader}
