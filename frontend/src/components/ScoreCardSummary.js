@@ -240,6 +240,11 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
         
         console.log(`[ScoreCardSummary] Before filtering - Raw: ${rawCards.length}, PSA9: ${psa9Cards.length}, PSA10: ${psa10Cards.length}`);
         
+        // Store original unfiltered cards as fallback
+        const originalRawCards = [...rawCards];
+        const originalPsa9Cards = [...psa9Cards];
+        const originalPsa10Cards = [...psa10Cards];
+        
         // Filter out parallels if this is a base card
         if (excludeParallels) {
           const beforeRaw = rawCards.length;
@@ -251,6 +256,21 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
           psa10Cards = psa10Cards.filter(card => !isParallel(card.title));
           
           console.log(`[ScoreCardSummary] Filtered parallels: Raw ${beforeRaw}→${rawCards.length}, PSA9 ${beforePsa9}→${psa9Cards.length}, PSA10 ${beforePsa10}→${psa10Cards.length}`);
+          
+          // If filtering removed all sales, fall back to unfiltered (parallel) sales
+          // This ensures we show something rather than nothing
+          if (rawCards.length === 0 && originalRawCards.length > 0) {
+            console.log(`[ScoreCardSummary] No base card sales found, using parallel sales as fallback for RAW`);
+            rawCards = originalRawCards;
+          }
+          if (psa9Cards.length === 0 && originalPsa9Cards.length > 0) {
+            console.log(`[ScoreCardSummary] No base card sales found, using parallel sales as fallback for PSA9`);
+            psa9Cards = originalPsa9Cards;
+          }
+          if (psa10Cards.length === 0 && originalPsa10Cards.length > 0) {
+            console.log(`[ScoreCardSummary] No base card sales found, using parallel sales as fallback for PSA10`);
+            psa10Cards = originalPsa10Cards;
+          }
         }
         
         console.log(`[ScoreCardSummary] After filtering - Raw: ${rawCards.length}, PSA9: ${psa9Cards.length}, PSA10: ${psa10Cards.length}`);
