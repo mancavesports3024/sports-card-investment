@@ -18,6 +18,7 @@ const TCDBBrowser = () => {
   const [selectedSet, setSelectedSet] = useState(null);
   const [selectedCards, setSelectedCards] = useState([]);
   const [selectedCardForSummary, setSelectedCardForSummary] = useState(null);
+  const [selectedCardSetInfo, setSelectedCardSetInfo] = useState(null);
   
   // Loading and error states
   const [loading, setLoading] = useState(false);
@@ -199,6 +200,7 @@ const TCDBBrowser = () => {
     } else if (currentStep === 'score-card-summary') {
       setCurrentStep('checklist');
       setSelectedCardForSummary(null);
+      setSelectedCardSetInfo(null);
     }
   };
 
@@ -301,28 +303,65 @@ const TCDBBrowser = () => {
               <table className="checklist-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '100px' }}>Card #</th>
+                    <th style={{ width: '80px' }}>Year</th>
+                    <th>Set</th>
                     <th>Player</th>
-                    <th>Parallel / Set</th>
-                    <th style={{ width: '140px' }}>PSA Graded</th>
+                    <th>Parallel</th>
+                    <th style={{ width: '90px' }}>Card #</th>
+                    <th style={{ width: '110px' }}>Gems</th>
+                    <th style={{ width: '130px' }}>Total Grades</th>
+                    <th style={{ width: '90px' }}>Gem %</th>
                   </tr>
                 </thead>
                 <tbody>
                   {playerSearchResults.map((card, index) => {
-                    const psaGraded =
-                      typeof card.psaGraded === 'number'
-                        ? card.psaGraded.toLocaleString()
+                    const gems =
+                      typeof card.gems === 'number'
+                        ? card.gems.toLocaleString()
                         : 'N/A';
+                    const totalGrades =
+                      typeof card.totalGrades === 'number'
+                        ? card.totalGrades.toLocaleString()
+                        : 'N/A';
+                    const gemRate = card.gemRate || '';
+
+                    const sportFromCategory = () => {
+                      switch (playerSearchCategory) {
+                        case 'football-cards':
+                          return 'Football';
+                        case 'baseball-cards':
+                          return 'Baseball';
+                        case 'basketball-cards':
+                          return 'Basketball';
+                        case 'hockey-cards':
+                          return 'Hockey';
+                        default:
+                          return null;
+                      }
+                    };
+
                     return (
                       <tr
                         key={index}
-                        onClick={() => handleCardClick(card)}
+                        onClick={() => {
+                          setSelectedCardSetInfo({
+                            sport: sportFromCategory(),
+                            year: card.year || null,
+                            setName: card.set || null,
+                            parallel: card.parallel || null
+                          });
+                          handleCardClick(card);
+                        }}
                         style={{ cursor: 'pointer' }}
                       >
-                        <td>{card.number || 'N/A'}</td>
+                        <td>{card.year || 'N/A'}</td>
+                        <td>{card.set || 'N/A'}</td>
                         <td>{card.player || 'N/A'}</td>
-                        <td>{card.parallel || card.set || 'N/A'}</td>
-                        <td>{psaGraded}</td>
+                        <td>{card.parallel || 'N/A'}</td>
+                        <td>{card.number || 'N/A'}</td>
+                        <td>{gems}</td>
+                        <td>{totalGrades}</td>
+                        <td>{gemRate}</td>
                       </tr>
                     );
                   })}
@@ -445,7 +484,10 @@ const TCDBBrowser = () => {
                       <tr 
                         key={index} 
                         className={isSelected ? 'selected' : ''}
-                        onClick={() => handleCardClick(card)}
+                        onClick={() => {
+                          setSelectedCardSetInfo(null);
+                          handleCardClick(card);
+                        }}
                         style={{ cursor: 'pointer' }}
                       >
                         <td onClick={(e) => e.stopPropagation()}>
@@ -473,15 +515,22 @@ const TCDBBrowser = () => {
       {currentStep === 'score-card-summary' && selectedCardForSummary && (
         <ScoreCardSummary
           card={selectedCardForSummary}
-          setInfo={{
-            sport: selectedCategory?.name ? selectedCategory.name.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim() : null,
-            year: selectedSet?.year,
-            setName: selectedSet?.name ? selectedSet.name.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim() : null,
-            parallel: null
-          }}
+          setInfo={
+            selectedCardSetInfo || {
+              sport: selectedCategory?.name
+                ? selectedCategory.name.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim()
+                : null,
+              year: selectedSet?.year,
+              setName: selectedSet?.name
+                ? selectedSet.name.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim()
+                : null,
+              parallel: null
+            }
+          }
           onBack={() => {
             setCurrentStep('checklist');
             setSelectedCardForSummary(null);
+            setSelectedCardSetInfo(null);
           }}
         />
       )}

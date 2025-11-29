@@ -2379,32 +2379,51 @@ class GemRateService {
               const headerCells = Array.from(document.querySelectorAll('.ag-header-cell-text'));
               const headerTexts = headerCells.map(h => (h.textContent || '').trim());
 
-              const nameCol = headerTexts.findIndex(h => h.toLowerCase() === 'name' || h.toLowerCase().includes('player'));
-              const numberCol = headerTexts.findIndex(h => h.toLowerCase() === 'number' || h.toLowerCase().includes('card #'));
-              const setCol = headerTexts.findIndex(h => h.toLowerCase().includes('card set') || h.toLowerCase().includes('set') || h.toLowerCase().includes('parallel'));
-              const psaCol = headerTexts.findIndex(h => h.toLowerCase() === 'psa' || h.toLowerCase().includes('psa') || h.toLowerCase().includes('total grades'));
+              const lowerHeaders = headerTexts.map(h => h.toLowerCase());
+
+              const catCol = lowerHeaders.findIndex(h => h === 'cat' || h.includes('cat'));
+              const yearCol = lowerHeaders.findIndex(h => h === 'year');
+              const setCol = lowerHeaders.findIndex(h => h === 'set' || h.includes('set '));
+              const nameCol = lowerHeaders.findIndex(h => h === 'name' || h.includes('player'));
+              const parallelCol = lowerHeaders.findIndex(h => h.includes('parallel'));
+              const cardNumCol = lowerHeaders.findIndex(h => h.includes('card #') || h === 'card #' || h.includes('card no'));
+              const gemsCol = lowerHeaders.findIndex(h => h === 'gems');
+              const totalCol = lowerHeaders.findIndex(h => h === 'total' || h.includes('total grades') || h.includes('total '));
+              const gemRateCol = lowerHeaders.findIndex(h => h.includes('gem rate') || h.includes('gem %'));
 
               rows.forEach((row) => {
                 const cells = row.querySelectorAll('div[role="gridcell"]');
                 if (cells.length === 0) return;
 
                 const safeText = (idx) => cells[idx] && cells[idx].textContent ? cells[idx].textContent.trim() : '';
-                const name = safeText(nameCol >= 0 ? nameCol : 1);
-                const number = safeText(numberCol >= 0 ? numberCol : 0);
-                const cardSet = safeText(setCol >= 0 ? setCol : 2);
-                const psaText = safeText(psaCol >= 0 ? psaCol : 3);
+                const category = safeText(catCol >= 0 ? catCol : 0);
+                const year = safeText(yearCol >= 0 ? yearCol : 1);
+                const setName = safeText(setCol >= 0 ? setCol : 2);
+                const name = safeText(nameCol >= 0 ? nameCol : 3);
+                const parallel = safeText(parallelCol >= 0 ? parallelCol : 4);
+                const cardNumber = safeText(cardNumCol >= 0 ? cardNumCol : 5);
+                const gemsText = safeText(gemsCol >= 0 ? gemsCol : 6);
+                const totalText = safeText(totalCol >= 0 ? totalCol : 7);
+                const gemRateText = safeText(gemRateCol >= 0 ? gemRateCol : 8);
 
-                const hasNumber = number && /^\d+/.test(number);
+                const hasNumber = cardNumber && cardNumber.length > 0;
                 const hasName = name && name.length > 0 && name.length < 100;
 
                 if (hasNumber || hasName) {
-                  const psaCountStr = psaText ? psaText.replace(/[,\s]/g, '') : '';
+                  const gemsStr = gemsText ? gemsText.replace(/[,\s]/g, '') : '';
+                  const totalStr = totalText ? totalText.replace(/[,\s]/g, '') : '';
+
                   cards.push({
-                    number: number || '',
+                    number: cardNumber || '',
                     player: name,
-                    parallel: cardSet || '',
-                    psaGraded: psaCountStr && /^\d+$/.test(psaCountStr) ? parseInt(psaCountStr, 10) : null,
-                    key: `${number || ''}|${name}|${cardSet}`
+                    category,
+                    year,
+                    set: setName || '',
+                    parallel,
+                    gems: gemsStr && /^\d+$/.test(gemsStr) ? parseInt(gemsStr, 10) : null,
+                    totalGrades: totalStr && /^\d+$/.test(totalStr) ? parseInt(totalStr, 10) : null,
+                    gemRate: gemRateText || '',
+                    key: `${cardNumber || ''}|${name}|${setName}|${parallel}`
                   });
                 }
               });
@@ -2484,15 +2503,20 @@ class GemRateService {
       const finalCards = Array.from(allExtractedCards.values()).map(card => ({
         number: card.number,
         player: card.player,
+        category: card.category,
+        year: card.year,
+        set: card.set,
         parallel: card.parallel,
-        psaGraded: card.psaGraded
+        gems: card.gems,
+        totalGrades: card.totalGrades,
+        gemRate: card.gemRate
       }));
 
-      // Sort by PSA graded desc when available
+      // Sort by total grades desc when available (like GemRate)
       finalCards.sort((a, b) => {
-        const aPsa = typeof a.psaGraded === 'number' ? a.psaGraded : -1;
-        const bPsa = typeof b.psaGraded === 'number' ? b.psaGraded : -1;
-        return bPsa - aPsa;
+        const aTotal = typeof a.totalGrades === 'number' ? a.totalGrades : -1;
+        const bTotal = typeof b.totalGrades === 'number' ? b.totalGrades : -1;
+        return bTotal - aTotal;
       });
 
       console.log(`✅ GemRate player cards extracted: ${finalCards.length}`);
