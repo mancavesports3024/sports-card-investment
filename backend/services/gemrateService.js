@@ -2284,6 +2284,226 @@ class GemRateService {
   }
 
   /**
+   * Get all GemRate cards for a specific player (GemRate player page)
+   * Uses the /player endpoint with AG Grid, similar to universal-pop-report.
+   * @param {Object} params
+   * @param {string} params.grader - Grading company (psa, bgs, sgc, cgc)
+   * @param {string} params.category - GemRate category slug (e.g. "football-cards")
+   * @param {string} params.player - Player name (e.g. "Bo Nix")
+   * @returns {Promise<Array>} Array of card objects
+   */
+  async getPlayerCards({ grader = 'psa', category = 'football-cards', player }) {
+    if (!player || typeof player !== 'string' || !player.trim()) {
+      throw new Error('Player name is required for GemRate player search');
+    }
+
+    try {
+      await this.ensureSession();
+
+      const cleanPlayer = player.trim();
+      // GemRate expects + between name parts
+      const playerParam = cleanPlayer.replace(/\s+/g, '+');
+
+      const queryParams = new URLSearchParams({
+        grader: grader.toLowerCase(),
+        category,
+        player: playerParam
+      });
+
+      const path = `/player?${queryParams.toString()}`;
+      const fullUrl = `${this.baseUrl}${path}`;
+
+      console.log(`📇 Fetching GemRate player cards: ${fullUrl}`);
+
+      const browserInitialized = await this.initializeBrowser();
+      if (!browserInitialized || !this.page) {
+        throw new Error('Puppeteer not available for GemRate player search');
+      }
+
+      // Capture useful console logs from the page
+      this.page.on('console', msg => {
+        const text = msg.text();
+        if (text.includes('AG Grid') || text.includes('Card') || text.includes('extraction')) {
+          console.log(`[GemRate Player Console] ${text}`);
+        }
+      });
+
+      try {
+        await this.page.goto(fullUrl, { waitUntil: 'load', timeout: 120000 });
+        console.log('✅ GemRate player page loaded');
+      } catch (navError) {
+        console.log(`⚠️ GemRate player navigation error: ${navError.message}`);
+      }
+
+      // Wait for grid container / rows
+      try {
+        await this.page.waitForSelector('[role="grid"], .ag-root-wrapper, div[role="row"]', { timeout: 60000 });
+        console.log('✅ GemRate player AG Grid container detected');
+      } catch (e) {
+        console.log('⚠️ GemRate player AG Grid container not found, checking page state...');
+        const pageState = await this.page.evaluate(() => ({
+          hasGrid: !!document.querySelector('[role="grid"]'),
+          hasAgWrapper: !!document.querySelector('.ag-root-wrapper'),
+          hasRows: document.querySelectorAll('div[role="row"]').length,
+          bodyText: document.body.textContent.substring(0, 200)
+        }));
+        console.log('📄 GemRate player page state:', pageState);
+      }
+
+      // Give the grid some time to populate
+      console.log('⏳ Waiting for GemRate player grid data to populate...');
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
+      // Ensure some rows are present
+      try {
+        const rowCount = await this.page.evaluate(() => document.querySelectorAll('div[role="row"]').length);
+        console.log(`📊 GemRate player page rows on load: ${rowCount}`);
+      } catch (e) {
+        console.log('⚠️ GemRate player rows not detected before extraction:', e.message);
+      }
+
+      // Scroll and extract cards similar to getSetChecklist
+      const viewport = await this.page.$('.ag-center-cols-viewport') ||
+                       await this.page.$('div[ref="eCenterViewport"]') ||
+                       await this.page.$('div[role="grid"]');
+
+      const allExtractedCards = new Map();
+
+      if (viewport) {
+        const extractCardsSafely = async () => {
+          try {
+            return await this.page.evaluate(() => {
+              const cards = [];
+              const rows = document.querySelectorAll('div[role="row"]');
+
+              const headerCells = Array.from(document.querySelectorAll('.ag-header-cell-text'));
+              const headerTexts = headerCells.map(h => (h.textContent || '').trim());
+
+              const nameCol = headerTexts.findIndex(h => h.toLowerCase() === 'name' || h.toLowerCase().includes('player'));
+              const numberCol = headerTexts.findIndex(h => h.toLowerCase() === 'number' || h.toLowerCase().includes('card #'));
+              const setCol = headerTexts.findIndex(h => h.toLowerCase().includes('card set') || h.toLowerCase().includes('set') || h.toLowerCase().includes('parallel'));
+              const psaCol = headerTexts.findIndex(h => h.toLowerCase() === 'psa' || h.toLowerCase().includes('psa') || h.toLowerCase().includes('total grades'));
+
+              rows.forEach((row) => {
+                const cells = row.querySelectorAll('div[role="gridcell"]');
+                if (cells.length === 0) return;
+
+                const safeText = (idx) => cells[idx] && cells[idx].textContent ? cells[idx].textContent.trim() : '';
+                const name = safeText(nameCol >= 0 ? nameCol : 1);
+                const number = safeText(numberCol >= 0 ? numberCol : 0);
+                const cardSet = safeText(setCol >= 0 ? setCol : 2);
+                const psaText = safeText(psaCol >= 0 ? psaCol : 3);
+
+                const hasNumber = number && /^\d+/.test(number);
+                const hasName = name && name.length > 0 && name.length < 100;
+
+                if (hasNumber || hasName) {
+                  const psaCountStr = psaText ? psaText.replace(/[,\s]/g, '') : '';
+                  cards.push({
+                    number: number || '',
+                    player: name,
+                    parallel: cardSet || '',
+                    psaGraded: psaCountStr && /^\d+$/.test(psaCountStr) ? parseInt(psaCountStr, 10) : null,
+                    key: `${number || ''}|${name}|${cardSet}`
+                  });
+                }
+              });
+
+              return cards;
+            });
+          } catch (e) {
+            console.log(`⚠️ GemRate player extraction error: ${e.message}`);
+            return [];
+          }
+        };
+
+        // Top
+        let cards = await extractCardsSafely();
+        cards.forEach(card => {
+          if (!allExtractedCards.has(card.key)) {
+            allExtractedCards.set(card.key, card);
+          }
+        });
+        console.log(`📊 GemRate player initial extraction: ${allExtractedCards.size} unique cards`);
+
+        // Middle
+        try {
+          await this.page.evaluate((el) => {
+            if (el) el.scrollTop = el.scrollHeight / 2;
+          }, viewport);
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          cards = await extractCardsSafely();
+          cards.forEach(card => {
+            if (!allExtractedCards.has(card.key)) {
+              allExtractedCards.set(card.key, card);
+            }
+          });
+          console.log(`📊 GemRate player after middle scroll: ${allExtractedCards.size} unique cards`);
+        } catch (e) {
+          console.log(`⚠️ GemRate player middle scroll error: ${e.message}`);
+        }
+
+        // Bottom
+        try {
+          await this.page.evaluate((el) => {
+            if (el) el.scrollTop = el.scrollHeight;
+          }, viewport);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          cards = await extractCardsSafely();
+          cards.forEach(card => {
+            if (!allExtractedCards.has(card.key)) {
+              allExtractedCards.set(card.key, card);
+            }
+          });
+          console.log(`📊 GemRate player after bottom scroll: ${allExtractedCards.size} unique cards`);
+        } catch (e) {
+          console.log(`⚠️ GemRate player bottom scroll error: ${e.message}`);
+        }
+
+        // Back to top
+        try {
+          await this.page.evaluate((el) => {
+            if (el) el.scrollTop = 0;
+          }, viewport);
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          cards = await extractCardsSafely();
+          cards.forEach(card => {
+            if (!allExtractedCards.has(card.key)) {
+              allExtractedCards.set(card.key, card);
+            }
+          });
+          console.log(`📊 GemRate player after top scroll: ${allExtractedCards.size} unique cards`);
+        } catch (e) {
+          console.log(`⚠️ GemRate player top scroll error: ${e.message}`);
+        }
+      } else {
+        console.log('⚠️ GemRate player viewport not found for scrolling');
+      }
+
+      // Build final array
+      const finalCards = Array.from(allExtractedCards.values()).map(card => ({
+        number: card.number,
+        player: card.player,
+        parallel: card.parallel,
+        psaGraded: card.psaGraded
+      }));
+
+      // Sort by PSA graded desc when available
+      finalCards.sort((a, b) => {
+        const aPsa = typeof a.psaGraded === 'number' ? a.psaGraded : -1;
+        const bPsa = typeof b.psaGraded === 'number' ? b.psaGraded : -1;
+        return bPsa - aPsa;
+      });
+
+      console.log(`✅ GemRate player cards extracted: ${finalCards.length}`);
+      return finalCards;
+    } catch (error) {
+      console.error('❌ Error fetching GemRate player cards:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Analyze card investment potential using GemRate PSA data
    * @param {string} cardName - Name of the card
    * @param {Object} priceData - Current price data from eBay

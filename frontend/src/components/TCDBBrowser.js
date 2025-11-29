@@ -23,6 +23,14 @@ const TCDBBrowser = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [playerSearch, setPlayerSearch] = useState('');
+
+  // GemRate player search states
+  const [playerSearchName, setPlayerSearchName] = useState('');
+  const [playerSearchCategory, setPlayerSearchCategory] = useState('football-cards');
+  const [playerSearchGrader, setPlayerSearchGrader] = useState('psa');
+  const [playerSearchResults, setPlayerSearchResults] = useState([]);
+  const [playerSearchLoading, setPlayerSearchLoading] = useState(false);
+  const [playerSearchError, setPlayerSearchError] = useState('');
   
   // Database info
   const [dbInfo, setDbInfo] = useState({ total: 0 });
@@ -194,6 +202,40 @@ const TCDBBrowser = () => {
     }
   };
 
+  const handlePlayerSearch = async () => {
+    if (!playerSearchName.trim()) {
+      setPlayerSearchError('Please enter a player name');
+      return;
+    }
+
+    setPlayerSearchLoading(true);
+    setPlayerSearchError('');
+
+    try {
+      const params = new URLSearchParams({
+        grader: playerSearchGrader,
+        category: playerSearchCategory,
+        player: playerSearchName.trim()
+      });
+
+      const response = await fetch(`${API_BASE_URL}/api/gemrate/player?${params.toString()}`);
+      const data = await response.json();
+
+      if (data.success && data.data && Array.isArray(data.data.cards)) {
+        setPlayerSearchResults(data.data.cards);
+      } else {
+        setPlayerSearchResults([]);
+        setPlayerSearchError(data.error || 'No cards found for this player');
+      }
+    } catch (err) {
+      console.error('Error searching GemRate player cards:', err);
+      setPlayerSearchResults([]);
+      setPlayerSearchError('Error searching player cards: ' + err.message);
+    } finally {
+      setPlayerSearchLoading(false);
+    }
+  };
+
   return (
     <div className="tcdb-browser">
       <div className="tcdb-header">
@@ -206,6 +248,89 @@ const TCDBBrowser = () => {
             </button>
           )}
         </div>
+      </div>
+
+      {/* GemRate Player Search Section */}
+      <div className="player-search-section">
+        <h2>GemRate Player Search</h2>
+        <div className="player-search-form">
+          <input
+            type="text"
+            placeholder="Player name (e.g., Bo Nix)"
+            value={playerSearchName}
+            onChange={(e) => setPlayerSearchName(e.target.value)}
+            className="player-search-input"
+          />
+          <select
+            value={playerSearchCategory}
+            onChange={(e) => setPlayerSearchCategory(e.target.value)}
+            className="player-search-select"
+          >
+            <option value="football-cards">Football</option>
+            <option value="baseball-cards">Baseball</option>
+            <option value="basketball-cards">Basketball</option>
+            <option value="hockey-cards">Hockey</option>
+          </select>
+          <select
+            value={playerSearchGrader}
+            onChange={(e) => setPlayerSearchGrader(e.target.value)}
+            className="player-search-select"
+          >
+            <option value="psa">PSA</option>
+            <option value="bgs">BGS</option>
+            <option value="sgc">SGC</option>
+            <option value="cgc">CGC</option>
+          </select>
+          <button
+            onClick={handlePlayerSearch}
+            disabled={playerSearchLoading}
+            className="player-search-button"
+          >
+            {playerSearchLoading ? 'Searching...' : 'Search Player'}
+          </button>
+        </div>
+        {playerSearchError && (
+          <div className="error-message">{playerSearchError}</div>
+        )}
+        {playerSearchResults.length > 0 && (
+          <div className="player-search-results">
+            <h3>
+              Results for {playerSearchName} ({playerSearchResults.length} cards)
+            </h3>
+            <div className="checklist-container">
+              <table className="checklist-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '100px' }}>Card #</th>
+                    <th>Player</th>
+                    <th>Parallel / Set</th>
+                    <th style={{ width: '140px' }}>PSA Graded</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {playerSearchResults.map((card, index) => {
+                    const psaGraded =
+                      typeof card.psaGraded === 'number'
+                        ? card.psaGraded.toLocaleString()
+                        : 'N/A';
+                    return (
+                      <tr
+                        key={index}
+                        onClick={() => handleCardClick(card)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <td>{card.number || 'N/A'}</td>
+                        <td>{card.player || 'N/A'}</td>
+                        <td>{card.parallel || card.set || 'N/A'}</td>
+                        <td>{psaGraded}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
       {error && <div className="error-message">{error}</div>}

@@ -360,3 +360,60 @@
   cursor: not-allowed;
 }
 
+/* GemRate player search */
+.player-search-section {
+  background: #111;
+  border: 2px solid #ffd700;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.player-search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+  align-items: center;
+}
+
+.player-search-input {
+  flex: 2;
+  min-width: 200px;
+  padding: 8px 10px;
+  border-radius: 5px;
+  border: 1px solid #444;
+  background: #000;
+  color: #ffd700;
+}
+
+.player-search-select {
+  flex: 1;
+  min-width: 140px;
+  padding: 8px 10px;
+  border-radius: 5px;
+  border: 1px solid #444;
+  background: #000;
+  color: #ffd700;
+}
+
+.player-search-button {
+  padding: 8px 16px;
+  border-radius: 5px;
+  border: none;
+  background: #ffd700;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.player-search-button:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.player-search-button:hover:not(:disabled) {
+  background: #ffea00;
+}
+

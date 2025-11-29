@@ -297,4 +297,44 @@ router.get('/universal-pop-report/checklist/:setPath', async (req, res) => {
   }
 });
 
+// GET /api/gemrate/player - Get cards for a specific player (GemRate player page)
+router.get('/player', async (req, res) => {
+  try {
+    const { grader = 'psa', category = 'football-cards', player } = req.query;
+
+    if (!player) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required query parameter: player'
+      });
+    }
+
+    console.log(`📇 GemRate player cards request: grader=${grader}, category=${category}, player=${player}`);
+
+    const cards = await gemrateService.getPlayerCards({
+      grader,
+      category,
+      player
+    });
+
+    res.json({
+      success: true,
+      data: {
+        grader,
+        category,
+        player,
+        cards
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ GemRate player search error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get GemRate player cards',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;
