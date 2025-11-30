@@ -2418,15 +2418,34 @@ class GemRateService {
               console.log('📊 GemRate player extraction debug:', JSON.stringify(debugInfo));
 
               dataRows.forEach((row, rowIndex) => {
-                const cells = row.querySelectorAll('div[role="gridcell"]');
+                // Try multiple selectors for cells - AG Grid can use different structures
+                let cells = row.querySelectorAll('div[role="gridcell"]');
                 if (cells.length === 0) {
-                  console.log(`⚠️ Row ${rowIndex}: no cells`);
+                  // Try alternative selectors
+                  cells = row.querySelectorAll('.ag-cell, [class*="ag-cell"], div[col-id]');
+                }
+                if (cells.length === 0) {
+                  // Try getting all divs in the row
+                  const allDivs = row.querySelectorAll('div');
+                  if (allDivs.length > 0) {
+                    // Filter to divs that look like cells (not empty, not just whitespace)
+                    cells = Array.from(allDivs).filter(div => {
+                      const text = (div.textContent || '').trim();
+                      return text.length > 0 && !div.classList.contains('ag-row') && !div.classList.contains('ag-header');
+                    });
+                  }
+                }
+                if (cells.length === 0) {
+                  console.log(`⚠️ Row ${rowIndex}: no cells found. Row HTML:`, row.innerHTML.substring(0, 200));
                   return;
                 }
 
+                // Convert to array for consistent handling
+                const cellsArray = Array.from(cells);
+
                 const safeText = (idx) => {
-                  if (idx < 0 || idx >= cells.length) return '';
-                  return cells[idx] && cells[idx].textContent ? cells[idx].textContent.trim() : '';
+                  if (idx < 0 || idx >= cellsArray.length) return '';
+                  return cellsArray[idx] && cellsArray[idx].textContent ? cellsArray[idx].textContent.trim() : '';
                 };
                 
                 const category = safeText(catCol >= 0 ? catCol : 0);
@@ -2441,8 +2460,10 @@ class GemRateService {
 
                 // Log first row for debugging
                 if (rowIndex === 0) {
+                  const cellTexts = cellsArray.slice(0, 10).map(c => (c.textContent || '').trim().substring(0, 30));
                   console.log(`📊 First row data:`, {
-                    cells: cells.length,
+                    cells: cellsArray.length,
+                    cellTexts: cellTexts,
                     category,
                     year,
                     setName,
