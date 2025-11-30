@@ -2375,6 +2375,33 @@ class GemRateService {
           try {
             return await this.page.evaluate(() => {
               const cards = [];
+              
+              // First, try to access AG Grid API directly to get row data
+              let rowData = null;
+              try {
+                // AG Grid typically exposes the grid API
+                const gridApi = window.agGrid?.api || 
+                               (document.querySelector('.ag-root-wrapper')?.__agGridInstance?.api) ||
+                               (document.querySelector('[role="grid"]')?.__agGridInstance?.api);
+                
+                if (gridApi && typeof gridApi.getDisplayedRowCount === 'function') {
+                  const rowCount = gridApi.getDisplayedRowCount();
+                  console.log(`📊 AG Grid API found, row count: ${rowCount}`);
+                  
+                  // Get all row data from AG Grid API
+                  rowData = [];
+                  for (let i = 0; i < rowCount; i++) {
+                    const node = gridApi.getDisplayedRowAtIndex(i);
+                    if (node && node.data) {
+                      rowData.push(node.data);
+                    }
+                  }
+                  console.log(`📊 AG Grid API extracted ${rowData.length} rows`);
+                }
+              } catch (e) {
+                console.log(`⚠️ AG Grid API access failed: ${e.message}`);
+              }
+
               const rows = document.querySelectorAll('div[role="row"]');
               
               // Skip header rows
@@ -2413,10 +2440,38 @@ class GemRateService {
                   gems: gemsCol,
                   total: totalCol,
                   gemRate: gemRateCol
-                }
+                },
+                agGridApiData: rowData ? rowData.length : 0
               };
               console.log('📊 GemRate player extraction debug:', JSON.stringify(debugInfo));
 
+              // If we got data from AG Grid API, use it directly
+              if (rowData && rowData.length > 0) {
+                rowData.forEach((data, index) => {
+                  // Map AG Grid data fields to our card structure
+                  const card = {
+                    number: data['Card #'] || data.cardNumber || data.number || '',
+                    player: data.Name || data.name || data.player || '',
+                    category: data.Cat || data.category || '',
+                    year: data.Year || data.year || '',
+                    set: data.Set || data.set || '',
+                    parallel: data.Parallel || data.parallel || '',
+                    gems: data.Gems ? parseInt(String(data.Gems).replace(/[,\s]/g, ''), 10) : null,
+                    totalGrades: data.Total ? parseInt(String(data.Total).replace(/[,\s]/g, ''), 10) : null,
+                    gemRate: data['Gem Rate'] || data.gemRate || '',
+                    gemrateId: data.gemrateId || data.gemrate_id || data.id || null,
+                    key: `${data['Card #'] || data.cardNumber || ''}|${data.Name || data.name || ''}|${data.Set || data.set || ''}|${data.Parallel || data.parallel || ''}`
+                  };
+                  
+                  if (card.number || card.player) {
+                    cards.push(card);
+                  }
+                });
+                console.log(`✅ Extracted ${cards.length} cards from AG Grid API`);
+                return cards;
+              }
+
+              // Fallback to DOM scraping if API didn't work
               dataRows.forEach((row, rowIndex) => {
                 // Try multiple selectors for cells - AG Grid can use different structures
                 let cells = row.querySelectorAll('div[role="gridcell"]');
