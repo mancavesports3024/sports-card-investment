@@ -2323,7 +2323,8 @@ class GemRateService {
       // Capture useful console logs from the page
       this.page.on('console', msg => {
         const text = msg.text();
-        if (text.includes('AG Grid') || text.includes('Card') || text.includes('extraction')) {
+        if (text.includes('AG Grid') || text.includes('Card') || text.includes('extraction') || 
+            text.includes('GemRate player') || text.includes('📊') || text.includes('⚠️')) {
           console.log(`[GemRate Player Console] ${text}`);
         }
       });
@@ -2375,6 +2376,12 @@ class GemRateService {
             return await this.page.evaluate(() => {
               const cards = [];
               const rows = document.querySelectorAll('div[role="row"]');
+              
+              // Skip header rows
+              const dataRows = Array.from(rows).filter(row => 
+                !row.classList.contains('ag-header-row') && 
+                !row.getAttribute('role')?.includes('header')
+              );
 
               const headerCells = Array.from(document.querySelectorAll('.ag-header-cell-text'));
               const headerTexts = headerCells.map(h => (h.textContent || '').trim());
@@ -2391,12 +2398,37 @@ class GemRateService {
               const totalCol = lowerHeaders.findIndex(h => h === 'total' || h.includes('total grades') || h.includes('total ') || h.includes('↓ total'));
               const gemRateCol = lowerHeaders.findIndex(h => h.includes('gem rate') || h.includes('gem %'));
 
+              // Debug: log what we found
+              const debugInfo = {
+                totalRows: rows.length,
+                dataRows: dataRows.length,
+                headers: headerTexts,
+                columnIndexes: {
+                  cat: catCol,
+                  year: yearCol,
+                  set: setCol,
+                  name: nameCol,
+                  parallel: parallelCol,
+                  cardNum: cardNumCol,
+                  gems: gemsCol,
+                  total: totalCol,
+                  gemRate: gemRateCol
+                }
+              };
+              console.log('📊 GemRate player extraction debug:', JSON.stringify(debugInfo));
 
-              rows.forEach((row) => {
+              dataRows.forEach((row, rowIndex) => {
                 const cells = row.querySelectorAll('div[role="gridcell"]');
-                if (cells.length === 0) return;
+                if (cells.length === 0) {
+                  console.log(`⚠️ Row ${rowIndex}: no cells`);
+                  return;
+                }
 
-                const safeText = (idx) => cells[idx] && cells[idx].textContent ? cells[idx].textContent.trim() : '';
+                const safeText = (idx) => {
+                  if (idx < 0 || idx >= cells.length) return '';
+                  return cells[idx] && cells[idx].textContent ? cells[idx].textContent.trim() : '';
+                };
+                
                 const category = safeText(catCol >= 0 ? catCol : 0);
                 const year = safeText(yearCol >= 0 ? yearCol : 1);
                 const setName = safeText(setCol >= 0 ? setCol : 2);
@@ -2406,6 +2438,21 @@ class GemRateService {
                 const gemsText = safeText(gemsCol >= 0 ? gemsCol : 6);
                 const totalText = safeText(totalCol >= 0 ? totalCol : 7);
                 const gemRateText = safeText(gemRateCol >= 0 ? gemRateCol : 8);
+
+                // Log first row for debugging
+                if (rowIndex === 0) {
+                  console.log(`📊 First row data:`, {
+                    cells: cells.length,
+                    category,
+                    year,
+                    setName,
+                    name,
+                    parallel,
+                    cardNumber,
+                    gemsText,
+                    totalText
+                  });
+                }
 
                 const hasNumber = cardNumber && cardNumber.length > 0;
                 const hasName = name && name.length > 0 && name.length < 100;
