@@ -457,7 +457,16 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     // Only include the most common parallel indicators to avoid overly long queries
     // IMPORTANT: If we added a parallel to the query (cleanParallel is not empty),
     // we should NOT add exclusions, as we're searching for that specific parallel
-    const isBaseCard = !cleanParallel && (!parallel || parallel.toLowerCase() === 'base' || parallel === 'Base Checklist');
+    const hasParallel = cleanParallel && cleanParallel.trim().length > 0;
+    const isBaseCard = !hasParallel && (!parallel || parallel.toLowerCase() === 'base' || parallel === 'Base Checklist');
+    
+    console.log('🔍 Query building debug:', { 
+      parallel, 
+      cleanParallel, 
+      hasParallel, 
+      isBaseCard 
+    });
+    
     if (isBaseCard) {
       // Minimal list of the most common parallel keywords
       // Focus on terms that are almost always parallels, not base cards
@@ -478,12 +487,9 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       // Format exclusions as: -(keyword1, keyword2, keyword3, ...)
       const exclusionString = `-(${parallelExclusions.join(', ')})`;
       query = `${query} ${exclusionString}`;
-    } else {
-      // We're searching for a specific parallel card - remove that parallel type from exclusions
-      // if it somehow got into the exclusion list (shouldn't happen, but just in case)
-      // Actually, we shouldn't add exclusions at all for parallel cards, so this else block
-      // is just for clarity - no exclusions are added for parallel cards
     }
+    // If we're searching for a parallel card, we don't add exclusions at all
+    // This prevents filtering out the cards we're actually looking for
     
     console.log('🔍 Built search query:', query);
     return query;
