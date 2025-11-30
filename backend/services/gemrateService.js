@@ -2406,6 +2406,49 @@ class GemRateService {
                 const totalText = safeText(totalCol >= 0 ? totalCol : 7);
                 const gemRateText = safeText(gemRateCol >= 0 ? gemRateCol : 8);
 
+                // Try to extract GemRate ID from row data or links
+                let gemrateId = null;
+                
+                // First, try to access AG Grid's internal row data (most reliable)
+                try {
+                  // AG Grid stores row data in the row element's __agRowData or similar
+                  const rowData = row.__agRowData || row._agRowData || 
+                                 (row.getAttribute && row.getAttribute('row-id') ? 
+                                  window.agGrid && window.agGrid.getRowData && window.agGrid.getRowData(row) : null);
+                  if (rowData && (rowData.gemrateId || rowData.gemrate_id || rowData.id)) {
+                    gemrateId = rowData.gemrateId || rowData.gemrate_id || rowData.id;
+                  }
+                } catch (e) {
+                  // AG Grid API not accessible, continue with DOM methods
+                }
+                
+                // Fallback: Check for data attributes on the row
+                if (!gemrateId) {
+                  if (row.dataset && row.dataset.gemrateId) {
+                    gemrateId = row.dataset.gemrateId;
+                  } else if (row.getAttribute && row.getAttribute('data-gemrate-id')) {
+                    gemrateId = row.getAttribute('data-gemrate-id');
+                  } else {
+                    // Look for links in cells that might contain the ID
+                    const links = row.querySelectorAll('a[href]');
+                    for (const link of links) {
+                      const href = link.getAttribute('href') || '';
+                      // Check for /card/ or /universal-pop-report/ patterns that might contain ID
+                      const cardMatch = href.match(/\/card\/([^\/\?]+)/);
+                      const popReportMatch = href.match(/\/universal-pop-report\/([^\/\?]+)/);
+                      if (cardMatch && cardMatch[1]) {
+                        // Card slug might be extractable, but we need the actual gemrate_id
+                        // For now, we'll try to get it from the row's data if available
+                      }
+                      // Check if link has data attributes
+                      if (link.dataset && link.dataset.gemrateId) {
+                        gemrateId = link.dataset.gemrateId;
+                        break;
+                      }
+                    }
+                  }
+                }
+
                 const hasNumber = cardNumber && cardNumber.length > 0;
                 const hasName = name && name.length > 0 && name.length < 100;
 
@@ -2423,6 +2466,7 @@ class GemRateService {
                     gems: gemsStr && /^\d+$/.test(gemsStr) ? parseInt(gemsStr, 10) : null,
                     totalGrades: totalStr && /^\d+$/.test(totalStr) ? parseInt(totalStr, 10) : null,
                     gemRate: gemRateText || '',
+                    gemrateId: gemrateId || null, // Include GemRate ID if found
                     key: `${cardNumber || ''}|${name}|${setName}|${parallel}`
                   });
                 }
@@ -2543,7 +2587,8 @@ class GemRateService {
         parallel: card.parallel,
         gems: card.gems,
         totalGrades: card.totalGrades,
-        gemRate: card.gemRate
+        gemRate: card.gemRate,
+        gemrateId: card.gemrateId || null // Include GemRate ID if we extracted it
       }));
 
       // Sort by total grades desc when available (like GemRate)
