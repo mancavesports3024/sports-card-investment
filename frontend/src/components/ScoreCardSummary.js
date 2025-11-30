@@ -414,6 +414,15 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       // Remove "Paper" from set names (e.g., "Bowman Paper Prospects" -> "Bowman Prospects")
       cleanSetName = cleanSetName.replace(/\s*Paper\s*/gi, ' ').trim();
       
+      // Remove "Mega Box" from set names (e.g., "Bowman Mega Box Chrome Prospects" -> "Bowman Chrome Prospects")
+      cleanSetName = cleanSetName.replace(/\s*Mega\s+Box\s*/gi, ' ').trim();
+      
+      // Remove "Edition" from set names (e.g., "Bowman Sapphire Edition Chrome Prospects" -> "Bowman Sapphire Chrome Prospects")
+      cleanSetName = cleanSetName.replace(/\s*Edition\s*/gi, ' ').trim();
+      
+      // Replace "Autographs" with "auto" (e.g., "Bowman Chrome Prospect Autographs" -> "Bowman Chrome Prospect auto")
+      cleanSetName = cleanSetName.replace(/\bAutographs\b/gi, 'auto').trim();
+      
       if (cleanSetName) {
         parts.push(cleanSetName);
       }
