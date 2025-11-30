@@ -484,9 +484,23 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
         'lazer', 'pandora', 'speckle', 'sparkle'
       ];
       
-      // Format exclusions as: -(keyword1, keyword2, keyword3, ...)
-      const exclusionString = `-(${parallelExclusions.join(', ')})`;
-      query = `${query} ${exclusionString}`;
+      // IMPORTANT: Remove any exclusion keywords that appear in the query
+      // For example, if searching for "Downtown!" card, we shouldn't exclude "downtown"
+      const queryLower = query.toLowerCase();
+      parallelExclusions = parallelExclusions.filter(exclusion => {
+        const exclusionLower = exclusion.toLowerCase();
+        // Check if the exclusion keyword appears in the query
+        // Use word boundaries to avoid partial matches (e.g., "downtown" in "downtown!" should match)
+        const exclusionRegex = new RegExp(`\\b${exclusionLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        return !exclusionRegex.test(query);
+      });
+      
+      // Only add exclusions if there are any left after filtering
+      if (parallelExclusions.length > 0) {
+        // Format exclusions as: -(keyword1, keyword2, keyword3, ...)
+        const exclusionString = `-(${parallelExclusions.join(', ')})`;
+        query = `${query} ${exclusionString}`;
+      }
     }
     // If we're searching for a parallel card, we don't add exclusions at all
     // This prevents filtering out the cards we're actually looking for
