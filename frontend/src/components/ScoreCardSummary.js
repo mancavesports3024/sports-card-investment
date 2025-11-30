@@ -46,6 +46,21 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
 
   const fetchGemrateData = async () => {
     try {
+      // If we have gemrateId from the player search, use it directly instead of searching
+      if (card?.gemrateId) {
+        console.log(`[ScoreCardSummary] Using gemrateId from card: ${card.gemrateId}`);
+        const response = await fetch(`${API_BASE_URL}/api/gemrate/details/${encodeURIComponent(card.gemrateId)}`);
+        const data = await response.json();
+        console.log(`[ScoreCardSummary] GemRate details response:`, data);
+        
+        if (data.success && data.data && data.data.population) {
+          console.log(`[ScoreCardSummary] Setting GemRate data from gemrateId:`, data.data.population);
+          setGemrateData(data.data.population);
+          return;
+        }
+      }
+      
+      // Fallback to search if no gemrateId
       const searchQuery = cardData.searchQuery;
       // Clean the search query - remove exclusions for GemRate
       let cleanQuery = searchQuery;
@@ -54,7 +69,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
         cleanQuery = cleanQuery.substring(0, exclusionIndex).trim();
       }
       
-      console.log(`[ScoreCardSummary] Fetching GemRate data for: "${cleanQuery}"`);
+      console.log(`[ScoreCardSummary] Fetching GemRate data via search: "${cleanQuery}"`);
       const response = await fetch(`${API_BASE_URL}/api/gemrate/search/${encodeURIComponent(cleanQuery)}`);
       const data = await response.json();
       console.log(`[ScoreCardSummary] GemRate response:`, data);
@@ -395,6 +410,9 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
         .replace(/\s*Hockey\s*/gi, ' ')
         .replace(/\s*Soccer\s*/gi, ' ')
         .trim();
+      
+      // Remove "Paper" from set names (e.g., "Bowman Paper Prospects" -> "Bowman Prospects")
+      cleanSetName = cleanSetName.replace(/\s*Paper\s*/gi, ' ').trim();
       
       if (cleanSetName) {
         parts.push(cleanSetName);
