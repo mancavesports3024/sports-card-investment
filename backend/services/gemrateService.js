@@ -2379,6 +2379,9 @@ class GemRateService {
               const headerCells = Array.from(document.querySelectorAll('.ag-header-cell-text'));
               const headerTexts = headerCells.map(h => (h.textContent || '').trim());
 
+              // Log headers for debugging
+              console.log('📊 GemRate player headers:', headerTexts);
+
               const lowerHeaders = headerTexts.map(h => h.toLowerCase());
 
               const catCol = lowerHeaders.findIndex(h => h === 'cat' || h.includes('cat'));
@@ -2388,14 +2391,40 @@ class GemRateService {
               const parallelCol = lowerHeaders.findIndex(h => h.includes('parallel'));
               const cardNumCol = lowerHeaders.findIndex(h => h.includes('card #') || h === 'card #' || h.includes('card no'));
               const gemsCol = lowerHeaders.findIndex(h => h === 'gems');
-              const totalCol = lowerHeaders.findIndex(h => h === 'total' || h.includes('total grades') || h.includes('total '));
+              const totalCol = lowerHeaders.findIndex(h => h === 'total' || h.includes('total grades') || h.includes('total ') || h.includes('↓ total'));
               const gemRateCol = lowerHeaders.findIndex(h => h.includes('gem rate') || h.includes('gem %'));
 
-              rows.forEach((row) => {
-                const cells = row.querySelectorAll('div[role="gridcell"]');
-                if (cells.length === 0) return;
+              // Log column indexes for debugging
+              console.log('📊 GemRate player column indexes:', {
+                cat: catCol,
+                year: yearCol,
+                set: setCol,
+                name: nameCol,
+                parallel: parallelCol,
+                cardNum: cardNumCol,
+                gems: gemsCol,
+                total: totalCol,
+                gemRate: gemRateCol
+              });
 
-                const safeText = (idx) => cells[idx] && cells[idx].textContent ? cells[idx].textContent.trim() : '';
+              rows.forEach((row, rowIndex) => {
+                // Skip header row (first row is usually header)
+                if (rowIndex === 0 && row.classList.contains('ag-header-row')) {
+                  return;
+                }
+
+                const cells = row.querySelectorAll('div[role="gridcell"]');
+                if (cells.length === 0) {
+                  console.log(`⚠️ GemRate player row ${rowIndex}: no cells found`);
+                  return;
+                }
+
+                const safeText = (idx) => {
+                  if (idx < 0 || idx >= cells.length) return '';
+                  return cells[idx] && cells[idx].textContent ? cells[idx].textContent.trim() : '';
+                };
+                
+                // Try to get column indexes, fallback to sequential if not found
                 const category = safeText(catCol >= 0 ? catCol : 0);
                 const year = safeText(yearCol >= 0 ? yearCol : 1);
                 const setName = safeText(setCol >= 0 ? setCol : 2);
@@ -2405,6 +2434,21 @@ class GemRateService {
                 const gemsText = safeText(gemsCol >= 0 ? gemsCol : 6);
                 const totalText = safeText(totalCol >= 0 ? totalCol : 7);
                 const gemRateText = safeText(gemRateCol >= 0 ? gemRateCol : 8);
+
+                // Log first few rows for debugging
+                if (rowIndex < 3) {
+                  console.log(`📊 GemRate player row ${rowIndex} data:`, {
+                    cells: cells.length,
+                    category,
+                    year,
+                    setName,
+                    name,
+                    parallel,
+                    cardNumber,
+                    gemsText,
+                    totalText
+                  });
+                }
 
                 // Try to extract GemRate ID from row data or links
                 let gemrateId = null;
@@ -2449,14 +2493,18 @@ class GemRateService {
                   }
                 }
 
+                // More lenient validation - accept rows with any meaningful data
                 const hasNumber = cardNumber && cardNumber.length > 0;
                 const hasName = name && name.length > 0 && name.length < 100;
+                const hasSet = setName && setName.length > 0;
+                const hasYear = year && year.length > 0;
 
-                if (hasNumber || hasName) {
+                // Accept row if it has at least a name, number, set, or year
+                if (hasNumber || hasName || hasSet || hasYear) {
                   const gemsStr = gemsText ? gemsText.replace(/[,\s]/g, '') : '';
                   const totalStr = totalText ? totalText.replace(/[,\s]/g, '') : '';
 
-                  cards.push({
+                  const card = {
                     number: cardNumber || '',
                     player: name,
                     category,
@@ -2468,7 +2516,28 @@ class GemRateService {
                     gemRate: gemRateText || '',
                     gemrateId: gemrateId || null, // Include GemRate ID if found
                     key: `${cardNumber || ''}|${name}|${setName}|${parallel}`
-                  });
+                  };
+                  
+                  cards.push(card);
+                  
+                  // Log successful extraction for first few cards
+                  if (cards.length <= 3) {
+                    console.log(`✅ GemRate player extracted card ${cards.length}:`, card);
+                  }
+                } else {
+                  // Log rejected rows for debugging
+                  if (rowIndex < 5) {
+                    console.log(`⚠️ GemRate player row ${rowIndex} rejected - no valid data:`, {
+                      hasNumber,
+                      hasName,
+                      hasSet,
+                      hasYear,
+                      cardNumber,
+                      name,
+                      setName,
+                      year
+                    });
+                  }
                 }
               });
 
