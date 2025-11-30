@@ -437,9 +437,10 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     // Parallel type last (e.g., "Rainbow Foil" or "Silver Prizm")
     // Use card.team if available (from GemRate checklist), otherwise use setInfo.parallel
     let parallel = card?.team || setInfo?.parallel;
+    let cleanParallel = '';
     if (parallel && parallel.toLowerCase() !== 'base' && parallel !== 'Base Checklist') {
       // Remove trailing "s" from plural parallel types (e.g., "Silver Prizms" -> "Silver Prizm")
-      let cleanParallel = parallel;
+      cleanParallel = parallel;
       // Remove trailing "s" if the word ends with common plural patterns
       cleanParallel = cleanParallel.replace(/\b(\w+)s\b$/i, '$1');
       // Also handle cases where the last word is plural (e.g., "Silver Prizms" -> "Silver Prizm")
@@ -454,11 +455,13 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     
     // If this is a base card, add exclusion terms for parallel types
     // Only include the most common parallel indicators to avoid overly long queries
-    const isBaseCard = !parallel || parallel.toLowerCase() === 'base' || parallel === 'Base Checklist';
+    // IMPORTANT: If we added a parallel to the query (cleanParallel is not empty),
+    // we should NOT add exclusions, as we're searching for that specific parallel
+    const isBaseCard = !cleanParallel && (!parallel || parallel.toLowerCase() === 'base' || parallel === 'Base Checklist');
     if (isBaseCard) {
       // Minimal list of the most common parallel keywords
       // Focus on terms that are almost always parallels, not base cards
-      const parallelExclusions = [
+      let parallelExclusions = [
         // Most common color parallels (without "prizm" since it's already in the set name)
         'silver', 'gold', 'rainbow',
         'red', 'blue', 'green', 'purple',
@@ -475,6 +478,11 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       // Format exclusions as: -(keyword1, keyword2, keyword3, ...)
       const exclusionString = `-(${parallelExclusions.join(', ')})`;
       query = `${query} ${exclusionString}`;
+    } else {
+      // We're searching for a specific parallel card - remove that parallel type from exclusions
+      // if it somehow got into the exclusion list (shouldn't happen, but just in case)
+      // Actually, we shouldn't add exclusions at all for parallel cards, so this else block
+      // is just for clarity - no exclusions are added for parallel cards
     }
     
     console.log('🔍 Built search query:', query);
