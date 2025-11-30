@@ -300,7 +300,7 @@ router.get('/universal-pop-report/checklist/:setPath', async (req, res) => {
 // GET /api/gemrate/player - Get cards for a specific player (GemRate player page)
 router.get('/player', async (req, res) => {
   try {
-    const { grader = 'psa', category = 'football-cards', player } = req.query;
+    const { grader = 'psa', category = 'all', player } = req.query;
 
     if (!player) {
       return res.status(400).json({

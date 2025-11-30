@@ -27,7 +27,7 @@ const TCDBBrowser = () => {
 
   // GemRate player search states
   const [playerSearchName, setPlayerSearchName] = useState('');
-  const [playerSearchCategory, setPlayerSearchCategory] = useState('football-cards');
+  const [playerSearchCategory, setPlayerSearchCategory] = useState('all');
   const [playerSearchGrader, setPlayerSearchGrader] = useState('psa');
   const [playerSearchResults, setPlayerSearchResults] = useState([]);
   const [playerSearchLoading, setPlayerSearchLoading] = useState(false);
@@ -268,6 +268,7 @@ const TCDBBrowser = () => {
             onChange={(e) => setPlayerSearchCategory(e.target.value)}
             className="player-search-select"
           >
+            <option value="all">All Categories</option>
             <option value="football-cards">Football</option>
             <option value="baseball-cards">Baseball</option>
             <option value="basketball-cards">Basketball</option>

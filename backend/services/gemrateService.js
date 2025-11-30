@@ -2306,9 +2306,13 @@ class GemRateService {
 
       const queryParams = new URLSearchParams({
         grader: grader.toLowerCase(),
-        category,
         player: playerParam
       });
+      
+      // Only include category if it's not "all"
+      if (category && category.toLowerCase() !== 'all') {
+        queryParams.append('category', category);
+      }
 
       const path = `/player?${queryParams.toString()}`;
       const fullUrl = `${this.baseUrl}${path}`;
@@ -2445,11 +2449,29 @@ class GemRateService {
                   // Try to extract GemRate ID (optional, don't break extraction if it fails)
                   let gemrateId = null;
                   try {
+                    // Try AG Grid's internal row data first
                     const rowData = row.__agRowData || row._agRowData;
                     if (rowData && (rowData.gemrateId || rowData.gemrate_id || rowData.id)) {
                       gemrateId = rowData.gemrateId || rowData.gemrate_id || rowData.id;
                     } else if (row.dataset && row.dataset.gemrateId) {
                       gemrateId = row.dataset.gemrateId;
+                    } else {
+                      // Try to extract from links in cells (e.g., Universal Pop links)
+                      const links = row.querySelectorAll('a[href]');
+                      for (const link of links) {
+                        const href = link.getAttribute('href') || '';
+                        // Check for gemrate_id in URL params
+                        const gemrateIdMatch = href.match(/[?&]gemrate_id=([^&]+)/);
+                        if (gemrateIdMatch && gemrateIdMatch[1]) {
+                          gemrateId = gemrateIdMatch[1];
+                          break;
+                        }
+                        // Check for data attributes on links
+                        if (link.dataset && link.dataset.gemrateId) {
+                          gemrateId = link.dataset.gemrateId;
+                          break;
+                        }
+                      }
                     }
                   } catch (e) {
                     // Ignore errors
