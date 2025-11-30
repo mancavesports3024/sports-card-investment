@@ -2355,6 +2355,34 @@ class GemRateService {
       console.log('⏳ Waiting for GemRate player grid data to populate...');
       await new Promise(resolve => setTimeout(resolve, 5000));
 
+      // Wait for cells with actual content (not just empty rows)
+      try {
+        let attempts = 0;
+        let hasContent = false;
+        while (attempts < 10 && !hasContent) {
+          hasContent = await this.page.evaluate(() => {
+            const rows = document.querySelectorAll('div[role="row"]');
+            for (const row of rows) {
+              const cells = row.querySelectorAll('div[role="gridcell"]');
+              for (const cell of cells) {
+                const text = (cell.textContent || '').trim();
+                if (text.length > 0 && !text.match(/^(Cat|Year|Set|Name|Parallel|Card #|Gems|Total|Gem Rate)$/i)) {
+                  return true;
+                }
+              }
+            }
+            return false;
+          });
+          if (!hasContent) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            attempts++;
+          }
+        }
+        console.log(`📊 GemRate player grid has content: ${hasContent} (after ${attempts} attempts)`);
+      } catch (e) {
+        console.log('⚠️ GemRate player content check failed:', e.message);
+      }
+
       // Ensure some rows are present
       try {
         const rowCount = await this.page.evaluate(() => document.querySelectorAll('div[role="row"]').length);
@@ -2375,134 +2403,28 @@ class GemRateService {
           try {
             return await this.page.evaluate(() => {
               const cards = [];
-              
-              // First, try to access AG Grid API directly to get row data
-              let rowData = null;
-              try {
-                // AG Grid typically exposes the grid API
-                const gridApi = window.agGrid?.api || 
-                               (document.querySelector('.ag-root-wrapper')?.__agGridInstance?.api) ||
-                               (document.querySelector('[role="grid"]')?.__agGridInstance?.api);
-                
-                if (gridApi && typeof gridApi.getDisplayedRowCount === 'function') {
-                  const rowCount = gridApi.getDisplayedRowCount();
-                  console.log(`📊 AG Grid API found, row count: ${rowCount}`);
-                  
-                  // Get all row data from AG Grid API
-                  rowData = [];
-                  for (let i = 0; i < rowCount; i++) {
-                    const node = gridApi.getDisplayedRowAtIndex(i);
-                    if (node && node.data) {
-                      rowData.push(node.data);
-                    }
-                  }
-                  console.log(`📊 AG Grid API extracted ${rowData.length} rows`);
-                }
-              } catch (e) {
-                console.log(`⚠️ AG Grid API access failed: ${e.message}`);
-              }
-
               const rows = document.querySelectorAll('div[role="row"]');
               
-              // Skip header rows
-              const dataRows = Array.from(rows).filter(row => 
-                !row.classList.contains('ag-header-row') && 
-                !row.getAttribute('role')?.includes('header')
-              );
-
+              // Get column indexes from headers (same pattern as working set checklist)
               const headerCells = Array.from(document.querySelectorAll('.ag-header-cell-text'));
               const headerTexts = headerCells.map(h => (h.textContent || '').trim());
-
+              
               const lowerHeaders = headerTexts.map(h => h.toLowerCase());
-
               const catCol = lowerHeaders.findIndex(h => h === 'cat' || h.includes('cat'));
               const yearCol = lowerHeaders.findIndex(h => h === 'year');
               const setCol = lowerHeaders.findIndex(h => h === 'set' || h.includes('set '));
-              const nameCol = lowerHeaders.findIndex(h => h === 'name' || h.includes('player'));
+              const nameCol = lowerHeaders.findIndex(h => h === 'name' || h.toLowerCase().includes('player'));
               const parallelCol = lowerHeaders.findIndex(h => h.includes('parallel'));
               const cardNumCol = lowerHeaders.findIndex(h => h.includes('card #') || h === 'card #' || h.includes('card no'));
               const gemsCol = lowerHeaders.findIndex(h => h === 'gems');
               const totalCol = lowerHeaders.findIndex(h => h === 'total' || h.includes('total grades') || h.includes('total ') || h.includes('↓ total'));
               const gemRateCol = lowerHeaders.findIndex(h => h.includes('gem rate') || h.includes('gem %'));
-
-              // Debug: log what we found
-              const debugInfo = {
-                totalRows: rows.length,
-                dataRows: dataRows.length,
-                headers: headerTexts,
-                columnIndexes: {
-                  cat: catCol,
-                  year: yearCol,
-                  set: setCol,
-                  name: nameCol,
-                  parallel: parallelCol,
-                  cardNum: cardNumCol,
-                  gems: gemsCol,
-                  total: totalCol,
-                  gemRate: gemRateCol
-                },
-                agGridApiData: rowData ? rowData.length : 0
-              };
-              console.log('📊 GemRate player extraction debug:', JSON.stringify(debugInfo));
-
-              // If we got data from AG Grid API, use it directly
-              if (rowData && rowData.length > 0) {
-                rowData.forEach((data, index) => {
-                  // Map AG Grid data fields to our card structure
-                  const card = {
-                    number: data['Card #'] || data.cardNumber || data.number || '',
-                    player: data.Name || data.name || data.player || '',
-                    category: data.Cat || data.category || '',
-                    year: data.Year || data.year || '',
-                    set: data.Set || data.set || '',
-                    parallel: data.Parallel || data.parallel || '',
-                    gems: data.Gems ? parseInt(String(data.Gems).replace(/[,\s]/g, ''), 10) : null,
-                    totalGrades: data.Total ? parseInt(String(data.Total).replace(/[,\s]/g, ''), 10) : null,
-                    gemRate: data['Gem Rate'] || data.gemRate || '',
-                    gemrateId: data.gemrateId || data.gemrate_id || data.id || null,
-                    key: `${data['Card #'] || data.cardNumber || ''}|${data.Name || data.name || ''}|${data.Set || data.set || ''}|${data.Parallel || data.parallel || ''}`
-                  };
-                  
-                  if (card.number || card.player) {
-                    cards.push(card);
-                  }
-                });
-                console.log(`✅ Extracted ${cards.length} cards from AG Grid API`);
-                return cards;
-              }
-
-              // Fallback to DOM scraping if API didn't work
-              dataRows.forEach((row, rowIndex) => {
-                // Try multiple selectors for cells - AG Grid can use different structures
-                let cells = row.querySelectorAll('div[role="gridcell"]');
-                if (cells.length === 0) {
-                  // Try alternative selectors
-                  cells = row.querySelectorAll('.ag-cell, [class*="ag-cell"], div[col-id]');
-                }
-                if (cells.length === 0) {
-                  // Try getting all divs in the row
-                  const allDivs = row.querySelectorAll('div');
-                  if (allDivs.length > 0) {
-                    // Filter to divs that look like cells (not empty, not just whitespace)
-                    cells = Array.from(allDivs).filter(div => {
-                      const text = (div.textContent || '').trim();
-                      return text.length > 0 && !div.classList.contains('ag-row') && !div.classList.contains('ag-header');
-                    });
-                  }
-                }
-                if (cells.length === 0) {
-                  console.log(`⚠️ Row ${rowIndex}: no cells found. Row HTML:`, row.innerHTML.substring(0, 200));
-                  return;
-                }
-
-                // Convert to array for consistent handling
-                const cellsArray = Array.from(cells);
-
-                const safeText = (idx) => {
-                  if (idx < 0 || idx >= cellsArray.length) return '';
-                  return cellsArray[idx] && cellsArray[idx].textContent ? cellsArray[idx].textContent.trim() : '';
-                };
+              
+              rows.forEach((row) => {
+                const cells = row.querySelectorAll('div[role="gridcell"]');
+                if (cells.length === 0) return;
                 
+                const safeText = (idx) => cells[idx] && cells[idx].textContent ? cells[idx].textContent.trim() : '';
                 const category = safeText(catCol >= 0 ? catCol : 0);
                 const year = safeText(yearCol >= 0 ? yearCol : 1);
                 const setName = safeText(setCol >= 0 ? setCol : 2);
@@ -2512,56 +2434,27 @@ class GemRateService {
                 const gemsText = safeText(gemsCol >= 0 ? gemsCol : 6);
                 const totalText = safeText(totalCol >= 0 ? totalCol : 7);
                 const gemRateText = safeText(gemRateCol >= 0 ? gemRateCol : 8);
-
-                // Log first row for debugging
-                if (rowIndex === 0) {
-                  const cellTexts = cellsArray.slice(0, 10).map(c => (c.textContent || '').trim().substring(0, 30));
-                  console.log(`📊 First row data:`, {
-                    cells: cellsArray.length,
-                    cellTexts: cellTexts,
-                    category,
-                    year,
-                    setName,
-                    name,
-                    parallel,
-                    cardNumber,
-                    gemsText,
-                    totalText
-                  });
-                }
-
+                
                 const hasNumber = cardNumber && cardNumber.length > 0;
                 const hasName = name && name.length > 0 && name.length < 100;
-
+                
                 if (hasNumber || hasName) {
                   const gemsStr = gemsText ? gemsText.replace(/[,\s]/g, '') : '';
                   const totalStr = totalText ? totalText.replace(/[,\s]/g, '') : '';
-
-                  // Try to extract GemRate ID from row data or links (optional, don't break extraction if it fails)
+                  
+                  // Try to extract GemRate ID (optional, don't break extraction if it fails)
                   let gemrateId = null;
                   try {
-                    // Try AG Grid's internal row data
                     const rowData = row.__agRowData || row._agRowData;
                     if (rowData && (rowData.gemrateId || rowData.gemrate_id || rowData.id)) {
                       gemrateId = rowData.gemrateId || rowData.gemrate_id || rowData.id;
-                    } else {
-                      // Fallback: Check for data attributes or links
-                      if (row.dataset && row.dataset.gemrateId) {
-                        gemrateId = row.dataset.gemrateId;
-                      } else {
-                        const links = row.querySelectorAll('a[href]');
-                        for (const link of links) {
-                          if (link.dataset && link.dataset.gemrateId) {
-                            gemrateId = link.dataset.gemrateId;
-                            break;
-                          }
-                        }
-                      }
+                    } else if (row.dataset && row.dataset.gemrateId) {
+                      gemrateId = row.dataset.gemrateId;
                     }
                   } catch (e) {
-                    // Ignore errors extracting GemRate ID - it's optional
+                    // Ignore errors
                   }
-
+                  
                   cards.push({
                     number: cardNumber || '',
                     player: name,
