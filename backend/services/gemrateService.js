@@ -2379,9 +2379,6 @@ class GemRateService {
               const headerCells = Array.from(document.querySelectorAll('.ag-header-cell-text'));
               const headerTexts = headerCells.map(h => (h.textContent || '').trim());
 
-              // Log headers for debugging
-              console.log('📊 GemRate player headers:', headerTexts);
-
               const lowerHeaders = headerTexts.map(h => h.toLowerCase());
 
               const catCol = lowerHeaders.findIndex(h => h === 'cat' || h.includes('cat'));
@@ -2394,37 +2391,12 @@ class GemRateService {
               const totalCol = lowerHeaders.findIndex(h => h === 'total' || h.includes('total grades') || h.includes('total ') || h.includes('↓ total'));
               const gemRateCol = lowerHeaders.findIndex(h => h.includes('gem rate') || h.includes('gem %'));
 
-              // Log column indexes for debugging
-              console.log('📊 GemRate player column indexes:', {
-                cat: catCol,
-                year: yearCol,
-                set: setCol,
-                name: nameCol,
-                parallel: parallelCol,
-                cardNum: cardNumCol,
-                gems: gemsCol,
-                total: totalCol,
-                gemRate: gemRateCol
-              });
 
-              rows.forEach((row, rowIndex) => {
-                // Skip header row (first row is usually header)
-                if (rowIndex === 0 && row.classList.contains('ag-header-row')) {
-                  return;
-                }
-
+              rows.forEach((row) => {
                 const cells = row.querySelectorAll('div[role="gridcell"]');
-                if (cells.length === 0) {
-                  console.log(`⚠️ GemRate player row ${rowIndex}: no cells found`);
-                  return;
-                }
+                if (cells.length === 0) return;
 
-                const safeText = (idx) => {
-                  if (idx < 0 || idx >= cells.length) return '';
-                  return cells[idx] && cells[idx].textContent ? cells[idx].textContent.trim() : '';
-                };
-                
-                // Try to get column indexes, fallback to sequential if not found
+                const safeText = (idx) => cells[idx] && cells[idx].textContent ? cells[idx].textContent.trim() : '';
                 const category = safeText(catCol >= 0 ? catCol : 0);
                 const year = safeText(yearCol >= 0 ? yearCol : 1);
                 const setName = safeText(setCol >= 0 ? setCol : 2);
@@ -2435,76 +2407,39 @@ class GemRateService {
                 const totalText = safeText(totalCol >= 0 ? totalCol : 7);
                 const gemRateText = safeText(gemRateCol >= 0 ? gemRateCol : 8);
 
-                // Log first few rows for debugging
-                if (rowIndex < 3) {
-                  console.log(`📊 GemRate player row ${rowIndex} data:`, {
-                    cells: cells.length,
-                    category,
-                    year,
-                    setName,
-                    name,
-                    parallel,
-                    cardNumber,
-                    gemsText,
-                    totalText
-                  });
-                }
-
-                // Try to extract GemRate ID from row data or links
-                let gemrateId = null;
-                
-                // First, try to access AG Grid's internal row data (most reliable)
-                try {
-                  // AG Grid stores row data in the row element's __agRowData or similar
-                  const rowData = row.__agRowData || row._agRowData || 
-                                 (row.getAttribute && row.getAttribute('row-id') ? 
-                                  window.agGrid && window.agGrid.getRowData && window.agGrid.getRowData(row) : null);
-                  if (rowData && (rowData.gemrateId || rowData.gemrate_id || rowData.id)) {
-                    gemrateId = rowData.gemrateId || rowData.gemrate_id || rowData.id;
-                  }
-                } catch (e) {
-                  // AG Grid API not accessible, continue with DOM methods
-                }
-                
-                // Fallback: Check for data attributes on the row
-                if (!gemrateId) {
-                  if (row.dataset && row.dataset.gemrateId) {
-                    gemrateId = row.dataset.gemrateId;
-                  } else if (row.getAttribute && row.getAttribute('data-gemrate-id')) {
-                    gemrateId = row.getAttribute('data-gemrate-id');
-                  } else {
-                    // Look for links in cells that might contain the ID
-                    const links = row.querySelectorAll('a[href]');
-                    for (const link of links) {
-                      const href = link.getAttribute('href') || '';
-                      // Check for /card/ or /universal-pop-report/ patterns that might contain ID
-                      const cardMatch = href.match(/\/card\/([^\/\?]+)/);
-                      const popReportMatch = href.match(/\/universal-pop-report\/([^\/\?]+)/);
-                      if (cardMatch && cardMatch[1]) {
-                        // Card slug might be extractable, but we need the actual gemrate_id
-                        // For now, we'll try to get it from the row's data if available
-                      }
-                      // Check if link has data attributes
-                      if (link.dataset && link.dataset.gemrateId) {
-                        gemrateId = link.dataset.gemrateId;
-                        break;
-                      }
-                    }
-                  }
-                }
-
-                // More lenient validation - accept rows with any meaningful data
                 const hasNumber = cardNumber && cardNumber.length > 0;
                 const hasName = name && name.length > 0 && name.length < 100;
-                const hasSet = setName && setName.length > 0;
-                const hasYear = year && year.length > 0;
 
-                // Accept row if it has at least a name, number, set, or year
-                if (hasNumber || hasName || hasSet || hasYear) {
+                if (hasNumber || hasName) {
                   const gemsStr = gemsText ? gemsText.replace(/[,\s]/g, '') : '';
                   const totalStr = totalText ? totalText.replace(/[,\s]/g, '') : '';
 
-                  const card = {
+                  // Try to extract GemRate ID from row data or links (optional, don't break extraction if it fails)
+                  let gemrateId = null;
+                  try {
+                    // Try AG Grid's internal row data
+                    const rowData = row.__agRowData || row._agRowData;
+                    if (rowData && (rowData.gemrateId || rowData.gemrate_id || rowData.id)) {
+                      gemrateId = rowData.gemrateId || rowData.gemrate_id || rowData.id;
+                    } else {
+                      // Fallback: Check for data attributes or links
+                      if (row.dataset && row.dataset.gemrateId) {
+                        gemrateId = row.dataset.gemrateId;
+                      } else {
+                        const links = row.querySelectorAll('a[href]');
+                        for (const link of links) {
+                          if (link.dataset && link.dataset.gemrateId) {
+                            gemrateId = link.dataset.gemrateId;
+                            break;
+                          }
+                        }
+                      }
+                    }
+                  } catch (e) {
+                    // Ignore errors extracting GemRate ID - it's optional
+                  }
+
+                  cards.push({
                     number: cardNumber || '',
                     player: name,
                     category,
@@ -2514,30 +2449,9 @@ class GemRateService {
                     gems: gemsStr && /^\d+$/.test(gemsStr) ? parseInt(gemsStr, 10) : null,
                     totalGrades: totalStr && /^\d+$/.test(totalStr) ? parseInt(totalStr, 10) : null,
                     gemRate: gemRateText || '',
-                    gemrateId: gemrateId || null, // Include GemRate ID if found
+                    gemrateId: gemrateId || null,
                     key: `${cardNumber || ''}|${name}|${setName}|${parallel}`
-                  };
-                  
-                  cards.push(card);
-                  
-                  // Log successful extraction for first few cards
-                  if (cards.length <= 3) {
-                    console.log(`✅ GemRate player extracted card ${cards.length}:`, card);
-                  }
-                } else {
-                  // Log rejected rows for debugging
-                  if (rowIndex < 5) {
-                    console.log(`⚠️ GemRate player row ${rowIndex} rejected - no valid data:`, {
-                      hasNumber,
-                      hasName,
-                      hasSet,
-                      hasYear,
-                      cardNumber,
-                      name,
-                      setName,
-                      year
-                    });
-                  }
+                  });
                 }
               });
 
