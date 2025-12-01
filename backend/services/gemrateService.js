@@ -2501,71 +2501,14 @@ class GemRateService {
           }
         };
 
-        // Helper to scroll within current page and extract visible rows
-        const scrollAndExtractCurrentPage = async (pageLabel) => {
-          // Top
-          let cards = await extractCardsSafely();
-          cards.forEach(card => {
-            if (!allExtractedCards.has(card.key)) {
-              allExtractedCards.set(card.key, card);
-            }
-          });
-          console.log(`📊 GemRate player ${pageLabel} initial extraction: ${allExtractedCards.size} unique cards`);
-
-          // Middle
-          try {
-            await this.page.evaluate((el) => {
-              if (el) el.scrollTop = el.scrollHeight / 2;
-            }, viewport);
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            cards = await extractCardsSafely();
-            cards.forEach(card => {
-              if (!allExtractedCards.has(card.key)) {
-                allExtractedCards.set(card.key, card);
-              }
-            });
-            console.log(`📊 GemRate player ${pageLabel} after middle scroll: ${allExtractedCards.size} unique cards`);
-          } catch (e) {
-            console.log(`⚠️ GemRate player ${pageLabel} middle scroll error: ${e.message}`);
-          }
-
-          // Bottom
-          try {
-            await this.page.evaluate((el) => {
-              if (el) el.scrollTop = el.scrollHeight;
-            }, viewport);
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            cards = await extractCardsSafely();
-            cards.forEach(card => {
-              if (!allExtractedCards.has(card.key)) {
-                allExtractedCards.set(card.key, card);
-              }
-            });
-            console.log(`📊 GemRate player ${pageLabel} after bottom scroll: ${allExtractedCards.size} unique cards`);
-          } catch (e) {
-            console.log(`⚠️ GemRate player ${pageLabel} bottom scroll error: ${e.message}`);
-          }
-
-          // Back to top
-          try {
-            await this.page.evaluate((el) => {
-              if (el) el.scrollTop = 0;
-            }, viewport);
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            cards = await extractCardsSafely();
-            cards.forEach(card => {
-              if (!allExtractedCards.has(card.key)) {
-                allExtractedCards.set(card.key, card);
-              }
-            });
-            console.log(`📊 GemRate player ${pageLabel} after top scroll: ${allExtractedCards.size} unique cards`);
-          } catch (e) {
-            console.log(`⚠️ GemRate player ${pageLabel} top scroll error: ${e.message}`);
-          }
-        };
-
         // Extract from first page
-        await scrollAndExtractCurrentPage('page 1');
+        const firstPageCards = await extractCardsSafely();
+        firstPageCards.forEach(card => {
+          if (!allExtractedCards.has(card.key)) {
+            allExtractedCards.set(card.key, card);
+          }
+        });
+        console.log(`📊 GemRate player page 1: extracted ${firstPageCards.length} unique cards (total: ${allExtractedCards.size})`);
 
         // Try to paginate through additional pages (each page is typically 25 cards)
         // Increased to 10 pages (250 cards total) to handle large result sets
@@ -2613,16 +2556,55 @@ class GemRateService {
           }
 
           console.log(`⏭️ GemRate player pagination: moved to page ${pageIndex + 2}`);
-          // Wait longer for the page to load and render
-          await new Promise(resolve => setTimeout(resolve, 3000));
-          await scrollAndExtractCurrentPage(`page ${pageIndex + 2}`);
           
-          // Check if we actually got new cards (if not, pagination might have failed)
-          const currentCount = allExtractedCards.size;
-          if (pageIndex > 0) {
-            const previousCount = allExtractedCards.size;
-            // If we didn't get significantly more cards, pagination might not be working
-            // But continue anyway in case cards are being deduplicated
+          // Wait for the grid to actually update with new data
+          // Check if the first row's content has changed (indicating new page loaded)
+          const cardsBefore = allExtractedCards.size;
+          let firstRowContent = '';
+          
+          // Wait for grid to update - check for row content changes
+          for (let waitAttempt = 0; waitAttempt < 10; waitAttempt++) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            const newFirstRow = await this.page.evaluate(() => {
+              const firstDataRow = Array.from(document.querySelectorAll('div[role="row"]'))
+                .find(row => {
+                  const cells = row.querySelectorAll('div[role="gridcell"]');
+                  return cells.length > 0 && cells[0].textContent.trim().length > 0;
+                });
+              if (firstDataRow) {
+                const cells = firstDataRow.querySelectorAll('div[role="gridcell"]');
+                return Array.from(cells).slice(0, 5).map(c => c.textContent.trim()).join('|');
+              }
+              return '';
+            });
+            
+            if (newFirstRow && newFirstRow !== firstRowContent) {
+              firstRowContent = newFirstRow;
+              console.log(`✅ Grid updated for page ${pageIndex + 2}, first row: ${newFirstRow.substring(0, 50)}...`);
+              break;
+            }
+            
+            if (waitAttempt === 9) {
+              console.log(`⚠️ Grid may not have updated for page ${pageIndex + 2}`);
+            }
+          }
+          
+          // Extract cards from this page (simplified - just extract once, no scrolling needed)
+          const cards = await extractCardsSafely();
+          const cardsBeforeExtraction = allExtractedCards.size;
+          cards.forEach(card => {
+            if (!allExtractedCards.has(card.key)) {
+              allExtractedCards.set(card.key, card);
+            }
+          });
+          const newCardsThisPage = allExtractedCards.size - cardsBeforeExtraction;
+          console.log(`📊 GemRate player page ${pageIndex + 2}: extracted ${cards.length} cards, ${newCardsThisPage} new unique cards (total: ${allExtractedCards.size})`);
+          
+          // If we didn't get any new cards, pagination might not be working
+          if (newCardsThisPage === 0 && pageIndex > 0) {
+            console.log(`⚠️ No new cards on page ${pageIndex + 2}, stopping pagination`);
+            break;
           }
         }
       } else {
