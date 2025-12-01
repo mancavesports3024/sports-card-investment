@@ -2568,31 +2568,62 @@ class GemRateService {
         await scrollAndExtractCurrentPage('page 1');
 
         // Try to paginate through additional pages (each page is typically 25 cards)
-        for (let pageIndex = 0; pageIndex < 3; pageIndex++) {
+        // Increased to 10 pages (250 cards total) to handle large result sets
+        for (let pageIndex = 0; pageIndex < 10; pageIndex++) {
           const movedToNext = await this.page.evaluate(() => {
+            // Try multiple selectors for the next page button
             const selectors = [
               '.ag-paging-button[ref="btNext"]',
               '.ag-paging-panel button[aria-label="Next Page"]',
-              '.ag-paging-button.ag-paging-next'
+              '.ag-paging-panel button[aria-label*="Next"]',
+              '.ag-paging-button.ag-paging-next',
+              'button.ag-paging-button:not(.ag-disabled)',
+              '.ag-paging-panel .ag-paging-button:last-child:not(.ag-disabled)'
             ];
+            
             for (const sel of selectors) {
               const btn = document.querySelector(sel);
-              if (btn && !btn.classList.contains('ag-disabled') && !(btn instanceof HTMLButtonElement && btn.disabled)) {
-                (btn).click();
-                return true;
+              if (btn) {
+                // Check if button is disabled
+                const isDisabled = btn.classList.contains('ag-disabled') || 
+                                 (btn instanceof HTMLButtonElement && btn.disabled) ||
+                                 btn.getAttribute('disabled') !== null ||
+                                 btn.getAttribute('aria-disabled') === 'true';
+                
+                if (!isDisabled) {
+                  // Try to click the button
+                  try {
+                    btn.click();
+                    return true;
+                  } catch (e) {
+                    // If click fails, try dispatching a click event
+                    const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
+                    btn.dispatchEvent(clickEvent);
+                    return true;
+                  }
+                }
               }
             }
             return false;
           });
 
           if (!movedToNext) {
-            console.log('ℹ️ GemRate player pagination: no further pages detected');
+            console.log(`ℹ️ GemRate player pagination: no further pages detected after page ${pageIndex + 1}`);
             break;
           }
 
           console.log(`⏭️ GemRate player pagination: moved to page ${pageIndex + 2}`);
-          await new Promise(resolve => setTimeout(resolve, 2500));
+          // Wait longer for the page to load and render
+          await new Promise(resolve => setTimeout(resolve, 3000));
           await scrollAndExtractCurrentPage(`page ${pageIndex + 2}`);
+          
+          // Check if we actually got new cards (if not, pagination might have failed)
+          const currentCount = allExtractedCards.size;
+          if (pageIndex > 0) {
+            const previousCount = allExtractedCards.size;
+            // If we didn't get significantly more cards, pagination might not be working
+            // But continue anyway in case cards are being deduplicated
+          }
         }
       } else {
         console.log('⚠️ GemRate player viewport not found for scrolling');
