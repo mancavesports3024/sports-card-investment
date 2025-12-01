@@ -2393,9 +2393,48 @@ class GemRateService {
       console.log('⏳ Waiting for GemRate player grid data to populate...');
       await new Promise(resolve => setTimeout(resolve, 5000));
 
-      // Verify page is still available
+      // Verify page is still available, recreate page if needed
       if (!this.page || this.page.isClosed()) {
-        throw new Error('Puppeteer page is closed or unavailable');
+        console.log('⚠️ Page closed after wait, attempting to recreate...');
+        // Check if browser is still available
+        if (this.browser && !this.browser.isConnected()) {
+          console.log('⚠️ Browser disconnected, reinitializing...');
+          this.browser = null;
+          this.page = null;
+        }
+        
+        // Create new page if browser is available, otherwise reinitialize
+        if (this.browser) {
+          try {
+            this.page = await this.browser.newPage();
+            await this.page.setUserAgent(this.baseHeaders['User-Agent']);
+            await this.page.setViewport({ width: 1366, height: 768 });
+            console.log('✅ Created new page from existing browser');
+          } catch (e) {
+            console.log('⚠️ Failed to create new page, reinitializing browser...');
+            this.browser = null;
+            this.page = null;
+          }
+        }
+        
+        // Reinitialize if needed
+        if (!this.browser || !this.page) {
+          const reinitialized = await this.initializeBrowser();
+          if (!reinitialized || !this.page) {
+            throw new Error('Could not reinitialize browser after page closure');
+          }
+        }
+        
+        // Reload the page
+        try {
+          await this.page.goto(fullUrl, { waitUntil: 'load', timeout: 120000 });
+          console.log('✅ GemRate player page reloaded');
+          // Wait again for grid
+          await this.page.waitForSelector('[role="grid"], .ag-root-wrapper, div[role="row"]', { timeout: 60000 });
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        } catch (retryError) {
+          throw new Error(`Failed to reload page: ${retryError.message}`);
+        }
       }
 
       // Wait for cells with actual content (not just empty rows)
