@@ -2336,8 +2336,35 @@ class GemRateService {
       try {
         await this.page.goto(fullUrl, { waitUntil: 'load', timeout: 120000 });
         console.log('✅ GemRate player page loaded');
+        
+        // Verify page is still available after navigation
+        if (!this.page || this.page.isClosed()) {
+          throw new Error('Page closed immediately after navigation');
+        }
       } catch (navError) {
         console.log(`⚠️ GemRate player navigation error: ${navError.message}`);
+        // Try to reinitialize if page was closed
+        if (!this.page || this.page.isClosed()) {
+          console.log('🔄 Attempting to reinitialize browser...');
+          const reinitialized = await this.initializeBrowser();
+          if (reinitialized && this.page) {
+            try {
+              await this.page.goto(fullUrl, { waitUntil: 'load', timeout: 120000 });
+              console.log('✅ GemRate player page loaded after reinitialization');
+            } catch (retryError) {
+              throw new Error(`Failed to load page after reinitialization: ${retryError.message}`);
+            }
+          } else {
+            throw new Error('Could not reinitialize browser after page closure');
+          }
+        } else {
+          throw navError;
+        }
+      }
+
+      // Verify page is still available before waiting for selectors
+      if (!this.page || this.page.isClosed()) {
+        throw new Error('Page closed before waiting for grid');
       }
 
       // Wait for grid container / rows
@@ -2345,54 +2372,75 @@ class GemRateService {
         await this.page.waitForSelector('[role="grid"], .ag-root-wrapper, div[role="row"]', { timeout: 60000 });
         console.log('✅ GemRate player AG Grid container detected');
       } catch (e) {
+        if (!this.page || this.page.isClosed()) {
+          throw new Error('Page closed while waiting for grid');
+        }
         console.log('⚠️ GemRate player AG Grid container not found, checking page state...');
-        const pageState = await this.page.evaluate(() => ({
-          hasGrid: !!document.querySelector('[role="grid"]'),
-          hasAgWrapper: !!document.querySelector('.ag-root-wrapper'),
-          hasRows: document.querySelectorAll('div[role="row"]').length,
-          bodyText: document.body.textContent.substring(0, 200)
-        }));
-        console.log('📄 GemRate player page state:', pageState);
+        try {
+          const pageState = await this.page.evaluate(() => ({
+            hasGrid: !!document.querySelector('[role="grid"]'),
+            hasAgWrapper: !!document.querySelector('.ag-root-wrapper'),
+            hasRows: document.querySelectorAll('div[role="row"]').length,
+            bodyText: document.body.textContent.substring(0, 200)
+          }));
+          console.log('📄 GemRate player page state:', pageState);
+        } catch (evalError) {
+          console.log('⚠️ Could not evaluate page state:', evalError.message);
+        }
       }
 
       // Give the grid some time to populate
       console.log('⏳ Waiting for GemRate player grid data to populate...');
       await new Promise(resolve => setTimeout(resolve, 5000));
 
+      // Verify page is still available
+      if (!this.page || this.page.isClosed()) {
+        throw new Error('Puppeteer page is closed or unavailable');
+      }
+
       // Wait for cells with actual content (not just empty rows)
       try {
-        let attempts = 0;
-        let hasContent = false;
-        while (attempts < 10 && !hasContent) {
-          hasContent = await this.page.evaluate(() => {
-            const rows = document.querySelectorAll('div[role="row"]');
-            for (const row of rows) {
-              const cells = row.querySelectorAll('div[role="gridcell"]');
-              for (const cell of cells) {
-                const text = (cell.textContent || '').trim();
-                if (text.length > 0 && !text.match(/^(Cat|Year|Set|Name|Parallel|Card #|Gems|Total|Gem Rate)$/i)) {
-                  return true;
+        if (this.page && !this.page.isClosed()) {
+          let attempts = 0;
+          let hasContent = false;
+          while (attempts < 10 && !hasContent) {
+            hasContent = await this.page.evaluate(() => {
+              const rows = document.querySelectorAll('div[role="row"]');
+              for (const row of rows) {
+                const cells = row.querySelectorAll('div[role="gridcell"]');
+                for (const cell of cells) {
+                  const text = (cell.textContent || '').trim();
+                  if (text.length > 0 && !text.match(/^(Cat|Year|Set|Name|Parallel|Card #|Gems|Total|Gem Rate)$/i)) {
+                    return true;
+                  }
                 }
               }
+              return false;
+            });
+            if (!hasContent) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              attempts++;
             }
-            return false;
-          });
-          if (!hasContent) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            attempts++;
           }
+          console.log(`📊 GemRate player grid has content: ${hasContent} (after ${attempts} attempts)`);
         }
-        console.log(`📊 GemRate player grid has content: ${hasContent} (after ${attempts} attempts)`);
       } catch (e) {
         console.log('⚠️ GemRate player content check failed:', e.message);
       }
 
       // Ensure some rows are present
       try {
-        const rowCount = await this.page.evaluate(() => document.querySelectorAll('div[role="row"]').length);
-        console.log(`📊 GemRate player page rows on load: ${rowCount}`);
+        if (this.page && !this.page.isClosed()) {
+          const rowCount = await this.page.evaluate(() => document.querySelectorAll('div[role="row"]').length);
+          console.log(`📊 GemRate player page rows on load: ${rowCount}`);
+        }
       } catch (e) {
         console.log('⚠️ GemRate player rows not detected before extraction:', e.message);
+      }
+
+      // Verify page is still available before extracting
+      if (!this.page || this.page.isClosed()) {
+        throw new Error('Puppeteer page closed before extraction');
       }
 
       // Scroll and extract cards similar to getSetChecklist
@@ -2405,6 +2453,10 @@ class GemRateService {
       if (viewport) {
         const extractCardsSafely = async () => {
           try {
+            if (!this.page || this.page.isClosed()) {
+              console.log('⚠️ Page closed during extraction');
+              return [];
+            }
             return await this.page.evaluate(() => {
               const cards = [];
               const rows = document.querySelectorAll('div[role="row"]');
@@ -2513,6 +2565,12 @@ class GemRateService {
         // Try to paginate through additional pages (each page is typically 25 cards)
         // Increased to 10 pages (250 cards total) to handle large result sets
         for (let pageIndex = 0; pageIndex < 10; pageIndex++) {
+          // Verify page is still available before pagination
+          if (!this.page || this.page.isClosed()) {
+            console.log(`⚠️ Page closed before pagination attempt ${pageIndex + 1}`);
+            break;
+          }
+
           const movedToNext = await this.page.evaluate(() => {
             // Try multiple selectors for the next page button
             const selectors = [
@@ -2562,9 +2620,20 @@ class GemRateService {
           const cardsBefore = allExtractedCards.size;
           let firstRowContent = '';
           
+          // Verify page is still available
+          if (!this.page || this.page.isClosed()) {
+            console.log(`⚠️ Page closed during pagination at page ${pageIndex + 2}`);
+            break;
+          }
+
           // Wait for grid to update - check for row content changes
           for (let waitAttempt = 0; waitAttempt < 10; waitAttempt++) {
             await new Promise(resolve => setTimeout(resolve, 500));
+            
+            if (!this.page || this.page.isClosed()) {
+              console.log(`⚠️ Page closed while waiting for grid update`);
+              break;
+            }
             
             const newFirstRow = await this.page.evaluate(() => {
               const firstDataRow = Array.from(document.querySelectorAll('div[role="row"]'))
