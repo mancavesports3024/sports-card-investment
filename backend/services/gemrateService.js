@@ -2458,6 +2458,58 @@ class GemRateService {
               return [];
             }
             return await this.page.evaluate(() => {
+              // Try to use AG Grid's API to get all rows (not just visible ones)
+              try {
+                // Look for AG Grid API in various possible locations
+                const agGridApi = window.agGrid?.api || 
+                                 window.gridApi || 
+                                 document.querySelector('.ag-root-wrapper')?.__agGridInstance?.api ||
+                                 document.querySelector('[role="grid"]')?.__agGridInstance?.api;
+                
+                if (agGridApi && typeof agGridApi.forEachNode === 'function') {
+                  const allRows = [];
+                  agGridApi.forEachNode((node) => {
+                    if (node.data) {
+                      allRows.push(node.data);
+                    }
+                  });
+                  
+                  if (allRows.length > 0) {
+                    console.log(`✅ Using AG Grid API: found ${allRows.length} total rows`);
+                    // Convert AG Grid row data to our card format
+                    return allRows.map((rowData) => {
+                      const category = rowData.category || rowData.cat || '';
+                      const year = rowData.year || '';
+                      const setName = rowData.set || rowData.cardSet || '';
+                      const name = rowData.name || rowData.player || '';
+                      const parallel = rowData.parallel || '';
+                      const cardNumber = rowData.number || rowData.cardNum || rowData['card #'] || '';
+                      const gems = rowData.gems || rowData.gemsCount || null;
+                      const totalGrades = rowData.totalGrades || rowData.total || rowData.totalGradesCount || null;
+                      const gemRate = rowData.gemRate || rowData.gemRatePercent || rowData['gem %'] || '';
+                      const gemrateId = rowData.gemrateId || rowData.gemrate_id || rowData.id || null;
+                      
+                      return {
+                        number: cardNumber || '',
+                        player: name,
+                        category,
+                        year,
+                        set: setName || '',
+                        parallel,
+                        gems: typeof gems === 'number' ? gems : (gems ? parseInt(String(gems).replace(/[,\s]/g, ''), 10) : null),
+                        totalGrades: typeof totalGrades === 'number' ? totalGrades : (totalGrades ? parseInt(String(totalGrades).replace(/[,\s]/g, ''), 10) : null),
+                        gemRate: gemRate || '',
+                        gemrateId: gemrateId || null,
+                        key: `${cardNumber || ''}|${name}|${setName}|${parallel}`
+                      };
+                    });
+                  }
+                }
+              } catch (apiError) {
+                console.log('⚠️ AG Grid API access failed, falling back to DOM extraction:', apiError.message);
+              }
+              
+              // Fallback to DOM extraction
               const cards = [];
               const rows = document.querySelectorAll('div[role="row"]');
               
@@ -2561,6 +2613,12 @@ class GemRateService {
           }
         });
         console.log(`📊 GemRate player page 1: extracted ${firstPageCards.length} unique cards (total: ${allExtractedCards.size})`);
+        
+        // If we got a large number of cards (likely from AG Grid API), skip pagination
+        if (firstPageCards.length > 100) {
+          console.log(`✅ Got ${firstPageCards.length} cards from AG Grid API, skipping pagination`);
+          // Skip pagination loop
+        } else {
 
         // Try to paginate through additional pages (each page is typically 25 cards)
         // Increased to 10 pages (250 cards total) to handle large result sets
@@ -2676,6 +2734,7 @@ class GemRateService {
             break;
           }
         }
+        } // End of else block for pagination (only run if we didn't get all cards from API)
       } else {
         console.log('⚠️ GemRate player viewport not found for scrolling');
       }
