@@ -2500,11 +2500,91 @@ class GemRateService {
               // Try to use AG Grid's API to get all rows (not just visible ones)
               try {
                 // Look for AG Grid API in various possible locations
-                const agGridApi = window.agGrid?.api || 
-                                 window.gridApi || 
-                                 document.querySelector('.ag-root-wrapper')?.__agGridInstance?.api ||
-                                 document.querySelector('[role="grid"]')?.__agGridInstance?.api;
+                let agGridApi = null;
                 
+                // Try window properties
+                if (window.agGrid && window.agGrid.api) agGridApi = window.agGrid.api;
+                if (!agGridApi && window.gridApi) agGridApi = window.gridApi;
+                
+                // Try to find grid element and access its API
+                const gridElements = [
+                  document.querySelector('.ag-root-wrapper'),
+                  document.querySelector('[role="grid"]'),
+                  document.querySelector('.ag-body-viewport')?.closest('.ag-root-wrapper'),
+                  document.querySelector('.ag-center-cols-viewport')?.closest('.ag-root-wrapper')
+                ].filter(el => el !== null);
+                
+                for (const gridEl of gridElements) {
+                  // Try various property names
+                  if (gridEl.__agGridInstance?.api) {
+                    agGridApi = gridEl.__agGridInstance.api;
+                    break;
+                  }
+                  if (gridEl.gridApi) {
+                    agGridApi = gridEl.gridApi;
+                    break;
+                  }
+                  if (gridEl.api) {
+                    agGridApi = gridEl.api;
+                    break;
+                  }
+                  // Try to access via ag-Grid's internal structure
+                  const gridInstance = gridEl._agGridInstance || gridEl.__agGridInstance;
+                  if (gridInstance?.api) {
+                    agGridApi = gridInstance.api;
+                    break;
+                  }
+                }
+                
+                // Try to get rowModel directly
+                if (!agGridApi) {
+                  for (const gridEl of gridElements) {
+                    const gridInstance = gridEl.__agGridInstance || gridEl._agGridInstance;
+                    if (gridInstance?.rowModel) {
+                      // Try to get all row nodes from rowModel
+                      const rowModel = gridInstance.rowModel;
+                      if (rowModel && typeof rowModel.forEachNode === 'function') {
+                        const allRows = [];
+                        rowModel.forEachNode((node) => {
+                          if (node.data) {
+                            allRows.push(node.data);
+                          }
+                        });
+                        if (allRows.length > 0) {
+                          console.log(`✅ Using AG Grid RowModel: found ${allRows.length} total rows`);
+                          return allRows.map((rowData) => {
+                            const category = rowData.category || rowData.cat || '';
+                            const year = rowData.year || '';
+                            const setName = rowData.set || rowData.cardSet || '';
+                            const name = rowData.name || rowData.player || '';
+                            const parallel = rowData.parallel || '';
+                            const cardNumber = rowData.number || rowData.cardNum || rowData['card #'] || '';
+                            const gems = rowData.gems || rowData.gemsCount || null;
+                            const totalGrades = rowData.totalGrades || rowData.total || rowData.totalGradesCount || null;
+                            const gemRate = rowData.gemRate || rowData.gemRatePercent || rowData['gem %'] || '';
+                            const gemrateId = rowData.gemrateId || rowData.gemrate_id || rowData.id || null;
+                            
+                            return {
+                              number: cardNumber || '',
+                              player: name,
+                              category,
+                              year,
+                              set: setName || '',
+                              parallel,
+                              gems: typeof gems === 'number' ? gems : (gems ? parseInt(String(gems).replace(/[,\s]/g, ''), 10) : null),
+                              totalGrades: typeof totalGrades === 'number' ? totalGrades : (totalGrades ? parseInt(String(totalGrades).replace(/[,\s]/g, ''), 10) : null),
+                              gemRate: gemRate || '',
+                              gemrateId: gemrateId || null,
+                              key: `${cardNumber || ''}|${name}|${setName}|${parallel}`
+                            };
+                          });
+                        }
+                      }
+                    }
+                  }
+                }
+                
+                // Try API if we found it
                 if (agGridApi && typeof agGridApi.forEachNode === 'function') {
                   const allRows = [];
                   agGridApi.forEachNode((node) => {
@@ -2515,7 +2595,6 @@ class GemRateService {
                   
                   if (allRows.length > 0) {
                     console.log(`✅ Using AG Grid API: found ${allRows.length} total rows`);
-                    // Convert AG Grid row data to our card format
                     return allRows.map((rowData) => {
                       const category = rowData.category || rowData.cat || '';
                       const year = rowData.year || '';
@@ -2644,6 +2723,42 @@ class GemRateService {
           }
         };
 
+        // Try to change AG Grid pagination page size to show more rows
+        try {
+          if (this.page && !this.page.isClosed()) {
+            await this.page.evaluate(() => {
+              // Try to find AG Grid API and change page size
+              const gridElements = [
+                document.querySelector('.ag-root-wrapper'),
+                document.querySelector('[role="grid"]')
+              ].filter(el => el !== null);
+              
+              for (const gridEl of gridElements) {
+                const gridInstance = gridEl.__agGridInstance || gridEl._agGridInstance;
+                if (gridInstance?.api) {
+                  try {
+                    // Try to set pagination page size to 100 or 250
+                    gridInstance.api.paginationSetPageSize(250);
+                    console.log('✅ Changed AG Grid page size to 250');
+                    return;
+                  } catch (e) {
+                    // Try alternative method
+                    if (gridInstance.api.gridOptionsApi) {
+                      gridInstance.api.gridOptionsApi.setGridOption('paginationPageSize', 250);
+                      console.log('✅ Changed AG Grid page size to 250 (alternative method)');
+                      return;
+                    }
+                  }
+                }
+              }
+            });
+            // Wait for grid to update with new page size
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        } catch (e) {
+          console.log('⚠️ Could not change AG Grid page size:', e.message);
+        }
+
         // Extract from first page
         const firstPageCards = await extractCardsSafely();
         firstPageCards.forEach(card => {
@@ -2653,9 +2768,9 @@ class GemRateService {
         });
         console.log(`📊 GemRate player page 1: extracted ${firstPageCards.length} unique cards (total: ${allExtractedCards.size})`);
         
-        // If we got a large number of cards (likely from AG Grid API), skip pagination
+        // If we got a large number of cards (likely from AG Grid API or increased page size), skip pagination
         if (firstPageCards.length > 100) {
-          console.log(`✅ Got ${firstPageCards.length} cards from AG Grid API, skipping pagination`);
+          console.log(`✅ Got ${firstPageCards.length} cards, skipping pagination`);
           // Skip pagination loop
         } else {
 
