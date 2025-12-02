@@ -220,17 +220,23 @@ router.get('/details/:gemrateId', async (req, res) => {
     
     const cardDetails = await gemrateService.getCardDetails(gemrateId);
     
+    console.log(`[gemrate/details] getCardDetails returned: ${cardDetails ? 'data' : 'null'}`);
+    
     if (cardDetails) {
+      const population = gemrateService.parsePopulationData(cardDetails);
+      console.log(`[gemrate/details] parsePopulationData returned: ${population ? 'data' : 'null'}`);
+      
       res.json({
         success: true,
         data: {
           gemrateId: gemrateId,
-          population: gemrateService.parsePopulationData(cardDetails),
+          population: population,
           rawData: cardDetails
         },
         timestamp: new Date().toISOString()
       });
     } else {
+      console.log(`[gemrate/details] No card details found for gemrateId: ${gemrateId}`);
       res.status(404).json({
         success: false,
         error: 'No card details found',

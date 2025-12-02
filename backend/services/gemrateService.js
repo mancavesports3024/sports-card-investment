@@ -656,6 +656,10 @@ class GemRateService {
 
       if (response.data && response.status === 200) {
         console.log(`✅ Retrieved card details for gemrate_id: ${gemrateId}`);
+        console.log(`[getCardDetails] Response data type: ${typeof response.data}, isArray: ${Array.isArray(response.data)}`);
+        if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+          console.log(`[getCardDetails] Response data keys: ${Object.keys(response.data).join(', ')}`);
+        }
         return response.data;
       } else {
         console.log(`❌ No card details found for gemrate_id: ${gemrateId} (status: ${response.status})`);
