@@ -2393,6 +2393,89 @@ class GemRateService {
       console.log('⏳ Waiting for GemRate player grid data to populate...');
       await new Promise(resolve => setTimeout(resolve, 5000));
 
+      // Try to extract RawData from HTML (like Postman does)
+      try {
+        if (this.page && !this.page.isClosed()) {
+          const htmlContent = await this.page.content();
+          
+          // Look for RawData variable in script tags (similar to Postman approach)
+          const rawDataPatterns = [
+            /var\s+RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+            /const\s+RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+            /let\s+RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+            /RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+            /var\s+rawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+            /const\s+rawData\s*=\s*JSON\.parse\("(.*?)"\);/s
+          ];
+          
+          for (const pattern of rawDataPatterns) {
+            const match = htmlContent.match(pattern);
+            if (match && match[1]) {
+              console.log('✅ Found RawData in HTML, extracting...');
+              let jsonString = match[1];
+              
+              // Unescape the JSON string (handle double-escaped characters)
+              jsonString = jsonString.replace(/\\\\u0026/g, '&');
+              jsonString = jsonString.replace(/\\\\"/g, '"');
+              jsonString = jsonString.replace(/\\\\\\\\/g, '\\');
+              jsonString = jsonString.replace(/\\n/g, '\n');
+              jsonString = jsonString.replace(/\\t/g, '\t');
+              
+              try {
+                const rawData = JSON.parse(jsonString);
+                
+                if (Array.isArray(rawData) && rawData.length > 0) {
+                  console.log(`✅ Extracted ${rawData.length} cards from RawData`);
+                  
+                  // Map RawData to our card format
+                  const cards = rawData.map((rowData) => {
+                    const category = rowData.category || rowData.cat || '';
+                    const year = rowData.year || '';
+                    const setName = rowData.set || rowData.cardSet || '';
+                    const name = rowData.name || rowData.player || '';
+                    const parallel = rowData.parallel || '';
+                    const cardNumber = rowData.number || rowData.cardNum || rowData['card #'] || '';
+                    const gems = rowData.gems || rowData.gemsCount || null;
+                    const totalGrades = rowData.totalGrades || rowData.total || rowData.totalGradesCount || null;
+                    const gemRate = rowData.gemRate || rowData.gemRatePercent || rowData['gem %'] || '';
+                    const gemrateId = rowData.gemrateId || rowData.gemrate_id || rowData.id || null;
+                    
+                    return {
+                      number: cardNumber || '',
+                      player: name,
+                      category,
+                      year,
+                      set: setName || '',
+                      parallel,
+                      gems: typeof gems === 'number' ? gems : (gems ? parseInt(String(gems).replace(/[,\s]/g, ''), 10) : null),
+                      totalGrades: typeof totalGrades === 'number' ? totalGrades : (totalGrades ? parseInt(String(totalGrades).replace(/[,\s]/g, ''), 10) : null),
+                      gemRate: gemRate || '',
+                      gemrateId: gemrateId || null
+                    };
+                  });
+                  
+                  // Sort by total grades desc
+                  cards.sort((a, b) => {
+                    const aTotal = typeof a.totalGrades === 'number' ? a.totalGrades : -1;
+                    const bTotal = typeof b.totalGrades === 'number' ? b.totalGrades : -1;
+                    return bTotal - aTotal;
+                  });
+                  
+                  console.log(`✅ GemRate player cards extracted from RawData: ${cards.length}`);
+                  return cards;
+                }
+              } catch (parseError) {
+                console.log(`⚠️ Failed to parse RawData JSON: ${parseError.message}`);
+              }
+            }
+          }
+          
+          console.log('⚠️ RawData not found in HTML, falling back to DOM extraction');
+        }
+      } catch (rawDataError) {
+        console.log(`⚠️ RawData extraction failed: ${rawDataError.message}`);
+      }
+
       // Verify page is still available, recreate page if needed
       if (!this.page || this.page.isClosed()) {
         console.log('⚠️ Page closed after wait, attempting to recreate...');
