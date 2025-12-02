@@ -333,13 +333,9 @@ const TCDBBrowser = () => {
           card={selectedCardForSummary}
           setInfo={
             selectedCardSetInfo || {
-              sport: selectedCategory?.name
-                ? selectedCategory.name.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim()
-                : null,
-              year: selectedSet?.year,
-              setName: selectedSet?.name
-                ? selectedSet.name.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim()
-                : null,
+              sport: null,
+              year: null,
+              setName: null,
               parallel: null
             }
           }
