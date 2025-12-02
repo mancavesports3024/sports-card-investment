@@ -2339,38 +2339,27 @@ class GemRateService {
         const scriptTags = htmlContent.match(/<script[^>]*>[\s\S]*?<\/script>/gi);
         console.log(`📜 Found ${scriptTags ? scriptTags.length : 0} script tags in HTML`);
         
-        // Look for RawData variable in script tags (exact Postman pattern first)
+        // Look for RowData variable in script tags (EXACT Postman pattern)
         const rawDataPatterns = [
-          // Exact Postman pattern: var RawData = JSON.parse("...");
-          /var\s+RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
-          // Try with escaped parentheses (Postman might have escaped them)
-          /var\s+RawData\s*=\s*JSON\.parse\\(\"(.*?)\"\\);/s,
+          // EXACT Postman pattern: var RowData = JSON.parse('...');
+          /var\s+RowData\s*=\s*JSON\.parse\('(.+?)'\);/s,
+          // Try with double quotes as fallback
+          /var\s+RowData\s*=\s*JSON\.parse\("(.+?)"\);/s,
           // Other variations
-          /const\s+RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
-          /let\s+RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
-          /RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
-          /var\s+rawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
-          /const\s+rawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
-          // Try rowData as well
-          /var\s+rowData\s*=\s*JSON\.parse\("(.*?)"\);/s,
-          /const\s+rowData\s*=\s*JSON\.parse\("(.*?)"\);/s,
-          /let\s+rowData\s*=\s*JSON\.parse\("(.*?)"\);/s,
-          // Try without JSON.parse
-          /var\s+RawData\s*=\s*(\[.*?\]);/s,
-          /const\s+RawData\s*=\s*(\[.*?\]);/s,
-          // Try to find any large JSON arrays in script tags
-          /(?:var|const|let)\s+\w+Data\s*=\s*JSON\.parse\("(.*?)"\);/s
+          /const\s+RowData\s*=\s*JSON\.parse\('(.+?)'\);/s,
+          /let\s+RowData\s*=\s*JSON\.parse\('(.+?)'\);/s,
+          /RowData\s*=\s*JSON\.parse\('(.+?)'\);/s
         ];
         
-        // Debug: Check if RawData string appears anywhere
-        if (htmlContent.includes('RawData')) {
-          console.log('✅ Found "RawData" string in HTML');
-          // Extract a sample around RawData
-          const rawDataIndex = htmlContent.indexOf('RawData');
-          const sample = htmlContent.substring(Math.max(0, rawDataIndex - 100), Math.min(htmlContent.length, rawDataIndex + 500));
-          console.log(`📋 Sample around RawData: ${sample.substring(0, 200)}...`);
+        // Debug: Check if RowData string appears anywhere
+        if (htmlContent.includes('RowData')) {
+          console.log('✅ Found "RowData" string in HTML');
+          // Extract a sample around RowData
+          const rowDataIndex = htmlContent.indexOf('RowData');
+          const sample = htmlContent.substring(Math.max(0, rowDataIndex - 100), Math.min(htmlContent.length, rowDataIndex + 500));
+          console.log(`📋 Sample around RowData: ${sample.substring(0, 200)}...`);
         } else {
-          console.log('⚠️ "RawData" string not found in HTML');
+          console.log('⚠️ "RowData" string not found in HTML');
         }
 
         // Debug: Try to find any variable assignments with JSON.parse
@@ -2389,12 +2378,10 @@ class GemRateService {
             console.log(`📏 JSON string length: ${jsonString.length} characters`);
             console.log(`📏 JSON string preview: ${jsonString.substring(0, 200)}...`);
 
-            // Unescape the JSON string (handle double-escaped characters)
-            jsonString = jsonString.replace(/\\\\u0026/g, '&');
-            jsonString = jsonString.replace(/\\\\"/g, '"');
-            jsonString = jsonString.replace(/\\\\\\\\/g, '\\');
-            jsonString = jsonString.replace(/\\n/g, '\n');
-            jsonString = jsonString.replace(/\\t/g, '\t');
+            // Unescape the JSON string (EXACT Postman pattern)
+            jsonString = jsonString.replace(/\\u0026/g, '&');
+            jsonString = jsonString.replace(/\\"/g, '"');
+            jsonString = jsonString.replace(/\\\\/g, '\\');
 
             try {
               const rawData = JSON.parse(jsonString);
@@ -2402,17 +2389,17 @@ class GemRateService {
               if (Array.isArray(rawData) && rawData.length > 0) {
                 console.log(`✅ Extracted ${rawData.length} cards from RawData via HTTP`);
 
-                // Map RawData to our card format
+                // Map RowData to our card format (using Postman field names)
                 const cards = rawData.map((rowData) => {
                   const category = rowData.category || rowData.cat || '';
                   const year = rowData.year || '';
-                  const setName = rowData.set || rowData.cardSet || '';
+                  const setName = rowData.set_name || rowData.set || rowData.cardSet || '';
                   const name = rowData.name || rowData.player || '';
                   const parallel = rowData.parallel || '';
-                  const cardNumber = rowData.number || rowData.cardNum || rowData['card #'] || '';
+                  const cardNumber = rowData.card_number || rowData.number || rowData.cardNum || rowData['card #'] || '';
                   const gems = rowData.gems || rowData.gemsCount || null;
-                  const totalGrades = rowData.totalGrades || rowData.total || rowData.totalGradesCount || null;
-                  const gemRate = rowData.gemRate || rowData.gemRatePercent || rowData['gem %'] || '';
+                  const totalGrades = rowData.total || rowData.totalGrades || rowData.totalGradesCount || null;
+                  const gemRate = rowData.gem_rate || rowData.gemRate || rowData.gemRatePercent || rowData['gem %'] || '';
                   const gemrateId = rowData.gemrateId || rowData.gemrate_id || rowData.id || null;
 
                   return {
@@ -2445,7 +2432,7 @@ class GemRateService {
           }
         }
 
-        console.log('⚠️ RawData not found in HTTP response, trying Puppeteer...');
+        console.log('⚠️ RowData not found in HTTP response, trying Puppeteer...');
       } catch (httpError) {
         console.log(`⚠️ HTTP request failed: ${httpError.message}, trying Puppeteer...`);
       }
