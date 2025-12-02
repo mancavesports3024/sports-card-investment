@@ -2335,9 +2335,17 @@ class GemRateService {
         const htmlContent = response.data;
         console.log(`📄 HTML content length: ${htmlContent.length} characters`);
 
-        // Look for RawData variable in script tags (similar to Postman approach)
+        // Debug: Look for any script tags with data
+        const scriptTags = htmlContent.match(/<script[^>]*>[\s\S]*?<\/script>/gi);
+        console.log(`📜 Found ${scriptTags ? scriptTags.length : 0} script tags in HTML`);
+        
+        // Look for RawData variable in script tags (exact Postman pattern first)
         const rawDataPatterns = [
+          // Exact Postman pattern: var RawData = JSON.parse("...");
           /var\s+RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+          // Try with escaped parentheses (Postman might have escaped them)
+          /var\s+RawData\s*=\s*JSON\.parse\\(\"(.*?)\"\\);/s,
+          // Other variations
           /const\s+RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
           /let\s+RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
           /RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
@@ -2349,14 +2357,37 @@ class GemRateService {
           /let\s+rowData\s*=\s*JSON\.parse\("(.*?)"\);/s,
           // Try without JSON.parse
           /var\s+RawData\s*=\s*(\[.*?\]);/s,
-          /const\s+RawData\s*=\s*(\[.*?\]);/s
+          /const\s+RawData\s*=\s*(\[.*?\]);/s,
+          // Try to find any large JSON arrays in script tags
+          /(?:var|const|let)\s+\w+Data\s*=\s*JSON\.parse\("(.*?)"\);/s
         ];
+        
+        // Debug: Check if RawData string appears anywhere
+        if (htmlContent.includes('RawData')) {
+          console.log('✅ Found "RawData" string in HTML');
+          // Extract a sample around RawData
+          const rawDataIndex = htmlContent.indexOf('RawData');
+          const sample = htmlContent.substring(Math.max(0, rawDataIndex - 100), Math.min(htmlContent.length, rawDataIndex + 500));
+          console.log(`📋 Sample around RawData: ${sample.substring(0, 200)}...`);
+        } else {
+          console.log('⚠️ "RawData" string not found in HTML');
+        }
 
-        for (const pattern of rawDataPatterns) {
+        // Debug: Try to find any variable assignments with JSON.parse
+        const allJsonParseMatches = htmlContent.match(/(?:var|const|let)\s+\w+\s*=\s*JSON\.parse\([^)]+\)/gi);
+        if (allJsonParseMatches && allJsonParseMatches.length > 0) {
+          console.log(`📋 Found ${allJsonParseMatches.length} JSON.parse assignments in HTML`);
+          console.log(`📋 Sample matches: ${allJsonParseMatches.slice(0, 3).join(', ')}`);
+        }
+
+        for (let i = 0; i < rawDataPatterns.length; i++) {
+          const pattern = rawDataPatterns[i];
           const match = htmlContent.match(pattern);
           if (match && match[1]) {
-            console.log(`✅ Found data variable in HTML (pattern matched), extracting...`);
+            console.log(`✅ Found data variable in HTML (pattern ${i + 1} matched), extracting...`);
             let jsonString = match[1];
+            console.log(`📏 JSON string length: ${jsonString.length} characters`);
+            console.log(`📏 JSON string preview: ${jsonString.substring(0, 200)}...`);
 
             // Unescape the JSON string (handle double-escaped characters)
             jsonString = jsonString.replace(/\\\\u0026/g, '&');
