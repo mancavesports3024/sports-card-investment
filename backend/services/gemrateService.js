@@ -2394,24 +2394,51 @@ class GemRateService {
       await new Promise(resolve => setTimeout(resolve, 5000));
 
       // Try to extract RawData from HTML (like Postman does)
+      // Use a timeout to prevent hanging
       try {
         if (this.page && !this.page.isClosed()) {
-          const htmlContent = await this.page.content();
+          console.log('🔍 Attempting to extract RawData from HTML...');
+          let htmlContent;
+          try {
+            htmlContent = await Promise.race([
+              this.page.content(),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('HTML extraction timeout')), 10000))
+            ]);
+          } catch (timeoutError) {
+            console.log(`⚠️ HTML extraction timed out: ${timeoutError.message}`);
+            htmlContent = null;
+          }
+          
+          if (!htmlContent) {
+            console.log('⚠️ Could not get HTML content, skipping RawData extraction');
+          } else {
+          
+          console.log(`📄 HTML content length: ${htmlContent.length} characters`);
           
           // Look for RawData variable in script tags (similar to Postman approach)
+          // Also try to find rowData or other data variables
           const rawDataPatterns = [
             /var\s+RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
             /const\s+RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
             /let\s+RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
             /RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
             /var\s+rawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
-            /const\s+rawData\s*=\s*JSON\.parse\("(.*?)"\);/s
+            /const\s+rawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+            // Try rowData as well
+            /var\s+rowData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+            /const\s+rowData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+            /let\s+rowData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+            // Try without JSON.parse
+            /var\s+RawData\s*=\s*(\[.*?\]);/s,
+            /const\s+RawData\s*=\s*(\[.*?\]);/s
           ];
           
+          let foundMatch = false;
           for (const pattern of rawDataPatterns) {
             const match = htmlContent.match(pattern);
             if (match && match[1]) {
-              console.log('✅ Found RawData in HTML, extracting...');
+              console.log(`✅ Found data variable in HTML (pattern matched), extracting...`);
+              foundMatch = true;
               let jsonString = match[1];
               
               // Unescape the JSON string (handle double-escaped characters)
@@ -2470,7 +2497,12 @@ class GemRateService {
             }
           }
           
-          console.log('⚠️ RawData not found in HTML, falling back to DOM extraction');
+          if (!foundMatch) {
+            console.log('⚠️ RawData not found in HTML, falling back to DOM extraction');
+          }
+          }
+        } else {
+          console.log('⚠️ Page not available for RawData extraction');
         }
       } catch (rawDataError) {
         console.log(`⚠️ RawData extraction failed: ${rawDataError.message}`);
