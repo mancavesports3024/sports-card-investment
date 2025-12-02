@@ -223,7 +223,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
             'downtown', 'genesis', 'fast break', 'zoom', 'flashback', 'emergent', 'mania',
             'geometric', 'honeycomb', 'pride', 'kaleidoscopic', 'vintage', 'splash', 'rising',
             // Other parallel types
-            'snakeskin', 'pulsar', 'dragon scale', 'pandora', 'speckle', 'sparkle'
+            'snakeskin', 'pulsar', 'dragon scale', 'pandora', 'speckle', 'sparkle', 'shock'
           ];
           
           // Check for parallel keywords, but allow "prizm" if it's part of the set name (e.g., "2024 Prizm")
@@ -501,7 +501,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
         // Special inserts
         'downtown', 'genesis', 'fast break',
         // Additional parallel types
-        'lazer', 'pandora', 'speckle', 'sparkle'
+        'lazer', 'pandora', 'speckle', 'sparkle', 'shock'
       ];
       
       // IMPORTANT: Remove any exclusion keywords that appear in the query
