@@ -739,6 +739,47 @@ const fetchDataForEachCategory = async (searchQuery, targetPerCategory = 25) => 
   return allCards;
 };
 
+// Helper function to simplify search query for 130point (less wordy, more effective)
+const simplifyFor130point = (query) => {
+  if (!query) return query;
+  
+  let simplified = query;
+  
+  // Remove exclusions first
+  const exclusionIndex = simplified.indexOf(' -(');
+  if (exclusionIndex !== -1) {
+    simplified = simplified.substring(0, exclusionIndex).trim();
+  }
+  
+  // Remove common prefixes like "Jtg EN-", "Meg EN-", etc.
+  simplified = simplified.replace(/^(Jtg|Meg|EN)\s*EN[- ]*/i, '');
+  
+  // Remove "#" from card numbers (130point works better without it)
+  simplified = simplified.replace(/#(\d+)/g, '$1');
+  
+  // Remove common rarity/type words that make queries too wordy
+  const wordsToRemove = [
+    'special illustration rare',
+    'illustration rare',
+    'special rare',
+    'ultra rare',
+    'hyper rare',
+    'mega hyper rare',
+    'special',
+    'illustration'
+  ];
+  
+  wordsToRemove.forEach(word => {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    simplified = simplified.replace(regex, '').replace(/\s+/g, ' ').trim();
+  });
+  
+  // Clean up multiple spaces
+  simplified = simplified.replace(/\s+/g, ' ').trim();
+  
+  return simplified;
+};
+
 // Helper function to sort by value (price)
 const sortByValue = (categorized) => {
   const sortByValue = (a, b) => {
@@ -1236,13 +1277,8 @@ router.post('/', requireUser, async (req, res) => {
       const Point130Service = require('../services/130pointService');
       const point130Service = new Point130Service();
       
-      // Process exclusions for 130point format
-      let processedQuery = workingQuery;
-      const exclusionMatch = workingQuery.match(/-\s*\(([^)]+)\)/);
-      if (exclusionMatch) {
-        const exclusions = exclusionMatch[1].split(',').map(e => e.trim());
-        processedQuery = `${workingQuery.split(' -')[0]} -(${exclusions.join(',')})`;
-      }
+      // Simplify query for 130point (less wordy, more effective)
+      let processedQuery = simplifyFor130point(workingQuery);
       
       const point130Results = await point130Service.searchSoldCards(processedQuery, {
         type: '2',
@@ -1671,13 +1707,8 @@ router.post('/', requireUser, async (req, res) => {
             const Point130Service = require('../services/130pointService');
             const point130Service = new Point130Service();
             
-            // Process exclusions for 130point format
-            let processedFallbackQuery = fallbackQuery;
-            const exclusionMatch = fallbackQuery.match(/-\s*\(([^)]+)\)/);
-            if (exclusionMatch) {
-              const exclusions = exclusionMatch[1].split(',').map(e => e.trim());
-              processedFallbackQuery = `${fallbackQuery.split(' -')[0]} -(${exclusions.join(',')})`;
-            }
+            // Simplify query for 130point (less wordy, more effective)
+            let processedFallbackQuery = simplifyFor130point(fallbackQuery);
             
             console.log(`[POST SEARCH] 130point fallback search: "${processedFallbackQuery}"`);
             const point130Results = await point130Service.searchSoldCards(processedFallbackQuery, {
