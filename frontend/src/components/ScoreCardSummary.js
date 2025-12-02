@@ -319,15 +319,33 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
         const psa10Avg = psa10Prices.length > 0 ? psa10Prices.reduce((a, b) => a + b, 0) / psa10Prices.length : 0;
 
         // Get card image - prioritize PSA 10 cards first (eBay or 130point)
+        // Also prioritize cards that match the requested card number
         let cardImage = null;
+        
+        // Extract card number from search query or card info
+        const cardNumberMatch = (searchQuery || card?.number || '').toString().match(/#?(\d+)/);
+        const requestedCardNumber = cardNumberMatch ? cardNumberMatch[1] : null;
+        
+        // Helper to check if a card matches the requested card number
+        const matchesCardNumber = (cardTitle) => {
+          if (!requestedCardNumber) return false;
+          const cardNumRegex = new RegExp(`(?:#|no\\.?|number)\\s*${requestedCardNumber}\\b|\\b${requestedCardNumber}\\b`, 'i');
+          return cardNumRegex.test((cardTitle || '').toLowerCase());
+        };
+        
         const prioritizedCards = [
           ...psa10Cards,
           ...psa9Cards,
           ...rawCards
         ];
         
-        // Sort by: has image first, then by source (eBay then 130point)
+        // Sort by: matches card number first, then has image, then by source (eBay then 130point)
         prioritizedCards.sort((a, b) => {
+          const aMatchesNumber = matchesCardNumber(a.title);
+          const bMatchesNumber = matchesCardNumber(b.title);
+          if (aMatchesNumber && !bMatchesNumber) return -1;
+          if (!aMatchesNumber && bMatchesNumber) return 1;
+          
           const aHasImage = getCardImage(a) !== null;
           const bHasImage = getCardImage(b) !== null;
           if (aHasImage && !bHasImage) return -1;

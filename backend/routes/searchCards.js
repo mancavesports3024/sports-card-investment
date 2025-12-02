@@ -101,7 +101,7 @@ const getMockData = (searchQuery, numSales) => {
 };
 
 // Helper function to categorize cards and calculate price differences
-const categorizeCards = (cards) => {
+const categorizeCards = (cards, requestedCardNumber = null) => {
   const gradingCompanies = ['psa', 'bgs', 'beckett', 'sgc', 'cgc', 'ace', 'cga', 'gma', 'hga', 'pgs', 'bvg', 'csg', 'rcg', 'ksa', 'fgs', 'tag', 'pgm', 'dga', 'isa'];
   const rawKeywords = ['raw', 'ungraded', 'not graded', 'no grade'];
   const gradedConditionIds = ['2750', '4000', '5000'];
@@ -111,6 +111,13 @@ const categorizeCards = (cards) => {
   const dynamicBuckets = {};
   // New: gradingStats object for all company/grade combos
   const gradingStats = {};
+  
+  // Helper to check if a card matches the requested card number
+  const matchesCardNumber = (cardTitle) => {
+    if (!requestedCardNumber) return false;
+    const cardNumRegex = new RegExp(`(?:#|no\\.?|number)\\s*${requestedCardNumber}\\b|\\b${requestedCardNumber}\\b`, 'i');
+    return cardNumRegex.test((cardTitle || '').toLowerCase());
+  };
   try {
     cards.forEach((card, index) => {
       const title = card.title?.toLowerCase() || '';
@@ -217,9 +224,13 @@ const categorizeCards = (cards) => {
       console.log(`[PSA10 FILTER] Average: $${psa10Avg.toFixed(2)}, Threshold: $${psa10Threshold.toFixed(2)}`);
       const filteredPsa10 = legacyBuckets.psa10.filter(card => {
         const price = parseFloat(card.price?.value || 0);
-        const include = price > 0 && price >= psa10Threshold;
+        const matchesRequestedNumber = requestedCardNumber ? matchesCardNumber(card.title) : false;
+        // Always include cards that match the requested card number, even if below threshold
+        const include = matchesRequestedNumber || (price > 0 && price >= psa10Threshold);
         if (!include) {
           console.log(`[PSA10 FILTER] EXCLUDED: "${card.title}" - Price: $${price} (below threshold $${psa10Threshold.toFixed(2)})`);
+        } else if (matchesRequestedNumber && price < psa10Threshold) {
+          console.log(`[PSA10 FILTER] INCLUDED (matches card #${requestedCardNumber}): "${card.title}" - Price: $${price} (below threshold but keeping for accuracy)`);
         }
         return include;
       });
@@ -1629,9 +1640,13 @@ router.post('/', requireUser, async (req, res) => {
     allCards = uniqueCards;
     console.log(`[POST SEARCH] After deduplication: ${allCards.length} cards`);
 
+    // Extract card number from search query for categorization
+    const cardNumberMatch = (workingQuery || searchQuery || '').match(/#?(\d+)/);
+    const requestedCardNumber = cardNumberMatch ? cardNumberMatch[1] : null;
+    
     // Categorize and sort the results
-    console.log(`[POST SEARCH] About to categorize ${allCards.length} cards`);
-    let categorized = categorizeCards(allCards);
+    console.log(`[POST SEARCH] About to categorize ${allCards.length} cards${requestedCardNumber ? ` (requested card #${requestedCardNumber})` : ''}`);
+    let categorized = categorizeCards(allCards, requestedCardNumber);
     console.log(`[POST SEARCH] After categorization - PSA9: ${categorized.psa9?.length || 0}, PSA10: ${categorized.psa10?.length || 0}`);
     
     // Fallback: If no PSA 9 results, try a search with "PSA 9" added (even if PSA 10 exists)
@@ -1749,8 +1764,8 @@ router.post('/', requireUser, async (req, res) => {
                 console.log(`[POST SEARCH] Adding ${newFallbackCards.length} new cards from 130point fallback`);
                 allCards = allCards.concat(newFallbackCards);
                 
-                // Re-categorize with merged results
-                categorized = categorizeCards(allCards);
+                // Re-categorize with merged results (use requestedCardNumber from earlier extraction)
+                categorized = categorizeCards(allCards, requestedCardNumber);
                 console.log(`[POST SEARCH] After 130point fallback merge - PSA9: ${categorized.psa9?.length || 0}, PSA10: ${categorized.psa10?.length || 0}`);
               } else {
                 console.log(`[POST SEARCH] No new cards from 130point fallback (all duplicates)`);
@@ -1837,7 +1852,7 @@ router.post('/', requireUser, async (req, res) => {
             allCards = allCards.concat(newFallbackCards);
             
             // Re-categorize with merged results
-            categorized = categorizeCards(allCards);
+            categorized = categorizeCards(allCards, requestedCardNumber);
             console.log(`[POST SEARCH] After fallback merge - PSA9: ${categorized.psa9?.length || 0}, PSA10: ${categorized.psa10?.length || 0}`);
           } else {
             console.log(`[POST SEARCH] No new cards from fallback search (all duplicates)`);
