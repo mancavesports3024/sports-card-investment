@@ -381,8 +381,13 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     // Note: Sport (Baseball) is NOT included in the search query
     const parts = [];
     
-    // Year first (only once) - always include if available
-    if (setInfo?.year) {
+    // Check if this is a Pokemon card (TCG category)
+    const isPokemon = setInfo?.category?.toLowerCase().includes('tcg') || 
+                      setInfo?.setName?.toLowerCase().includes('pokemon') ||
+                      card?.category?.toLowerCase().includes('tcg');
+    
+    // Year first (only once) - skip for Pokemon cards
+    if (setInfo?.year && !isPokemon) {
       const year = typeof setInfo.year === 'number' ? setInfo.year.toString() : setInfo.year;
       parts.push(year);
     }
@@ -399,8 +404,13 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
         .replace(/\s*Checklist\s*/gi, ' ')
         .trim();
       
-      // Remove year if it's at the start (to avoid duplication, but we already added it above)
+      // Remove year if it's at the start (to avoid duplication)
       cleanSetName = cleanSetName.replace(/^\d{4}\s+/, '');
+      
+      // Remove "Pokemon" from set name for Pokemon cards
+      if (isPokemon) {
+        cleanSetName = cleanSetName.replace(/\bPokemon\b/gi, ' ').trim();
+      }
       
       // Remove sport names from set name (Baseball, Football, Basketball, etc.)
       cleanSetName = cleanSetName
