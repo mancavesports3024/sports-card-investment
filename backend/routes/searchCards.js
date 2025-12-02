@@ -1655,20 +1655,19 @@ router.post('/', requireUser, async (req, res) => {
     if (!hasPsa9) {
       console.log(`[POST SEARCH] No PSA 9 results found (PSA 10: ${categorized.psa10?.length || 0}). Running fallback search with "PSA 9" added to query...`);
       
+      // Build fallback search query - add "PSA 9" to the search term
+      // Remove any existing exclusions for the fallback search
+      let baseQuery = workingQuery.split(' -(')[0].trim();
+      // Remove any emojis that might have slipped through
+      baseQuery = baseQuery.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+      const fallbackQuery = `${baseQuery} PSA 9`;
+      
+      console.log(`[POST SEARCH] Fallback search query: "${fallbackQuery}"`);
+      
+      // Skip eBay - go directly to 130point fallback (eBay is getting blocked too often)
+      console.log(`[POST SEARCH] Skipping eBay fallback (frequent blocking). Using 130point fallback directly...`);
+      
       try {
-        // Build fallback search query - add "PSA 9" to the search term
-        // Remove any existing exclusions for the fallback search
-        let baseQuery = workingQuery.split(' -(')[0].trim();
-        // Remove any emojis that might have slipped through
-        baseQuery = baseQuery.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
-        const fallbackQuery = `${baseQuery} PSA 9`;
-        
-        console.log(`[POST SEARCH] Fallback search query: "${fallbackQuery}"`);
-        
-        // Skip eBay - go directly to 130point fallback (eBay is getting blocked too often)
-        console.log(`[POST SEARCH] Skipping eBay fallback (frequent blocking). Using 130point fallback directly...`);
-        
-        try {
             const Point130Service = require('../services/130pointService');
             const point130Service = new Point130Service();
             
@@ -1832,26 +1831,10 @@ router.post('/', requireUser, async (req, res) => {
             } else {
               console.log(`[POST SEARCH] 130point fallback also returned no results`);
             }
-          } catch (point130Error) {
-            console.error(`[POST SEARCH] 130point fallback error:`, point130Error);
-            // Continue with original results even if 130point fails
-          }
-        }
-        
-        if (fallbackResult.success && fallbackResult.results && fallbackResult.results.length > 0) {
-          console.log(`[POST SEARCH] Fallback search returned ${fallbackResult.results.length} results`);
-          
-          // Transform fallback results
-          const fallbackCards = fallbackResult.results.map(card => ({
-            id: card.ebayItemId || card.itemId,
-            title: (card.title || '').replace(/\s*#unknown\b.*$/i, '').trim(),
-            price: {
-              value: card.numericPrice ? card.numericPrice.toString() : (card.price || '0').replace(/[^\d.]/g, ''),
-              currency: 'USD'
-            },
-            condition: card.grade || 'Raw',
-            soldDate: card.soldDate || 'Recently sold',
-            imageUrl: card.imageUrl,
+      } catch (point130Error) {
+        console.error(`[POST SEARCH] 130point fallback error:`, point130Error);
+        // Continue with original results even if 130point fails
+      }
             itemWebUrl: card.itemUrl,
             itemId: card.ebayItemId || card.itemId,
             sport: card.sport || 'unknown',
