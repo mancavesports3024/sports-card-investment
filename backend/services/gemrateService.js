@@ -2319,6 +2319,107 @@ class GemRateService {
 
       console.log(`📇 Fetching GemRate player cards: ${fullUrl}`);
 
+      // Try HTTP request first (faster, like Postman)
+      try {
+        console.log('🔍 Attempting HTTP request to get HTML with RawData...');
+        const response = await this.httpClient.get(path, {
+          headers: {
+            ...this.pageHeaders,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          timeout: 30000
+        });
+
+        const htmlContent = response.data;
+        console.log(`📄 HTML content length: ${htmlContent.length} characters`);
+
+        // Look for RawData variable in script tags (similar to Postman approach)
+        const rawDataPatterns = [
+          /var\s+RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+          /const\s+RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+          /let\s+RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+          /RawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+          /var\s+rawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+          /const\s+rawData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+          // Try rowData as well
+          /var\s+rowData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+          /const\s+rowData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+          /let\s+rowData\s*=\s*JSON\.parse\("(.*?)"\);/s,
+          // Try without JSON.parse
+          /var\s+RawData\s*=\s*(\[.*?\]);/s,
+          /const\s+RawData\s*=\s*(\[.*?\]);/s
+        ];
+
+        for (const pattern of rawDataPatterns) {
+          const match = htmlContent.match(pattern);
+          if (match && match[1]) {
+            console.log(`✅ Found data variable in HTML (pattern matched), extracting...`);
+            let jsonString = match[1];
+
+            // Unescape the JSON string (handle double-escaped characters)
+            jsonString = jsonString.replace(/\\\\u0026/g, '&');
+            jsonString = jsonString.replace(/\\\\"/g, '"');
+            jsonString = jsonString.replace(/\\\\\\\\/g, '\\');
+            jsonString = jsonString.replace(/\\n/g, '\n');
+            jsonString = jsonString.replace(/\\t/g, '\t');
+
+            try {
+              const rawData = JSON.parse(jsonString);
+
+              if (Array.isArray(rawData) && rawData.length > 0) {
+                console.log(`✅ Extracted ${rawData.length} cards from RawData via HTTP`);
+
+                // Map RawData to our card format
+                const cards = rawData.map((rowData) => {
+                  const category = rowData.category || rowData.cat || '';
+                  const year = rowData.year || '';
+                  const setName = rowData.set || rowData.cardSet || '';
+                  const name = rowData.name || rowData.player || '';
+                  const parallel = rowData.parallel || '';
+                  const cardNumber = rowData.number || rowData.cardNum || rowData['card #'] || '';
+                  const gems = rowData.gems || rowData.gemsCount || null;
+                  const totalGrades = rowData.totalGrades || rowData.total || rowData.totalGradesCount || null;
+                  const gemRate = rowData.gemRate || rowData.gemRatePercent || rowData['gem %'] || '';
+                  const gemrateId = rowData.gemrateId || rowData.gemrate_id || rowData.id || null;
+
+                  return {
+                    number: cardNumber || '',
+                    player: name,
+                    category,
+                    year,
+                    set: setName || '',
+                    parallel,
+                    gems: typeof gems === 'number' ? gems : (gems ? parseInt(String(gems).replace(/[,\s]/g, ''), 10) : null),
+                    totalGrades: typeof totalGrades === 'number' ? totalGrades : (totalGrades ? parseInt(String(totalGrades).replace(/[,\s]/g, ''), 10) : null),
+                    gemRate: gemRate || '',
+                    gemrateId: gemrateId || null
+                  };
+                });
+
+                // Sort by total grades desc
+                cards.sort((a, b) => {
+                  const aTotal = typeof a.totalGrades === 'number' ? a.totalGrades : -1;
+                  const bTotal = typeof b.totalGrades === 'number' ? b.totalGrades : -1;
+                  return bTotal - aTotal;
+                });
+
+                console.log(`✅ GemRate player cards extracted from RawData via HTTP: ${cards.length}`);
+                return cards;
+              }
+            } catch (parseError) {
+              console.log(`⚠️ Failed to parse RawData JSON: ${parseError.message}`);
+            }
+          }
+        }
+
+        console.log('⚠️ RawData not found in HTTP response, trying Puppeteer...');
+      } catch (httpError) {
+        console.log(`⚠️ HTTP request failed: ${httpError.message}, trying Puppeteer...`);
+      }
+
+      // Fallback to Puppeteer if HTTP request fails
       const browserInitialized = await this.initializeBrowser();
       if (!browserInitialized || !this.page) {
         throw new Error('Puppeteer not available for GemRate player search');
