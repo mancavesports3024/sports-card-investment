@@ -3749,4 +3749,3 @@ module.exports = {
   router,
   categorizeCards
 }; 
-}; 
