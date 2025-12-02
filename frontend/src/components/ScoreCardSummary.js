@@ -37,12 +37,16 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     }
   }, [card]);
 
-  // Always fetch GemRate data for accurate population breakdown (PSA 10, PSA 9, total, gem rate)
+  // Fetch GemRate data - prioritize gemrateId if available, otherwise wait for search query
   useEffect(() => {
-    if (cardData?.searchQuery) {
+    // If we have gemrateId from the player search, fetch immediately
+    if (card?.gemrateId) {
+      fetchGemrateData();
+    } else if (cardData?.searchQuery) {
+      // Fallback to search if no gemrateId
       fetchGemrateData();
     }
-  }, [cardData]);
+  }, [card?.gemrateId, cardData?.searchQuery]);
 
   const fetchGemrateData = async () => {
     try {
@@ -61,6 +65,11 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       }
       
       // Fallback to search if no gemrateId
+      if (!cardData?.searchQuery) {
+        console.log(`[ScoreCardSummary] No gemrateId and no search query available yet`);
+        return;
+      }
+      
       const searchQuery = cardData.searchQuery;
       // Clean the search query - remove exclusions for GemRate
       let cleanQuery = searchQuery;
