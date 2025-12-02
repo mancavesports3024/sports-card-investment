@@ -2358,9 +2358,15 @@ class GemRateService {
 
               if (Array.isArray(rawData) && rawData.length > 0) {
                 console.log(`✅ GemRate player cards via HTTP: ${rawData.length} cards`);
+                
+                // Log first row to see available fields
+                if (rawData.length > 0) {
+                  console.log(`📊 Sample RowData fields:`, Object.keys(rawData[0]));
+                  console.log(`📊 Sample RowData (first card):`, JSON.stringify(rawData[0], null, 2).slice(0, 500));
+                }
 
                 // Map RowData to our card format (using Postman field names)
-                const cards = rawData.map((rowData) => {
+                const cards = rawData.map((rowData, index) => {
                   const category = rowData.category || rowData.cat || '';
                   const year = rowData.year || '';
                   const setName = rowData.set_name || rowData.set || rowData.cardSet || '';
@@ -2370,7 +2376,18 @@ class GemRateService {
                   const gems = rowData.gems || rowData.gemsCount || null;
                   const totalGrades = rowData.total || rowData.totalGrades || rowData.totalGradesCount || null;
                   const gemRate = rowData.gem_rate || rowData.gemRate || rowData.gemRatePercent || rowData['gem %'] || '';
-                  const gemrateId = rowData.gemrateId || rowData.gemrate_id || rowData.id || null;
+                  
+                  // Try multiple possible field names for gemrateId
+                  const gemrateId = rowData.gemrateId || rowData.gemrate_id || rowData.id || rowData.gemrateId || rowData._id || null;
+                  
+                  // Log if gemrateId is missing for first few cards
+                  if (index < 3 && !gemrateId) {
+                    console.log(`⚠️ Card ${index} missing gemrateId. Available fields:`, Object.keys(rowData));
+                  }
+                  
+                  if (index < 3 && gemrateId) {
+                    console.log(`✅ Card ${index} has gemrateId: ${gemrateId}`);
+                  }
 
                   return {
                     number: cardNumber || '',
@@ -2385,6 +2402,10 @@ class GemRateService {
                     gemrateId: gemrateId || null
                   };
                 });
+                
+                // Log summary of gemrateId extraction
+                const cardsWithId = cards.filter(c => c.gemrateId).length;
+                console.log(`📊 GemRate player cards: ${cards.length} total, ${cardsWithId} with gemrateId`);
 
                 // Sort by total grades desc
                 cards.sort((a, b) => {
