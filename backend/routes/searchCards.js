@@ -1665,18 +1665,10 @@ router.post('/', requireUser, async (req, res) => {
         
         console.log(`[POST SEARCH] Fallback search query: "${fallbackQuery}"`);
         
-        // Run fallback search with smaller maxResults to avoid getting blocked
-        // Use browser fallback more aggressively for fallback searches since they're critical
-        const fallbackMaxResults = 200; // Smaller to reduce blocking risk
-        console.log(`[POST SEARCH] Running fallback search with forceRefresh=true to bypass cache`);
-        const fallbackResult = await ebayScraper.searchSoldCards(fallbackQuery, null, fallbackMaxResults, null, null, null, null, null, true);
+        // Skip eBay - go directly to 130point fallback (eBay is getting blocked too often)
+        console.log(`[POST SEARCH] Skipping eBay fallback (frequent blocking). Using 130point fallback directly...`);
         
-        // If fallback search returned no results, try 130point as final fallback
-        if (!fallbackResult.success || !fallbackResult.results || fallbackResult.results.length === 0) {
-          console.log(`[POST SEARCH] Fallback search details - success: ${fallbackResult?.success}, results: ${fallbackResult?.results?.length || 0}, error: ${fallbackResult?.error || 'none'}`);
-          console.log(`[POST SEARCH] eBay fallback search failed (likely blocked). Trying 130point as final fallback...`);
-          
-          try {
+        try {
             const Point130Service = require('../services/130pointService');
             const point130Service = new Point130Service();
             
@@ -1714,15 +1706,71 @@ router.post('/', requireUser, async (req, res) => {
                 source: '130point'
               }));
               
-              // Apply keyword filtering to 130point results (same as main search)
+              // Apply keyword filtering to 130point results (using same improved logic as main search)
               const lowerQuery = (workingQuery || '').toLowerCase();
               const positivePart = lowerQuery.split(' -(')[0].trim();
               const exclusionMatch = lowerQuery.match(/-\s*\(([^)]+)\)/);
               const exclusions = exclusionMatch
                 ? exclusionMatch[1].split(',').map(s => s.trim()).filter(Boolean)
                 : [];
+              
+              // Use same improved primary token logic as main search
               const positiveTokens = positivePart.split(/\s+/).filter(t => t.length > 0);
-              const primaryToken = positiveTokens.find(t => t.length >= 3) || positiveTokens[0] || '';
+              const cardNumberMatch = positivePart.match(/#?(\d+)/);
+              const cardNumber = cardNumberMatch ? cardNumberMatch[1] : null;
+              
+              const excludedWords = new Set(['ex', 'mega', 'evolution', 'rare', 'illustration', 'special', 
+                                             'card', 'cards', 'psa', 'bgs', 'sgc', 'cgc', 'grade', 'graded',
+                                             'rookie', 'rc', 'auto', 'autograph', 'patch', 'relic', 'insert']);
+              
+              const nonNumericTokens = positiveTokens.filter(t => {
+                const clean = t.replace(/[#-]/g, '').toLowerCase();
+                return !/^\d+$/.test(clean) && !excludedWords.has(clean);
+              });
+              
+              const nonYearTokens = nonNumericTokens.filter(t => {
+                const clean = t.replace(/[#-]/g, '');
+                return !/^(19|20)\d{2}$/.test(clean);
+              });
+              
+              let primaryToken = '';
+              
+              // Strategy 1: If we have a card number, prefer tokens that come after it
+              if (cardNumber && nonYearTokens.length > 0) {
+                const cardNumIndex = positiveTokens.findIndex(t => t.includes(cardNumber));
+                if (cardNumIndex >= 0) {
+                  const tokensAfterNumber = nonYearTokens.filter(t => {
+                    const tokenIndex = positiveTokens.indexOf(t);
+                    return tokenIndex > cardNumIndex;
+                  });
+                  if (tokensAfterNumber.length > 0) {
+                    primaryToken = tokensAfterNumber.reduce((a, b) => a.length > b.length ? a : b);
+                  }
+                }
+              }
+              
+              // Strategy 2: If no card number or no tokens after number, prefer longer words
+              if (!primaryToken && nonYearTokens.length > 0) {
+                const meaningfulTokens = nonYearTokens.filter(t => t.length >= 3);
+                if (meaningfulTokens.length > 0) {
+                  primaryToken = meaningfulTokens.reduce((a, b) => a.length > b.length ? a : b);
+                } else {
+                  primaryToken = nonYearTokens[nonYearTokens.length - 1];
+                }
+              }
+              
+              // Strategy 3: Fallback to card number if available
+              if (!primaryToken && cardNumber) {
+                primaryToken = cardNumber;
+              }
+              
+              // Strategy 4: Last resort
+              if (!primaryToken && nonNumericTokens.length > 0) {
+                primaryToken = nonNumericTokens[nonNumericTokens.length - 1];
+              } else if (!primaryToken) {
+                primaryToken = positiveTokens.find(t => t.length >= 3) || positiveTokens[0] || '';
+              }
+              
               const fractionMatch = positivePart.match(/(\d+)\s*\/\s*(\d+)/);
               const fractionVariants = fractionMatch
                 ? [
@@ -1736,14 +1784,25 @@ router.post('/', requireUser, async (req, res) => {
                 const title = (card.title || '').toLowerCase();
                 if (!title) return false;
                 
+                // Exclusions
                 if (exclusions.length > 0 && exclusions.some(ex => ex && title.includes(ex))) {
                   return false;
                 }
                 
-                if (primaryToken && !title.includes(primaryToken)) {
+                // Primary token (case-insensitive)
+                if (primaryToken && !title.includes(primaryToken.toLowerCase())) {
                   return false;
                 }
                 
+                // Card number (exact match with word boundaries)
+                if (cardNumber) {
+                  const cardNumRegex = new RegExp(`(?:#|no\\.?|number)\\s*${cardNumber}\\b|\\b${cardNumber}\\b`, 'i');
+                  if (!cardNumRegex.test(title)) {
+                    return false;
+                  }
+                }
+                
+                // Fraction variants
                 if (fractionVariants.length > 0 && !fractionVariants.some(v => title.includes(v))) {
                   return false;
                 }
@@ -3777,4 +3836,5 @@ function buildOnTheFlyDatabase() {
 module.exports = {
   router,
   categorizeCards
+}; 
 }; 
