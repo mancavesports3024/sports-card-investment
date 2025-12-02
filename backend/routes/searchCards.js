@@ -1932,11 +1932,7 @@ router.post('/', requireUser, async (req, res) => {
     // }
     // responseData.ebayApiUsage = ebayApiUsage;
 
-    // Extract card number from search query for validation
-    const cardNumberMatch = (workingQuery || searchQuery || '').match(/#?(\d+)/);
-    const requestedCardNumber = cardNumberMatch ? cardNumberMatch[1] : null;
-    
-    // If we requested a specific card number, validate results
+    // If we requested a specific card number, validate results (requestedCardNumber already extracted above)
     if (requestedCardNumber) {
       const cardNumRegex = new RegExp(`(?:#|no\\.?|number)\\s*${requestedCardNumber}\\b|\\b${requestedCardNumber}\\b`, 'i');
       const hasExactMatch = (sorted.psa9 || []).some(card => cardNumRegex.test((card.title || '').toLowerCase())) ||
