@@ -2414,8 +2414,6 @@ class GemRateService {
       const path = `/player?${queryParams.toString()}`;
       const fullUrl = `${this.baseUrl}${path}`;
 
-      console.log(`📇 Fetching GemRate player cards: ${fullUrl}`);
-
       // Try HTTP request first (faster, like Postman)
       try {
         const response = await this.httpClient.get(path, {
@@ -2454,16 +2452,8 @@ class GemRateService {
               const rawData = JSON.parse(jsonString);
 
               if (Array.isArray(rawData) && rawData.length > 0) {
-                console.log(`✅ GemRate player cards via HTTP: ${rawData.length} cards`);
-                
-                // Log first row to see available fields
-                if (rawData.length > 0) {
-                  console.log(`📊 Sample RowData fields:`, Object.keys(rawData[0]));
-                  console.log(`📊 Sample RowData (first card):`, JSON.stringify(rawData[0], null, 2).slice(0, 500));
-                }
-
                 // Map RowData to our card format (using Postman field names)
-                const cards = rawData.map((rowData, index) => {
+                const cards = rawData.map((rowData) => {
                   const category = rowData.category || rowData.cat || '';
                   const year = rowData.year || '';
                   const setName = rowData.set_name || rowData.set || rowData.cardSet || '';
@@ -2476,15 +2466,6 @@ class GemRateService {
                   
                   // Try multiple possible field names for gemrateId
                   const gemrateId = rowData.gemrateId || rowData.gemrate_id || rowData.id || rowData.gemrateId || rowData._id || null;
-                  
-                  // Log if gemrateId is missing for first few cards
-                  if (index < 3 && !gemrateId) {
-                    console.log(`⚠️ Card ${index} missing gemrateId. Available fields:`, Object.keys(rowData));
-                  }
-                  
-                  if (index < 3 && gemrateId) {
-                    console.log(`✅ Card ${index} has gemrateId: ${gemrateId}`);
-                  }
 
                   return {
                     number: cardNumber || '',
@@ -2499,10 +2480,6 @@ class GemRateService {
                     gemrateId: gemrateId || null
                   };
                 });
-                
-                // Log summary of gemrateId extraction
-                const cardsWithId = cards.filter(c => c.gemrateId).length;
-                console.log(`📊 GemRate player cards: ${cards.length} total, ${cardsWithId} with gemrateId`);
 
                 // Sort by total grades desc
                 cards.sort((a, b) => {
@@ -2530,33 +2507,20 @@ class GemRateService {
         throw new Error('Puppeteer not available for GemRate player search');
       }
 
-      // Capture useful console logs from the page
-      this.page.on('console', msg => {
-        const text = msg.text();
-        if (text.includes('AG Grid') || text.includes('Card') || text.includes('extraction') || 
-            text.includes('GemRate player') || text.includes('📊') || text.includes('⚠️')) {
-          console.log(`[GemRate Player Console] ${text}`);
-        }
-      });
-
       try {
         await this.page.goto(fullUrl, { waitUntil: 'load', timeout: 120000 });
-        console.log('✅ GemRate player page loaded');
         
         // Verify page is still available after navigation
         if (!this.page || this.page.isClosed()) {
           throw new Error('Page closed immediately after navigation');
         }
       } catch (navError) {
-        console.log(`⚠️ GemRate player navigation error: ${navError.message}`);
         // Try to reinitialize if page was closed
         if (!this.page || this.page.isClosed()) {
-          console.log('🔄 Attempting to reinitialize browser...');
           const reinitialized = await this.initializeBrowser();
           if (reinitialized && this.page) {
             try {
               await this.page.goto(fullUrl, { waitUntil: 'load', timeout: 120000 });
-              console.log('✅ GemRate player page loaded after reinitialization');
             } catch (retryError) {
               throw new Error(`Failed to load page after reinitialization: ${retryError.message}`);
             }
@@ -2576,34 +2540,19 @@ class GemRateService {
       // Wait for grid container / rows
       try {
         await this.page.waitForSelector('[role="grid"], .ag-root-wrapper, div[role="row"]', { timeout: 60000 });
-        console.log('✅ GemRate player AG Grid container detected');
       } catch (e) {
         if (!this.page || this.page.isClosed()) {
           throw new Error('Page closed while waiting for grid');
         }
-        console.log('⚠️ GemRate player AG Grid container not found, checking page state...');
-        try {
-          const pageState = await this.page.evaluate(() => ({
-            hasGrid: !!document.querySelector('[role="grid"]'),
-            hasAgWrapper: !!document.querySelector('.ag-root-wrapper'),
-            hasRows: document.querySelectorAll('div[role="row"]').length,
-            bodyText: document.body.textContent.substring(0, 200)
-          }));
-          console.log('📄 GemRate player page state:', pageState);
-        } catch (evalError) {
-          console.log('⚠️ Could not evaluate page state:', evalError.message);
-        }
       }
 
       // Give the grid some time to populate
-      console.log('⏳ Waiting for GemRate player grid data to populate...');
       await new Promise(resolve => setTimeout(resolve, 5000));
 
       // Try to extract RawData from HTML (like Postman does)
       // Use a timeout to prevent hanging
       try {
         if (this.page && !this.page.isClosed()) {
-          console.log('🔍 Attempting to extract RawData from HTML...');
           let htmlContent;
           try {
             htmlContent = await Promise.race([
@@ -2611,16 +2560,10 @@ class GemRateService {
               new Promise((_, reject) => setTimeout(() => reject(new Error('HTML extraction timeout')), 10000))
             ]);
           } catch (timeoutError) {
-            console.log(`⚠️ HTML extraction timed out: ${timeoutError.message}`);
             htmlContent = null;
           }
           
-          if (!htmlContent) {
-            console.log('⚠️ Could not get HTML content, skipping RawData extraction');
-          } else {
-          
-          console.log(`📄 HTML content length: ${htmlContent.length} characters`);
-          
+          if (htmlContent) {
           // Look for RawData variable in script tags (similar to Postman approach)
           // Also try to find rowData or other data variables
           const rawDataPatterns = [
@@ -2643,7 +2586,6 @@ class GemRateService {
           for (const pattern of rawDataPatterns) {
             const match = htmlContent.match(pattern);
             if (match && match[1]) {
-              console.log(`✅ Found data variable in HTML (pattern matched), extracting...`);
               foundMatch = true;
               let jsonString = match[1];
               
@@ -2694,7 +2636,6 @@ class GemRateService {
                     return bTotal - aTotal;
                   });
                   
-                  console.log(`✅ GemRate player cards extracted from RawData: ${cards.length}`);
                   return cards;
                 }
               } catch (parseError) {
@@ -2749,7 +2690,6 @@ class GemRateService {
         // Reload the page
         try {
           await this.page.goto(fullUrl, { waitUntil: 'load', timeout: 120000 });
-          console.log('✅ GemRate player page reloaded');
           // Wait again for grid
           await this.page.waitForSelector('[role="grid"], .ag-root-wrapper, div[role="row"]', { timeout: 60000 });
           await new Promise(resolve => setTimeout(resolve, 3000));
@@ -2782,20 +2722,9 @@ class GemRateService {
               attempts++;
             }
           }
-          console.log(`📊 GemRate player grid has content: ${hasContent} (after ${attempts} attempts)`);
         }
       } catch (e) {
-        console.log('⚠️ GemRate player content check failed:', e.message);
-      }
-
-      // Ensure some rows are present
-      try {
-        if (this.page && !this.page.isClosed()) {
-          const rowCount = await this.page.evaluate(() => document.querySelectorAll('div[role="row"]').length);
-          console.log(`📊 GemRate player page rows on load: ${rowCount}`);
-        }
-      } catch (e) {
-        console.log('⚠️ GemRate player rows not detected before extraction:', e.message);
+        // Silently continue
       }
 
       // Verify page is still available before extracting
@@ -3039,7 +2968,6 @@ class GemRateService {
               return cards;
             });
           } catch (e) {
-            console.log(`⚠️ GemRate player extraction error: ${e.message}`);
             return [];
           }
         };
@@ -3087,8 +3015,6 @@ class GemRateService {
             allExtractedCards.set(card.key, card);
           }
         });
-        console.log(`📊 GemRate player page 1: extracted ${firstPageCards.length} unique cards (total: ${allExtractedCards.size})`);
-        
         // If we got a large number of cards (likely from AG Grid API or increased page size), skip pagination
         if (firstPageCards.length > 100) {
           console.log(`✅ Got ${firstPageCards.length} cards, skipping pagination`);
@@ -3142,11 +3068,8 @@ class GemRateService {
           });
 
           if (!movedToNext) {
-            console.log(`ℹ️ GemRate player pagination: no further pages detected after page ${pageIndex + 1}`);
             break;
           }
-
-          console.log(`⏭️ GemRate player pagination: moved to page ${pageIndex + 2}`);
           
           // Wait for the grid to actually update with new data
           // Check if the first row's content has changed (indicating new page loaded)
@@ -3201,7 +3124,6 @@ class GemRateService {
             }
           });
           const newCardsThisPage = allExtractedCards.size - cardsBeforeExtraction;
-          console.log(`📊 GemRate player page ${pageIndex + 2}: extracted ${cards.length} cards, ${newCardsThisPage} new unique cards (total: ${allExtractedCards.size})`);
           
           // If we didn't get any new cards, pagination might not be working
           if (newCardsThisPage === 0 && pageIndex > 0) {
@@ -3210,8 +3132,6 @@ class GemRateService {
           }
         }
         } // End of else block for pagination (only run if we didn't get all cards from API)
-      } else {
-        console.log('⚠️ GemRate player viewport not found for scrolling');
       }
 
       // Build final array

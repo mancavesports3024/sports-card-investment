@@ -309,8 +309,6 @@ router.get('/player', async (req, res) => {
       });
     }
 
-    console.log(`📇 GemRate player cards request: grader=${grader}, category=${category}, player=${player}`);
-
     const cards = await gemrateService.getPlayerCards({
       grader,
       category,
