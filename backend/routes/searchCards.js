@@ -1334,27 +1334,72 @@ router.post('/', requireUser, async (req, res) => {
         ? exclusionMatch[1].split(',').map(s => s.trim()).filter(Boolean)
         : [];
 
-      // Primary token:
-      // Previously: first meaningful word (>=3 chars), which often ended up being the year (e.g. "2024").
-      // That isn't ideal for player-focused searches where we care more about the player name.
-      // New approach:
-      //   - Split the positive part into tokens
-      //   - Exclude pure years / numbers (e.g. "2024", "10")
-      //   - Prefer the LAST remaining token (often the player's last name: "bradshaw", "maye", etc.)
-      //   - Fallback to the old behaviour if nothing suitable is found
+      // Primary token: prioritize player name and card number
+      // Strategy:
+      //   1. Extract card number (e.g., "#100" or "100")
+      //   2. Exclude common words (ex, mega, evolution, etc.)
+      //   3. Prefer longer words (likely player names)
+      //   4. Prefer words that come after card number
       const positiveTokens = positivePart.split(/\s+/).filter(t => t.length > 0);
-      const nonNumericTokens = positiveTokens.filter(t => !/^\d+$/.test(t));            // drop pure numbers
-      const nonYearTokens = nonNumericTokens.filter(t => !/^(19|20)\d{2}$/.test(t));    // drop 4‑digit years
+      
+      // Extract card number (with or without #)
+      const cardNumberMatch = positivePart.match(/#?(\d+)/);
+      const cardNumber = cardNumberMatch ? cardNumberMatch[1] : null;
+      
+      // Common words to exclude from being primary token
+      const excludedWords = new Set(['ex', 'mega', 'evolution', 'rare', 'illustration', 'special', 
+                                     'card', 'cards', 'psa', 'bgs', 'sgc', 'cgc', 'grade', 'graded',
+                                     'rookie', 'rc', 'auto', 'autograph', 'patch', 'relic', 'insert']);
+      
+      const nonNumericTokens = positiveTokens.filter(t => {
+        const clean = t.replace(/[#-]/g, '').toLowerCase();
+        return !/^\d+$/.test(clean) && !excludedWords.has(clean);
+      });
+      
+      const nonYearTokens = nonNumericTokens.filter(t => {
+        const clean = t.replace(/[#-]/g, '');
+        return !/^(19|20)\d{2}$/.test(clean);
+      });
 
       let primaryToken = '';
-      if (nonYearTokens.length > 0) {
-        // Use the last non‑year token (usually player's last name)
-        primaryToken = nonYearTokens[nonYearTokens.length - 1];
-      } else if (nonNumericTokens.length > 0) {
-        // Fallback: last non‑numeric token
+      
+      // Strategy 1: If we have a card number, prefer tokens that come after it
+      if (cardNumber && nonYearTokens.length > 0) {
+        const cardNumIndex = positiveTokens.findIndex(t => t.includes(cardNumber));
+        if (cardNumIndex >= 0) {
+          // Look for tokens after the card number (likely player name)
+          const tokensAfterNumber = nonYearTokens.filter(t => {
+            const tokenIndex = positiveTokens.indexOf(t);
+            return tokenIndex > cardNumIndex;
+          });
+          if (tokensAfterNumber.length > 0) {
+            // Prefer longer words (likely player names)
+            primaryToken = tokensAfterNumber.reduce((a, b) => a.length > b.length ? a : b);
+          }
+        }
+      }
+      
+      // Strategy 2: If no card number or no tokens after number, prefer longer words
+      if (!primaryToken && nonYearTokens.length > 0) {
+        // Filter out very short words (< 3 chars) and prefer longer ones
+        const meaningfulTokens = nonYearTokens.filter(t => t.length >= 3);
+        if (meaningfulTokens.length > 0) {
+          primaryToken = meaningfulTokens.reduce((a, b) => a.length > b.length ? a : b);
+        } else {
+          // Fallback to last token if all are short
+          primaryToken = nonYearTokens[nonYearTokens.length - 1];
+        }
+      }
+      
+      // Strategy 3: Fallback to card number if available
+      if (!primaryToken && cardNumber) {
+        primaryToken = cardNumber;
+      }
+      
+      // Strategy 4: Last resort
+      if (!primaryToken && nonNumericTokens.length > 0) {
         primaryToken = nonNumericTokens[nonNumericTokens.length - 1];
-      } else {
-        // Last resort: original behaviour
+      } else if (!primaryToken) {
         primaryToken = positiveTokens.find(t => t.length >= 3) || positiveTokens[0] || '';
       }
 
@@ -1387,10 +1432,17 @@ router.post('/', requireUser, async (req, res) => {
           return false;
         }
 
-        // Must include primary token when present
-        if (primaryToken && !title.includes(primaryToken)) {
+        // Must include primary token when present (case-insensitive)
+        if (primaryToken && !title.includes(primaryToken.toLowerCase())) {
           excludedByPrimaryToken++;
           console.log(`[KEYWORD FILTER] EXCLUDED (no primary token "${primaryToken}"): "${card.title}"`);
+          return false;
+        }
+        
+        // If we have a card number, also require it to be present
+        if (cardNumber && !title.includes(cardNumber)) {
+          excludedByPrimaryToken++;
+          console.log(`[KEYWORD FILTER] EXCLUDED (no card number "${cardNumber}"): "${card.title}"`);
           return false;
         }
 
