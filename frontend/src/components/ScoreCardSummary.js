@@ -37,25 +37,17 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     }
   }, [card]);
 
-  // Fetch GemRate data - prioritize gemrateId if available, otherwise wait for search query
+  // Fetch GemRate data - only if gemrateId is available from player search (no search fallback)
   useEffect(() => {
-    // If we have gemrateId from the player search, fetch immediately and skip search
+    // Only fetch if we have gemrateId from the player search
     if (card?.gemrateId) {
-      console.log(`[ScoreCardSummary] Card has gemrateId: ${card.gemrateId}, skipping GemRate search`);
-      fetchGemrateData();
-      return; // Exit early to prevent search
-    }
-    
-    // Only do GemRate search if we don't have gemrateId
-    if (cardData?.searchQuery && !card?.gemrateId) {
-      console.log(`[ScoreCardSummary] No gemrateId available, using search fallback`);
       fetchGemrateData();
     }
-  }, [card?.gemrateId, cardData?.searchQuery]);
+  }, [card?.gemrateId]);
 
   const fetchGemrateData = async () => {
     try {
-      // If we have gemrateId from the player search, use it directly instead of searching
+      // Only use gemrateId if available - no search fallback
       if (card?.gemrateId) {
         console.log(`[ScoreCardSummary] Using gemrateId from card: ${card.gemrateId}`);
         const response = await fetch(`${API_BASE_URL}/api/gemrate/details/${encodeURIComponent(card.gemrateId)}`);
@@ -65,37 +57,10 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
         if (data.success && data.data && data.data.population) {
           console.log(`[ScoreCardSummary] Setting GemRate data from gemrateId:`, data.data.population);
           setGemrateData(data.data.population);
-          return;
+        } else {
+          setGemrateData(null);
         }
-      }
-      
-      // Fallback to search if no gemrateId
-      if (!cardData?.searchQuery) {
-        console.log(`[ScoreCardSummary] No gemrateId and no search query available yet`);
-        return;
-      }
-      
-      const searchQuery = cardData.searchQuery;
-      // Clean the search query - remove exclusions for GemRate
-      let cleanQuery = searchQuery;
-      const exclusionIndex = cleanQuery.indexOf(' -(');
-      if (exclusionIndex !== -1) {
-        cleanQuery = cleanQuery.substring(0, exclusionIndex).trim();
-      }
-      
-      console.log(`[ScoreCardSummary] Fetching GemRate data via search: "${cleanQuery}"`);
-      const response = await fetch(`${API_BASE_URL}/api/gemrate/search/${encodeURIComponent(cleanQuery)}`);
-      const data = await response.json();
-      console.log(`[ScoreCardSummary] GemRate response:`, data);
-      
-      // Check for population data in multiple possible locations
-      const populationData = data.data?.population || data.data?.data?.population || data.data;
-      
-      if (data.success && data.data && data.data.success && populationData) {
-        console.log(`[ScoreCardSummary] Setting GemRate data:`, populationData);
-        setGemrateData(populationData);
       } else {
-        console.log(`[ScoreCardSummary] GemRate data not available`);
         setGemrateData(null);
       }
     } catch (err) {
