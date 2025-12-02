@@ -1334,9 +1334,29 @@ router.post('/', requireUser, async (req, res) => {
         ? exclusionMatch[1].split(',').map(s => s.trim()).filter(Boolean)
         : [];
 
-      // Primary token: first meaningful word (>=3 chars) from the positive part
+      // Primary token:
+      // Previously: first meaningful word (>=3 chars), which often ended up being the year (e.g. "2024").
+      // That isn't ideal for player-focused searches where we care more about the player name.
+      // New approach:
+      //   - Split the positive part into tokens
+      //   - Exclude pure years / numbers (e.g. "2024", "10")
+      //   - Prefer the LAST remaining token (often the player's last name: "bradshaw", "maye", etc.)
+      //   - Fallback to the old behaviour if nothing suitable is found
       const positiveTokens = positivePart.split(/\s+/).filter(t => t.length > 0);
-      const primaryToken = positiveTokens.find(t => t.length >= 3) || positiveTokens[0] || '';
+      const nonNumericTokens = positiveTokens.filter(t => !/^\d+$/.test(t));            // drop pure numbers
+      const nonYearTokens = nonNumericTokens.filter(t => !/^(19|20)\d{2}$/.test(t));    // drop 4‑digit years
+
+      let primaryToken = '';
+      if (nonYearTokens.length > 0) {
+        // Use the last non‑year token (usually player's last name)
+        primaryToken = nonYearTokens[nonYearTokens.length - 1];
+      } else if (nonNumericTokens.length > 0) {
+        // Fallback: last non‑numeric token
+        primaryToken = nonNumericTokens[nonNumericTokens.length - 1];
+      } else {
+        // Last resort: original behaviour
+        primaryToken = positiveTokens.find(t => t.length >= 3) || positiveTokens[0] || '';
+      }
 
       // Numeric fraction like 170/165
       const fractionMatch = positivePart.match(/(\d+)\s*\/\s*(\d+)/);
