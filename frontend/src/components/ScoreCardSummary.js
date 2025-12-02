@@ -51,16 +51,28 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       if (card?.gemrateId) {
         console.log(`[ScoreCardSummary] Using gemrateId from card: ${card.gemrateId}`);
         const response = await fetch(`${API_BASE_URL}/api/gemrate/details/${encodeURIComponent(card.gemrateId)}`);
+        
+        if (!response.ok) {
+          console.error(`[ScoreCardSummary] GemRate API error: ${response.status} ${response.statusText}`);
+          setGemrateData(null);
+          return;
+        }
+        
         const data = await response.json();
         console.log(`[ScoreCardSummary] GemRate details response:`, data);
         
-        if (data.success && data.data && data.data.population) {
-          console.log(`[ScoreCardSummary] Setting GemRate data from gemrateId:`, data.data.population);
-          setGemrateData(data.data.population);
+        // Check multiple possible response structures
+        const populationData = data.data?.population || data.data?.data?.population || data.population || null;
+        
+        if (data.success && populationData) {
+          console.log(`[ScoreCardSummary] Setting GemRate data from gemrateId:`, populationData);
+          setGemrateData(populationData);
         } else {
+          console.log(`[ScoreCardSummary] No population data in response. Success: ${data.success}, hasData: ${!!data.data}, hasPopulation: ${!!populationData}`);
           setGemrateData(null);
         }
       } else {
+        console.log(`[ScoreCardSummary] No gemrateId available on card. Card keys:`, card ? Object.keys(card) : 'card is null');
         setGemrateData(null);
       }
     } catch (err) {
