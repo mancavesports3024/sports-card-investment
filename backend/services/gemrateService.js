@@ -681,6 +681,14 @@ class GemRateService {
    */
   parsePopulationData(rawData) {
     try {
+      console.log(`[parsePopulationData] Starting parse. Type: ${typeof rawData}, isArray: ${Array.isArray(rawData)}`);
+      if (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) {
+        console.log(`[parsePopulationData] Raw data keys: ${Object.keys(rawData).join(', ')}`);
+        // Log a sample of the structure (first 2000 chars)
+        const sample = JSON.stringify(rawData, null, 2).substring(0, 2000);
+        console.log(`[parsePopulationData] Raw data sample:\n${sample}`);
+      }
+      
       // Handle HTML responses from /universal-search
       if (rawData && rawData.html && typeof rawData.html === 'string') {
         console.log('📊 Parsing HTML response from /universal-search');
@@ -742,6 +750,7 @@ class GemRateService {
       }
       
       if (!rawData || typeof rawData !== 'object') {
+        console.log(`[parsePopulationData] Invalid rawData type: ${typeof rawData}`);
         return null;
       }
 
@@ -749,69 +758,112 @@ class GemRateService {
       let psaData = null;
       
       if (rawData.population_data && Array.isArray(rawData.population_data)) {
+        console.log(`[parsePopulationData] Found population_data array with ${rawData.population_data.length} entries`);
         // Find the PSA entry in the population_data array
         psaData = rawData.population_data.find(item => item.grader === 'psa');
         if (psaData) {
-          // Found PSA data
+          console.log(`[parsePopulationData] Found PSA entry in population_data array`);
+        } else {
+          const graders = rawData.population_data.map(item => item?.grader).filter(Boolean);
+          console.log(`[parsePopulationData] No PSA entry found. Available graders: ${graders.join(', ')}`);
         }
       }
       
       // Fallback to other possible structures
       if (!psaData) {
+        console.log(`[parsePopulationData] Checking alternative locations for PSA data...`);
         if (rawData.psa) {
+          console.log(`[parsePopulationData] Found rawData.psa`);
           psaData = rawData.psa;
         } else if (rawData.data && rawData.data.psa) {
+          console.log(`[parsePopulationData] Found rawData.data.psa`);
           psaData = rawData.data.psa;
         } else if (rawData.population && rawData.population.psa) {
+          console.log(`[parsePopulationData] Found rawData.population.psa`);
           psaData = rawData.population.psa;
         } else if (rawData.grading && rawData.grading.psa) {
+          console.log(`[parsePopulationData] Found rawData.grading.psa`);
           psaData = rawData.grading.psa;
         } else if (rawData.results && rawData.results.psa) {
+          console.log(`[parsePopulationData] Found rawData.results.psa`);
           psaData = rawData.results.psa;
         } else if (rawData.card && rawData.card.psa) {
+          console.log(`[parsePopulationData] Found rawData.card.psa`);
           psaData = rawData.card.psa;
+        } else {
+          console.log(`[parsePopulationData] No PSA data found in any expected location`);
         }
       }
 
       if (!psaData) {
+        console.log(`[parsePopulationData] Returning null - no PSA data found`);
         return null;
       }
+      
+      console.log(`[parsePopulationData] PSA data keys: ${Object.keys(psaData).join(', ')}`);
+      const psaSample = JSON.stringify(psaData, null, 2).substring(0, 1000);
+      console.log(`[parsePopulationData] PSA data sample:\n${psaSample}`);
 
       // Parse the PSA data structure from the actual GemRate response
+      // Try multiple possible field names for each value
+      const total = psaData.card_total_grades || psaData.total_grades || psaData.total || psaData.cardTotal || 0;
+      const gemsPlus = psaData.card_gems || psaData.gems || psaData.gemsPlus || 0;
+      const gemRateRaw = psaData.card_gem_rate || psaData.gem_rate || psaData.gemRate || psaData.gemRatePercent || 0;
+      const gemRate = gemRateRaw > 1 ? gemRateRaw : Math.round(parseFloat(gemRateRaw) * 100 * 100) / 100;
+      
+      // Try to get grades - could be grades object or individual fields
+      const grades = psaData.grades || psaData.grade || {};
+      const perfect = grades.g10 || grades.grade10 || grades['10'] || psaData.g10 || psaData.grade10 || 0;
+      const grade9 = grades.g9 || grades.grade9 || grades['9'] || psaData.g9 || psaData.grade9 || 0;
+      const grade8 = grades.g8 || grades.grade8 || grades['8'] || psaData.g8 || psaData.grade8 || 0;
+      const grade7 = grades.g7 || grades.grade7 || grades['7'] || psaData.g7 || psaData.grade7 || 0;
+      const grade6 = grades.g6 || grades.grade6 || grades['6'] || psaData.g6 || psaData.grade6 || 0;
+      const grade5 = grades.g5 || grades.grade5 || grades['5'] || psaData.g5 || psaData.grade5 || 0;
+      const grade4 = grades.g4 || grades.grade4 || grades['4'] || psaData.g4 || psaData.grade4 || 0;
+      const grade3 = grades.g3 || grades.grade3 || grades['3'] || psaData.g3 || psaData.grade3 || 0;
+      const grade2 = grades.g2 || grades.grade2 || grades['2'] || psaData.g2 || psaData.grade2 || 0;
+      const grade1 = grades.g1 || grades.grade1 || grades['1'] || psaData.g1 || psaData.grade1 || 0;
+      
       const population = {
         // Basic stats from PSA data
-        total: psaData.card_total_grades || 0,
-        gemsPlus: psaData.card_gems || 0,
-        gemRate: Math.round(parseFloat(psaData.card_gem_rate) * 100 * 100) / 100 || 0, // Convert to percentage and round to 2 decimals
+        total: total,
+        gemsPlus: gemsPlus,
+        gemRate: gemRate || 0,
         
         // Grade breakdowns from PSA grades object
-        perfect: psaData.grades?.g10 || 0, // PSA 10 = Perfect
+        perfect: perfect, // PSA 10 = Perfect
         pristine: 0, // Not available in this structure
-        gemMint: psaData.grades?.g10 || 0, // PSA 10 = Gem Mint
+        gemMint: perfect, // PSA 10 = Gem Mint
         mintPlus: 0, // Not available in this structure
-        grade9: psaData.grades?.g9 || 0,
-        grade8: psaData.grades?.g8 || 0,
-        grade7: psaData.grades?.g7 || 0,
-        grade6: psaData.grades?.g6 || 0,
-        grade5: psaData.grades?.g5 || 0,
-        grade4: psaData.grades?.g4 || 0,
-        grade3: psaData.grades?.g3 || 0,
-        grade2: psaData.grades?.g2 || 0,
-        grade1: psaData.grades?.g1 || 0,
+        grade9: grade9,
+        grade8: grade8,
+        grade7: grade7,
+        grade6: grade6,
+        grade5: grade5,
+        grade4: grade4,
+        grade3: grade3,
+        grade2: grade2,
+        grade1: grade1,
         
         // Additional fields from PSA data
         cardName: psaData.name || psaData.description || '',
-        set: psaData.set_name || '',
+        set: psaData.set_name || psaData.set || '',
         year: psaData.year || '',
         sport: psaData.category || '',
         player: psaData.name || '',
-        cardNumber: psaData.card_number || '',
+        cardNumber: psaData.card_number || psaData.number || '',
         parallel: psaData.parallel || '',
         
         // Raw data for debugging
         rawPsaData: psaData
       };
 
+      console.log(`[parsePopulationData] Parsed population:`, {
+        total,
+        perfect,
+        grade9,
+        gemRate
+      });
 
       return population;
     } catch (error) {
