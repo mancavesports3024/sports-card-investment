@@ -2321,7 +2321,6 @@ class GemRateService {
 
       // Try HTTP request first (faster, like Postman)
       try {
-        console.log('🔍 Attempting HTTP request to get HTML with RawData...');
         const response = await this.httpClient.get(path, {
           headers: {
             ...this.pageHeaders,
@@ -2333,50 +2332,21 @@ class GemRateService {
         });
 
         const htmlContent = response.data;
-        console.log(`📄 HTML content length: ${htmlContent.length} characters`);
 
-        // Debug: Look for any script tags with data
-        const scriptTags = htmlContent.match(/<script[^>]*>[\s\S]*?<\/script>/gi);
-        console.log(`📜 Found ${scriptTags ? scriptTags.length : 0} script tags in HTML`);
-        
         // Look for RowData variable in script tags (EXACT Postman pattern)
         const rawDataPatterns = [
-          // EXACT Postman pattern: var RowData = JSON.parse('...');
           /var\s+RowData\s*=\s*JSON\.parse\('(.+?)'\);/s,
-          // Try with double quotes as fallback
           /var\s+RowData\s*=\s*JSON\.parse\("(.+?)"\);/s,
-          // Other variations
           /const\s+RowData\s*=\s*JSON\.parse\('(.+?)'\);/s,
           /let\s+RowData\s*=\s*JSON\.parse\('(.+?)'\);/s,
           /RowData\s*=\s*JSON\.parse\('(.+?)'\);/s
         ];
-        
-        // Debug: Check if RowData string appears anywhere
-        if (htmlContent.includes('RowData')) {
-          console.log('✅ Found "RowData" string in HTML');
-          // Extract a sample around RowData
-          const rowDataIndex = htmlContent.indexOf('RowData');
-          const sample = htmlContent.substring(Math.max(0, rowDataIndex - 100), Math.min(htmlContent.length, rowDataIndex + 500));
-          console.log(`📋 Sample around RowData: ${sample.substring(0, 200)}...`);
-        } else {
-          console.log('⚠️ "RowData" string not found in HTML');
-        }
-
-        // Debug: Try to find any variable assignments with JSON.parse
-        const allJsonParseMatches = htmlContent.match(/(?:var|const|let)\s+\w+\s*=\s*JSON\.parse\([^)]+\)/gi);
-        if (allJsonParseMatches && allJsonParseMatches.length > 0) {
-          console.log(`📋 Found ${allJsonParseMatches.length} JSON.parse assignments in HTML`);
-          console.log(`📋 Sample matches: ${allJsonParseMatches.slice(0, 3).join(', ')}`);
-        }
 
         for (let i = 0; i < rawDataPatterns.length; i++) {
           const pattern = rawDataPatterns[i];
           const match = htmlContent.match(pattern);
           if (match && match[1]) {
-            console.log(`✅ Found data variable in HTML (pattern ${i + 1} matched), extracting...`);
             let jsonString = match[1];
-            console.log(`📏 JSON string length: ${jsonString.length} characters`);
-            console.log(`📏 JSON string preview: ${jsonString.substring(0, 200)}...`);
 
             // Unescape the JSON string (EXACT Postman pattern)
             jsonString = jsonString.replace(/\\u0026/g, '&');
@@ -2387,7 +2357,7 @@ class GemRateService {
               const rawData = JSON.parse(jsonString);
 
               if (Array.isArray(rawData) && rawData.length > 0) {
-                console.log(`✅ Extracted ${rawData.length} cards from RawData via HTTP`);
+                console.log(`✅ GemRate player cards via HTTP: ${rawData.length} cards`);
 
                 // Map RowData to our card format (using Postman field names)
                 const cards = rawData.map((rowData) => {
@@ -2423,16 +2393,15 @@ class GemRateService {
                   return bTotal - aTotal;
                 });
 
-                console.log(`✅ GemRate player cards extracted from RawData via HTTP: ${cards.length}`);
                 return cards;
               }
             } catch (parseError) {
-              console.log(`⚠️ Failed to parse RawData JSON: ${parseError.message}`);
+              console.log(`⚠️ Failed to parse RowData JSON: ${parseError.message}`);
             }
           }
         }
 
-        console.log('⚠️ RowData not found in HTTP response, trying Puppeteer...');
+        console.log('⚠️ RowData not found in HTTP response, falling back to Puppeteer...');
       } catch (httpError) {
         console.log(`⚠️ HTTP request failed: ${httpError.message}, trying Puppeteer...`);
       }
