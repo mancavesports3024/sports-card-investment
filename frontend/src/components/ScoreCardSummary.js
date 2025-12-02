@@ -39,11 +39,16 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
 
   // Fetch GemRate data - prioritize gemrateId if available, otherwise wait for search query
   useEffect(() => {
-    // If we have gemrateId from the player search, fetch immediately
+    // If we have gemrateId from the player search, fetch immediately and skip search
     if (card?.gemrateId) {
+      console.log(`[ScoreCardSummary] Card has gemrateId: ${card.gemrateId}, skipping GemRate search`);
       fetchGemrateData();
-    } else if (cardData?.searchQuery) {
-      // Fallback to search if no gemrateId
+      return; // Exit early to prevent search
+    }
+    
+    // Only do GemRate search if we don't have gemrateId
+    if (cardData?.searchQuery && !card?.gemrateId) {
+      console.log(`[ScoreCardSummary] No gemrateId available, using search fallback`);
       fetchGemrateData();
     }
   }, [card?.gemrateId, cardData?.searchQuery]);

@@ -1439,11 +1439,16 @@ router.post('/', requireUser, async (req, res) => {
           return false;
         }
         
-        // If we have a card number, also require it to be present
-        if (cardNumber && !title.includes(cardNumber)) {
-          excludedByPrimaryToken++;
-          console.log(`[KEYWORD FILTER] EXCLUDED (no card number "${cardNumber}"): "${card.title}"`);
-          return false;
+        // If we have a card number, require exact match (with word boundaries to avoid partial matches)
+        if (cardNumber) {
+          // Match card number with # prefix or as standalone number, ensuring exact match
+          // Examples: "#148", "# 148", "148" (but not "1148", "1480", etc.)
+          const cardNumRegex = new RegExp(`(?:#|no\\.?|number)\\s*${cardNumber}\\b|\\b${cardNumber}\\b`, 'i');
+          if (!cardNumRegex.test(title)) {
+            excludedByPrimaryToken++;
+            console.log(`[KEYWORD FILTER] EXCLUDED (no exact card number "${cardNumber}"): "${card.title}"`);
+            return false;
+          }
         }
 
         // If a fraction is present, enforce at least one variant exists
@@ -1458,6 +1463,20 @@ router.post('/', requireUser, async (req, res) => {
       
       console.log(`[KEYWORD FILTER] After filtering: ${allCards.length} cards (removed ${beforeFilterCount - allCards.length})`);
       console.log(`[KEYWORD FILTER] Breakdown - Exclusions: ${excludedByExclusion}, No primary token: ${excludedByPrimaryToken}, No fraction: ${excludedByFraction}`);
+      
+      // If we have a card number, validate that at least one result contains the exact card number
+      if (cardNumber && allCards.length > 0) {
+        const cardNumRegex = new RegExp(`(?:#|no\\.?|number)\\s*${cardNumber}\\b|\\b${cardNumber}\\b`, 'i');
+        const hasExactMatch = allCards.some(card => {
+          const title = (card.title || '').toLowerCase();
+          return cardNumRegex.test(title);
+        });
+        
+        if (!hasExactMatch) {
+          console.log(`[KEYWORD FILTER] ⚠️ No exact card number match found for #${cardNumber}. Filtering out all results to prevent wrong data.`);
+          allCards = []; // Clear all results if we can't find exact match
+        }
+      }
     } catch (kwErr) {
       console.log('⚠️ Keyword filtering skipped due to error:', kwErr.message);
     }
@@ -1898,6 +1917,45 @@ router.post('/', requireUser, async (req, res) => {
     // }
     // responseData.ebayApiUsage = ebayApiUsage;
 
+    // Extract card number from search query for validation
+    const cardNumberMatch = (workingQuery || searchQuery || '').match(/#?(\d+)/);
+    const requestedCardNumber = cardNumberMatch ? cardNumberMatch[1] : null;
+    
+    // If we requested a specific card number, validate results
+    if (requestedCardNumber) {
+      const cardNumRegex = new RegExp(`(?:#|no\\.?|number)\\s*${requestedCardNumber}\\b|\\b${requestedCardNumber}\\b`, 'i');
+      const hasExactMatch = (sorted.psa9 || []).some(card => cardNumRegex.test((card.title || '').toLowerCase())) ||
+                            (sorted.psa10 || []).some(card => cardNumRegex.test((card.title || '').toLowerCase())) ||
+                            (sorted.raw || []).some(card => cardNumRegex.test((card.title || '').toLowerCase()));
+      
+      if (!hasExactMatch) {
+        console.log(`[POST RESPONSE] ⚠️ No exact match found for card #${requestedCardNumber}. Returning empty results to prevent wrong data.`);
+        // Clear all results to prevent returning wrong data
+        responseData.results = {
+          raw: [],
+          psa7: [],
+          psa8: [],
+          psa9: [],
+          psa10: [],
+          cgc9: [],
+          cgc10: [],
+          tag8: [],
+          tag9: [],
+          tag10: [],
+          sgc10: [],
+          aigrade9: [],
+          aigrade10: [],
+          otherGraded: []
+        };
+        responseData.priceAnalysis = {
+          psa9: { count: 0, avgPrice: 0 },
+          psa10: { count: 0, avgPrice: 0 }
+        };
+        responseData.error = `No exact match found for card #${requestedCardNumber}. Results may be for different cards.`;
+        sorted = responseData.results; // Update sorted for logging
+      }
+    }
+    
     console.log(`[POST RESPONSE] Sending response - PSA9: ${sorted.psa9?.length || 0}, PSA10: ${sorted.psa10?.length || 0}`);
     console.log(`[POST RESPONSE] responseData.results keys: ${Object.keys(responseData.results).filter(k => !['priceAnalysis', 'gradingStats'].includes(k)).join(', ')}`);
     
