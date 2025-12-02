@@ -605,67 +605,58 @@ class GemRateService {
         warmedPath ||
         (cardSlug ? `/card/${cardSlug}` : `/universal-search?gemrate_id=${gemrateId}`);
 
-      const effectiveToken = cardDetailsToken || this.latestCardDetailsToken || null;
+      // Step 1: Fetch /universal-search page to extract cardDetailsToken
+      let effectiveToken = cardDetailsToken || this.latestCardDetailsToken || null;
+      
       if (!effectiveToken) {
-        console.log('⚠️ GemRate card details token not available; attempting request without it');
+        console.log('📄 Fetching /universal-search page to extract cardDetailsToken...');
+        try {
+          const universalSearchResponse = await this.httpClient.get('/universal-search', {
+            params: { gemrate_id: gemrateId },
+            headers: this.cardPageHeaders
+          });
+
+          if (universalSearchResponse.data && typeof universalSearchResponse.data === 'string') {
+            const html = universalSearchResponse.data;
+            // Extract cardDetailsToken from JavaScript in the HTML
+            const tokenMatch = html.match(/const\s+cardDetailsToken\s*=\s*"([^"]+)"/);
+            if (tokenMatch && tokenMatch[1]) {
+              effectiveToken = tokenMatch[1];
+              this.latestCardDetailsToken = effectiveToken;
+              console.log('🔐 Extracted cardDetailsToken from /universal-search page');
+            } else {
+              console.log('⚠️ Could not extract cardDetailsToken from /universal-search page');
+            }
+          }
+        } catch (tokenError) {
+          console.log(`⚠️ Failed to fetch /universal-search for token: ${tokenError.message}`);
+        }
       }
 
-      // Use /universal-search endpoint (as confirmed working in Postman)
-      const response = await this.httpClient.get('/universal-search', {
+      // Step 2: Fetch actual card details from /card-details endpoint
+      const cardDetailsHeaders = {
+        ...this.baseHeaders,
+        'Accept': 'application/json, text/plain, */*',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Referer': `https://www.gemrate.com${refererPath}`,
+        'Sec-Fetch-Site': 'same-origin',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Dest': 'empty',
+        ...(effectiveToken ? { 'X-Card-Details-Token': effectiveToken } : {})
+      };
+
+      if (!effectiveToken) {
+        console.log('⚠️ No cardDetailsToken available; attempting request without it');
+      }
+
+      const response = await this.httpClient.get('/card-details', {
         params: { gemrate_id: gemrateId },
-        headers: this.cardPageHeaders
+        headers: cardDetailsHeaders
       });
 
       if (response.data && response.status === 200) {
-        // Extract cardDetailsToken if available
-        if (typeof response.data === 'string') {
-          const html = response.data;
-          const tokenMatch = html.match(/const\s+cardDetailsToken\s*=\s*"([^"]+)"/);
-          if (tokenMatch && tokenMatch[1] && !this.latestCardDetailsToken) {
-            this.latestCardDetailsToken = tokenMatch[1];
-            console.log('🔐 Parsed GemRate cardDetailsToken from universal search page');
-          }
-          
-          // Parse HTML to extract card data
-          const $ = cheerio.load(html);
-          
-          // Try to find JSON data in script tags (similar to player search)
-          const scriptTags = $('script').toArray();
-          for (const script of scriptTags) {
-            const scriptContent = $(script).html() || '';
-            
-            // Look for card data in various JSON structures
-            const cardDataPatterns = [
-              /var\s+cardData\s*=\s*({.+?});/s,
-              /const\s+cardData\s*=\s*({.+?});/s,
-              /let\s+cardData\s*=\s*({.+?});/s,
-              /window\.cardData\s*=\s*({.+?});/s,
-              /"card_data":\s*({.+?})/s,
-              /"psa_data":\s*({.+?})/s
-            ];
-            
-            for (const pattern of cardDataPatterns) {
-              const match = scriptContent.match(pattern);
-              if (match && match[1]) {
-                try {
-                  const cardData = JSON.parse(match[1]);
-                  console.log(`✅ Retrieved card details for gemrate_id: ${gemrateId} (from JSON in script)`);
-                  return cardData;
-                } catch (e) {
-                  // Continue trying other patterns
-                }
-              }
-            }
-          }
-          
-          // If no JSON found, return HTML for parsing by parsePopulationData
-          console.log(`✅ Retrieved HTML page for gemrate_id: ${gemrateId}, will parse for population data`);
-          return { html: html, gemrateId: gemrateId };
-        } else {
-          // If response is already JSON/object, return it directly
-          console.log(`✅ Retrieved card details for gemrate_id: ${gemrateId} (JSON response)`);
-          return response.data;
-        }
+        console.log(`✅ Retrieved card details for gemrate_id: ${gemrateId}`);
+        return response.data;
       } else {
         console.log(`❌ No card details found for gemrate_id: ${gemrateId} (status: ${response.status})`);
         return null;
