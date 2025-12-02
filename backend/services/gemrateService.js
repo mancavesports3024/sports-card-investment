@@ -610,17 +610,62 @@ class GemRateService {
         console.log('⚠️ GemRate card details token not available; attempting request without it');
       }
 
-      const response = await this.httpClient.get(this.cardDetailsPath, {
+      // Use /universal-search endpoint (as confirmed working in Postman)
+      const response = await this.httpClient.get('/universal-search', {
         params: { gemrate_id: gemrateId },
-        headers: this.cardDetailsHeaders(refererPath, effectiveToken)
+        headers: this.cardPageHeaders
       });
 
       if (response.data && response.status === 200) {
-        if (effectiveToken && !this.latestCardDetailsToken) {
-          this.latestCardDetailsToken = effectiveToken;
+        // Extract cardDetailsToken if available
+        if (typeof response.data === 'string') {
+          const html = response.data;
+          const tokenMatch = html.match(/const\s+cardDetailsToken\s*=\s*"([^"]+)"/);
+          if (tokenMatch && tokenMatch[1] && !this.latestCardDetailsToken) {
+            this.latestCardDetailsToken = tokenMatch[1];
+            console.log('🔐 Parsed GemRate cardDetailsToken from universal search page');
+          }
+          
+          // Parse HTML to extract card data
+          const $ = cheerio.load(html);
+          
+          // Try to find JSON data in script tags (similar to player search)
+          const scriptTags = $('script').toArray();
+          for (const script of scriptTags) {
+            const scriptContent = $(script).html() || '';
+            
+            // Look for card data in various JSON structures
+            const cardDataPatterns = [
+              /var\s+cardData\s*=\s*({.+?});/s,
+              /const\s+cardData\s*=\s*({.+?});/s,
+              /let\s+cardData\s*=\s*({.+?});/s,
+              /window\.cardData\s*=\s*({.+?});/s,
+              /"card_data":\s*({.+?})/s,
+              /"psa_data":\s*({.+?})/s
+            ];
+            
+            for (const pattern of cardDataPatterns) {
+              const match = scriptContent.match(pattern);
+              if (match && match[1]) {
+                try {
+                  const cardData = JSON.parse(match[1]);
+                  console.log(`✅ Retrieved card details for gemrate_id: ${gemrateId} (from JSON in script)`);
+                  return cardData;
+                } catch (e) {
+                  // Continue trying other patterns
+                }
+              }
+            }
+          }
+          
+          // If no JSON found, return HTML for parsing by parsePopulationData
+          console.log(`✅ Retrieved HTML page for gemrate_id: ${gemrateId}, will parse for population data`);
+          return { html: html, gemrateId: gemrateId };
+        } else {
+          // If response is already JSON/object, return it directly
+          console.log(`✅ Retrieved card details for gemrate_id: ${gemrateId} (JSON response)`);
+          return response.data;
         }
-        console.log(`✅ Retrieved card details for gemrate_id: ${gemrateId}`);
-        return response.data;
       } else {
         console.log(`❌ No card details found for gemrate_id: ${gemrateId} (status: ${response.status})`);
         return null;
@@ -629,6 +674,8 @@ class GemRateService {
       // Check if it's a 404 - this is expected for some cards
       if (error.response?.status === 404) {
         console.log(`⚠️ GemRate card details returned 404 for gemrate_id: ${gemrateId} - card may not have detailed page`);
+      } else if (error.response?.status === 403) {
+        console.log(`⚠️ GemRate card details returned 403 for gemrate_id: ${gemrateId} - access may be blocked`);
       } else {
         console.error('❌ Error getting card details:', error.message);
       }
@@ -643,6 +690,65 @@ class GemRateService {
    */
   parsePopulationData(rawData) {
     try {
+      // Handle HTML responses from /universal-search
+      if (rawData && rawData.html && typeof rawData.html === 'string') {
+        console.log('📊 Parsing HTML response from /universal-search');
+        const html = rawData.html;
+        const $ = cheerio.load(html);
+        
+        // Try to extract population data from HTML
+        // Look for script tags with card data
+        const scriptTags = $('script').toArray();
+        for (const script of scriptTags) {
+          const scriptContent = $(script).html() || '';
+          
+          // Look for PSA data in various formats
+          const psaDataPatterns = [
+            /"psa_data":\s*({.+?})/s,
+            /var\s+psaData\s*=\s*({.+?});/s,
+            /const\s+psaData\s*=\s*({.+?});/s,
+            /"population_data":\s*\[({.+?})\]/s
+          ];
+          
+          for (const pattern of psaDataPatterns) {
+            const match = scriptContent.match(pattern);
+            if (match && match[1]) {
+              try {
+                const psaData = JSON.parse(match[1]);
+                if (psaData.card_total_grades || psaData.grades) {
+                  // Found PSA data, continue with normal parsing
+                  rawData = { population_data: [{ grader: 'psa', ...psaData }] };
+                  break;
+                }
+              } catch (e) {
+                // Continue trying other patterns
+              }
+            }
+          }
+        }
+        
+        // If no JSON found in scripts, try to extract from HTML elements
+        // Look for population numbers in the page
+        const totalPopText = $('*:contains("Total")').filter((i, el) => {
+          const text = $(el).text();
+          return text.includes('Total') && /\d+/.test(text);
+        }).first().text();
+        
+        if (totalPopText) {
+          const totalMatch = totalPopText.match(/(\d+)/);
+          if (totalMatch) {
+            console.log(`📊 Extracted total population from HTML: ${totalMatch[1]}`);
+            // Return basic structure - caller can use this
+            return {
+              total: parseInt(totalMatch[1], 10),
+              perfect: 0,
+              gemMint: 0,
+              grade9: 0,
+              gemRate: 0
+            };
+          }
+        }
+      }
       
       if (!rawData || typeof rawData !== 'object') {
         return null;
