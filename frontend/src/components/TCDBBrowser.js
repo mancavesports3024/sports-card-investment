@@ -32,6 +32,8 @@ const TCDBBrowser = () => {
   const [playerSearchResults, setPlayerSearchResults] = useState([]);
   const [playerSearchLoading, setPlayerSearchLoading] = useState(false);
   const [playerSearchError, setPlayerSearchError] = useState('');
+  const [playerSearchFilterSet, setPlayerSearchFilterSet] = useState('');
+  const [playerSearchFilterCardNumber, setPlayerSearchFilterCardNumber] = useState('');
   
   // Database info
   const [dbInfo, setDbInfo] = useState({ total: 0 });
@@ -304,11 +306,72 @@ const TCDBBrowser = () => {
         {playerSearchError && (
           <div className="error-message">{playerSearchError}</div>
         )}
-        {playerSearchResults.length > 0 && (
+        {playerSearchResults.length > 0 && (() => {
+          const filteredResults = playerSearchResults.filter((card) => {
+            if (playerSearchFilterSet && !(card.set || '').toLowerCase().includes(playerSearchFilterSet.toLowerCase())) return false;
+            if (playerSearchFilterCardNumber && !(card.number || '').toString().includes(playerSearchFilterCardNumber)) return false;
+            return true;
+          });
+          return (
           <div className="player-search-results">
             <h3>
-              Results for {playerSearchName} ({playerSearchResults.length} cards)
+              Results for {playerSearchName} ({filteredResults.length} of {playerSearchResults.length} cards)
             </h3>
+            {/* Filter inputs */}
+            <div style={{ marginBottom: '15px', display: 'flex', gap: '15px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <label htmlFor="filter-set" style={{ fontWeight: 600 }}>Filter by Set:</label>
+                <input
+                  id="filter-set"
+                  type="text"
+                  value={playerSearchFilterSet}
+                  onChange={(e) => setPlayerSearchFilterSet(e.target.value)}
+                  placeholder="Enter set name..."
+                  style={{
+                    padding: '6px 10px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    minWidth: '200px'
+                  }}
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <label htmlFor="filter-card-number" style={{ fontWeight: 600 }}>Filter by Card #:</label>
+                <input
+                  id="filter-card-number"
+                  type="text"
+                  value={playerSearchFilterCardNumber}
+                  onChange={(e) => setPlayerSearchFilterCardNumber(e.target.value)}
+                  placeholder="Enter card number..."
+                  style={{
+                    padding: '6px 10px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    minWidth: '150px'
+                  }}
+                />
+              </div>
+              {(playerSearchFilterSet || playerSearchFilterCardNumber) && (
+                <button
+                  onClick={() => {
+                    setPlayerSearchFilterSet('');
+                    setPlayerSearchFilterCardNumber('');
+                  }}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: '#f0f0f0',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
             <div className="checklist-container">
               <table className="checklist-table">
                 <thead>
@@ -324,7 +387,7 @@ const TCDBBrowser = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {playerSearchResults.map((card, index) => {
+                  {filteredResults.map((card, index) => {
                     const gems =
                       typeof card.gems === 'number'
                         ? card.gems.toLocaleString()
@@ -333,7 +396,14 @@ const TCDBBrowser = () => {
                       typeof card.totalGrades === 'number'
                         ? card.totalGrades.toLocaleString()
                         : 'N/A';
-                    const gemRate = card.gemRate || '';
+                    // Format gem rate as percentage
+                    let gemRate = 'N/A';
+                    if (card.gemRate !== null && card.gemRate !== undefined && card.gemRate !== '') {
+                      const gemRateNum = typeof card.gemRate === 'number' ? card.gemRate : parseFloat(card.gemRate);
+                      if (!isNaN(gemRateNum)) {
+                        gemRate = `${(gemRateNum * 100).toFixed(2)}%`;
+                      }
+                    }
 
                     const sportFromCategory = () => {
                       switch (playerSearchCategory) {
@@ -379,7 +449,8 @@ const TCDBBrowser = () => {
               </table>
             </div>
           </div>
-        )}
+          );
+        })()}
       </div>
 
       {error && <div className="error-message">{error}</div>}
