@@ -51,8 +51,12 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       set: card?.set,
       number: card?.number,
       hasGemrateId: !!card?.gemrateId,
-      gemrateId: card?.gemrateId
+      gemrateId: card?.gemrateId,
+      fullCardObject: card
     });
+    
+    // Reset gemrateData when card changes
+    setGemrateData(null);
     
     // Try gemrateId first (from player search), then fallback to search
     if (card?.gemrateId) {
@@ -60,6 +64,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       fetchGemrateData();
     } else {
       console.log(`[ScoreCardSummary] Card does NOT have gemrateId - will search GemRate by query`);
+      console.log(`[ScoreCardSummary] Card object keys:`, card ? Object.keys(card) : 'card is null');
       searchGemRateData();
     }
   }, [card?.gemrateId, card?.player, card?.name, card?.set, card?.number]);
@@ -90,9 +95,17 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
             grade9: populationData.grade9,
             gemRate: populationData.gemRate
           });
+          console.log(`[ScoreCardSummary] Full populationData object:`, populationData);
           setGemrateData(populationData);
         } else {
           console.log(`[ScoreCardSummary] No population data in response. Success: ${data.success}, hasData: ${!!data.data}, hasPopulation: ${!!populationData}`);
+          console.log(`[ScoreCardSummary] Full response structure:`, {
+            success: data.success,
+            hasData: !!data.data,
+            dataKeys: data.data ? Object.keys(data.data) : [],
+            populationData: populationData,
+            fullResponse: data
+          });
           setGemrateData(null);
         }
       } else {
@@ -679,9 +692,12 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
   
   // Get population data from gemrate (check multiple possible field names)
   // GemRate returns: perfect/gemMint (PSA 10), grade9 (PSA 9), total (total population), gemRate (percentage)
+  console.log(`[ScoreCardSummary] Rendering with gemrateData:`, gemrateData);
+  console.log(`[ScoreCardSummary] gemrateData keys:`, gemrateData ? Object.keys(gemrateData) : 'null');
   const psa10Pop = gemrateData?.perfect || gemrateData?.gemMint || gemrateData?.psa10Population || gemrateData?.psa10_population || 0;
   const psa9Pop = gemrateData?.grade9 || gemrateData?.psa9Population || gemrateData?.psa9_population || 0;
   const totalPop = gemrateData?.total || gemrateData?.totalPopulation || gemrateData?.total_population || 0;
+  console.log(`[ScoreCardSummary] Extracted populations - psa10Pop: ${psa10Pop}, psa9Pop: ${psa9Pop}, totalPop: ${totalPop}`);
   
   // GemRate provides gemRate as a percentage, use it if available, otherwise calculate
   // gemRate from GemRate is already a percentage (e.g., 3.5 for 3.5%), not a decimal
