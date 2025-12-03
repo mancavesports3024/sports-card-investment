@@ -171,23 +171,32 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       const data = await response.json();
       console.log(`[ScoreCardSummary] GemRate search response success: ${data.success}`);
       console.log(`[ScoreCardSummary] Full GemRate search response:`, data);
+      console.log(`[ScoreCardSummary] Response keys:`, Object.keys(data));
+      console.log(`[ScoreCardSummary] data.population:`, data.population);
+      console.log(`[ScoreCardSummary] data.data:`, data.data);
+      console.log(`[ScoreCardSummary] data.data?.population:`, data.data?.population);
       
-      if (data.success && data.population) {
+      // Try multiple possible response structures
+      const populationData = data.population || data.data?.population || null;
+      
+      if (data.success && populationData) {
         console.log(`[ScoreCardSummary] Setting GemRate data from search:`, {
-          total: data.population.total,
-          perfect: data.population.perfect,
-          grade9: data.population.grade9,
-          gemRate: data.population.gemRate
-        });
-        console.log(`[ScoreCardSummary] Full population object:`, data.population);
-        setGemrateData(data.population);
+          total: ${populationData.total},
+          perfect: ${populationData.perfect},
+          grade9: ${populationData.grade9},
+          gemRate: ${populationData.gemRate}
+        }`);
+        console.log(`[ScoreCardSummary] Full population object:`, populationData);
+        setGemrateData(populationData);
       } else {
-        console.log(`[ScoreCardSummary] No population data from GemRate search. Success: ${data.success}, hasPopulation: ${!!data.population}`);
+        console.log(`[ScoreCardSummary] No population data from GemRate search. Success: ${data.success}, hasPopulation: ${!!populationData}`);
         console.log(`[ScoreCardSummary] Response structure:`, {
           success: data.success,
-          hasPopulation: !!data.population,
-          populationType: typeof data.population,
-          populationValue: data.population,
+          hasPopulation: !!populationData,
+          populationType: typeof populationData,
+          populationValue: populationData,
+          dataPopulation: data.population,
+          dataDataPopulation: data.data?.population,
           allKeys: Object.keys(data || {})
         });
         setGemrateData(null);
