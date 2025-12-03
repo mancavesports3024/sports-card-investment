@@ -2531,8 +2531,8 @@ class GemRateService {
                   const totalGrades = rowData.total || rowData.totalGrades || rowData.totalGradesCount || null;
                   const gemRate = rowData.gem_rate || rowData.gemRate || rowData.gemRatePercent || rowData['gem %'] || '';
                   
-                  // Try multiple possible field names for gemrateId
-                  const gemrateId = rowData.gemrateId || rowData.gemrate_id || rowData.id || rowData.gemrateId || rowData._id || null;
+                  // Try multiple possible field names for gemrateId (gemrate_id is the actual field name from GemRate)
+                  const gemrateId = rowData.gemrate_id || rowData.gemrateId || rowData.id || rowData._id || null;
 
                   return {
                     number: cardNumber || '',
