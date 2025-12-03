@@ -303,6 +303,47 @@ router.get('/universal-pop-report/checklist/:setPath', async (req, res) => {
   }
 });
 
+// POST /api/gemrate/search - Search for a card and return population data
+router.post('/search', async (req, res) => {
+  try {
+    const { query } = req.body;
+    
+    if (!query || typeof query !== 'string' || !query.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required body parameter: query'
+      });
+    }
+    
+    console.log(`📊 GemRate search request: "${query}"`);
+    
+    const searchResult = await gemrateService.searchCardPopulation(query.trim());
+    
+    if (searchResult.success) {
+      res.json({
+        success: true,
+        query: query,
+        gemrateId: searchResult.gemrateId,
+        population: searchResult.population,
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: searchResult.error || 'Card not found on GemRate',
+        query: query
+      });
+    }
+  } catch (error) {
+    console.error('❌ GemRate search error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to search GemRate',
+      details: error.message
+    });
+  }
+});
+
 // GET /api/gemrate/player - Get cards for a specific player (GemRate player page)
 router.get('/player', async (req, res) => {
   try {

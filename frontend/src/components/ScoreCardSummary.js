@@ -37,7 +37,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
     }
   }, [card]);
 
-  // Fetch GemRate data - only if gemrateId is available from player search
+  // Fetch GemRate data - try gemrateId first, then search fallback
   useEffect(() => {
     console.log(`[ScoreCardSummary] Card changed:`, {
       player: card?.player || card?.name,
@@ -47,14 +47,15 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       gemrateId: card?.gemrateId
     });
     
-    // Only fetch if we have gemrateId from the player search
+    // Try gemrateId first (from player search), then fallback to search
     if (card?.gemrateId) {
       console.log(`[ScoreCardSummary] Card has gemrateId: ${card.gemrateId}, fetching directly`);
       fetchGemrateData();
     } else {
-      console.log(`[ScoreCardSummary] Card does NOT have gemrateId - GemRate data will not be fetched`);
+      console.log(`[ScoreCardSummary] Card does NOT have gemrateId - will search GemRate by query`);
+      searchGemRateData();
     }
-  }, [card?.gemrateId]);
+  }, [card?.gemrateId, card?.player, card?.name, card?.set, card?.number]);
 
   const fetchGemrateData = async () => {
     try {
