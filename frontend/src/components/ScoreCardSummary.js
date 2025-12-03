@@ -170,6 +170,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       
       const data = await response.json();
       console.log(`[ScoreCardSummary] GemRate search response success: ${data.success}`);
+      console.log(`[ScoreCardSummary] Full GemRate search response:`, data);
       
       if (data.success && data.population) {
         console.log(`[ScoreCardSummary] Setting GemRate data from search:`, {
@@ -178,9 +179,17 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
           grade9: data.population.grade9,
           gemRate: data.population.gemRate
         });
+        console.log(`[ScoreCardSummary] Full population object:`, data.population);
         setGemrateData(data.population);
       } else {
         console.log(`[ScoreCardSummary] No population data from GemRate search. Success: ${data.success}, hasPopulation: ${!!data.population}`);
+        console.log(`[ScoreCardSummary] Response structure:`, {
+          success: data.success,
+          hasPopulation: !!data.population,
+          populationType: typeof data.population,
+          populationValue: data.population,
+          allKeys: Object.keys(data || {})
+        });
         setGemrateData(null);
       }
     } catch (err) {
