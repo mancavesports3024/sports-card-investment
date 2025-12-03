@@ -59,7 +59,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
 
   const fetchGemrateData = async () => {
     try {
-      // Only use gemrateId if available - no search fallback
+      // Only use gemrateId if available
       if (card?.gemrateId) {
         console.log(`[ScoreCardSummary] Using gemrateId from card: ${card.gemrateId}`);
         const response = await fetch(`${API_BASE_URL}/api/gemrate/details/${encodeURIComponent(card.gemrateId)}`);
@@ -71,13 +71,18 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
         }
         
         const data = await response.json();
-        console.log(`[ScoreCardSummary] GemRate details response:`, data);
+        console.log(`[ScoreCardSummary] GemRate details response success: ${data.success}`);
         
         // Check multiple possible response structures
         const populationData = data.data?.population || data.data?.data?.population || data.population || null;
         
         if (data.success && populationData) {
-          console.log(`[ScoreCardSummary] Setting GemRate data from gemrateId:`, populationData);
+          console.log(`[ScoreCardSummary] Setting GemRate data from gemrateId:`, {
+            total: populationData.total,
+            perfect: populationData.perfect,
+            grade9: populationData.grade9,
+            gemRate: populationData.gemRate
+          });
           setGemrateData(populationData);
         } else {
           console.log(`[ScoreCardSummary] No population data in response. Success: ${data.success}, hasData: ${!!data.data}, hasPopulation: ${!!populationData}`);
@@ -89,6 +94,77 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       }
     } catch (err) {
       console.error('[ScoreCardSummary] Failed to fetch gemrate data:', err);
+      setGemrateData(null);
+    }
+  };
+
+  const searchGemRateData = async () => {
+    try {
+      // Build search query from card data
+      const playerName = card?.player || card?.name || '';
+      const cardNumber = card?.number || '';
+      const setName = card?.set || '';
+      const parallel = card?.parallel || '';
+      
+      // Build a search query similar to how we build it for 130point
+      let searchQuery = '';
+      if (setName && cardNumber) {
+        searchQuery = `${setName} #${cardNumber}`;
+        if (playerName) {
+          searchQuery = `${playerName} ${searchQuery}`;
+        }
+        if (parallel && parallel.toLowerCase() !== 'base') {
+          searchQuery = `${searchQuery} ${parallel}`;
+        }
+      } else if (playerName && cardNumber) {
+        searchQuery = `${playerName} #${cardNumber}`;
+        if (setName) {
+          searchQuery = `${setName} ${searchQuery}`;
+        }
+      } else if (playerName) {
+        searchQuery = playerName;
+        if (cardNumber) {
+          searchQuery = `${searchQuery} #${cardNumber}`;
+        }
+      } else {
+        console.log(`[ScoreCardSummary] Not enough card info to search GemRate`);
+        setGemrateData(null);
+        return;
+      }
+      
+      console.log(`[ScoreCardSummary] Searching GemRate for: "${searchQuery}"`);
+      
+      const response = await fetch(`${API_BASE_URL}/api/gemrate/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: searchQuery })
+      });
+      
+      if (!response.ok) {
+        console.error(`[ScoreCardSummary] GemRate search API error: ${response.status} ${response.statusText}`);
+        setGemrateData(null);
+        return;
+      }
+      
+      const data = await response.json();
+      console.log(`[ScoreCardSummary] GemRate search response success: ${data.success}`);
+      
+      if (data.success && data.population) {
+        console.log(`[ScoreCardSummary] Setting GemRate data from search:`, {
+          total: data.population.total,
+          perfect: data.population.perfect,
+          grade9: data.population.grade9,
+          gemRate: data.population.gemRate
+        });
+        setGemrateData(data.population);
+      } else {
+        console.log(`[ScoreCardSummary] No population data from GemRate search. Success: ${data.success}, hasPopulation: ${!!data.population}`);
+        setGemrateData(null);
+      }
+    } catch (err) {
+      console.error('[ScoreCardSummary] Error searching GemRate data:', err);
       setGemrateData(null);
     }
   };
