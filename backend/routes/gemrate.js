@@ -51,38 +51,7 @@ router.get('/search/:query', async (req, res) => {
   }
 });
 
-// POST /api/gemrate/search - Search with POST body
-router.post('/search', async (req, res) => {
-  try {
-    const { query, options } = req.body;
-    
-    if (!query) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required field: query'
-      });
-    }
-
-    const cleanQuery = sanitizeGemrateQuery(query);
-    
-    console.log(`🔍 GemRate search request: "${cleanQuery}"`);
-    
-    const result = await gemrateService.searchCardPopulation(cleanQuery, options || {});
-
-    res.json({
-      success: true,
-      data: result,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('❌ GemRate search error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to search GemRate data',
-      details: error.message
-    });
-  }
-});
+// POST /api/gemrate/search - Removed duplicate route (see route at line 307)
 
 // GET /api/gemrate/population/:cardName - Get population data for a specific card
 router.get('/population/:cardName', async (req, res) => {
