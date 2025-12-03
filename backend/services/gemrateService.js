@@ -2508,6 +2508,17 @@ class GemRateService {
               const rawData = JSON.parse(jsonString);
 
               if (Array.isArray(rawData) && rawData.length > 0) {
+                // Log first row to see available fields
+                if (rawData.length > 0) {
+                  console.log(`[getPlayerCards] Sample RowData fields: ${Object.keys(rawData[0]).join(', ')}`);
+                  console.log(`[getPlayerCards] Sample RowData gemrateId fields:`, {
+                    gemrateId: rawData[0].gemrateId,
+                    gemrate_id: rawData[0].gemrate_id,
+                    id: rawData[0].id,
+                    _id: rawData[0]._id
+                  });
+                }
+                
                 // Map RowData to our card format (using Postman field names)
                 const cards = rawData.map((rowData) => {
                   const category = rowData.category || rowData.cat || '';
@@ -2536,6 +2547,10 @@ class GemRateService {
                     gemrateId: gemrateId || null
                   };
                 });
+                
+                // Log summary of gemrateId extraction
+                const cardsWithId = cards.filter(c => c.gemrateId).length;
+                console.log(`[getPlayerCards] Total cards: ${cards.length}, Cards with gemrateId: ${cardsWithId}`);
 
                 // Sort by total grades desc
                 cards.sort((a, b) => {
