@@ -319,6 +319,14 @@ router.post('/search', async (req, res) => {
     
     const searchResult = await gemrateService.searchCardPopulation(query.trim());
     
+    console.log(`[gemrate.js] Search result:`, {
+      success: searchResult.success,
+      hasPopulation: !!searchResult.population,
+      populationType: typeof searchResult.population,
+      populationValue: searchResult.population,
+      gemrateId: searchResult.gemrateId
+    });
+    
     if (searchResult.success) {
       res.json({
         success: true,
