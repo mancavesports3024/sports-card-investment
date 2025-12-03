@@ -489,14 +489,18 @@ const SearchPage = () => {
       });
     }
 
-    // Get card title
-    const cardTitle = results.searchParams?.searchQuery || 
-                     psa10Cards[0]?.summaryTitle || 
+    // Get card title - prioritize card titles over raw search query
+    // Clean search query to remove exclusion terms if we must use it
+    const rawSearchQuery = results.searchParams?.searchQuery || '';
+    const cleanSearchQuery = rawSearchQuery.replace(/\s*-\s*\([^)]+\)/g, '').trim();
+    
+    const cardTitle = psa10Cards[0]?.summaryTitle || 
                      psa10Cards[0]?.title || 
                      psa9Cards[0]?.summaryTitle || 
                      psa9Cards[0]?.title || 
                      rawCards[0]?.summaryTitle || 
                      rawCards[0]?.title || 
+                     cleanSearchQuery ||
                      'Card';
 
     return {

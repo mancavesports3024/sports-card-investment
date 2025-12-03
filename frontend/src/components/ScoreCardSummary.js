@@ -46,14 +46,29 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
 
   // Fetch GemRate data - try gemrateId first, then search fallback
   useEffect(() => {
+    // Don't fetch if we don't have a card or if we already have gemrateData
+    if (!card) {
+      return;
+    }
+    
+    // Create a stable key to prevent unnecessary re-fetches
+    const cardKey = `${card?.gemrateId || ''}_${card?.player || card?.name || ''}_${card?.set || ''}_${card?.number || ''}`;
+    
     console.log(`[ScoreCardSummary] Card changed:`, {
       player: card?.player || card?.name,
       set: card?.set,
       number: card?.number,
       hasGemrateId: !!card?.gemrateId,
       gemrateId: card?.gemrateId,
-      fullCardObject: card
+      cardKey: cardKey
     });
+    
+    // Only reset and fetch if this is a different card (check if we already have data for this card)
+    const currentCardKey = `${gemrateData?.gemrateId || ''}_${card?.player || card?.name || ''}_${card?.set || ''}_${card?.number || ''}`;
+    if (cardKey === currentCardKey && gemrateData) {
+      console.log(`[ScoreCardSummary] Already have GemRate data for this card, skipping fetch`);
+      return;
+    }
     
     // Reset gemrateData when card changes
     setGemrateData(null);
@@ -64,59 +79,58 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       fetchGemrateData();
     } else {
       console.log(`[ScoreCardSummary] Card does NOT have gemrateId - will search GemRate by query`);
-      console.log(`[ScoreCardSummary] Card object keys:`, card ? Object.keys(card) : 'card is null');
       searchGemRateData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card?.gemrateId, card?.player, card?.name, card?.set, card?.number]);
 
-  const fetchGemrateData = async () => {
+  const fetchGemrateData = React.useCallback(async () => {
     try {
       // Only use gemrateId if available
-      if (card?.gemrateId) {
-        console.log(`[ScoreCardSummary] Using gemrateId from card: ${card.gemrateId}`);
-        const response = await fetch(`${API_BASE_URL}/api/gemrate/details/${encodeURIComponent(card.gemrateId)}`);
-        
-        if (!response.ok) {
-          console.error(`[ScoreCardSummary] GemRate API error: ${response.status} ${response.statusText}`);
-          setGemrateData(null);
-          return;
-        }
-        
-        const data = await response.json();
-        console.log(`[ScoreCardSummary] GemRate details response success: ${data.success}`);
-        
-        // Check multiple possible response structures
-        const populationData = data.data?.population || data.data?.data?.population || data.population || null;
-        
-        if (data.success && populationData) {
-          console.log(`[ScoreCardSummary] Setting GemRate data from gemrateId:`, {
-            total: populationData.total,
-            perfect: populationData.perfect,
-            grade9: populationData.grade9,
-            gemRate: populationData.gemRate
-          });
-          console.log(`[ScoreCardSummary] Full populationData object:`, populationData);
-          setGemrateData(populationData);
-        } else {
-          console.log(`[ScoreCardSummary] No population data in response. Success: ${data.success}, hasData: ${!!data.data}, hasPopulation: ${!!populationData}`);
-          console.log(`[ScoreCardSummary] Full response structure:`, {
-            success: data.success,
-            hasData: !!data.data,
-            dataKeys: data.data ? Object.keys(data.data) : [],
-            populationData: populationData,
-            fullResponse: data
-          });
-          setGemrateData(null);
-        }
-      } else {
+      if (!card?.gemrateId) {
         console.log(`[ScoreCardSummary] No gemrateId available on card`);
+        setGemrateData(null);
+        return;
+      }
+      
+      // Check if we already have data for this gemrateId
+      if (gemrateData && gemrateData.gemrateId === card.gemrateId) {
+        console.log(`[ScoreCardSummary] Already have GemRate data for gemrateId: ${card.gemrateId}, skipping fetch`);
+        return;
+      }
+      
+      console.log(`[ScoreCardSummary] Using gemrateId from card: ${card.gemrateId}`);
+      const response = await fetch(`${API_BASE_URL}/api/gemrate/details/${encodeURIComponent(card.gemrateId)}`);
+      
+      if (!response.ok) {
+        console.error(`[ScoreCardSummary] GemRate API error: ${response.status} ${response.statusText}`);
+        setGemrateData(null);
+        return;
+      }
+      
+      const data = await response.json();
+      console.log(`[ScoreCardSummary] GemRate details response success: ${data.success}`);
+      
+      // Check multiple possible response structures
+      const populationData = data.data?.population || data.data?.data?.population || data.population || null;
+      
+      if (data.success && populationData) {
+        console.log(`[ScoreCardSummary] Setting GemRate data from gemrateId:`, {
+          total: populationData.total,
+          perfect: populationData.perfect,
+          grade9: populationData.grade9,
+          gemRate: populationData.gemRate
+        });
+        setGemrateData(populationData);
+      } else {
+        console.log(`[ScoreCardSummary] No population data in response. Success: ${data.success}, hasData: ${!!data.data}, hasPopulation: ${!!populationData}`);
         setGemrateData(null);
       }
     } catch (err) {
       console.error('[ScoreCardSummary] Failed to fetch gemrate data:', err);
       setGemrateData(null);
     }
-  };
+  }, [card?.gemrateId, gemrateData]);
 
   const searchGemRateData = async () => {
     try {
