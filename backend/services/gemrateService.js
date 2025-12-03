@@ -763,6 +763,11 @@ class GemRateService {
       
       if (rawData.population_data && Array.isArray(rawData.population_data)) {
         console.log(`[parsePopulationData] Found population_data array with ${rawData.population_data.length} entries`);
+        // Log first entry to see structure
+        if (rawData.population_data.length > 0) {
+          console.log(`[parsePopulationData] First population_data entry keys: ${Object.keys(rawData.population_data[0] || {}).join(', ')}`);
+          console.log(`[parsePopulationData] First population_data entry grader: ${rawData.population_data[0]?.grader || 'undefined'}`);
+        }
         // Find the PSA entry in the population_data array
         psaData = rawData.population_data.find(item => item.grader === 'psa');
         if (psaData) {
@@ -770,6 +775,10 @@ class GemRateService {
         } else {
           const graders = rawData.population_data.map(item => item?.grader).filter(Boolean);
           console.log(`[parsePopulationData] No PSA entry found. Available graders: ${graders.join(', ')}`);
+          // If no PSA but we have entries, log what we do have
+          if (rawData.population_data.length > 0) {
+            console.log(`[parsePopulationData] Sample entry structure:`, JSON.stringify(rawData.population_data[0], null, 2).substring(0, 500));
+          }
         }
       }
       
