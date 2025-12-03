@@ -1376,13 +1376,6 @@ const SearchPage = () => {
                       card={headerCard}
                       setInfo={setInfo}
                       initialCardData={summaryCard}
-                      onBack={() => {
-                        // Scroll back to the top of the search results area
-                        const el = document.querySelector('.search-results');
-                        if (el) {
-                          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                      }}
                     />
                   </div>
                 </div>

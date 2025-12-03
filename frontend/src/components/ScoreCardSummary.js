@@ -20,7 +20,7 @@ const formatTimestamp = (timestamp) => {
   }
 };
 
-const ScoreCardSummary = ({ card, setInfo, onBack, initialCardData = null }) => {
+const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null }) => {
   const [cardData, setCardData] = useState(initialCardData);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -655,7 +655,9 @@ const ScoreCardSummary = ({ card, setInfo, onBack, initialCardData = null }) => 
     return (
       <div className="score-card-summary">
         <div className="error-message">{error}</div>
-        <button onClick={onBack} className="back-btn">← Back to Checklist</button>
+        {onBack && (
+          <button onClick={onBack} className="back-btn">← Back to Checklist</button>
+        )}
       </div>
     );
   }
@@ -664,7 +666,9 @@ const ScoreCardSummary = ({ card, setInfo, onBack, initialCardData = null }) => 
     return (
       <div className="score-card-summary">
         <div className="error-message">No card data available</div>
-        <button onClick={onBack} className="back-btn">← Back to Checklist</button>
+        {onBack && (
+          <button onClick={onBack} className="back-btn">← Back to Checklist</button>
+        )}
       </div>
     );
   }
@@ -694,7 +698,9 @@ const ScoreCardSummary = ({ card, setInfo, onBack, initialCardData = null }) => 
   return (
     <div className="score-card-summary">
       <div className="score-card-header">
-        <button onClick={onBack} className="back-btn">← Back to Checklist</button>
+        {onBack && (
+          <button onClick={onBack} className="back-btn">← Back to Checklist</button>
+        )}
         <h1>
           {card?.set || setInfo?.setName || 'Card Summary'}
           {(card?.parallel || card?.team) && 
