@@ -1347,10 +1347,18 @@ const SearchPage = () => {
                 return null;
               }
               
+              // Clean the search query to remove exclusion terms for display
+              const cleanSearchQuery = results?.searchParams?.searchQuery 
+                ? results.searchParams.searchQuery.replace(/\s*-\s*\([^)]+\)/g, '').trim()
+                : '';
+              
+              // Use the summary card title (which is cleaner) or cleaned search query
+              const displayTitle = summaryCard.title || summaryCard.summaryTitle || cleanSearchQuery || 'Card Summary';
+              
               // Build a lightweight card object for header / GemRate search
               const headerCard = {
-                // Use the search query as a proxy for set name/title on the search page
-                set: results?.searchParams?.searchQuery || summaryCard.title || summaryCard.summaryTitle || 'Card Summary',
+                // Use the cleaned title instead of raw search query
+                set: displayTitle,
                 player: summaryCard.title || summaryCard.summaryTitle || '',
                 number: null,
                 category: null,
@@ -1359,7 +1367,7 @@ const SearchPage = () => {
               const setInfo = {
                 sport: null,
                 year: null,
-                setName: results?.searchParams?.searchQuery || summaryCard.title || summaryCard.summaryTitle || 'Card Summary',
+                setName: displayTitle,
                 parallel: null,
               };
 
