@@ -181,11 +181,11 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       
       if (data.success && populationData) {
         console.log(`[ScoreCardSummary] Setting GemRate data from search:`, {
-          total: ${populationData.total},
-          perfect: ${populationData.perfect},
-          grade9: ${populationData.grade9},
-          gemRate: ${populationData.gemRate}
-        }`);
+          total: populationData.total,
+          perfect: populationData.perfect,
+          grade9: populationData.grade9,
+          gemRate: populationData.gemRate
+        });
         console.log(`[ScoreCardSummary] Full population object:`, populationData);
         setGemrateData(populationData);
       } else {
