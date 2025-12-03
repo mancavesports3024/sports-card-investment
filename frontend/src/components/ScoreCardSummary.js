@@ -20,13 +20,20 @@ const formatTimestamp = (timestamp) => {
   }
 };
 
-const ScoreCardSummary = ({ card, setInfo, onBack }) => {
-  const [cardData, setCardData] = useState(null);
+const ScoreCardSummary = ({ card, setInfo, onBack, initialCardData = null }) => {
+  const [cardData, setCardData] = useState(initialCardData);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [gemrateData, setGemrateData] = useState(null);
 
   useEffect(() => {
+    if (initialCardData) {
+      // Use preloaded data (e.g., from SearchPage summary) and skip refetch
+      setCardData(initialCardData);
+      setLoading(false);
+      return;
+    }
+
     if (card) {
       // Reset state when card changes to ensure title and data update immediately
       setCardData(null);
@@ -35,7 +42,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       setLoading(true);
       fetchCardData();
     }
-  }, [card]);
+  }, [card, initialCardData]);
 
   // Fetch GemRate data - try gemrateId first, then search fallback
   useEffect(() => {
@@ -527,16 +534,25 @@ const ScoreCardSummary = ({ card, setInfo, onBack }) => {
       // Remove "Edition" from set names (e.g., "Bowman Sapphire Edition Chrome Prospects" -> "Bowman Sapphire Chrome Prospects")
       cleanSetName = cleanSetName.replace(/\s*Edition\s*/gi, ' ').trim();
       
-      // Replace "Autographs" with "auto" (e.g., "Bowman Chrome Prospect Autographs" -> "Bowman Chrome Prospect auto")
-      cleanSetName = cleanSetName.replace(/\bAutographs\b/gi, 'auto').trim();
+      // Replace "Autograph" / "Autographs" with "auto" in set names
+      // e.g., "Bowman Chrome Prospect Autographs" -> "Bowman Chrome Prospect auto"
+      //       "Bowman Chrome Prospect Autograph"  -> "Bowman Chrome Prospect auto"
+      cleanSetName = cleanSetName.replace(/\bAutograph(s)?\b/gi, 'auto').trim();
       
       if (cleanSetName) {
         parts.push(cleanSetName);
       }
     }
     
-    // Card number with # prefix
-    if (card?.number) parts.push(`#${card.number}`);
+    // Card number - use "#" prefix for most sports, but NOT for Pokemon / TCG
+    if (card?.number) {
+      if (isPokemon) {
+        // For Pokemon cards, remove "#" to better match marketplace listings
+        parts.push(`${card.number}`);
+      } else {
+        parts.push(`#${card.number}`);
+      }
+    }
     
     // Player name
     if (card?.player) parts.push(card.player);

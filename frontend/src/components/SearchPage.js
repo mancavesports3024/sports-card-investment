@@ -8,6 +8,7 @@ import { InContentAd, SearchResultsAd } from './AdSense';
 import FeaturedEbayRotator from './FeaturedEbayRotator';
 import PageLayout from './PageLayout';
 import BaseballFieldCard from './BaseballFieldCard';
+import ScoreCardSummary from './ScoreCardSummary';
 
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -1339,12 +1340,29 @@ const SearchPage = () => {
             {/* Price Analysis */}
             {renderPriceAnalysis(results.priceAnalysis)}
 
-            {/* Baseball Field Card - Scorecard Summary */}
+            {/* Scorecard Summary - reuse ScoreCardSummary layout used in TCDBBrowser */}
             {(() => {
               const summaryCard = buildSummaryCardData();
               if (!summaryCard || (!summaryCard.rawAveragePrice && !summaryCard.psa9AveragePrice && !summaryCard.psa10Price)) {
                 return null;
               }
+              
+              // Build a lightweight card object for header / GemRate search
+              const headerCard = {
+                // Use the search query as a proxy for set name/title on the search page
+                set: results?.searchParams?.searchQuery || summaryCard.title || summaryCard.summaryTitle || 'Card Summary',
+                player: summaryCard.title || summaryCard.summaryTitle || '',
+                number: null,
+                category: null,
+              };
+
+              const setInfo = {
+                sport: null,
+                year: null,
+                setName: results?.searchParams?.searchQuery || summaryCard.title || summaryCard.summaryTitle || 'Card Summary',
+                parallel: null,
+              };
+
               return (
                 <div style={{ 
                   margin: '2rem 0', 
@@ -1354,17 +1372,18 @@ const SearchPage = () => {
                   width: '100%'
                 }}>
                   <div style={{ width: '100%', maxWidth: '100%' }}>
-                    <h3 style={{ 
-                      color: '#fff', 
-                      fontWeight: 800, 
-                      textShadow: '1px 1px 6px #000',
-                      textAlign: 'center',
-                      marginBottom: '1.5rem',
-                      fontSize: '1.5rem'
-                    }}>
-                      ⚾ Scorecard Summary
-                    </h3>
-                    <BaseballFieldCard card={summaryCard} />
+                    <ScoreCardSummary 
+                      card={headerCard}
+                      setInfo={setInfo}
+                      initialCardData={summaryCard}
+                      onBack={() => {
+                        // Scroll back to the top of the search results area
+                        const el = document.querySelector('.search-results');
+                        if (el) {
+                          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               );
