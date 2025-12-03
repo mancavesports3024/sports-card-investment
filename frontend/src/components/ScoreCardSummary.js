@@ -25,6 +25,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [gemrateData, setGemrateData] = useState(null);
+  const lastFetchedCardKeyRef = useRef(null);
 
   useEffect(() => {
     if (initialCardData) {
