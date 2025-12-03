@@ -27,65 +27,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
   const [gemrateData, setGemrateData] = useState(null);
   const lastFetchedCardKeyRef = useRef(null);
 
-  useEffect(() => {
-    if (initialCardData) {
-      // Use preloaded data (e.g., from SearchPage summary) and skip refetch
-      setCardData(initialCardData);
-      setLoading(false);
-      return;
-    }
-
-    if (card) {
-      // Reset state when card changes to ensure title and data update immediately
-      setCardData(null);
-      setGemrateData(null);
-      setError('');
-      setLoading(true);
-      fetchCardData();
-    }
-  }, [card, initialCardData]);
-
-  // Fetch GemRate data - try gemrateId first, then search fallback
-  useEffect(() => {
-    // Don't fetch if we don't have a card
-    if (!card) {
-      return;
-    }
-    
-    // Create a stable key to prevent unnecessary re-fetches
-    const cardKey = `${card?.gemrateId || ''}_${card?.player || card?.name || ''}_${card?.set || ''}_${card?.number || ''}`;
-    
-    // Skip if we already fetched for this exact card
-    if (cardKey === lastFetchedCardKeyRef.current) {
-      console.log(`[ScoreCardSummary] Already fetched GemRate data for this card (key: ${cardKey}), skipping`);
-      return;
-    }
-    
-    console.log(`[ScoreCardSummary] Card changed:`, {
-      player: card?.player || card?.name,
-      set: card?.set,
-      number: card?.number,
-      hasGemrateId: !!card?.gemrateId,
-      gemrateId: card?.gemrateId,
-      cardKey: cardKey
-    });
-    
-    // Mark this card as being fetched
-    lastFetchedCardKeyRef.current = cardKey;
-    
-    // Reset gemrateData when card changes
-    setGemrateData(null);
-    
-    // Try gemrateId first (from player search), then fallback to search
-    if (card?.gemrateId) {
-      console.log(`[ScoreCardSummary] Card has gemrateId: ${card.gemrateId}, fetching directly`);
-      fetchGemrateData();
-    } else {
-      console.log(`[ScoreCardSummary] Card does NOT have gemrateId - will search GemRate by query`);
-      searchGemRateData();
-    }
-  }, [card?.gemrateId, card?.player, card?.name, card?.set, card?.number, fetchGemrateData, searchGemRateData]);
-
+  // Define fetchGemrateData before useEffect that uses it
   const fetchGemrateData = useCallback(async () => {
     try {
       // Only use gemrateId if available
@@ -128,6 +70,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
     }
   }, [card?.gemrateId]);
 
+  // Define searchGemRateData before useEffect that uses it
   const searchGemRateData = useCallback(async () => {
     try {
       // Don't search if we don't have enough card info
