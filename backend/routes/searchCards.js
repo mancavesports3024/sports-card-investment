@@ -123,10 +123,21 @@ const categorizeCards = (cards, requestedCardNumber = null) => {
       const title = card.title?.toLowerCase() || '';
       const condition = card.condition?.toLowerCase() || '';
       // Robust regex: company (word boundary), optional space/dash/colon, grade (1-2 digits, optional .5)
+      // Exclude cards with "-ABLE", "-READY", or similar suffixes that indicate raw cards
       const gradingRegex = /\b(psa|bgs|beckett|sgc|cgc|ace|cga|gma|hga|pgs|bvg|csg|rcg|ksa|fgs|tag|pgm|dga|isa)[\s:-]*([0-9]{1,2}(?:\.5)?)\b/i;
       const match = title.match(gradingRegex);
       let isGraded = false;
       if (match) {
+        // Check if this is actually a graded card (not a raw card with "PSA 10-ABLE" etc.)
+        // Exclude if the title contains "-ABLE", "-READY", "potential", "candidate", or similar after the grade
+        const gradePosition = match.index + match[0].length;
+        const textAfterGrade = title.substring(gradePosition);
+        const rawCardIndicators = /[-_]?(able|ready|potential|candidate|worthy|quality|condition)/i;
+        if (rawCardIndicators.test(textAfterGrade)) {
+          // This is a raw card, not actually graded - skip grading categorization
+          console.log(`[CATEGORIZE] Skipping raw card with grade indicator: "${card.title}"`);
+          isGraded = false;
+        } else {
         let company = match[1].toLowerCase();
         if (company === 'beckett') company = 'bgs';
         const grade = match[2].replace('.', '_');
@@ -158,9 +169,10 @@ const categorizeCards = (cards, requestedCardNumber = null) => {
           else if (grade === '8') legacyBuckets.tag8.push(card);
         } else if (company === 'sgc') {
           if (grade === '10') legacyBuckets.sgc10.push(card);
-        } else if (company === 'aigrade') {
+          } else if (company === 'aigrade') {
           if (grade === '10') legacyBuckets.aigrade10.push(card);
           else if (grade === '9') legacyBuckets.aigrade9.push(card);
+        }
         }
       }
       if (!isGraded) {
