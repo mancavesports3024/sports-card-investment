@@ -2560,6 +2560,18 @@ class GemRateService {
                 // Log summary of gemrateId extraction
                 const cardsWithId = cards.filter(c => c.gemrateId).length;
                 console.log(`[getPlayerCards] Total cards: ${cards.length}, Cards with gemrateId: ${cardsWithId}`);
+                
+                // Log a few sample cards to help debug gemrate_id matching issues
+                if (cards.length > 0) {
+                  const sampleCards = cards.slice(0, 5).map(c => ({
+                    player: c.player,
+                    set: c.set,
+                    parallel: c.parallel,
+                    number: c.number,
+                    gemrateId: c.gemrateId
+                  }));
+                  console.log(`[getPlayerCards] Sample cards (first 5):`, JSON.stringify(sampleCards, null, 2));
+                }
 
                 // Sort by total grades desc
                 cards.sort((a, b) => {
