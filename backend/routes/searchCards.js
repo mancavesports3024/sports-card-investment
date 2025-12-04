@@ -1393,138 +1393,69 @@ router.post('/', requireUser, async (req, res) => {
         ? exclusionMatch[1].split(',').map(s => s.trim()).filter(Boolean)
         : [];
 
-      // Primary token: prioritize player name and card number
-      // Strategy:
-      //   1. Extract card number (e.g., "#100" or "100")
-      //   2. Exclude common words (ex, mega, evolution, etc.)
-      //   3. Prefer longer words (likely player names)
-      //   4. Prefer words that come after card number
+      // Primary token: Use the player name that the user explicitly types in the search query
+      // The player name is the first meaningful word(s) after removing set names, years, and card numbers
       const positiveTokens = positivePart.split(/\s+/).filter(t => t.length > 0);
       
       // Extract card number (with or without #)
-      // Prioritize numbers that are:
-      // 1. After "#", "no.", "number", or standalone
-      // 2. Not part of alphanumeric strings (like "OP12")
-      // 3. Patterns like "011", "#011", "011/xxx", "ST13-011"
       let cardNumber = null;
-      
-      // Try patterns in order of preference:
-      // 1. Number with # prefix: "#011"
       const hashNumberMatch = positivePart.match(/#(\d+)/);
       if (hashNumberMatch) {
         cardNumber = hashNumberMatch[1];
       } else {
-        // 2. Number after "no." or "number": "no. 011" or "number 011"
-        const noNumberMatch = positivePart.match(/(?:no\.?|number)\s*(\d+)/i);
-        if (noNumberMatch) {
-          cardNumber = noNumberMatch[1];
+        const dashNumberMatch = positivePart.match(/[A-Z]{2,}\d+-(\d+)/i);
+        if (dashNumberMatch) {
+          cardNumber = dashNumberMatch[1];
         } else {
-          // 3. Number in pattern like "ST13-011" or "OP12-011"
-          const dashNumberMatch = positivePart.match(/[A-Z]{2,}\d+-(\d+)/i);
-          if (dashNumberMatch) {
-            cardNumber = dashNumberMatch[1];
-          } else {
-            // 4. Standalone number (not part of alphanumeric string) - prefer later numbers
-            // Split into tokens and find numbers that are standalone
-            const tokens = positivePart.split(/\s+/);
-            const standaloneNumbers = [];
-            tokens.forEach((token, index) => {
-              // Check if token is a pure number (not alphanumeric like "OP12")
-              const pureNumberMatch = token.match(/^(\d+)$/);
-              if (pureNumberMatch) {
-                standaloneNumbers.push({ number: pureNumberMatch[1], index });
-              }
-            });
-            // Prefer the last standalone number (more likely to be card number)
-            if (standaloneNumbers.length > 0) {
-              cardNumber = standaloneNumbers[standaloneNumbers.length - 1].number;
-            } else {
-              // 5. Fallback: any number, but prefer numbers that appear later
-              const allNumbers = [];
-              let match;
-              const numberRegex = /(\d+)/g;
-              while ((match = numberRegex.exec(positivePart)) !== null) {
-                // Check if this number is part of an alphanumeric string
-                const beforeChar = positivePart[match.index - 1] || ' ';
-                const afterChar = positivePart[match.index + match[0].length] || ' ';
-                const isAlphanumeric = /[A-Za-z]/.test(beforeChar) || /[A-Za-z]/.test(afterChar);
-                if (!isAlphanumeric) {
-                  allNumbers.push({ number: match[1], position: match.index });
-                }
-              }
-              // Prefer the last number that's not part of alphanumeric string
-              if (allNumbers.length > 0) {
-                cardNumber = allNumbers[allNumbers.length - 1].number;
-              }
+          const tokens = positivePart.split(/\s+/);
+          const standaloneNumbers = [];
+          tokens.forEach((token, index) => {
+            const pureNumberMatch = token.match(/^(\d+)$/);
+            if (pureNumberMatch) {
+              standaloneNumbers.push({ number: pureNumberMatch[1], index });
             }
+          });
+          if (standaloneNumbers.length > 0) {
+            cardNumber = standaloneNumbers[standaloneNumbers.length - 1].number;
           }
         }
       }
       
-      // Common words to exclude from being primary token
+      // Common set/sport words to exclude (NOT player names)
       const excludedWords = new Set(['ex', 'mega', 'evolution', 'rare', 'illustration', 'special', 
                                      'card', 'cards', 'psa', 'bgs', 'sgc', 'cgc', 'grade', 'graded',
                                      'rookie', 'rc', 'auto', 'autograph', 'patch', 'relic', 'insert',
-                                     'alternate', 'art', 'piece', 'one', 'legacy', 'master', 'of', 'the']);
+                                     'alternate', 'art', 'piece', 'one', 'legacy', 'master', 'of', 'the',
+                                     'topps', 'bowman', 'panini', 'upper', 'deck', 'fleer', 'donruss',
+                                     'chrome', 'update', 'series', 'base', 'parallel', 'insert']);
       
-      const nonNumericTokens = positiveTokens.filter(t => {
+      // Filter out numbers, years, and excluded words - what's left should be the player name
+      const playerTokens = positiveTokens.filter(t => {
         const clean = t.replace(/[#-]/g, '').toLowerCase();
-        return !/^\d+$/.test(clean) && !excludedWords.has(clean);
-      });
-      
-      const nonYearTokens = nonNumericTokens.filter(t => {
-        const clean = t.replace(/[#-]/g, '');
-        return !/^(19|20)\d{2}$/.test(clean);
+        // Exclude pure numbers
+        if (/^\d+$/.test(clean)) return false;
+        // Exclude years
+        if (/^(19|20)\d{2}$/.test(clean)) return false;
+        // Exclude set/sport words
+        if (excludedWords.has(clean)) return false;
+        // Exclude alphanumeric set codes like "OP12", "ST13" (but keep player names with numbers)
+        if (/^[A-Z]{2,}\d+$/i.test(t)) return false;
+        return true;
       });
 
+      // PRIMARY TOKEN: Use the FIRST meaningful token (the player name the user typed)
+      // This is the simplest and most reliable approach - trust what the user enters
       let primaryToken = '';
       
-      // Strategy 1: If we have a card number, prefer tokens that come BEFORE it (player name usually comes before card number)
-      if (cardNumber && nonYearTokens.length > 0) {
-        const cardNumIndex = positiveTokens.findIndex(t => t.includes(cardNumber));
-        if (cardNumIndex >= 0) {
-          // Look for tokens BEFORE the card number (likely player name)
-          const tokensBeforeNumber = nonYearTokens.filter(t => {
-            const tokenIndex = positiveTokens.indexOf(t);
-            return tokenIndex < cardNumIndex;
-          });
-          if (tokensBeforeNumber.length > 0) {
-            // Prefer longer words (likely player names), and prefer the last one before the number
-            primaryToken = tokensBeforeNumber.reduce((a, b) => {
-              // If lengths are equal, prefer the one that appears later (closer to card number)
-              if (a.length === b.length) {
-                const aIndex = positiveTokens.indexOf(a);
-                const bIndex = positiveTokens.indexOf(b);
-                return aIndex > bIndex ? a : b;
-              }
-              return a.length > b.length ? a : b;
-            });
-          }
-        }
-      }
-      
-      // Strategy 2: If no card number or no tokens before number, prefer longer words (but exclude common set words)
-      if (!primaryToken && nonYearTokens.length > 0) {
-        // Filter out very short words (< 3 chars) and prefer longer ones
-        const meaningfulTokens = nonYearTokens.filter(t => t.length >= 3);
-        if (meaningfulTokens.length > 0) {
-          primaryToken = meaningfulTokens.reduce((a, b) => a.length > b.length ? a : b);
-        } else {
-          // Fallback to last token if all are short
-          primaryToken = nonYearTokens[nonYearTokens.length - 1];
-        }
-      }
-      
-      // Strategy 3: Fallback to card number if available
-      if (!primaryToken && cardNumber) {
+      if (playerTokens.length > 0) {
+        // Use the first player token as primary token (this is what the user typed)
+        primaryToken = playerTokens[0];
+      } else if (cardNumber) {
+        // Fallback to card number if no player tokens found
         primaryToken = cardNumber;
-      }
-      
-      // Strategy 4: Last resort
-      if (!primaryToken && nonNumericTokens.length > 0) {
-        primaryToken = nonNumericTokens[nonNumericTokens.length - 1];
-      } else if (!primaryToken) {
-        primaryToken = positiveTokens.find(t => t.length >= 3) || positiveTokens[0] || '';
+      } else if (positiveTokens.length > 0) {
+        // Last resort: use first token
+        primaryToken = positiveTokens[0];
       }
 
       // Numeric fraction like 170/165
