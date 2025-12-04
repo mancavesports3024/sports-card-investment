@@ -763,28 +763,60 @@ const simplifyFor130point = (query) => {
     simplified = simplified.substring(0, exclusionIndex).trim();
   }
   
+  // Detect if this is a Pokemon/TCG card
+  const isPokemonOrTCG = /\b(japanese|pokemon|pokémon|tcg|one piece|yugioh|yu-gi-oh|magic|mtg)\b/i.test(simplified);
+  
   // Remove common prefixes like "Jtg EN-", "Meg EN-", etc.
   simplified = simplified.replace(/^(Jtg|Meg|EN)\s*EN[- ]*/i, '');
   
   // Remove "#" from card numbers (130point works better without it)
   simplified = simplified.replace(/#(\d+)/g, '$1');
   
-  // Remove common rarity/type words that make queries too wordy
-  const wordsToRemove = [
-    'special illustration rare',
-    'illustration rare',
-    'special rare',
-    'ultra rare',
-    'hyper rare',
-    'mega hyper rare',
-    'special',
-    'illustration'
-  ];
-  
-  wordsToRemove.forEach(word => {
-    const regex = new RegExp(`\\b${word}\\b`, 'gi');
-    simplified = simplified.replace(regex, '').replace(/\s+/g, ' ').trim();
-  });
+  // For Pokemon/TCG cards, remove parallel/rarity details to make search less wordy
+  if (isPokemonOrTCG) {
+    const pokemonParallelWords = [
+      'special art rare',
+      'special illustration rare',
+      'illustration rare',
+      'art rare',
+      'special art',
+      'ultra rare',
+      'hyper rare',
+      'mega hyper rare',
+      'secret rare',
+      'rainbow rare',
+      'full art',
+      'character rare',
+      'character super rare',
+      'super rare',
+      'special rare',
+      'rare',
+      'special',
+      'illustration'
+    ];
+    
+    pokemonParallelWords.forEach(word => {
+      const regex = new RegExp(`\\b${word}\\b`, 'gi');
+      simplified = simplified.replace(regex, '').replace(/\s+/g, ' ').trim();
+    });
+  } else {
+    // For non-Pokemon cards, only remove common rarity/type words
+    const wordsToRemove = [
+      'special illustration rare',
+      'illustration rare',
+      'special rare',
+      'ultra rare',
+      'hyper rare',
+      'mega hyper rare',
+      'special',
+      'illustration'
+    ];
+    
+    wordsToRemove.forEach(word => {
+      const regex = new RegExp(`\\b${word}\\b`, 'gi');
+      simplified = simplified.replace(regex, '').replace(/\s+/g, ' ').trim();
+    });
+  }
   
   // Clean up multiple spaces
   simplified = simplified.replace(/\s+/g, ' ').trim();
