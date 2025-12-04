@@ -21,6 +21,7 @@ const TCDBBrowser = () => {
   const [playerSearchError, setPlayerSearchError] = useState('');
   const [playerSearchFilterSet, setPlayerSearchFilterSet] = useState('');
   const [playerSearchFilterCardNumber, setPlayerSearchFilterCardNumber] = useState('');
+  const [selectedCardGemrateData, setSelectedCardGemrateData] = useState(null);
   const [playerSearchSortField, setPlayerSearchSortField] = useState('totalGrades');
   const [playerSearchSortDirection, setPlayerSearchSortDirection] = useState('desc'); // 'asc' | 'desc'
   
@@ -78,6 +79,7 @@ const TCDBBrowser = () => {
       setCurrentStep('player-search');
       setSelectedCardForSummary(null);
       setSelectedCardSetInfo(null);
+      setSelectedCardGemrateData(null);
     }
   };
 
@@ -407,6 +409,23 @@ const TCDBBrowser = () => {
                       <tr
                         key={index}
                         onClick={() => {
+                          // Map GemRate row data into a format ScoreCardSummary understands
+                          const initialGemrateData = {
+                            total: typeof card.totalGrades === 'number'
+                              ? card.totalGrades
+                              : (card.totalGrades ? Number(card.totalGrades) || 0 : 0),
+                            perfect: typeof card.gems === 'number'
+                              ? card.gems
+                              : (card.gems ? Number(card.gems) || 0 : 0),
+                            // We don't have a clean PSA 9 population from the row; leave grade9 undefined
+                            grade9: undefined,
+                            // card.gemRate from GemRate is a decimal (0-1); ScoreCardSummary will handle converting to %
+                            gemRate: card.gemRate !== null && card.gemRate !== undefined && card.gemRate !== ''
+                              ? (typeof card.gemRate === 'number' ? card.gemRate : Number(card.gemRate) || 0)
+                              : null,
+                          };
+
+                          setSelectedCardGemrateData(initialGemrateData);
                           setSelectedCardSetInfo({
                             sport: sportFromCategory(),
                             year: card.year || null,
@@ -449,10 +468,12 @@ const TCDBBrowser = () => {
               parallel: null
             }
           }
+          initialGemrateData={selectedCardGemrateData}
           onBack={() => {
             setCurrentStep('player-search');
             setSelectedCardForSummary(null);
             setSelectedCardSetInfo(null);
+            setSelectedCardGemrateData(null);
           }}
         />
       )}

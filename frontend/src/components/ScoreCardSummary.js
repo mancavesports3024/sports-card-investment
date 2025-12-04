@@ -20,11 +20,11 @@ const formatTimestamp = (timestamp) => {
   }
 };
 
-const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null }) => {
+const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null, initialGemrateData = null }) => {
   const [cardData, setCardData] = useState(initialCardData);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [gemrateData, setGemrateData] = useState(null);
+  const [gemrateData, setGemrateData] = useState(initialGemrateData || null);
   const lastFetchedCardKeyRef = useRef(null);
 
   // Define fetchGemrateData before useEffect that uses it
@@ -154,27 +154,40 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
 
   useEffect(() => {
     if (initialCardData) {
-      // Use preloaded data (e.g., from SearchPage summary) and skip refetch
+      // Use preloaded data (e.g., from SearchPage or player search summary) and skip refetch
       setCardData(initialCardData);
       setLoading(false);
-      // Don't reset gemrateData here - let the GemRate useEffect handle it
       return;
     }
 
     if (card) {
       // Reset state when card changes to ensure title and data update immediately
       setCardData(null);
-      setGemrateData(null);
+      // Don't touch gemrateData here; let the GemRate effect handle it so we can respect initialGemrateData
       setError('');
       setLoading(true);
       fetchCardData();
     }
   }, [card, initialCardData]);
 
+  // Keep gemrateData in sync with any provided initialGemrateData
+  useEffect(() => {
+    if (initialGemrateData) {
+      setGemrateData(initialGemrateData);
+    }
+  }, [initialGemrateData]);
+
   // Fetch GemRate data - try gemrateId first, then search fallback
   useEffect(() => {
     // Don't fetch if we don't have a card
     if (!card) {
+      return;
+    }
+
+    // If we were given GemRate data explicitly (e.g., from player search row), use it and skip fetching
+    if (initialGemrateData) {
+      console.log('[ScoreCardSummary] Using initialGemrateData from props, skipping GemRate fetch');
+      setGemrateData(initialGemrateData);
       return;
     }
     
@@ -213,7 +226,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       console.log(`[ScoreCardSummary] Card does NOT have gemrateId - will search GemRate by query`);
       searchGemRateData();
     }
-  }, [card?.gemrateId, card?.player, card?.name, card?.set, card?.number, fetchGemrateData, searchGemRateData, initialCardData]);
+  }, [card?.gemrateId, card?.player, card?.name, card?.set, card?.number, fetchGemrateData, searchGemRateData, initialCardData, initialGemrateData]);
 
   // Filter raw cards (same logic as SearchPage)
   const filterRawCards = (cards) => {
