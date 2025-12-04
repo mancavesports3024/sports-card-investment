@@ -1880,7 +1880,7 @@ router.post('/', requireUser, async (req, res) => {
       }
     }
     
-    const sorted = sortByDate(categorized); // Sort by date for search page
+    let sorted = sortByDate(categorized); // Sort by date for search page
     console.log(`[POST SEARCH] After sorting - PSA9: ${sorted.psa9?.length || 0}, PSA10: ${sorted.psa10?.length || 0}`);
 
     // Add EPN tracking to all eBay URLs in the results
