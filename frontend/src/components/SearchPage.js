@@ -1392,12 +1392,52 @@ const SearchPage = () => {
                 ).join(' ');
               }
               
+              // Extract card number from search query or title
+              let cardNumber = null;
+              const searchQueryForNumber = results?.searchParams?.searchQuery || cleanSearchQuery || displayTitle || '';
+              
+              // Try patterns in order of preference:
+              // 1. Number with # prefix: "#011"
+              const hashNumberMatch = searchQueryForNumber.match(/#(\d+)/);
+              if (hashNumberMatch) {
+                cardNumber = hashNumberMatch[1];
+              } else {
+                // 2. Number in pattern like "ST13-011" or "OP12-011"
+                const dashNumberMatch = searchQueryForNumber.match(/[A-Z]{2,}\d+-(\d+)/i);
+                if (dashNumberMatch) {
+                  cardNumber = dashNumberMatch[1];
+                } else {
+                  // 3. Standalone 3+ digit numbers (like "011")
+                  const standaloneMatch = searchQueryForNumber.match(/\b(\d{3,})\b/);
+                  if (standaloneMatch) {
+                    cardNumber = standaloneMatch[1];
+                  } else {
+                    // 4. Any standalone number (prefer last one)
+                    const allNumbers = [];
+                    const numberRegex = /(\d+)/g;
+                    let match;
+                    while ((match = numberRegex.exec(searchQueryForNumber)) !== null) {
+                      const beforeChar = searchQueryForNumber[match.index - 1] || ' ';
+                      const afterChar = searchQueryForNumber[match.index + match[0].length] || ' ';
+                      const isAlphanumeric = /[A-Za-z]/.test(beforeChar) || /[A-Za-z]/.test(afterChar);
+                      if (!isAlphanumeric) {
+                        allNumbers.push({ number: match[1], position: match.index });
+                      }
+                    }
+                    // Prefer the last number that's not part of alphanumeric string
+                    if (allNumbers.length > 0) {
+                      cardNumber = allNumbers[allNumbers.length - 1].number;
+                    }
+                  }
+                }
+              }
+              
               // Build a lightweight card object for header / GemRate search
               const headerCard = {
                 // Use the cleaned title instead of raw search query
                 set: displayTitle,
                 player: playerName || null, // Only set player if we extracted it, otherwise null
-                number: null,
+                number: cardNumber,
                 category: null,
               };
 
