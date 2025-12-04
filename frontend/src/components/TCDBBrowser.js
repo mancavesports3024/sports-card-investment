@@ -21,6 +21,8 @@ const TCDBBrowser = () => {
   const [playerSearchError, setPlayerSearchError] = useState('');
   const [playerSearchFilterSet, setPlayerSearchFilterSet] = useState('');
   const [playerSearchFilterCardNumber, setPlayerSearchFilterCardNumber] = useState('');
+  const [playerSearchSortField, setPlayerSearchSortField] = useState('totalGrades');
+  const [playerSearchSortDirection, setPlayerSearchSortDirection] = useState('desc'); // 'asc' | 'desc'
   
   // Database info
   const [dbInfo, setDbInfo] = useState({ total: 0 });
@@ -180,11 +182,79 @@ const TCDBBrowser = () => {
           <div className="error-message">{playerSearchError}</div>
         )}
         {playerSearchResults.length > 0 && (() => {
+          // Apply filters
           const filteredResults = playerSearchResults.filter((card) => {
             if (playerSearchFilterSet && !(card.set || '').toLowerCase().includes(playerSearchFilterSet.toLowerCase())) return false;
             if (playerSearchFilterCardNumber && !(card.number || '').toString().includes(playerSearchFilterCardNumber)) return false;
             return true;
           });
+
+          // Apply sorting
+          const sortedResults = [...filteredResults].sort((a, b) => {
+            const dir = playerSearchSortDirection === 'asc' ? 1 : -1;
+
+            const getValue = (card) => {
+              switch (playerSearchSortField) {
+                case 'year':
+                  return card.year || '';
+                case 'set':
+                  return card.set || '';
+                case 'player':
+                  return card.player || '';
+                case 'parallel':
+                  return card.parallel || '';
+                case 'number':
+                  return card.number || '';
+                case 'gems':
+                  return typeof card.gems === 'number' ? card.gems : (card.gems ? Number(card.gems) || 0 : 0);
+                case 'totalGrades':
+                  return typeof card.totalGrades === 'number'
+                    ? card.totalGrades
+                    : (card.totalGrades ? Number(card.totalGrades) || 0 : 0);
+                case 'gemRate':
+                  if (card.gemRate === null || card.gemRate === undefined || card.gemRate === '') return -Infinity;
+                  return typeof card.gemRate === 'number' ? card.gemRate : (Number(card.gemRate) || 0);
+                default:
+                  return '';
+              }
+            };
+
+            const aVal = getValue(a);
+            const bVal = getValue(b);
+
+            // Numeric comparison when both are numbers
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+              if (aVal === bVal) return 0;
+              return aVal > bVal ? dir : -dir;
+            }
+
+            // String comparison
+            const aStr = (aVal || '').toString().toLowerCase();
+            const bStr = (bVal || '').toString().toLowerCase();
+            if (aStr === bStr) return 0;
+            return aStr > bStr ? dir : -dir;
+          });
+
+          const handleSortClick = (field) => {
+            if (playerSearchSortField === field) {
+              // Toggle direction
+              setPlayerSearchSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+            } else {
+              setPlayerSearchSortField(field);
+              // Default: numbers desc, strings asc
+              if (['gems', 'totalGrades', 'gemRate', 'number', 'year'].includes(field)) {
+                setPlayerSearchSortDirection('desc');
+              } else {
+                setPlayerSearchSortDirection('asc');
+              }
+            }
+          };
+
+          const renderSortIndicator = (field) => {
+            if (playerSearchSortField !== field) return null;
+            return playerSearchSortDirection === 'asc' ? ' ▲' : ' ▼';
+          };
+
           return (
           <div className="player-search-results">
             <h3>
@@ -249,18 +319,58 @@ const TCDBBrowser = () => {
               <table className="checklist-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '80px' }}>Year</th>
-                    <th>Set</th>
-                    <th>Player</th>
-                    <th>Parallel</th>
-                    <th style={{ width: '90px' }}>Card #</th>
-                    <th style={{ width: '110px' }}>Gems</th>
-                    <th style={{ width: '130px' }}>Total Grades</th>
-                    <th style={{ width: '90px' }}>Gem %</th>
+                    <th
+                      style={{ width: '80px', cursor: 'pointer' }}
+                      onClick={() => handleSortClick('year')}
+                    >
+                      Year{renderSortIndicator('year')}
+                    </th>
+                    <th
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => handleSortClick('set')}
+                    >
+                      Set{renderSortIndicator('set')}
+                    </th>
+                    <th
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => handleSortClick('player')}
+                    >
+                      Player{renderSortIndicator('player')}
+                    </th>
+                    <th
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => handleSortClick('parallel')}
+                    >
+                      Parallel{renderSortIndicator('parallel')}
+                    </th>
+                    <th
+                      style={{ width: '90px', cursor: 'pointer' }}
+                      onClick={() => handleSortClick('number')}
+                    >
+                      Card #{renderSortIndicator('number')}
+                    </th>
+                    <th
+                      style={{ width: '110px', cursor: 'pointer' }}
+                      onClick={() => handleSortClick('gems')}
+                    >
+                      Gems{renderSortIndicator('gems')}
+                    </th>
+                    <th
+                      style={{ width: '130px', cursor: 'pointer' }}
+                      onClick={() => handleSortClick('totalGrades')}
+                    >
+                      Total Grades{renderSortIndicator('totalGrades')}
+                    </th>
+                    <th
+                      style={{ width: '90px', cursor: 'pointer' }}
+                      onClick={() => handleSortClick('gemRate')}
+                    >
+                      Gem %{renderSortIndicator('gemRate')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredResults.map((card, index) => {
+                  {sortedResults.map((card, index) => {
                     const gems =
                       typeof card.gems === 'number'
                         ? card.gems.toLocaleString()
