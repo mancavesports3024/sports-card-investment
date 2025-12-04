@@ -1936,6 +1936,189 @@ router.post('/', requireUser, async (req, res) => {
       }
     }
     
+    // Fallback: If no PSA 10 results, try a search with "PSA 10" added (similar to PSA 9 fallback)
+    const hasPsa10 = categorized.psa10 && categorized.psa10.length > 0;
+    
+    if (!hasPsa10) {
+      console.log(`[POST SEARCH] No PSA 10 results found (PSA 9: ${categorized.psa9?.length || 0}). Running fallback search with "PSA 10" added to query...`);
+      
+      // Build fallback search query - add "PSA 10" to the search term
+      // Remove any existing exclusions for the fallback search
+      let baseQuery = workingQuery.split(' -(')[0].trim();
+      // Remove any emojis that might have slipped through
+      baseQuery = baseQuery.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+      const fallbackQuery = `${baseQuery} PSA 10`;
+      
+      console.log(`[POST SEARCH] PSA 10 fallback search query: "${fallbackQuery}"`);
+      
+      // Skip eBay - go directly to 130point fallback (eBay is getting blocked too often)
+      console.log(`[POST SEARCH] Skipping eBay fallback (frequent blocking). Using 130point fallback directly...`);
+      
+      try {
+            const Point130Service = require('../services/130pointService');
+            const point130Service = new Point130Service();
+            
+            // Simplify query for 130point (less wordy, more effective)
+            let processedFallbackQuery = simplifyFor130point(fallbackQuery);
+            
+            console.log(`[POST SEARCH] 130point PSA 10 fallback search: "${processedFallbackQuery}"`);
+            const point130Results = await point130Service.searchSoldCards(processedFallbackQuery, {
+              type: '2',
+              sort: 'urlEndTimeSoonest'
+            });
+            
+            if (point130Results && point130Results.length > 0) {
+              console.log(`[POST SEARCH] ✅ 130point PSA 10 fallback found ${point130Results.length} results`);
+              
+              // Transform 130point results to match expected format
+              const fallbackCards = point130Results.map(card => ({
+                id: `130point_${Date.now()}_${Math.random()}`,
+                title: card.title || '',
+                price: card.price || { value: '0', currency: 'USD' },
+                condition: 'Raw',
+                soldDate: card.soldDate || 'Recently sold',
+                imageUrl: card.image || '',
+                itemWebUrl: card.link || '',
+                itemId: `130point_${Date.now()}_${Math.random()}`,
+                sport: 'unknown',
+                shippingCost: null,
+                saleType: '130point',
+                numBids: null,
+                source: '130point'
+              }));
+              
+              // Apply keyword filtering to 130point results (using same improved logic as main search)
+              const lowerQuery = (workingQuery || '').toLowerCase();
+              const positivePart = lowerQuery.split(' -(')[0].trim();
+              const exclusionMatch = lowerQuery.match(/-\s*\(([^)]+)\)/);
+              const exclusions = exclusionMatch
+                ? exclusionMatch[1].split(',').map(s => s.trim()).filter(Boolean)
+                : [];
+              
+              // Use same improved primary token logic as main search
+              const positiveTokens = positivePart.split(/\s+/).filter(t => t.length > 0);
+              const cardNumberMatch = positivePart.match(/#?(\d+)/);
+              const cardNumber = cardNumberMatch ? cardNumberMatch[1] : null;
+              
+              const excludedWords = new Set(['ex', 'mega', 'evolution', 'rare', 'illustration', 'special', 
+                                             'card', 'cards', 'psa', 'bgs', 'sgc', 'cgc', 'grade', 'graded',
+                                             'rookie', 'rc', 'auto', 'autograph', 'patch', 'relic', 'insert']);
+              
+              const nonNumericTokens = positiveTokens.filter(t => {
+                const clean = t.replace(/[#-]/g, '').toLowerCase();
+                return !/^\d+$/.test(clean) && !excludedWords.has(clean);
+              });
+              
+              const nonYearTokens = nonNumericTokens.filter(t => {
+                const clean = t.replace(/[#-]/g, '');
+                return !/^(19|20)\d{2}$/.test(clean);
+              });
+              
+              let primaryToken = '';
+              
+              // Strategy 1: If we have a card number, prefer tokens that come after it
+              if (cardNumber && nonYearTokens.length > 0) {
+                const cardNumIndex = positiveTokens.findIndex(t => t.includes(cardNumber));
+                if (cardNumIndex >= 0) {
+                  const tokensAfterNumber = nonYearTokens.filter(t => {
+                    const tokenIndex = positiveTokens.indexOf(t);
+                    return tokenIndex > cardNumIndex;
+                  });
+                  if (tokensAfterNumber.length > 0) {
+                    primaryToken = tokensAfterNumber.reduce((a, b) => a.length > b.length ? a : b);
+                  }
+                }
+              }
+              
+              // Strategy 2: If no card number or no tokens after number, prefer longer words
+              if (!primaryToken && nonYearTokens.length > 0) {
+                const meaningfulTokens = nonYearTokens.filter(t => t.length >= 3);
+                if (meaningfulTokens.length > 0) {
+                  primaryToken = meaningfulTokens.reduce((a, b) => a.length > b.length ? a : b);
+                } else {
+                  primaryToken = nonYearTokens[nonYearTokens.length - 1];
+                }
+              }
+              
+              // Strategy 3: Fallback to card number if available
+              if (!primaryToken && cardNumber) {
+                primaryToken = cardNumber;
+              }
+              
+              // Strategy 4: Last resort
+              if (!primaryToken && nonNumericTokens.length > 0) {
+                primaryToken = nonNumericTokens[nonNumericTokens.length - 1];
+              } else if (!primaryToken) {
+                primaryToken = positiveTokens.find(t => t.length >= 3) || positiveTokens[0] || '';
+              }
+              
+              const fractionMatch = positivePart.match(/(\d+)\s*\/\s*(\d+)/);
+              const fractionVariants = fractionMatch
+                ? [
+                    `${fractionMatch[1]}/${fractionMatch[2]}`,
+                    `${fractionMatch[1]} ${fractionMatch[2]}`,
+                    `${fractionMatch[1]}-${fractionMatch[2]}`
+                  ]
+                : [];
+              
+              const filteredFallbackCards = fallbackCards.filter(card => {
+                const title = (card.title || '').toLowerCase();
+                if (!title) return false;
+                
+                // Exclusions
+                if (exclusions.length > 0 && exclusions.some(ex => ex && title.includes(ex))) {
+                  return false;
+                }
+                
+                // Primary token (case-insensitive)
+                if (primaryToken && !title.includes(primaryToken.toLowerCase())) {
+                  return false;
+                }
+                
+                // Card number (exact match with word boundaries)
+                if (cardNumber) {
+                  const cardNumRegex = new RegExp(`(?:#|no\\.?|number)\\s*${cardNumber}\\b|\\b${cardNumber}\\b`, 'i');
+                  if (!cardNumRegex.test(title)) {
+                    return false;
+                  }
+                }
+                
+                // Fraction variants
+                if (fractionVariants.length > 0 && !fractionVariants.some(v => title.includes(v))) {
+                  return false;
+                }
+                
+                return true;
+              });
+              
+              console.log(`[POST SEARCH] 130point PSA 10 fallback filtered to ${filteredFallbackCards.length} cards (from ${fallbackCards.length})`);
+              
+              // Merge 130point results with existing cards (avoid duplicates)
+              const existingIds = new Set(allCards.map(c => c.id || c.itemId));
+              const newFallbackCards = filteredFallbackCards.filter(card => {
+                const cardId = card.id || card.itemId;
+                return cardId && !existingIds.has(cardId);
+              });
+              
+              if (newFallbackCards.length > 0) {
+                console.log(`[POST SEARCH] Adding ${newFallbackCards.length} new cards from 130point PSA 10 fallback`);
+                allCards = allCards.concat(newFallbackCards);
+                
+                // Re-categorize with merged results (use requestedCardNumber from earlier extraction)
+                categorized = categorizeCards(allCards, requestedCardNumber);
+                console.log(`[POST SEARCH] After 130point PSA 10 fallback merge - PSA9: ${categorized.psa9?.length || 0}, PSA10: ${categorized.psa10?.length || 0}`);
+              } else {
+                console.log(`[POST SEARCH] No new cards from 130point PSA 10 fallback (all duplicates)`);
+              }
+            } else {
+              console.log(`[POST SEARCH] 130point PSA 10 fallback also returned no results`);
+            }
+      } catch (point130Error) {
+        console.error(`[POST SEARCH] 130point PSA 10 fallback error:`, point130Error);
+        // Continue with original results even if 130point fails
+      }
+    }
+    
     let sorted = sortByDate(categorized); // Sort by date for search page
     console.log(`[POST SEARCH] After sorting - PSA9: ${sorted.psa9?.length || 0}, PSA10: ${sorted.psa10?.length || 0}`);
 
