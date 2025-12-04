@@ -2523,9 +2523,14 @@ class GemRateService {
                   console.log(`[getPlayerCards] Sample RowData gemrateId fields:`, {
                     gemrateId: rawData[0].gemrateId,
                     gemrate_id: rawData[0].gemrate_id,
+                    universal_gemrate_id: rawData[0].universal_gemrate_id,
                     id: rawData[0].id,
                     _id: rawData[0]._id
                   });
+                  // Log the full first row to see all possible ID fields
+                  const firstRowKeys = Object.keys(rawData[0]);
+                  const idLikeKeys = firstRowKeys.filter(k => k.toLowerCase().includes('id') || k.toLowerCase().includes('gemrate'));
+                  console.log(`[getPlayerCards] ID-like fields in first row:`, idLikeKeys.map(k => `${k}: ${rawData[0][k]}`).join(', '));
                 }
                 
                 // Map RowData to our card format (using Postman field names)
@@ -2540,8 +2545,10 @@ class GemRateService {
                   const totalGrades = rowData.total || rowData.totalGrades || rowData.totalGradesCount || null;
                   const gemRate = rowData.gem_rate || rowData.gemRate || rowData.gemRatePercent || rowData['gem %'] || '';
                   
-                  // Try multiple possible field names for gemrateId (gemrate_id is the actual field name from GemRate)
-                  const gemrateId = rowData.gemrate_id || rowData.gemrateId || rowData.id || rowData._id || null;
+                  // Try multiple possible field names for gemrateId
+                  // Check universal_gemrate_id first (this might be the correct one for universal search)
+                  // Then check gemrate_id (card-specific ID)
+                  const gemrateId = rowData.universal_gemrate_id || rowData.gemrate_id || rowData.gemrateId || rowData.id || rowData._id || null;
 
                   return {
                     number: cardNumber || '',
