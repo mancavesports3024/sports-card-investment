@@ -745,7 +745,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
            (card?.parallel || card?.team).toLowerCase() !== 'base' && 
            ` ${card?.parallel || card?.team}`}
         </h1>
-        <h2>{card?.player || 'Unknown Player'}</h2>
+        {card?.player && <h2>{card.player}</h2>}
         {card?.number && <h3>#{card.number}</h3>}
       </div>
 

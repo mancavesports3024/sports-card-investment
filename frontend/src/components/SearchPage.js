@@ -1359,11 +1359,44 @@ const SearchPage = () => {
               // Use the summary card title (which is cleaner) or cleaned search query
               const displayTitle = summaryCard.title || summaryCard.summaryTitle || cleanSearchQuery || 'Card Summary';
               
+              // Try to extract player name from the title or search query
+              // Look for common patterns like "Player Name" or "PLAYER NAME" in the title
+              let playerName = '';
+              const titleForExtraction = (summaryCard.title || summaryCard.summaryTitle || cleanSearchQuery || '').toLowerCase();
+              
+              // Try to find player name - look for words that are likely player names
+              // Common patterns: "Portgas D. Ace", "PORTGAS D ACE", etc.
+              // Extract the last meaningful words before card number or set identifiers
+              const titleParts = titleForExtraction.split(/\s+/);
+              const setIdentifiers = ['op12', 'st13', 'legacy', 'master', 'one', 'piece', '2025', '2024', '2023'];
+              const cardNumberPattern = /\d{3,}/; // 3+ digit numbers (like 011)
+              
+              // Find the player name - usually the words before the set identifiers or card number
+              let playerParts = [];
+              for (let i = 0; i < titleParts.length; i++) {
+                const part = titleParts[i];
+                // Stop if we hit a set identifier or card number
+                if (setIdentifiers.includes(part) || cardNumberPattern.test(part)) {
+                  break;
+                }
+                // Skip common words that aren't player names
+                if (!['of', 'the', 'and', 'or', 'a', 'an', 'to'].includes(part)) {
+                  playerParts.push(part);
+                }
+              }
+              
+              // If we found player parts, capitalize them properly
+              if (playerParts.length > 0) {
+                playerName = playerParts.map(part => 
+                  part.charAt(0).toUpperCase() + part.slice(1)
+                ).join(' ');
+              }
+              
               // Build a lightweight card object for header / GemRate search
               const headerCard = {
                 // Use the cleaned title instead of raw search query
                 set: displayTitle,
-                player: summaryCard.title || summaryCard.summaryTitle || '',
+                player: playerName || null, // Only set player if we extracted it, otherwise null
                 number: null,
                 category: null,
               };
