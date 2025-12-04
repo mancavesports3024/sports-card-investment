@@ -33,7 +33,6 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       // Only use gemrateId if available
       if (!card?.gemrateId) {
         console.log(`[ScoreCardSummary] No gemrateId available on card`);
-        setGemrateData(null);
         return;
       }
       
@@ -42,7 +41,6 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       
       if (!response.ok) {
         console.error(`[ScoreCardSummary] GemRate API error: ${response.status} ${response.statusText}`);
-        setGemrateData(null);
         return;
       }
       
@@ -62,11 +60,11 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
         setGemrateData(populationData);
       } else {
         console.log(`[ScoreCardSummary] No population data in response. Success: ${data.success}, hasData: ${!!data.data}, hasPopulation: ${!!populationData}`);
-        setGemrateData(null);
+        // Keep existing gemrateData (e.g., from player row) as fallback
       }
     } catch (err) {
       console.error('[ScoreCardSummary] Failed to fetch gemrate data:', err);
-      setGemrateData(null);
+      // Keep existing gemrateData (e.g., from player row) as fallback
     }
   }, [card?.gemrateId]);
 
@@ -76,7 +74,6 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       // Don't search if we don't have enough card info
       if (!card) {
         console.log(`[ScoreCardSummary] No card data to search GemRate`);
-        setGemrateData(null);
         return;
       }
       
@@ -124,7 +121,6 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       
       if (!response.ok) {
         console.error(`[ScoreCardSummary] GemRate search API error: ${response.status} ${response.statusText}`);
-        setGemrateData(null);
         return;
       }
       
@@ -144,11 +140,11 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
         setGemrateData(populationData);
       } else {
         console.log(`[ScoreCardSummary] No population data from GemRate search. Success: ${data.success}, hasPopulation: ${!!populationData}`);
-        setGemrateData(null);
+        // Keep existing gemrateData (e.g., from player row) as fallback
       }
     } catch (err) {
       console.error('[ScoreCardSummary] Error searching GemRate data:', err);
-      setGemrateData(null);
+      // Keep existing gemrateData (e.g., from player row) as fallback
     }
   }, [card]);
 
@@ -184,13 +180,6 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       return;
     }
 
-    // If we were given GemRate data explicitly (e.g., from player search row), use it and skip fetching
-    if (initialGemrateData) {
-      console.log('[ScoreCardSummary] Using initialGemrateData from props, skipping GemRate fetch');
-      setGemrateData(initialGemrateData);
-      return;
-    }
-    
     // Create a stable key to prevent unnecessary re-fetches
     const cardKey = `${card?.gemrateId || ''}_${card?.player || card?.name || ''}_${card?.set || ''}_${card?.number || ''}`;
     
