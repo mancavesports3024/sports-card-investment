@@ -46,6 +46,14 @@ const TCDBBrowser = () => {
   };
 
   const handleCardClick = (card) => {
+    console.log('[TCDBBrowser] Card clicked:', {
+      player: card.player,
+      set: card.set,
+      parallel: card.parallel,
+      number: card.number,
+      gemrateId: card.gemrateId,
+      year: card.year
+    });
     setSelectedCardForSummary(card);
     setCurrentStep('score-card-summary');
   };
