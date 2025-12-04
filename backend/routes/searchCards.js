@@ -1464,7 +1464,8 @@ router.post('/', requireUser, async (req, res) => {
       // Common words to exclude from being primary token
       const excludedWords = new Set(['ex', 'mega', 'evolution', 'rare', 'illustration', 'special', 
                                      'card', 'cards', 'psa', 'bgs', 'sgc', 'cgc', 'grade', 'graded',
-                                     'rookie', 'rc', 'auto', 'autograph', 'patch', 'relic', 'insert']);
+                                     'rookie', 'rc', 'auto', 'autograph', 'patch', 'relic', 'insert',
+                                     'alternate', 'art', 'piece', 'one', 'legacy', 'master', 'of', 'the']);
       
       const nonNumericTokens = positiveTokens.filter(t => {
         const clean = t.replace(/[#-]/g, '').toLowerCase();
@@ -1478,23 +1479,31 @@ router.post('/', requireUser, async (req, res) => {
 
       let primaryToken = '';
       
-      // Strategy 1: If we have a card number, prefer tokens that come after it
+      // Strategy 1: If we have a card number, prefer tokens that come BEFORE it (player name usually comes before card number)
       if (cardNumber && nonYearTokens.length > 0) {
         const cardNumIndex = positiveTokens.findIndex(t => t.includes(cardNumber));
         if (cardNumIndex >= 0) {
-          // Look for tokens after the card number (likely player name)
-          const tokensAfterNumber = nonYearTokens.filter(t => {
+          // Look for tokens BEFORE the card number (likely player name)
+          const tokensBeforeNumber = nonYearTokens.filter(t => {
             const tokenIndex = positiveTokens.indexOf(t);
-            return tokenIndex > cardNumIndex;
+            return tokenIndex < cardNumIndex;
           });
-          if (tokensAfterNumber.length > 0) {
-            // Prefer longer words (likely player names)
-            primaryToken = tokensAfterNumber.reduce((a, b) => a.length > b.length ? a : b);
+          if (tokensBeforeNumber.length > 0) {
+            // Prefer longer words (likely player names), and prefer the last one before the number
+            primaryToken = tokensBeforeNumber.reduce((a, b) => {
+              // If lengths are equal, prefer the one that appears later (closer to card number)
+              if (a.length === b.length) {
+                const aIndex = positiveTokens.indexOf(a);
+                const bIndex = positiveTokens.indexOf(b);
+                return aIndex > bIndex ? a : b;
+              }
+              return a.length > b.length ? a : b;
+            });
           }
         }
       }
       
-      // Strategy 2: If no card number or no tokens after number, prefer longer words
+      // Strategy 2: If no card number or no tokens before number, prefer longer words (but exclude common set words)
       if (!primaryToken && nonYearTokens.length > 0) {
         // Filter out very short words (< 3 chars) and prefer longer ones
         const meaningfulTokens = nonYearTokens.filter(t => t.length >= 3);
