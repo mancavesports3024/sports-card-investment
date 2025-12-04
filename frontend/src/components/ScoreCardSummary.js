@@ -157,6 +157,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       // Use preloaded data (e.g., from SearchPage summary) and skip refetch
       setCardData(initialCardData);
       setLoading(false);
+      // Don't reset gemrateData here - let the GemRate useEffect handle it
       return;
     }
 
@@ -180,8 +181,8 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
     // Create a stable key to prevent unnecessary re-fetches
     const cardKey = `${card?.gemrateId || ''}_${card?.player || card?.name || ''}_${card?.set || ''}_${card?.number || ''}`;
     
-    // Skip if we already fetched for this exact card
-    if (cardKey === lastFetchedCardKeyRef.current) {
+    // Skip if we already fetched for this exact card AND we have data
+    if (cardKey === lastFetchedCardKeyRef.current && gemrateData) {
       console.log(`[ScoreCardSummary] Already fetched GemRate data for this card (key: ${cardKey}), skipping`);
       return;
     }
@@ -192,14 +193,17 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       number: card?.number,
       hasGemrateId: !!card?.gemrateId,
       gemrateId: card?.gemrateId,
-      cardKey: cardKey
+      cardKey: cardKey,
+      hasInitialCardData: !!initialCardData
     });
     
     // Mark this card as being fetched
     lastFetchedCardKeyRef.current = cardKey;
     
-    // Reset gemrateData when card changes
-    setGemrateData(null);
+    // Only reset gemrateData if this is a different card (not if we're just initializing)
+    if (gemrateData && cardKey !== `${gemrateData.gemrateId || ''}_${card?.player || card?.name || ''}_${card?.set || ''}_${card?.number || ''}`) {
+      setGemrateData(null);
+    }
     
     // Try gemrateId first (from player search), then fallback to search
     if (card?.gemrateId) {
@@ -209,7 +213,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       console.log(`[ScoreCardSummary] Card does NOT have gemrateId - will search GemRate by query`);
       searchGemRateData();
     }
-  }, [card?.gemrateId, card?.player, card?.name, card?.set, card?.number, fetchGemrateData, searchGemRateData]);
+  }, [card?.gemrateId, card?.player, card?.name, card?.set, card?.number, fetchGemrateData, searchGemRateData, initialCardData]);
 
   // Filter raw cards (same logic as SearchPage)
   const filterRawCards = (cards) => {
