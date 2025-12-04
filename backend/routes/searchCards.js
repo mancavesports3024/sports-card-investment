@@ -1402,8 +1402,64 @@ router.post('/', requireUser, async (req, res) => {
       const positiveTokens = positivePart.split(/\s+/).filter(t => t.length > 0);
       
       // Extract card number (with or without #)
-      const cardNumberMatch = positivePart.match(/#?(\d+)/);
-      const cardNumber = cardNumberMatch ? cardNumberMatch[1] : null;
+      // Prioritize numbers that are:
+      // 1. After "#", "no.", "number", or standalone
+      // 2. Not part of alphanumeric strings (like "OP12")
+      // 3. Patterns like "011", "#011", "011/xxx", "ST13-011"
+      let cardNumber = null;
+      
+      // Try patterns in order of preference:
+      // 1. Number with # prefix: "#011"
+      const hashNumberMatch = positivePart.match(/#(\d+)/);
+      if (hashNumberMatch) {
+        cardNumber = hashNumberMatch[1];
+      } else {
+        // 2. Number after "no." or "number": "no. 011" or "number 011"
+        const noNumberMatch = positivePart.match(/(?:no\.?|number)\s*(\d+)/i);
+        if (noNumberMatch) {
+          cardNumber = noNumberMatch[1];
+        } else {
+          // 3. Number in pattern like "ST13-011" or "OP12-011"
+          const dashNumberMatch = positivePart.match(/[A-Z]{2,}\d+-(\d+)/i);
+          if (dashNumberMatch) {
+            cardNumber = dashNumberMatch[1];
+          } else {
+            // 4. Standalone number (not part of alphanumeric string) - prefer later numbers
+            // Split into tokens and find numbers that are standalone
+            const tokens = positivePart.split(/\s+/);
+            const standaloneNumbers = [];
+            tokens.forEach((token, index) => {
+              // Check if token is a pure number (not alphanumeric like "OP12")
+              const pureNumberMatch = token.match(/^(\d+)$/);
+              if (pureNumberMatch) {
+                standaloneNumbers.push({ number: pureNumberMatch[1], index });
+              }
+            });
+            // Prefer the last standalone number (more likely to be card number)
+            if (standaloneNumbers.length > 0) {
+              cardNumber = standaloneNumbers[standaloneNumbers.length - 1].number;
+            } else {
+              // 5. Fallback: any number, but prefer numbers that appear later
+              const allNumbers = [];
+              let match;
+              const numberRegex = /(\d+)/g;
+              while ((match = numberRegex.exec(positivePart)) !== null) {
+                // Check if this number is part of an alphanumeric string
+                const beforeChar = positivePart[match.index - 1] || ' ';
+                const afterChar = positivePart[match.index + match[0].length] || ' ';
+                const isAlphanumeric = /[A-Za-z]/.test(beforeChar) || /[A-Za-z]/.test(afterChar);
+                if (!isAlphanumeric) {
+                  allNumbers.push({ number: match[1], position: match.index });
+                }
+              }
+              // Prefer the last number that's not part of alphanumeric string
+              if (allNumbers.length > 0) {
+                cardNumber = allNumbers[allNumbers.length - 1].number;
+              }
+            }
+          }
+        }
+      }
       
       // Common words to exclude from being primary token
       const excludedWords = new Set(['ex', 'mega', 'evolution', 'rare', 'illustration', 'special', 
@@ -1689,8 +1745,59 @@ router.post('/', requireUser, async (req, res) => {
     console.log(`[POST SEARCH] After deduplication: ${allCards.length} cards`);
 
     // Extract card number from search query for categorization
-    const cardNumberMatch = (workingQuery || searchQuery || '').match(/#?(\d+)/);
-    const requestedCardNumber = cardNumberMatch ? cardNumberMatch[1] : null;
+    // Use the same improved logic as above
+    const queryForExtraction = (workingQuery || searchQuery || '').toLowerCase();
+    let requestedCardNumber = null;
+    
+    // Try patterns in order of preference:
+    // 1. Number with # prefix: "#011"
+    const hashNumberMatch = queryForExtraction.match(/#(\d+)/);
+    if (hashNumberMatch) {
+      requestedCardNumber = hashNumberMatch[1];
+    } else {
+      // 2. Number after "no." or "number": "no. 011" or "number 011"
+      const noNumberMatch = queryForExtraction.match(/(?:no\.?|number)\s*(\d+)/);
+      if (noNumberMatch) {
+        requestedCardNumber = noNumberMatch[1];
+      } else {
+        // 3. Number in pattern like "ST13-011" or "OP12-011"
+        const dashNumberMatch = queryForExtraction.match(/[a-z]{2,}\d+-(\d+)/);
+        if (dashNumberMatch) {
+          requestedCardNumber = dashNumberMatch[1];
+        } else {
+          // 4. Standalone number (not part of alphanumeric string) - prefer later numbers
+          const tokens = queryForExtraction.split(/\s+/);
+          const standaloneNumbers = [];
+          tokens.forEach((token) => {
+            const pureNumberMatch = token.match(/^(\d+)$/);
+            if (pureNumberMatch) {
+              standaloneNumbers.push(pureNumberMatch[1]);
+            }
+          });
+          // Prefer the last standalone number (more likely to be card number)
+          if (standaloneNumbers.length > 0) {
+            requestedCardNumber = standaloneNumbers[standaloneNumbers.length - 1];
+          } else {
+            // 5. Fallback: any number that's not part of alphanumeric string
+            const allNumbers = [];
+            let match;
+            const numberRegex = /(\d+)/g;
+            while ((match = numberRegex.exec(queryForExtraction)) !== null) {
+              const beforeChar = queryForExtraction[match.index - 1] || ' ';
+              const afterChar = queryForExtraction[match.index + match[0].length] || ' ';
+              const isAlphanumeric = /[a-z]/.test(beforeChar) || /[a-z]/.test(afterChar);
+              if (!isAlphanumeric) {
+                allNumbers.push({ number: match[1], position: match.index });
+              }
+            }
+            // Prefer the last number that's not part of alphanumeric string
+            if (allNumbers.length > 0) {
+              requestedCardNumber = allNumbers[allNumbers.length - 1].number;
+            }
+          }
+        }
+      }
+    }
     
     // Categorize and sort the results
     console.log(`[POST SEARCH] About to categorize ${allCards.length} cards${requestedCardNumber ? ` (requested card #${requestedCardNumber})` : ''}`);
