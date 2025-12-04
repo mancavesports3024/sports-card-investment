@@ -1395,7 +1395,17 @@ router.post('/', requireUser, async (req, res) => {
 
       // Primary token: Use the player name that the user explicitly types in the search query
       // The player name is the first meaningful word(s) after removing set names, years, and card numbers
-      const positiveTokens = positivePart.split(/\s+/).filter(t => t.length > 0);
+      // First, split by spaces, then also split tokens that contain dashes (like "OP12-Legacy")
+      const spaceTokens = positivePart.split(/\s+/).filter(t => t.length > 0);
+      const positiveTokens = [];
+      spaceTokens.forEach(token => {
+        // Split tokens with dashes (e.g., "OP12-Legacy" -> ["OP12", "Legacy"])
+        if (token.includes('-')) {
+          positiveTokens.push(...token.split('-'));
+        } else {
+          positiveTokens.push(token);
+        }
+      });
       
       // Extract card number (with or without #)
       let cardNumber = null;
@@ -1407,9 +1417,8 @@ router.post('/', requireUser, async (req, res) => {
         if (dashNumberMatch) {
           cardNumber = dashNumberMatch[1];
         } else {
-          const tokens = positivePart.split(/\s+/);
           const standaloneNumbers = [];
-          tokens.forEach((token, index) => {
+          positiveTokens.forEach((token, index) => {
             const pureNumberMatch = token.match(/^(\d+)$/);
             if (pureNumberMatch) {
               standaloneNumbers.push({ number: pureNumberMatch[1], index });
