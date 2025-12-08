@@ -561,7 +561,8 @@ const TCDBBrowser = () => {
           },
           // Optimize OCR settings for card text
           tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 #-.,()[]/',
-          tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+          // PSM mode: 3 = AUTO (default), 6 = SINGLE_BLOCK
+          tessedit_pageseg_mode: '3',
         }
       );
       
@@ -577,7 +578,8 @@ const TCDBBrowser = () => {
           processedImage,
           'eng',
           {
-            tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK,
+            // PSM mode: 6 = SINGLE_BLOCK (treat image as single text block)
+            tessedit_pageseg_mode: '6',
             tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 #-.,()[]/',
           }
         );
