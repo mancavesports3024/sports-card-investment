@@ -189,8 +189,20 @@
 }
 
 @media (max-width: 768px) {
+  .score-card-summary {
+    padding: 12px;
+  }
+
   .score-card-content {
     flex-direction: column;
+    gap: 20px;
+  }
+
+  .card-image-section {
+    flex: 1 1 auto;
+    max-width: 100%;
+    margin: 0;
+    align-self: center;
   }
 
   .price-column {
@@ -198,10 +210,84 @@
     flex: 1 1 auto;
   }
 
+  .price-boxes {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .score-card-header {
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+  }
+
   .score-card-header .back-btn {
     position: relative;
     left: 0;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  .score-card-header h1 {
+    font-size: 18px;
+  }
+
+  .score-card-header h2 {
+    font-size: 22px;
+  }
+
+  .score-card-header h3 {
+    font-size: 16px;
+  }
+
+  .price-box {
+    padding: 14px;
+  }
+
+  .price-value {
+    font-size: 20px;
+  }
+
+  .gem-rate-box .gem-rate-value {
+    font-size: 32px;
+  }
+
+  .score-card-footer {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .score-card-summary {
+    padding: 10px;
+  }
+
+  .score-card-header h1 {
+    font-size: 16px;
+  }
+
+  .score-card-header h2 {
+    font-size: 20px;
+  }
+
+  .price-value {
+    font-size: 18px;
+  }
+
+  .gem-rate-box .gem-rate-value {
+    font-size: 28px;
+  }
+
+  .price-label {
+    font-size: 14px;
+  }
+
+  .price-population {
+    font-size: 12px;
   }
 }
 
