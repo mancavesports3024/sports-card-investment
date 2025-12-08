@@ -331,11 +331,8 @@ const TCDBBrowser = () => {
     });
     
     // Also process lines for fallback
-    const lines = ocrText.split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-    
-    const scoredLines = fallbackLines.map((line, index) => {
+    // (lines variable was already created above for pattern 4, reuse it)
+    const scoredLines = lines.map((line, index) => {
       // Extract just the name part from lines with special characters
       const nameMatch = line.match(/([A-Z][A-Z\s]{2,20})/);
       if (!nameMatch) return { line, score: -100, words: [] };
