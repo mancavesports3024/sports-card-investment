@@ -361,7 +361,7 @@ const TCDBBrowser = () => {
         }
       }
       
-      // Prefer all uppercase (common on cards: "BO NIX", "JAYDEN DANIELS")
+      // Prefer all uppercase (common on cards: "BO NIX", "JAYDEN DANIELS", "MACKLIN CELEBRINI")
       const allUppercase = words.every(w => /^[A-Z]+$/.test(w));
       if (allUppercase) {
         score += 15;
@@ -371,6 +371,18 @@ const TCDBBrowser = () => {
       const allCapitalized = words.every(w => /^[A-Z]/.test(w));
       if (allCapitalized && !allUppercase) {
         score += 10;
+      }
+      
+      // Prefer longer words (real names are usually 4+ chars, not 2-3 char abbreviations)
+      const hasLongWords = words.some(w => w.length >= 5);
+      if (hasLongWords) {
+        score += 10; // Bonus for longer words like "MACKLIN", "CELEBRINI"
+      }
+      
+      // Penalize very short words (2-3 chars are often OCR artifacts)
+      const hasVeryShortWords = words.some(w => w.length <= 3);
+      if (hasVeryShortWords) {
+        score -= 20; // Penalty for short words like "ZL", "LI"
       }
       
       // Penalize if any word is in exclude list
