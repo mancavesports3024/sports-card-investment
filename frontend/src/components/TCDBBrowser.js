@@ -549,14 +549,10 @@ const TCDBBrowser = () => {
     try {
       console.log('[OCR] Starting image recognition...');
       
-      // Preprocess image to improve OCR accuracy
-      console.log('[OCR] Preprocessing image (contrast, brightness)...');
-      const processedImage = await preprocessImage(imageFile);
-      
-      // Use Tesseract.js with optimized settings
-      console.log('[OCR] Running OCR with optimized settings...');
+      // Try OCR with original image first (preprocessing might not always help)
+      console.log('[OCR] Running OCR with original image...');
       const { data: { text } } = await Tesseract.recognize(
-        processedImage,
+        imageFile,
         'eng',
         {
           logger: (m) => {
@@ -578,7 +574,9 @@ const TCDBBrowser = () => {
       const initialPlayerName = extractPlayerName(text);
       
       if (!initialPlayerName || initialPlayerName.length < 4) {
-        console.log('[OCR] First pass unclear, trying second pass with different settings...');
+        console.log('[OCR] First pass unclear, trying second pass with preprocessed image...');
+        // Preprocess image for second pass
+        const processedImage = await preprocessImage(imageFile);
         const { data: { text: text2 } } = await Tesseract.recognize(
           processedImage,
           'eng',
