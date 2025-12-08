@@ -565,8 +565,8 @@ const TCDBBrowser = () => {
             }
           },
           // Optimize OCR settings for card text
-          tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 #-.,()[]/',
-          // PSM mode: 3 = AUTO (default), 6 = SINGLE_BLOCK
+          // Note: Removed character whitelist as it was too restrictive
+          // PSM mode: 3 = AUTO (default)
           tessedit_pageseg_mode: '3',
         }
       );
