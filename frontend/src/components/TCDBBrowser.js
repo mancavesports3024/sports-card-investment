@@ -118,8 +118,9 @@ const TCDBBrowser = () => {
     // Pattern 2: Mixed case names
     const mixedCasePattern = /\b([A-Z][a-z]{2,12}\s+[A-Z][a-z]{2,12}(?:\s+[A-Z][a-z]{2,12})?)\b/g;
     
-    // Pattern 2b: Single word capitalized (for Pokemon names like "Groudon", "Pikachu")
-    const singleWordCapitalizedPattern = /\b([A-Z][a-z]{4,15})\b/g;
+    // Pattern 2b: Single word capitalized (for Pokemon names like "Groudon", "Pikachu", "Charizard")
+    // Also handle cases with special chars immediately after (like "Charizard(E@L +330)")
+    const singleWordCapitalizedPattern = /\b([A-Z][a-z]{4,15})(?:[^a-z]|$)/g;
     
     // Pattern 3: Names that might have special chars between words (like "JAYDEN DANIELS" with "|" or "=" nearby)
     // This handles cases like "| JAYDEN DANIELS VY =" by extracting just the name part
@@ -162,7 +163,18 @@ const TCDBBrowser = () => {
       'ded', 'oly', 'corde', 'you', 'disc', 'deal', 'wn', 'wages',
       'fess', 'cance', 'eleat', 'mn', 'na', 'wises', 'lle', 'ba',
       'hubs', 'dshs', 'iat', 'wenttostee', 'plait', 'arn', 'gz', 'si',
-      'b2023', 'me', 'fre', 'hig', 'snr'
+      'b2023', 'me', 'fre', 'hig', 'snr', 'peay', 'eal', 'oal', 'sap',
+      'nan', 're', 'tn', 'sen', 'ss', 'xi', 'ar', 'bg', 'oh', 'ese',
+      'poli', 'er', 'trey', 'ts', 'he', 'yi', 'oi', 'as', 'eo', 'l',
+      'ial', 'ik', 'ni', 'ww', 'fi', 'ff', 'se', 'sim', 'sha', 'brn',
+      'by', 'ye', 'nin', 'wo', 'aee', 'tr', 'ny', 'or', 'ny', 'sl',
+      'os', 'so', 're', 'ol', 'saf', 'cl', 'gog', 'ability', 'sane',
+      'gm', 'ret', 'pig', 'wp', 'ra', 'lad', 'age', 'co', 'ag', 'ss',
+      'oad', 'pa', 'rd', 'lor', 'tl', 'toa', 'te', 'ts', 'rp', 'lc',
+      'fd', 'tre', 'wr', 'ee', 'peor', 'as', 'et', 'burninoi', 'darkness',
+      'pv', 'yeni', 'anne', 'sne', 'ji', 'io', 'rd', 'le', 'an', 'knocked',
+      'out', 'opponent', 'takes', 'prize', 'cards', 'ubf', 'in', 'pin',
+      'ge', 'hn', 'poi'
     ]);
     
     // Try pattern 1: Standard all caps names (2-3 words)
