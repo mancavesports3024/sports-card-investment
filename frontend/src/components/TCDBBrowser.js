@@ -228,6 +228,60 @@ const TCDBBrowser = () => {
       'vb', 'n', 'by', 's', 'j', 'w', 'pr', '8', '18', '3', 'ie', 'r'
     ]);
     
+    // Try pattern 3: Names with special characters (like "| JAYDEN DANIELS VY =")
+    // But be more strict - only match if words are reasonable length (3+ chars) to avoid false positives
+    while ((match = nameWithSpecialChars.exec(ocrText)) !== null) {
+      const words = [match[1], match[2]];
+      if (match[3]) words.push(match[3]);
+      
+      // Filter out words that are too short (require at least 3 chars to avoid "SES", "ASE", etc.)
+      const validWords = words.filter(w => w.length >= 3 && w.length <= 12 && /^[A-Z]+$/.test(w));
+      
+      // Also check that at least one word is 4+ chars (typical for names)
+      const hasLongWord = validWords.some(w => w.length >= 4);
+      
+      // Exclude if any word is in the exclude list
+      const hasExcluded = validWords.some(w => excludeWords.has(w.toLowerCase()));
+      
+      if (validWords.length >= 2 && validWords.length <= 3 && hasLongWord && !hasExcluded) {
+        extractedNames.push({
+          name: validWords.join(' '),
+          words: validWords,
+          position: match.index,
+          source: 'specialChars'
+        });
+      }
+    }
+    
+    // Pattern 4: Handle names that might be split across lines (like "MACKLIN" on one line, "CELEBRINI" on next)
+    // Look for single uppercase words that might be part of a name
+    const lines = ocrText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    for (let i = 0; i < lines.length - 1; i++) {
+      const line1 = lines[i];
+      const line2 = lines[i + 1];
+      
+      // Look for pattern like "MACKLIN" followed by "CELEBRINI" on next line
+      const word1Match = line1.match(/\b([A-Z]{4,12})\b/);
+      const word2Match = line2.match(/\b([A-Z]{4,12})\b/);
+      
+      if (word1Match && word2Match) {
+        const word1 = word1Match[1];
+        const word2 = word2Match[1];
+        
+        // Check if these look like name parts (not in exclude list, reasonable length)
+        if (word1.length >= 4 && word2.length >= 4 && 
+            !excludeWords.has(word1.toLowerCase()) && 
+            !excludeWords.has(word2.toLowerCase())) {
+          extractedNames.push({
+            name: `${word1} ${word2}`,
+            words: [word1, word2],
+            position: ocrText.indexOf(line1),
+            source: 'splitLines'
+          });
+        }
+      }
+    }
+    
     // Score each extracted name
     const scoredNames = extractedNames.map((item, index) => {
       const { name, words, position } = item;
