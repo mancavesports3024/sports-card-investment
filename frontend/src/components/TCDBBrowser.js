@@ -409,11 +409,11 @@ const TCDBBrowser = () => {
       type: item.type
     })));
     
-    // Find the best match
+    // Find the best match (allow single word for Pokemon, 2-3 words for players)
     const bestMatch = allCandidates.find(item => 
       item.score > 15 && 
       item.words && 
-      item.words.length >= 2 && 
+      item.words.length >= 1 && 
       item.words.length <= 3
     );
     
@@ -421,10 +421,10 @@ const TCDBBrowser = () => {
       return bestMatch.name || bestMatch.line;
     }
     
-    // Fallback: any 2-3 word capitalized name
+    // Fallback: any 1-3 word capitalized name
     const fallback = allCandidates.find(item => 
       item.words && 
-      item.words.length >= 2 && 
+      item.words.length >= 1 && 
       item.words.length <= 3 &&
       item.words.every(w => /^[A-Z]/.test(w)) &&
       !item.words.some(w => excludeWords.has(w.toLowerCase()))
