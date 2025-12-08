@@ -156,7 +156,12 @@ const TCDBBrowser = () => {
       'poken', 'ninte', 'pokémon', 'pokédex', 'basic', 'hp', 'energy', 'fire',
       'water', 'grass', 'electric', 'psychic', 'fighting', 'darkness', 'metal',
       'fairy', 'dragon', 'colorless', 'weakness', 'resistance', 'retreat',
-      'attack', 'damage', 'illus', 'illustrator', 'par', 'swelling', 'power',
+      'attack', 'damage', 'illus', 'illustrator', 'par', 'swelling', 'power', 'swellingi',
+      'swellingipow', 'pattachlalbasiclwal', 'enengylcard', 'fromiyour', 'hand',
+      'magmalburge', 'energy', 'fiom', 'pokémc', 'eid', 'fore', 'cde', 'you',
+      'disc', 'rim', 'ns', 'sh', 'ance', 'be', 'lent', 'ny', 'tm', 'lis',
+      'fle', 'tire', 're', 'ix', 'eit', 'lc', 'lee', 'pa', 'ot', 'g', 'he',
+      'dap', 'oo', 'wp', 'brs', 'foleo', 'hiotendo', 'creat', 'me', 'freak'
       'magma', 'purge', 'attach', 'discard', 'card', 'hand', 'pokémon',
       'awrrig', 'se', 'yc', 'pe', 'f', 'gd', 'bh', 'wh', 'ed', 'swellingipowe',
       'paccsetaibas', 'icles', 'enengylcard', 'fromtyour', 'pokeén', 'pom',
@@ -580,7 +585,6 @@ const TCDBBrowser = () => {
           {
             // PSM mode: 6 = SINGLE_BLOCK (treat image as single text block)
             tessedit_pageseg_mode: '6',
-            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 #-.,()[]/',
           }
         );
         
