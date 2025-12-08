@@ -107,18 +107,16 @@ const TCDBBrowser = () => {
   const extractPlayerName = (ocrText) => {
     if (!ocrText) return null;
     
-    // Common patterns for player names on cards:
-    // - Usually appears near the top or middle of the card
-    // - Often followed by card number, set name, or stats
-    // - May have titles like "ROOKIE", "RC", etc. nearby
+    // Clean up OCR text - remove special characters that are likely formatting artifacts
+    const cleanedText = ocrText
+      .replace(/[|=\-_\s]{3,}/g, ' ') // Replace multiple special chars with space
+      .replace(/[|=\-_]/g, ' ') // Replace single special chars with space
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
     
-    const lines = ocrText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-    
-    // Look for lines that look like player names (2-4 words, capitalized, not all caps)
-    const namePatterns = [
-      /^[A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3}$/, // "Bo Nix", "Michael Jordan", etc.
-      /^[A-Z][A-Z\s]+$/, // All caps names like "BO NIX"
-    ];
+    const lines = cleanedText.split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
     
     // Common words to exclude
     const excludeWords = new Set([
@@ -128,50 +126,109 @@ const TCDBBrowser = () => {
       'card', 'cards', 'trading', 'sports', 'collectible',
       'year', 'set', 'number', 'parallel', 'insert',
       'football', 'baseball', 'basketball', 'hockey', 'soccer',
-      'prizm', 'chrome', 'select', 'optic', 'downtown'
+      'prizm', 'chrome', 'select', 'optic', 'downtown', 'broncos',
+      'denver', 'team', 'nfl', 'nba', 'mlb', 'nhl'
     ]);
     
     // Score each line as a potential player name
     const scoredLines = lines.map((line, index) => {
-      const words = line.split(/\s+/).filter(w => w.length > 0);
-      let score = 0;
-      
-      // Prefer lines with 2-4 words (typical name length)
-      if (words.length >= 2 && words.length <= 4) {
-        score += 10;
+      // Skip lines with too many special characters (likely formatting artifacts)
+      const specialCharCount = (line.match(/[|=\-_#@$%^&*()\[\]{}]/g) || []).length;
+      if (specialCharCount > line.length * 0.3) {
+        return { line, score: -100, words: [] };
       }
       
-      // Prefer lines near the top (player name usually at top of card)
-      if (index < 5) {
-        score += 5;
+      // Remove any remaining special characters for word analysis
+      const cleanLine = line.replace(/[|=\-_#@$%^&*()\[\]{}]/g, ' ').trim();
+      const words = cleanLine.split(/\s+/).filter(w => w.length > 1); // Filter single chars
+      
+      if (words.length === 0) {
+        return { line: cleanLine, score: -50, words: [] };
+      }
+      
+      let score = 0;
+      
+      // Prefer lines with 2-3 words (typical name length: "First Last" or "First Middle Last")
+      if (words.length === 2 || words.length === 3) {
+        score += 20;
+      } else if (words.length === 1) {
+        score -= 10; // Single words are less likely to be full names
+      } else if (words.length > 4) {
+        score -= 15; // Too many words likely not a name
+      }
+      
+      // Prefer lines near the bottom (player name often at bottom of card)
+      // But also check middle/top
+      if (index >= lines.length - 3) {
+        score += 15; // Bottom of card
+      } else if (index < 5) {
+        score += 5; // Top of card
+      }
+      
+      // Check if words look like names (all start with capital letters)
+      const allCapitalized = words.every(w => /^[A-Z]/.test(w));
+      const allUppercase = words.every(w => /^[A-Z]+$/.test(w));
+      
+      if (allCapitalized) {
+        score += 15;
+      }
+      
+      // Prefer all uppercase (common on cards: "BO NIX")
+      if (allUppercase && words.length >= 2) {
+        score += 10;
       }
       
       // Penalize lines with excluded words
       const hasExcluded = words.some(w => excludeWords.has(w.toLowerCase()));
       if (hasExcluded) {
-        score -= 20;
-      }
-      
-      // Prefer lines that look like proper names (capitalized words)
-      const looksLikeName = words.every(w => /^[A-Z]/.test(w));
-      if (looksLikeName) {
-        score += 15;
+        score -= 30;
       }
       
       // Penalize lines with numbers (likely card numbers or stats)
       if (/\d/.test(line)) {
+        score -= 15;
+      }
+      
+      // Penalize lines with very short words (likely OCR artifacts)
+      const hasVeryShortWords = words.some(w => w.length < 2);
+      if (hasVeryShortWords) {
         score -= 10;
       }
       
-      return { line, score, words };
+      // Prefer lines where words are reasonable length (3-10 chars typical for names)
+      const reasonableLength = words.every(w => w.length >= 2 && w.length <= 12);
+      if (reasonableLength) {
+        score += 5;
+      }
+      
+      return { line: cleanLine, score, words, originalLine: line };
     });
     
     // Sort by score and return the best match
     scoredLines.sort((a, b) => b.score - a.score);
     
-    const bestMatch = scoredLines.find(item => item.score > 0);
-    if (bestMatch && bestMatch.words.length >= 2) {
+    console.log('[OCR] Top 5 scored lines:', scoredLines.slice(0, 5).map(item => ({
+      line: item.line,
+      score: item.score,
+      words: item.words.length
+    })));
+    
+    // Find the best match with a reasonable score
+    const bestMatch = scoredLines.find(item => item.score > 10 && item.words.length >= 2);
+    
+    if (bestMatch) {
       return bestMatch.line;
+    }
+    
+    // Fallback: try to find any 2-3 word capitalized line
+    const fallback = scoredLines.find(item => 
+      item.words.length >= 2 && 
+      item.words.length <= 3 &&
+      item.words.every(w => /^[A-Z]/.test(w))
+    );
+    
+    if (fallback) {
+      return fallback.line;
     }
     
     return null;
