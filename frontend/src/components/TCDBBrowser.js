@@ -180,7 +180,10 @@ const TCDBBrowser = () => {
       'pv', 'yeni', 'anne', 'sne', 'ji', 'io', 'rd', 'le', 'an', 'knocked',
       'out', 'opponent', 'takes', 'prize', 'cards', 'ubf', 'in', 'pin',
       'ge', 'hn', 'poi', 'zl', 'li', 'ey', 'rn', 'ds', 'on', 'sharkse',
-      'em', 'ye', 'er', 'rr', 'ba'
+      'em', 'ye', 'er', 'rr', 'ba', 'erin', 'uc', 'rw', 'tn', 'be',
+      'pal', 'sa', 'shc', 'mpa', 'nl', 'fo', 'ye', 'ta', 'nyu', 'ei',
+      'lo', 'll', 'et', 'ns', 'flyers', 'stetreereer', 'lil', 'or',
+      'ati', 'io'
     ]);
     
     // Try pattern 1: Standard all caps names (2-3 words)
