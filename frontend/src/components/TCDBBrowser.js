@@ -127,6 +127,44 @@ const TCDBBrowser = () => {
     
     const extractedNames = [];
     
+    // Common words to exclude (team names, card terms, OCR artifacts, etc.)
+    // Define this early so it can be used in all patterns
+    const excludeWords = new Set([
+      'panini', 'topps', 'donruss', 'upper', 'deck', 'fleer', 'score',
+      'rookie', 'rc', 'auto', 'autograph', 'patch', 'relic',
+      'psa', 'bgs', 'sgc', 'cgc', 'grade', 'graded', 'gem', 'mint',
+      'card', 'cards', 'trading', 'sports', 'collectible',
+      'year', 'set', 'number', 'parallel', 'insert',
+      'football', 'baseball', 'basketball', 'hockey', 'soccer',
+      'prizm', 'chrome', 'select', 'optic', 'downtown', 'broncos',
+      'denver', 'team', 'nfl', 'nba', 'mlb', 'nhl', 'commanders',
+      'washington', 'vikings', 'packers', 'chiefs', 'bills', 'patriots',
+      'cowboys', 'giants', 'eagles', 'steelers', 'ravens', 'bengals',
+      'browns', 'titans', 'jaguars', 'texans', 'colts', 'dolphins',
+      'jets', 'falcons', 'panthers', 'saints', 'buccaneers', 'rams',
+      'seahawks', 'cardinals', '49ers', 'raiders', 'chargers', 'sharks',
+      'lists', 'vy', 'te', 'ase', 'ses', 'det', 'ok', 'ang', 'am',
+      'ncate', 'ng', 'pal', 'sla', 'ti', 'nn', 'ex', 'is', 'nss',
+      'ls', 'ey', 'by', 'as', 'ia', 'jil', 'hit', 'nn', 'vl', 'es',
+      'or', 'be', 'eo', 'los', 'see', 'on', 'la', 'aaa', 'cte', 'es',
+      'ixy', 'sees', 'ih', 'vee', 'ny', 'fo', 'gh', 'ke', 'ila', 'c7',
+      'agi', 'of', 'j', 'ond', 'oy', 'fe', 'h', 'vy', 'me', 'y', 'ch',
+      'a', 'r', 'g', '0', '5', 'mania', 'a', '7', 'v4', '3a', 'e', '4',
+      'vb', 'n', 'by', 's', 'j', 'w', 'pr', '8', '18', '3', 'ie', 'r',
+      'pokemon', 'nintendo', 'creatures', 'game', 'freak', 'pokemon', 'ninte',
+      'poken', 'ninte', 'pokémon', 'pokédex', 'basic', 'hp', 'energy', 'fire',
+      'water', 'grass', 'electric', 'psychic', 'fighting', 'darkness', 'metal',
+      'fairy', 'dragon', 'colorless', 'weakness', 'resistance', 'retreat',
+      'attack', 'damage', 'illus', 'illustrator', 'par', 'swelling', 'power',
+      'magma', 'purge', 'attach', 'discard', 'card', 'hand', 'pokémon',
+      'awrrig', 'se', 'yc', 'pe', 'f', 'gd', 'bh', 'wh', 'ed', 'swellingipowe',
+      'paccsetaibas', 'icles', 'enengylcard', 'fromtyour', 'pokeén', 'pom',
+      'ded', 'oly', 'corde', 'you', 'disc', 'deal', 'wn', 'wages',
+      'fess', 'cance', 'eleat', 'mn', 'na', 'wises', 'lle', 'ba',
+      'hubs', 'dshs', 'iat', 'wenttostee', 'plait', 'arn', 'gz', 'si',
+      'b2023', 'me', 'fre', 'hig', 'snr'
+    ]);
+    
     // Try pattern 1: Standard all caps names (2-3 words)
     let match;
     while ((match = allCapsPattern.exec(ocrText)) !== null) {
@@ -216,36 +254,6 @@ const TCDBBrowser = () => {
       }
     }
     
-    // Common words to exclude (team names, card terms, etc.)
-    const excludeWords = new Set([
-      'panini', 'topps', 'donruss', 'upper', 'deck', 'fleer', 'score',
-      'rookie', 'rc', 'auto', 'autograph', 'patch', 'relic',
-      'psa', 'bgs', 'sgc', 'cgc', 'grade', 'graded', 'gem', 'mint',
-      'card', 'cards', 'trading', 'sports', 'collectible',
-      'year', 'set', 'number', 'parallel', 'insert',
-      'football', 'baseball', 'basketball', 'hockey', 'soccer',
-      'prizm', 'chrome', 'select', 'optic', 'downtown', 'broncos',
-      'denver', 'team', 'nfl', 'nba', 'mlb', 'nhl', 'commanders',
-      'washington', 'vikings', 'packers', 'chiefs', 'bills', 'patriots',
-      'cowboys', 'giants', 'eagles', 'steelers', 'ravens', 'bengals',
-      'browns', 'titans', 'jaguars', 'texans', 'colts', 'dolphins',
-      'jets', 'falcons', 'panthers', 'saints', 'buccaneers', 'rams',
-      'seahawks', 'cardinals', '49ers', 'raiders', 'chargers', 'sharks',
-      'lists', 'vy', 'te', 'ase', 'ses', 'det', 'ok', 'ang', 'am',
-      'ncate', 'ng', 'pal', 'sla', 'ti', 'nn', 'ex', 'is', 'nss',
-      'ls', 'ey', 'by', 'as', 'ia', 'jil', 'hit', 'nn', 'vl', 'es',
-      'or', 'be', 'eo', 'los', 'see', 'on', 'la', 'aaa', 'cte', 'es',
-      'ixy', 'sees', 'ih', 'vee', 'ny', 'fo', 'gh', 'ke', 'ila', 'c7',
-      'agi', 'of', 'j', 'ond', 'oy', 'fe', 'h', 'vy', 'me', 'y', 'ch',
-      'a', 'r', 'g', '0', '5', 'mania', 'a', '7', 'v4', '3a', 'e', '4',
-      'vb', 'n', 'by', 's', 'j', 'w', 'pr', '8', '18', '3', 'ie', 'r',
-      'pokemon', 'nintendo', 'creatures', 'game', 'freak', 'pokemon', 'ninte',
-      'poken', 'ninte', 'pokémon', 'pokédex', 'basic', 'hp', 'energy', 'fire',
-      'water', 'grass', 'electric', 'psychic', 'fighting', 'darkness', 'metal',
-      'fairy', 'dragon', 'colorless', 'weakness', 'resistance', 'retreat',
-      'attack', 'damage', 'illus', 'illustrator', 'par', 'swelling', 'power',
-      'magma', 'purge', 'attach', 'discard', 'card', 'hand', 'pokémon'
-    ]);
     
     // Try pattern 3: Names with special characters (like "| JAYDEN DANIELS VY =")
     // But be more strict - only match if words are reasonable length (3+ chars) to avoid false positives
@@ -322,7 +330,11 @@ const TCDBBrowser = () => {
       
       if (source === 'singleWordAllCaps' || source === 'singleWordCapitalized') {
         // Pokemon names are usually at the TOP of the card
-        if (positionRatio < 0.3) { // Top 30% of text
+        if (positionRatio < 0.1) { // Top 10% of text - very high priority
+          score += 40;
+        } else if (positionRatio < 0.2) { // Top 20% of text
+          score += 35;
+        } else if (positionRatio < 0.3) { // Top 30% of text
           score += 25;
         } else if (positionRatio < 0.5) { // Top half
           score += 15;
