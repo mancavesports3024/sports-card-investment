@@ -108,32 +108,69 @@ const TCDBBrowser = () => {
     if (!ocrText) return null;
     
     // First, try to extract names directly using regex patterns
-    // Look for patterns like "BO NIX", "JAYDEN DANIELS" even with surrounding characters
-    const namePatterns = [
-      /([A-Z][A-Z\s]{2,20})\s*(?:[|=\-_\s]|$)/g, // All caps names: "BO NIX |" or "JAYDEN DANIELS VY ="
-      /([A-Z][a-z]+\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/g, // Mixed case: "Bo Nix" or "Michael Jordan"
-    ];
+    // Look for patterns like "BO NIX", "JAYDEN DANIELS", "MACKLIN CELEBRINI"
+    // Pattern 1: All caps names with 2-3 words, allowing some special chars between
+    const allCapsPattern = /\b([A-Z]{2,12}\s+[A-Z]{2,12}(?:\s+[A-Z]{2,12})?)\b/g;
+    
+    // Pattern 2: Mixed case names
+    const mixedCasePattern = /\b([A-Z][a-z]{2,12}\s+[A-Z][a-z]{2,12}(?:\s+[A-Z][a-z]{2,12})?)\b/g;
+    
+    // Pattern 3: Names that might have special chars between words (like "JAYDEN DANIELS" with "|" or "=" nearby)
+    // This handles cases like "| JAYDEN DANIELS VY =" by extracting just the name part
+    const nameWithSpecialChars = /[|=\-_\s]*([A-Z]{2,12})[|=\-_\s]+([A-Z]{2,12})(?:[|=\-_\s]+([A-Z]{2,12}))?[|=\-_\s]*/g;
     
     const extractedNames = [];
-    namePatterns.forEach(pattern => {
-      let match;
-      while ((match = pattern.exec(ocrText)) !== null) {
-        const candidate = match[1].trim();
-        const words = candidate.split(/\s+/).filter(w => w.length > 1);
-        
-        // Must be 2-3 words, all letters (no numbers or excessive special chars)
-        if (words.length >= 2 && words.length <= 3 && 
-            words.every(w => /^[A-Za-z]{2,15}$/.test(w))) {
-          extractedNames.push({
-            name: candidate,
-            words: words,
-            position: match.index
-          });
-        }
-      }
-    });
     
-    // Common words to exclude
+    // Try pattern 1: Standard all caps names
+    let match;
+    while ((match = allCapsPattern.exec(ocrText)) !== null) {
+      const candidate = match[1].trim();
+      const words = candidate.split(/\s+/).filter(w => w.length >= 2 && /^[A-Z]+$/.test(w));
+      
+      if (words.length >= 2 && words.length <= 3) {
+        extractedNames.push({
+          name: candidate,
+          words: words,
+          position: match.index,
+          source: 'allCaps'
+        });
+      }
+    }
+    
+    // Try pattern 2: Mixed case names
+    while ((match = mixedCasePattern.exec(ocrText)) !== null) {
+      const candidate = match[1].trim();
+      const words = candidate.split(/\s+/).filter(w => w.length >= 2 && /^[A-Z][a-z]+$/.test(w));
+      
+      if (words.length >= 2 && words.length <= 3) {
+        extractedNames.push({
+          name: candidate,
+          words: words,
+          position: match.index,
+          source: 'mixedCase'
+        });
+      }
+    }
+    
+    // Try pattern 3: Names with special characters (like "| JAYDEN DANIELS VY =")
+    while ((match = nameWithSpecialChars.exec(ocrText)) !== null) {
+      const words = [match[1], match[2]];
+      if (match[3]) words.push(match[3]);
+      
+      // Filter out words that are too short or look like abbreviations
+      const validWords = words.filter(w => w.length >= 2 && w.length <= 12 && /^[A-Z]+$/.test(w));
+      
+      if (validWords.length >= 2 && validWords.length <= 3) {
+        extractedNames.push({
+          name: validWords.join(' '),
+          words: validWords,
+          position: match.index,
+          source: 'specialChars'
+        });
+      }
+    }
+    
+    // Common words to exclude (team names, card terms, etc.)
     const excludeWords = new Set([
       'panini', 'topps', 'donruss', 'upper', 'deck', 'fleer', 'score',
       'rookie', 'rc', 'auto', 'autograph', 'patch', 'relic',
@@ -147,7 +184,15 @@ const TCDBBrowser = () => {
       'cowboys', 'giants', 'eagles', 'steelers', 'ravens', 'bengals',
       'browns', 'titans', 'jaguars', 'texans', 'colts', 'dolphins',
       'jets', 'falcons', 'panthers', 'saints', 'buccaneers', 'rams',
-      'seahawks', 'cardinals', '49ers', 'raiders', 'chargers'
+      'seahawks', 'cardinals', '49ers', 'raiders', 'chargers', 'sharks',
+      'lists', 'vy', 'te', 'ase', 'ses', 'det', 'ok', 'ang', 'am',
+      'ncate', 'ng', 'pal', 'sla', 'ti', 'nn', 'ex', 'is', 'nss',
+      'ls', 'ey', 'by', 'as', 'ia', 'jil', 'hit', 'nn', 'vl', 'es',
+      'or', 'be', 'eo', 'los', 'see', 'on', 'la', 'aaa', 'cte', 'es',
+      'ixy', 'sees', 'ih', 'vee', 'ny', 'fo', 'gh', 'ke', 'ila', 'c7',
+      'agi', 'of', 'j', 'ond', 'oy', 'fe', 'h', 'vy', 'me', 'y', 'ch',
+      'a', 'r', 'g', '0', '5', 'mania', 'a', '7', 'v4', '3a', 'e', '4',
+      'vb', 'n', 'by', 's', 'j', 'w', 'pr', '8', '18', '3', 'ie', 'r'
     ]);
     
     // Score each extracted name
