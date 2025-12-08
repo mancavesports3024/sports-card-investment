@@ -330,6 +330,29 @@ const TCDBBrowser = () => {
       }
     }
     
+    // Also look for 2-word all-caps patterns within individual lines (in case OCR reads it as one line)
+    // This helps with cases where "MATVEI MICHKOV" might be on one line but OCR has errors
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      // Look for two uppercase words on the same line, even if there are some OCR errors
+      const twoWordMatch = line.match(/\b([A-Z]{4,12})\s+([A-Z]{4,12})\b/);
+      if (twoWordMatch) {
+        const word1 = twoWordMatch[1];
+        const word2 = twoWordMatch[2];
+        
+        if (word1.length >= 4 && word2.length >= 4 &&
+            !excludeWords.has(word1.toLowerCase()) &&
+            !excludeWords.has(word2.toLowerCase())) {
+          extractedNames.push({
+            name: `${word1} ${word2}`,
+            words: [word1, word2],
+            position: ocrText.indexOf(line),
+            source: 'sameLineTwoWords'
+          });
+        }
+      }
+    }
+    
     // Score each extracted name
     const scoredNames = extractedNames.map((item, index) => {
       const { name, words, position, source } = item;
