@@ -35,6 +35,7 @@ const TCDBBrowser = () => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const fileInputRef = useRef(null);
+  const ocrProcessedRef = useRef(false);
   
   // Database info
   const [dbInfo, setDbInfo] = useState({ total: 0 });
@@ -206,7 +207,12 @@ const TCDBBrowser = () => {
         console.log('[OCR] Extracted player name:', playerName);
         setPlayerSearchName(playerName);
         setOcrError('');
-        // Auto-run search after a short delay (will be handled by useEffect)
+        ocrProcessedRef.current = true;
+        // Auto-run search after a short delay
+        setTimeout(() => {
+          handlePlayerSearch();
+          ocrProcessedRef.current = false;
+        }, 500);
       } else {
         setOcrError('Could not find player name in image. Please try a clearer photo or enter the name manually.');
         console.log('[OCR] Could not extract player name from:', text);
@@ -288,17 +294,6 @@ const TCDBBrowser = () => {
     }, 'image/jpeg', 0.9);
   };
 
-  // Auto-search when player name is set from OCR (only if we just processed an image)
-  useEffect(() => {
-    if (playerSearchName && imageFile && !playerSearchLoading && !ocrLoading) {
-      // Small delay to ensure state is updated
-      const timer = setTimeout(() => {
-        handlePlayerSearch();
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playerSearchName, imageFile, ocrLoading]);
 
   // Cleanup camera on unmount
   useEffect(() => {
