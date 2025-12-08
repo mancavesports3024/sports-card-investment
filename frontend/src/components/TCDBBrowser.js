@@ -480,6 +480,62 @@ const TCDBBrowser = () => {
     return null;
   };
 
+  // Preprocess image to improve OCR accuracy
+  const preprocessImage = (imageFile) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      img.onload = () => {
+        // Set canvas size
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        // Draw original image
+        ctx.drawImage(img, 0, 0);
+        
+        // Get image data
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        
+        // Apply image enhancements
+        for (let i = 0; i < data.length; i += 4) {
+          // Increase contrast
+          const contrast = 1.5;
+          data[i] = Math.min(255, Math.max(0, ((data[i] - 128) * contrast) + 128));     // R
+          data[i + 1] = Math.min(255, Math.max(0, ((data[i + 1] - 128) * contrast) + 128)); // G
+          data[i + 2] = Math.min(255, Math.max(0, ((data[i + 2] - 128) * contrast) + 128)); // B
+          
+          // Increase brightness slightly
+          const brightness = 1.1;
+          data[i] = Math.min(255, data[i] * brightness);
+          data[i + 1] = Math.min(255, data[i + 1] * brightness);
+          data[i + 2] = Math.min(255, data[i + 2] * brightness);
+        }
+        
+        // Put enhanced image data back
+        ctx.putImageData(imageData, 0, 0);
+        
+        // Convert to blob
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const processedFile = new File([blob], imageFile.name, { type: 'image/jpeg' });
+            resolve(processedFile);
+          } else {
+            resolve(imageFile); // Fallback to original
+          }
+        }, 'image/jpeg', 0.95);
+      };
+      
+      img.onerror = () => {
+        resolve(imageFile); // Fallback to original on error
+      };
+      
+      img.src = URL.createObjectURL(imageFile);
+    });
+  };
+
   // Process image with OCR
   const processImageWithOCR = async (imageFile) => {
     setOcrLoading(true);
@@ -488,23 +544,53 @@ const TCDBBrowser = () => {
     try {
       console.log('[OCR] Starting image recognition...');
       
-      // Use Tesseract.js to extract text
+      // Preprocess image to improve OCR accuracy
+      console.log('[OCR] Preprocessing image (contrast, brightness)...');
+      const processedImage = await preprocessImage(imageFile);
+      
+      // Use Tesseract.js with optimized settings
+      console.log('[OCR] Running OCR with optimized settings...');
       const { data: { text } } = await Tesseract.recognize(
-        imageFile,
+        processedImage,
         'eng',
         {
           logger: (m) => {
             if (m.status === 'recognizing text') {
               console.log(`[OCR] Progress: ${Math.round(m.progress * 100)}%`);
             }
-          }
+          },
+          // Optimize OCR settings for card text
+          tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 #-.,()[]/',
+          tessedit_pageseg_mode: Tesseract.PSM.AUTO,
         }
       );
       
       console.log('[OCR] Extracted text:', text);
       
+      // Try a second pass with different settings if first pass didn't find a good match
+      let finalText = text;
+      const initialPlayerName = extractPlayerName(text);
+      
+      if (!initialPlayerName || initialPlayerName.length < 4) {
+        console.log('[OCR] First pass unclear, trying second pass with different settings...');
+        const { data: { text: text2 } } = await Tesseract.recognize(
+          processedImage,
+          'eng',
+          {
+            tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK,
+            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 #-.,()[]/',
+          }
+        );
+        
+        const secondPlayerName = extractPlayerName(text2);
+        if (secondPlayerName && secondPlayerName.length >= 4) {
+          console.log('[OCR] Second pass found better result:', secondPlayerName);
+          finalText = text2;
+        }
+      }
+      
       // Extract player name from OCR text
-      const playerName = extractPlayerName(text);
+      const playerName = extractPlayerName(finalText);
       
       if (playerName) {
         console.log('[OCR] Extracted player name:', playerName);
