@@ -512,19 +512,24 @@ const TCDBBrowser = () => {
   };
 
   // Preprocess image to improve OCR accuracy
-  const preprocessImage = (imageFile) => {
+  const preprocessImage = (imageFile, options = {}) => {
     return new Promise((resolve) => {
       const img = new Image();
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       
       img.onload = () => {
-        // Set canvas size
-        canvas.width = img.width;
-        canvas.height = img.height;
+        // Upscale image for better OCR (2x if original is small)
+        const scale = options.upscale ? (img.width < 1000 ? 2 : 1) : 1;
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
         
-        // Draw original image
-        ctx.drawImage(img, 0, 0);
+        // Use high-quality image rendering
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
+        // Draw original image (scaled up if needed)
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         
         // Get image data
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -532,17 +537,18 @@ const TCDBBrowser = () => {
         
         // Apply image enhancements
         for (let i = 0; i < data.length; i += 4) {
-          // Increase contrast
-          const contrast = 1.5;
-          data[i] = Math.min(255, Math.max(0, ((data[i] - 128) * contrast) + 128));     // R
-          data[i + 1] = Math.min(255, Math.max(0, ((data[i + 1] - 128) * contrast) + 128)); // G
-          data[i + 2] = Math.min(255, Math.max(0, ((data[i + 2] - 128) * contrast) + 128)); // B
+          // Convert to grayscale for better contrast detection
+          const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
           
-          // Increase brightness slightly
-          const brightness = 1.1;
-          data[i] = Math.min(255, data[i] * brightness);
-          data[i + 1] = Math.min(255, data[i + 1] * brightness);
-          data[i + 2] = Math.min(255, data[i + 2] * brightness);
+          // Increase contrast more aggressively
+          const contrast = options.aggressiveContrast ? 2.0 : 1.5;
+          const adjusted = Math.min(255, Math.max(0, ((gray - 128) * contrast) + 128));
+          
+          // Apply to all channels (grayscale)
+          data[i] = adjusted;     // R
+          data[i + 1] = adjusted; // G
+          data[i + 2] = adjusted; // B
+          // Alpha stays the same
         }
         
         // Put enhanced image data back
@@ -556,7 +562,7 @@ const TCDBBrowser = () => {
           } else {
             resolve(imageFile); // Fallback to original
           }
-        }, 'image/jpeg', 0.95);
+        }, 'image/jpeg', 0.98); // Higher quality
       };
       
       img.onerror = () => {
@@ -575,55 +581,82 @@ const TCDBBrowser = () => {
     try {
       console.log('[OCR] Starting image recognition...');
       
-      // Try OCR with original image first (preprocessing might not always help)
-      console.log('[OCR] Running OCR with original image...');
-      const { data: { text } } = await Tesseract.recognize(
+      // Try multiple OCR passes with different settings
+      // Pass 1: Original image with AUTO mode (good for general text)
+      console.log('[OCR] Running OCR Pass 1: Original image with AUTO mode...');
+      const { data: { text: text1 } } = await Tesseract.recognize(
         imageFile,
         'eng',
         {
           logger: (m) => {
             if (m.status === 'recognizing text') {
-              console.log(`[OCR] Progress: ${Math.round(m.progress * 100)}%`);
+              console.log(`[OCR] Pass 1 Progress: ${Math.round(m.progress * 100)}%`);
             }
           },
-          // Optimize OCR settings for card text
-          // Note: Removed character whitelist as it was too restrictive
-          // PSM mode: 3 = AUTO (default)
-          tessedit_pageseg_mode: '3',
+          tessedit_pageseg_mode: '3', // AUTO
         }
       );
       
-      console.log('[OCR] Extracted text:', text);
+      console.log('[OCR] Pass 1 Extracted text:', text1);
+      let finalText = text1;
+      let bestPlayerName = extractPlayerName(text1);
       
-      // Try a second pass with different settings if first pass didn't find a good match
-      let finalText = text;
-      const initialPlayerName = extractPlayerName(text);
+      // Pass 2: Preprocessed image with SINGLE_BLOCK mode (better for stylized fonts)
+      console.log('[OCR] Running OCR Pass 2: Preprocessed image with SINGLE_BLOCK mode...');
+      const processedImage1 = await preprocessImage(imageFile, { upscale: true, aggressiveContrast: false });
+      const { data: { text: text2 } } = await Tesseract.recognize(
+        processedImage1,
+        'eng',
+        {
+          logger: (m) => {
+            if (m.status === 'recognizing text') {
+              console.log(`[OCR] Pass 2 Progress: ${Math.round(m.progress * 100)}%`);
+            }
+          },
+          tessedit_pageseg_mode: '6', // SINGLE_BLOCK - treats entire image as one text block
+        }
+      );
       
-      if (!initialPlayerName || initialPlayerName.length < 4) {
-        console.log('[OCR] First pass unclear, trying second pass with preprocessed image...');
-        // Preprocess image for second pass
-        const processedImage = await preprocessImage(imageFile);
-        const { data: { text: text2 } } = await Tesseract.recognize(
-          processedImage,
+      console.log('[OCR] Pass 2 Extracted text:', text2);
+      const playerName2 = extractPlayerName(text2);
+      if (playerName2 && playerName2.length >= 4 && (!bestPlayerName || playerName2.length > bestPlayerName.length)) {
+        console.log('[OCR] Pass 2 found better result:', playerName2);
+        finalText = text2;
+        bestPlayerName = playerName2;
+      }
+      
+      // Pass 3: Aggressively preprocessed image with SINGLE_UNIFORM_BLOCK mode
+      if (!bestPlayerName || bestPlayerName.length < 4) {
+        console.log('[OCR] Running OCR Pass 3: Aggressively preprocessed image with SINGLE_UNIFORM_BLOCK mode...');
+        const processedImage2 = await preprocessImage(imageFile, { upscale: true, aggressiveContrast: true });
+        const { data: { text: text3 } } = await Tesseract.recognize(
+          processedImage2,
           'eng',
           {
-            // PSM mode: 6 = SINGLE_BLOCK (treat image as single text block)
-            tessedit_pageseg_mode: '6',
+            logger: (m) => {
+              if (m.status === 'recognizing text') {
+                console.log(`[OCR] Pass 3 Progress: ${Math.round(m.progress * 100)}%`);
+              }
+            },
+            tessedit_pageseg_mode: '8', // SINGLE_WORD - treats image as single word (good for names)
           }
         );
         
-        const secondPlayerName = extractPlayerName(text2);
-        if (secondPlayerName && secondPlayerName.length >= 4) {
-          console.log('[OCR] Second pass found better result:', secondPlayerName);
-          finalText = text2;
+        console.log('[OCR] Pass 3 Extracted text:', text3);
+        const playerName3 = extractPlayerName(text3);
+        if (playerName3 && playerName3.length >= 4 && (!bestPlayerName || playerName3.length > bestPlayerName.length)) {
+          console.log('[OCR] Pass 3 found better result:', playerName3);
+          finalText = text3;
+          bestPlayerName = playerName3;
         }
       }
       
-      // Extract player name from OCR text
-      const playerName = extractPlayerName(finalText);
+      // Extract player name from OCR text (use best result from all passes)
+      const playerName = bestPlayerName || extractPlayerName(finalText);
       
       if (playerName) {
-        console.log('[OCR] Extracted player name:', playerName);
+        console.log('[OCR] Final extracted player name:', playerName);
+        console.log('[OCR] All OCR text from best pass:', finalText);
         setPlayerSearchName(playerName);
         setOcrError('');
         ocrProcessedRef.current = true;
