@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './TCDBBrowser.css';
 import ScoreCardSummary from './ScoreCardSummary';
+import Tesseract from 'tesseract.js';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://web-production-9efa.up.railway.app';
 
@@ -24,6 +25,16 @@ const TCDBBrowser = () => {
   const [selectedCardGemrateData, setSelectedCardGemrateData] = useState(null);
   const [playerSearchSortField, setPlayerSearchSortField] = useState('totalGrades');
   const [playerSearchSortDirection, setPlayerSearchSortDirection] = useState('desc'); // 'asc' | 'desc'
+  
+  // Image recognition states
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrError, setOcrError] = useState('');
+  const [showCamera, setShowCamera] = useState(false);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const fileInputRef = useRef(null);
   
   // Database info
   const [dbInfo, setDbInfo] = useState({ total: 0 });
@@ -91,6 +102,210 @@ const TCDBBrowser = () => {
     }
   };
 
+  // Extract player name from OCR text
+  const extractPlayerName = (ocrText) => {
+    if (!ocrText) return null;
+    
+    // Common patterns for player names on cards:
+    // - Usually appears near the top or middle of the card
+    // - Often followed by card number, set name, or stats
+    // - May have titles like "ROOKIE", "RC", etc. nearby
+    
+    const lines = ocrText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    
+    // Look for lines that look like player names (2-4 words, capitalized, not all caps)
+    const namePatterns = [
+      /^[A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3}$/, // "Bo Nix", "Michael Jordan", etc.
+      /^[A-Z][A-Z\s]+$/, // All caps names like "BO NIX"
+    ];
+    
+    // Common words to exclude
+    const excludeWords = new Set([
+      'panini', 'topps', 'donruss', 'upper', 'deck', 'fleer', 'score',
+      'rookie', 'rc', 'auto', 'autograph', 'patch', 'relic',
+      'psa', 'bgs', 'sgc', 'cgc', 'grade', 'graded', 'gem', 'mint',
+      'card', 'cards', 'trading', 'sports', 'collectible',
+      'year', 'set', 'number', 'parallel', 'insert',
+      'football', 'baseball', 'basketball', 'hockey', 'soccer',
+      'prizm', 'chrome', 'select', 'optic', 'downtown'
+    ]);
+    
+    // Score each line as a potential player name
+    const scoredLines = lines.map((line, index) => {
+      const words = line.split(/\s+/).filter(w => w.length > 0);
+      let score = 0;
+      
+      // Prefer lines with 2-4 words (typical name length)
+      if (words.length >= 2 && words.length <= 4) {
+        score += 10;
+      }
+      
+      // Prefer lines near the top (player name usually at top of card)
+      if (index < 5) {
+        score += 5;
+      }
+      
+      // Penalize lines with excluded words
+      const hasExcluded = words.some(w => excludeWords.has(w.toLowerCase()));
+      if (hasExcluded) {
+        score -= 20;
+      }
+      
+      // Prefer lines that look like proper names (capitalized words)
+      const looksLikeName = words.every(w => /^[A-Z]/.test(w));
+      if (looksLikeName) {
+        score += 15;
+      }
+      
+      // Penalize lines with numbers (likely card numbers or stats)
+      if (/\d/.test(line)) {
+        score -= 10;
+      }
+      
+      return { line, score, words };
+    });
+    
+    // Sort by score and return the best match
+    scoredLines.sort((a, b) => b.score - a.score);
+    
+    const bestMatch = scoredLines.find(item => item.score > 0);
+    if (bestMatch && bestMatch.words.length >= 2) {
+      return bestMatch.line;
+    }
+    
+    return null;
+  };
+
+  // Process image with OCR
+  const processImageWithOCR = async (imageFile) => {
+    setOcrLoading(true);
+    setOcrError('');
+    
+    try {
+      console.log('[OCR] Starting image recognition...');
+      
+      // Use Tesseract.js to extract text
+      const { data: { text } } = await Tesseract.recognize(
+        imageFile,
+        'eng',
+        {
+          logger: (m) => {
+            if (m.status === 'recognizing text') {
+              console.log(`[OCR] Progress: ${Math.round(m.progress * 100)}%`);
+            }
+          }
+        }
+      );
+      
+      console.log('[OCR] Extracted text:', text);
+      
+      // Extract player name from OCR text
+      const playerName = extractPlayerName(text);
+      
+      if (playerName) {
+        console.log('[OCR] Extracted player name:', playerName);
+        setPlayerSearchName(playerName);
+        setOcrError('');
+        // Auto-run search after a short delay (will be handled by useEffect)
+      } else {
+        setOcrError('Could not find player name in image. Please try a clearer photo or enter the name manually.');
+        console.log('[OCR] Could not extract player name from:', text);
+      }
+    } catch (err) {
+      console.error('[OCR] Error processing image:', err);
+      setOcrError('Error processing image: ' + err.message);
+    } finally {
+      setOcrLoading(false);
+    }
+  };
+
+  // Handle file upload
+  const handleFileUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      setOcrError('Please select an image file');
+      return;
+    }
+    
+    setImageFile(file);
+    setOcrError('');
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+    
+    // Process image
+    processImageWithOCR(file);
+  };
+
+  // Handle camera capture
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } // Use back camera on mobile
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        setShowCamera(true);
+      }
+    } catch (err) {
+      console.error('Error accessing camera:', err);
+      setOcrError('Could not access camera. Please use file upload instead.');
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setShowCamera(false);
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current) return;
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(videoRef.current, 0, 0);
+    
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const file = new File([blob], 'captured-photo.jpg', { type: 'image/jpeg' });
+        setImageFile(file);
+        setImagePreview(URL.createObjectURL(blob));
+        stopCamera();
+        processImageWithOCR(file);
+      }
+    }, 'image/jpeg', 0.9);
+  };
+
+  // Auto-search when player name is set from OCR
+  useEffect(() => {
+    if (playerSearchName && imageFile && !playerSearchLoading) {
+      // Small delay to ensure state is updated
+      const timer = setTimeout(() => {
+        handlePlayerSearch();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [playerSearchName, imageFile]);
+
+  // Cleanup camera on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
   const handlePlayerSearch = async () => {
     if (!playerSearchName.trim()) {
       setPlayerSearchError('Please enter a player name');
@@ -142,6 +357,84 @@ const TCDBBrowser = () => {
       {/* Player Search Section */}
       <div className="player-search-section">
         <h2>Player Search</h2>
+        
+        {/* Image Recognition Section */}
+        <div className="image-recognition-section">
+          <h3 style={{ color: '#ffd700', marginBottom: '10px', fontSize: '1.1em' }}>
+            📸 Take a Photo or Upload Image
+          </h3>
+          <div className="image-recognition-controls">
+            <button
+              type="button"
+              onClick={startCamera}
+              disabled={showCamera || ocrLoading}
+              className="camera-btn"
+            >
+              📷 Use Camera
+            </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={ocrLoading}
+              className="upload-btn"
+            >
+              📁 Upload Image
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              style={{ display: 'none' }}
+            />
+            {imagePreview && (
+              <button
+                type="button"
+                onClick={() => {
+                  setImagePreview(null);
+                  setImageFile(null);
+                  setOcrError('');
+                }}
+                className="clear-image-btn"
+              >
+                ✕ Clear Image
+              </button>
+            )}
+          </div>
+          
+          {showCamera && (
+            <div className="camera-interface">
+              <video ref={videoRef} autoPlay playsInline className="camera-video" />
+              <div className="camera-buttons">
+                <button onClick={capturePhoto} className="capture-btn">
+                  📸 Capture
+                </button>
+                <button onClick={stopCamera} className="cancel-btn">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {imagePreview && (
+            <div className="captured-image-container">
+              <img src={imagePreview} alt="Card preview" className="captured-image" />
+              {ocrLoading && (
+                <div className="analysis-loading">
+                  <div className="loading-spinner"></div>
+                  <p>Reading card text...</p>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {ocrError && (
+            <div className="error-message" style={{ marginTop: '10px' }}>
+              {ocrError}
+            </div>
+          )}
+        </div>
+        
         <div className="player-search-form">
           <input
             type="text"

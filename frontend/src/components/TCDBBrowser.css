@@ -528,6 +528,186 @@
   }
 }
 
+/* Image Recognition Styles */
+.image-recognition-section {
+  background: #1a1a1a;
+  border: 2px solid #ffd700;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.image-recognition-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.camera-btn,
+.upload-btn {
+  background: #ffd700;
+  color: #000;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  flex: 1;
+  min-width: 120px;
+}
+
+.camera-btn:hover:not(:disabled),
+.upload-btn:hover:not(:disabled) {
+  background: #ffed4e;
+  transform: translateY(-2px);
+}
+
+.camera-btn:disabled,
+.upload-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.clear-image-btn {
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.clear-image-btn:hover {
+  background: #c82333;
+}
+
+.camera-interface {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.camera-video {
+  width: 100%;
+  max-width: 400px;
+  height: 300px;
+  border-radius: 8px;
+  border: 3px solid #ffd700;
+  background: #000;
+  object-fit: cover;
+}
+
+.camera-buttons {
+  display: flex;
+  gap: 15px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.capture-btn,
+.cancel-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.capture-btn {
+  background: #28a745;
+  color: white;
+}
+
+.capture-btn:hover {
+  background: #218838;
+  transform: translateY(-2px);
+}
+
+.cancel-btn {
+  background: #6c757d;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+.captured-image-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.captured-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  border: 3px solid #ffd700;
+  box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3);
+}
+
+.analysis-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+  color: #ffd700;
+}
+
+.loading-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #333;
+  border-top: 3px solid #ffd700;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Mobile responsive for image recognition */
+@media (max-width: 768px) {
+  .image-recognition-controls {
+    flex-direction: column;
+  }
+  
+  .camera-btn,
+  .upload-btn {
+    width: 100%;
+  }
+  
+  .camera-video {
+    height: 250px;
+  }
+  
+  .camera-buttons {
+    flex-direction: column;
+  }
+  
+  .capture-btn,
+  .cancel-btn {
+    width: 100%;
+  }
+}
+
 /* iPhone specific adjustments */
 @media (max-width: 480px) {
   .tcdb-header h1 {
