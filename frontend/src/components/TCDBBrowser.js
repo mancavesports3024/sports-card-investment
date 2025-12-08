@@ -161,7 +161,7 @@ const TCDBBrowser = () => {
       'magmalburge', 'energy', 'fiom', 'pokémc', 'eid', 'fore', 'cde', 'you',
       'disc', 'rim', 'ns', 'sh', 'ance', 'be', 'lent', 'ny', 'tm', 'lis',
       'fle', 'tire', 're', 'ix', 'eit', 'lc', 'lee', 'pa', 'ot', 'g', 'he',
-      'dap', 'oo', 'wp', 'brs', 'foleo', 'hiotendo', 'creat', 'me', 'freak'
+      'dap', 'oo', 'wp', 'brs', 'foleo', 'hiotendo', 'creat', 'me', 'freak',
       'magma', 'purge', 'attach', 'discard', 'card', 'hand', 'pokémon',
       'awrrig', 'se', 'yc', 'pe', 'f', 'gd', 'bh', 'wh', 'ed', 'swellingipowe',
       'paccsetaibas', 'icles', 'enengylcard', 'fromtyour', 'pokeén', 'pom',
