@@ -288,16 +288,17 @@ const TCDBBrowser = () => {
     }, 'image/jpeg', 0.9);
   };
 
-  // Auto-search when player name is set from OCR
+  // Auto-search when player name is set from OCR (only if we just processed an image)
   useEffect(() => {
-    if (playerSearchName && imageFile && !playerSearchLoading) {
+    if (playerSearchName && imageFile && !playerSearchLoading && !ocrLoading) {
       // Small delay to ensure state is updated
       const timer = setTimeout(() => {
         handlePlayerSearch();
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [playerSearchName, imageFile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playerSearchName, imageFile, ocrLoading]);
 
   // Cleanup camera on unmount
   useEffect(() => {
