@@ -112,8 +112,14 @@ const TCDBBrowser = () => {
     // Pattern 1: All caps names with 2-3 words, allowing some special chars between
     const allCapsPattern = /\b([A-Z]{2,12}\s+[A-Z]{2,12}(?:\s+[A-Z]{2,12})?)\b/g;
     
+    // Pattern 1b: Single word all caps (for Pokemon names like "GROUDON", "PIKACHU")
+    const singleWordAllCapsPattern = /\b([A-Z]{4,15})\b/g;
+    
     // Pattern 2: Mixed case names
     const mixedCasePattern = /\b([A-Z][a-z]{2,12}\s+[A-Z][a-z]{2,12}(?:\s+[A-Z][a-z]{2,12})?)\b/g;
+    
+    // Pattern 2b: Single word capitalized (for Pokemon names like "Groudon", "Pikachu")
+    const singleWordCapitalizedPattern = /\b([A-Z][a-z]{4,15})\b/g;
     
     // Pattern 3: Names that might have special chars between words (like "JAYDEN DANIELS" with "|" or "=" nearby)
     // This handles cases like "| JAYDEN DANIELS VY =" by extracting just the name part
@@ -121,7 +127,7 @@ const TCDBBrowser = () => {
     
     const extractedNames = [];
     
-    // Try pattern 1: Standard all caps names
+    // Try pattern 1: Standard all caps names (2-3 words)
     let match;
     while ((match = allCapsPattern.exec(ocrText)) !== null) {
       const candidate = match[1].trim();
@@ -137,7 +143,22 @@ const TCDBBrowser = () => {
       }
     }
     
-    // Try pattern 2: Mixed case names
+    // Try pattern 1b: Single word all caps (Pokemon names)
+    while ((match = singleWordAllCapsPattern.exec(ocrText)) !== null) {
+      const candidate = match[1].trim();
+      
+      // Must be reasonable length and not in exclude list
+      if (candidate.length >= 4 && candidate.length <= 15 && /^[A-Z]+$/.test(candidate)) {
+        extractedNames.push({
+          name: candidate,
+          words: [candidate],
+          position: match.index,
+          source: 'singleWordAllCaps'
+        });
+      }
+    }
+    
+    // Try pattern 2: Mixed case names (2-3 words)
     while ((match = mixedCasePattern.exec(ocrText)) !== null) {
       const candidate = match[1].trim();
       const words = candidate.split(/\s+/).filter(w => w.length >= 2 && /^[A-Z][a-z]+$/.test(w));
@@ -148,6 +169,21 @@ const TCDBBrowser = () => {
           words: words,
           position: match.index,
           source: 'mixedCase'
+        });
+      }
+    }
+    
+    // Try pattern 2b: Single word capitalized (Pokemon names)
+    while ((match = singleWordCapitalizedPattern.exec(ocrText)) !== null) {
+      const candidate = match[1].trim();
+      
+      // Must be reasonable length and not in exclude list
+      if (candidate.length >= 4 && candidate.length <= 15 && /^[A-Z][a-z]+$/.test(candidate)) {
+        extractedNames.push({
+          name: candidate,
+          words: [candidate],
+          position: match.index,
+          source: 'singleWordCapitalized'
         });
       }
     }
@@ -196,7 +232,13 @@ const TCDBBrowser = () => {
       'ixy', 'sees', 'ih', 'vee', 'ny', 'fo', 'gh', 'ke', 'ila', 'c7',
       'agi', 'of', 'j', 'ond', 'oy', 'fe', 'h', 'vy', 'me', 'y', 'ch',
       'a', 'r', 'g', '0', '5', 'mania', 'a', '7', 'v4', '3a', 'e', '4',
-      'vb', 'n', 'by', 's', 'j', 'w', 'pr', '8', '18', '3', 'ie', 'r'
+      'vb', 'n', 'by', 's', 'j', 'w', 'pr', '8', '18', '3', 'ie', 'r',
+      'pokemon', 'nintendo', 'creatures', 'game', 'freak', 'pokemon', 'ninte',
+      'poken', 'ninte', 'pokémon', 'pokédex', 'basic', 'hp', 'energy', 'fire',
+      'water', 'grass', 'electric', 'psychic', 'fighting', 'darkness', 'metal',
+      'fairy', 'dragon', 'colorless', 'weakness', 'resistance', 'retreat',
+      'attack', 'damage', 'illus', 'illustrator', 'par', 'swelling', 'power',
+      'magma', 'purge', 'attach', 'discard', 'card', 'hand', 'pokémon'
     ]);
     
     // Try pattern 3: Names with special characters (like "| JAYDEN DANIELS VY =")
@@ -255,7 +297,7 @@ const TCDBBrowser = () => {
     
     // Score each extracted name
     const scoredNames = extractedNames.map((item, index) => {
-      const { name, words, position } = item;
+      const { name, words, position, source } = item;
       let score = 0;
       
       // Prefer 2-word names (most common: "First Last")
@@ -263,15 +305,29 @@ const TCDBBrowser = () => {
         score += 25;
       } else if (words.length === 3) {
         score += 20; // "First Middle Last" also common
+      } else if (words.length === 1) {
+        // Single word names (Pokemon) - give them a good score but slightly lower
+        score += 20;
       }
       
-      // Prefer names near the bottom of the text (player names often at bottom of card)
+      // Position scoring depends on source
       const textLength = ocrText.length;
       const positionRatio = position / textLength;
-      if (positionRatio > 0.6) { // Bottom 40% of text
-        score += 20;
-      } else if (positionRatio > 0.4) { // Middle section
-        score += 10;
+      
+      if (source === 'singleWordAllCaps' || source === 'singleWordCapitalized') {
+        // Pokemon names are usually at the TOP of the card
+        if (positionRatio < 0.3) { // Top 30% of text
+          score += 25;
+        } else if (positionRatio < 0.5) { // Top half
+          score += 15;
+        }
+      } else {
+        // Player names are often at the bottom of the card
+        if (positionRatio > 0.6) { // Bottom 40% of text
+          score += 20;
+        } else if (positionRatio > 0.4) { // Middle section
+          score += 10;
+        }
       }
       
       // Prefer all uppercase (common on cards: "BO NIX", "JAYDEN DANIELS")
