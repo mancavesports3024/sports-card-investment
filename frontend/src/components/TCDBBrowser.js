@@ -667,7 +667,7 @@ const TCDBBrowser = () => {
         }, 500);
       } else {
         setOcrError('Could not find player name in image. Please try a clearer photo or enter the name manually.');
-        console.log('[OCR] Could not extract player name from:', text);
+        console.log('[OCR] Could not extract player name from:', finalText);
       }
     } catch (err) {
       console.error('[OCR] Error processing image:', err);
