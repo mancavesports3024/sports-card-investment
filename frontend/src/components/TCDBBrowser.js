@@ -149,12 +149,15 @@ const TCDBBrowser = () => {
       
       // Must be reasonable length and not in exclude list
       if (candidate.length >= 4 && candidate.length <= 15 && /^[A-Z]+$/.test(candidate)) {
-        extractedNames.push({
-          name: candidate,
-          words: [candidate],
-          position: match.index,
-          source: 'singleWordAllCaps'
-        });
+        // Check exclude list before adding
+        if (!excludeWords.has(candidate.toLowerCase())) {
+          extractedNames.push({
+            name: candidate,
+            words: [candidate],
+            position: match.index,
+            source: 'singleWordAllCaps'
+          });
+        }
       }
     }
     
@@ -173,18 +176,21 @@ const TCDBBrowser = () => {
       }
     }
     
-    // Try pattern 2b: Single word capitalized (Pokemon names)
+    // Try pattern 2b: Single word capitalized (Pokemon names like "Groudon")
     while ((match = singleWordCapitalizedPattern.exec(ocrText)) !== null) {
       const candidate = match[1].trim();
       
       // Must be reasonable length and not in exclude list
       if (candidate.length >= 4 && candidate.length <= 15 && /^[A-Z][a-z]+$/.test(candidate)) {
-        extractedNames.push({
-          name: candidate,
-          words: [candidate],
-          position: match.index,
-          source: 'singleWordCapitalized'
-        });
+        // Check exclude list before adding
+        if (!excludeWords.has(candidate.toLowerCase())) {
+          extractedNames.push({
+            name: candidate,
+            words: [candidate],
+            position: match.index,
+            source: 'singleWordCapitalized'
+          });
+        }
       }
     }
     
