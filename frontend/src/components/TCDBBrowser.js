@@ -107,16 +107,31 @@ const TCDBBrowser = () => {
   const extractPlayerName = (ocrText) => {
     if (!ocrText) return null;
     
-    // Clean up OCR text - remove special characters that are likely formatting artifacts
-    const cleanedText = ocrText
-      .replace(/[|=\-_\s]{3,}/g, ' ') // Replace multiple special chars with space
-      .replace(/[|=\-_]/g, ' ') // Replace single special chars with space
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .trim();
+    // First, try to extract names directly using regex patterns
+    // Look for patterns like "BO NIX", "JAYDEN DANIELS" even with surrounding characters
+    const namePatterns = [
+      /([A-Z][A-Z\s]{2,20})\s*(?:[|=\-_\s]|$)/g, // All caps names: "BO NIX |" or "JAYDEN DANIELS VY ="
+      /([A-Z][a-z]+\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/g, // Mixed case: "Bo Nix" or "Michael Jordan"
+    ];
     
-    const lines = cleanedText.split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
+    const extractedNames = [];
+    namePatterns.forEach(pattern => {
+      let match;
+      while ((match = pattern.exec(ocrText)) !== null) {
+        const candidate = match[1].trim();
+        const words = candidate.split(/\s+/).filter(w => w.length > 1);
+        
+        // Must be 2-3 words, all letters (no numbers or excessive special chars)
+        if (words.length >= 2 && words.length <= 3 && 
+            words.every(w => /^[A-Za-z]{2,15}$/.test(w))) {
+          extractedNames.push({
+            name: candidate,
+            words: words,
+            position: match.index
+          });
+        }
+      }
+    });
     
     // Common words to exclude
     const excludeWords = new Set([
@@ -127,108 +142,140 @@ const TCDBBrowser = () => {
       'year', 'set', 'number', 'parallel', 'insert',
       'football', 'baseball', 'basketball', 'hockey', 'soccer',
       'prizm', 'chrome', 'select', 'optic', 'downtown', 'broncos',
-      'denver', 'team', 'nfl', 'nba', 'mlb', 'nhl'
+      'denver', 'team', 'nfl', 'nba', 'mlb', 'nhl', 'commanders',
+      'washington', 'vikings', 'packers', 'chiefs', 'bills', 'patriots',
+      'cowboys', 'giants', 'eagles', 'steelers', 'ravens', 'bengals',
+      'browns', 'titans', 'jaguars', 'texans', 'colts', 'dolphins',
+      'jets', 'falcons', 'panthers', 'saints', 'buccaneers', 'rams',
+      'seahawks', 'cardinals', '49ers', 'raiders', 'chargers'
     ]);
     
-    // Score each line as a potential player name
-    const scoredLines = lines.map((line, index) => {
-      // Skip lines with too many special characters (likely formatting artifacts)
-      const specialCharCount = (line.match(/[|=\-_#@$%^&*()\[\]{}]/g) || []).length;
-      if (specialCharCount > line.length * 0.3) {
-        return { line, score: -100, words: [] };
-      }
-      
-      // Remove any remaining special characters for word analysis
-      const cleanLine = line.replace(/[|=\-_#@$%^&*()\[\]{}]/g, ' ').trim();
-      const words = cleanLine.split(/\s+/).filter(w => w.length > 1); // Filter single chars
-      
-      if (words.length === 0) {
-        return { line: cleanLine, score: -50, words: [] };
-      }
-      
+    // Score each extracted name
+    const scoredNames = extractedNames.map((item, index) => {
+      const { name, words, position } = item;
       let score = 0;
       
-      // Prefer lines with 2-3 words (typical name length: "First Last" or "First Middle Last")
-      if (words.length === 2 || words.length === 3) {
+      // Prefer 2-word names (most common: "First Last")
+      if (words.length === 2) {
+        score += 25;
+      } else if (words.length === 3) {
+        score += 20; // "First Middle Last" also common
+      }
+      
+      // Prefer names near the bottom of the text (player names often at bottom of card)
+      const textLength = ocrText.length;
+      const positionRatio = position / textLength;
+      if (positionRatio > 0.6) { // Bottom 40% of text
         score += 20;
-      } else if (words.length === 1) {
-        score -= 10; // Single words are less likely to be full names
-      } else if (words.length > 4) {
-        score -= 15; // Too many words likely not a name
-      }
-      
-      // Prefer lines near the bottom (player name often at bottom of card)
-      // But also check middle/top
-      if (index >= lines.length - 3) {
-        score += 15; // Bottom of card
-      } else if (index < 5) {
-        score += 5; // Top of card
-      }
-      
-      // Check if words look like names (all start with capital letters)
-      const allCapitalized = words.every(w => /^[A-Z]/.test(w));
-      const allUppercase = words.every(w => /^[A-Z]+$/.test(w));
-      
-      if (allCapitalized) {
-        score += 15;
-      }
-      
-      // Prefer all uppercase (common on cards: "BO NIX")
-      if (allUppercase && words.length >= 2) {
+      } else if (positionRatio > 0.4) { // Middle section
         score += 10;
       }
       
-      // Penalize lines with excluded words
+      // Prefer all uppercase (common on cards: "BO NIX", "JAYDEN DANIELS")
+      const allUppercase = words.every(w => /^[A-Z]+$/.test(w));
+      if (allUppercase) {
+        score += 15;
+      }
+      
+      // Prefer capitalized (mixed case: "Bo Nix")
+      const allCapitalized = words.every(w => /^[A-Z]/.test(w));
+      if (allCapitalized && !allUppercase) {
+        score += 10;
+      }
+      
+      // Penalize if any word is in exclude list
       const hasExcluded = words.some(w => excludeWords.has(w.toLowerCase()));
       if (hasExcluded) {
-        score -= 30;
+        score -= 50; // Heavy penalty
       }
       
-      // Penalize lines with numbers (likely card numbers or stats)
-      if (/\d/.test(line)) {
-        score -= 15;
-      }
-      
-      // Penalize lines with very short words (likely OCR artifacts)
-      const hasVeryShortWords = words.some(w => w.length < 2);
-      if (hasVeryShortWords) {
-        score -= 10;
-      }
-      
-      // Prefer lines where words are reasonable length (3-10 chars typical for names)
+      // Prefer reasonable word lengths (2-12 chars typical for names)
       const reasonableLength = words.every(w => w.length >= 2 && w.length <= 12);
       if (reasonableLength) {
         score += 5;
       }
       
-      return { line: cleanLine, score, words, originalLine: line };
+      return { name, score, words, position };
     });
     
-    // Sort by score and return the best match
-    scoredLines.sort((a, b) => b.score - a.score);
+    // Also process lines for fallback
+    const lines = ocrText.split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
     
-    console.log('[OCR] Top 5 scored lines:', scoredLines.slice(0, 5).map(item => ({
-      line: item.line,
+    const scoredLines = lines.map((line, index) => {
+      // Extract just the name part from lines with special characters
+      const nameMatch = line.match(/([A-Z][A-Z\s]{2,20})/);
+      if (!nameMatch) return { line, score: -100, words: [] };
+      
+      const cleanName = nameMatch[1].trim();
+      const words = cleanName.split(/\s+/).filter(w => w.length > 1 && /^[A-Za-z]+$/.test(w));
+      
+      if (words.length < 2 || words.length > 3) {
+        return { line: cleanName, score: -50, words: [] };
+      }
+      
+      let score = 0;
+      
+      if (words.length === 2 || words.length === 3) {
+        score += 15;
+      }
+      
+      if (index >= lines.length - 3) {
+        score += 10;
+      }
+      
+      const allUppercase = words.every(w => /^[A-Z]+$/.test(w));
+      if (allUppercase) {
+        score += 10;
+      }
+      
+      const hasExcluded = words.some(w => excludeWords.has(w.toLowerCase()));
+      if (hasExcluded) {
+        score -= 40;
+      }
+      
+      return { line: cleanName, score, words, originalLine: line };
+    });
+    
+    // Combine and sort all candidates
+    const allCandidates = [
+      ...scoredNames.map(item => ({ ...item, type: 'pattern' })),
+      ...scoredLines.map(item => ({ ...item, type: 'line' }))
+    ];
+    
+    allCandidates.sort((a, b) => b.score - a.score);
+    
+    console.log('[OCR] Top 5 scored candidates:', allCandidates.slice(0, 5).map(item => ({
+      name: item.name || item.line,
       score: item.score,
-      words: item.words.length
+      words: item.words?.length || 0,
+      type: item.type
     })));
     
-    // Find the best match with a reasonable score
-    const bestMatch = scoredLines.find(item => item.score > 10 && item.words.length >= 2);
+    // Find the best match
+    const bestMatch = allCandidates.find(item => 
+      item.score > 15 && 
+      item.words && 
+      item.words.length >= 2 && 
+      item.words.length <= 3
+    );
     
     if (bestMatch) {
-      return bestMatch.line;
+      return bestMatch.name || bestMatch.line;
     }
     
-    // Fallback: try to find any 2-3 word capitalized line
-    const fallback = scoredLines.find(item => 
+    // Fallback: any 2-3 word capitalized name
+    const fallback = allCandidates.find(item => 
+      item.words && 
       item.words.length >= 2 && 
       item.words.length <= 3 &&
-      item.words.every(w => /^[A-Z]/.test(w))
+      item.words.every(w => /^[A-Z]/.test(w)) &&
+      !item.words.some(w => excludeWords.has(w.toLowerCase()))
     );
     
     if (fallback) {
-      return fallback.line;
+      return fallback.name || fallback.line;
     }
     
     return null;
