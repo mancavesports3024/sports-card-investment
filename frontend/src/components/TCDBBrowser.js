@@ -107,6 +107,34 @@ const TCDBBrowser = () => {
   const extractPlayerName = (ocrText) => {
     if (!ocrText) return null;
     
+    // Check if text contains Japanese characters (hiragana, katakana, kanji)
+    const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(ocrText);
+    
+    if (hasJapanese) {
+      console.log('[OCR] Detected Japanese text in OCR output');
+      // For Japanese text, try to extract katakana names (often used for foreign player names)
+      // Pattern: Katakana characters (2-10 characters, often player names)
+      const katakanaPattern = /[\u30A0-\u30FF]{2,10}/g;
+      const katakanaMatches = ocrText.match(katakanaPattern);
+      
+      if (katakanaMatches && katakanaMatches.length > 0) {
+        // Return the longest katakana sequence (likely the player name)
+        const longestKatakana = katakanaMatches.reduce((a, b) => a.length > b.length ? a : b);
+        console.log('[OCR] Extracted Japanese (Katakana) name:', longestKatakana);
+        // Note: This returns Japanese text - translation would require a separate API
+        return longestKatakana;
+      }
+      
+      // Also try kanji patterns (for Japanese player names)
+      const kanjiPattern = /[\u4E00-\u9FAF]{2,6}/g;
+      const kanjiMatches = ocrText.match(kanjiPattern);
+      if (kanjiMatches && kanjiMatches.length > 0) {
+        const longestKanji = kanjiMatches.reduce((a, b) => a.length > b.length ? a : b);
+        console.log('[OCR] Extracted Japanese (Kanji) name:', longestKanji);
+        return longestKanji;
+      }
+    }
+    
     // First, try to extract names directly using regex patterns
     // Look for patterns like "BO NIX", "JAYDEN DANIELS", "MACKLIN CELEBRINI"
     // Pattern 1: All caps names with 2-3 words, allowing some special chars between
@@ -583,10 +611,11 @@ const TCDBBrowser = () => {
       
       // Try multiple OCR passes with different settings
       // Pass 1: Original image with AUTO mode (good for general text)
-      console.log('[OCR] Running OCR Pass 1: Original image with AUTO mode...');
+      // Try both English and Japanese (for Japanese cards like Pokemon, One Piece)
+      console.log('[OCR] Running OCR Pass 1: Original image with AUTO mode (English + Japanese)...');
       const { data: { text: text1 } } = await Tesseract.recognize(
         imageFile,
-        'eng',
+        'eng+jpn', // Support both English and Japanese
         {
           logger: (m) => {
             if (m.status === 'recognizing text') {
@@ -602,11 +631,11 @@ const TCDBBrowser = () => {
       let bestPlayerName = extractPlayerName(text1);
       
       // Pass 2: Preprocessed image with SINGLE_BLOCK mode (better for stylized fonts)
-      console.log('[OCR] Running OCR Pass 2: Preprocessed image with SINGLE_BLOCK mode...');
+      console.log('[OCR] Running OCR Pass 2: Preprocessed image with SINGLE_BLOCK mode (English + Japanese)...');
       const processedImage1 = await preprocessImage(imageFile, { upscale: true, aggressiveContrast: false });
       const { data: { text: text2 } } = await Tesseract.recognize(
         processedImage1,
-        'eng',
+        'eng+jpn', // Support both English and Japanese
         {
           logger: (m) => {
             if (m.status === 'recognizing text') {
@@ -627,11 +656,11 @@ const TCDBBrowser = () => {
       
       // Pass 3: Aggressively preprocessed image with SINGLE_UNIFORM_BLOCK mode
       if (!bestPlayerName || bestPlayerName.length < 4) {
-        console.log('[OCR] Running OCR Pass 3: Aggressively preprocessed image with SINGLE_UNIFORM_BLOCK mode...');
+        console.log('[OCR] Running OCR Pass 3: Aggressively preprocessed image with SINGLE_UNIFORM_BLOCK mode (English + Japanese)...');
         const processedImage2 = await preprocessImage(imageFile, { upscale: true, aggressiveContrast: true });
         const { data: { text: text3 } } = await Tesseract.recognize(
           processedImage2,
-          'eng',
+          'eng+jpn', // Support both English and Japanese
           {
             logger: (m) => {
               if (m.status === 'recognizing text') {
