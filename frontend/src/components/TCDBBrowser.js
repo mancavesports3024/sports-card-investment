@@ -1189,32 +1189,38 @@ const TCDBBrowser = () => {
                     className="mobile-card-item"
                     onClick={handleMobileCardClick}
                   >
-                    <div className="mobile-card-header">
-                      <div className="mobile-card-year">{card.year || 'N/A'}</div>
-                      <div className="mobile-card-gem-rate">{gemRate}</div>
-                    </div>
-                    <div className="mobile-card-set">{card.set || 'N/A'}</div>
-                    <div className="mobile-card-player">{card.player || 'N/A'}</div>
-                    {card.number && card.number !== 'N/A' && (
-                      <div className="mobile-card-detail-item">
-                        <span className="mobile-card-label">Card #:</span>
-                        <span className="mobile-card-value">{card.number}</span>
+                    {/* Unified Information Box */}
+                    <div className="mobile-card-unified-box">
+                      {/* Top Row: Year and Gem Rate */}
+                      <div className="mobile-card-header">
+                        <div className="mobile-card-year">{card.year || 'N/A'}</div>
+                        <div className="mobile-card-gem-rate">{gemRate}</div>
                       </div>
-                    )}
-                    {/* Stats Box - Always visible with prominent styling */}
-                    <div className="mobile-card-stats" style={{ 
-                      display: 'flex', 
-                      visibility: 'visible',
-                      opacity: 1,
-                      zIndex: 10
-                    }}>
-                      <div className="mobile-card-stat">
-                        <span className="mobile-card-stat-label">Gems</span>
-                        <span className="mobile-card-stat-value">{gems}</span>
-                      </div>
-                      <div className="mobile-card-stat">
-                        <span className="mobile-card-stat-label">Total Graded</span>
-                        <span className="mobile-card-stat-value">{totalGrades}</span>
+                      
+                      {/* Set Name */}
+                      <div className="mobile-card-set">{card.set || 'N/A'}</div>
+                      
+                      {/* Player/Card Name */}
+                      <div className="mobile-card-player">{card.player || 'N/A'}</div>
+                      
+                      {/* Card Number */}
+                      {card.number && card.number !== 'N/A' && (
+                        <div className="mobile-card-detail-item">
+                          <span className="mobile-card-label">Card #:</span>
+                          <span className="mobile-card-value">{card.number}</span>
+                        </div>
+                      )}
+                      
+                      {/* Stats Row */}
+                      <div className="mobile-card-stats">
+                        <div className="mobile-card-stat">
+                          <span className="mobile-card-stat-label">Gems</span>
+                          <span className="mobile-card-stat-value">{gems}</span>
+                        </div>
+                        <div className="mobile-card-stat">
+                          <span className="mobile-card-stat-label">Total Graded</span>
+                          <span className="mobile-card-stat-value">{totalGrades}</span>
+                        </div>
                       </div>
                     </div>
                   </div>

@@ -446,14 +446,23 @@
   background: #222;
   border: 2px solid #444;
   border-radius: 12px;
-  padding: 16px;
+  padding: 0; /* Remove padding - unified box will have its own */
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: 200px; /* Increased to ensure stats box is visible */
+  min-height: 200px;
   display: flex;
   flex-direction: column;
-  gap: 12px; /* Increased gap for better spacing */
-  overflow: visible; /* Ensure content isn't clipped */
+  overflow: hidden; /* Ensure content stays within card */
+}
+
+.mobile-card-unified-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .mobile-card-item:active {
@@ -530,11 +539,11 @@
 .mobile-card-stats {
   display: flex !important; /* Force display */
   gap: 24px; /* Increased gap between stats */
-  margin-top: 12px;
-  padding: 12px;
-  background: rgba(255, 215, 0, 0.15) !important; /* More visible background */
-  border-radius: 8px;
-  border: 2px solid rgba(255, 215, 0, 0.4) !important; /* More visible border */
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 215, 0, 0.12); /* Subtle background within unified box */
+  border-radius: 6px;
+  border: 1px solid rgba(255, 215, 0, 0.3); /* Subtle border */
   flex-wrap: wrap; /* Allow wrapping if needed on very small screens */
   width: 100%;
   box-sizing: border-box;
