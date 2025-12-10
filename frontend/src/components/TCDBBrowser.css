@@ -449,7 +449,7 @@
   padding: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: 160px; /* Increased for better spacing */
+  min-height: 200px; /* Increased to ensure stats box is visible */
   display: flex;
   flex-direction: column;
   gap: 12px; /* Increased gap for better spacing */
@@ -528,14 +528,16 @@
 }
 
 .mobile-card-stats {
-  display: flex;
+  display: flex !important; /* Force display */
   gap: 24px; /* Increased gap between stats */
   margin-top: 12px;
   padding: 12px;
-  background: rgba(255, 215, 0, 0.1);
+  background: rgba(255, 215, 0, 0.15) !important; /* More visible background */
   border-radius: 8px;
-  border: 1px solid rgba(255, 215, 0, 0.2);
+  border: 2px solid rgba(255, 215, 0, 0.4) !important; /* More visible border */
   flex-wrap: wrap; /* Allow wrapping if needed on very small screens */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .mobile-card-stat {

@@ -1112,14 +1112,24 @@ const TCDBBrowser = () => {
             {/* Mobile Card View */}
             <div className="mobile-card-list">
               {sortedResults.map((card, index) => {
+                // Debug: Log card data for first card
+                if (index === 0) {
+                  console.log('[TCDBBrowser] First card data:', {
+                    gems: card.gems,
+                    totalGrades: card.totalGrades,
+                    gemRate: card.gemRate,
+                    card: card
+                  });
+                }
+                
                 const gems =
                   typeof card.gems === 'number'
                     ? card.gems.toLocaleString()
-                    : 'N/A';
+                    : (card.gems ? String(card.gems) : '0');
                 const totalGrades =
                   typeof card.totalGrades === 'number'
                     ? card.totalGrades.toLocaleString()
-                    : 'N/A';
+                    : (card.totalGrades ? String(card.totalGrades) : '0');
                 // Format gem rate as percentage
                 let gemRate = 'N/A';
                 if (card.gemRate !== null && card.gemRate !== undefined && card.gemRate !== '') {
@@ -1189,14 +1199,15 @@ const TCDBBrowser = () => {
                         <span className="mobile-card-value">{card.number}</span>
                       </div>
                     )}
-                    <div className="mobile-card-stats">
+                    {/* Stats Box - Always visible */}
+                    <div className="mobile-card-stats" style={{ display: 'flex' }}>
                       <div className="mobile-card-stat">
                         <span className="mobile-card-stat-label">Gems</span>
-                        <span className="mobile-card-stat-value">{gems}</span>
+                        <span className="mobile-card-stat-value">{gems !== 'N/A' ? gems : '0'}</span>
                       </div>
                       <div className="mobile-card-stat">
                         <span className="mobile-card-stat-label">Total Graded</span>
-                        <span className="mobile-card-stat-value">{totalGrades}</span>
+                        <span className="mobile-card-stat-value">{totalGrades !== 'N/A' ? totalGrades : '0'}</span>
                       </div>
                     </div>
                   </div>
