@@ -458,12 +458,12 @@
 .mobile-card-unified-box {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 16px;
+  gap: 8px; /* Reduced gap between rows */
+  padding: 12px 16px; /* Reduced top/bottom padding */
   width: 100%;
   box-sizing: border-box;
   min-height: auto;
-  overflow: hidden; /* Keep everything inside */
+  overflow: visible; /* Allow content to be fully visible */
 }
 
 .mobile-card-item:active {
@@ -477,11 +477,11 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 10px;
-  gap: 8px;
+  gap: 4px; /* Reduced gap - Year and Total closer */
   flex-wrap: wrap;
   padding: 0;
-  background: transparent; /* No background box */
-  border: none; /* No border */
+  background: transparent;
+  border: none;
   border-radius: 0;
   min-height: auto;
   width: 100%;
@@ -492,8 +492,8 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
-  min-width: 60px;
+  gap: 2px; /* Reduced gap - labels closer to values */
+  min-width: 50px;
 }
 
 .mobile-card-year-label {
@@ -512,18 +512,18 @@
 
 .mobile-card-header-stats {
   display: flex;
-  gap: 20px;
+  gap: 16px; /* Reduced gap */
   align-items: center;
   flex: 1;
   justify-content: center;
-  min-width: 140px;
+  min-width: 120px;
 }
 
 .mobile-card-header-stat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 2px; /* Reduced gap - labels closer to values */
 }
 
 .mobile-card-header-stat-label {
@@ -544,7 +544,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 4px;
+  gap: 2px; /* Reduced gap - labels closer to values */
   min-width: 70px;
 }
 
@@ -584,28 +584,28 @@
   font-size: 16px;
   font-weight: 600;
   color: #fff;
-  line-height: 1.5;
+  line-height: 1.4; /* Tighter line height */
   word-wrap: break-word;
   word-break: break-word;
   overflow-wrap: break-word;
   hyphens: auto;
-  display: block; /* Ensure visible */
+  display: block;
   visibility: visible;
   opacity: 1;
-  margin-top: 4px;
+  margin-top: 2px; /* Reduced margin */
 }
 
 .mobile-card-player {
   font-size: 15px;
   color: #ccc;
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.4; /* Tighter line height */
   word-wrap: break-word;
   overflow-wrap: break-word;
-  display: block; /* Ensure visible */
+  display: block;
   visibility: visible;
   opacity: 1;
-  margin-top: 4px;
+  margin-top: 2px; /* Reduced margin */
 }
 
 .mobile-card-details {
