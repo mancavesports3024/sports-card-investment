@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './ScoreCardSummary.css';
+import tokenService from '../services/tokenService';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://web-production-9efa.up.railway.app';
 
@@ -40,6 +41,12 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       const response = await fetch(`${API_BASE_URL}/api/gemrate/details/${encodeURIComponent(card.gemrateId)}`);
       
       if (!response.ok) {
+        // 404 is expected for cards that don't have detailed pages on GemRate - not an error
+        if (response.status === 404) {
+          console.log(`[ScoreCardSummary] GemRate card details not found (404) for gemrateId: ${card.gemrateId} - this is expected for some cards`);
+          return;
+        }
+        // Only log other errors as actual errors
         console.error(`[ScoreCardSummary] GemRate API error: ${response.status} ${response.statusText}`);
         return;
       }
@@ -294,13 +301,19 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       }
 
       // Fetch search results (same as SearchPage)
-      // Prepare headers with authentication if available
+      // Use tokenService to handle token expiration and refresh automatically
+      let token;
+      try {
+        token = await tokenService.getValidToken();
+      } catch (error) {
+        console.warn('[ScoreCardSummary] No valid token available, attempting request without auth:', error.message);
+        // Continue without token - backend will return 401 if auth is required
+      }
+      
       const headers = {
         'Content-Type': 'application/json',
       };
       
-      // Add authentication token if user is logged in (same as SearchPage)
-      const token = localStorage.getItem('authToken');
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
@@ -317,8 +330,24 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       // Check if response is OK
       if (!response.ok) {
         const errorText = await response.text();
+        let errorMessage = `API error (${response.status}): ${response.statusText}`;
+        
+        // Handle 401 specifically - token might be invalid or expired
+        if (response.status === 401) {
+          try {
+            const errorData = JSON.parse(errorText);
+            if (errorData.error === 'Invalid or expired token') {
+              errorMessage = 'Authentication required. Please log in to search for cards.';
+              // Clear invalid tokens
+              tokenService.clearTokens();
+            }
+          } catch (e) {
+            // If errorText is not JSON, use default message
+          }
+        }
+        
         console.error(`[ScoreCardSummary] API error (${response.status}):`, errorText);
-        setError(`API error (${response.status}): ${response.statusText}`);
+        setError(errorMessage);
         setLoading(false);
         return;
       }
