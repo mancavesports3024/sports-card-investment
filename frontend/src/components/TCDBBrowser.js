@@ -68,6 +68,14 @@ const TCDBBrowser = () => {
     });
     setSelectedCardForSummary(card);
     setCurrentStep('score-card-summary');
+    
+    // Scroll to scorecard summary after a brief delay to allow render
+    setTimeout(() => {
+      const summaryElement = document.querySelector('.score-card-summary');
+      if (summaryElement) {
+        summaryElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   const handleClearDatabase = async () => {
@@ -918,6 +926,12 @@ const TCDBBrowser = () => {
             placeholder="Player name (e.g., Bo Nix)"
             value={playerSearchName}
             onChange={(e) => setPlayerSearchName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !playerSearchLoading && playerSearchName.trim()) {
+                e.preventDefault();
+                handlePlayerSearch();
+              }
+            }}
             className="player-search-input"
           />
           <select
@@ -1169,27 +1183,19 @@ const TCDBBrowser = () => {
                     </div>
                     <div className="mobile-card-set">{card.set || 'N/A'}</div>
                     <div className="mobile-card-player">{card.player || 'N/A'}</div>
-                    <div className="mobile-card-details">
-                      {card.number && card.number !== 'N/A' && (
-                        <div className="mobile-card-detail-item">
-                          <span className="mobile-card-label">Card #:</span>
-                          <span className="mobile-card-value">{card.number}</span>
-                        </div>
-                      )}
-                      {card.parallel && card.parallel !== 'N/A' && (
-                        <div className="mobile-card-detail-item">
-                          <span className="mobile-card-label">Parallel:</span>
-                          <span className="mobile-card-value">{card.parallel}</span>
-                        </div>
-                      )}
-                    </div>
+                    {card.number && card.number !== 'N/A' && (
+                      <div className="mobile-card-detail-item">
+                        <span className="mobile-card-label">Card #:</span>
+                        <span className="mobile-card-value">{card.number}</span>
+                      </div>
+                    )}
                     <div className="mobile-card-stats">
                       <div className="mobile-card-stat">
                         <span className="mobile-card-stat-label">Gems</span>
                         <span className="mobile-card-stat-value">{gems}</span>
                       </div>
                       <div className="mobile-card-stat">
-                        <span className="mobile-card-stat-label">Total</span>
+                        <span className="mobile-card-stat-label">Total Graded</span>
                         <span className="mobile-card-stat-value">{totalGrades}</span>
                       </div>
                     </div>

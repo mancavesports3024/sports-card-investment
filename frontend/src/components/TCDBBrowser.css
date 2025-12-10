@@ -529,30 +529,34 @@
 
 .mobile-card-stats {
   display: flex;
-  gap: 20px; /* Increased gap between stats */
-  margin-top: 8px;
-  padding-top: 12px;
-  border-top: 1px solid #333;
+  gap: 24px; /* Increased gap between stats */
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(255, 215, 0, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
   flex-wrap: wrap; /* Allow wrapping if needed on very small screens */
 }
 
 .mobile-card-stat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  flex: 1;
+  min-width: 100px;
 }
 
 .mobile-card-stat-label {
-  font-size: 13px;
-  color: #999;
+  font-size: 12px;
+  color: #ccc;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   white-space: nowrap; /* Prevent label from wrapping */
-  min-width: 50px; /* Ensure labels don't get cut off */
+  font-weight: 600;
 }
 
 .mobile-card-stat-value {
-  font-size: 17px;
+  font-size: 20px;
   font-weight: bold;
   color: #ffd700;
   white-space: nowrap; /* Prevent values from wrapping */
@@ -855,11 +859,16 @@
   }
   
   .mobile-card-stat-label {
-    font-size: 12px;
+    font-size: 11px;
   }
   
   .mobile-card-stat-value {
-    font-size: 16px;
+    font-size: 18px;
+  }
+  
+  .mobile-card-stats {
+    gap: 16px;
+    padding: 10px;
   }
 
   .mobile-card-player {
