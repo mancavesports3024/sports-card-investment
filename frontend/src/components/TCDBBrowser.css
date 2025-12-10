@@ -449,10 +449,11 @@
   padding: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: 120px; /* Minimum touch target size */
+  min-height: 160px; /* Increased for better spacing */
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px; /* Increased gap for better spacing */
+  overflow: visible; /* Ensure content isn't clipped */
 }
 
 .mobile-card-item:active {
@@ -487,14 +488,20 @@
   font-size: 16px;
   font-weight: 600;
   color: #fff;
-  line-height: 1.4;
+  line-height: 1.5;
   word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .mobile-card-player {
   font-size: 15px;
   color: #ccc;
   font-weight: 500;
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .mobile-card-number {
@@ -547,10 +554,11 @@
 
 .mobile-card-stats {
   display: flex;
-  gap: 16px;
+  gap: 20px; /* Increased gap between stats */
   margin-top: 8px;
-  padding-top: 10px;
+  padding-top: 12px;
   border-top: 1px solid #333;
+  flex-wrap: wrap; /* Allow wrapping if needed on very small screens */
 }
 
 .mobile-card-stat {
@@ -560,16 +568,19 @@
 }
 
 .mobile-card-stat-label {
-  font-size: 12px;
+  font-size: 13px;
   color: #999;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap; /* Prevent label from wrapping */
+  min-width: 50px; /* Ensure labels don't get cut off */
 }
 
 .mobile-card-stat-value {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: bold;
   color: #ffd700;
+  white-space: nowrap; /* Prevent values from wrapping */
 }
 
 /* Mobile Responsive Styles */
@@ -855,7 +866,8 @@
 
   .mobile-card-item {
     padding: 14px;
-    min-height: 110px;
+    min-height: 150px; /* Increased for better spacing on small screens */
+    gap: 10px;
   }
 
   .mobile-card-year {
@@ -864,6 +876,15 @@
 
   .mobile-card-set {
     font-size: 15px;
+    line-height: 1.6; /* Better line spacing for wrapping */
+  }
+  
+  .mobile-card-stat-label {
+    font-size: 12px;
+  }
+  
+  .mobile-card-stat-value {
+    font-size: 16px;
   }
 
   .mobile-card-player {
