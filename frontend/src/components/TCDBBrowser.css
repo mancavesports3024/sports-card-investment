@@ -449,10 +449,10 @@
   padding: 0;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: auto; /* Let content determine height */
+  min-height: auto;
   display: flex;
   flex-direction: column;
-  overflow: visible; /* Show all content */
+  overflow: hidden; /* Keep everything inside gray box */
 }
 
 .mobile-card-unified-box {
