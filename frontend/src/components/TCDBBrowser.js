@@ -1193,7 +1193,10 @@ const TCDBBrowser = () => {
                     <div className="mobile-card-unified-box">
                       {/* Top Row: Year, Total, Gems, and Gem Rate */}
                       <div className="mobile-card-header">
-                        <div className="mobile-card-year">{card.year || 'N/A'}</div>
+                        <div className="mobile-card-year-section">
+                          <span className="mobile-card-year-label">Year</span>
+                          <span className="mobile-card-year">{card.year || 'N/A'}</span>
+                        </div>
                         <div className="mobile-card-header-stats">
                           <div className="mobile-card-header-stat">
                             <span className="mobile-card-header-stat-label">Total</span>
@@ -1204,22 +1207,25 @@ const TCDBBrowser = () => {
                             <span className="mobile-card-header-stat-value">{gems}</span>
                           </div>
                         </div>
-                        <div className="mobile-card-gem-rate">{gemRate}</div>
+                        <div className="mobile-card-gem-rate-section">
+                          <span className="mobile-card-gem-rate-label">Gem Rate</span>
+                          <span className="mobile-card-gem-rate">{gemRate}</span>
+                        </div>
                       </div>
                       
                       {/* Set Name */}
                       <div className="mobile-card-set">{card.set || 'N/A'}</div>
                       
-                      {/* Player/Card Name */}
-                      <div className="mobile-card-player">{card.player || 'N/A'}</div>
-                      
-                      {/* Card Number */}
+                      {/* Card Number - Row 3 */}
                       {card.number && card.number !== 'N/A' && (
                         <div className="mobile-card-detail-item">
                           <span className="mobile-card-label">Card #:</span>
                           <span className="mobile-card-value">{card.number}</span>
                         </div>
                       )}
+                      
+                      {/* Player/Card Name */}
+                      <div className="mobile-card-player">{card.player || 'N/A'}</div>
                       
                     </div>
                   </div>

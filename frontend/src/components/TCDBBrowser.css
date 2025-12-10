@@ -474,28 +474,25 @@
 .mobile-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 8px;
   flex-wrap: wrap;
+  padding: 12px;
+  background: rgba(255, 215, 0, 0.08);
+  border-radius: 8px;
+  min-height: 70px; /* Make box bigger */
 }
 
-.mobile-card-header-stats {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  flex: 1;
-  justify-content: center;
-}
-
-.mobile-card-header-stat {
+.mobile-card-year-section {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 2px;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 60px;
 }
 
-.mobile-card-header-stat-label {
+.mobile-card-year-label {
   font-size: 10px;
   color: #999;
   text-transform: uppercase;
@@ -503,10 +500,65 @@
   font-weight: 600;
 }
 
+.mobile-card-year {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.mobile-card-header-stats {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
+  min-width: 140px;
+}
+
+.mobile-card-header-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.mobile-card-header-stat-label {
+  font-size: 9px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
 .mobile-card-header-stat-value {
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.mobile-card-gem-rate-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  min-width: 70px;
+}
+
+.mobile-card-gem-rate-label {
+  font-size: 10px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.mobile-card-gem-rate {
   font-size: 14px;
   font-weight: bold;
   color: #ffd700;
+  background: rgba(255, 215, 0, 0.15);
+  padding: 4px 8px;
+  border-radius: 6px;
 }
 
 .mobile-card-year {
