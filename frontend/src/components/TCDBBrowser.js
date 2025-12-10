@@ -1191,9 +1191,19 @@ const TCDBBrowser = () => {
                   >
                     {/* Unified Information Box */}
                     <div className="mobile-card-unified-box">
-                      {/* Top Row: Year and Gem Rate */}
+                      {/* Top Row: Year, Total, Gems, and Gem Rate */}
                       <div className="mobile-card-header">
                         <div className="mobile-card-year">{card.year || 'N/A'}</div>
+                        <div className="mobile-card-header-stats">
+                          <div className="mobile-card-header-stat">
+                            <span className="mobile-card-header-stat-label">Total</span>
+                            <span className="mobile-card-header-stat-value">{totalGrades}</span>
+                          </div>
+                          <div className="mobile-card-header-stat">
+                            <span className="mobile-card-header-stat-label">Gems</span>
+                            <span className="mobile-card-header-stat-value">{gems}</span>
+                          </div>
+                        </div>
                         <div className="mobile-card-gem-rate">{gemRate}</div>
                       </div>
                       
@@ -1211,17 +1221,6 @@ const TCDBBrowser = () => {
                         </div>
                       )}
                       
-                      {/* Stats Row */}
-                      <div className="mobile-card-stats">
-                        <div className="mobile-card-stat">
-                          <span className="mobile-card-stat-label">Gems</span>
-                          <span className="mobile-card-stat-value">{gems}</span>
-                        </div>
-                        <div className="mobile-card-stat">
-                          <span className="mobile-card-stat-label">Total Graded</span>
-                          <span className="mobile-card-stat-value">{totalGrades}</span>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 );
