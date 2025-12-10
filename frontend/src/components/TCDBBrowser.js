@@ -1095,6 +1095,108 @@ const TCDBBrowser = () => {
                 </button>
               )}
             </div>
+            {/* Mobile Card View */}
+            <div className="mobile-card-list">
+              {sortedResults.map((card, index) => {
+                const gems =
+                  typeof card.gems === 'number'
+                    ? card.gems.toLocaleString()
+                    : 'N/A';
+                const totalGrades =
+                  typeof card.totalGrades === 'number'
+                    ? card.totalGrades.toLocaleString()
+                    : 'N/A';
+                // Format gem rate as percentage
+                let gemRate = 'N/A';
+                if (card.gemRate !== null && card.gemRate !== undefined && card.gemRate !== '') {
+                  const gemRateNum = typeof card.gemRate === 'number' ? card.gemRate : parseFloat(card.gemRate);
+                  if (!isNaN(gemRateNum)) {
+                    gemRate = `${(gemRateNum * 100).toFixed(2)}%`;
+                  }
+                }
+
+                const sportFromCategory = () => {
+                  switch (playerSearchCategory) {
+                    case 'football-cards':
+                      return 'Football';
+                    case 'baseball-cards':
+                      return 'Baseball';
+                    case 'basketball-cards':
+                      return 'Basketball';
+                    case 'hockey-cards':
+                      return 'Hockey';
+                    default:
+                      return null;
+                  }
+                };
+
+                const handleMobileCardClick = () => {
+                  // Map GemRate row data into a format ScoreCardSummary understands
+                  const initialGemrateData = {
+                    total: typeof card.totalGrades === 'number'
+                      ? card.totalGrades
+                      : (card.totalGrades ? Number(card.totalGrades) || 0 : 0),
+                    perfect: typeof card.gems === 'number'
+                      ? card.gems
+                      : (card.gems ? Number(card.gems) || 0 : 0),
+                    // We don't have a clean PSA 9 population from the row; leave grade9 undefined
+                    grade9: undefined,
+                    // card.gemRate from GemRate is a decimal (0-1); ScoreCardSummary will handle converting to %
+                    gemRate: card.gemRate !== null && card.gemRate !== undefined && card.gemRate !== ''
+                      ? (typeof card.gemRate === 'number' ? card.gemRate : Number(card.gemRate) || 0)
+                      : null,
+                  };
+
+                  setSelectedCardGemrateData(initialGemrateData);
+                  setSelectedCardSetInfo({
+                    sport: sportFromCategory(),
+                    year: card.year || null,
+                    setName: card.set || null,
+                    parallel: card.parallel || null
+                  });
+                  handleCardClick(card);
+                };
+
+                return (
+                  <div
+                    key={index}
+                    className="mobile-card-item"
+                    onClick={handleMobileCardClick}
+                  >
+                    <div className="mobile-card-header">
+                      <div className="mobile-card-year">{card.year || 'N/A'}</div>
+                      <div className="mobile-card-gem-rate">{gemRate}</div>
+                    </div>
+                    <div className="mobile-card-set">{card.set || 'N/A'}</div>
+                    <div className="mobile-card-player">{card.player || 'N/A'}</div>
+                    <div className="mobile-card-details">
+                      <div className="mobile-card-detail-item">
+                        <span className="mobile-card-label">Card #:</span>
+                        <span className="mobile-card-value">{card.number || 'N/A'}</span>
+                      </div>
+                      {card.parallel && card.parallel !== 'N/A' && (
+                        <div className="mobile-card-detail-item">
+                          <span className="mobile-card-label">Parallel:</span>
+                          <span className="mobile-card-value">{card.parallel}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mobile-card-stats">
+                      <div className="mobile-card-stat">
+                        <span className="mobile-card-stat-label">Gems</span>
+                        <span className="mobile-card-stat-value">{gems}</span>
+                      </div>
+                      <div className="mobile-card-stat">
+                        <span className="mobile-card-stat-label">Total</span>
+                        <span className="mobile-card-stat-value">{totalGrades}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table View */}
             <div className="checklist-container">
               <table className="checklist-table">
                 <thead>

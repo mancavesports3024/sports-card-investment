@@ -260,10 +260,12 @@
 
 .checklist-table th {
   color: #ffd700;
-  padding: 12px;
+  padding: 14px 12px;
   text-align: left;
   border-bottom: 2px solid #ffd700;
   font-weight: bold;
+  font-size: 15px;
+  background: #1a1a1a;
 }
 
 /* Center align Card #, Player, and Parallel column headers */
@@ -281,22 +283,34 @@
 }
 
 .checklist-table td {
-  color: #ccc;
-  padding: 10px 12px;
+  color: #e0e0e0; /* Improved contrast */
+  padding: 14px 12px;
   border-bottom: 1px solid #333;
 }
 
 .checklist-table tbody tr {
   transition: background 0.2s ease;
+  min-height: 48px; /* Better touch target */
 }
 
 .checklist-table tbody tr:hover {
-  background: #222;
+  background: #2a2a2a;
+  border-left: 3px solid #ffd700;
+}
+
+.checklist-table tbody tr:active {
+  background: #333;
 }
 
 .checklist-table tbody tr.selected {
   background: #2d5016;
   border-left: 3px solid #28a745;
+}
+
+.checklist-table td {
+  padding: 14px 12px; /* Increased padding for better touch targets */
+  font-size: 15px; /* Slightly larger text */
+  line-height: 1.5;
 }
 
 .checklist-table input[type="checkbox"] {
@@ -417,6 +431,122 @@
   background: #ffea00;
 }
 
+/* Mobile Card List Styles */
+.mobile-card-list {
+  display: none; /* Hidden on desktop */
+  flex-direction: column;
+  gap: 12px;
+  max-height: 70vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px;
+}
+
+.mobile-card-item {
+  background: #222;
+  border: 2px solid #444;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 120px; /* Minimum touch target size */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mobile-card-item:active {
+  background: #2a2a2a;
+  border-color: #ffd700;
+  transform: scale(0.98);
+}
+
+.mobile-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.mobile-card-year {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.mobile-card-gem-rate {
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.mobile-card-set {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.mobile-card-player {
+  font-size: 15px;
+  color: #ccc;
+  font-weight: 500;
+}
+
+.mobile-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.mobile-card-detail-item {
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.mobile-card-label {
+  color: #999;
+  font-weight: 500;
+}
+
+.mobile-card-value {
+  color: #ffd700;
+  font-weight: 600;
+}
+
+.mobile-card-stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #333;
+}
+
+.mobile-card-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-card-stat-label {
+  font-size: 12px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mobile-card-stat-value {
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffd700;
+}
+
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
   .tcdb-browser {
@@ -461,29 +591,13 @@
     font-size: 16px;
   }
 
-  /* Make table horizontally scrollable on mobile */
+  /* Show mobile cards, hide table on mobile */
+  .mobile-card-list {
+    display: flex;
+  }
+
   .checklist-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    max-height: 70vh;
-  }
-
-  .checklist-table {
-    min-width: 800px; /* Ensure table doesn't compress too much */
-    font-size: 14px;
-  }
-
-  .checklist-table th,
-  .checklist-table td {
-    padding: 10px 8px;
-    white-space: nowrap;
-  }
-
-  .checklist-table th {
-    font-size: 12px;
-    position: sticky;
-    top: 0;
-    background: #222;
+    display: none; /* Hide table on mobile */
   }
 
   /* Filter inputs */
@@ -714,14 +828,25 @@
     font-size: 1.5em;
   }
 
-  .checklist-table {
-    min-width: 700px;
-    font-size: 12px;
+  .mobile-card-item {
+    padding: 14px;
+    min-height: 110px;
   }
 
-  .checklist-table th,
-  .checklist-table td {
-    padding: 8px 6px;
+  .mobile-card-year {
+    font-size: 16px;
+  }
+
+  .mobile-card-set {
+    font-size: 15px;
+  }
+
+  .mobile-card-player {
+    font-size: 14px;
+  }
+
+  .mobile-card-stat-value {
+    font-size: 15px;
   }
 
   .player-search-results h3 {
