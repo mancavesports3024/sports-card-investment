@@ -462,7 +462,8 @@
   padding: 16px;
   width: 100%;
   box-sizing: border-box;
-  min-height: 180px; /* Ensure enough space */
+  min-height: auto;
+  overflow: hidden; /* Keep everything inside */
 }
 
 .mobile-card-item:active {
@@ -475,13 +476,14 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 0;
+  margin-bottom: 10px;
   gap: 8px;
   flex-wrap: wrap;
-  padding: 10px 12px;
-  background: rgba(255, 215, 0, 0.08);
-  border-radius: 8px;
-  min-height: 65px; /* Reasonable height */
+  padding: 0;
+  background: transparent; /* No background box */
+  border: none; /* No border */
+  border-radius: 0;
+  min-height: auto;
   width: 100%;
   box-sizing: border-box;
 }
@@ -558,9 +560,9 @@
   font-size: 14px;
   font-weight: bold;
   color: #ffd700;
-  background: rgba(255, 215, 0, 0.15);
-  padding: 4px 8px;
-  border-radius: 6px;
+  background: transparent; /* No background box */
+  padding: 0;
+  border-radius: 0;
 }
 
 .mobile-card-year {
