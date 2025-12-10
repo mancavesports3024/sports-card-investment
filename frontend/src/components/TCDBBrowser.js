@@ -1169,11 +1169,13 @@ const TCDBBrowser = () => {
                     </div>
                     <div className="mobile-card-set">{card.set || 'N/A'}</div>
                     <div className="mobile-card-player">{card.player || 'N/A'}</div>
-                    <div className="mobile-card-details">
-                      <div className="mobile-card-detail-item">
-                        <span className="mobile-card-label">Card #:</span>
-                        <span className="mobile-card-value">{card.number || 'N/A'}</span>
+                    {card.number && card.number !== 'N/A' && (
+                      <div className="mobile-card-number">
+                        <span className="mobile-card-number-label">Card #</span>
+                        <span className="mobile-card-number-value">{card.number}</span>
                       </div>
+                    )}
+                    <div className="mobile-card-details">
                       {card.parallel && card.parallel !== 'N/A' && (
                         <div className="mobile-card-detail-item">
                           <span className="mobile-card-label">Parallel:</span>
