@@ -1,17 +1,7 @@
 import React from 'react';
 import TCDBBrowser from './TCDBBrowser';
 import './AdminCardDatabase.css';
-
-function isAdminUser() {
-  try {
-    const token = localStorage.getItem('authToken');
-    if (!token) return false;
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.email === 'mancavesportscardsllc@gmail.com';
-  } catch {
-    return false;
-  }
-}
+import { isAdminUser } from '../config/adminEmails';
 
 const AdminCardDatabase = () => {
   // Check if user is admin

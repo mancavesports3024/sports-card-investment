@@ -916,8 +916,9 @@ app.use('/api/live-listings', require('./routes/liveListings'));
   });
 
   // Helper middleware to require admin user
+  const { isAdminEmail } = require('./config/adminEmails');
   const requireUser = (req, res, next) => {
-    if (req.user && req.user.email === 'mancavesportscardsllc@gmail.com') {
+    if (req.user && isAdminEmail(req.user.email)) {
       return next();
     }
     return res.status(401).json({ success: false, error: 'Unauthorized - Admin access required' });

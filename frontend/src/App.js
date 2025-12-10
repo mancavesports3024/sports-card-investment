@@ -9,17 +9,7 @@ import EbayItemLookup from './pages/EbayItemLookup';
 import AdminCardDatabase from './components/AdminCardDatabase';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import tokenService from './services/tokenService';
-
-function isAdminUser() {
-  try {
-    const token = localStorage.getItem('authToken');
-    if (!token) return false;
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.email === 'mancavesportscardsllc@gmail.com';
-  } catch {
-    return false;
-  }
-}
+import { isAdminUser } from './config/adminEmails';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

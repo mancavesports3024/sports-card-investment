@@ -1,8 +1,9 @@
 const cacheService = require('../services/cacheService');
+const { isAdminEmail } = require('../config/adminEmails');
 
 // Helper to check if user is admin
 function isAdmin(req) {
-  return req.user && req.user.email === 'mancavesportscardsllc@gmail.com';
+  return req.user && isAdminEmail(req.user.email);
 }
 
 // Cache middleware for API responses

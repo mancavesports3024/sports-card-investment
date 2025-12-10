@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
-function isAdminUser() {
-  try {
-    const token = localStorage.getItem('authToken');
-    if (!token) return false;
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.email === 'mancavesportscardsllc@gmail.com';
-  } catch {
-    return false;
-  }
-}
+import { isAdminUser } from '../config/adminEmails';
 
 const PerformanceMonitor = () => {
   // Always call hooks first!
