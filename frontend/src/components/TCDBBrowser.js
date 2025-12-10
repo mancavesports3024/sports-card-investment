@@ -1216,16 +1216,16 @@ const TCDBBrowser = () => {
                       {/* Set Name - Always visible */}
                       <div className="mobile-card-set">{card.set || 'N/A'}</div>
                       
-                      {/* Card Number - Row 3 - Always visible if exists */}
-                      {card.number && card.number !== 'N/A' && (
-                        <div className="mobile-card-detail-item">
-                          <span className="mobile-card-label">Card #:</span>
-                          <span className="mobile-card-value">{card.number}</span>
-                        </div>
-                      )}
-                      
-                      {/* Player/Card Name - Always visible */}
-                      <div className="mobile-card-player">{card.player || 'N/A'}</div>
+                      {/* Card Number and Player Name - Same Row */}
+                      <div className="mobile-card-number-player-row">
+                        {card.number && card.number !== 'N/A' && (
+                          <div className="mobile-card-detail-item">
+                            <span className="mobile-card-label">Card #:</span>
+                            <span className="mobile-card-value">{card.number}</span>
+                          </div>
+                        )}
+                        <div className="mobile-card-player">{card.player || 'N/A'}</div>
+                      </div>
                       
                     </div>
                   </div>

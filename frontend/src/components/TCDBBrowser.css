@@ -449,21 +449,21 @@
   padding: 0;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: auto;
+  min-height: auto !important; /* Let content determine height */
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Keep everything inside gray box */
+  overflow: visible !important; /* Force visibility of all content */
 }
 
 .mobile-card-unified-box {
   display: flex;
   flex-direction: column;
-  gap: 8px; /* Reduced gap between rows */
-  padding: 12px 16px; /* Reduced top/bottom padding */
+  gap: 4px; /* Minimal gap */
+  padding: 4px 16px 12px 16px; /* Minimal top padding - move content up, keep bottom for stats */
   width: 100%;
   box-sizing: border-box;
   min-height: auto;
-  overflow: visible; /* Allow content to be fully visible */
+  overflow: visible !important;
 }
 
 .mobile-card-item:active {
@@ -476,8 +476,8 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 10px;
-  gap: 4px; /* Reduced gap - Year and Total closer */
+  margin: 0; /* No margins at all - move up */
+  gap: 4px;
   flex-wrap: wrap;
   padding: 0;
   background: transparent;
@@ -492,8 +492,11 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px; /* Reduced gap - labels closer to values */
+  gap: 2px;
   min-width: 50px;
+  visibility: visible !important;
+  opacity: 1 !important;
+  overflow: visible !important;
 }
 
 .mobile-card-year-label {
@@ -505,7 +508,7 @@
 }
 
 .mobile-card-year {
-  font-size: 18px;
+  font-size: 16px; /* Match gem rate size */
   font-weight: bold;
   color: #ffd700;
 }
@@ -544,8 +547,11 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px; /* Reduced gap - labels closer to values */
+  gap: 2px;
   min-width: 70px;
+  visibility: visible !important;
+  opacity: 1 !important;
+  overflow: visible !important;
 }
 
 .mobile-card-gem-rate-label {
@@ -556,56 +562,61 @@
   font-weight: 600;
 }
 
-.mobile-card-gem-rate {
-  font-size: 14px;
-  font-weight: bold;
-  color: #ffd700;
-  background: transparent; /* No background box */
-  padding: 0;
-  border-radius: 0;
-}
-
 .mobile-card-year {
-  font-size: 18px;
-  font-weight: bold;
-  color: #ffd700;
-}
-
-.mobile-card-gem-rate {
   font-size: 16px;
   font-weight: bold;
   color: #ffd700;
-  background: rgba(255, 215, 0, 0.1);
-  padding: 4px 10px;
-  border-radius: 6px;
+}
+
+.mobile-card-gem-rate {
+  font-size: 16px; /* Match year size exactly */
+  font-weight: bold;
+  color: #ffd700;
+  background: transparent !important; /* Force no yellow box */
+  padding: 0 !important;
+  border-radius: 0 !important;
 }
 
 .mobile-card-set {
   font-size: 16px;
   font-weight: 600;
   color: #fff;
-  line-height: 1.4; /* Tighter line height */
+  line-height: 1.3;
   word-wrap: break-word;
   word-break: break-word;
   overflow-wrap: break-word;
   hyphens: auto;
   display: block;
-  visibility: visible;
-  opacity: 1;
-  margin-top: 2px; /* Reduced margin */
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin: 2px 0; /* Minimal margins */
+  overflow: visible !important;
+}
+
+.mobile-card-number-player-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 2px 0; /* Minimal margins */
+  visibility: visible !important;
+  opacity: 1 !important;
+  overflow: visible !important;
 }
 
 .mobile-card-player {
   font-size: 15px;
   color: #ccc;
   font-weight: 500;
-  line-height: 1.4; /* Tighter line height */
+  line-height: 1.3;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  display: block;
-  visibility: visible;
-  opacity: 1;
-  margin-top: 2px; /* Reduced margin */
+  display: inline-block;
+  visibility: visible !important;
+  opacity: 1 !important;
+  flex: 1;
+  min-width: 0;
+  overflow: visible !important;
 }
 
 .mobile-card-details {
@@ -619,9 +630,10 @@
   display: flex;
   gap: 8px;
   font-size: 14px;
-  visibility: visible;
-  opacity: 1;
-  margin-top: 4px;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin: 0;
+  overflow: visible !important;
 }
 
 .mobile-card-label {
@@ -636,15 +648,18 @@
 
 .mobile-card-stats {
   display: flex !important; /* Force display */
-  gap: 24px; /* Increased gap between stats */
-  margin-top: 8px;
-  padding: 10px 12px;
-  background: rgba(255, 215, 0, 0.12); /* Subtle background within unified box */
+  gap: 24px;
+  margin: 4px 0 0 0; /* Minimal margin - move up */
+  padding: 8px 12px;
+  background: rgba(255, 215, 0, 0.12);
   border-radius: 6px;
-  border: 1px solid rgba(255, 215, 0, 0.3); /* Subtle border */
-  flex-wrap: wrap; /* Allow wrapping if needed on very small screens */
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  flex-wrap: wrap;
   width: 100%;
   box-sizing: border-box;
+  visibility: visible !important;
+  opacity: 1 !important;
+  overflow: visible !important;
 }
 
 .mobile-card-stat {
@@ -953,13 +968,29 @@
   }
 
   .mobile-card-item {
-    padding: 14px;
-    min-height: 150px; /* Increased for better spacing on small screens */
-    gap: 10px;
+    padding: 0 !important;
+    min-height: auto !important;
+    gap: 0;
+    overflow: visible !important;
+  }
+
+  .mobile-card-unified-box {
+    padding: 4px 16px 12px 16px !important; /* Force minimal top padding */
+  }
+
+  .mobile-card-header {
+    margin: 0 !important; /* Force no margins */
   }
 
   .mobile-card-year {
-    font-size: 16px;
+    font-size: 16px !important;
+  }
+
+  .mobile-card-gem-rate {
+    font-size: 16px !important; /* Match year exactly */
+    background: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
   }
 
   .mobile-card-set {
