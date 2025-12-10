@@ -504,31 +504,6 @@
   overflow-wrap: break-word;
 }
 
-.mobile-card-number {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  padding: 8px 12px;
-  background: rgba(255, 215, 0, 0.15);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 215, 0, 0.3);
-}
-
-.mobile-card-number-label {
-  font-size: 13px;
-  color: #999;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.mobile-card-number-value {
-  font-size: 18px;
-  color: #ffd700;
-  font-weight: bold;
-}
-
 .mobile-card-details {
   display: flex;
   flex-direction: column;
@@ -889,14 +864,6 @@
 
   .mobile-card-player {
     font-size: 14px;
-  }
-
-  .mobile-card-number {
-    padding: 6px 10px;
-  }
-
-  .mobile-card-number-value {
-    font-size: 16px;
   }
 
   .mobile-card-stat-value {
