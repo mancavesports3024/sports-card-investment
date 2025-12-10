@@ -846,17 +846,9 @@ const TCDBBrowser = () => {
         {/* Image Recognition Section */}
         <div className="image-recognition-section">
           <h3 style={{ color: '#ffd700', marginBottom: '10px', fontSize: '1.1em' }}>
-            📸 Take a Photo or Upload Image
+            📸 Upload Image
           </h3>
           <div className="image-recognition-controls">
-            <button
-              type="button"
-              onClick={startCamera}
-              disabled={showCamera || ocrLoading}
-              className="camera-btn"
-            >
-              📷 Use Camera
-            </button>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -869,6 +861,7 @@ const TCDBBrowser = () => {
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              capture="environment"
               onChange={handleFileUpload}
               style={{ display: 'none' }}
             />
@@ -886,20 +879,6 @@ const TCDBBrowser = () => {
               </button>
             )}
           </div>
-          
-          {showCamera && (
-            <div className="camera-interface">
-              <video ref={videoRef} autoPlay playsInline className="camera-video" />
-              <div className="camera-buttons">
-                <button onClick={capturePhoto} className="capture-btn">
-                  📸 Capture
-                </button>
-                <button onClick={stopCamera} className="cancel-btn">
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
           
           {imagePreview && (
             <div className="captured-image-container">
