@@ -1189,9 +1189,9 @@ const TCDBBrowser = () => {
                     className="mobile-card-item"
                     onClick={handleMobileCardClick}
                   >
-                    {/* Unified Information Box */}
+                    {/* Unified Information Box - All data visible */}
                     <div className="mobile-card-unified-box">
-                      {/* Top Row: Year, Total, Gems, and Gem Rate */}
+                      {/* Header Row: Year, Total, Gems, and Gem Rate */}
                       <div className="mobile-card-header">
                         <div className="mobile-card-year-section">
                           <span className="mobile-card-year-label">Year</span>
@@ -1213,10 +1213,10 @@ const TCDBBrowser = () => {
                         </div>
                       </div>
                       
-                      {/* Set Name */}
+                      {/* Set Name - Always visible */}
                       <div className="mobile-card-set">{card.set || 'N/A'}</div>
                       
-                      {/* Card Number - Row 3 */}
+                      {/* Card Number - Row 3 - Always visible if exists */}
                       {card.number && card.number !== 'N/A' && (
                         <div className="mobile-card-detail-item">
                           <span className="mobile-card-label">Card #:</span>
@@ -1224,7 +1224,7 @@ const TCDBBrowser = () => {
                         </div>
                       )}
                       
-                      {/* Player/Card Name */}
+                      {/* Player/Card Name - Always visible */}
                       <div className="mobile-card-player">{card.player || 'N/A'}</div>
                       
                     </div>
