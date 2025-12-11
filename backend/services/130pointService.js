@@ -219,7 +219,7 @@ class Point130Service {
                             rawTitle.includes('sold via: heritage') ||
                             rawTitle.includes('sold via: comc')) {
                             // Skip non-eBay results - only want eBay sales
-                            continue;
+                            return true; // Return true to continue to next iteration in .each()
                         }
                         
                         const card = this.extractCardFromRow($cell1, $cell2, $row);
