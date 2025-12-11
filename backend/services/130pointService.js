@@ -45,10 +45,18 @@ class Point130Service {
             // Build search parameters
             const searchParams = this.buildSearchParams(searchTerm, options);
             
+            // Log the exact API call being made
+            const fullUrl = `${this.baseUrl}/cards/`;
+            const requestBody = searchParams.toString();
+            console.log(`[130POINT API CALL] URL: ${fullUrl}`);
+            console.log(`[130POINT API CALL] Method: POST`);
+            console.log(`[130POINT API CALL] Body: ${requestBody}`);
+            console.log(`[130POINT API CALL] Params breakdown:`, Object.fromEntries(searchParams));
+            
             // Make API request
             let response;
             try {
-                response = await axios.post(`${this.baseUrl}/cards/`, searchParams.toString(), {
+                response = await axios.post(fullUrl, requestBody, {
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                         // Use a mobile UA to match the latest observed request pattern
@@ -203,6 +211,17 @@ class Point130Service {
                     
                     // Skip empty rows
                     if (cell1Text || cell2Text) {
+                        // Check raw title before cleaning to filter non-eBay sources
+                        const rawTitle = (cell2Text || cell1Text).toLowerCase();
+                        if (rawTitle.includes('sold via: fanatics') || 
+                            rawTitle.includes('sold via: goldin') ||
+                            rawTitle.includes('sold via: pwcc') ||
+                            rawTitle.includes('sold via: heritage') ||
+                            rawTitle.includes('sold via: comc')) {
+                            // Skip non-eBay results - only want eBay sales
+                            continue;
+                        }
+                        
                         const card = this.extractCardFromRow($cell1, $cell2, $row);
                         if (card && card.title) {
                             cards.push(card);

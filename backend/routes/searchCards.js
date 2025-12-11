@@ -1326,7 +1326,9 @@ router.post('/', requireUser, async (req, res) => {
       
       const point130Results = await point130Service.searchSoldCards(processedQuery, {
         type: '2',
-        sort: 'urlEndTimeSoonest'
+        sort: 'EndTimeSoonest',
+        mp: 'ebay', // Only eBay sales
+        tab_id: '3'
       });
       
       if (point130Results && point130Results.length > 0) {

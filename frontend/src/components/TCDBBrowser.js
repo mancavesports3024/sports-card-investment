@@ -846,7 +846,7 @@ const TCDBBrowser = () => {
         {/* Image Recognition Section */}
         <div className="image-recognition-section">
           <h3 style={{ color: '#ffd700', marginBottom: '10px', fontSize: '1.1em' }}>
-            📸 Upload Image
+            📸 Take a Photo or Upload Image
           </h3>
           <div className="image-recognition-controls">
             <button
@@ -861,7 +861,6 @@ const TCDBBrowser = () => {
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              capture="environment"
               onChange={handleFileUpload}
               style={{ display: 'none' }}
             />
@@ -1194,6 +1193,14 @@ const TCDBBrowser = () => {
                       
                       {/* Set Name - Always visible */}
                       <div className="mobile-card-set">{card.set || 'N/A'}</div>
+                      
+                      {/* Parallel - Display if exists and not base */}
+                      {card.parallel && card.parallel !== 'N/A' && card.parallel.toLowerCase() !== 'base' && (
+                        <div className="mobile-card-detail-item">
+                          <span className="mobile-card-label">Parallel:</span>
+                          <span className="mobile-card-value">{card.parallel}</span>
+                        </div>
+                      )}
                       
                       {/* Card Number and Player Name - Same Row */}
                       <div className="mobile-card-number-player-row">
