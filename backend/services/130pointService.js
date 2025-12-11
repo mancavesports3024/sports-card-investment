@@ -48,10 +48,11 @@ class Point130Service {
             // Make API request
             let response;
             try {
-                response = await axios.post(`${this.baseUrl}/sales/`, searchParams.toString(), {
+                response = await axios.post(`${this.baseUrl}/cards/`, searchParams.toString(), {
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+                        // Use a mobile UA to match the latest observed request pattern
+                        'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Mobile Safari/537.36',
                         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                         'Accept-Language': 'en-US,en;q=0.5',
                         'Origin': 'https://130point.com',
@@ -115,10 +116,10 @@ class Point130Service {
                 const simpleTerm = searchTerm.split(' -(')[0].trim();
                 
                 const simpleParams = this.buildSearchParams(simpleTerm, options);
-                const simpleResponse = await axios.post(`${this.baseUrl}/sales/`, simpleParams.toString(), {
+                const simpleResponse = await axios.post(`${this.baseUrl}/cards/`, simpleParams.toString(), {
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+                        'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Mobile Safari/537.36',
                         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                         'Accept-Language': 'en-US,en;q=0.5',
                         'Origin': 'https://130point.com',
@@ -166,11 +167,16 @@ class Point130Service {
         // URL encode the search term
         const params = new URLSearchParams();
         params.append('query', processedTerm);
-        params.append('type', options.type || '2');
-        params.append('subcat', options.subcat || '-1');
-        params.append('tab_id', options.tab_id || '1');
+        // New required params observed in latest 130point mobile call
+        params.append('sort', options.sort || 'EndTimeSoonest');
+        params.append('tab_id', options.tab_id || '3');
         params.append('tz', options.timezone || 'America/Chicago');
-        params.append('sort', options.sort || 'urlEndTimeSoonest');
+        params.append('width', options.width || '1536');
+        params.append('height', options.height || '695');
+        params.append('mp', options.mp || 'ebay'); // only interested in eBay sells
+        if (options.tk || process.env.POINT130_TK) {
+            params.append('tk', options.tk || process.env.POINT130_TK);
+        }
 
         return params;
     }
