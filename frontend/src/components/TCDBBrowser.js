@@ -811,6 +811,13 @@ const TCDBBrowser = () => {
       const data = await response.json();
 
       if (data.success && data.data && Array.isArray(data.data.cards)) {
+        // Debug: Log parallel data for first few cards
+        console.log('[TCDBBrowser] Player search results:', {
+          totalCards: data.data.cards.length,
+          firstCardParallel: data.data.cards[0]?.parallel,
+          firstCardData: data.data.cards[0],
+          cardsWithParallel: data.data.cards.filter(c => c.parallel && c.parallel !== 'N/A' && c.parallel.toLowerCase() !== 'base').length
+        });
         setPlayerSearchResults(data.data.cards);
       } else {
         setPlayerSearchResults([]);
@@ -1195,12 +1202,29 @@ const TCDBBrowser = () => {
                       <div className="mobile-card-set">{card.set || 'N/A'}</div>
                       
                       {/* Parallel - Display if exists and not base */}
-                      {card.parallel && card.parallel !== 'N/A' && card.parallel.toLowerCase() !== 'base' && (
-                        <div className="mobile-card-detail-item">
-                          <span className="mobile-card-label">Parallel:</span>
-                          <span className="mobile-card-value">{card.parallel}</span>
-                        </div>
-                      )}
+                      {(() => {
+                        const parallel = card.parallel;
+                        // Debug logging for first few cards
+                        if (index < 3) {
+                          console.log(`[TCDBBrowser] Card ${index} parallel debug:`, {
+                            parallel,
+                            type: typeof parallel,
+                            rawValue: JSON.stringify(parallel),
+                            cardData: { year: card.year, set: card.set, number: card.number, player: card.player }
+                          });
+                        }
+                        // Show parallel if it exists, is a non-empty string, and not 'base' or 'N/A'
+                        if (parallel && typeof parallel === 'string' && parallel.trim() !== '' && 
+                            parallel.trim() !== 'N/A' && parallel.trim().toLowerCase() !== 'base') {
+                          return (
+                            <div className="mobile-card-detail-item" style={{ display: 'flex', visibility: 'visible', opacity: 1 }}>
+                              <span className="mobile-card-label">Parallel:</span>
+                              <span className="mobile-card-value">{parallel.trim()}</span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                       
                       {/* Card Number and Player Name - Same Row */}
                       <div className="mobile-card-number-player-row">

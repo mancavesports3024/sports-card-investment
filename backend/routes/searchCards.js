@@ -129,10 +129,10 @@ const categorizeCards = (cards, requestedCardNumber = null) => {
       let isGraded = false;
       if (match) {
         // Check if this is actually a graded card (not a raw card with "PSA 10-ABLE" etc.)
-        // Exclude if the title contains "-ABLE", "-READY", "potential", "candidate", or similar after the grade
+        // Exclude if the title contains "-ABLE", "-READY", "potential", "candidate", "contender", or similar after the grade
         const gradePosition = match.index + match[0].length;
         const textAfterGrade = title.substring(gradePosition);
-        const rawCardIndicators = /[-_]?(able|ready|potential|candidate|worthy|quality|condition)/i;
+        const rawCardIndicators = /[-_]?(able|ready|potential|candidate|contender|worthy|quality|condition)/i;
         if (rawCardIndicators.test(textAfterGrade)) {
           // This is a raw card, not actually graded - skip grading categorization
           console.log(`[CATEGORIZE] Skipping raw card with grade indicator: "${card.title}"`);
@@ -141,21 +141,33 @@ const categorizeCards = (cards, requestedCardNumber = null) => {
         let company = match[1].toLowerCase();
         if (company === 'beckett') company = 'bgs';
         const grade = match[2].replace('.', '_');
-        const key = `${company}${grade}`;
+        
+        // Exclude PSA 10 cards that mention "contender", "candidate", "potential", etc. anywhere in title
+        if (company === 'psa' && grade === '10') {
+          const psa10ExclusionPattern = /\b(contender|candidate|potential|worthy)\b/i;
+          if (psa10ExclusionPattern.test(card.title)) {
+            console.log(`[CATEGORIZE] Excluding PSA 10 contender/candidate: "${card.title}"`);
+            isGraded = false;
+          }
+        }
+        
+        // Only add to buckets if it's actually a graded card
+        if (isGraded !== false) {
+          const key = `${company}${grade}`;
               // console.log(`Card ${index}: "${card.title}"`);
       // console.log(`  Matched company: ${company}, grade: ${grade} → bucket: gradingStats[${company}][${grade}]`);
-        if (!dynamicBuckets[key]) dynamicBuckets[key] = [];
-        dynamicBuckets[key].push(card);
-        if (!gradingStats[company]) gradingStats[company] = {};
-        if (!gradingStats[company][grade]) gradingStats[company][grade] = { cards: [] };
-        gradingStats[company][grade].cards.push(card);
-        isGraded = true;
-        // Legacy buckets for PSA, CGC, TAG, SGC, AiGrade
-        if (company === 'psa') {
-          if (grade === '10') {
-            legacyBuckets.psa10.push(card);
-            console.log(`[CATEGORIZE] Found PSA 10: "${card.title}" - Price: ${card.price?.value}`);
-          } else if (grade === '9') {
+          if (!dynamicBuckets[key]) dynamicBuckets[key] = [];
+          dynamicBuckets[key].push(card);
+          if (!gradingStats[company]) gradingStats[company] = {};
+          if (!gradingStats[company][grade]) gradingStats[company][grade] = { cards: [] };
+          gradingStats[company][grade].cards.push(card);
+          isGraded = true;
+          // Legacy buckets for PSA, CGC, TAG, SGC, AiGrade
+          if (company === 'psa') {
+            if (grade === '10') {
+              legacyBuckets.psa10.push(card);
+              console.log(`[CATEGORIZE] Found PSA 10: "${card.title}" - Price: ${card.price?.value}`);
+            } else if (grade === '9') {
             legacyBuckets.psa9.push(card);
             console.log(`[CATEGORIZE] Found PSA 9: "${card.title}" - Price: ${card.price?.value}`);
           } else if (grade === '8') legacyBuckets.psa8.push(card);
@@ -172,6 +184,7 @@ const categorizeCards = (cards, requestedCardNumber = null) => {
           } else if (company === 'aigrade') {
           if (grade === '10') legacyBuckets.aigrade10.push(card);
           else if (grade === '9') legacyBuckets.aigrade9.push(card);
+        }
         }
         }
       }

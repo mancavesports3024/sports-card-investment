@@ -7996,6 +7996,11 @@ app.post('/api/add-comprehensive-card', async (req, res) => {
         // Categorize cards by grade
         const psa10Cards = transformedCards.filter(card => {
             const titleLower = (card.title || '').toLowerCase();
+            // Exclude PSA 10 cards that mention "contender", "candidate", "potential", etc.
+            const psa10ExclusionPattern = /\b(contender|candidate|potential|worthy)\b/i;
+            if (psa10ExclusionPattern.test(card.title)) {
+                return false;
+            }
             return titleLower.includes('psa 10') || titleLower.includes('psa10') || 
                    (card.grade === 'PSA 10' && card.numericPrice >= 50 && card.numericPrice <= 50000);
         });

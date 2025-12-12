@@ -2534,12 +2534,24 @@ class GemRateService {
                 }
                 
                 // Map RowData to our card format (using Postman field names)
+                // Debug: Log first rowData to see available fields
+                if (rawData.length > 0) {
+                  console.log('[getPlayerCards] First rowData keys:', Object.keys(rawData[0]));
+                  console.log('[getPlayerCards] First rowData parallel fields:', {
+                    parallel: rawData[0].parallel,
+                    parallel_type: rawData[0].parallel_type,
+                    parallelName: rawData[0].parallelName,
+                    variant: rawData[0].variant,
+                    allKeys: Object.keys(rawData[0]).filter(k => k.toLowerCase().includes('parallel') || k.toLowerCase().includes('variant'))
+                  });
+                }
                 const cards = rawData.map((rowData) => {
                   const category = rowData.category || rowData.cat || '';
                   const year = rowData.year || '';
                   const setName = rowData.set_name || rowData.set || rowData.cardSet || '';
                   const name = rowData.name || rowData.player || '';
-                  const parallel = rowData.parallel || '';
+                  // Try multiple possible field names for parallel
+                  const parallel = rowData.parallel || rowData.parallel_type || rowData.parallelName || rowData.variant || rowData.parallel_name || '';
                   const cardNumber = rowData.card_number || rowData.number || rowData.cardNum || rowData['card #'] || '';
                   const gems = rowData.gems || rowData.gemsCount || null;
                   const totalGrades = rowData.total || rowData.totalGrades || rowData.totalGradesCount || null;
@@ -2566,7 +2578,12 @@ class GemRateService {
                 
                 // Log summary of gemrateId extraction
                 const cardsWithId = cards.filter(c => c.gemrateId).length;
-                console.log(`[getPlayerCards] Total cards: ${cards.length}, Cards with gemrateId: ${cardsWithId}`);
+                const cardsWithParallel = cards.filter(c => c.parallel && c.parallel.trim() !== '').length;
+                console.log(`[getPlayerCards] Total cards: ${cards.length}, Cards with gemrateId: ${cardsWithId}, Cards with parallel: ${cardsWithParallel}`);
+                if (cardsWithParallel > 0) {
+                  const sampleParallels = cards.filter(c => c.parallel && c.parallel.trim() !== '').slice(0, 3).map(c => c.parallel);
+                  console.log(`[getPlayerCards] Sample parallel values:`, sampleParallels);
+                }
                 
                 // Log a few sample cards to help debug gemrate_id matching issues
                 if (cards.length > 0) {
