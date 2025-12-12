@@ -812,11 +812,24 @@ const TCDBBrowser = () => {
 
       if (data.success && data.data && Array.isArray(data.data.cards)) {
         // Debug: Log parallel data for first few cards
+        const cardsWithNonBaseParallel = data.data.cards.filter(c => 
+          c.parallel && 
+          c.parallel !== 'N/A' && 
+          c.parallel.toLowerCase() !== 'base' &&
+          c.parallel.trim() !== ''
+        );
         console.log('[TCDBBrowser] Player search results:', {
           totalCards: data.data.cards.length,
           firstCardParallel: data.data.cards[0]?.parallel,
           firstCardData: data.data.cards[0],
-          cardsWithParallel: data.data.cards.filter(c => c.parallel && c.parallel !== 'N/A' && c.parallel.toLowerCase() !== 'base').length
+          cardsWithParallel: data.data.cards.filter(c => c.parallel && c.parallel !== 'N/A' && c.parallel.toLowerCase() !== 'base').length,
+          cardsWithNonBaseParallel: cardsWithNonBaseParallel.length,
+          sampleNonBaseParallels: cardsWithNonBaseParallel.slice(0, 5).map(c => ({
+            parallel: c.parallel,
+            player: c.player,
+            set: c.set,
+            number: c.number
+          }))
         });
         setPlayerSearchResults(data.data.cards);
       } else {
@@ -1204,20 +1217,21 @@ const TCDBBrowser = () => {
                       {/* Parallel - Display if exists and not base */}
                       {(() => {
                         const parallel = card.parallel;
-                        // Debug logging for first few cards
-                        if (index < 3) {
-                          console.log(`[TCDBBrowser] Card ${index} parallel debug:`, {
-                            parallel,
-                            type: typeof parallel,
-                            rawValue: JSON.stringify(parallel),
+                        const shouldShow = parallel && typeof parallel === 'string' && parallel.trim() !== '' && 
+                            parallel.trim() !== 'N/A' && parallel.trim().toLowerCase() !== 'base';
+                        
+                        // Debug logging for cards with non-base parallels
+                        if (shouldShow && index < 10) {
+                          console.log(`[TCDBBrowser] Card ${index} showing parallel:`, {
+                            parallel: parallel.trim(),
                             cardData: { year: card.year, set: card.set, number: card.number, player: card.player }
                           });
                         }
+                        
                         // Show parallel if it exists, is a non-empty string, and not 'base' or 'N/A'
-                        if (parallel && typeof parallel === 'string' && parallel.trim() !== '' && 
-                            parallel.trim() !== 'N/A' && parallel.trim().toLowerCase() !== 'base') {
+                        if (shouldShow) {
                           return (
-                            <div className="mobile-card-detail-item" style={{ display: 'flex', visibility: 'visible', opacity: 1 }}>
+                            <div className="mobile-card-detail-item" style={{ display: 'flex', visibility: 'visible', opacity: 1, marginTop: '4px', marginBottom: '4px' }}>
                               <span className="mobile-card-label">Parallel:</span>
                               <span className="mobile-card-value">{parallel.trim()}</span>
                             </div>
