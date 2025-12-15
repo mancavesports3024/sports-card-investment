@@ -133,6 +133,8 @@ const categorizeCards = (cards, requestedCardNumber = null) => {
         const gradePosition = match.index + match[0].length;
         const textAfterGrade = title.substring(gradePosition);
         const rawCardIndicators = /[-_]?(able|ready|potential|candidate|contender|worthy|quality|condition)/i;
+        // Assume graded by default when we have a match, then opt-out if it looks like a raw candidate
+        isGraded = true;
         if (rawCardIndicators.test(textAfterGrade)) {
           // This is a raw card, not actually graded - skip grading categorization
           console.log(`[CATEGORIZE] Skipping raw card with grade indicator: "${card.title}"`);
@@ -152,7 +154,7 @@ const categorizeCards = (cards, requestedCardNumber = null) => {
         }
         
         // Only add to buckets if it's actually a graded card
-        if (isGraded !== false) {
+        if (isGraded) {
           const key = `${company}${grade}`;
               // console.log(`Card ${index}: "${card.title}"`);
       // console.log(`  Matched company: ${company}, grade: ${grade} → bucket: gradingStats[${company}][${grade}]`);
