@@ -556,17 +556,25 @@ class Point130Service {
             .replace(/\s+Best\s+Offer\s+Accepted\s*/gi, ' ')
             .replace(/\s+Auction\s*/gi, ' ')
             .replace(/\s+Card\s+Auction\s*/gi, ' ')
-            // Remove "List Price: X USD" patterns
-            .replace(/List\s+Price:\s*[\d,]+\.?\d*\s*USD\s*/gi, '')
-            // Remove "Sale Price: X USD" patterns
-            .replace(/Sale\s+Price:\s*[\d,]+\.?\d*\s*USD\s*/gi, '')
+            // Remove "List Price: X USD" patterns (any currency)
+            .replace(/List\s+Price:\s*[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*/gi, '')
+            // Remove "Sale Price: X USD/GBP/etc" patterns (any currency)
+            .replace(/Sale\s+Price:\s*[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*/gi, '')
+            // Remove "Sale Price: X" patterns without currency
+            .replace(/Sale\s+Price:\s*[\d,]+\.?\d*\s*/gi, '')
+            // Remove "SaleX USD/GBP/etc" patterns (without "Price:", e.g., "Sale8.04 USD", "Sale15.21 USD")
+            .replace(/Sale\s*[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*/gi, '')
+            // Remove "SaleX" patterns without currency (e.g., "Sale12", "Sale15.21")
+            .replace(/Sale\s*[\d,]+\.?\d*\s*/gi, '')
             // Remove date patterns like "Date: Wed 05 Nov 2025 11:31:14 CDT"
             .replace(/Date:\s*[A-Za-z]{3}\s+\d{1,2}\s+[A-Za-z]{3}\s+\d{4}\s+\d{2}:\d{2}:\d{2}\s+[A-Z]{3,4}\s*/gi, '')
             // Remove "Shipping Price: N/A" or "Shipping Price: X USD" - handle variations
             .replace(/\s*hipping\s+Price:\s*(N\/A|[\d,]+\.?\d*\s*USD)\s*/gi, '')
             .replace(/Shipping\s+Price:\s*(N\/A|[\d,]+\.?\d*\s*USD)\s*/gi, '')
             // Remove price patterns like "79.99 USD Sale Price: 79.99"
-            .replace(/[\d,]+\.?\d*\s*USD\s*Sale\s+Price:\s*[\d,]+\.?\d*\s*/gi, '')
+            .replace(/[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*Sale\s+Price:\s*[\d,]+\.?\d*\s*/gi, '')
+            // Remove duplicate price patterns like "6.64 GBP6.64 GBP"
+            .replace(/[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*/gi, '')
             // Remove "Best Offer Price: X" patterns
             .replace(/Best\s+Offer\s+Price:\s*[\d,]+\.?\d*\s*/gi, '')
             // Remove "Current Price: X" patterns
@@ -584,8 +592,8 @@ class Point130Service {
             .replace(/SalePriceFull:\s*[\d,]+\.?\d*\s*USD\s*/gi, '')
             // Remove multiple dashes and separators
             .replace(/\s*-\s*-\s*-?\s*/g, '')
-            // Remove remaining standalone price patterns at the end
-            .replace(/\s+[\d,]+\.?\d*\s*USD\s*$/gi, '')
+            // Remove remaining standalone price patterns at the end (any currency)
+            .replace(/\s+[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*$/gi, '')
             // Remove " - " patterns that might be left
             .replace(/\s*-\s*$/g, '')
             // Clean up multiple spaces

@@ -277,8 +277,9 @@ const SearchPage = () => {
 
   const formatPrice = (price) => {
     if (price == null || price.value == null || isNaN(price.value)) return 'N/A';
+    // Always display in USD
     return new Intl.NumberFormat('en-US', {
-      style: 'currency', currency: price.currency || 'USD'
+      style: 'currency', currency: 'USD'
     }).format(Number(price.value));
   };
 
@@ -716,6 +717,15 @@ const SearchPage = () => {
                   <div className="custom-card-title" style={{ fontWeight: 'bold', color: '#000', fontSize: '0.95em', lineHeight: '1.3', border: 'none', borderBottom: 'none' }}>{(() => {
                     const rawTitle = card.summaryTitle || card.title || '';
                     return rawTitle
+                      // Remove sale price patterns (any currency)
+                      .replace(/Sale\s+Price:\s*[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*/gi, '')
+                      .replace(/Sale\s+Price:\s*[\d,]+\.?\d*\s*/gi, '')
+                      .replace(/Sale\s*[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*/gi, '')
+                      .replace(/Sale\s*[\d,]+\.?\d*\s*/gi, '')
+                      // Remove duplicate price patterns like "6.64 GBP6.64 GBP"
+                      .replace(/[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*/gi, '')
+                      // Remove remaining standalone price patterns at the end (any currency)
+                      .replace(/\s+[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*$/gi, '')
                       .replace(/\s*#unknown\b.*$/i, '')
                       .replace(/\s*#Unknown\b.*$/i, '')
                       .replace(/\s*#UNKNOWN\b.*$/i, '')
