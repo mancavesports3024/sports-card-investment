@@ -722,6 +722,9 @@ const SearchPage = () => {
                       .replace(/Sale\s+Price:\s*[\d,]+\.?\d*\s*/gi, '')
                       .replace(/Sale\s*[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*/gi, '')
                       .replace(/Sale\s*[\d,]+\.?\d*\s*/gi, '')
+                      // Remove standalone number+currency patterns anywhere (e.g., "12 USD", "9.25 USD", "Holo12 USD", "MINT12.99 USD")
+                      .replace(/[A-Za-z]+[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*/gi, '')
+                      .replace(/\s+[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*/gi, ' ')
                       // Remove duplicate price patterns like "6.64 GBP6.64 GBP"
                       .replace(/[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*/gi, '')
                       // Remove remaining standalone price patterns at the end (any currency)

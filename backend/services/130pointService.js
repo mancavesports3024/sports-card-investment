@@ -566,6 +566,9 @@ class Point130Service {
             .replace(/Sale\s*[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*/gi, '')
             // Remove "SaleX" patterns without currency (e.g., "Sale12", "Sale15.21")
             .replace(/Sale\s*[\d,]+\.?\d*\s*/gi, '')
+            // Remove standalone number+currency patterns anywhere (e.g., "12 USD", "9.25 USD", "Holo12 USD", "MINT12.99 USD")
+            .replace(/[A-Za-z]+[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*/gi, '')
+            .replace(/\s+[\d,]+\.?\d*\s*(USD|GBP|EUR|CAD|AUD|JPY|CNY)\s*/gi, ' ')
             // Remove date patterns like "Date: Wed 05 Nov 2025 11:31:14 CDT"
             .replace(/Date:\s*[A-Za-z]{3}\s+\d{1,2}\s+[A-Za-z]{3}\s+\d{4}\s+\d{2}:\d{2}:\d{2}\s+[A-Z]{3,4}\s*/gi, '')
             // Remove "Shipping Price: N/A" or "Shipping Price: X USD" - handle variations
