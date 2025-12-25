@@ -76,8 +76,17 @@ class ReleaseDatabaseService {
                 console.log('✅ Got database client');
                 
                 // Test connection with a simple query
-                await client.query('SELECT NOW()');
-                console.log('✅ Database connection verified');
+                try {
+                    await client.query('SELECT NOW()');
+                    console.log('✅ Database connection verified');
+                } catch (testError) {
+                    console.error('❌ Connection test failed:', testError.message);
+                    // If it's a "database does not exist" error, we might need to create it
+                    if (testError.message && testError.message.includes('does not exist')) {
+                        throw new Error('Database does not exist. Please create a database in Railway PostgreSQL first.');
+                    }
+                    throw testError;
+                }
                 
                 await client.query('BEGIN');
                 break; // Success, exit retry loop
