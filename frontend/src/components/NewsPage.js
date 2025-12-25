@@ -1011,21 +1011,195 @@ const NewsPage = () => {
           </div>
         </article>
 
-        {/* Placeholder for future articles */}
-        <div style={{
+        {/* Article: Data-Driven Sports Card Insights */}
+        <article style={{
           background: '#1f2937',
           borderRadius: 12,
           padding: '2rem',
-          textAlign: 'center',
-          border: '2px solid #374151'
+          border: '2px solid #374151',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
         }}>
-          <div style={{ color: '#ffd700', fontSize: '1.2rem', marginBottom: '1rem' }}>
-            📰 More Articles Coming Soon
+          <header style={{ marginBottom: '1.5rem' }}>
+            <div style={{
+              background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)',
+              color: '#fff',
+              padding: '0.5rem 1rem',
+              borderRadius: 6,
+              display: 'inline-block',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              marginBottom: '1rem'
+            }}>
+              📊 FEATURED ARTICLE
+            </div>
+            <h2 style={{
+              color: '#ffd700',
+              fontSize: '1.8rem',
+              fontWeight: 700,
+              margin: '0 0 0.5rem 0',
+              lineHeight: '1.3'
+            }}>
+              The Smarter Way to Collect: Data‑Driven Sports Card Insights for Today's Hobby
+            </h2>
+            <div style={{
+              color: '#9ca3af',
+              fontSize: '0.9rem',
+              display: 'flex',
+              gap: '1rem',
+              flexWrap: 'wrap'
+            }}>
+              <span>📅 {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+              <span>⏱️ 6 min read</span>
+              <span>🏷️ Market Analysis, Investment Strategy</span>
+            </div>
+          </header>
+
+          <div style={{ color: '#d1d5db', lineHeight: '1.7', fontSize: '1rem' }}>
+            <p style={{ marginBottom: '1.5rem', fontSize: '1.1rem', fontWeight: 500 }}>
+              The sports card market is evolving faster than ever — and collectors who rely on <strong>real data, not guesswork</strong>, are the ones staying ahead. At <strong>Man Cave Sports Cards</strong>, we combine passion for the hobby with analytics‑driven insights to help collectors make smarter buying, selling, and grading decisions.
+            </p>
+
+            <p style={{ marginBottom: '1.5rem' }}>
+              Whether you're chasing your favorite players, building long‑term investments, or flipping hot prospects, our goal is simple: <strong>give you the information you need to win in today's market</strong>.
+            </p>
+
+            <h3 style={{ color: '#ffd700', fontSize: '1.3rem', margin: '1.5rem 0 1rem 0' }}>
+              Real‑Time Market Data That Works for You
+            </h3>
+            <p style={{ marginBottom: '1rem' }}>
+              The days of guessing card values are over. With modern tools and consistent tracking, collectors can now understand:
+            </p>
+            <ul style={{ marginBottom: '1.5rem', paddingLeft: '1.5rem' }}>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>True market comps</strong> across PSA 10, PSA 9, and raw
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Price trends</strong> over days, weeks, and months
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Population report impact</strong> on long‑term value
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Which players are heating up — and which are cooling off</strong>
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>How grading can multiply (or destroy) ROI</strong>
+              </li>
+            </ul>
+            <p style={{ marginBottom: '1.5rem' }}>
+              Our platform and insights are built for collectors who want clarity, accuracy, and confidence in every purchase.
+            </p>
+
+            <h3 style={{ color: '#ffd700', fontSize: '1.3rem', margin: '1.5rem 0 1rem 0' }}>
+              Smarter Buying Starts With Better Information
+            </h3>
+            <p style={{ marginBottom: '1rem' }}>
+              Every card tells a story — but the data behind it tells the truth. We help collectors identify:
+            </p>
+            <ul style={{ marginBottom: '1.5rem', paddingLeft: '1.5rem' }}>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Undervalued cards</strong> with strong upside
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Overpriced listings</strong> to avoid
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Cards with strong gem‑rate potential</strong>
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Market dips</strong> that create buying opportunities
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Long‑term holds vs. short‑term flips</strong>
+              </li>
+            </ul>
+            <p style={{ marginBottom: '1.5rem' }}>
+              Whether you're hunting for modern rookies, vintage legends, or Pokémon grails, we break down the numbers so you can focus on the fun.
+            </p>
+
+            <h3 style={{ color: '#ffd700', fontSize: '1.3rem', margin: '1.5rem 0 1rem 0' }}>
+              Grading Insights That Maximize Your ROI
+            </h3>
+            <p style={{ marginBottom: '1rem' }}>
+              Submitting cards blindly is one of the fastest ways to lose money in the hobby. That's why we emphasize:
+            </p>
+            <ul style={{ marginBottom: '1.5rem', paddingLeft: '1.5rem' }}>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Pre‑grading evaluation</strong>
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>PSA 10 vs. PSA 9 price gaps</strong>
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Risk vs. reward</strong> on grading fees
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Surface, centering, and edge analysis</strong>
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Historical gem rates</strong> for specific sets
+              </li>
+            </ul>
+            <p style={{ marginBottom: '1.5rem' }}>
+              A smart grading strategy can turn a $20 card into a $200 card — or save you from turning a $20 card into a $12 PSA 9.
+            </p>
+
+            <h3 style={{ color: '#ffd700', fontSize: '1.3rem', margin: '1.5rem 0 1rem 0' }}>
+              Stay Ahead of the Market With Expert Analysis
+            </h3>
+            <p style={{ marginBottom: '1rem' }}>
+              From trending players to set breakdowns, we deliver insights that help collectors stay ahead of the curve. Expect content covering:
+            </p>
+            <ul style={{ marginBottom: '1.5rem', paddingLeft: '1.5rem' }}>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Weekly market movers</strong>
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Player performance impact</strong> on card prices
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Set reviews and investment outlooks</strong>
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Pokémon grading trends</strong>
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Modern vs. vintage market behavior</strong>
+              </li>
+            </ul>
+            <p style={{ marginBottom: '1.5rem' }}>
+              If it matters to collectors, we're tracking it.
+            </p>
+
+            <h3 style={{ color: '#ffd700', fontSize: '1.3rem', margin: '1.5rem 0 1rem 0' }}>
+              Built for Collectors. Powered by Data.
+            </h3>
+            <p style={{ marginBottom: '1.5rem' }}>
+              At <strong>Man Cave Sports Cards</strong>, we're more than a shop — we're a resource for collectors who want to collect smarter, buy confidently, and enjoy the hobby with real knowledge behind every decision.
+            </p>
+            <p style={{ marginBottom: '1.5rem' }}>
+              Whether you're a seasoned investor or just getting started, we're here to help you navigate the market with clarity and confidence.
+            </p>
+
+            <div style={{
+              background: 'linear-gradient(135deg, #374151, #4b5563)',
+              padding: '1rem',
+              borderRadius: 8,
+              marginTop: '2rem',
+              border: '1px solid #6b7280'
+            }}>
+              <div style={{ color: '#ffd700', fontWeight: 600, marginBottom: '0.5rem' }}>
+                🎯 Key Takeaways:
+              </div>
+              <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#d1d5db' }}>
+                <li>Data-driven insights help collectors make smarter decisions</li>
+                <li>Real-time market data across PSA 10, PSA 9, and raw cards</li>
+                <li>Grading strategy can maximize ROI or prevent costly mistakes</li>
+                <li>Expert analysis helps collectors stay ahead of market trends</li>
+              </ul>
+            </div>
           </div>
-          <div style={{ color: '#d1d5db', fontSize: '0.95rem' }}>
-            We're working on bringing you more industry news, market analysis, and collector insights.
-          </div>
-        </div>
+        </article>
       </div>
     </div>
   );
