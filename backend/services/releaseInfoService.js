@@ -1,9 +1,11 @@
 const cacheService = require('./cacheService');
 const bleacherSeatsScraper = require('./bleacherSeatsScraperService');
+const releaseDatabaseService = require('./releaseDatabaseService');
 
 class ReleaseInfoService {
   constructor() {
     this.cacheTimeout = 3600; // 1 hour cache
+    this.useDatabase = process.env.USE_RELEASE_DATABASE !== 'false'; // Default to true
   }
 
   async getReleaseData() {
@@ -18,7 +20,7 @@ class ReleaseInfoService {
 
     console.log('🔄 Loading comprehensive release data...');
     
-    // Use merged release data (manual + scraped)
+    // Use merged release data (database + scraped, with fallback to hardcoded)
     const releases = await this.getMergedReleases();
     
     // Cache the results
@@ -1225,35 +1227,59 @@ class ReleaseInfoService {
 
   async getMergedReleases() {
     try {
-      console.log('🔄 Merging manual and scraped release data...');
+      console.log('🔄 Merging database and scraped release data...');
       
-      // Get existing manual releases
-      const manualReleases = this.getComprehensiveReleases();
+      // Get releases from database (with fallback to hardcoded)
+      let databaseReleases = [];
+      try {
+        if (this.useDatabase) {
+          databaseReleases = await releaseDatabaseService.getAllReleases();
+          console.log(`✅ Loaded ${databaseReleases.length} releases from database`);
+        } else {
+          throw new Error('Database disabled via USE_RELEASE_DATABASE=false');
+        }
+      } catch (dbError) {
+        console.warn('⚠️ Failed to load from database, using hardcoded data:', dbError.message);
+        // Fallback to hardcoded releases
+        databaseReleases = this.getComprehensiveReleases();
+        console.log(`✅ Using ${databaseReleases.length} hardcoded releases as fallback`);
+      }
       
       // Try to get scraped releases
       let scrapedReleases = [];
       try {
         scrapedReleases = await bleacherSeatsScraper.getLatestReleases();
         console.log(`✅ Successfully scraped ${scrapedReleases.length} releases from Bleacher Seats`);
+        
+        // Sync scraped releases to database (if using database)
+        if (this.useDatabase && scrapedReleases.length > 0) {
+          try {
+            await releaseDatabaseService.syncScrapedReleases(scrapedReleases);
+          } catch (syncError) {
+            console.warn('⚠️ Failed to sync scraped releases to database:', syncError.message);
+          }
+        }
       } catch (scrapeError) {
-        console.warn('⚠️ Failed to scrape Bleacher Seats, using manual data only:', scrapeError.message);
+        console.warn('⚠️ Failed to scrape Bleacher Seats, using database data only:', scrapeError.message);
       }
       
       // Merge releases, avoiding duplicates based on title and date
-      const mergedReleases = [...manualReleases];
-      const existingTitles = new Set(manualReleases.map(r => `${r.title}-${r.releaseDate}`));
+      const mergedReleases = [...databaseReleases];
+      const existingTitles = new Set(databaseReleases.map(r => `${r.title}-${r.releaseDate}`));
       
       scrapedReleases.forEach(scrapedRelease => {
         const key = `${scrapedRelease.title}-${scrapedRelease.releaseDate}`;
         if (!existingTitles.has(key)) {
-          // Add missing fields to match manual release format
+          // Add missing fields to match release format
           const enhancedRelease = {
             ...scrapedRelease,
-            sport: this.determineSport(scrapedRelease.title),
-            year: scrapedRelease.releaseDate.split('-')[0],
-            description: `${scrapedRelease.brand} ${scrapedRelease.title}`,
-            retailPrice: 'TBD',
-            hobbyPrice: 'TBD'
+            sport: scrapedRelease.sport || this.determineSport(scrapedRelease.title),
+            year: scrapedRelease.year || scrapedRelease.releaseDate.split('-')[0],
+            description: scrapedRelease.description || `${scrapedRelease.brand} ${scrapedRelease.title}`,
+            retailPrice: scrapedRelease.retailPrice || 'TBD',
+            hobbyPrice: scrapedRelease.hobbyPrice || 'TBD',
+            source: 'Bleacher Seats',
+            status: scrapedRelease.status || this.determineStatus(scrapedRelease.releaseDate)
           };
           mergedReleases.push(enhancedRelease);
           existingTitles.add(key);
@@ -1267,11 +1293,12 @@ class ReleaseInfoService {
         return dateA - dateB;
       });
       
-      console.log(`✅ Merged ${mergedReleases.length} total releases (${manualReleases.length} manual + ${scrapedReleases.length} scraped)`);
+      console.log(`✅ Merged ${mergedReleases.length} total releases (${databaseReleases.length} database + ${scrapedReleases.length} scraped)`);
       return mergedReleases;
       
     } catch (error) {
       console.error('❌ Error merging releases:', error.message);
+      // Final fallback to hardcoded releases
       return this.getComprehensiveReleases();
     }
   }

@@ -806,6 +806,7 @@ app.use('/api/live-listings', require('./routes/liveListings'));
   app.use('/api/spreadsheet-manager', require('./routes/spreadsheetManager'));
   app.use('/api/gemrate', require('./routes/gemrate'));
   app.use('/api/130point', require('./routes/130point'));
+  app.use('/api/releases', require('./routes/releases'));
   
   // Routes
   app.use('/api/auth', require('./routes/auth'));
