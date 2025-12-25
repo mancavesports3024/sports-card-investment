@@ -19,21 +19,35 @@ const isAdmin = (req, res, next) => {
 // GET /api/releases - Get all releases with optional filters
 router.get('/', async (req, res) => {
     try {
-        const filters = {};
-        
-        if (req.query.sport) filters.sport = req.query.sport;
-        if (req.query.year) filters.year = req.query.year;
-        if (req.query.status) filters.status = req.query.status;
-        if (req.query.startDate) filters.startDate = req.query.startDate;
-        if (req.query.endDate) filters.endDate = req.query.endDate;
+        // If tables don't exist yet, return empty array instead of error
+        try {
+            const filters = {};
+            
+            if (req.query.sport) filters.sport = req.query.sport;
+            if (req.query.year) filters.year = req.query.year;
+            if (req.query.status) filters.status = req.query.status;
+            if (req.query.startDate) filters.startDate = req.query.startDate;
+            if (req.query.endDate) filters.endDate = req.query.endDate;
 
-        const releases = await releaseDatabaseService.getAllReleases(filters);
-        
-        res.json({
-            success: true,
-            count: releases.length,
-            releases
-        });
+            const releases = await releaseDatabaseService.getAllReleases(filters);
+            
+            res.json({
+                success: true,
+                count: releases.length,
+                releases
+            });
+        } catch (dbError) {
+            // If it's a "relation does not exist" error, tables haven't been created yet
+            if (dbError.message && dbError.message.includes('does not exist')) {
+                return res.json({
+                    success: true,
+                    count: 0,
+                    releases: [],
+                    message: 'Database tables not initialized yet. Call POST /api/releases/init first.'
+                });
+            }
+            throw dbError;
+        }
     } catch (error) {
         console.error('❌ Error getting releases:', error.message);
         res.status(500).json({
