@@ -540,11 +540,13 @@ class ReleaseDatabaseService {
             const today = now.toISOString().split('T')[0];
             const thirtyDaysDate = thirtyDaysFromNow.toISOString().split('T')[0];
 
+            console.log(`🔄 Updating release statuses (today: ${today}, 30 days: ${thirtyDaysDate})`);
+
             // Mark past releases as Released
             await client.query(
                 `UPDATE releases
                  SET status = 'Released', updated_at = CURRENT_TIMESTAMP
-                 WHERE release_date < $1 AND status != 'Released' AND is_active = TRUE`,
+                 WHERE release_date < $1::date AND status != 'Released' AND is_active = TRUE`,
                 [today]
             );
 
