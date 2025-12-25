@@ -562,7 +562,7 @@ class ReleaseDatabaseService {
             await client.query(
                 `UPDATE releases
                  SET status = 'Announced', updated_at = CURRENT_TIMESTAMP
-                 WHERE release_date > $2 AND status != 'Announced' AND is_active = TRUE`,
+                 WHERE release_date > $1::date AND status != 'Announced' AND is_active = TRUE`,
                 [thirtyDaysDate]
             );
 
