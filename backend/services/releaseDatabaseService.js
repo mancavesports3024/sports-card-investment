@@ -4,27 +4,50 @@ class ReleaseDatabaseService {
     constructor() {
         this.pool = new Pool({
             connectionString: process.env.DATABASE_URL,
-            ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+            ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+            // Add connection pool settings to handle connection issues
+            max: 10, // Maximum number of clients in the pool
+            idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+            connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection cannot be established
+            // Retry configuration
+            retry: {
+                max: 3,
+                delay: 1000
+            }
+        });
+        
+        // Handle pool errors
+        this.pool.on('error', (err) => {
+            console.error('❌ Unexpected error on idle database client:', err);
         });
     }
 
-    async connectDatabase() {
-        try {
-            console.log('🔄 Attempting to connect to database...');
-            console.log('🔍 DATABASE_URL exists:', !!process.env.DATABASE_URL);
-            if (process.env.DATABASE_URL) {
-                console.log('🔍 DATABASE_URL starts with:', process.env.DATABASE_URL.substring(0, 30) + '...');
+    async connectDatabase(retries = 3) {
+        for (let attempt = 1; attempt <= retries; attempt++) {
+            try {
+                console.log(`🔄 Attempting to connect to database (attempt ${attempt}/${retries})...`);
+                console.log('🔍 DATABASE_URL exists:', !!process.env.DATABASE_URL);
+                if (process.env.DATABASE_URL) {
+                    console.log('🔍 DATABASE_URL starts with:', process.env.DATABASE_URL.substring(0, 30) + '...');
+                }
+                
+                const client = await this.pool.connect();
+                console.log('✅ Connected to Railway PostgreSQL releases database');
+                client.release();
+                return true;
+            } catch (error) {
+                console.error(`❌ Error connecting to Railway database (attempt ${attempt}/${retries}):`, error.message);
+                console.error('❌ Error code:', error.code);
+                
+                if (attempt < retries) {
+                    const waitTime = attempt * 2000; // Exponential backoff: 2s, 4s, 6s
+                    console.log(`⏳ Retrying in ${waitTime}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                } else {
+                    console.error('❌ Error stack:', error.stack);
+                    throw error;
+                }
             }
-            
-            const client = await this.pool.connect();
-            console.log('✅ Connected to Railway PostgreSQL releases database');
-            client.release();
-            return true;
-        } catch (error) {
-            console.error('❌ Error connecting to Railway database:', error.message);
-            console.error('❌ Error code:', error.code);
-            console.error('❌ Error stack:', error.stack);
-            throw error;
         }
     }
 
@@ -38,11 +61,18 @@ class ReleaseDatabaseService {
     }
 
     async createTables() {
+        // Ensure connection works first
+        await this.connectDatabase();
+        
         const client = await this.pool.connect();
         
         try {
             // First, ensure we're connected to the right database
             // Railway PostgreSQL automatically creates a default database, so we should be good
+            
+            // Test connection with a simple query
+            await client.query('SELECT NOW()');
+            console.log('✅ Database connection verified');
             
             await client.query('BEGIN');
 
