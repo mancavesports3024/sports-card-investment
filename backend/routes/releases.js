@@ -198,6 +198,36 @@ router.delete('/:id', isAdmin, async (req, res) => {
     }
 });
 
+// GET /api/releases/test-db - Test database connection
+router.get('/test-db', async (req, res) => {
+    try {
+        const hasDbUrl = !!process.env.DATABASE_URL;
+        let connectionTest = false;
+        let errorMessage = null;
+
+        if (hasDbUrl) {
+            try {
+                await releaseDatabaseService.connectDatabase();
+                connectionTest = true;
+            } catch (dbError) {
+                errorMessage = dbError.message;
+            }
+        }
+
+        res.json({
+            success: true,
+            hasDatabaseUrl: hasDbUrl,
+            connectionTest: connectionTest,
+            error: errorMessage
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // POST /api/releases/init - Initialize database tables (one-time setup, no auth required for convenience)
 router.post('/init', async (req, res) => {
     try {
@@ -222,12 +252,20 @@ router.post('/init', async (req, res) => {
     } catch (error) {
         console.error('❌ Error initializing database:', error.message);
         console.error('❌ Error stack:', error.stack);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to initialize database',
-            message: error.message,
-            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        });
+        
+        // Ensure we always return JSON, even if there's an error
+        try {
+            res.status(500).json({
+                success: false,
+                error: 'Failed to initialize database',
+                message: error.message,
+                code: error.code,
+                details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            });
+        } catch (sendError) {
+            // If we can't send JSON, at least log it
+            console.error('❌ Failed to send error response:', sendError.message);
+        }
     }
 });
 
