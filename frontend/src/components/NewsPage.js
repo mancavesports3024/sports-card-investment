@@ -128,16 +128,15 @@ const NewsPage = () => {
       <div
         key={`${month}-${day}-${year}`}
         style={{
-          minHeight: '140px', // Increased from 120px for better mobile experience
-          padding: '12px 8px', // Increased padding for better touch targets
+          minHeight: '90px', // Reduced from 140px
+          padding: '6px 4px', // Reduced padding
           border: '1px solid #374151',
           backgroundColor: isToday ? '#ffd700' : (isCurrentMonth ? '#1f2937' : '#111827'),
           color: isToday ? '#000' : (isCurrentMonth ? '#fff' : '#6b7280'),
           position: 'relative',
           cursor: releasesForDay.length > 0 ? 'pointer' : 'default',
           transition: 'all 0.2s ease',
-          // Mobile-specific improvements
-          fontSize: 'clamp(0.8rem, 2.5vw, 1rem)', // Responsive font size
+          fontSize: 'clamp(0.7rem, 2vw, 0.85rem)', // Smaller font size
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'flex-start'
@@ -153,9 +152,9 @@ const NewsPage = () => {
         }}
       >
         <div style={{
-          fontSize: 'clamp(0.9rem, 3vw, 1.1rem)', // Responsive font size
+          fontSize: 'clamp(0.75rem, 2.5vw, 0.9rem)', // Smaller font size
           fontWeight: isToday ? 700 : 500,
-          marginBottom: '6px',
+          marginBottom: '3px', // Reduced margin
           textAlign: 'center'
         }}>
           {day}
@@ -165,10 +164,10 @@ const NewsPage = () => {
           <div
             key={`${release.title}-${index}`}
             style={{
-              fontSize: 'clamp(0.6rem, 2vw, 0.8rem)', // Responsive font size
-              padding: '4px 6px', // Increased padding for better touch
-              marginBottom: '3px',
-              borderRadius: '4px',
+              fontSize: 'clamp(0.5rem, 1.5vw, 0.65rem)', // Smaller font size
+              padding: '2px 4px', // Reduced padding
+              marginBottom: '2px', // Reduced margin
+              borderRadius: '3px',
               backgroundColor: getBrandColor(release.brand),
               color: '#fff',
               fontWeight: 600,
@@ -178,8 +177,7 @@ const NewsPage = () => {
               border: '1px solid rgba(255,255,255,0.2)',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              // Mobile improvements
-              minHeight: '20px', // Minimum touch target height
+              minHeight: '16px', // Reduced height
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -205,10 +203,10 @@ const NewsPage = () => {
         
         {releasesForDay.length > 2 && (
           <div style={{
-            fontSize: 'clamp(0.5rem, 1.8vw, 0.7rem)', // Responsive font size
+            fontSize: 'clamp(0.45rem, 1.5vw, 0.6rem)', // Smaller font size
             color: isToday ? '#000' : '#9ca3af',
             textAlign: 'center',
-            marginTop: '4px',
+            marginTop: '2px', // Reduced margin
             fontWeight: 500
           }}>
             +{releasesForDay.length - 2} more
@@ -790,7 +788,7 @@ const NewsPage = () => {
           <div style={{
             background: '#1f2937',
             borderRadius: 12,
-            padding: 'clamp(0.5rem, 2vw, 1.5rem)',
+            padding: 'clamp(0.4rem, 1.5vw, 1rem)', // Reduced padding
             border: '2px solid #374151',
             marginBottom: '2rem',
             overflow: 'auto'
@@ -801,15 +799,15 @@ const NewsPage = () => {
               gridTemplateColumns: 'repeat(7, 1fr)',
               gap: '1px',
               marginBottom: '1px',
-              minWidth: '600px' // Ensure minimum width for readability
+              minWidth: '500px' // Reduced minimum width
             }}>
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                 <div key={day} style={{
-                  padding: 'clamp(0.5rem, 2vw, 1rem)',
+                  padding: 'clamp(0.4rem, 1.5vw, 0.7rem)', // Reduced padding
                   textAlign: 'center',
                   fontWeight: 700,
                   color: '#ffd700',
-                  fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
+                  fontSize: 'clamp(0.7rem, 2vw, 0.85rem)', // Smaller font size
                   backgroundColor: '#374151',
                   border: '1px solid #4b5563'
                 }}>
@@ -823,7 +821,7 @@ const NewsPage = () => {
               display: 'grid',
               gridTemplateColumns: 'repeat(7, 1fr)',
               gap: '1px',
-              minWidth: '600px' // Ensure minimum width for readability
+              minWidth: '500px' // Reduced minimum width
             }}>
               {renderCalendar()}
             </div>
