@@ -182,6 +182,17 @@ router.delete('/:id', isAdmin, async (req, res) => {
 router.post('/init', async (req, res) => {
     try {
         console.log('🔄 Initializing release database tables...');
+        console.log('🔍 DATABASE_URL check:', process.env.DATABASE_URL ? 'Found' : 'NOT FOUND');
+        
+        // Check if DATABASE_URL is set
+        if (!process.env.DATABASE_URL) {
+            return res.status(500).json({
+                success: false,
+                error: 'DATABASE_URL environment variable not set',
+                message: 'Please configure DATABASE_URL in Railway environment variables'
+            });
+        }
+        
         await releaseDatabaseService.createTables();
         
         res.json({
@@ -190,10 +201,12 @@ router.post('/init', async (req, res) => {
         });
     } catch (error) {
         console.error('❌ Error initializing database:', error.message);
+        console.error('❌ Error stack:', error.stack);
         res.status(500).json({
             success: false,
             error: 'Failed to initialize database',
-            message: error.message
+            message: error.message,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });
