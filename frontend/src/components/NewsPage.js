@@ -355,10 +355,6 @@ const NewsPage = () => {
               <div style={{ color: '#d1d5db' }}>{selectedRelease.sport || 'Trading Cards'}</div>
             </div>
             <div>
-              <strong style={{ color: '#ffd700' }}>Type:</strong>
-              <div style={{ color: '#d1d5db' }}>{selectedRelease.type || 'Unknown'}</div>
-            </div>
-            <div>
               <strong style={{ color: '#ffd700' }}>Status:</strong>
               <div style={{
                 color: '#fff',
