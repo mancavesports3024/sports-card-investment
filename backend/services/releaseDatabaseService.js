@@ -66,20 +66,43 @@ class ReleaseDatabaseService {
     }
 
     async createTables() {
-        // Ensure connection works first
-        await this.connectDatabase();
+        let client;
+        let retries = 3;
         
-        const client = await this.pool.connect();
+        for (let attempt = 1; attempt <= retries; attempt++) {
+            try {
+                console.log(`🔄 Attempting to create tables (attempt ${attempt}/${retries})...`);
+                client = await this.pool.connect();
+                console.log('✅ Got database client');
+                
+                // Test connection with a simple query
+                await client.query('SELECT NOW()');
+                console.log('✅ Database connection verified');
+                
+                await client.query('BEGIN');
+                break; // Success, exit retry loop
+            } catch (connectError) {
+                console.error(`❌ Connection attempt ${attempt} failed:`, connectError.message);
+                if (client) {
+                    client.release();
+                    client = null;
+                }
+                
+                if (attempt < retries) {
+                    const waitTime = attempt * 2000;
+                    console.log(`⏳ Waiting ${waitTime}ms before retry...`);
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                } else {
+                    throw new Error(`Failed to connect after ${retries} attempts: ${connectError.message}`);
+                }
+            }
+        }
+        
+        if (!client) {
+            throw new Error('Failed to obtain database client');
+        }
         
         try {
-            // First, ensure we're connected to the right database
-            // Railway PostgreSQL automatically creates a default database, so we should be good
-            
-            // Test connection with a simple query
-            await client.query('SELECT NOW()');
-            console.log('✅ Database connection verified');
-            
-            await client.query('BEGIN');
 
             // Create releases table
             await client.query(`
