@@ -6,10 +6,23 @@ router.get('/health', (req, res) => {
     res.json({ success: true, message: 'Releases API is working' });
 });
 
-const releaseDatabaseService = require('../services/releaseDatabaseService');
-const releaseInfoService = require('../services/releaseInfoService');
-const bleacherSeatsScraper = require('../services/bleacherSeatsScraperService');
-const releaseScheduledJobs = require('../services/releaseScheduledJobs');
+// Lazy load services to avoid module loading errors
+let releaseDatabaseService, releaseInfoService, bleacherSeatsScraper, releaseScheduledJobs;
+
+function loadServices() {
+    if (!releaseDatabaseService) {
+        try {
+            releaseDatabaseService = require('../services/releaseDatabaseService');
+            releaseInfoService = require('../services/releaseInfoService');
+            bleacherSeatsScraper = require('../services/bleacherSeatsScraperService');
+            releaseScheduledJobs = require('../services/releaseScheduledJobs');
+        } catch (error) {
+            console.error('❌ Error loading release services:', error.message);
+            throw error;
+        }
+    }
+    return { releaseDatabaseService, releaseInfoService, bleacherSeatsScraper, releaseScheduledJobs };
+}
 
 // Middleware to check if user is authenticated admin (placeholder - implement based on your auth system)
 const isAdmin = (req, res, next) => {
@@ -25,6 +38,7 @@ const isAdmin = (req, res, next) => {
 // GET /api/releases - Get all releases with optional filters
 router.get('/', async (req, res) => {
     try {
+        const { releaseDatabaseService } = loadServices();
         // If tables don't exist yet, return empty array instead of error
         try {
             const filters = {};
@@ -35,7 +49,7 @@ router.get('/', async (req, res) => {
             if (req.query.startDate) filters.startDate = req.query.startDate;
             if (req.query.endDate) filters.endDate = req.query.endDate;
 
-            const releases = await releaseDatabaseService.getAllReleases(filters);
+            const releases = await loadServices().releaseDatabaseService.getAllReleases(filters);
             
             res.json({
                 success: true,
@@ -67,7 +81,7 @@ router.get('/', async (req, res) => {
 // GET /api/releases/:id - Get single release by ID
 router.get('/:id', async (req, res) => {
     try {
-        const release = await releaseDatabaseService.getReleaseById(parseInt(req.params.id));
+        const release = await loadServices().releaseDatabaseService.getReleaseById(parseInt(req.params.id));
         
         if (!release) {
             return res.status(404).json({
@@ -102,7 +116,7 @@ router.post('/', isAdmin, async (req, res) => {
             });
         }
 
-        const release = await releaseDatabaseService.addRelease({
+        const release = await loadServices().releaseDatabaseService.addRelease({
             title,
             brand,
             sport,
@@ -124,7 +138,7 @@ router.post('/', isAdmin, async (req, res) => {
         }
 
         // Clear cache
-        await releaseInfoService.clearCache();
+        await loadServices().releaseInfoService.clearCache();
 
         res.status(201).json({
             success: true,
@@ -143,7 +157,7 @@ router.post('/', isAdmin, async (req, res) => {
 // PUT /api/releases/:id - Update existing release (requires authentication)
 router.put('/:id', isAdmin, async (req, res) => {
     try {
-        const release = await releaseDatabaseService.updateRelease(parseInt(req.params.id), req.body);
+        const release = await loadServices().releaseDatabaseService.updateRelease(parseInt(req.params.id), req.body);
 
         if (!release) {
             return res.status(404).json({
@@ -153,7 +167,7 @@ router.put('/:id', isAdmin, async (req, res) => {
         }
 
         // Clear cache
-        await releaseInfoService.clearCache();
+        await loadServices().releaseInfoService.clearCache();
 
         res.json({
             success: true,
@@ -172,7 +186,7 @@ router.put('/:id', isAdmin, async (req, res) => {
 // DELETE /api/releases/:id - Soft delete release (requires authentication)
 router.delete('/:id', isAdmin, async (req, res) => {
     try {
-        const deleted = await releaseDatabaseService.deleteRelease(parseInt(req.params.id));
+        const deleted = await loadServices().releaseDatabaseService.deleteRelease(parseInt(req.params.id));
 
         if (!deleted) {
             return res.status(404).json({
@@ -182,7 +196,7 @@ router.delete('/:id', isAdmin, async (req, res) => {
         }
 
         // Clear cache
-        await releaseInfoService.clearCache();
+        await loadServices().releaseInfoService.clearCache();
 
         res.json({
             success: true,
@@ -201,13 +215,14 @@ router.delete('/:id', isAdmin, async (req, res) => {
 // GET /api/releases/test-db - Test database connection
 router.get('/test-db', async (req, res) => {
     try {
+        const { releaseDatabaseService } = loadServices();
         const hasDbUrl = !!process.env.DATABASE_URL;
         let connectionTest = false;
         let errorMessage = null;
 
         if (hasDbUrl) {
             try {
-                await releaseDatabaseService.connectDatabase();
+                await loadServices().releaseDatabaseService.connectDatabase();
                 connectionTest = true;
             } catch (dbError) {
                 errorMessage = dbError.message;
@@ -223,7 +238,8 @@ router.get('/test-db', async (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            error: error.message
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });
@@ -231,6 +247,7 @@ router.get('/test-db', async (req, res) => {
 // POST /api/releases/init - Initialize database tables (one-time setup, no auth required for convenience)
 router.post('/init', async (req, res) => {
     try {
+        const { releaseDatabaseService } = loadServices();
         console.log('🔄 Initializing release database tables...');
         console.log('🔍 DATABASE_URL check:', process.env.DATABASE_URL ? 'Found' : 'NOT FOUND');
         
@@ -243,7 +260,7 @@ router.post('/init', async (req, res) => {
             });
         }
         
-        await releaseDatabaseService.createTables();
+        await loadServices().releaseDatabaseService.createTables();
         
         res.json({
             success: true,
@@ -276,7 +293,7 @@ router.post('/migrate', async (req, res) => {
         await migrateReleases();
 
         // Clear cache
-        await releaseInfoService.clearCache();
+        await loadServices().releaseInfoService.clearCache();
 
         res.json({
             success: true,
@@ -298,17 +315,17 @@ router.post('/sync', isAdmin, async (req, res) => {
         console.log('🔄 Manual sync triggered...');
         
         // Get scraped releases
-        const scrapedReleases = await bleacherSeatsScraper.getLatestReleases();
+        const scrapedReleases = await loadServices().bleacherSeatsScraper.getLatestReleases();
         console.log(`✅ Scraped ${scrapedReleases.length} releases from Bleacher Seats`);
 
         // Sync to database
-        const result = await releaseDatabaseService.syncScrapedReleases(scrapedReleases);
+        const result = await loadServices().releaseDatabaseService.syncScrapedReleases(scrapedReleases);
 
         // Update statuses
-        await releaseDatabaseService.updateStatuses();
+        await loadServices().releaseDatabaseService.updateStatuses();
 
         // Clear cache
-        await releaseInfoService.clearCache();
+        await loadServices().releaseInfoService.clearCache();
 
         res.json({
             success: true,
@@ -330,7 +347,7 @@ router.post('/sync', isAdmin, async (req, res) => {
 router.get('/upcoming', async (req, res) => {
     try {
         const days = parseInt(req.query.days) || 30;
-        const releases = await releaseDatabaseService.getUpcomingReleases(days);
+        const releases = await loadServices().releaseDatabaseService.getUpcomingReleases(days);
 
         res.json({
             success: true,
@@ -352,7 +369,7 @@ router.get('/upcoming', async (req, res) => {
 router.get('/recent', async (req, res) => {
     try {
         const days = parseInt(req.query.days) || 30;
-        const releases = await releaseDatabaseService.getRecentReleases(days);
+        const releases = await loadServices().releaseDatabaseService.getRecentReleases(days);
 
         res.json({
             success: true,
@@ -373,7 +390,7 @@ router.get('/recent', async (req, res) => {
 // POST /api/releases/jobs/update-statuses - Manually trigger status update job (requires authentication)
 router.post('/jobs/update-statuses', isAdmin, async (req, res) => {
     try {
-        const result = await releaseScheduledJobs.updateReleaseStatuses();
+        const result = await loadServices().releaseScheduledJobs.updateReleaseStatuses();
         res.json({
             success: result.success,
             message: result.success ? 'Status update job completed' : 'Status update job failed',
@@ -392,7 +409,7 @@ router.post('/jobs/update-statuses', isAdmin, async (req, res) => {
 // POST /api/releases/jobs/sync - Manually trigger sync job (requires authentication)
 router.post('/jobs/sync', isAdmin, async (req, res) => {
     try {
-        const result = await releaseScheduledJobs.syncScrapedReleases();
+        const result = await loadServices().releaseScheduledJobs.syncScrapedReleases();
         res.json({
             success: result.success,
             message: result.success ? 'Sync job completed' : 'Sync job failed',
@@ -411,7 +428,7 @@ router.post('/jobs/sync', isAdmin, async (req, res) => {
 // POST /api/releases/jobs/cleanup - Manually trigger cleanup job (requires authentication)
 router.post('/jobs/cleanup', isAdmin, async (req, res) => {
     try {
-        const result = await releaseScheduledJobs.cleanupOldReleases();
+        const result = await loadServices().releaseScheduledJobs.cleanupOldReleases();
         res.json({
             success: result.success,
             message: result.success ? 'Cleanup job completed' : 'Cleanup job failed',
@@ -430,7 +447,7 @@ router.post('/jobs/cleanup', isAdmin, async (req, res) => {
 // POST /api/releases/jobs/run-all - Run all scheduled jobs (requires authentication)
 router.post('/jobs/run-all', isAdmin, async (req, res) => {
     try {
-        const results = await releaseScheduledJobs.runAllJobs();
+        const results = await loadServices().releaseScheduledJobs.runAllJobs();
         res.json({
             success: true,
             message: 'All scheduled jobs completed',
@@ -447,4 +464,5 @@ router.post('/jobs/run-all', isAdmin, async (req, res) => {
 });
 
 module.exports = router;
+
 
