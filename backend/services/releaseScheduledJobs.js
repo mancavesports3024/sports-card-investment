@@ -10,6 +10,8 @@ class ReleaseScheduledJobs {
     async updateReleaseStatuses() {
         try {
             console.log('🔄 [Scheduled Job] Updating release statuses...');
+            const { releaseDatabaseService, releaseInfoService } = loadServices();
+            
             await releaseDatabaseService.updateStatuses();
             
             // Clear cache to reflect new statuses
@@ -19,6 +21,7 @@ class ReleaseScheduledJobs {
             return { success: true, job: 'updateReleaseStatuses' };
         } catch (error) {
             console.error('❌ [Scheduled Job] Error updating release statuses:', error.message);
+            console.error('❌ Error stack:', error.stack);
             return { success: false, job: 'updateReleaseStatuses', error: error.message };
         }
     }
@@ -30,6 +33,7 @@ class ReleaseScheduledJobs {
     async syncScrapedReleases() {
         try {
             console.log('🔄 [Scheduled Job] Syncing scraped releases from Bleacher Seats...');
+            const { releaseDatabaseService, bleacherSeatsScraper, releaseInfoService } = loadServices();
             
             // Get scraped releases
             const scrapedReleases = await bleacherSeatsScraper.getLatestReleases();
@@ -64,6 +68,7 @@ class ReleaseScheduledJobs {
     async cleanupOldReleases() {
         try {
             console.log('🔄 [Scheduled Job] Cleaning up old releases...');
+            const { releaseDatabaseService } = loadServices();
             
             const oneYearAgo = new Date();
             oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
