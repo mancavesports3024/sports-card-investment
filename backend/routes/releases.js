@@ -12,12 +12,18 @@ let releaseDatabaseService, releaseInfoService, bleacherSeatsScraper, releaseSch
 function loadServices() {
     if (!releaseDatabaseService) {
         try {
+            console.log('🔄 Loading release services...');
             releaseDatabaseService = require('../services/releaseDatabaseService');
+            console.log('✅ releaseDatabaseService loaded');
             releaseInfoService = require('../services/releaseInfoService');
+            console.log('✅ releaseInfoService loaded');
             bleacherSeatsScraper = require('../services/bleacherSeatsScraperService');
+            console.log('✅ bleacherSeatsScraper loaded');
             releaseScheduledJobs = require('../services/releaseScheduledJobs');
+            console.log('✅ releaseScheduledJobs loaded');
         } catch (error) {
             console.error('❌ Error loading release services:', error.message);
+            console.error('❌ Error stack:', error.stack);
             throw error;
         }
     }
@@ -215,15 +221,22 @@ router.delete('/:id', isAdmin, async (req, res) => {
 // GET /api/releases/test-db - Test database connection
 router.get('/test-db', async (req, res) => {
     try {
+        console.log('🔍 Testing database connection...');
+        console.log('🔍 DATABASE_URL exists:', !!process.env.DATABASE_URL);
+        
         let loadError = null;
         let services = null;
         
         try {
             services = loadServices();
+            console.log('✅ Services loaded successfully');
         } catch (err) {
+            console.error('❌ Failed to load services:', err.message);
+            console.error('❌ Stack:', err.stack);
             loadError = {
                 message: err.message,
-                code: err.code
+                code: err.code,
+                stack: err.stack
             };
         }
         
@@ -242,11 +255,16 @@ router.get('/test-db', async (req, res) => {
 
         if (hasDbUrl) {
             try {
+                console.log('🔄 Attempting database connection...');
                 await releaseDatabaseService.connectDatabase();
                 connectionTest = true;
+                console.log('✅ Database connection successful');
             } catch (dbError) {
+                console.error('❌ Database connection failed:', dbError.message);
                 errorMessage = dbError.message;
             }
+        } else {
+            console.log('⚠️ DATABASE_URL not set');
         }
 
         res.json({
@@ -256,6 +274,8 @@ router.get('/test-db', async (req, res) => {
             error: errorMessage
         });
     } catch (error) {
+        console.error('❌ Unexpected error in test-db:', error.message);
+        console.error('❌ Stack:', error.stack);
         res.status(500).json({
             success: false,
             error: error.message,
