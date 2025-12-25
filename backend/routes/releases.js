@@ -1,5 +1,11 @@
 const express = require('express');
 const router = express.Router();
+
+// Health check endpoint to verify route is loaded
+router.get('/health', (req, res) => {
+    res.json({ success: true, message: 'Releases API is working' });
+});
+
 const releaseDatabaseService = require('../services/releaseDatabaseService');
 const releaseInfoService = require('../services/releaseInfoService');
 const bleacherSeatsScraper = require('../services/bleacherSeatsScraperService');
