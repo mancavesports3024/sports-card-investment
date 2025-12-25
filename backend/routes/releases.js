@@ -178,6 +178,26 @@ router.delete('/:id', isAdmin, async (req, res) => {
     }
 });
 
+// POST /api/releases/init - Initialize database tables (one-time setup, no auth required for convenience)
+router.post('/init', async (req, res) => {
+    try {
+        console.log('🔄 Initializing release database tables...');
+        await releaseDatabaseService.createTables();
+        
+        res.json({
+            success: true,
+            message: 'Database tables initialized successfully'
+        });
+    } catch (error) {
+        console.error('❌ Error initializing database:', error.message);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to initialize database',
+            message: error.message
+        });
+    }
+});
+
 // POST /api/releases/migrate - One-time migration endpoint (requires authentication)
 router.post('/migrate', isAdmin, async (req, res) => {
     try {
