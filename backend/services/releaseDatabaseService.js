@@ -2,18 +2,23 @@ const { Pool } = require('pg');
 
 class ReleaseDatabaseService {
     constructor() {
+        // Try DATABASE_PUBLIC_URL first (for external connections), fallback to DATABASE_URL
+        const connectionString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+        
+        console.log('🔍 Using connection string:', connectionString ? connectionString.substring(0, 30) + '...' : 'NOT FOUND');
+        console.log('🔍 DATABASE_PUBLIC_URL:', !!process.env.DATABASE_PUBLIC_URL);
+        console.log('🔍 DATABASE_URL:', !!process.env.DATABASE_URL);
+        
         this.pool = new Pool({
-            connectionString: process.env.DATABASE_URL,
+            connectionString: connectionString,
             ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
             // Add connection pool settings to handle connection issues
             max: 10, // Maximum number of clients in the pool
             idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-            connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection cannot be established
-            // Retry configuration
-            retry: {
-                max: 3,
-                delay: 1000
-            }
+            connectionTimeoutMillis: 20000, // Return an error after 20 seconds if connection cannot be established
+            // Keep connections alive
+            keepAlive: true,
+            keepAliveInitialDelayMillis: 10000
         });
         
         // Handle pool errors
