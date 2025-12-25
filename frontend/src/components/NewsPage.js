@@ -659,49 +659,6 @@ const NewsPage = () => {
 
       {!isLoading && !error && (
         <div>
-          {/* Calendar Grid */}
-          <div style={{
-            background: '#1f2937',
-            borderRadius: 12,
-            padding: 'clamp(0.5rem, 2vw, 1.5rem)',
-            border: '2px solid #374151',
-            marginBottom: '2rem',
-            overflow: 'auto'
-          }}>
-            {/* Calendar Header */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(7, 1fr)',
-              gap: '1px',
-              marginBottom: '1px',
-              minWidth: '600px' // Ensure minimum width for readability
-            }}>
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} style={{
-                  padding: 'clamp(0.5rem, 2vw, 1rem)',
-                  textAlign: 'center',
-                  fontWeight: 700,
-                  color: '#ffd700',
-                  fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
-                  backgroundColor: '#374151',
-                  border: '1px solid #4b5563'
-                }}>
-                  {day}
-                </div>
-              ))}
-            </div>
-            
-            {/* Calendar Days */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(7, 1fr)',
-              gap: '1px',
-              minWidth: '600px' // Ensure minimum width for readability
-            }}>
-              {renderCalendar()}
-            </div>
-          </div>
-
           {/* Legend */}
           <div style={{
             background: '#1f2937',
@@ -812,6 +769,49 @@ const NewsPage = () => {
                   fontWeight: 500
                 }}>Today</span>
               </div>
+            </div>
+          </div>
+
+          {/* Calendar Grid */}
+          <div style={{
+            background: '#1f2937',
+            borderRadius: 12,
+            padding: 'clamp(0.5rem, 2vw, 1.5rem)',
+            border: '2px solid #374151',
+            marginBottom: '2rem',
+            overflow: 'auto'
+          }}>
+            {/* Calendar Header */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(7, 1fr)',
+              gap: '1px',
+              marginBottom: '1px',
+              minWidth: '600px' // Ensure minimum width for readability
+            }}>
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                <div key={day} style={{
+                  padding: 'clamp(0.5rem, 2vw, 1rem)',
+                  textAlign: 'center',
+                  fontWeight: 700,
+                  color: '#ffd700',
+                  fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
+                  backgroundColor: '#374151',
+                  border: '1px solid #4b5563'
+                }}>
+                  {day}
+                </div>
+              ))}
+            </div>
+            
+            {/* Calendar Days */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(7, 1fr)',
+              gap: '1px',
+              minWidth: '600px' // Ensure minimum width for readability
+            }}>
+              {renderCalendar()}
             </div>
           </div>
 
