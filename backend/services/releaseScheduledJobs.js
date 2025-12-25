@@ -10,7 +10,7 @@ class ReleaseScheduledJobs {
     async updateReleaseStatuses() {
         try {
             console.log('🔄 [Scheduled Job] Updating release statuses...');
-            const { releaseDatabaseService, releaseInfoService } = loadServices();
+            const { releaseDatabaseService, releaseInfoService } = this.loadServices();
             
             await releaseDatabaseService.updateStatuses();
             
@@ -33,7 +33,7 @@ class ReleaseScheduledJobs {
     async syncScrapedReleases() {
         try {
             console.log('🔄 [Scheduled Job] Syncing scraped releases from Bleacher Seats...');
-            const { releaseDatabaseService, bleacherSeatsScraper, releaseInfoService } = loadServices();
+            const { releaseDatabaseService, bleacherSeatsScraper, releaseInfoService } = this.loadServices();
             
             // Get scraped releases
             const scrapedReleases = await bleacherSeatsScraper.getLatestReleases();
@@ -68,7 +68,7 @@ class ReleaseScheduledJobs {
     async cleanupOldReleases() {
         try {
             console.log('🔄 [Scheduled Job] Cleaning up old releases...');
-            const { releaseDatabaseService } = loadServices();
+            const { releaseDatabaseService } = this.loadServices();
             
             const oneYearAgo = new Date();
             oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
