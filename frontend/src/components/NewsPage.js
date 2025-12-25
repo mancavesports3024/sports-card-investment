@@ -475,29 +475,6 @@ const NewsPage = () => {
           <strong style={{ color: '#374151' }}>Sport:</strong>
           <div style={{ color: '#6b7280' }}>{release.sport || 'Trading Cards'}</div>
         </div>
-        <div>
-          <strong style={{ color: '#374151' }}>Source:</strong>
-          <div style={{ color: '#6b7280' }}>{release.source || 'Unknown'}</div>
-        </div>
-      </div>
-
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        padding: '1rem',
-        background: '#f9fafb',
-        borderRadius: 8,
-        border: '1px solid #e5e7eb'
-      }}>
-        <div>
-          <strong style={{ color: '#374151' }}>Retail Pack:</strong>
-          <div style={{ color: '#059669', fontWeight: 600 }}>{release.retailPrice || 'TBD'}</div>
-        </div>
-        <div>
-          <strong style={{ color: '#374151' }}>Hobby Box:</strong>
-          <div style={{ color: '#dc2626', fontWeight: 600 }}>{release.hobbyPrice || 'TBD'}</div>
-        </div>
       </div>
     </div>
   );
