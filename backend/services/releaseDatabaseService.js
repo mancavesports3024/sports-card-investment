@@ -2,28 +2,30 @@ const { Pool } = require('pg');
 
 class ReleaseDatabaseService {
     constructor() {
-        // Try DATABASE_PUBLIC_URL first (for external connections), fallback to DATABASE_URL
-        const connectionString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+        // Use DATABASE_URL (internal connection within Railway is more reliable)
+        // DATABASE_PUBLIC_URL is for external connections
+        const connectionString = process.env.DATABASE_URL;
         
-        console.log('🔍 Using connection string:', connectionString ? connectionString.substring(0, 30) + '...' : 'NOT FOUND');
-        console.log('🔍 DATABASE_PUBLIC_URL:', !!process.env.DATABASE_PUBLIC_URL);
-        console.log('🔍 DATABASE_URL:', !!process.env.DATABASE_URL);
+        if (!connectionString) {
+            throw new Error('DATABASE_URL environment variable is not set');
+        }
+        
+        console.log('🔍 Using DATABASE_URL for connection');
+        console.log('🔍 Connection string starts with:', connectionString.substring(0, 40) + '...');
         
         this.pool = new Pool({
             connectionString: connectionString,
             ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-            // Add connection pool settings to handle connection issues
-            max: 10, // Maximum number of clients in the pool
-            idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-            connectionTimeoutMillis: 20000, // Return an error after 20 seconds if connection cannot be established
-            // Keep connections alive
-            keepAlive: true,
-            keepAliveInitialDelayMillis: 10000
+            // Conservative pool settings for Railway
+            max: 5, // Maximum number of clients in the pool (lower for Railway)
+            idleTimeoutMillis: 30000,
+            connectionTimeoutMillis: 30000, // 30 seconds timeout
+            // Don't use keepAlive as it might conflict with Railway's connection handling
         });
         
-        // Handle pool errors
+        // Handle pool errors gracefully
         this.pool.on('error', (err) => {
-            console.error('❌ Unexpected error on idle database client:', err);
+            console.error('❌ Unexpected error on idle database client:', err.message);
         });
     }
 
