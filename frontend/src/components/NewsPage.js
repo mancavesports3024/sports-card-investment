@@ -373,30 +373,6 @@ const NewsPage = () => {
               </div>
             </div>
           </div>
-
-          {/* Pricing */}
-          <div style={{
-            background: '#374151',
-            borderRadius: 8,
-            padding: '1rem',
-            border: '1px solid #4b5563'
-          }}>
-            <h3 style={{ color: '#ffd700', margin: '0 0 1rem 0', fontSize: '1.1rem' }}>Pricing</h3>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <strong style={{ color: '#d1d5db' }}>Retail Pack:</strong>
-                <div style={{ color: '#10b981', fontWeight: 600, fontSize: '1.1rem' }}>
-                  {selectedRelease.retailPrice || 'TBD'}
-                </div>
-              </div>
-              <div>
-                <strong style={{ color: '#d1d5db' }}>Hobby Box:</strong>
-                <div style={{ color: '#ef4444', fontWeight: 600, fontSize: '1.1rem' }}>
-                  {selectedRelease.hobbyPrice || 'TBD'}
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     );
