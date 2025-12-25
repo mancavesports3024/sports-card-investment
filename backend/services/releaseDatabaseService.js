@@ -10,12 +10,20 @@ class ReleaseDatabaseService {
 
     async connectDatabase() {
         try {
+            console.log('🔄 Attempting to connect to database...');
+            console.log('🔍 DATABASE_URL exists:', !!process.env.DATABASE_URL);
+            if (process.env.DATABASE_URL) {
+                console.log('🔍 DATABASE_URL starts with:', process.env.DATABASE_URL.substring(0, 30) + '...');
+            }
+            
             const client = await this.pool.connect();
             console.log('✅ Connected to Railway PostgreSQL releases database');
             client.release();
             return true;
         } catch (error) {
             console.error('❌ Error connecting to Railway database:', error.message);
+            console.error('❌ Error code:', error.code);
+            console.error('❌ Error stack:', error.stack);
             throw error;
         }
     }
