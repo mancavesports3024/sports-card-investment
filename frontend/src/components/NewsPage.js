@@ -614,7 +614,14 @@ const NewsPage = () => {
         gap: '0.5rem'
       }}>
         <button
-          onClick={() => setCurrentMonth(prev => prev === 0 ? 11 : prev - 1)}
+          onClick={() => {
+            if (currentMonth === 0) {
+              setCurrentMonth(11);
+              setCurrentYear(prev => prev - 1);
+            } else {
+              setCurrentMonth(prev => prev - 1);
+            }
+          }}
           style={{
             background: '#000',
             color: '#ffd700',
@@ -640,7 +647,14 @@ const NewsPage = () => {
           {months[currentMonth]} {currentYear}
         </h3>
         <button
-          onClick={() => setCurrentMonth(prev => prev === 11 ? 0 : prev + 1)}
+          onClick={() => {
+            if (currentMonth === 11) {
+              setCurrentMonth(0);
+              setCurrentYear(prev => prev + 1);
+            } else {
+              setCurrentMonth(prev => prev + 1);
+            }
+          }}
           style={{
             background: '#000',
             color: '#ffd700',
