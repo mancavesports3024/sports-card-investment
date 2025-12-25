@@ -2140,6 +2140,15 @@ const { DatabaseDrivenStandardizedTitleGenerator } = require('./generate-standar
     const commitSha = process.env.RAILWAY_GIT_COMMIT_SHA || process.env.COMMIT_SHA || process.env.VERCEL_GIT_COMMIT_SHA || 'unknown';
     const verboseExtraction = process.env.VERBOSE_EXTRACTION === '1' || process.env.VERBOSE_EXTRACTION === 'true';
     console.log(`🧾 Version: ${appVersion} | Commit: ${commitSha} | VERBOSE_EXTRACTION=${verboseExtraction}`);
+    
+    // Start release calendar scheduled jobs
+    try {
+      const releaseCalendarScheduler = require('./services/releaseCalendarScheduler');
+      releaseCalendarScheduler.start();
+    } catch (error) {
+      console.error('❌ Failed to start release calendar scheduler:', error.message);
+      console.error('   Scheduled jobs will not run automatically');
+    }
     console.log(`📊 API endpoints:`);
     console.log(`   • POST /api/search-cards - Search for trading cards`);
     console.log(`   • GET /api/search-history - Get saved searches`);
