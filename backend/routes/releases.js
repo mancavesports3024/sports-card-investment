@@ -215,14 +215,34 @@ router.delete('/:id', isAdmin, async (req, res) => {
 // GET /api/releases/test-db - Test database connection
 router.get('/test-db', async (req, res) => {
     try {
-        const { releaseDatabaseService } = loadServices();
+        let loadError = null;
+        let services = null;
+        
+        try {
+            services = loadServices();
+        } catch (err) {
+            loadError = {
+                message: err.message,
+                code: err.code
+            };
+        }
+        
+        if (loadError) {
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to load services',
+                loadError: loadError
+            });
+        }
+        
+        const { releaseDatabaseService } = services;
         const hasDbUrl = !!process.env.DATABASE_URL;
         let connectionTest = false;
         let errorMessage = null;
 
         if (hasDbUrl) {
             try {
-                await loadServices().releaseDatabaseService.connectDatabase();
+                await releaseDatabaseService.connectDatabase();
                 connectionTest = true;
             } catch (dbError) {
                 errorMessage = dbError.message;
@@ -239,7 +259,7 @@ router.get('/test-db', async (req, res) => {
         res.status(500).json({
             success: false,
             error: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            stack: error.stack
         });
     }
 });
