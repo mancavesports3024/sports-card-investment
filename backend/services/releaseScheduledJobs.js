@@ -1,8 +1,17 @@
-const releaseDatabaseService = require('./releaseDatabaseService');
-const bleacherSeatsScraper = require('./bleacherSeatsScraperService');
-const releaseInfoService = require('./releaseInfoService');
-
 class ReleaseScheduledJobs {
+    // Lazy load services to avoid circular dependencies
+    loadServices() {
+        if (!this._releaseDatabaseService) {
+            this._releaseDatabaseService = require('./releaseDatabaseService');
+            this._bleacherSeatsScraper = require('./bleacherSeatsScraperService');
+            this._releaseInfoService = require('./releaseInfoService');
+        }
+        return { 
+            releaseDatabaseService: this._releaseDatabaseService, 
+            bleacherSeatsScraper: this._bleacherSeatsScraper, 
+            releaseInfoService: this._releaseInfoService 
+        };
+    }
     /**
      * Daily job to update release statuses automatically
      * Should run at midnight daily
