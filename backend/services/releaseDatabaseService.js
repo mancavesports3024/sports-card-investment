@@ -33,6 +33,9 @@ class ReleaseDatabaseService {
         const client = await this.pool.connect();
         
         try {
+            // First, ensure we're connected to the right database
+            // Railway PostgreSQL automatically creates a default database, so we should be good
+            
             await client.query('BEGIN');
 
             // Create releases table
