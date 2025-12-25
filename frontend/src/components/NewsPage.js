@@ -890,127 +890,6 @@ const NewsPage = () => {
       </div>
 
       <div style={{ display: 'grid', gap: '2rem' }}>
-        {/* Featured Article: The National 2025 */}
-        <article style={{
-          background: '#1f2937',
-          borderRadius: 12,
-          padding: '2rem',
-          border: '2px solid #374151',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-        }}>
-          <header style={{ marginBottom: '1.5rem' }}>
-            <div style={{
-              background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
-              color: '#fff',
-              padding: '0.5rem 1rem',
-              borderRadius: 6,
-              display: 'inline-block',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              marginBottom: '1rem'
-            }}>
-              🏆 FEATURED ARTICLE
-            </div>
-            <h2 style={{
-              color: '#ffd700',
-              fontSize: '1.8rem',
-              fontWeight: 700,
-              margin: '0 0 0.5rem 0',
-              lineHeight: '1.3'
-            }}>
-              🏟️ The National 2025: Why Every Collector Should Be Watching
-            </h2>
-            <div style={{
-              color: '#9ca3af',
-              fontSize: '0.9rem',
-              display: 'flex',
-              gap: '1rem',
-              flexWrap: 'wrap'
-            }}>
-              <span>📅 July 28, 2025</span>
-              <span>⏱️ 5 min read</span>
-              <span>🏷️ Events, Investment Tips</span>
-            </div>
-          </header>
-
-          <div style={{ color: '#d1d5db', lineHeight: '1.7', fontSize: '1rem' }}>
-            <p style={{ marginBottom: '1.5rem', fontSize: '1.1rem', fontWeight: 500 }}>
-              This week marks the start of the <strong>45th National Sports Collectors Convention</strong>, the largest and most anticipated event in the hobby. Held from <strong>July 30 to August 3</strong> at the <strong>Donald E. Stephens Convention Center in Rosemont, IL</strong>, the National is more than just a card show — it's the Super Bowl of collecting.
-            </p>
-
-            <h3 style={{ color: '#ffd700', fontSize: '1.3rem', margin: '1.5rem 0 1rem 0' }}>
-              🔥 What Makes the National So Special?
-            </h3>
-            <ul style={{ marginBottom: '1.5rem', paddingLeft: '1.5rem' }}>
-              <li style={{ marginBottom: '0.5rem' }}>
-                <strong>600+ Dealers</strong> from across the country offering vintage, modern, graded, and raw cards.
-              </li>
-              <li style={{ marginBottom: '0.5rem' }}>
-                <strong>Live Breaks, Giveaways, and Promos</strong> from major companies like Panini, Topps, and Upper Deck.
-              </li>
-              <li style={{ marginBottom: '0.5rem' }}>
-                <strong>Autograph Signings</strong> with legends and current stars — from Hall of Famers to rising rookies.
-              </li>
-              <li style={{ marginBottom: '0.5rem' }}>
-                <strong>Grading Services On-Site</strong> from PSA, BGS, CGC, and SGC — perfect for submitting your best pulls.
-              </li>
-              <li style={{ marginBottom: '0.5rem' }}>
-                <strong>Trade Nights</strong> every evening, where collectors swap cards, stories, and strategies.
-              </li>
-            </ul>
-
-            <h3 style={{ color: '#ffd700', fontSize: '1.3rem', margin: '1.5rem 0 1rem 0' }}>
-              💡 Tips for Attendees
-            </h3>
-            <ul style={{ marginBottom: '1.5rem', paddingLeft: '1.5rem' }}>
-              <li style={{ marginBottom: '0.5rem' }}>
-                <strong>Bring Cash</strong> — many dealers prefer it, and it can help you negotiate better deals.
-              </li>
-              <li style={{ marginBottom: '0.5rem' }}>
-                <strong>Pack Smart</strong> — top loaders, sleeves, and a sturdy backpack are must-haves.
-              </li>
-              <li style={{ marginBottom: '0.5rem' }}>
-                <strong>Know Your Targets</strong> — make a list of cards or players you're hunting to stay focused.
-              </li>
-              <li style={{ marginBottom: '0.5rem' }}>
-                <strong>Network</strong> — this is the place to meet fellow collectors, influencers, and dealers.
-              </li>
-            </ul>
-
-            <h3 style={{ color: '#ffd700', fontSize: '1.3rem', margin: '1.5rem 0 1rem 0' }}>
-              📈 Why It Matters for Investors
-            </h3>
-            <p style={{ marginBottom: '1.5rem' }}>
-              Whether you're flipping slabs or building a long-term portfolio, the National is a goldmine for market insights. Watch which players are getting buzz, which sets are moving, and how pricing trends shift in real time. If you're running a resale business like I am, this is the pulse of the hobby.
-            </p>
-
-            <h3 style={{ color: '#ffd700', fontSize: '1.3rem', margin: '1.5rem 0 1rem 0' }}>
-              🧠 Final Thoughts
-            </h3>
-            <p style={{ marginBottom: '1.5rem' }}>
-              Even if you're not attending in person, follow the action online. Social media will be flooded with highlights, rare pulls, and breaking news. And if you're looking to capitalize on the hype, now's the time to list hot cards, run promotions, or publish your own analysis.
-            </p>
-
-            <div style={{
-              background: 'linear-gradient(135deg, #374151, #4b5563)',
-              padding: '1rem',
-              borderRadius: 8,
-              marginTop: '2rem',
-              border: '1px solid #6b7280'
-            }}>
-              <div style={{ color: '#ffd700', fontWeight: 600, marginBottom: '0.5rem' }}>
-                🎯 Key Takeaways:
-              </div>
-              <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#d1d5db' }}>
-                <li>The National 2025 runs July 30 - August 3 in Rosemont, IL</li>
-                <li>600+ dealers, live breaks, and autograph signings</li>
-                <li>Perfect opportunity for market research and networking</li>
-                <li>Follow online for real-time industry insights</li>
-              </ul>
-            </div>
-          </div>
-        </article>
-
         {/* Article: Data-Driven Sports Card Insights */}
         <article style={{
           background: '#1f2937',
@@ -1196,6 +1075,127 @@ const NewsPage = () => {
                 <li>Real-time market data across PSA 10, PSA 9, and raw cards</li>
                 <li>Grading strategy can maximize ROI or prevent costly mistakes</li>
                 <li>Expert analysis helps collectors stay ahead of market trends</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        {/* Featured Article: The National 2025 */}
+        <article style={{
+          background: '#1f2937',
+          borderRadius: 12,
+          padding: '2rem',
+          border: '2px solid #374151',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+        }}>
+          <header style={{ marginBottom: '1.5rem' }}>
+            <div style={{
+              background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+              color: '#fff',
+              padding: '0.5rem 1rem',
+              borderRadius: 6,
+              display: 'inline-block',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              marginBottom: '1rem'
+            }}>
+              🏆 FEATURED ARTICLE
+            </div>
+            <h2 style={{
+              color: '#ffd700',
+              fontSize: '1.8rem',
+              fontWeight: 700,
+              margin: '0 0 0.5rem 0',
+              lineHeight: '1.3'
+            }}>
+              🏟️ The National 2025: Why Every Collector Should Be Watching
+            </h2>
+            <div style={{
+              color: '#9ca3af',
+              fontSize: '0.9rem',
+              display: 'flex',
+              gap: '1rem',
+              flexWrap: 'wrap'
+            }}>
+              <span>📅 July 28, 2025</span>
+              <span>⏱️ 5 min read</span>
+              <span>🏷️ Events, Investment Tips</span>
+            </div>
+          </header>
+
+          <div style={{ color: '#d1d5db', lineHeight: '1.7', fontSize: '1rem' }}>
+            <p style={{ marginBottom: '1.5rem', fontSize: '1.1rem', fontWeight: 500 }}>
+              This week marks the start of the <strong>45th National Sports Collectors Convention</strong>, the largest and most anticipated event in the hobby. Held from <strong>July 30 to August 3</strong> at the <strong>Donald E. Stephens Convention Center in Rosemont, IL</strong>, the National is more than just a card show — it's the Super Bowl of collecting.
+            </p>
+
+            <h3 style={{ color: '#ffd700', fontSize: '1.3rem', margin: '1.5rem 0 1rem 0' }}>
+              🔥 What Makes the National So Special?
+            </h3>
+            <ul style={{ marginBottom: '1.5rem', paddingLeft: '1.5rem' }}>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>600+ Dealers</strong> from across the country offering vintage, modern, graded, and raw cards.
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Live Breaks, Giveaways, and Promos</strong> from major companies like Panini, Topps, and Upper Deck.
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Autograph Signings</strong> with legends and current stars — from Hall of Famers to rising rookies.
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Grading Services On-Site</strong> from PSA, BGS, CGC, and SGC — perfect for submitting your best pulls.
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Trade Nights</strong> every evening, where collectors swap cards, stories, and strategies.
+              </li>
+            </ul>
+
+            <h3 style={{ color: '#ffd700', fontSize: '1.3rem', margin: '1.5rem 0 1rem 0' }}>
+              💡 Tips for Attendees
+            </h3>
+            <ul style={{ marginBottom: '1.5rem', paddingLeft: '1.5rem' }}>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Bring Cash</strong> — many dealers prefer it, and it can help you negotiate better deals.
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Pack Smart</strong> — top loaders, sleeves, and a sturdy backpack are must-haves.
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Know Your Targets</strong> — make a list of cards or players you're hunting to stay focused.
+              </li>
+              <li style={{ marginBottom: '0.5rem' }}>
+                <strong>Network</strong> — this is the place to meet fellow collectors, influencers, and dealers.
+              </li>
+            </ul>
+
+            <h3 style={{ color: '#ffd700', fontSize: '1.3rem', margin: '1.5rem 0 1rem 0' }}>
+              📈 Why It Matters for Investors
+            </h3>
+            <p style={{ marginBottom: '1.5rem' }}>
+              Whether you're flipping slabs or building a long-term portfolio, the National is a goldmine for market insights. Watch which players are getting buzz, which sets are moving, and how pricing trends shift in real time. If you're running a resale business like I am, this is the pulse of the hobby.
+            </p>
+
+            <h3 style={{ color: '#ffd700', fontSize: '1.3rem', margin: '1.5rem 0 1rem 0' }}>
+              🧠 Final Thoughts
+            </h3>
+            <p style={{ marginBottom: '1.5rem' }}>
+              Even if you're not attending in person, follow the action online. Social media will be flooded with highlights, rare pulls, and breaking news. And if you're looking to capitalize on the hype, now's the time to list hot cards, run promotions, or publish your own analysis.
+            </p>
+
+            <div style={{
+              background: 'linear-gradient(135deg, #374151, #4b5563)',
+              padding: '1rem',
+              borderRadius: 8,
+              marginTop: '2rem',
+              border: '1px solid #6b7280'
+            }}>
+              <div style={{ color: '#ffd700', fontWeight: 600, marginBottom: '0.5rem' }}>
+                🎯 Key Takeaways:
+              </div>
+              <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#d1d5db' }}>
+                <li>The National 2025 runs July 30 - August 3 in Rosemont, IL</li>
+                <li>600+ dealers, live breaks, and autograph signings</li>
+                <li>Perfect opportunity for market research and networking</li>
+                <li>Follow online for real-time industry insights</li>
               </ul>
             </div>
           </div>
