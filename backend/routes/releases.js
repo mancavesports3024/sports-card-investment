@@ -516,6 +516,33 @@ router.post('/jobs/cleanup', isAdmin, async (req, res) => {
     }
 });
 
+// GET /api/releases/jobs/status - Get status of scheduled jobs
+router.get('/jobs/status', (req, res) => {
+    try {
+        const releaseCalendarScheduler = require('../services/releaseCalendarScheduler');
+        const status = releaseCalendarScheduler.getStatus();
+        
+        res.json({
+            success: true,
+            scheduler: {
+                isRunning: status.isRunning,
+                jobs: status.jobs,
+                schedules: {
+                    dailyStatusUpdate: 'Every day at midnight (00:00) Central Time',
+                    weeklyScraperSync: 'Every Sunday at 2:00 AM Central Time',
+                    monthlyCleanup: '1st of every month at 3:00 AM Central Time'
+                }
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get scheduler status',
+            message: error.message
+        });
+    }
+});
+
 // POST /api/releases/jobs/run-all - Run all scheduled jobs (requires authentication)
 router.post('/jobs/run-all', isAdmin, async (req, res) => {
     try {
