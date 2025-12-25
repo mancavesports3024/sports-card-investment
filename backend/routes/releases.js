@@ -6,6 +6,38 @@ router.get('/health', (req, res) => {
     res.json({ success: true, message: 'Releases API is working' });
 });
 
+// Test service loading
+router.get('/test-load', (req, res) => {
+    try {
+        const result = {
+            success: true,
+            hasDatabaseUrl: !!process.env.DATABASE_URL,
+            services: {}
+        };
+        
+        try {
+            const services = loadServices();
+            result.services.releaseDatabaseService = !!services.releaseDatabaseService;
+            result.services.releaseInfoService = !!services.releaseInfoService;
+            result.services.bleacherSeatsScraper = !!services.bleacherSeatsScraper;
+            result.services.releaseScheduledJobs = !!services.releaseScheduledJobs;
+        } catch (loadErr) {
+            result.loadError = {
+                message: loadErr.message,
+                code: loadErr.code
+            };
+        }
+        
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
 // Lazy load services to avoid module loading errors
 let releaseDatabaseService, releaseInfoService, bleacherSeatsScraper, releaseScheduledJobs;
 
