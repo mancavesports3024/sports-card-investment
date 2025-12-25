@@ -198,8 +198,8 @@ router.post('/init', async (req, res) => {
     }
 });
 
-// POST /api/releases/migrate - One-time migration endpoint (requires authentication)
-router.post('/migrate', isAdmin, async (req, res) => {
+// POST /api/releases/migrate - One-time migration endpoint (temporarily no auth for initial setup)
+router.post('/migrate', async (req, res) => {
     try {
         const { migrateReleases } = require('../scripts/migrate-releases-to-database');
         await migrateReleases();
