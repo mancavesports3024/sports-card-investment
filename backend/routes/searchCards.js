@@ -3568,69 +3568,77 @@ router.get('/card-set-analysis', async (req, res) => {
   try {
     // Build search query
     const searchQuery = year ? `${cardSet} ${year}` : cardSet;
-    // Fetch data using eBay scraper
-    const EbayScraperService = require('../services/ebayScraperService');
-    const ebayScraper = new EbayScraperService();
-    const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, parseInt(limit) || 2000, null, null, null, null, null, true);
+    
+    // Fetch data using 130point as primary source
+    console.log(`🔍 Using 130point for card set analysis: "${searchQuery}"`);
+    const Point130Service = require('../services/130pointService');
+    const point130Service = new Point130Service();
     
     let allCards = [];
-    if (scraperResult.success && scraperResult.results) {
-      // Transform eBay scraper results to match expected format
-      allCards = scraperResult.results.map(card => ({
-        id: card.ebayItemId || card.itemId,
-        title: (card.title || '').replace(/\s*#unknown\b.*$/i, '').replace(/\s*#Unknown\b.*$/i, '').replace(/\s*#UNKNOWN\b.*$/i, '').replace(/\s+unknown\s*$/i, '').replace(/\s+Unknown\s*$/i, '').replace(/\s+UNKNOWN\s*$/i, '').replace(/\s+/g, ' ').trim(),
-        price: {
-          value: card.numericPrice ? card.numericPrice.toString() : (card.price || '0').replace(/[^\d.]/g, ''),
-          currency: 'USD'
-        },
-        condition: card.grade || 'Raw',
-        soldDate: card.soldDate || 'Recently sold',
-        imageUrl: card.imageUrl,
-        itemWebUrl: card.itemUrl,
-        itemId: card.ebayItemId || card.itemId,
-        sport: card.sport || 'unknown',
-        shippingCost: card.shippingCost,
-        saleType: card.saleType,
-        numBids: card.numBids
-      }));
-    } else {
-      console.error(`❌ eBay Scraper failed for card set analysis: ${scraperResult.error || 'Unknown error'}`);
+    try {
+      const point130Results = await point130Service.searchSoldCards(searchQuery, {
+        type: '2',
+        sort: 'urlEndTimeSoonest'
+      });
       
-      // Try 130point as fallback for card set analysis
-      console.log(`🔄 Trying 130point fallback for card set analysis: "${searchQuery}"`);
+      if (point130Results && point130Results.length > 0) {
+        console.log(`✅ 130point for card set: ${point130Results.length} sold items found`);
+        
+        // Transform 130point results to match expected format
+        allCards = point130Results.map((card, index) => ({
+          id: `130point_${Date.now()}_${index}`,
+          title: card.title || '',
+          price: card.price || { value: '0', currency: 'USD' },
+          condition: card.grade || 'Raw',
+          soldDate: card.soldDate || 'Recently sold',
+          imageUrl: card.image || '',
+          itemWebUrl: card.link || '',
+          itemId: `130point_${Date.now()}_${index}`,
+          sport: card.sport || 'unknown',
+          shippingCost: null,
+          saleType: '130point',
+          numBids: null,
+          source: '130point'
+        }));
+      } else {
+        console.log(`❌ 130point for card set: no results found`);
+      }
+    } catch (point130Error) {
+      console.error(`❌ 130point error for card set: ${point130Error.message}`);
+      
+      // Try eBay scraper as fallback
+      console.log(`🔄 Trying eBay scraper fallback for card set analysis: "${searchQuery}"`);
       try {
-        const Point130Service = require('../services/130pointService');
-        const point130Service = new Point130Service();
+        const EbayScraperService = require('../services/ebayScraperService');
+        const ebayScraper = new EbayScraperService();
+        const scraperResult = await ebayScraper.searchSoldCards(searchQuery, null, parseInt(limit) || 2000, null, null, null, null, null, true);
         
-        const point130Results = await point130Service.searchSoldCards(searchQuery, {
-          type: '2',
-          sort: 'urlEndTimeSoonest'
-        });
-        
-        if (point130Results && point130Results.length > 0) {
-          console.log(`✅ 130point fallback for card set: ${point130Results.length} sold items found`);
+        if (scraperResult.success && scraperResult.results) {
+          console.log(`✅ eBay scraper fallback for card set: ${scraperResult.results.length} sold items found`);
           
-          // Transform 130point results to match expected format
-          allCards = point130Results.map(card => ({
-            id: `130point_${Date.now()}_${Math.random()}`,
-            title: card.title || '',
-            price: card.price || { value: '0', currency: 'USD' },
-            condition: 'Raw',
+          // Transform eBay scraper results to match expected format
+          allCards = scraperResult.results.map(card => ({
+            id: card.ebayItemId || card.itemId,
+            title: (card.title || '').replace(/\s*#unknown\b.*$/i, '').replace(/\s*#Unknown\b.*$/i, '').replace(/\s*#UNKNOWN\b.*$/i, '').replace(/\s+unknown\s*$/i, '').replace(/\s+Unknown\s*$/i, '').replace(/\s+UNKNOWN\s*$/i, '').replace(/\s+/g, ' ').trim(),
+            price: {
+              value: card.numericPrice ? card.numericPrice.toString() : (card.price || '0').replace(/[^\d.]/g, ''),
+              currency: 'USD'
+            },
+            condition: card.grade || 'Raw',
             soldDate: card.soldDate || 'Recently sold',
-            imageUrl: card.image || '',
-            itemWebUrl: card.link || '',
-            itemId: `130point_${Date.now()}_${Math.random()}`,
-            sport: 'unknown',
-            shippingCost: null,
-            saleType: '130point',
-            numBids: null,
-            source: '130point'
+            imageUrl: card.imageUrl,
+            itemWebUrl: card.itemUrl,
+            itemId: card.ebayItemId || card.itemId,
+            sport: card.sport || 'unknown',
+            shippingCost: card.shippingCost,
+            saleType: card.saleType,
+            numBids: card.numBids
           }));
         } else {
-          console.log(`❌ 130point fallback for card set also failed - no results`);
+          console.log(`❌ eBay scraper fallback also failed - no results`);
         }
-      } catch (point130Error) {
-        console.log(`❌ 130point fallback error for card set: ${point130Error.message}`);
+      } catch (ebayError) {
+        console.error(`❌ eBay scraper fallback error: ${ebayError.message}`);
       }
     }
 
