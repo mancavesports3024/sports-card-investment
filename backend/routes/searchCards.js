@@ -3585,21 +3585,42 @@ router.get('/card-set-analysis', async (req, res) => {
         console.log(`✅ 130point for card set: ${point130Results.length} sold items found`);
         
         // Transform 130point results to match expected format
-        allCards = point130Results.map((card, index) => ({
-          id: `130point_${Date.now()}_${index}`,
-          title: card.title || '',
-          price: card.price || { value: '0', currency: 'USD' },
-          condition: card.grade || 'Raw',
-          soldDate: card.soldDate || 'Recently sold',
-          imageUrl: card.image || '',
-          itemWebUrl: card.link || '',
-          itemId: `130point_${Date.now()}_${index}`,
-          sport: card.sport || 'unknown',
-          shippingCost: null,
-          saleType: '130point',
-          numBids: null,
-          source: '130point'
-        }));
+        allCards = point130Results.map((card, index) => {
+          // Extract grade from title (PSA 10, BGS 9.5, etc.)
+          const title = card.title || '';
+          let condition = 'Raw';
+          const gradeMatch = title.match(/\b(PSA|BGS|SGC|CGC|TAG|AIGRADE)\s*(\d+(?:\.\d+)?)\b/i);
+          if (gradeMatch) {
+            condition = `${gradeMatch[1]} ${gradeMatch[2]}`;
+          }
+          
+          // Try to determine sport from title
+          let sport = 'unknown';
+          const titleLower = title.toLowerCase();
+          if (titleLower.includes('baseball')) sport = 'Baseball';
+          else if (titleLower.includes('basketball')) sport = 'Basketball';
+          else if (titleLower.includes('football')) sport = 'Football';
+          else if (titleLower.includes('hockey')) sport = 'Hockey';
+          else if (titleLower.includes('soccer')) sport = 'Soccer';
+          else if (titleLower.includes('golf')) sport = 'Golf';
+          else if (titleLower.includes('pokemon') || titleLower.includes('pokémon')) sport = 'Gaming';
+          
+          return {
+            id: `130point_${Date.now()}_${index}`,
+            title: title,
+            price: card.price || { value: '0', currency: 'USD' },
+            condition: condition,
+            soldDate: card.soldDate || 'Recently sold',
+            imageUrl: card.image || '',
+            itemWebUrl: card.link || '',
+            itemId: `130point_${Date.now()}_${index}`,
+            sport: sport,
+            shippingCost: null,
+            saleType: card.saleType || '130point',
+            numBids: card.numBids || null,
+            source: '130point'
+          };
+        });
       } else {
         console.log(`❌ 130point for card set: no results found`);
       }
