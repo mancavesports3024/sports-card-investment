@@ -71,86 +71,65 @@ class EbayApiService {
             
             const accessToken = await this.getAccessToken();
             
-            // Convert item ID to API format if needed
-            let apiItemId = itemId;
-            if (!itemId.includes('|')) {
-                apiItemId = `v1|${itemId}|0`;
-                console.log(`🔄 Converting item ID to API format: ${itemId} → ${apiItemId}`);
-            }
-            
-            // First, try to find the item via search if direct lookup fails
             let response;
             let lastError;
             
-            // Try direct lookup first with API format
+            // Try direct lookup with plain item ID first (most common case)
             const marketplaces = ['EBAY-US', 'EBAY-GB', 'EBAY-CA', 'EBAY-AU'];
             
             for (const marketplace of marketplaces) {
                 try {
-                    console.log(`🔍 Trying direct lookup in ${marketplace} marketplace with API format: ${apiItemId}`);
-                    response = await axios.get(`https://api.ebay.com/buy/browse/v1/item/${apiItemId}`, {
+                    console.log(`🔍 Trying direct lookup in ${marketplace} with plain item ID: ${itemId}`);
+                    response = await axios.get(`https://api.ebay.com/buy/browse/v1/item/${itemId}`, {
                         headers: {
                             'Authorization': `Bearer ${accessToken}`,
                             'X-EBAY-C-MARKETPLACE-ID': marketplace,
                             'X-EBAY-C-ENDUSERCTX': 'contextualLocation=country=US,zip=10001'
-                        }
+                        },
+                        timeout: 10000
                     });
                     console.log(`✅ Found item via direct lookup in ${marketplace} marketplace`);
                     break;
                 } catch (error) {
                     lastError = error;
-                    console.log(`❌ Direct lookup failed in ${marketplace}: ${error.response?.status}`);
+                    if (error.response?.status === 404) {
+                        console.log(`❌ Item not found in ${marketplace} (404)`);
+                    } else {
+                        console.log(`❌ Direct lookup failed in ${marketplace}: ${error.response?.status || error.message}`);
+                    }
                     continue;
                 }
             }
             
-            // If direct lookup fails, try search
-            if (!response) {
-                console.log(`🔍 Direct lookup failed, trying search for item ID: ${itemId}`);
-                try {
-                    // Search for items that might match our target
-                    const searchResponse = await axios.get('https://api.ebay.com/buy/browse/v1/item_summary/search', {
-                        headers: {
-                            'Authorization': `Bearer ${accessToken}`,
-                            'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
-                            'Accept': 'application/json'
-                        },
-                        params: {
-                            q: 'charizard 199/165',
-                            limit: 50
-                        }
-                    });
-                    
-                    // Look for our item ID in search results
-                    const searchResults = searchResponse.data.itemSummaries || [];
-                    const targetItem = searchResults.find(item => 
-                        item.itemId === itemId || 
-                        item.legacyItemId === itemId ||
-                        item.itemId.includes(itemId) ||
-                        item.legacyItemId === itemId
-                    );
-                    
-                    if (targetItem) {
-                        console.log(`✅ Found item via search: ${targetItem.itemId}`);
-                        // Get full item details using the found item ID
-                        response = await axios.get(`https://api.ebay.com/buy/browse/v1/item/${targetItem.itemId}`, {
+            // If plain ID fails, try with v1| prefix format
+            if (!response && !itemId.includes('|')) {
+                const apiItemId = `v1|${itemId}|0`;
+                console.log(`🔍 Trying with API format: ${apiItemId}`);
+                for (const marketplace of marketplaces) {
+                    try {
+                        response = await axios.get(`https://api.ebay.com/buy/browse/v1/item/${apiItemId}`, {
                             headers: {
                                 'Authorization': `Bearer ${accessToken}`,
-                                'X-EBAY-C-MARKETPLACE-ID': 'EBAY-US',
+                                'X-EBAY-C-MARKETPLACE-ID': marketplace,
                                 'X-EBAY-C-ENDUSERCTX': 'contextualLocation=country=US,zip=10001'
-                            }
+                            },
+                            timeout: 10000
                         });
-                    } else {
-                        console.log(`❌ Item not found in search results. Available IDs:`, 
-                            searchResults.slice(0, 3).map(item => `${item.itemId} (legacy: ${item.legacyItemId})`));
+                        console.log(`✅ Found item via API format in ${marketplace} marketplace`);
+                        break;
+                    } catch (error) {
+                        lastError = error;
+                        console.log(`❌ API format lookup failed in ${marketplace}: ${error.response?.status || error.message}`);
+                        continue;
                     }
-                } catch (searchError) {
-                    console.log(`❌ Search also failed:`, searchError.response?.status);
                 }
             }
             
             if (!response) {
-                throw lastError || new Error('Item not found via direct lookup or search');
+                const errorMessage = lastError?.response?.status === 404 
+                    ? 'Item not found or no longer available on eBay'
+                    : `Failed to fetch item: ${lastError?.response?.data?.errors?.[0]?.message || lastError?.message || 'Unknown error'}`;
+                throw new Error(errorMessage);
             }
 
             const item = response.data;

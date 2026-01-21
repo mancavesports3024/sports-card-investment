@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './EbayItemLookup.css';
+import config from '../config';
+
+const api = axios.create({
+    baseURL: config.API_BASE_URL || 'https://web-production-9efa.up.railway.app',
+    timeout: 30000
+});
 
 const EbayItemLookup = () => {
     const [itemId, setItemId] = useState('');
@@ -14,8 +20,10 @@ const EbayItemLookup = () => {
 
     const loadSavedItems = async () => {
         try {
-            const response = await axios.get('/api/ebay-bidding/saved-items');
-            setSavedItems(response.data);
+            const response = await api.get('/api/ebay-bidding/saved-items');
+            const payload = response?.data;
+            const items = Array.isArray(payload) ? payload : (payload?.data || []);
+            setSavedItems(items);
         } catch (error) {
             console.error('Error loading saved items:', error);
         }
@@ -32,8 +40,10 @@ const EbayItemLookup = () => {
         setItemInfo(null);
 
         try {
-            const response = await axios.get(`/api/ebay-bidding/auction-info/${itemId.trim()}`);
-            setItemInfo(response.data);
+            const response = await api.get(`/api/ebay-bidding/auction-info/${itemId.trim()}`);
+            const payload = response?.data;
+            const info = payload?.data || payload; // support both {success,data} and legacy
+            setItemInfo(info);
         } catch (error) {
             setError(error.response?.data?.message || 'Failed to fetch item information');
         } finally {
@@ -45,7 +55,7 @@ const EbayItemLookup = () => {
         if (!itemInfo) return;
 
         try {
-            await axios.post('/api/ebay-bidding/save-item', {
+            await api.post('/api/ebay-bidding/save-item', {
                 itemId: itemInfo.itemId,
                 title: itemInfo.title,
                 currentPrice: itemInfo.currentPrice,
@@ -60,7 +70,7 @@ const EbayItemLookup = () => {
 
     const handleRemoveSavedItem = async (savedItemId) => {
         try {
-            await axios.delete(`/api/ebay-bidding/saved-items/${savedItemId}`);
+            await api.delete(`/api/ebay-bidding/saved-items/${savedItemId}`);
             loadSavedItems();
         } catch (error) {
             console.error('Error removing saved item:', error);
