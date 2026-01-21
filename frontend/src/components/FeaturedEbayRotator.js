@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import config from '../config';
 
-const FeaturedEbayRotator = ({ apiUrl = '/api/live-listings/featured-ebay-items', interval = 5000 }) => {
+const API_BASE_URL = config.API_BASE_URL || 'https://web-production-9efa.up.railway.app';
+
+const FeaturedEbayRotator = ({ apiUrl = `${API_BASE_URL}/api/live-listings/featured-ebay-items`, interval = 5000 }) => {
   const [items, setItems] = useState([]);
   const [current, setCurrent] = useState(0);
   const [imagesLoaded, setImagesLoaded] = useState({});
