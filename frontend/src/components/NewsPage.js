@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
+import config from '../config';
+
+const API_BASE_URL = config.API_BASE_URL || 'https://web-production-9efa.up.railway.app';
 
 const NewsPage = () => {
   const [activeTab, setActiveTab] = useState('releases');
@@ -19,7 +22,7 @@ const NewsPage = () => {
         setError(null);
         
         console.log('🔄 Fetching releases from API...');
-        const response = await fetch('/api/news/releases');
+        const response = await fetch(`${API_BASE_URL}/api/news/releases`);
         const data = await response.json();
         
         console.log('📦 API Response:', data);

@@ -1244,7 +1244,8 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/search-cards (for production use)
-router.post('/', requireUser, async (req, res) => {
+// Authentication is optional - users can search without logging in
+router.post('/', async (req, res) => {
   const { searchQuery, numSales = 200 } = req.body;
   
   // Validate required parameters
