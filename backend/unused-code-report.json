@@ -1,0 +1,670 @@
+{
+  "generated": "2026-01-15T22:17:17.335Z",
+  "totalFiles": 299,
+  "unused": [
+    "add-correct-mappings.js",
+    "add-last-updated-field.js",
+    "add-missing-card-types-to-comprehensive.js",
+    "add-missing-cards.js",
+    "add-missing-terms.js",
+    "add-more-missing-card-types.js",
+    "add-parallels-to-railway.js",
+    "add-player-name-column.js",
+    "add-player-names-to-railway.js",
+    "add-price-comparisons.js",
+    "analyze-comprehensive-db.js",
+    "analyze-filter-rejections.js",
+    "analyze-remaining-issues.js",
+    "analyze-summary-titles.js",
+    "analyze-title-locations.js",
+    "auto-parallel-lookup.js",
+    "beckett-integration.js",
+    "call-centralized-player-update.js",
+    "call-fix-specific-player-names.js",
+    "check-actual-db.js",
+    "check-both-databases.js",
+    "check-chase-cards.js",
+    "check-comprehensive-db.js",
+    "check-database-content.js",
+    "check-database-structure.js",
+    "check-databases.js",
+    "check-db.js",
+    "check-environment.js",
+    "check-ja-marr-chase.js",
+    "check-parallels-db.js",
+    "check-player-name-field.js",
+    "check-proxymesh-limits.js",
+    "check-railway-db-structure.js",
+    "check-railway-player-names.js",
+    "check-redis-users.js",
+    "check-sal-frelick-card.js",
+    "check-scorecard-data.js",
+    "check-scorecard-db.js",
+    "check-specific-card.js",
+    "check-specific-cards-via-api.js",
+    "check-specific-cards.js",
+    "check-specific-issues.js",
+    "check-specific-summary-titles.js",
+    "check-title-duplications.js",
+    "clean-sport-detection.js",
+    "cleanup-deployment-files.js",
+    "cleanup-large-data-files.js",
+    "cleanup-redundant-files.js",
+    "clear-and-update-player-names.js",
+    "clear-cache.js",
+    "clear-database.js",
+    "comprehensive-duplicate-check.js",
+    "comprehensive-fix-plan.js",
+    "comprehensive-title-analyzer.js",
+    "copy-comprehensive-to-railway.js",
+    "create-database-with-data.js",
+    "database-monitor.js",
+    "debug-402-errors.js",
+    "debug-ebay-html.js",
+    "debug-html-content.js",
+    "debug-parallels-db.js",
+    "debug-period-patterns.js",
+    "debug-specific-duplicates.js",
+    "detailed-summary-analysis.js",
+    "direct-railway-analysis.js",
+    "export-database-to-csv-updated.js",
+    "export-database-to-csv.js",
+    "export-price-results.js",
+    "extract-card-sets-from-newpricing.js",
+    "extract-word-content-v2.js",
+    "extract-word-content.js",
+    "find-3-word-player-names.js",
+    "find-actual-low-price-items.js",
+    "fix-all-caps-player-names.js",
+    "fix-final-syntax.js",
+    "fix-initials-cleanup.js",
+    "fix-initials-regex.js",
+    "fix-ja-marr-chase-railway.js",
+    "fix-knownplayers-position-final.js",
+    "fix-knownplayers-position.js",
+    "fix-missing-comma.js",
+    "fix-multipliers.js",
+    "fix-player-names-in-database.js",
+    "fix-player-names.js",
+    "fix-specific-problematic-names.js",
+    "fix-specific-summary-issues.js",
+    "fix-summary-titles-now.js",
+    "fix-syntax-error.js",
+    "generate-sitemap.js",
+    "get-railway-ip.js",
+    "health-check-only.js",
+    "implement-comprehensive-fixes.js",
+    "improved-api-good-buy-finder.js",
+    "manual-fix-specific-cards.js",
+    "manual-jobs.js",
+    "manual-player-name-fixes.js",
+    "manual-verification.js",
+    "migrate-comprehensive-to-parallels.js",
+    "migrate-saved-searches.js",
+    "migrate-scorecard-to-databases.js",
+    "monitor-job-status.js",
+    "move-knownplayers-early.js",
+    "parallels-integration.js",
+    "performance-comparison.js",
+    "proxy-rotation-example.js",
+    "psa10-recent-database-builder.js",
+    "pull-new-items.js",
+    "quick-show-issues.js",
+    "quick-summary-check.js",
+    "quick-summary-fix.js",
+    "railway-migrate-searches.js",
+    "railway-parallels-database.js",
+    "railway-summary-title-fix.js",
+    "railway-title-cleanup.js",
+    "recreate-comprehensive-database.js",
+    "regression-test.js",
+    "remove-duplicates.js",
+    "remove-low-price-items.js",
+    "remove-problematic-initials.js",
+    "run-actual-fast-pull.js",
+    "run-analyzer.js",
+    "run-automated-fix.js",
+    "run-maintenance-job-local.js",
+    "run-maintenance-job.js",
+    "run-railway-fast-pull.js",
+    "run-railway-fixes.js",
+    "run-railway-maintenance-direct.js",
+    "run-railway-maintenance.js",
+    "run-railway-optimizations.js",
+    "run-summary-title-fix-now.js",
+    "scripts\\buildEnhancedDatabase.js",
+    "scripts\\runDatabaseBuilder.js",
+    "scripts\\verify-unused-code.js",
+    "services\\tcdbService.js",
+    "show-all-databases.js",
+    "simple-db-check.js",
+    "simple-player-check.js",
+    "sqlite-status.js",
+    "test-4-word-fixes.js",
+    "test-402-reproduction.js",
+    "test-auto-fix-local.js",
+    "test-auto-fix-only.js",
+    "test-automated-fix.js",
+    "test-database-connection.js",
+    "test-db.js",
+    "test-fast-batch-only.js",
+    "test-individual-endpoints.js",
+    "test-local-fixer.js",
+    "test-maintenance-job.js",
+    "test-new-add-card.js",
+    "test-o-regex.js",
+    "test-player-name-update.js",
+    "test-proxy-example.js",
+    "test-quick-maintenance.js",
+    "test-railway-fast-pull.js",
+    "test-railway-maintenance-local.js",
+    "test-railway-maintenance.js",
+    "test-railway-parallels.js",
+    "test-remaining-issues.js",
+    "test-scraper.js",
+    "test-simple-endpoint.js",
+    "test-simple-search.js",
+    "test-system.js",
+    "test-updated-patterns.js",
+    "tools\\clean-comprehensive-database.js",
+    "tools\\cleanup-all-redundant-files.js",
+    "tools\\cleanup-redundant-files.js",
+    "tools\\convert-to-spreadsheet-cleaned.js",
+    "tools\\rebuild-sport-year-set-combinations.js",
+    "trigger-railway-fast-pull.js",
+    "update-bo-jackson-specific.js",
+    "update-entire-database.js",
+    "update-summary-titles-fix.js",
+    "update-summary-titles.js",
+    "upload-cards-to-railway.js",
+    "utils\\errorHandler.js",
+    "validate-price-data.js",
+    "view-all-enhanced-cards.js",
+    "view-recent-cards.js"
+  ],
+  "used": [
+    {
+      "file": "add-multiplier-field.js",
+      "importers": 3
+    },
+    {
+      "file": "add-rookie-autograph-columns.js",
+      "importers": 1
+    },
+    {
+      "file": "add-summary-components-fields.js",
+      "importers": 1
+    },
+    {
+      "file": "analyze-database-quality.js",
+      "importers": 1
+    },
+    {
+      "file": "analyze-player-name-issues-simple.js",
+      "importers": 1
+    },
+    {
+      "file": "analyze-player-name-issues.js",
+      "importers": 1
+    },
+    {
+      "file": "analyze-player-names-simple.js",
+      "importers": 3
+    },
+    {
+      "file": "analyze-summary-title-issues.js",
+      "importers": 2
+    },
+    {
+      "file": "api-clean-summary-titles.js",
+      "importers": 1
+    },
+    {
+      "file": "api-good-buy-finder.js",
+      "importers": 1
+    },
+    {
+      "file": "automated-maintenance-job.js",
+      "importers": 2
+    },
+    {
+      "file": "automated-title-fixer.js",
+      "importers": 5
+    },
+    {
+      "file": "beckett-parallel-scraper.js",
+      "importers": 1
+    },
+    {
+      "file": "beckett-parallels-scraper.js",
+      "importers": 1
+    },
+    {
+      "file": "build-summary-title-from-components.js",
+      "importers": 1
+    },
+    {
+      "file": "check-cards-for-improvement.js",
+      "importers": 1
+    },
+    {
+      "file": "check-component-fields.js",
+      "importers": 1
+    },
+    {
+      "file": "check-missing-card-numbers.js",
+      "importers": 2
+    },
+    {
+      "file": "clean-summary-titles.js",
+      "importers": 2
+    },
+    {
+      "file": "cleanup-player-names.js",
+      "importers": 1
+    },
+    {
+      "file": "cleanup-unknown-brands.js",
+      "importers": 1
+    },
+    {
+      "file": "comprehensive-cleanup.js",
+      "importers": 1
+    },
+    {
+      "file": "comprehensive-summary-fix.js",
+      "importers": 1
+    },
+    {
+      "file": "config\\adminEmails.js",
+      "importers": 2
+    },
+    {
+      "file": "config\\app.js",
+      "importers": 1
+    },
+    {
+      "file": "conservative-player-name-fixes.js",
+      "importers": 1
+    },
+    {
+      "file": "create-new-pricing-database.js",
+      "importers": 83
+    },
+    {
+      "file": "create-parallels-database.js",
+      "importers": 2
+    },
+    {
+      "file": "database-updater.js",
+      "importers": 1
+    },
+    {
+      "file": "debug-env.js",
+      "importers": 1
+    },
+    {
+      "file": "ebay-price-updater.js",
+      "importers": 11
+    },
+    {
+      "file": "enhance-comprehensive-database.js",
+      "importers": 2
+    },
+    {
+      "file": "espn-sport-detector-v2-integrated.js",
+      "importers": 1
+    },
+    {
+      "file": "extract-missing-terms.js",
+      "importers": 1
+    },
+    {
+      "file": "fast-batch-pull-ebay.js",
+      "importers": 2
+    },
+    {
+      "file": "fast-batch-pull-new-items.js",
+      "importers": 3
+    },
+    {
+      "file": "fix-card-set-names.js",
+      "importers": 1
+    },
+    {
+      "file": "fix-incorrect-unknown-sports.js",
+      "importers": 1
+    },
+    {
+      "file": "fix-messed-up-player-names.js",
+      "importers": 1
+    },
+    {
+      "file": "fix-player-names-railway.js",
+      "importers": 2
+    },
+    {
+      "file": "fix-railway-database-schema.js",
+      "importers": 1
+    },
+    {
+      "file": "fix-summary-issues-direct.js",
+      "importers": 1
+    },
+    {
+      "file": "fix-summary-titles-simple.js",
+      "importers": 1
+    },
+    {
+      "file": "fix-wrong-sports.js",
+      "importers": 2
+    },
+    {
+      "file": "generate-improved-summary-titles.js",
+      "importers": 1
+    },
+    {
+      "file": "generate-standardized-summary-titles-database-driven.js",
+      "importers": 14
+    },
+    {
+      "file": "good-buy-opportunities.js",
+      "importers": 2
+    },
+    {
+      "file": "improve-summary-components.js",
+      "importers": 1
+    },
+    {
+      "file": "index.js",
+      "importers": 0
+    },
+    {
+      "file": "middleware\\cacheMiddleware.js",
+      "importers": 1
+    },
+    {
+      "file": "migrate-newpricing-to-parallels.js",
+      "importers": 1
+    },
+    {
+      "file": "optimized-search-engine.js",
+      "importers": 2
+    },
+    {
+      "file": "railway-debug-cleanup.js",
+      "importers": 1
+    },
+    {
+      "file": "railway-maintenance-job-direct.js",
+      "importers": 2
+    },
+    {
+      "file": "railway-maintenance-job.js",
+      "importers": 4
+    },
+    {
+      "file": "railway-parallels-api.js",
+      "importers": 1
+    },
+    {
+      "file": "railway-parallels-db.js",
+      "importers": 11
+    },
+    {
+      "file": "railway-player-extraction.js",
+      "importers": 2
+    },
+    {
+      "file": "recreate-comprehensive-on-railway.js",
+      "importers": 1
+    },
+    {
+      "file": "remove-current-duplicates.js",
+      "importers": 1
+    },
+    {
+      "file": "remove-duplicate-card.js",
+      "importers": 1
+    },
+    {
+      "file": "report-missing-summary-components.js",
+      "importers": 1
+    },
+    {
+      "file": "reset-parallels-database.js",
+      "importers": 1
+    },
+    {
+      "file": "restore-broken-summary-titles.js",
+      "importers": 1
+    },
+    {
+      "file": "restore-summary-titles.js",
+      "importers": 1
+    },
+    {
+      "file": "routes\\130point.js",
+      "importers": 1
+    },
+    {
+      "file": "routes\\auth.js",
+      "importers": 1
+    },
+    {
+      "file": "routes\\ebayBidding.js",
+      "importers": 1
+    },
+    {
+      "file": "routes\\gemrate.js",
+      "importers": 1
+    },
+    {
+      "file": "routes\\imageAnalysis.js",
+      "importers": 1
+    },
+    {
+      "file": "routes\\liveListings.js",
+      "importers": 1
+    },
+    {
+      "file": "routes\\news.js",
+      "importers": 1
+    },
+    {
+      "file": "routes\\optimizedSearchCards.js",
+      "importers": 1
+    },
+    {
+      "file": "routes\\releases.js",
+      "importers": 1
+    },
+    {
+      "file": "routes\\searchCards.js",
+      "importers": 1
+    },
+    {
+      "file": "routes\\searchHistory.js",
+      "importers": 1
+    },
+    {
+      "file": "routes\\spreadsheetManager.js",
+      "importers": 1
+    },
+    {
+      "file": "safe-summary-title-fixer.js",
+      "importers": 1
+    },
+    {
+      "file": "scheduled-updater.js",
+      "importers": 1
+    },
+    {
+      "file": "scripts\\buildCardSetDatabase.js",
+      "importers": 1
+    },
+    {
+      "file": "scripts\\migrate-releases-to-database.js",
+      "importers": 1
+    },
+    {
+      "file": "services\\130pointService.js",
+      "importers": 17
+    },
+    {
+      "file": "services\\bleacherSeatsScraperService.js",
+      "importers": 4
+    },
+    {
+      "file": "services\\cacheService.js",
+      "importers": 6
+    },
+    {
+      "file": "services\\cardbaseService.js",
+      "importers": 6
+    },
+    {
+      "file": "services\\checklistInsiderService.js",
+      "importers": 1
+    },
+    {
+      "file": "services\\collectiblesCardDetailService.js",
+      "importers": 3
+    },
+    {
+      "file": "services\\ebayApiService.js",
+      "importers": 1
+    },
+    {
+      "file": "services\\ebayBiddingService.js",
+      "importers": 1
+    },
+    {
+      "file": "services\\ebayResearchService.js",
+      "importers": 1
+    },
+    {
+      "file": "services\\ebayScraperService.js",
+      "importers": 24
+    },
+    {
+      "file": "services\\ebayService.js",
+      "importers": 4
+    },
+    {
+      "file": "services\\gemrateService.js",
+      "importers": 1
+    },
+    {
+      "file": "services\\getCardBaseService.js",
+      "importers": 2
+    },
+    {
+      "file": "services\\imageAnalysisService.js",
+      "importers": 1
+    },
+    {
+      "file": "services\\releaseCalendarScheduler.js",
+      "importers": 2
+    },
+    {
+      "file": "services\\releaseDatabaseService.js",
+      "importers": 4
+    },
+    {
+      "file": "services\\releaseInfoService.js",
+      "importers": 4
+    },
+    {
+      "file": "services\\releaseScheduledJobs.js",
+      "importers": 2
+    },
+    {
+      "file": "services\\searchHistoryService.js",
+      "importers": 3
+    },
+    {
+      "file": "services\\spreadsheetManagerService.js",
+      "importers": 1
+    },
+    {
+      "file": "show-issues-endpoint.js",
+      "importers": 1
+    },
+    {
+      "file": "simple-player-extraction.js",
+      "importers": 5
+    },
+    {
+      "file": "simple-summary-fix.js",
+      "importers": 1
+    },
+    {
+      "file": "sport-detection-config.js",
+      "importers": 1
+    },
+    {
+      "file": "summary-title-generator.js",
+      "importers": 3
+    },
+    {
+      "file": "targeted-player-name-fixes.js",
+      "importers": 1
+    },
+    {
+      "file": "test-cardbase-integration.js",
+      "importers": 1
+    },
+    {
+      "file": "test-player-names-espn-simple.js",
+      "importers": 3
+    },
+    {
+      "file": "test-railway-db-connection.js",
+      "importers": 1
+    },
+    {
+      "file": "ultra-conservative-player-name-fixes.js",
+      "importers": 1
+    },
+    {
+      "file": "update-existing-titles.js",
+      "importers": 1
+    },
+    {
+      "file": "update-null-card-types.js",
+      "importers": 1
+    },
+    {
+      "file": "update-sport-detection.js",
+      "importers": 2
+    },
+    {
+      "file": "update-sports-in-database.js",
+      "importers": 1
+    },
+    {
+      "file": "update-sports-with-espn-v2.js",
+      "importers": 1
+    },
+    {
+      "file": "update-summary-titles-v2.js",
+      "importers": 2
+    },
+    {
+      "file": "update-unknown-sports.js",
+      "importers": 1
+    },
+    {
+      "file": "utils\\logger.js",
+      "importers": 1
+    },
+    {
+      "file": "verify-player-names.js",
+      "importers": 1
+    }
+  ],
+  "entryPoints": [
+    "index.js"
+  ]
+}
