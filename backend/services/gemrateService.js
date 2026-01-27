@@ -3939,6 +3939,16 @@ class GemRateService {
 
         console.log(`[Puppeteer] Found heading: "${targetHeading.textContent.trim()}"`);
 
+        // Debug: Log the HTML structure near the heading
+        const headingParent = targetHeading.parentElement;
+        const headingSiblings = Array.from(headingParent?.children || []).slice(0, 10);
+        console.log(`[Puppeteer] Heading siblings (first 10):`, headingSiblings.map((el, i) => ({
+          index: i,
+          tag: el.tagName,
+          text: normalize(el.textContent || '').substring(0, 100),
+          classes: el.className
+        })));
+
         // Find the container - look for the next table/list/chart after the heading
         let container = targetHeading.closest('section,div[class*="section"],div[class*="container"]') || 
                        targetHeading.parentElement || 
