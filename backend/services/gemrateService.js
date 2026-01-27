@@ -3970,9 +3970,59 @@ class GemRateService {
                   
                   // Process row data
                   for (const rowData of allRowData) {
-                    const nameText = rowData.name || rowData.set_name || rowData.set || rowData.title || rowData.label || '';
-                    const count = rowData.submissions || rowData.last_week || rowData.count || rowData.total_grades || 0;
-                    const categoryText = rowData.category || rowData.sport || '';
+                    // Log first row to see structure
+                    if (allRowData.indexOf(rowData) === 0) {
+                      console.log(`[Puppeteer] Sample row data keys:`, Object.keys(rowData));
+                      console.log(`[Puppeteer] Sample row data:`, JSON.stringify(rowData, null, 2));
+                    }
+                    
+                    // Extract name - try various field names
+                    const nameText = rowData.name || rowData.set_name || rowData.set || rowData.title || 
+                                   rowData.label || rowData.player || rowData.player_name || '';
+                    
+                    // Extract count - based on GemRate table: "Graded, Last Week" column
+                    // Try various field name patterns
+                    const count = rowData['Graded, Last Week'] || 
+                                rowData['graded_last_week'] || 
+                                rowData.gradedLastWeek ||
+                                rowData.last_week ||
+                                rowData.lastWeek ||
+                                rowData['Last Week'] ||
+                                rowData.submissions || 
+                                rowData.count || 
+                                rowData.total_grades ||
+                                rowData.totalGrades ||
+                                0;
+                    
+                    // Extract category/sport
+                    const categoryText = rowData.category || rowData.sport || rowData.Category || '';
+                    
+                    // Extract change percentage - "Weekly Change" column
+                    const change = rowData['Weekly Change'] || 
+                                 rowData.weekly_change || 
+                                 rowData.weeklyChange ||
+                                 rowData.change ||
+                                 rowData.change_percent ||
+                                 rowData.changePercent ||
+                                 null;
+                    
+                    // Extract prior week for comparison
+                    const priorWeek = rowData['Graded, Prior Week'] || 
+                                    rowData['graded_prior_week'] || 
+                                    rowData.gradedPriorWeek ||
+                                    rowData.prior_week ||
+                                    rowData.priorWeek ||
+                                    rowData['Prior Week'] ||
+                                    0;
+                    
+                    // Extract all time total
+                    const allTime = rowData['Graded, All Time'] || 
+                                  rowData['graded_all_time'] || 
+                                  rowData.gradedAllTime ||
+                                  rowData.all_time ||
+                                  rowData.allTime ||
+                                  rowData['All Time'] ||
+                                  0;
                     
                     if (nameText && nameText.length >= 3 && nameText.length <= 80 && count > 0) {
                       if (which === 'players') {
@@ -3982,7 +4032,10 @@ class GemRateService {
                           submissions: count, 
                           count, 
                           total_grades: count,
-                          category: categoryText
+                          category: categoryText,
+                          change: change,
+                          prior_week: priorWeek,
+                          all_time: allTime
                         });
                       } else {
                         items.push({ 
@@ -3991,7 +4044,10 @@ class GemRateService {
                           set: nameText, 
                           submissions: count, 
                           count, 
-                          total_grades: count 
+                          total_grades: count,
+                          change: change,
+                          prior_week: priorWeek,
+                          all_time: allTime
                         });
                       }
                     }
