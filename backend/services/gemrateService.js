@@ -3430,6 +3430,447 @@ class GemRateService {
     if (score >= 20) return '⚠️ Caution - Low potential';
     return '❌ Avoid - Poor potential';
   }
+
+  /**
+   * Get trending players from GemRate dashboard page
+   * @param {string} period - Time period: 'day', 'week', 'month' (default: 'week')
+   * @returns {Promise<Object>} Trending players data
+   */
+  async getTrendingPlayers(period = 'week') {
+    try {
+      console.log(`📈 Fetching trending players from GemRate dashboard (period: ${period})`);
+      
+      await this.ensureSession();
+      
+      const validPeriods = ['day', 'week', 'month'];
+      if (!validPeriods.includes(period)) {
+        throw new Error(`Invalid period. Must be one of: ${validPeriods.join(', ')}`);
+      }
+
+      // Scrape the /dash page
+      const response = await this.httpClient.get('/dash', {
+        headers: this.pageHeaders,
+        timeout: this.timeout * 3 // Give more time for dashboard page
+      });
+
+      if (!response.data || response.status !== 200) {
+        throw new Error(`Failed to fetch dashboard page (status: ${response.status})`);
+      }
+
+      const html = response.data;
+      const $ = cheerio.load(html);
+
+      // Look for trending players data in script tags (most likely location)
+      let trendingPlayers = null;
+      
+      $('script').each((_, el) => {
+        const scriptContent = $(el).html() || '';
+        
+        // Try to find trending players data in various formats
+        const patterns = [
+          // Pattern 1: var trendingPlayers = [...]
+          /(?:var|const|let)\s+trendingPlayers\s*=\s*(\[[\s\S]*?\]);/,
+          // Pattern 2: trendingPlayers: [...]
+          /trendingPlayers\s*:\s*(\[[\s\S]*?\])/,
+          // Pattern 3: "trending_players": [...]
+          /"trending_players"\s*:\s*(\[[\s\S]*?\])/,
+          // Pattern 4: "Trending Players" section with data
+          /"Trending Players[^"]*"\s*:\s*(\[[\s\S]*?\])/,
+          // Pattern 5: Look for any array with player data near "Trending Players" text
+          /Trending Players[^}]*?(\[[\s\S]{100,}?\])/
+        ];
+        
+        for (const pattern of patterns) {
+          const match = scriptContent.match(pattern);
+          if (match && match[1]) {
+            try {
+              let jsonStr = match[1];
+              // Clean up trailing commas
+              jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
+              const parsed = JSON.parse(jsonStr);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                trendingPlayers = parsed;
+                console.log(`✅ Found trending players in script tag (${parsed.length} items)`);
+                return false; // Break out of each loop
+              }
+            } catch (e) {
+              continue;
+            }
+          }
+        }
+      });
+
+      // If not found in scripts, try to parse from HTML structure
+      if (!trendingPlayers) {
+        console.log('⚠️ Trending players not found in script tags, trying HTML parsing...');
+        
+        // Look for sections with "Trending Players" heading
+        $('h4, h5, h6, .trending-players, [id*="trending"], [class*="trending"]').each((_, el) => {
+          const text = $(el).text();
+          if (text.toLowerCase().includes('trending players') || text.toLowerCase().includes('trending subjects')) {
+            // Try to find a table or list nearby
+            const container = $(el).closest('div, section, article');
+            const rows = container.find('tr, li, .player-item, [data-player]');
+            
+            if (rows.length > 0) {
+              trendingPlayers = [];
+              rows.each((_, row) => {
+                const playerName = $(row).find('td:first, .player-name, [data-name]').text().trim();
+                const countText = $(row).find('td:last, .count, [data-count]').text().trim();
+                const count = parseInt(countText.replace(/[,\s]/g, '')) || 0;
+                
+                if (playerName && playerName.length > 0) {
+                  trendingPlayers.push({
+                    player: playerName,
+                    name: playerName,
+                    submissions: count,
+                    count: count,
+                    total_grades: count
+                  });
+                }
+              });
+              
+              if (trendingPlayers.length > 0) {
+                console.log(`✅ Parsed ${trendingPlayers.length} players from HTML`);
+                return false; // Break out of each loop
+              }
+            }
+          }
+        });
+      }
+
+      // If still no data, fall back to Puppeteer to execute dashboard JS
+      if (!trendingPlayers || trendingPlayers.length === 0) {
+        console.log('⚠️ No trending players from static HTML, trying Puppeteer...');
+        try {
+          const puppeteerPlayers = await this.scrapeDashboardTrendingWithPuppeteer('players');
+          if (puppeteerPlayers && puppeteerPlayers.length > 0) {
+            trendingPlayers = puppeteerPlayers;
+            console.log(`✅ Retrieved ${puppeteerPlayers.length} trending players via Puppeteer`);
+          } else {
+            console.log('⚠️ Puppeteer did not return any trending players');
+          }
+        } catch (puppeteerError) {
+          console.log(`⚠️ Puppeteer trending players scrape failed: ${puppeteerError.message}`);
+        }
+      }
+
+      if (trendingPlayers && trendingPlayers.length > 0) {
+        console.log(`✅ Retrieved ${trendingPlayers.length} trending players (period: ${period})`);
+        return {
+          success: true,
+          period: period,
+          data: trendingPlayers,
+          timestamp: new Date().toISOString()
+        };
+      } else {
+        console.log(`⚠️ No trending players data found on dashboard`);
+        return {
+          success: false,
+          period: period,
+          error: 'No trending players data found on dashboard page',
+          timestamp: new Date().toISOString()
+        };
+      }
+    } catch (error) {
+      console.error('❌ Error fetching trending players:', error.message);
+      if (error.response) {
+        console.error(`   Status: ${error.response.status}`);
+      }
+      return {
+        success: false,
+        period: period,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+   * Get trending sets from GemRate dashboard page
+   * @param {string} period - Time period: 'day', 'week', 'month' (default: 'week')
+   * @returns {Promise<Object>} Trending sets data
+   */
+  async getTrendingSets(period = 'week') {
+    try {
+      console.log(`📈 Fetching trending sets from GemRate dashboard (period: ${period})`);
+      
+      await this.ensureSession();
+      
+      const validPeriods = ['day', 'week', 'month'];
+      if (!validPeriods.includes(period)) {
+        throw new Error(`Invalid period. Must be one of: ${validPeriods.join(', ')}`);
+      }
+
+      // Scrape the /dash page
+      const response = await this.httpClient.get('/dash', {
+        headers: this.pageHeaders,
+        timeout: this.timeout * 3 // Give more time for dashboard page
+      });
+
+      if (!response.data || response.status !== 200) {
+        throw new Error(`Failed to fetch dashboard page (status: ${response.status})`);
+      }
+
+      const html = response.data;
+      const $ = cheerio.load(html);
+
+      // Look for trending sets data in script tags (most likely location)
+      let trendingSets = null;
+      
+      $('script').each((_, el) => {
+        const scriptContent = $(el).html() || '';
+        
+        // Try to find trending sets data in various formats
+        const patterns = [
+          // Pattern 1: var trendingSets = [...]
+          /(?:var|const|let)\s+trendingSets\s*=\s*(\[[\s\S]*?\]);/,
+          // Pattern 2: trendingSets: [...]
+          /trendingSets\s*:\s*(\[[\s\S]*?\])/,
+          // Pattern 3: "trending_sets": [...]
+          /"trending_sets"\s*:\s*(\[[\s\S]*?\])/,
+          // Pattern 4: "Trending Sets" section with data
+          /"Trending Sets[^"]*"\s*:\s*(\[[\s\S]*?\])/,
+          // Pattern 5: Look for any array with set data near "Trending Sets" text
+          /Trending Sets[^}]*?(\[[\s\S]{100,}?\])/
+        ];
+        
+        for (const pattern of patterns) {
+          const match = scriptContent.match(pattern);
+          if (match && match[1]) {
+            try {
+              let jsonStr = match[1];
+              // Clean up trailing commas
+              jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
+              const parsed = JSON.parse(jsonStr);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                trendingSets = parsed;
+                console.log(`✅ Found trending sets in script tag (${parsed.length} items)`);
+                return false; // Break out of each loop
+              }
+            } catch (e) {
+              continue;
+            }
+          }
+        }
+      });
+
+      // If not found in scripts, try to parse from HTML structure
+      if (!trendingSets) {
+        console.log('⚠️ Trending sets not found in script tags, trying HTML parsing...');
+        
+        // Look for sections with "Trending Sets" heading
+        $('h4, h5, h6, .trending-sets, [id*="trending"], [class*="trending"]').each((_, el) => {
+          const text = $(el).text();
+          if (text.toLowerCase().includes('trending sets')) {
+            // Try to find a table or list nearby
+            const container = $(el).closest('div, section, article');
+            const rows = container.find('tr, li, .set-item, [data-set]');
+            
+            if (rows.length > 0) {
+              trendingSets = [];
+              rows.each((_, row) => {
+                const setName = $(row).find('td:first, .set-name, [data-name]').text().trim();
+                const countText = $(row).find('td:last, .count, [data-count]').text().trim();
+                const count = parseInt(countText.replace(/[,\s]/g, '')) || 0;
+                
+                if (setName && setName.length > 0) {
+                  trendingSets.push({
+                    set_name: setName,
+                    name: setName,
+                    set: setName,
+                    submissions: count,
+                    count: count,
+                    total_grades: count
+                  });
+                }
+              });
+              
+              if (trendingSets.length > 0) {
+                console.log(`✅ Parsed ${trendingSets.length} sets from HTML`);
+                return false; // Break out of each loop
+              }
+            }
+          }
+        });
+      }
+
+      // If still no data, fall back to Puppeteer to execute dashboard JS
+      if (!trendingSets || trendingSets.length === 0) {
+        console.log('⚠️ No trending sets from static HTML, trying Puppeteer...');
+        try {
+          const puppeteerSets = await this.scrapeDashboardTrendingWithPuppeteer('sets');
+          if (puppeteerSets && puppeteerSets.length > 0) {
+            trendingSets = puppeteerSets;
+            console.log(`✅ Retrieved ${puppeteerSets.length} trending sets via Puppeteer`);
+          } else {
+            console.log('⚠️ Puppeteer did not return any trending sets');
+          }
+        } catch (puppeteerError) {
+          console.log(`⚠️ Puppeteer trending sets scrape failed: ${puppeteerError.message}`);
+        }
+      }
+
+      if (trendingSets && trendingSets.length > 0) {
+        console.log(`✅ Retrieved ${trendingSets.length} trending sets (period: ${period})`);
+        return {
+          success: true,
+          period: period,
+          data: trendingSets,
+          timestamp: new Date().toISOString()
+        };
+      } else {
+        console.log(`⚠️ No trending sets data found on dashboard`);
+        return {
+          success: false,
+          period: period,
+          error: 'No trending sets data found on dashboard page',
+          timestamp: new Date().toISOString()
+        };
+      }
+    } catch (error) {
+      console.error('❌ Error fetching trending sets:', error.message);
+      if (error.response) {
+        console.error(`   Status: ${error.response.status}`);
+      }
+      return {
+        success: false,
+        period: period,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+   * Use Puppeteer to load the GemRate dashboard and extract trending players or sets
+   * @param {'players' | 'sets'} kind
+   * @returns {Promise<Array>} Array of normalized objects
+   */
+  async scrapeDashboardTrendingWithPuppeteer(kind) {
+    const browserInitialized = await this.initializeBrowser();
+    if (!browserInitialized || !this.browser || !this.page) {
+      throw new Error('Puppeteer browser not available for GemRate dashboard scraping');
+    }
+
+    const url = `${this.baseUrl}/dash`;
+    console.log(`🌐 [Puppeteer] Loading GemRate dashboard: ${url}`);
+
+    try {
+      await this.page.goto(url, { waitUntil: 'networkidle2', timeout: 120000 });
+    } catch (navError) {
+      console.log(`⚠️ [Puppeteer] Navigation error for dashboard: ${navError.message}`);
+      // Try a softer wait condition
+      try {
+        await this.page.goto(url, { waitUntil: 'domcontentloaded', timeout: 120000 });
+      } catch (fallbackError) {
+        throw new Error(`Failed to load GemRate dashboard: ${fallbackError.message}`);
+      }
+    }
+
+    // Give the dashboard JS time to run and render charts/tables
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
+    try {
+      const results = await this.page.evaluate((which) => {
+        const textMatch = which === 'players'
+          ? ['trending players', 'trending players & subjects', 'trending subjects']
+          : ['trending sets'];
+
+        const normalize = (str) => (str || '').replace(/\s+/g, ' ').trim();
+
+        // Find the section heading
+        const headingTags = Array.from(document.querySelectorAll('h2,h3,h4,h5,h6,div,span'));
+        let targetHeading = null;
+
+        for (const el of headingTags) {
+          const text = normalize(el.textContent || '').toLowerCase();
+          if (!text) continue;
+          if (textMatch.some(t => text.includes(t))) {
+            targetHeading = el;
+            break;
+          }
+        }
+
+        if (!targetHeading) {
+          console.log(`[Puppeteer] No heading found for ${which}`);
+          return [];
+        }
+
+        // Look for a nearby table or list containing the data
+        let container = targetHeading.closest('section,div,article') || targetHeading.parentElement || document.body;
+
+        // Try table rows first
+        let rows = Array.from(container.querySelectorAll('table tbody tr'));
+        if (rows.length === 0) {
+          // Fallback: any rows directly under container
+          rows = Array.from(container.querySelectorAll('tr'));
+        }
+        if (rows.length === 0) {
+          // Fallback: list items
+          rows = Array.from(container.querySelectorAll('li,.list-group-item,.card,.row'));
+        }
+
+        const items = [];
+
+        const parseCount = (text) => {
+          if (!text) return 0;
+          const cleaned = text.replace(/[,\\s]/g, '');
+          const num = parseInt(cleaned, 10);
+          return Number.isFinite(num) ? num : 0;
+        };
+
+        for (const row of rows) {
+          const cells = Array.from(row.querySelectorAll('td,div,span,p'));
+          if (cells.length === 0) continue;
+
+          // Heuristic: first meaningful cell is name, last numeric-looking cell is count
+          let name = '';
+          let count = 0;
+
+          for (const cell of cells) {
+            const txt = normalize(cell.textContent || '');
+            if (!txt) continue;
+            if (!name && txt.length > 0 && txt.length < 80 && !/\\d/.test(txt.slice(0, 3))) {
+              name = txt;
+            }
+            if (!count && /\\d/.test(txt)) {
+              const maybe = parseCount(txt);
+              if (maybe > 0) count = maybe;
+            }
+          }
+
+          if (!name) continue;
+
+          if (which === 'players') {
+            items.push({
+              player: name,
+              name,
+              submissions: count,
+              count,
+              total_grades: count
+            });
+          } else {
+            items.push({
+              set_name: name,
+              name,
+              set: name,
+              submissions: count,
+              count,
+              total_grades: count
+            });
+          }
+        }
+
+        console.log(`[Puppeteer] Extracted ${items.length} ${which} rows from dashboard`);
+        return items;
+      }, kind);
+
+      return Array.isArray(results) ? results : [];
+    } catch (evalError) {
+      throw new Error(`Failed to evaluate dashboard DOM: ${evalError.message}`);
+    }
+  }
 }
 
 module.exports = new GemRateService();

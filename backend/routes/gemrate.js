@@ -359,4 +359,72 @@ router.get('/player', async (req, res) => {
   }
 });
 
+// GET /api/gemrate/trending/players - Get trending players from GemRate API
+router.get('/trending/players', async (req, res) => {
+  try {
+    const { period = 'week' } = req.query;
+
+    console.log(`📈 GemRate trending players request (period: ${period})`);
+
+    const result = await gemrateService.getTrendingPlayers(period);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        period: result.period,
+        data: result.data,
+        timestamp: result.timestamp
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: result.error || 'Failed to fetch trending players',
+        period: result.period,
+        timestamp: result.timestamp
+      });
+    }
+  } catch (error) {
+    console.error('❌ GemRate trending players error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get trending players',
+      details: error.message
+    });
+  }
+});
+
+// GET /api/gemrate/trending/sets - Get trending sets from GemRate API
+router.get('/trending/sets', async (req, res) => {
+  try {
+    const { period = 'week' } = req.query;
+
+    console.log(`📈 GemRate trending sets request (period: ${period})`);
+
+    const result = await gemrateService.getTrendingSets(period);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        period: result.period,
+        data: result.data,
+        timestamp: result.timestamp
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: result.error || 'Failed to fetch trending sets',
+        period: result.period,
+        timestamp: result.timestamp
+      });
+    }
+  } catch (error) {
+    console.error('❌ GemRate trending sets error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get trending sets',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;

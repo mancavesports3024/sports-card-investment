@@ -1,0 +1,358 @@
+import React, { useState, useEffect } from 'react';
+import config from '../config';
+
+const API_BASE_URL = config.API_BASE_URL || 'https://web-production-9efa.up.railway.app';
+
+const TrendingSets = () => {
+  const [trendingData, setTrendingData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [period, setPeriod] = useState('week');
+
+  useEffect(() => {
+    fetchTrendingSets();
+  }, [period]);
+
+  const fetchTrendingSets = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      console.log(`📈 Fetching trending sets (period: ${period})...`);
+      const response = await fetch(`${API_BASE_URL}/api/gemrate/trending/sets?period=${period}`);
+      const data = await response.json();
+      
+      console.log('📦 Trending sets API Response:', data);
+      
+      if (data.success && data.data) {
+        console.log(`✅ Loaded trending sets data`);
+        setTrendingData(data.data);
+      } else {
+        console.error('❌ API Error:', data.error);
+        setError(data.error || 'Failed to fetch trending sets');
+      }
+    } catch (err) {
+      console.error('❌ Network Error:', err);
+      setError('Failed to connect to server. The GemRate API endpoint may not be publicly available or may require authentication.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatNumber = (num) => {
+    if (num == null || num === undefined) return 'N/A';
+    return new Intl.NumberFormat('en-US').format(Number(num));
+  };
+
+  const getPeriodLabel = (p) => {
+    const labels = {
+      day: 'Today',
+      week: 'This Week',
+      month: 'This Month'
+    };
+    return labels[p] || p;
+  };
+
+  // Handle different possible response structures from GemRate API
+  const getSetsList = () => {
+    if (!trendingData) return [];
+    
+    // Try different possible structures
+    if (Array.isArray(trendingData)) {
+      return trendingData;
+    }
+    
+    if (trendingData.sets && Array.isArray(trendingData.sets)) {
+      return trendingData.sets;
+    }
+    
+    if (trendingData.data && Array.isArray(trendingData.data)) {
+      return trendingData.data;
+    }
+    
+    if (trendingData.results && Array.isArray(trendingData.results)) {
+      return trendingData.results;
+    }
+    
+    // If it's an object with numeric keys, convert to array
+    if (typeof trendingData === 'object' && !Array.isArray(trendingData)) {
+      const keys = Object.keys(trendingData);
+      if (keys.length > 0 && keys.every(k => !isNaN(k) || k === '0')) {
+        return Object.values(trendingData);
+      }
+    }
+    
+    return [];
+  };
+
+  const sets = getSetsList();
+
+  if (isLoading) {
+    return (
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '3rem',
+        color: '#fff'
+      }}>
+        <div style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>📈 Loading trending sets...</div>
+        <div style={{ 
+          display: 'inline-block',
+          width: '40px',
+          height: '40px',
+          border: '4px solid #ffd700',
+          borderTop: '4px solid transparent',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }}></div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '3rem',
+        color: '#ff6b6b',
+        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+        borderRadius: 8,
+        border: '1px solid #ff6b6b'
+      }}>
+        <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>❌ Error</div>
+        <div>{error}</div>
+        <button
+          onClick={fetchTrendingSets}
+          style={{
+            marginTop: '1rem',
+            padding: '0.5rem 1rem',
+            backgroundColor: '#ffd700',
+            color: '#000',
+            border: 'none',
+            borderRadius: 4,
+            cursor: 'pointer',
+            fontWeight: 600
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!sets || sets.length === 0) {
+    return (
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '3rem',
+        color: '#fff'
+      }}>
+        <div style={{ fontSize: '1.2rem' }}>📊 No trending sets data available</div>
+        <div style={{ marginTop: '0.5rem', color: '#9ca3af' }}>
+          Try selecting a different time period
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
+      {/* Period Selector */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        gap: '0.5rem',
+        marginBottom: '2rem',
+        flexWrap: 'wrap'
+      }}>
+        {['day', 'week', 'month'].map((p) => (
+          <button
+            key={p}
+            onClick={() => setPeriod(p)}
+            style={{
+              background: period === p ? '#ffd700' : '#374151',
+              color: period === p ? '#000' : '#fff',
+              border: '2px solid #ffd700',
+              padding: '0.5rem 1rem',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            {getPeriodLabel(p)}
+          </button>
+        ))}
+      </div>
+
+      {/* Header */}
+      <div style={{ 
+        textAlign: 'center', 
+        marginBottom: '2rem' 
+      }}>
+        <h2 style={{ 
+          fontSize: '2rem', 
+          fontWeight: 700, 
+          color: '#ffd700',
+          marginBottom: '0.5rem',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+        }}>
+          🔥 Trending Sets
+        </h2>
+        <p style={{ color: '#9ca3af', fontSize: '1rem' }}>
+          Card sets with the most cards being graded {getPeriodLabel(period).toLowerCase()}
+        </p>
+      </div>
+
+      {/* Sets Grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+        gap: '1.5rem',
+        marginBottom: '2rem'
+      }}>
+        {sets.map((set, index) => {
+          // Handle different possible field names from API
+          const setName = set.set_name || set.name || set.set || set.title || 'Unknown Set';
+          const submissions = set.submissions || set.total_submissions || set.count || set.grades || set.total_grades || 0;
+          const change = set.change || set.change_percent || set.percent_change || null;
+          const rank = index + 1;
+          
+          // Try to get year, brand, sport/category if available
+          const year = set.year || set.release_year || '';
+          const brand = set.brand || set.manufacturer || '';
+          const sport = set.sport || set.category || '';
+          
+          return (
+            <div
+              key={index}
+              style={{
+                background: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)',
+                border: '2px solid #374151',
+                borderRadius: 12,
+                padding: '1.5rem',
+                transition: 'all 0.3s ease',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#ffd700';
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 8px 16px rgba(255, 215, 0, 0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#374151';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              {/* Rank Badge */}
+              <div style={{
+                position: 'absolute',
+                top: '1rem',
+                right: '1rem',
+                background: rank <= 3 ? '#ffd700' : '#374151',
+                color: rank <= 3 ? '#000' : '#fff',
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                boxShadow: rank <= 3 ? '0 2px 8px rgba(255, 215, 0, 0.4)' : 'none'
+              }}>
+                {rank <= 3 ? ['🥇', '🥈', '🥉'][rank - 1] : rank}
+              </div>
+
+              {/* Set Name */}
+              <div style={{
+                fontSize: '1.3rem',
+                fontWeight: 700,
+                color: '#fff',
+                marginBottom: '0.5rem',
+                paddingRight: '2.5rem'
+              }}>
+                {setName}
+              </div>
+
+              {/* Year, Brand, Sport */}
+              <div style={{
+                fontSize: '0.85rem',
+                color: '#9ca3af',
+                marginBottom: '1rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.25rem'
+              }}>
+                {year && <span>{year}</span>}
+                {brand && <span style={{ textTransform: 'capitalize' }}>{brand}</span>}
+                {sport && <span style={{ textTransform: 'capitalize' }}>{sport}</span>}
+              </div>
+
+              {/* Submissions Count */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: '0.5rem',
+                marginBottom: '0.5rem'
+              }}>
+                <span style={{
+                  fontSize: '2rem',
+                  fontWeight: 800,
+                  color: '#ffd700'
+                }}>
+                  {formatNumber(submissions)}
+                </span>
+                <span style={{
+                  fontSize: '0.9rem',
+                  color: '#9ca3af'
+                }}>
+                  submissions
+                </span>
+              </div>
+
+              {/* Change Indicator */}
+              {change != null && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  fontSize: '0.85rem',
+                  color: change > 0 ? '#10b981' : change < 0 ? '#ef4444' : '#9ca3af'
+                }}>
+                  {change > 0 ? '📈' : change < 0 ? '📉' : '➡️'}
+                  <span>
+                    {change > 0 ? '+' : ''}{typeof change === 'number' ? change.toFixed(1) : change}%
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Info Footer */}
+      <div style={{
+        textAlign: 'center',
+        padding: '1rem',
+        background: 'rgba(255, 215, 0, 0.1)',
+        borderRadius: 8,
+        border: '1px solid rgba(255, 215, 0, 0.3)',
+        color: '#9ca3af',
+        fontSize: '0.85rem'
+      }}>
+        💡 Data provided by GemRate.com - Shows card sets with the most submissions {getPeriodLabel(period).toLowerCase()}
+      </div>
+    </div>
+  );
+};
+
+export default TrendingSets;

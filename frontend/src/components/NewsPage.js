@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import config from '../config';
+import TrendingPlayers from './TrendingPlayers';
+import TrendingSets from './TrendingSets';
 
 const API_BASE_URL = config.API_BASE_URL || 'https://web-production-9efa.up.railway.app';
 
 const NewsPage = () => {
   const [activeTab, setActiveTab] = useState('releases');
+  const [trendingSubTab, setTrendingSubTab] = useState('players'); // 'players' or 'sets'
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [releases, setReleases] = useState([]);
@@ -1238,7 +1241,8 @@ const NewsPage = () => {
         display: 'flex', 
         justifyContent: 'center', 
         marginBottom: '2rem',
-        gap: '1rem'
+        gap: '1rem',
+        flexWrap: 'wrap'
       }}>
         <button
           onClick={() => setActiveTab('releases')}
@@ -1272,10 +1276,75 @@ const NewsPage = () => {
         >
           📰 Industry News
         </button>
+        <button
+          onClick={() => setActiveTab('trending')}
+          style={{
+            background: activeTab === 'trending' ? '#ffd700' : '#374151',
+            color: activeTab === 'trending' ? '#000' : '#fff',
+            border: '2px solid #ffd700',
+            padding: '0.75rem 1.5rem',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontWeight: 600,
+            fontSize: '1rem',
+            transition: 'all 0.3s ease'
+          }}
+        >
+          🔥 Trending Players
+        </button>
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'releases' ? renderReleasesTab() : renderNewsTab()}
+      {activeTab === 'releases' && renderReleasesTab()}
+      {activeTab === 'news' && renderNewsTab()}
+      {activeTab === 'trending' && (
+        <div>
+          {/* Trending Sub-Tabs */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            gap: '0.5rem',
+            marginBottom: '2rem',
+            flexWrap: 'wrap'
+          }}>
+            <button
+              onClick={() => setTrendingSubTab('players')}
+              style={{
+                background: trendingSubTab === 'players' ? '#ffd700' : '#374151',
+                color: trendingSubTab === 'players' ? '#000' : '#fff',
+                border: '2px solid #ffd700',
+                padding: '0.5rem 1rem',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              👤 Players
+            </button>
+            <button
+              onClick={() => setTrendingSubTab('sets')}
+              style={{
+                background: trendingSubTab === 'sets' ? '#ffd700' : '#374151',
+                color: trendingSubTab === 'sets' ? '#000' : '#fff',
+                border: '2px solid #ffd700',
+                padding: '0.5rem 1rem',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              📦 Sets
+            </button>
+          </div>
+          
+          {/* Trending Content */}
+          {trendingSubTab === 'players' ? <TrendingPlayers /> : <TrendingSets />}
+        </div>
+      )}
       {renderReleaseModal()}
     </div>
   );
