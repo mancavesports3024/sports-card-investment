@@ -3756,6 +3756,26 @@ class GemRateService {
     const url = `${this.baseUrl}/dash`;
     console.log(`🌐 [Puppeteer] Loading GemRate dashboard: ${url}`);
 
+    // Intercept network requests to see if there's an API call for trending data
+    const apiResponses = [];
+    this.page.on('response', async (response) => {
+      const url = response.url();
+      if (url.includes('trending') || url.includes('api') || url.includes('data')) {
+        try {
+          const contentType = response.headers()['content-type'] || '';
+          if (contentType.includes('json')) {
+            const data = await response.json().catch(() => null);
+            if (data) {
+              apiResponses.push({ url, data });
+              console.log(`📡 [Puppeteer] Found API response: ${url}`);
+            }
+          }
+        } catch (e) {
+          // Ignore
+        }
+      }
+    });
+
     try {
       await this.page.goto(url, { waitUntil: 'networkidle2', timeout: 120000 });
     } catch (navError) {
@@ -3768,16 +3788,57 @@ class GemRateService {
       }
     }
 
+    // Check if we found any API responses with trending data
+    if (apiResponses.length > 0) {
+      console.log(`📡 [Puppeteer] Found ${apiResponses.length} potential API responses`);
+      for (const resp of apiResponses) {
+        if (Array.isArray(resp.data) || (resp.data && typeof resp.data === 'object')) {
+          console.log(`📡 [Puppeteer] API response from ${resp.url}:`, JSON.stringify(resp.data).substring(0, 500));
+        }
+      }
+    }
+
     // Give the dashboard JS time to run and render charts/tables
     await new Promise(resolve => setTimeout(resolve, 8000));
 
+    // Wait for specific elements that indicate the page has loaded
     try {
+      await this.page.waitForSelector('h2, h3, h4, table, [class*="trending"]', { timeout: 10000 }).catch(() => {});
+    } catch (e) {
+      console.log('⚠️ [Puppeteer] Timeout waiting for page elements');
+    }
+
+    // Additional wait for dynamic content
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    try {
+      // First, let's log what's actually on the page for debugging
+      const pageInfo = await this.page.evaluate(() => {
+        return {
+          title: document.title,
+          headings: Array.from(document.querySelectorAll('h1,h2,h3,h4,h5,h6')).map(h => ({
+            text: h.textContent.trim(),
+            tag: h.tagName
+          })).slice(0, 20),
+          tables: document.querySelectorAll('table').length,
+          hasTrendingText: document.body.textContent.toLowerCase().includes('trending')
+        };
+      });
+      console.log(`[Puppeteer] Page info:`, JSON.stringify(pageInfo, null, 2));
+
       const results = await this.page.evaluate((which) => {
         const textMatch = which === 'players'
-          ? ['trending players', 'trending players & subjects', 'trending subjects', 'players & subjects']
-          : ['trending sets'];
+          ? ['trending players', 'trending players & subjects', 'trending subjects', 'players & subjects', 'past week']
+          : ['trending sets', 'past week'];
 
         const normalize = (str) => (str || '').replace(/\s+/g, ' ').trim();
+
+        // Log all headings for debugging
+        const allHeadings = Array.from(document.querySelectorAll('h1,h2,h3,h4,h5,h6')).map(h => ({
+          text: normalize(h.textContent || ''),
+          tag: h.tagName
+        }));
+        console.log(`[Puppeteer] All headings on page (${allHeadings.length}):`, allHeadings.slice(0, 15).map(h => `${h.tag}: "${h.text}"`).join(', '));
 
         // First, try to find data in JavaScript variables (most reliable)
         const windowVars = ['trendingPlayers', 'trendingSets', 'trendingData', 'dashboardData'];
@@ -3836,9 +3897,12 @@ class GemRateService {
         }
 
         if (!targetHeading) {
-          console.log(`[Puppeteer] No heading found for ${which}`);
+          console.log(`[Puppeteer] No heading found for ${which}. Available headings:`, 
+            Array.from(document.querySelectorAll('h2,h3,h4,h5,h6')).map(h => h.textContent.trim()).slice(0, 10));
           return [];
         }
+
+        console.log(`[Puppeteer] Found heading: "${targetHeading.textContent.trim()}"`);
 
         // Find the container - look for the next table/list after the heading
         let container = targetHeading.closest('section,div[class*="section"],div[class*="container"]') || 
@@ -3848,6 +3912,16 @@ class GemRateService {
         // Look for table rows - be more specific
         let rows = Array.from(container.querySelectorAll('table tbody tr'));
         
+        console.log(`[Puppeteer] Found ${rows.length} table rows in container`);
+        
+        // If no table rows, try to find any data rows nearby
+        if (rows.length === 0) {
+          // Look for divs or other elements that might contain the data
+          const dataElements = Array.from(container.querySelectorAll('div[class*="row"], div[class*="item"], tr, li'));
+          console.log(`[Puppeteer] Found ${dataElements.length} potential data elements`);
+          rows = dataElements;
+        }
+        
         // Filter out header rows and invalid rows
         rows = rows.filter(row => {
           const text = normalize(row.textContent || '').toLowerCase();
@@ -3855,10 +3929,17 @@ class GemRateService {
           const excludePatterns = [
             'day prior', 'prior', 'items graded', 'show/hide', 'legend', 'category data',
             'trailing', 'average', 'pace', 'annually', 'updated', 'graded yesterday',
-            'trending players', 'trending sets', 'trending cards'
+            'trending players', 'trending sets', 'trending cards', 'overall grading',
+            'psa grading', 'by day', 'by week', 'by month', 'since'
           ];
-          return !excludePatterns.some(pattern => text.includes(pattern));
+          const shouldExclude = excludePatterns.some(pattern => text.includes(pattern));
+          if (shouldExclude) {
+            console.log(`[Puppeteer] Excluding row: "${text.substring(0, 50)}"`);
+          }
+          return !shouldExclude;
         });
+        
+        console.log(`[Puppeteer] After filtering: ${rows.length} rows remain`);
 
         const items = [];
         const parseCount = (text) => {
