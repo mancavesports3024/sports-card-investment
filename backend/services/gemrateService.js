@@ -3760,20 +3760,48 @@ class GemRateService {
     const apiResponses = [];
     this.page.on('response', async (response) => {
       const url = response.url();
-      if (url.includes('trending') || url.includes('api') || url.includes('data')) {
+      // Broader matching - catch any API calls that might contain trending data
+      if (url.includes('trending') || url.includes('api') || url.includes('data') || 
+          url.includes('dash') || url.includes('dashboard') || url.includes('chart')) {
         try {
           const contentType = response.headers()['content-type'] || '';
-          if (contentType.includes('json')) {
+          if (contentType.includes('json') || url.includes('api') || url.includes('data')) {
             const data = await response.json().catch(() => null);
             if (data) {
               apiResponses.push({ url, data });
               console.log(`📡 [Puppeteer] Found API response: ${url}`);
+              // Log a sample of the data
+              if (Array.isArray(data) || (typeof data === 'object' && data !== null)) {
+                console.log(`📡 [Puppeteer] Response data sample:`, JSON.stringify(data).substring(0, 1000));
+              }
             }
           }
         } catch (e) {
           // Ignore
         }
       }
+    });
+
+    // Also intercept fetch and XHR requests
+    await this.page.evaluateOnNewDocument(() => {
+      // Intercept fetch
+      const originalFetch = window.fetch;
+      window.fetch = function(...args) {
+        const url = args[0];
+        if (typeof url === 'string' && (url.includes('trending') || url.includes('api') || url.includes('data'))) {
+          console.log(`[Puppeteer] Intercepted fetch: ${url}`);
+        }
+        return originalFetch.apply(this, args);
+      };
+
+      // Intercept XMLHttpRequest
+      const originalOpen = XMLHttpRequest.prototype.open;
+      XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+        if (typeof url === 'string' && (url.includes('trending') || url.includes('api') || url.includes('data'))) {
+          console.log(`[Puppeteer] Intercepted XHR: ${method} ${url}`);
+        }
+        return originalOpen.apply(this, [method, url, ...rest]);
+      };
     });
 
     try {
@@ -3837,6 +3865,7 @@ class GemRateService {
       console.log(`[Puppeteer] Page info:`, JSON.stringify(pageInfo, null, 2));
 
       const results = await this.page.evaluate((which) => {
+        try {
         const textMatch = which === 'players'
           ? ['trending players', 'trending players & subjects', 'trending subjects', 'players & subjects', 'past week']
           : ['trending sets', 'past week'];
@@ -4364,10 +4393,23 @@ class GemRateService {
         }
         
         return items;
+        } catch (error) {
+          console.error(`[Puppeteer] Error in evaluate function: ${error.message}`);
+          console.error(`[Puppeteer] Error stack: ${error.stack}`);
+          return [];
+        }
       }, kind);
+
+      console.log(`[Puppeteer] Evaluation completed, results type: ${typeof results}, isArray: ${Array.isArray(results)}, length: ${Array.isArray(results) ? results.length : 'N/A'}`);
+      
+      if (Array.isArray(results) && results.length > 0) {
+        console.log(`[Puppeteer] Sample results (first 3):`, JSON.stringify(results.slice(0, 3), null, 2));
+      }
 
       return Array.isArray(results) ? results : [];
     } catch (evalError) {
+      console.error(`❌ [Puppeteer] Failed to evaluate dashboard DOM: ${evalError.message}`);
+      console.error(`❌ [Puppeteer] Error stack:`, evalError.stack);
       throw new Error(`Failed to evaluate dashboard DOM: ${evalError.message}`);
     }
   }
