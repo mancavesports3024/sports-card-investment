@@ -3769,27 +3769,70 @@ class GemRateService {
     }
 
     // Give the dashboard JS time to run and render charts/tables
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise(resolve => setTimeout(resolve, 8000));
 
     try {
       const results = await this.page.evaluate((which) => {
         const textMatch = which === 'players'
-          ? ['trending players', 'trending players & subjects', 'trending subjects']
+          ? ['trending players', 'trending players & subjects', 'trending subjects', 'players & subjects']
           : ['trending sets'];
 
         const normalize = (str) => (str || '').replace(/\s+/g, ' ').trim();
 
-        // Find the section heading
-        const headingTags = Array.from(document.querySelectorAll('h2,h3,h4,h5,h6,div,span'));
+        // First, try to find data in JavaScript variables (most reliable)
+        const windowVars = ['trendingPlayers', 'trendingSets', 'trendingData', 'dashboardData'];
+        for (const varName of windowVars) {
+          if (window[varName] && Array.isArray(window[varName]) && window[varName].length > 0) {
+            console.log(`[Puppeteer] Found ${varName} in window with ${window[varName].length} items`);
+            return window[varName];
+          }
+        }
+
+        // Look for data in script tags
+        const scripts = Array.from(document.querySelectorAll('script'));
+        for (const script of scripts) {
+          const content = script.textContent || script.innerHTML || '';
+          const patterns = [
+            new RegExp(`(?:var|const|let)\\s+trending${which === 'players' ? 'Players' : 'Sets'}\\s*=\\s*(\\[[\\s\\S]*?\\]);`, 'i'),
+            new RegExp(`trending${which === 'players' ? 'Players' : 'Sets'}\\s*:\\s*(\\[[\\s\\S]*?\\])`, 'i'),
+            new RegExp(`"trending_${which}"\\s*:\\s*(\\[[\\s\\S]*?\\])`, 'i')
+          ];
+          
+          for (const pattern of patterns) {
+            const match = content.match(pattern);
+            if (match && match[1]) {
+              try {
+                let jsonStr = match[1].replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
+                const parsed = JSON.parse(jsonStr);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  console.log(`[Puppeteer] Found trending data in script tag: ${parsed.length} items`);
+                  return parsed;
+                }
+              } catch (e) {
+                continue;
+              }
+            }
+          }
+        }
+
+        // If no JS data found, parse from DOM
+        console.log(`[Puppeteer] No JS data found, parsing from DOM...`);
+
+        // Find the section heading - be more specific
+        const headingSelectors = ['h2', 'h3', 'h4', 'h5', 'h6', '[class*="heading"]', '[class*="title"]'];
         let targetHeading = null;
 
-        for (const el of headingTags) {
-          const text = normalize(el.textContent || '').toLowerCase();
-          if (!text) continue;
-          if (textMatch.some(t => text.includes(t))) {
-            targetHeading = el;
-            break;
+        for (const selector of headingSelectors) {
+          const headings = Array.from(document.querySelectorAll(selector));
+          for (const el of headings) {
+            const text = normalize(el.textContent || '').toLowerCase();
+            if (!text) continue;
+            if (textMatch.some(t => text.includes(t) && text.length < 100)) {
+              targetHeading = el;
+              break;
+            }
           }
+          if (targetHeading) break;
         }
 
         if (!targetHeading) {
@@ -3797,50 +3840,87 @@ class GemRateService {
           return [];
         }
 
-        // Look for a nearby table or list containing the data
-        let container = targetHeading.closest('section,div,article') || targetHeading.parentElement || document.body;
+        // Find the container - look for the next table/list after the heading
+        let container = targetHeading.closest('section,div[class*="section"],div[class*="container"]') || 
+                       targetHeading.parentElement || 
+                       document.body;
 
-        // Try table rows first
+        // Look for table rows - be more specific
         let rows = Array.from(container.querySelectorAll('table tbody tr'));
-        if (rows.length === 0) {
-          // Fallback: any rows directly under container
-          rows = Array.from(container.querySelectorAll('tr'));
-        }
-        if (rows.length === 0) {
-          // Fallback: list items
-          rows = Array.from(container.querySelectorAll('li,.list-group-item,.card,.row'));
-        }
+        
+        // Filter out header rows and invalid rows
+        rows = rows.filter(row => {
+          const text = normalize(row.textContent || '').toLowerCase();
+          // Exclude rows that look like headers or stats
+          const excludePatterns = [
+            'day prior', 'prior', 'items graded', 'show/hide', 'legend', 'category data',
+            'trailing', 'average', 'pace', 'annually', 'updated', 'graded yesterday',
+            'trending players', 'trending sets', 'trending cards'
+          ];
+          return !excludePatterns.some(pattern => text.includes(pattern));
+        });
 
         const items = [];
-
         const parseCount = (text) => {
           if (!text) return 0;
-          const cleaned = text.replace(/[,\\s]/g, '');
+          const cleaned = text.replace(/[,\s%()]/g, '');
           const num = parseInt(cleaned, 10);
-          return Number.isFinite(num) ? num : 0;
+          return Number.isFinite(num) && num > 0 ? num : 0;
+        };
+
+        // Patterns to exclude (statistics labels, UI elements)
+        const excludePatterns = [
+          /^(day prior|prior \d+ days?|items graded|show\/hide|legend|category data|trailing|average|pace|annually|updated|graded yesterday)$/i,
+          /^[+\-]?\d+%$/,
+          /^\d+$/,
+          /^(trending|players|sets|cards)$/i
+        ];
+
+        const isValidName = (txt) => {
+          if (!txt || txt.length < 2 || txt.length > 100) return false;
+          // Must contain letters (not just numbers/symbols)
+          if (!/[a-zA-Z]/.test(txt)) return false;
+          // Exclude known patterns
+          if (excludePatterns.some(pattern => pattern.test(txt))) return false;
+          // Should look like a name (contains letters and possibly spaces/numbers)
+          return true;
         };
 
         for (const row of rows) {
-          const cells = Array.from(row.querySelectorAll('td,div,span,p'));
-          if (cells.length === 0) continue;
+          const cells = Array.from(row.querySelectorAll('td'));
+          if (cells.length < 2) continue; // Need at least 2 cells
 
-          // Heuristic: first meaningful cell is name, last numeric-looking cell is count
           let name = '';
           let count = 0;
 
-          for (const cell of cells) {
-            const txt = normalize(cell.textContent || '');
-            if (!txt) continue;
-            if (!name && txt.length > 0 && txt.length < 80 && !/\\d/.test(txt.slice(0, 3))) {
-              name = txt;
-            }
-            if (!count && /\\d/.test(txt)) {
-              const maybe = parseCount(txt);
-              if (maybe > 0) count = maybe;
+          // First cell should be the name
+          const firstCellText = normalize(cells[0].textContent || '');
+          if (isValidName(firstCellText)) {
+            name = firstCellText;
+          }
+
+          // Last cell or cells with numbers should be the count
+          for (let i = cells.length - 1; i >= 0; i--) {
+            const cellText = normalize(cells[i].textContent || '');
+            const maybeCount = parseCount(cellText);
+            if (maybeCount > 0) {
+              count = maybeCount;
+              break;
             }
           }
 
-          if (!name) continue;
+          // If we didn't get name from first cell, try all cells
+          if (!name) {
+            for (const cell of cells) {
+              const txt = normalize(cell.textContent || '');
+              if (isValidName(txt)) {
+                name = txt;
+                break;
+              }
+            }
+          }
+
+          if (!name || !count) continue;
 
           if (which === 'players') {
             items.push({
@@ -3862,7 +3942,7 @@ class GemRateService {
           }
         }
 
-        console.log(`[Puppeteer] Extracted ${items.length} ${which} rows from dashboard`);
+        console.log(`[Puppeteer] Extracted ${items.length} ${which} from DOM`);
         return items;
       }, kind);
 
