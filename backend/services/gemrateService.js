@@ -3880,17 +3880,100 @@ class GemRateService {
         
         // Method 1: Try to find AG Grid rows directly in DOM
         try {
-          const gridRows = Array.from(document.querySelectorAll('[role="row"]'));
-          console.log(`[Puppeteer] Found ${gridRows.length} AG Grid rows`);
+          // Find the specific table for trending players/sets
+          // Look for the heading first, then find the grid near it
+          const heading = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6')).find(h => {
+            const text = (h.textContent || '').toLowerCase();
+            return text.includes(which === 'players' ? 'trending players' : 'trending sets');
+          });
+          
+          let gridRows = [];
+          if (heading) {
+            // Find the AG Grid container near the heading
+            let container = heading.parentElement;
+            for (let i = 0; i < 5 && container; i++) {
+              const grid = container.querySelector('[role="grid"], .ag-root-wrapper, [class*="ag-grid"]');
+              if (grid) {
+                gridRows = Array.from(grid.querySelectorAll('[role="row"]'));
+                console.log(`[Puppeteer] Found grid near heading with ${gridRows.length} rows`);
+                break;
+              }
+              container = container.parentElement;
+            }
+          }
+          
+          // Fallback: get all rows
+          if (gridRows.length === 0) {
+            gridRows = Array.from(document.querySelectorAll('[role="row"]'));
+            console.log(`[Puppeteer] Found ${gridRows.length} total AG Grid rows (fallback)`);
+          }
+          
+          // First, find the header row to identify column order
+          let headerRow = null;
+          let columnIndices = { name: -1, category: -1, lastWeek: -1 };
           
           for (const row of gridRows) {
+            const headerCells = Array.from(row.querySelectorAll('[role="columnheader"], [role="gridcell"]'));
+            if (headerCells.length > 0) {
+              const headerText = headerCells.map(c => (c.textContent || '').toLowerCase().trim()).join('|');
+              console.log(`[Puppeteer] Header row text: ${headerText}`);
+              
+              // Find column indices
+              for (let i = 0; i < headerCells.length; i++) {
+                const cellText = (headerCells[i].textContent || '').toLowerCase().trim();
+                if (cellText.includes('name') && columnIndices.name === -1) {
+                  columnIndices.name = i;
+                }
+                if (cellText.includes('category') && columnIndices.category === -1) {
+                  columnIndices.category = i;
+                }
+                if ((cellText.includes('last week') || cellText.includes('week')) && columnIndices.lastWeek === -1) {
+                  columnIndices.lastWeek = i;
+                }
+              }
+              
+              // If we found headers, this is the header row
+              if (columnIndices.name !== -1 || columnIndices.category !== -1) {
+                headerRow = row;
+                break;
+              }
+            }
+          }
+          
+          console.log(`[Puppeteer] Column indices:`, columnIndices);
+          
+          // Now extract data rows
+          for (const row of gridRows) {
+            if (row === headerRow) continue; // Skip header row
+            
             const cells = Array.from(row.querySelectorAll('[role="gridcell"]'));
-            if (cells.length >= 4) {
-              const nameText = (cells[0]?.textContent || '').trim();
-              const categoryText = (cells[1]?.textContent || '').trim();
-              // Find "Last Week" column (usually column 3, index 2)
-              let count = 0;
-              for (let i = 2; i < Math.min(cells.length, 5); i++) {
+            if (cells.length < 3) continue;
+            
+            // Determine which cell is the name based on column indices or position
+            let nameText = '';
+            let categoryText = '';
+            let count = 0;
+            
+            if (columnIndices.name !== -1 && columnIndices.name < cells.length) {
+              nameText = (cells[columnIndices.name]?.textContent || '').trim();
+            } else {
+              // Fallback: first cell is usually the name
+              nameText = (cells[0]?.textContent || '').trim();
+            }
+            
+            if (columnIndices.category !== -1 && columnIndices.category < cells.length) {
+              categoryText = (cells[columnIndices.category]?.textContent || '').trim();
+            } else if (cells.length > 1) {
+              categoryText = (cells[1]?.textContent || '').trim();
+            }
+            
+            // Find count - prefer "Last Week" column, otherwise look for numbers
+            if (columnIndices.lastWeek !== -1 && columnIndices.lastWeek < cells.length) {
+              const countText = (cells[columnIndices.lastWeek]?.textContent || '').trim();
+              count = parseInt(countText.replace(/,/g, ''), 10);
+            } else {
+              // Look for numbers in cells after name/category
+              for (let i = Math.max(columnIndices.name, columnIndices.category) + 1; i < Math.min(cells.length, 6); i++) {
                 const cellText = (cells[i]?.textContent || '').trim();
                 const num = parseInt(cellText.replace(/,/g, ''), 10);
                 if (num > 0 && num < 100000) {
@@ -3898,31 +3981,43 @@ class GemRateService {
                   break;
                 }
               }
-              
-              if (nameText && nameText.length >= 3 && nameText.length <= 80 && count > 0 &&
-                  !nameText.toLowerCase().includes('name') && 
-                  !nameText.toLowerCase().includes('category') &&
-                  !nameText.toLowerCase().includes('graded') &&
-                  !nameText.toLowerCase().includes('drag')) {
-                if (which === 'players') {
-                  items.push({ 
-                    player: nameText, 
-                    name: nameText, 
-                    submissions: count, 
-                    count, 
-                    total_grades: count,
-                    category: categoryText
-                  });
-                } else {
-                  items.push({ 
-                    set_name: nameText, 
-                    name: nameText, 
-                    set: nameText, 
-                    submissions: count, 
-                    count, 
-                    total_grades: count 
-                  });
-                }
+            }
+            
+            // Filter out header rows and invalid data
+            const nameLower = nameText.toLowerCase();
+            const excludePatterns = ['name', 'category', 'graded', 'all time', 'last week', 'prior week', 
+                                   'weekly change', 'drag', 'here', 'set', 'row', 'groups', 'column', 'labels'];
+            const isExcluded = excludePatterns.some(pattern => nameLower.includes(pattern));
+            
+            // For sets, skip if it's just a category (Basketball, Baseball, etc.)
+            const isCategory = which === 'sets' && ['basketball', 'baseball', 'football', 'soccer', 'hockey', 'golf', 'pokemon', 'tcg'].includes(nameLower);
+            
+            // Log first few rows for debugging
+            if (items.length < 3) {
+              console.log(`[Puppeteer] Row ${items.length + 1}: name="${nameText}", category="${categoryText}", count=${count}, isExcluded=${isExcluded}, isCategory=${isCategory}`);
+              console.log(`[Puppeteer] All cells:`, cells.map((c, i) => `[${i}]="${(c.textContent || '').trim()}"`).join(', '));
+            }
+            
+            if (nameText && nameText.length >= 3 && nameText.length <= 80 && count > 0 && !isExcluded && !isCategory) {
+              console.log(`[Puppeteer] ✅ Extracted ${which}: name="${nameText}", category="${categoryText}", count=${count}`);
+              if (which === 'players') {
+                items.push({ 
+                  player: nameText, 
+                  name: nameText, 
+                  submissions: count, 
+                  count, 
+                  total_grades: count,
+                  category: categoryText
+                });
+              } else {
+                items.push({ 
+                  set_name: nameText, 
+                  name: nameText, 
+                  set: nameText, 
+                  submissions: count, 
+                  count, 
+                  total_grades: count 
+                });
               }
             }
           }
