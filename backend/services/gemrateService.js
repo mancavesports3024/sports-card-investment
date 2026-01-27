@@ -3908,6 +3908,10 @@ class GemRateService {
             console.log(`[Puppeteer] Found ${gridRows.length} total AG Grid rows (fallback)`);
           }
           
+          // Also try to find card elements (the UI might show cards, not just table rows)
+          const cardElements = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], [data-testid*="card"], [class*="trending"]'));
+          console.log(`[Puppeteer] Found ${cardElements.length} potential card elements`);
+          
           // First, find the header row to identify column order
           let headerRow = null;
           let columnIndices = { name: -1, category: -1, lastWeek: -1 };
@@ -3942,44 +3946,172 @@ class GemRateService {
           
           console.log(`[Puppeteer] Column indices:`, columnIndices);
           
-          // Now extract data rows
+          // Try to access AG Grid's internal data model directly
+          try {
+            const agGridInstances = Array.from(document.querySelectorAll('.ag-root-wrapper, [class*="ag-grid"]'));
+            for (const gridEl of agGridInstances) {
+              // AG Grid stores data in window or in the element
+              const gridApi = gridEl.__agGridInstance || gridEl.gridApi || window.gridApi;
+              if (gridApi && gridApi.getDisplayedRowCount) {
+                const rowCount = gridApi.getDisplayedRowCount();
+                console.log(`[Puppeteer] Found AG Grid API with ${rowCount} rows`);
+                
+                // Get all row data
+                const allRowData = [];
+                gridApi.forEachNode((node) => {
+                  if (node.data) {
+                    allRowData.push(node.data);
+                  }
+                });
+                
+                if (allRowData.length > 0) {
+                  console.log(`[Puppeteer] Extracted ${allRowData.length} rows from AG Grid API`);
+                  console.log(`[Puppeteer] First row sample:`, JSON.stringify(allRowData[0]));
+                  
+                  // Process row data
+                  for (const rowData of allRowData) {
+                    const nameText = rowData.name || rowData.set_name || rowData.set || rowData.title || rowData.label || '';
+                    const count = rowData.submissions || rowData.last_week || rowData.count || rowData.total_grades || 0;
+                    const categoryText = rowData.category || rowData.sport || '';
+                    
+                    if (nameText && nameText.length >= 3 && nameText.length <= 80 && count > 0) {
+                      if (which === 'players') {
+                        items.push({ 
+                          player: nameText, 
+                          name: nameText, 
+                          submissions: count, 
+                          count, 
+                          total_grades: count,
+                          category: categoryText
+                        });
+                      } else {
+                        items.push({ 
+                          set_name: nameText, 
+                          name: nameText, 
+                          set: nameText, 
+                          submissions: count, 
+                          count, 
+                          total_grades: count 
+                        });
+                      }
+                    }
+                  }
+                  
+                  // If we got items from API, skip DOM extraction
+                  if (items.length > 0) {
+                    console.log(`[Puppeteer] ✅ Extracted ${items.length} ${which} from AG Grid API`);
+                    break;
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            console.log(`[Puppeteer] AG Grid API access failed: ${e.message}`);
+          }
+          
+          // Now extract data rows (only if API method didn't work)
+          if (items.length === 0) {
           for (const row of gridRows) {
             if (row === headerRow) continue; // Skip header row
             
             const cells = Array.from(row.querySelectorAll('[role="gridcell"]'));
-            if (cells.length < 3) continue;
+            if (cells.length < 2) continue;
             
-            // Determine which cell is the name based on column indices or position
+            // Log all cell contents for debugging
+            const allCellTexts = cells.map((c, i) => `[${i}]="${(c.textContent || '').trim()}"`).join(', ');
+            console.log(`[Puppeteer] Row cells: ${allCellTexts}`);
+            
+            // Check if cells contain only numbers (indicating wrong column structure)
+            const firstCellText = (cells[0]?.textContent || '').trim();
+            const isFirstCellNumeric = /^-?\d{1,3}(?:,\d{3})*$/.test(firstCellText);
+            
+            // If first cell is numeric, the set name might be:
+            // 1. In a data attribute
+            // 2. In a child element (like a link or span)
+            // 3. In a different column structure
+            // 4. In card/tile elements instead of table rows
+            
             let nameText = '';
-            let categoryText = '';
             let count = 0;
             
-            if (columnIndices.name !== -1 && columnIndices.name < cells.length) {
-              nameText = (cells[columnIndices.name]?.textContent || '').trim();
-            } else {
-              // Fallback: first cell is usually the name
-              nameText = (cells[0]?.textContent || '').trim();
+            // Try to find set name in various places
+            // Method 1: Check for links or spans with set names
+            const links = Array.from(row.querySelectorAll('a, [class*="name"], [class*="set"], [class*="title"]'));
+            for (const link of links) {
+              const linkText = (link.textContent || '').trim();
+              if (linkText && linkText.length > 3 && linkText.length < 100 && 
+                  !/^-?\d{1,3}(?:,\d{3})*$/.test(linkText) &&
+                  !linkText.toLowerCase().includes('submission')) {
+                nameText = linkText;
+                break;
+              }
             }
             
-            if (columnIndices.category !== -1 && columnIndices.category < cells.length) {
-              categoryText = (cells[columnIndices.category]?.textContent || '').trim();
-            } else if (cells.length > 1) {
-              categoryText = (cells[1]?.textContent || '').trim();
+            // Method 2: Check data attributes
+            if (!nameText) {
+              const rowData = row.getAttribute('row-data') || row.getAttribute('data-row') || '';
+              if (rowData) {
+                try {
+                  const parsed = JSON.parse(rowData);
+                  nameText = parsed.name || parsed.set_name || parsed.set || parsed.title || '';
+                } catch (e) {
+                  // Not JSON
+                }
+              }
             }
             
-            // Find count - prefer "Last Week" column, otherwise look for numbers
-            if (columnIndices.lastWeek !== -1 && columnIndices.lastWeek < cells.length) {
-              const countText = (cells[columnIndices.lastWeek]?.textContent || '').trim();
-              count = parseInt(countText.replace(/,/g, ''), 10);
-            } else {
-              // Look for numbers in cells after name/category
-              for (let i = Math.max(columnIndices.name, columnIndices.category) + 1; i < Math.min(cells.length, 6); i++) {
-                const cellText = (cells[i]?.textContent || '').trim();
-                const num = parseInt(cellText.replace(/,/g, ''), 10);
-                if (num > 0 && num < 100000) {
-                  count = num;
+            // Method 3: Check all cells for non-numeric text that looks like a name
+            if (!nameText) {
+              for (const cell of cells) {
+                const cellText = (cell.textContent || '').trim();
+                // Skip if it's just a number
+                if (/^-?\d{1,3}(?:,\d{3})*$/.test(cellText)) continue;
+                // Skip if it's a header word
+                if (['name', 'category', 'submissions', 'graded', 'change'].includes(cellText.toLowerCase())) continue;
+                // If it has letters and reasonable length, it might be a name
+                if (cellText.length >= 3 && cellText.length <= 80 && /[a-zA-Z]/.test(cellText)) {
+                  nameText = cellText;
                   break;
                 }
+              }
+            }
+            
+            // Extract count - look for the submissions number (usually column 1 based on logs)
+            if (cells.length >= 2) {
+              const countText = (cells[1]?.textContent || '').trim();
+              count = parseInt(countText.replace(/,/g, ''), 10);
+            }
+            
+            // If we still don't have a name and first cell is numeric, try to get it from row data
+            if (!nameText && isFirstCellNumeric) {
+              // Check row data attributes
+              const rowDataAttr = row.getAttribute('row-data') || row.getAttribute('data-row') || row.getAttribute('data-row-data') || '';
+              if (rowDataAttr) {
+                try {
+                  const parsed = JSON.parse(rowDataAttr);
+                  nameText = parsed.name || parsed.set_name || parsed.set || parsed.title || parsed.label || '';
+                  console.log(`[Puppeteer] Found name in row data: "${nameText}"`);
+                } catch (e) {
+                  // Not JSON, try as string
+                  if (rowDataAttr.includes('"name"') || rowDataAttr.includes('"set')) {
+                    const nameMatch = rowDataAttr.match(/"name":\s*"([^"]+)"/) || rowDataAttr.match(/"set":\s*"([^"]+)"/);
+                    if (nameMatch) nameText = nameMatch[1];
+                  }
+                }
+              }
+              
+              // If still no name, check if row has a data-id or similar that might contain the name
+              if (!nameText) {
+                const rowId = row.getAttribute('row-id') || row.getAttribute('data-id') || '';
+                if (rowId && !/^\d+$/.test(rowId)) {
+                  nameText = rowId;
+                }
+              }
+              
+              // Last resort: skip this row if we can't find a name
+              if (!nameText) {
+                console.log(`[Puppeteer] Skipping row - first cell is numeric (${firstCellText}), no name found in row data`);
+                continue;
               }
             }
             
@@ -4018,6 +4150,30 @@ class GemRateService {
                   count, 
                   total_grades: count 
                 });
+              }
+            }
+          }
+          } // End of "if items.length === 0" block
+          
+          // If we didn't get items from table rows, try card elements
+          if (items.length === 0 && cardElements.length > 0) {
+            console.log(`[Puppeteer] Trying card elements extraction...`);
+            for (const card of cardElements) {
+              const cardText = (card.textContent || '').trim();
+              // Look for set name in card (usually in a heading or title element)
+              const titleEl = card.querySelector('h1, h2, h3, h4, h5, h6, [class*="title"], [class*="name"], [class*="set"]');
+              const nameText = titleEl ? (titleEl.textContent || '').trim() : '';
+              
+              // Extract submission count
+              const countMatch = cardText.match(/(\d{1,3}(?:,\d{3})*)\s*submissions?/i);
+              const count = countMatch ? parseInt(countMatch[1].replace(/,/g, ''), 10) : 0;
+              
+              if (nameText && nameText.length >= 3 && nameText.length <= 80 && count > 0) {
+                if (which === 'players') {
+                  items.push({ player: nameText, name: nameText, submissions: count, count, total_grades: count });
+                } else {
+                  items.push({ set_name: nameText, name: nameText, set: nameText, submissions: count, count, total_grades: count });
+                }
               }
             }
           }
