@@ -3941,13 +3941,29 @@ class GemRateService {
 
         // Debug: Log the HTML structure near the heading
         const headingParent = targetHeading.parentElement;
-        const headingSiblings = Array.from(headingParent?.children || []).slice(0, 10);
-        console.log(`[Puppeteer] Heading siblings (first 10):`, headingSiblings.map((el, i) => ({
+        const headingSiblings = Array.from(headingParent?.children || []).slice(0, 20);
+        console.log(`[Puppeteer] Heading siblings (first 20):`, headingSiblings.map((el, i) => ({
           index: i,
           tag: el.tagName,
-          text: normalize(el.textContent || '').substring(0, 100),
-          classes: el.className
+          text: normalize(el.textContent || '').substring(0, 150),
+          classes: el.className,
+          id: el.id,
+          innerHTML: el.innerHTML.substring(0, 200)
         })));
+
+        // Also check what comes AFTER the heading
+        let nextElement = targetHeading.nextElementSibling;
+        let nextElements = [];
+        for (let i = 0; i < 10 && nextElement; i++) {
+          nextElements.push({
+            tag: nextElement.tagName,
+            text: normalize(nextElement.textContent || '').substring(0, 200),
+            classes: nextElement.className,
+            innerHTML: nextElement.innerHTML.substring(0, 300)
+          });
+          nextElement = nextElement.nextElementSibling;
+        }
+        console.log(`[Puppeteer] Elements after heading:`, nextElements);
 
         // Find the container - look for the next table/list/chart after the heading
         let container = targetHeading.closest('section,div[class*="section"],div[class*="container"]') || 
@@ -4006,43 +4022,60 @@ class GemRateService {
 
         // If still no rows, try to find text-based data near the heading
         if (rows.length === 0) {
-          console.log(`[Puppeteer] No table/chart data found, trying text-based extraction...`);
+          console.log(`[Puppeteer] No table/chart data found, trying comprehensive text-based extraction...`);
           
-          // Look for the next sibling or nearby elements with text content
-          let currentEl = targetHeading.nextElementSibling;
-          let attempts = 0;
-          const maxAttempts = 20;
+          // Get all text content in a large area around the heading
+          const container = targetHeading.closest('div, section') || document.body;
+          const allText = normalize(container.textContent || '');
           
-          while (currentEl && attempts < maxAttempts) {
-            const text = normalize(currentEl.textContent || '');
-            // Look for patterns like "Player Name: 1234" or "Set Name - 5678"
-            const matches = text.match(/([A-Za-z][A-Za-z\s&]+?)\s*[:\-]?\s*(\d{1,3}(?:,\d{3})*)/g);
+          // Look for patterns: "Name" followed by numbers, or lines with names and numbers
+          // Try multiple patterns
+          const patterns = [
+            // Pattern 1: "Name: 1,234" or "Name - 1,234"
+            /([A-Z][A-Za-z\s&'\-\.]+?)\s*[:\-]\s*(\d{1,3}(?:,\d{3})*)/g,
+            // Pattern 2: Lines with name then number separated by spaces/tabs
+            /([A-Z][A-Za-z\s&'\-\.]{2,50}?)\s+(\d{1,3}(?:,\d{3})*)/g,
+            // Pattern 3: Number then name (reversed)
+            /(\d{1,3}(?:,\d{3})*)\s+([A-Z][A-Za-z\s&'\-\.]+?)/g
+          ];
+          
+          const items = [];
+          for (const pattern of patterns) {
+            const matches = [...allText.matchAll(pattern)];
+            console.log(`[Puppeteer] Pattern matched ${matches.length} potential items`);
             
-            if (matches && matches.length > 0) {
-              console.log(`[Puppeteer] Found ${matches.length} text matches`);
-              const items = [];
-              for (const match of matches) {
-                const parts = match.match(/([A-Za-z][A-Za-z\s&]+?)\s*[:\-]?\s*(\d{1,3}(?:,\d{3})*)/);
-                if (parts && parts.length >= 3) {
-                  const name = normalize(parts[1]);
-                  const count = parseCount(parts[2]);
-                  if (isValidName(name) && count > 0) {
-                    if (which === 'players') {
-                      items.push({ player: name, name, submissions: count, count, total_grades: count });
-                    } else {
-                      items.push({ set_name: name, name, set: name, submissions: count, count, total_grades: count });
-                    }
+            for (const match of matches) {
+              let name, count;
+              if (pattern === patterns[2]) {
+                // Reversed pattern
+                count = parseCount(match[1]);
+                name = normalize(match[2]);
+              } else {
+                name = normalize(match[1]);
+                count = parseCount(match[2]);
+              }
+              
+              if (isValidName(name) && count > 0 && count < 10000000) {
+                // Avoid duplicates
+                const exists = items.find(item => item.name === name || item.player === name);
+                if (!exists) {
+                  if (which === 'players') {
+                    items.push({ player: name, name, submissions: count, count, total_grades: count });
+                  } else {
+                    items.push({ set_name: name, name, set: name, submissions: count, count, total_grades: count });
                   }
                 }
               }
-              if (items.length > 0) {
-                console.log(`[Puppeteer] Extracted ${items.length} ${which} from text content`);
-                return items;
-              }
             }
             
-            currentEl = currentEl.nextElementSibling;
-            attempts++;
+            if (items.length > 0) break; // Found data with this pattern
+          }
+          
+          if (items.length > 0) {
+            console.log(`[Puppeteer] Extracted ${items.length} ${which} from text patterns`);
+            // Sort by count descending and limit to top results
+            items.sort((a, b) => (b.count || 0) - (a.count || 0));
+            return items.slice(0, 50); // Return top 50
           }
         }
         
