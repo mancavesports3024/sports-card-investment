@@ -3866,52 +3866,141 @@ class GemRateService {
         const keyword = which === 'players' ? 'trending players & subjects' : 'trending sets';
         const idx = allText.toLowerCase().indexOf(keyword.toLowerCase());
         
-        if (idx === -1) return { found: false, text: 'Section not found' };
+        if (idx === -1) return { found: false, items: [] };
         
-        const section = allText.substring(idx, idx + 3000);
-        return { found: true, text: section.substring(0, 1500) };
-      }, kind);
-      
-      if (simpleExtraction.found) {
-        console.log(`[Puppeteer] Section text found (first 1500 chars):`, simpleExtraction.text);
+        const section = allText.substring(idx, idx + 5000);
+        console.log(`[Puppeteer] Section text (first 2000 chars):`, section.substring(0, 2000));
         
-        // Try to extract from this text
-        const lines = simpleExtraction.text.split(/\n|•|·|\t/).map(l => l.trim()).filter(l => l.length > 5);
-        console.log(`[Puppeteer] Found ${lines.length} potential lines`);
+        // The data is from an AG Grid table - text is concatenated
+        // Pattern: "Michael JordanShohei Ohtani... Basketball1,840,9796,6945,24428%"
+        // Categories act as separators: Basketball, Baseball, Football, Soccer
         
+        const categories = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG'];
         const items = [];
-        for (const line of lines.slice(0, 100)) {
-          // Look for pattern: Name (letters) followed by number
-          const match = line.match(/([A-Z][A-Za-z\s&'\-\.]{3,50}?)\s+(\d{1,3}(?:,\d{3}){0,2})/);
-          if (match) {
-            const name = match[1].trim();
-            const count = parseInt(match[2].replace(/,/g, ''), 10);
-            if (name.length >= 3 && name.length <= 80 && count > 0 && count < 10000000 &&
-                !name.toLowerCase().includes('trending') && !name.toLowerCase().includes('past week')) {
-              if (kind === 'players') {
-                items.push({ player: name, name, submissions: count, count, total_grades: count });
-              } else {
-                items.push({ set_name: name, name, set: name, submissions: count, count, total_grades: count });
+        
+        // Method 1: Try to find AG Grid rows directly in DOM
+        try {
+          const gridRows = Array.from(document.querySelectorAll('[role="row"]'));
+          console.log(`[Puppeteer] Found ${gridRows.length} AG Grid rows`);
+          
+          for (const row of gridRows) {
+            const cells = Array.from(row.querySelectorAll('[role="gridcell"]'));
+            if (cells.length >= 4) {
+              const nameText = (cells[0]?.textContent || '').trim();
+              const categoryText = (cells[1]?.textContent || '').trim();
+              // Find "Last Week" column (usually column 3, index 2)
+              let count = 0;
+              for (let i = 2; i < Math.min(cells.length, 5); i++) {
+                const cellText = (cells[i]?.textContent || '').trim();
+                const num = parseInt(cellText.replace(/,/g, ''), 10);
+                if (num > 0 && num < 100000) {
+                  count = num;
+                  break;
+                }
+              }
+              
+              if (nameText && nameText.length >= 3 && nameText.length <= 80 && count > 0 &&
+                  !nameText.toLowerCase().includes('name') && 
+                  !nameText.toLowerCase().includes('category') &&
+                  !nameText.toLowerCase().includes('graded') &&
+                  !nameText.toLowerCase().includes('drag')) {
+                if (which === 'players') {
+                  items.push({ 
+                    player: nameText, 
+                    name: nameText, 
+                    submissions: count, 
+                    count, 
+                    total_grades: count,
+                    category: categoryText
+                  });
+                } else {
+                  items.push({ 
+                    set_name: nameText, 
+                    name: nameText, 
+                    set: nameText, 
+                    submissions: count, 
+                    count, 
+                    total_grades: count 
+                  });
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.log(`[Puppeteer] AG Grid DOM extraction failed: ${e.message}`);
+        }
+        
+        // Method 2: Parse concatenated text by splitting on categories
+        if (items.length === 0) {
+          console.log(`[Puppeteer] Trying text parsing method...`);
+          const categoryPattern = new RegExp(`(${categories.join('|')})`, 'gi');
+          const parts = section.split(categoryPattern);
+          
+          for (let i = 0; i < parts.length - 1; i += 2) {
+            const namesText = parts[i] || '';
+            const category = parts[i + 1] || '';
+            const numbersText = parts[i + 2] || '';
+            
+            if (!category || !categories.includes(category)) continue;
+            
+            // Extract numbers - format: "1,840,9796,6945,24428%"
+            // These are: All Time, Last Week, Prior Week, Weekly Change
+            const numbers = numbersText.match(/\d{1,3}(?:,\d{3})*/g) || [];
+            const lastWeekCount = numbers.length >= 2 ? parseInt(numbers[1].replace(/,/g, ''), 10) : 0;
+            
+            if (lastWeekCount === 0) continue;
+            
+            // Extract player names - capitalized words
+            const nameMatches = namesText.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g) || [];
+            
+            for (const nameMatch of nameMatches) {
+              const name = nameMatch.trim();
+              if (name.length >= 3 && name.length <= 50 && 
+                  !['Drag', 'here', 'set', 'row', 'groups', 'column', 'labels', 'Name', 'Category', 
+                    'Graded', 'All', 'Time', 'Last', 'Week', 'Prior', 'Weekly', 'Change'].includes(name)) {
+                if (which === 'players') {
+                  items.push({ 
+                    player: name, 
+                    name, 
+                    submissions: lastWeekCount, 
+                    count: lastWeekCount, 
+                    total_grades: lastWeekCount,
+                    category: category
+                  });
+                } else {
+                  items.push({ 
+                    set_name: name, 
+                    name, 
+                    set: name, 
+                    submissions: lastWeekCount, 
+                    count: lastWeekCount, 
+                    total_grades: lastWeekCount 
+                  });
+                }
               }
             }
           }
         }
         
-        if (items.length > 0) {
-          // Remove duplicates
-          const unique = [];
-          const seen = new Set();
-          for (const item of items) {
-            const key = (item.name || item.player || item.set_name || '').toLowerCase();
-            if (!seen.has(key)) {
-              seen.add(key);
-              unique.push(item);
-            }
+        // Remove duplicates
+        const unique = [];
+        const seen = new Set();
+        for (const item of items) {
+          const key = (item.name || item.player || item.set_name || '').toLowerCase();
+          if (!seen.has(key)) {
+            seen.add(key);
+            unique.push(item);
           }
-          unique.sort((a, b) => (b.count || 0) - (a.count || 0));
-          console.log(`✅ [Puppeteer] Simple extraction found ${unique.length} ${kind}`);
-          return unique.slice(0, 50);
         }
+        unique.sort((a, b) => (b.count || 0) - (a.count || 0));
+        
+        console.log(`✅ [Puppeteer] Extracted ${unique.length} ${which} items`);
+        return { found: unique.length > 0, items: unique.slice(0, 50) };
+      }, kind);
+      
+      if (simpleExtraction.found && simpleExtraction.items && simpleExtraction.items.length > 0) {
+        console.log(`✅ [Puppeteer] Simple extraction succeeded: ${simpleExtraction.items.length} ${kind}`);
+        return simpleExtraction.items;
       }
 
       // First, let's log what's actually on the page for debugging
