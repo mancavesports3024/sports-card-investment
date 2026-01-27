@@ -3803,13 +3803,23 @@ class GemRateService {
 
     // Wait for specific elements that indicate the page has loaded
     try {
-      await this.page.waitForSelector('h2, h3, h4, table, [class*="trending"]', { timeout: 10000 }).catch(() => {});
+      await this.page.waitForSelector('h2, h3, h4, h5, canvas, [class*="trending"]', { timeout: 15000 }).catch(() => {});
     } catch (e) {
       console.log('⚠️ [Puppeteer] Timeout waiting for page elements');
     }
 
-    // Additional wait for dynamic content
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Wait for Chart.js to initialize (charts take time to render)
+    try {
+      await this.page.waitForFunction(() => {
+        return window.Chart && (window.Chart.instances || document.querySelectorAll('canvas').length > 0);
+      }, { timeout: 20000 }).catch(() => {});
+      console.log('✅ [Puppeteer] Charts detected/initialized');
+    } catch (e) {
+      console.log('⚠️ [Puppeteer] Charts may not be loaded yet');
+    }
+
+    // Additional wait for dynamic content to fully render
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     try {
       // First, let's log what's actually on the page for debugging
@@ -3850,27 +3860,99 @@ class GemRateService {
         }
 
         // Try to find Chart.js chart instances and extract their data
+        // Chart.js v3+ stores charts differently
+        let chartInstances = [];
+        
+        // Method 1: Chart.instances (older versions)
         if (window.Chart && window.Chart.instances) {
-          console.log(`[Puppeteer] Found Chart.js, checking ${Object.keys(window.Chart.instances).length} chart instances`);
-          for (const chartId in window.Chart.instances) {
-            const chart = window.Chart.instances[chartId];
-            if (chart && chart.data && chart.data.datasets) {
-              for (const dataset of chart.data.datasets) {
-                if (dataset.label && dataset.label.toLowerCase().includes(which === 'players' ? 'player' : 'set')) {
-                  console.log(`[Puppeteer] Found chart dataset: ${dataset.label}`);
-                  if (dataset.data && Array.isArray(dataset.data)) {
-                    return dataset.data;
+          chartInstances = Object.values(window.Chart.instances);
+          console.log(`[Puppeteer] Found Chart.js instances (method 1): ${chartInstances.length}`);
+        }
+        
+        // Method 2: Chart.getChart() from canvas elements (v3+)
+        const canvases = Array.from(document.querySelectorAll('canvas'));
+        for (const canvas of canvases) {
+          try {
+            if (window.Chart && typeof window.Chart.getChart === 'function') {
+              const chart = window.Chart.getChart(canvas);
+              if (chart && !chartInstances.includes(chart)) {
+                chartInstances.push(chart);
+              }
+            }
+            // Also try direct property access
+            if (canvas._chart && !chartInstances.includes(canvas._chart)) {
+              chartInstances.push(canvas._chart);
+            }
+            if (canvas.chart && !chartInstances.includes(canvas.chart)) {
+              chartInstances.push(canvas.chart);
+            }
+          } catch (e) {
+            // Continue
+          }
+        }
+        
+        console.log(`[Puppeteer] Total chart instances found: ${chartInstances.length}`);
+        
+        // Extract data from all charts
+        for (let i = 0; i < chartInstances.length; i++) {
+          const chart = chartInstances[i];
+          try {
+            if (!chart || !chart.data) continue;
+            
+            const chartTitle = chart.options?.plugins?.title?.text || 
+                             chart.options?.title?.text || 
+                             chart.config?.options?.plugins?.title?.text || 
+                             '';
+            const chartLabel = chart.data.datasets?.[0]?.label || '';
+            
+            console.log(`[Puppeteer] Chart ${i}: title="${chartTitle}", label="${chartLabel}"`);
+            
+            // Check if this chart is for trending players/sets
+            const titleLower = chartTitle.toLowerCase();
+            const labelLower = chartLabel.toLowerCase();
+            const isRelevant = titleLower.includes(which === 'players' ? 'player' : 'set') ||
+                             labelLower.includes(which === 'players' ? 'player' : 'set') ||
+                             (i >= chartInstances.length - 3); // Last few charts might be trending
+            
+            if (isRelevant && chart.data.labels && chart.data.datasets) {
+              const labels = chart.data.labels || [];
+              const datasets = chart.data.datasets || [];
+              
+              console.log(`[Puppeteer] Chart ${i} has ${labels.length} labels and ${datasets.length} datasets`);
+              
+              // Try each dataset
+              for (const dataset of datasets) {
+                const data = dataset.data || [];
+                if (labels.length > 0 && data.length > 0 && labels.length === data.length) {
+                  const items = [];
+                  for (let j = 0; j < labels.length; j++) {
+                    const name = normalize(String(labels[j] || ''));
+                    const count = typeof data[j] === 'number' ? data[j] : parseCount(String(data[j] || ''));
+                    
+                    if (isValidName(name) && count > 0) {
+                      if (which === 'players') {
+                        items.push({ player: name, name, submissions: count, count, total_grades: count });
+                      } else {
+                        items.push({ set_name: name, name, set: name, submissions: count, count, total_grades: count });
+                      }
+                    }
+                  }
+                  if (items.length > 0) {
+                    console.log(`[Puppeteer] Extracted ${items.length} ${which} from Chart.js chart ${i}`);
+                    return items;
                   }
                 }
               }
             }
+          } catch (e) {
+            console.log(`[Puppeteer] Error processing chart ${i}: ${e.message}`);
           }
         }
 
         // Try to find Chart.js charts via canvas elements
-        const canvases = Array.from(document.querySelectorAll('canvas'));
-        console.log(`[Puppeteer] Found ${canvases.length} canvas elements (potential charts)`);
-        for (const canvas of canvases) {
+        const canvasElements = Array.from(document.querySelectorAll('canvas'));
+        console.log(`[Puppeteer] Found ${canvasElements.length} canvas elements (potential charts)`);
+        for (const canvas of canvasElements) {
           // Try to access Chart.js instance via canvas
           const chartInstance = canvas._chart || canvas.chart;
           if (chartInstance && chartInstance.data) {
