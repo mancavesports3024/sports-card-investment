@@ -3850,6 +3850,17 @@ class GemRateService {
         }));
         console.log(`[Puppeteer] All headings on page (${allHeadings.length}):`, allHeadings.slice(0, 15).map(h => `${h.tag}: "${h.text}"`).join(', '));
 
+        // Get ALL text content on the page for pattern matching
+        const allPageText = normalize(document.body.textContent || '');
+        console.log(`[Puppeteer] Total page text length: ${allPageText.length} characters`);
+        
+        // Find the section with trending data
+        const trendingSectionStart = allPageText.toLowerCase().indexOf(which === 'players' ? 'trending players' : 'trending sets');
+        if (trendingSectionStart !== -1) {
+          const sectionText = allPageText.substring(trendingSectionStart, trendingSectionStart + 5000);
+          console.log(`[Puppeteer] Found trending section, first 500 chars:`, sectionText.substring(0, 500));
+        }
+
         // First, try to find data in JavaScript variables (most reliable)
         const windowVars = ['trendingPlayers', 'trendingSets', 'trendingData', 'dashboardData'];
         for (const varName of windowVars) {
@@ -4107,29 +4118,46 @@ class GemRateService {
           console.log(`[Puppeteer] No table/chart data found, trying comprehensive text-based extraction...`);
           
           // Get all text content in a large area around the heading
-          const container = targetHeading.closest('div, section') || document.body;
+          let container = targetHeading.closest('div, section') || document.body;
+          
+          // Try to find the actual content container - look for divs with class names that might contain data
+          const possibleContainers = Array.from(container.querySelectorAll('div[class*="chart"], div[class*="data"], div[class*="trending"], div[class*="list"]'));
+          if (possibleContainers.length > 0) {
+            console.log(`[Puppeteer] Found ${possibleContainers.length} potential data containers`);
+            container = possibleContainers[0]; // Use first potential container
+          }
+          
           const allText = normalize(container.textContent || '');
+          console.log(`[Puppeteer] Container text length: ${allText.length} chars`);
+          console.log(`[Puppeteer] Container text sample (first 500 chars):`, allText.substring(0, 500));
           
           // Look for patterns: "Name" followed by numbers, or lines with names and numbers
-          // Try multiple patterns
+          // Try multiple patterns - be more flexible
           const patterns = [
-            // Pattern 1: "Name: 1,234" or "Name - 1,234"
-            /([A-Z][A-Za-z\s&'\-\.]+?)\s*[:\-]\s*(\d{1,3}(?:,\d{3})*)/g,
-            // Pattern 2: Lines with name then number separated by spaces/tabs
-            /([A-Z][A-Za-z\s&'\-\.]{2,50}?)\s+(\d{1,3}(?:,\d{3})*)/g,
-            // Pattern 3: Number then name (reversed)
-            /(\d{1,3}(?:,\d{3})*)\s+([A-Z][A-Za-z\s&'\-\.]+?)/g
+            // Pattern 1: "Name: 1,234" or "Name - 1,234" or "Name 1,234"
+            /([A-Z][A-Za-z\s&'\-\.]{2,60}?)\s*[:\-]?\s*(\d{1,3}(?:,\d{3})*)/g,
+            // Pattern 2: Lines with name then number separated by spaces/tabs/newlines
+            /([A-Z][A-Za-z\s&'\-\.]{2,60}?)\s+(\d{1,3}(?:,\d{3})*)/g,
+            // Pattern 3: Number then name (reversed) - "1,234 Name"
+            /(\d{1,3}(?:,\d{3})*)\s+([A-Z][A-Za-z\s&'\-\.]{2,60}?)/g,
+            // Pattern 4: Look for lines that start with capital letters and end with numbers
+            /^([A-Z][A-Za-z\s&'\-\.]{2,60}?)\s+(\d{1,3}(?:,\d{3})*)$/gm
           ];
           
           const items = [];
-          for (const pattern of patterns) {
+          for (let pIdx = 0; pIdx < patterns.length; pIdx++) {
+            const pattern = patterns[pIdx];
             const matches = [...allText.matchAll(pattern)];
-            console.log(`[Puppeteer] Pattern matched ${matches.length} potential items`);
+            console.log(`[Puppeteer] Pattern ${pIdx + 1} matched ${matches.length} potential items`);
+            
+            if (matches.length > 0) {
+              console.log(`[Puppeteer] Sample matches (first 5):`, matches.slice(0, 5).map(m => `${m[1]} -> ${m[2]}`));
+            }
             
             for (const match of matches) {
               let name, count;
-              if (pattern === patterns[2]) {
-                // Reversed pattern
+              if (pIdx === 2) {
+                // Reversed pattern (number first)
                 count = parseCount(match[1]);
                 name = normalize(match[2]);
               } else {
@@ -4137,9 +4165,18 @@ class GemRateService {
                 count = parseCount(match[2]);
               }
               
-              if (isValidName(name) && count > 0 && count < 10000000) {
+              // More lenient validation - just check it's not obviously wrong
+              if (name && name.length >= 2 && name.length <= 100 && 
+                  count > 0 && count < 10000000 &&
+                  !excludePatterns.some(pattern => pattern.test(name))) {
                 // Avoid duplicates
-                const exists = items.find(item => item.name === name || item.player === name);
+                const exists = items.find(item => 
+                  item.name === name || 
+                  item.player === name ||
+                  item.set_name === name ||
+                  (item.name && name.includes(item.name)) ||
+                  (item.name && item.name.includes(name))
+                );
                 if (!exists) {
                   if (which === 'players') {
                     items.push({ player: name, name, submissions: count, count, total_grades: count });
@@ -4150,7 +4187,10 @@ class GemRateService {
               }
             }
             
-            if (items.length > 0) break; // Found data with this pattern
+            if (items.length > 0) {
+              console.log(`[Puppeteer] Found ${items.length} items with pattern ${pIdx + 1}`);
+              break; // Found data with this pattern
+            }
           }
           
           if (items.length > 0) {
@@ -4158,6 +4198,8 @@ class GemRateService {
             // Sort by count descending and limit to top results
             items.sort((a, b) => (b.count || 0) - (a.count || 0));
             return items.slice(0, 50); // Return top 50
+          } else {
+            console.log(`[Puppeteer] No items extracted from text patterns`);
           }
         }
         
@@ -4263,6 +4305,64 @@ class GemRateService {
         }
 
         console.log(`[Puppeteer] Extracted ${items.length} ${which} from DOM`);
+        
+        // Last resort: If we still have nothing, try extracting from the entire page text
+        // Look for the trending section and extract any name/number pairs
+        if (items.length === 0) {
+          console.log(`[Puppeteer] No items found via DOM, trying full-page text extraction as last resort...`);
+          
+          const pageText = normalize(document.body.textContent || '');
+          const sectionKeyword = which === 'players' ? 'trending players' : 'trending sets';
+          const sectionIndex = pageText.toLowerCase().indexOf(sectionKeyword);
+          
+          if (sectionIndex !== -1) {
+            // Get text from the trending section onwards (next 3000 chars)
+            const sectionText = pageText.substring(sectionIndex, sectionIndex + 3000);
+            console.log(`[Puppeteer] Section text (first 800 chars):`, sectionText.substring(0, 800));
+            
+            // Try to find name/number pairs - be very flexible
+            const flexiblePattern = /([A-Z][A-Za-z\s&'\-\.]{2,80}?)\s+(\d{1,3}(?:,\d{3}){0,2})/g;
+            const matches = [...sectionText.matchAll(flexiblePattern)];
+            
+            console.log(`[Puppeteer] Found ${matches.length} potential matches in section text`);
+            
+            for (const match of matches.slice(0, 100)) { // Limit to first 100 matches
+              const name = normalize(match[1]);
+              const count = parseCount(match[2]);
+              
+              // Very basic validation
+              if (name.length >= 3 && name.length <= 80 && 
+                  count > 0 && count < 10000000 &&
+                  !name.toLowerCase().includes('trending') &&
+                  !name.toLowerCase().includes('past week') &&
+                  !name.toLowerCase().includes('day') &&
+                  !name.toLowerCase().includes('prior')) {
+                if (which === 'players') {
+                  items.push({ player: name, name, submissions: count, count, total_grades: count });
+                } else {
+                  items.push({ set_name: name, name, set: name, submissions: count, count, total_grades: count });
+                }
+              }
+            }
+            
+            if (items.length > 0) {
+              // Remove duplicates and sort
+              const unique = [];
+              const seen = new Set();
+              for (const item of items) {
+                const key = (item.name || item.player || item.set_name || '').toLowerCase();
+                if (!seen.has(key)) {
+                  seen.add(key);
+                  unique.push(item);
+                }
+              }
+              unique.sort((a, b) => (b.count || 0) - (a.count || 0));
+              console.log(`[Puppeteer] Extracted ${unique.length} unique ${which} from full-page text`);
+              return unique.slice(0, 50);
+            }
+          }
+        }
+        
         return items;
       }, kind);
 
