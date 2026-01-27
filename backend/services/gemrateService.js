@@ -3849,6 +3849,41 @@ class GemRateService {
           }
         }
 
+        // Try to find Chart.js chart instances and extract their data
+        if (window.Chart && window.Chart.instances) {
+          console.log(`[Puppeteer] Found Chart.js, checking ${Object.keys(window.Chart.instances).length} chart instances`);
+          for (const chartId in window.Chart.instances) {
+            const chart = window.Chart.instances[chartId];
+            if (chart && chart.data && chart.data.datasets) {
+              for (const dataset of chart.data.datasets) {
+                if (dataset.label && dataset.label.toLowerCase().includes(which === 'players' ? 'player' : 'set')) {
+                  console.log(`[Puppeteer] Found chart dataset: ${dataset.label}`);
+                  if (dataset.data && Array.isArray(dataset.data)) {
+                    return dataset.data;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // Try to find Chart.js charts via canvas elements
+        const canvases = Array.from(document.querySelectorAll('canvas'));
+        console.log(`[Puppeteer] Found ${canvases.length} canvas elements (potential charts)`);
+        for (const canvas of canvases) {
+          // Try to access Chart.js instance via canvas
+          const chartInstance = canvas._chart || canvas.chart;
+          if (chartInstance && chartInstance.data) {
+            const label = chartInstance.config?.options?.plugins?.title?.text || '';
+            if (label.toLowerCase().includes(which === 'players' ? 'player' : 'set')) {
+              console.log(`[Puppeteer] Found chart via canvas: ${label}`);
+              if (chartInstance.data.datasets && chartInstance.data.datasets[0]?.data) {
+                return chartInstance.data.datasets[0].data;
+              }
+            }
+          }
+        }
+
         // Look for data in script tags
         const scripts = Array.from(document.querySelectorAll('script'));
         for (const script of scripts) {
@@ -3904,10 +3939,47 @@ class GemRateService {
 
         console.log(`[Puppeteer] Found heading: "${targetHeading.textContent.trim()}"`);
 
-        // Find the container - look for the next table/list after the heading
+        // Find the container - look for the next table/list/chart after the heading
         let container = targetHeading.closest('section,div[class*="section"],div[class*="container"]') || 
                        targetHeading.parentElement || 
                        document.body;
+
+        // Look for Chart.js canvas near the heading
+        const nearbyCanvases = Array.from(container.querySelectorAll('canvas'));
+        console.log(`[Puppeteer] Found ${nearbyCanvases.length} canvas elements near heading`);
+        for (const canvas of nearbyCanvases) {
+          try {
+            const chart = canvas._chart || canvas.chart || (window.Chart && window.Chart.getChart(canvas));
+            if (chart && chart.data && chart.data.labels && chart.data.datasets) {
+              console.log(`[Puppeteer] Found Chart.js chart with ${chart.data.labels.length} labels`);
+              // Extract labels (names) and data (counts) from chart
+              const labels = chart.data.labels || [];
+              const dataValues = chart.data.datasets[0]?.data || [];
+              
+              if (labels.length > 0 && dataValues.length > 0) {
+                const items = [];
+                for (let i = 0; i < Math.min(labels.length, dataValues.length); i++) {
+                  const name = normalize(String(labels[i] || ''));
+                  const count = typeof dataValues[i] === 'number' ? dataValues[i] : parseCount(String(dataValues[i] || ''));
+                  
+                  if (name && isValidName(name) && count > 0) {
+                    if (which === 'players') {
+                      items.push({ player: name, name, submissions: count, count, total_grades: count });
+                    } else {
+                      items.push({ set_name: name, name, set: name, submissions: count, count, total_grades: count });
+                    }
+                  }
+                }
+                if (items.length > 0) {
+                  console.log(`[Puppeteer] Extracted ${items.length} ${which} from Chart.js`);
+                  return items;
+                }
+              }
+            }
+          } catch (e) {
+            console.log(`[Puppeteer] Error accessing chart: ${e.message}`);
+          }
+        }
 
         // Look for table rows - be more specific
         let rows = Array.from(container.querySelectorAll('table tbody tr'));
@@ -3920,6 +3992,48 @@ class GemRateService {
           const dataElements = Array.from(container.querySelectorAll('div[class*="row"], div[class*="item"], tr, li'));
           console.log(`[Puppeteer] Found ${dataElements.length} potential data elements`);
           rows = dataElements;
+        }
+
+        // If still no rows, try to find text-based data near the heading
+        if (rows.length === 0) {
+          console.log(`[Puppeteer] No table/chart data found, trying text-based extraction...`);
+          
+          // Look for the next sibling or nearby elements with text content
+          let currentEl = targetHeading.nextElementSibling;
+          let attempts = 0;
+          const maxAttempts = 20;
+          
+          while (currentEl && attempts < maxAttempts) {
+            const text = normalize(currentEl.textContent || '');
+            // Look for patterns like "Player Name: 1234" or "Set Name - 5678"
+            const matches = text.match(/([A-Za-z][A-Za-z\s&]+?)\s*[:\-]?\s*(\d{1,3}(?:,\d{3})*)/g);
+            
+            if (matches && matches.length > 0) {
+              console.log(`[Puppeteer] Found ${matches.length} text matches`);
+              const items = [];
+              for (const match of matches) {
+                const parts = match.match(/([A-Za-z][A-Za-z\s&]+?)\s*[:\-]?\s*(\d{1,3}(?:,\d{3})*)/);
+                if (parts && parts.length >= 3) {
+                  const name = normalize(parts[1]);
+                  const count = parseCount(parts[2]);
+                  if (isValidName(name) && count > 0) {
+                    if (which === 'players') {
+                      items.push({ player: name, name, submissions: count, count, total_grades: count });
+                    } else {
+                      items.push({ set_name: name, name, set: name, submissions: count, count, total_grades: count });
+                    }
+                  }
+                }
+              }
+              if (items.length > 0) {
+                console.log(`[Puppeteer] Extracted ${items.length} ${which} from text content`);
+                return items;
+              }
+            }
+            
+            currentEl = currentEl.nextElementSibling;
+            attempts++;
+          }
         }
         
         // Filter out header rows and invalid rows
