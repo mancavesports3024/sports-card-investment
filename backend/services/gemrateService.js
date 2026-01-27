@@ -3849,7 +3849,71 @@ class GemRateService {
     // Additional wait for dynamic content to fully render
     await new Promise(resolve => setTimeout(resolve, 5000));
 
+    // Capture console.log from page.evaluate
+    this.page.on('console', msg => {
+      const text = msg.text();
+      if (text.includes('[Puppeteer]') || text.includes('trending') || text.includes('Chart')) {
+        console.log(`[Browser Console] ${text}`);
+      }
+    });
+
     try {
+      // First, try a simple direct text extraction
+      console.log(`[Puppeteer] Attempting simple text extraction...`);
+      const simpleExtraction = await this.page.evaluate((which) => {
+        const normalize = (str) => (str || '').replace(/\s+/g, ' ').trim().replace(/\n/g, ' ');
+        const allText = normalize(document.body.textContent || '');
+        const keyword = which === 'players' ? 'trending players & subjects' : 'trending sets';
+        const idx = allText.toLowerCase().indexOf(keyword.toLowerCase());
+        
+        if (idx === -1) return { found: false, text: 'Section not found' };
+        
+        const section = allText.substring(idx, idx + 3000);
+        return { found: true, text: section.substring(0, 1500) };
+      }, kind);
+      
+      if (simpleExtraction.found) {
+        console.log(`[Puppeteer] Section text found (first 1500 chars):`, simpleExtraction.text);
+        
+        // Try to extract from this text
+        const lines = simpleExtraction.text.split(/\n|•|·|\t/).map(l => l.trim()).filter(l => l.length > 5);
+        console.log(`[Puppeteer] Found ${lines.length} potential lines`);
+        
+        const items = [];
+        for (const line of lines.slice(0, 100)) {
+          // Look for pattern: Name (letters) followed by number
+          const match = line.match(/([A-Z][A-Za-z\s&'\-\.]{3,50}?)\s+(\d{1,3}(?:,\d{3}){0,2})/);
+          if (match) {
+            const name = match[1].trim();
+            const count = parseInt(match[2].replace(/,/g, ''), 10);
+            if (name.length >= 3 && name.length <= 80 && count > 0 && count < 10000000 &&
+                !name.toLowerCase().includes('trending') && !name.toLowerCase().includes('past week')) {
+              if (kind === 'players') {
+                items.push({ player: name, name, submissions: count, count, total_grades: count });
+              } else {
+                items.push({ set_name: name, name, set: name, submissions: count, count, total_grades: count });
+              }
+            }
+          }
+        }
+        
+        if (items.length > 0) {
+          // Remove duplicates
+          const unique = [];
+          const seen = new Set();
+          for (const item of items) {
+            const key = (item.name || item.player || item.set_name || '').toLowerCase();
+            if (!seen.has(key)) {
+              seen.add(key);
+              unique.push(item);
+            }
+          }
+          unique.sort((a, b) => (b.count || 0) - (a.count || 0));
+          console.log(`✅ [Puppeteer] Simple extraction found ${unique.length} ${kind}`);
+          return unique.slice(0, 50);
+        }
+      }
+
       // First, let's log what's actually on the page for debugging
       const pageInfo = await this.page.evaluate(() => {
         return {
@@ -3864,6 +3928,113 @@ class GemRateService {
       });
       console.log(`[Puppeteer] Page info:`, JSON.stringify(pageInfo, null, 2));
 
+      // First, try a simple approach - get ALL text and look for patterns
+      console.log(`[Puppeteer] Starting simple text extraction for ${kind}...`);
+      
+      const simpleResults = await this.page.evaluate((which) => {
+        try {
+          const normalize = (str) => (str || '').replace(/\s+/g, ' ').trim().replace(/\n/g, ' ');
+          
+          // Get ALL text content from the page
+          const allText = normalize(document.body.textContent || '');
+          console.log(`[Puppeteer] Total page text length: ${allText.length}`);
+          
+          // Find the trending section
+          const sectionKeyword = which === 'players' ? 'trending players & subjects' : 'trending sets';
+          const sectionIndex = allText.toLowerCase().indexOf(sectionKeyword.toLowerCase());
+          
+          if (sectionIndex === -1) {
+            console.log(`[Puppeteer] Section keyword "${sectionKeyword}" not found in page text`);
+            return [];
+          }
+          
+          // Get text from the section onwards (next 5000 characters)
+          const sectionText = allText.substring(sectionIndex, sectionIndex + 5000);
+          console.log(`[Puppeteer] Section text (first 1000 chars):`, sectionText.substring(0, 1000));
+          
+          // Look for lines that contain a name followed by a number
+          // Split by common separators and look for patterns
+          const lines = sectionText.split(/\n|\r|•|·/).map(l => normalize(l)).filter(l => l.length > 0);
+          console.log(`[Puppeteer] Found ${lines.length} lines in section`);
+          
+          const items = [];
+          const parseCount = (text) => {
+            if (!text) return 0;
+            const cleaned = text.replace(/[,\s%()]/g, '');
+            const num = parseInt(cleaned, 10);
+            return Number.isFinite(num) && num > 0 ? num : 0;
+          };
+          
+          const isValidName = (txt) => {
+            if (!txt || txt.length < 2 || txt.length > 100) return false;
+            if (!/[a-zA-Z]/.test(txt)) return false;
+            // Exclude common non-name patterns
+            const exclude = ['trending', 'past week', 'day prior', 'prior', 'items graded', 
+                           'show/hide', 'legend', 'category', 'trailing', 'average', 'pace'];
+            return !exclude.some(pattern => txt.toLowerCase().includes(pattern));
+          };
+          
+          // Try to extract from lines
+          for (const line of lines) {
+            // Pattern: Name followed by number (with various separators)
+            const patterns = [
+              /^([A-Z][A-Za-z\s&'\-\.]{2,60}?)\s+(\d{1,3}(?:,\d{3}){0,2})/,
+              /^([A-Z][A-Za-z\s&'\-\.]{2,60}?)[:\-]\s*(\d{1,3}(?:,\d{3}){0,2})/,
+              /(\d{1,3}(?:,\d{3}){0,2})\s+([A-Z][A-Za-z\s&'\-\.]{2,60}?)$/
+            ];
+            
+            for (const pattern of patterns) {
+              const match = line.match(pattern);
+              if (match) {
+                let name, count;
+                if (pattern === patterns[2]) {
+                  // Reversed
+                  count = parseCount(match[1]);
+                  name = normalize(match[2]);
+                } else {
+                  name = normalize(match[1]);
+                  count = parseCount(match[2]);
+                }
+                
+                if (isValidName(name) && count > 0 && count < 10000000) {
+                  if (which === 'players') {
+                    items.push({ player: name, name, submissions: count, count, total_grades: count });
+                  } else {
+                    items.push({ set_name: name, name, set: name, submissions: count, count, total_grades: count });
+                  }
+                  break; // Found a match for this line, move to next
+                }
+              }
+            }
+          }
+          
+          // Remove duplicates
+          const unique = [];
+          const seen = new Set();
+          for (const item of items) {
+            const key = (item.name || item.player || item.set_name || '').toLowerCase();
+            if (!seen.has(key)) {
+              seen.add(key);
+              unique.push(item);
+            }
+          }
+          
+          unique.sort((a, b) => (b.count || 0) - (a.count || 0));
+          console.log(`[Puppeteer] Simple extraction found ${unique.length} items`);
+          return unique.slice(0, 50);
+        } catch (error) {
+          console.error(`[Puppeteer] Error in simple extraction: ${error.message}`);
+          return [];
+        }
+      }, kind);
+      
+      if (simpleResults && simpleResults.length > 0) {
+        console.log(`✅ [Puppeteer] Simple extraction succeeded: ${simpleResults.length} ${kind}`);
+        return simpleResults;
+      }
+      
+      console.log(`⚠️ [Puppeteer] Simple extraction found nothing, trying comprehensive approach...`);
+      
       const results = await this.page.evaluate((which) => {
         try {
         const textMatch = which === 'players'
