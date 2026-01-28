@@ -3909,11 +3909,30 @@ class GemRateService {
           console.log(`[Puppeteer] ✅ AG Grid API found, extracting row data...`);
           const allRowData = [];
           
-          gridApi.forEachNode((node) => {
-            if (node && node.data) {
-              allRowData.push(node.data);
+          // Try multiple methods to get row data
+          if (typeof gridApi.forEachNode === 'function') {
+            gridApi.forEachNode((node) => {
+              if (node && node.data) {
+                allRowData.push(node.data);
+              }
+            });
+          } else if (gridApi.getDisplayedRowAtIndex) {
+            const rowCount = gridApi.getDisplayedRowCount ? gridApi.getDisplayedRowCount() : 100;
+            for (let i = 0; i < rowCount; i++) {
+              const node = gridApi.getDisplayedRowAtIndex(i);
+              if (node && node.data) {
+                allRowData.push(node.data);
+              }
             }
-          });
+          } else if (gridApi.getModel && gridApi.getModel().getRow) {
+            const rowCount = gridApi.getDisplayedRowCount ? gridApi.getDisplayedRowCount() : 100;
+            for (let i = 0; i < rowCount; i++) {
+              const rowNode = gridApi.getModel().getRow(i);
+              if (rowNode && rowNode.data) {
+                allRowData.push(rowNode.data);
+              }
+            }
+          }
           
           console.log(`[Puppeteer] Extracted ${allRowData.length} rows from AG Grid API`);
           
@@ -3921,6 +3940,79 @@ class GemRateService {
             // Log first row to see structure
             console.log(`[Puppeteer] First row keys:`, Object.keys(allRowData[0]));
             console.log(`[Puppeteer] First row sample:`, JSON.stringify(allRowData[0]).substring(0, 500));
+            
+            // Also try to get data from visible DOM cells as backup
+            const heading = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6')).find(h => {
+              const text = (h.textContent || '').toLowerCase();
+              return text.includes(which === 'players' ? 'trending players' : 'trending sets');
+            });
+            
+            if (heading) {
+              // Find the grid container
+              let container = heading.parentElement;
+              for (let i = 0; i < 5 && container; i++) {
+                const grid = container.querySelector('[role="grid"], .ag-root-wrapper, [class*="ag-grid"]');
+                if (grid) {
+                  // Get all visible data rows (skip header and filter rows)
+                  const allRows = Array.from(grid.querySelectorAll('[role="row"]'));
+                  const dataRows = allRows.filter(row => {
+                    const cells = Array.from(row.querySelectorAll('[role="gridcell"]'));
+                    if (cells.length < 3) return false;
+                    // Skip if first cell is a header word
+                    const firstCell = (cells[0]?.textContent || '').toLowerCase().trim();
+                    return !['name', 'category', 'graded', 'all', 'time', 'last', 'week', 'prior', 'weekly', 'change'].includes(firstCell);
+                  });
+                  
+                  console.log(`[Puppeteer] Found ${dataRows.length} data rows in DOM`);
+                  
+                  // If we have row data from API but want to verify, or if API data is empty, use DOM
+                  if (dataRows.length > 0 && (allRowData.length === 0 || allRowData.length < dataRows.length)) {
+                    console.log(`[Puppeteer] Using DOM rows as backup/verification`);
+                    // Parse DOM rows
+                    for (const row of dataRows.slice(0, 50)) {
+                      const cells = Array.from(row.querySelectorAll('[role="gridcell"]'));
+                      if (cells.length < 4) continue;
+                      
+                      // Get name from first cell (usually a link)
+                      const nameCell = cells[0];
+                      const link = nameCell.querySelector('a');
+                      const nameText = link ? (link.textContent || '').trim() : (nameCell.textContent || '').trim();
+                      
+                      if (!nameText || nameText.length < 3) continue;
+                      
+                      // Get category from second cell
+                      const categoryText = (cells[1]?.textContent || '').trim();
+                      
+                      // Get count from 4th cell (Graded Last Week) - index 3
+                      const countText = (cells[3]?.textContent || '').trim();
+                      const count = parseInt(countText.replace(/,/g, ''), 10);
+                      
+                      if (count > 0) {
+                        // Check if we already have this in allRowData
+                        const exists = allRowData.some(r => {
+                          const existingName = (r.name || r.player || r.set_name || '').toLowerCase();
+                          return existingName === nameText.toLowerCase();
+                        });
+                        
+                        if (!exists) {
+                          allRowData.push({
+                            name: nameText,
+                            player: nameText,
+                            set_name: nameText,
+                            category: categoryText,
+                            'Graded, Last Week': count,
+                            lastWeek: count,
+                            submissions: count,
+                            count: count
+                          });
+                        }
+                      }
+                    }
+                  }
+                }
+                container = container.parentElement;
+              }
+            }
             
             // Process each row
             for (const rowData of allRowData) {
