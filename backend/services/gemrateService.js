@@ -4364,10 +4364,19 @@ class GemRateService {
           const isValidName = (txt) => {
             if (!txt || txt.length < 2 || txt.length > 100) return false;
             if (!/[a-zA-Z]/.test(txt)) return false;
-            // Exclude common non-name patterns
+            // Exclude common non-name patterns (column headers, UI text, etc.)
             const exclude = ['trending', 'past week', 'day prior', 'prior', 'items graded', 
-                           'show/hide', 'legend', 'category', 'trailing', 'average', 'pace'];
-            return !exclude.some(pattern => txt.toLowerCase().includes(pattern));
+                           'show/hide', 'legend', 'category', 'trailing', 'average', 'pace',
+                           'drag', 'here', 'set', 'row', 'groups', 'column', 'labels', 'name',
+                           'graded', 'all', 'time', 'last', 'week', 'weekly', 'change', 'page',
+                           'of', 'to', 'subjects', 'players', 'sets'];
+            const txtLower = txt.toLowerCase().trim();
+            // Must not be exactly an exclude word, and must not contain multiple exclude words
+            if (exclude.includes(txtLower)) return false;
+            if (exclude.filter(e => txtLower.includes(e)).length > 1) return false;
+            // Must contain at least one letter and look like a name (not all caps, not all numbers)
+            if (/^[A-Z\s]+$/.test(txt) && txt.length > 10) return false; // Likely a header
+            return true;
           };
           
           // Try to extract from lines
