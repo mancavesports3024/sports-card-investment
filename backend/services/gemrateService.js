@@ -3946,27 +3946,88 @@ class GemRateService {
           
           console.log(`[Puppeteer] Column indices:`, columnIndices);
           
-          // Try to access AG Grid's internal data model directly
+          // Try to access AG Grid's internal data model directly - MULTIPLE METHODS
           try {
-            const agGridInstances = Array.from(document.querySelectorAll('.ag-root-wrapper, [class*="ag-grid"]'));
-            for (const gridEl of agGridInstances) {
-              // AG Grid stores data in window or in the element
-              const gridApi = gridEl.__agGridInstance || gridEl.gridApi || window.gridApi;
-              if (gridApi && gridApi.getDisplayedRowCount) {
-                const rowCount = gridApi.getDisplayedRowCount();
-                console.log(`[Puppeteer] Found AG Grid API with ${rowCount} rows`);
-                
-                // Get all row data
-                const allRowData = [];
+            console.log(`[Puppeteer] Attempting AG Grid API access...`);
+            
+            // Method 1: Try to find grid API via window
+            let gridApi = null;
+            
+            // Check window for AG Grid instances
+            if (window.agGrid && window.agGrid.GridApi) {
+              console.log(`[Puppeteer] Found window.agGrid`);
+            }
+            
+            // Method 2: Find all AG Grid containers and try to access their APIs
+            const agGridContainers = Array.from(document.querySelectorAll('.ag-root-wrapper, [class*="ag-root"], [class*="ag-grid"]'));
+            console.log(`[Puppeteer] Found ${agGridContainers.length} AG Grid containers`);
+            
+            for (const gridEl of agGridContainers) {
+              // Try multiple ways to get the API
+              const api = gridEl.__agGridInstance || 
+                         gridEl.gridApi || 
+                         gridEl.api ||
+                         (gridEl._agGridInstance && gridEl._agGridInstance.api) ||
+                         (window.agGrid && window.agGrid.getGridInstance && window.agGrid.getGridInstance(gridEl));
+              
+              if (api) {
+                console.log(`[Puppeteer] Found grid API via container`);
+                gridApi = api;
+                break;
+              }
+            }
+            
+            // Method 3: Try to get API from row elements
+            if (!gridApi && gridRows.length > 0) {
+              const firstRow = gridRows[0];
+              let parent = firstRow.parentElement;
+              while (parent && parent !== document.body) {
+                const api = parent.__agGridInstance || parent.gridApi || parent.api;
+                if (api) {
+                  console.log(`[Puppeteer] Found grid API via row parent`);
+                  gridApi = api;
+                  break;
+                }
+                parent = parent.parentElement;
+              }
+            }
+            
+            // Method 4: Try window.gridApi or window.gridOptions
+            if (!gridApi) {
+              gridApi = window.gridApi || (window.gridOptions && window.gridOptions.api);
+              if (gridApi) {
+                console.log(`[Puppeteer] Found grid API via window`);
+              }
+            }
+            
+            if (gridApi) {
+              // Try to get row count
+              const rowCount = gridApi.getDisplayedRowCount ? gridApi.getDisplayedRowCount() : 
+                              (gridApi.getDisplayedRowCount && typeof gridApi.getDisplayedRowCount === 'function' ? gridApi.getDisplayedRowCount() : 0);
+              console.log(`[Puppeteer] AG Grid API found with ${rowCount} rows`);
+              
+              // Get all row data
+              const allRowData = [];
+              
+              if (gridApi.forEachNode && typeof gridApi.forEachNode === 'function') {
                 gridApi.forEachNode((node) => {
-                  if (node.data) {
+                  if (node && node.data) {
                     allRowData.push(node.data);
                   }
                 });
-                
-                if (allRowData.length > 0) {
-                  console.log(`[Puppeteer] Extracted ${allRowData.length} rows from AG Grid API`);
-                  console.log(`[Puppeteer] First row sample:`, JSON.stringify(allRowData[0]));
+              } else if (gridApi.getDisplayedRowAtIndex) {
+                // Alternative method
+                for (let i = 0; i < rowCount; i++) {
+                  const node = gridApi.getDisplayedRowAtIndex(i);
+                  if (node && node.data) {
+                    allRowData.push(node.data);
+                  }
+                }
+              }
+              
+              if (allRowData.length > 0) {
+                console.log(`[Puppeteer] ✅ Extracted ${allRowData.length} rows from AG Grid API`);
+                console.log(`[Puppeteer] First row sample:`, JSON.stringify(allRowData[0]));
                   
                   // Process row data
                   for (const rowData of allRowData) {
