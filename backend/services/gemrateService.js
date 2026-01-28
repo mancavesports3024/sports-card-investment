@@ -4441,20 +4441,68 @@ class GemRateService {
                                  'Graded', 'All', 'Time', 'Last', 'Week', 'Prior', 'Weekly', 'Change', 'Past',
                                  'Trending', 'Players', 'Subjects', 'Sets', 'Page', 'of', 'To', 'Past Week'];
             
+            // Header phrases that should never be extracted as names
+            const headerPhrases = ['Name Category', 'Category Graded', 'All Time', 'Last Week', 'Prior Week',
+                                  'Weekly Change', 'Past Week', 'Trending Players', 'Trending Sets', 
+                                  'Graded All', 'Graded Last', 'Graded Prior', 'Drag here', 'set row',
+                                  'column labels', 'row groups'];
+            
             const validNames = nameMatches
               .map(n => n.trim())
               .filter(n => {
                 if (n.length < 3 || n.length > 50) return false;
+                // Must start with capital letter and have lowercase letters (proper name format)
+                if (!/^[A-Z][a-z]/.test(n)) return false;
+                // Exclude exact matches
                 if (excludeWords.includes(n)) return false;
-                if (excludeWords.some(word => n.includes(word))) return false;
-                if (/^[A-Z\s]+$/.test(n) && n.length > 15) return false; // All caps long text = header
-                if (/\d/.test(n)) return false; // Contains numbers
+                // Exclude if it contains any header phrase
+                if (headerPhrases.some(phrase => n.includes(phrase))) return false;
+                // Exclude if it contains multiple exclude words (likely a header)
+                const excludeCount = excludeWords.filter(word => n.includes(word)).length;
+                if (excludeCount > 1) return false;
+                // Exclude all caps (headers)
+                if (/^[A-Z\s]+$/.test(n) && n.length > 10) return false;
+                // Exclude if it contains numbers
+                if (/\d/.test(n)) return false;
+                // Must look like a proper name (capitalized words, not all caps)
+                if (!/^[A-Z][a-z]+(\s+[A-Z][a-z]+)*$/.test(n)) return false;
+                // Additional check: if it's right after header text, skip it
+                const namePos = beforeCategory.lastIndexOf(n);
+                if (namePos > 0) {
+                  const beforeName = beforeCategory.substring(Math.max(0, namePos - 100), namePos);
+                  if (headerPhrases.some(phrase => beforeName.includes(phrase))) {
+                    return false; // Too close to header
+                  }
+                }
                 return true;
               });
             
             // Use the last valid name (closest to the category) as the actual name
+            // But make sure it's not a header
             if (validNames.length > 0) {
-              const name = validNames[validNames.length - 1];
+              // Get names, starting from the end (closest to category)
+              let name = '';
+              for (let j = validNames.length - 1; j >= 0; j--) {
+                const candidate = validNames[j];
+                // Double-check it's not a header by checking context
+                const candidatePos = beforeCategory.lastIndexOf(candidate);
+                if (candidatePos > 0) {
+                  const context = beforeCategory.substring(Math.max(0, candidatePos - 200), candidatePos + candidate.length);
+                  // If context contains header phrases, skip this candidate
+                  if (!headerPhrases.some(phrase => context.includes(phrase))) {
+                    name = candidate;
+                    break;
+                  }
+                } else {
+                  name = candidate;
+                  break;
+                }
+              }
+              
+              if (!name) {
+                console.log(`[Puppeteer] All candidate names were filtered out as headers`);
+                continue;
+              }
               
               console.log(`[Puppeteer] Extracted: name="${name}", category="${category}", lastWeek=${lastWeek}, change=${change}%`);
               
