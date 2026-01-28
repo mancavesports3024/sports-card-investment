@@ -4117,10 +4117,27 @@ class GemRateService {
                   // If we got items from API, skip DOM extraction
                   if (items.length > 0) {
                     console.log(`[Puppeteer] ✅ Extracted ${items.length} ${which} from AG Grid API`);
-                    break;
+                    // Return early with the items
+                    const unique = [];
+                    const seen = new Set();
+                    for (const item of items) {
+                      const key = (item.name || item.player || item.set_name || '').toLowerCase();
+                      if (!seen.has(key)) {
+                        seen.add(key);
+                        unique.push(item);
+                      }
+                    }
+                    unique.sort((a, b) => (b.count || 0) - (a.count || 0));
+                    return { found: true, items: unique.slice(0, 50) };
                   }
+                } else {
+                  console.log(`[Puppeteer] AG Grid API found but no row data extracted`);
                 }
+              } else {
+                console.log(`[Puppeteer] AG Grid API found but no getDisplayedRowCount method`);
               }
+            } else {
+              console.log(`[Puppeteer] No AG Grid API found in any container`);
             }
           } catch (e) {
             console.log(`[Puppeteer] AG Grid API access failed: ${e.message}`);
