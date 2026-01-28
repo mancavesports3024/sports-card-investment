@@ -4125,8 +4125,6 @@ class GemRateService {
               } else {
                 console.log(`[Puppeteer] AG Grid API found but no getDisplayedRowCount method`);
               }
-            } else {
-              console.log(`[Puppeteer] No AG Grid API found in any container`);
             }
           } catch (e) {
             console.log(`[Puppeteer] AG Grid API access failed: ${e.message}`);
