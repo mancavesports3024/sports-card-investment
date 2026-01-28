@@ -5176,10 +5176,16 @@ class GemRateService {
       
       if (simpleResults && simpleResults.length > 0) {
         console.log(`✅ [Puppeteer] Simple extraction succeeded: ${simpleResults.length} ${kind}`);
+        if (kind === 'players' && simpleResults.length > 0) {
+          console.log(`[Puppeteer] First 3 player results:`, simpleResults.slice(0, 3).map(p => `${p.player}: ${p.sport} ${p.submissions}`));
+        }
         return simpleResults;
       }
       
-      console.log(`⚠️ [Puppeteer] Simple extraction found nothing, trying comprehensive approach...`);
+      console.log(`⚠️ [Puppeteer] Simple extraction found nothing (returned: ${simpleResults ? 'empty array' : 'null/undefined'}), trying comprehensive approach...`);
+      if (kind === 'players') {
+        console.log(`[Puppeteer] ERROR: Block-based parser for players returned empty. This should not happen.`);
+      }
       
       const results = await this.page.evaluate((which) => {
         try {
