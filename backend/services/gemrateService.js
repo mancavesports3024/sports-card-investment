@@ -4857,21 +4857,27 @@ class GemRateService {
           // 2) An ordered list of stat segments (Sport + 3 numbers + %) starting at the first sport word
           // We map stat segment N to player N.
           if (which === 'players') {
+            console.log('[Puppeteer] Starting block-based parser for players...');
             const sports = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG'];
             
             // Find the point just after "Weekly Change"
             const wcIdx = sectionText.toLowerCase().indexOf('weekly change');
+            console.log(`[Puppeteer] Found "Weekly Change" at index: ${wcIdx}`);
             let playersAndStats = wcIdx !== -1
               ? sectionText.substring(wcIdx + 'weekly change'.length).trim()
               : sectionText;
+            
+            console.log(`[Puppeteer] Players+stats text length: ${playersAndStats.length}, first 200 chars: ${playersAndStats.substring(0, 200)}`);
             
             // Find the first sport word – that splits player block from stats block
             const sportSplitRegex = new RegExp(`\\b(${sports.join('|')})\\b`, 'i');
             const firstSportMatch = playersAndStats.match(sportSplitRegex);
             if (!firstSportMatch || firstSportMatch.index == null) {
-              console.log('[Puppeteer] No sport keyword found in section text for players');
+              console.log(`[Puppeteer] ERROR: No sport keyword found in section text for players. Text sample: "${playersAndStats.substring(0, 300)}"`);
               return [];
             }
+            
+            console.log(`[Puppeteer] Found first sport "${firstSportMatch[0]}" at index ${firstSportMatch.index}`);
             
             const splitIndex = firstSportMatch.index;
             const namesText = playersAndStats.substring(0, splitIndex).trim();
