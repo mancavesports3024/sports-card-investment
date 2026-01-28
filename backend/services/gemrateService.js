@@ -4513,7 +4513,60 @@ class GemRateService {
       
       if (simpleExtraction.found && simpleExtraction.items && simpleExtraction.items.length > 0) {
         console.log(`✅ [Puppeteer] Simple extraction succeeded: ${simpleExtraction.items.length} ${kind}`);
-        return simpleExtraction.items;
+        
+        // Apply final filter to simple extraction results too
+        const headerPhrasesToFilter = [
+          'trending players', 'trending subjects', 'trending sets', 'past week drag',
+          'name category graded', 'all time graded', 'last week graded', 'prior week weekly change',
+          'graded all time', 'graded last week', 'graded prior week', 'weekly change',
+          'name category', 'all time', 'last week', 'prior week', 'past week',
+          'drag here', 'set row groups', 'column labels', 'trending cards',
+          'category year set graded', 'subjects', 'page'
+        ];
+        
+        const headerWords = ['trending', 'players', 'subjects', 'sets', 'name', 'category', 'graded', 
+                           'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'past', 'page', 'drag', 'here'];
+        
+        const filtered = simpleExtraction.items.filter(item => {
+          const name = (item.name || item.player || item.set_name || '').trim().toLowerCase();
+          
+          // Skip exact matches
+          if (headerPhrasesToFilter.includes(name)) {
+            console.log(`[Puppeteer] Simple filter: Removed exact match "${item.name || item.player || item.set_name}"`);
+            return false;
+          }
+          
+          // Skip if contains header phrase (for longer phrases)
+          if (headerPhrasesToFilter.some(phrase => phrase.length > 5 && name.includes(phrase))) {
+            console.log(`[Puppeteer] Simple filter: Removed contains "${item.name || item.player || item.set_name}"`);
+            return false;
+          }
+          
+          // Skip if starts with header phrase
+          if (headerPhrasesToFilter.some(phrase => name.startsWith(phrase))) {
+            console.log(`[Puppeteer] Simple filter: Removed starts with "${item.name || item.player || item.set_name}"`);
+            return false;
+          }
+          
+          // Skip single header words
+          const words = name.split(/\s+/);
+          if (words.length === 1 && headerWords.includes(name)) {
+            console.log(`[Puppeteer] Simple filter: Removed single word "${item.name || item.player || item.set_name}"`);
+            return false;
+          }
+          
+          // Skip if 2+ words are header words
+          const headerWordCount = words.filter(w => headerWords.includes(w)).length;
+          if (headerWordCount >= 2) {
+            console.log(`[Puppeteer] Simple filter: Removed ${headerWordCount} header words "${item.name || item.player || item.set_name}"`);
+            return false;
+          }
+          
+          return true;
+        });
+        
+        console.log(`✅ [Puppeteer] Simple extraction filtered: ${filtered.length} ${kind} (removed ${simpleExtraction.items.length - filtered.length} header items)`);
+        return filtered;
       }
 
       // First, let's log what's actually on the page for debugging
