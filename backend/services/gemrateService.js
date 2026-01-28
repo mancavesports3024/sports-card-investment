@@ -4936,7 +4936,17 @@ class GemRateService {
             }
             
             console.log(`[Puppeteer] Block-based mapping produced ${paired.length} player records`);
+            if (paired.length > 0) {
+              console.log(`[Puppeteer] First 3 paired results:`, paired.slice(0, 3).map(p => `${p.player}: ${p.sport} ${p.submissions}`));
+            }
             return paired;
+          }
+          
+          // For sets, use the old category-based parser
+          // For players, we should never reach here (should return from block above)
+          if (which === 'players') {
+            console.log('[Puppeteer] ERROR: Players parser should have returned from block-based mapping above');
+            return [];
           }
           
           const items = [];
