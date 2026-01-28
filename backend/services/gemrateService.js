@@ -4039,7 +4039,29 @@ class GemRateService {
           }
         }
         unique.sort((a, b) => (b.count || 0) - (a.count || 0));
-        return unique.slice(0, 50);
+        
+        // Final filter for AG Grid results too
+        const headerPhrasesToFilter = [
+          'trending players', 'trending subjects', 'trending sets', 'past week drag',
+          'name category graded', 'all time graded', 'last week graded', 'prior week weekly change',
+          'graded all time', 'graded last week', 'graded prior week', 'weekly change',
+          'name category', 'all time', 'last week', 'prior week', 'past week',
+          'drag here', 'set row groups', 'column labels', 'trending cards',
+          'category year set graded', 'subjects', 'page'
+        ];
+        
+        const filtered = unique.filter(item => {
+          const name = (item.name || item.player || item.set_name || '').trim().toLowerCase();
+          return !headerPhrasesToFilter.some(phrase => 
+            name === phrase || 
+            (name.includes(phrase) && phrase.length > 5) ||
+            name.startsWith(phrase)
+          ) && name.split(/\s+/).filter(w => ['trending', 'players', 'subjects', 'sets', 'name', 'category', 'graded', 
+            'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'past', 'page'].includes(w)).length < 2;
+        });
+        
+        console.log(`✅ [Puppeteer] AG Grid filtered: ${filtered.length} ${kind} (removed ${unique.length - filtered.length} header items)`);
+        return filtered.slice(0, 50);
       }
       
       // FALLBACK: Try a simple direct text extraction
@@ -5300,9 +5322,58 @@ class GemRateService {
       
       if (Array.isArray(results) && results.length > 0) {
         console.log(`[Puppeteer] Sample results (first 3):`, JSON.stringify(results.slice(0, 3), null, 2));
+        
+        // FINAL FILTER: Remove header phrases from ALL results (ultimate safety net)
+        const headerPhrasesToFilter = [
+          'trending players', 'trending subjects', 'trending sets', 'past week drag',
+          'name category graded', 'all time graded', 'last week graded', 'prior week weekly change',
+          'graded all time', 'graded last week', 'graded prior week', 'weekly change',
+          'name category', 'all time', 'last week', 'prior week', 'past week',
+          'drag here', 'set row groups', 'column labels', 'trending cards',
+          'category year set graded', 'subjects', 'page'
+        ];
+        
+        const headerWords = ['trending', 'players', 'subjects', 'sets', 'name', 'category', 'graded', 
+                           'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'past', 'page', 'drag', 'here'];
+        
+        const filtered = results.filter(item => {
+          const name = (item.name || item.player || item.set_name || '').trim().toLowerCase();
+          
+          // Skip exact matches
+          if (headerPhrasesToFilter.includes(name)) {
+            return false;
+          }
+          
+          // Skip if contains header phrase (for longer phrases)
+          if (headerPhrasesToFilter.some(phrase => phrase.length > 5 && name.includes(phrase))) {
+            return false;
+          }
+          
+          // Skip if starts with header phrase
+          if (headerPhrasesToFilter.some(phrase => name.startsWith(phrase))) {
+            return false;
+          }
+          
+          // Skip single header words
+          const words = name.split(/\s+/);
+          if (words.length === 1 && headerWords.includes(name)) {
+            return false;
+          }
+          
+          // Skip if 2+ words are header words
+          const headerWordCount = words.filter(w => headerWords.includes(w)).length;
+          if (headerWordCount >= 2) {
+            return false;
+          }
+          
+          return true;
+        });
+        
+        console.log(`✅ [Puppeteer] Final filter: ${filtered.length} ${kind} (removed ${results.length - filtered.length} header items)`);
+        return filtered;
       }
 
-      return Array.isArray(results) ? results : [];
+      return [];
     } catch (evalError) {
       console.error(`❌ [Puppeteer] Failed to evaluate dashboard DOM: ${evalError.message}`);
       console.error(`❌ [Puppeteer] Error stack:`, evalError.stack);
