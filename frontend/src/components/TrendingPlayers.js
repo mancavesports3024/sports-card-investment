@@ -23,9 +23,15 @@ const TrendingPlayers = () => {
       const data = await response.json();
       
       console.log('📦 Trending players API Response:', data);
+      console.log('📦 Trending players data.data:', data.data);
+      console.log('📦 Trending players data.data type:', typeof data.data);
+      console.log('📦 Trending players data.data isArray:', Array.isArray(data.data));
+      if (data.data && data.data.length) {
+        console.log('📦 Trending players first item:', data.data[0]);
+      }
       
       if (data.success && data.data) {
-        console.log(`✅ Loaded trending players data`);
+        console.log(`✅ Loaded trending players data, count: ${Array.isArray(data.data) ? data.data.length : 'not array'}`);
         setTrendingData(data.data);
       } else {
         console.error('❌ API Error:', data.error);

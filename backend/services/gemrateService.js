@@ -4344,31 +4344,68 @@ class GemRateService {
             // Extract name from Name column (column 0) - names are usually links
             if (cells.length > 0) {
               const nameCell = cells[0];
+              // Try link first (AG Grid usually has names as links)
               const link = nameCell.querySelector('a');
               if (link) {
                 nameText = (link.textContent || '').trim();
               } else {
-                nameText = (nameCell.textContent || '').trim();
+                // Try inner text or any child element
+                const innerText = nameCell.innerText || nameCell.textContent || '';
+                nameText = innerText.trim();
+              }
+              
+              // If we got "0" or empty, try to find the actual name in the cell's HTML structure
+              if (!nameText || nameText === '0' || nameText.length < 2) {
+                // Check for data attributes or aria-label
+                const ariaLabel = nameCell.getAttribute('aria-label') || nameCell.getAttribute('title') || '';
+                if (ariaLabel && ariaLabel.length > 2) {
+                  nameText = ariaLabel;
+                }
+                
+                // Check for any text node that's not "0"
+                const walker = document.createTreeWalker(nameCell, NodeFilter.SHOW_TEXT, null, false);
+                let node;
+                while (node = walker.nextNode()) {
+                  const text = node.textContent.trim();
+                  if (text && text !== '0' && text.length >= 2 && /[a-zA-Z]/.test(text)) {
+                    nameText = text;
+                    break;
+                  }
+                }
               }
             }
             
             // Extract category from Category column (column 1)
             if (cells.length > 1) {
-              categoryText = (cells[1].textContent || '').trim();
+              categoryText = (cells[1].textContent || cells[1].innerText || '').trim();
+              if (categoryText === '0') categoryText = '';
             }
             
             // Extract count from "Graded, Last Week" column (column 3)
             // Table structure: Name (0), Category (1), Graded All Time (2), Graded Last Week (3), Graded Prior Week (4), Weekly Change (5)
             if (columnIndices.lastWeek !== -1 && cells.length > columnIndices.lastWeek) {
-              const countText = (cells[columnIndices.lastWeek]?.textContent || '').trim();
+              const countCell = cells[columnIndices.lastWeek];
+              const countText = (countCell.textContent || countCell.innerText || '').trim();
               count = parseInt(countText.replace(/,/g, ''), 10);
             } else if (cells.length >= 4) {
               // Fallback: try column 3 (Graded Last Week)
-              const countText = (cells[3]?.textContent || '').trim();
+              const countCell = cells[3];
+              const countText = (countCell.textContent || countCell.innerText || '').trim();
               count = parseInt(countText.replace(/,/g, ''), 10);
             }
             
-            console.log(`[Puppeteer] Extracted from cells: name="${nameText}", category="${categoryText}", count=${count} (from column ${columnIndices.lastWeek !== -1 ? columnIndices.lastWeek : 3})`);
+            // Skip if we didn't get valid data
+            if (!nameText || nameText === '0' || nameText.length < 2) {
+              console.log(`[Puppeteer] Skipping row - invalid name: "${nameText}"`);
+              continue;
+            }
+            
+            if (count === 0 || isNaN(count)) {
+              console.log(`[Puppeteer] Skipping row - invalid count: ${count}`);
+              continue;
+            }
+            
+            console.log(`[Puppeteer] ✅ Extracted from cells: name="${nameText}", category="${categoryText}", count=${count}`);
             
             // If we still don't have a name and first cell is numeric, try to get it from row data
             if (!nameText && isFirstCellNumeric) {
