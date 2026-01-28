@@ -4445,21 +4445,47 @@ class GemRateService {
           
           // Now extract data rows (only if API method didn't work)
           if (items.length === 0) {
-          for (const row of gridRows) {
-            if (row === headerRow) continue; // Skip header row
+          // Filter out rows that are clearly not data rows (header, filter, summary rows)
+          const dataRows = gridRows.filter(row => {
+            if (row === headerRow) return false;
+            const cells = Array.from(row.querySelectorAll('[role="gridcell"]'));
+            if (cells.length < 3) return false;
             
+            // Skip if first cell is a header word
+            const firstCell = (cells[0]?.textContent || '').toLowerCase().trim();
+            const headerWords = ['name', 'category', 'graded', 'all', 'time', 'last', 'week', 'prior', 'weekly', 'change'];
+            if (headerWords.some(word => firstCell === word || firstCell.includes(word))) return false;
+            
+            // Skip if first cell is only numbers (likely a summary/aggregate row)
+            if (/^-?\d{1,3}(?:,\d{3})*$/.test(firstCell)) return false;
+            
+            // Skip if all cells are numbers (definitely not a player row)
+            const allNumeric = cells.every(c => {
+              const text = (c.textContent || '').trim();
+              return /^-?\d{1,3}(?:,\d{3})*$/.test(text) || text === '0' || text === '';
+            });
+            if (allNumeric) return false;
+            
+            return true;
+          });
+          
+          console.log(`[Puppeteer] Filtered to ${dataRows.length} data rows (from ${gridRows.length} total rows)`);
+          
+          for (const row of dataRows) {
             const cells = Array.from(row.querySelectorAll('[role="gridcell"]'));
             if (cells.length < 2) continue;
             
-            // Log all cell contents for debugging
-            const allCellTexts = cells.map((c, i) => `[${i}]="${(c.textContent || '').trim()}"`).join(', ');
-            console.log(`[Puppeteer] Row cells: ${allCellTexts}`);
+            // Log all cell contents for debugging (only first few)
+            if (items.length < 3) {
+              const allCellTexts = cells.map((c, i) => `[${i}]="${(c.textContent || '').trim()}"`).join(', ');
+              console.log(`[Puppeteer] Row cells: ${allCellTexts}`);
+            }
             
             // Check if cells contain only numbers (indicating wrong column structure)
             const firstCellText = (cells[0]?.textContent || '').trim();
             const isFirstCellNumeric = /^-?\d{1,3}(?:,\d{3})*$/.test(firstCellText);
             
-            // If first cell is numeric, the set name might be:
+            // If first cell is numeric, the player/set name might be:
             // 1. In a data attribute
             // 2. In a child element (like a link or span)
             // 3. In a different column structure
