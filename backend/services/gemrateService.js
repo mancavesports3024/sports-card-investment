@@ -4061,8 +4061,30 @@ class GemRateService {
           }
           
           // Check if name STARTS with any header phrase (catches "Prior Week Weekly Change Michael Jordan")
-          if (headerPhrasesToFilter.some(phrase => name.startsWith(phrase))) {
-            return false;
+          // But try to extract the actual name if it's concatenated
+          for (const phrase of headerPhrasesToFilter) {
+            if (name.startsWith(phrase)) {
+              // Try to extract the actual name after the header phrase
+              const remaining = name.substring(phrase.length).trim();
+              // If there's a valid name after the header phrase, use that instead
+              if (remaining.length >= 3 && remaining.length <= 50) {
+                const words = remaining.split(/\s+/);
+                const headerWords = ['trending', 'players', 'subjects', 'sets', 'name', 'category', 'graded', 
+                  'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'past', 'page', 'drag', 'here'];
+                const headerWordCount = words.filter(w => headerWords.includes(w)).length;
+                // If less than 2 words are header words, it's probably a real name
+                if (headerWordCount < 2) {
+                  // Update the item with the extracted name
+                  item.name = remaining;
+                  item.player = remaining;
+                  item.set_name = remaining;
+                  console.log(`[Puppeteer] Extracted name "${remaining}" from "${name}"`);
+                  break; // Don't filter it out, we fixed it
+                }
+              }
+              // If we couldn't extract a valid name, filter it out
+              return false;
+            }
           }
           
           // Check if name contains header phrase (for longer phrases)
