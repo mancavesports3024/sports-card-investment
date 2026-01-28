@@ -4849,6 +4849,121 @@ class GemRateService {
           
           console.log(`[Puppeteer] Section text (first 2000 chars):`, sectionText.substring(0, 2000));
           
+          // Special handling for players: the text comes in two logical blocks:
+          // 1) An ordered list of player names
+          // 2) An ordered list of stat rows (sport + 3 numbers + %)
+          // Our goal is to map row N of the stats block to player N in the name block.
+          if (which === 'players') {
+            const sports = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG'];
+            const sportRegex = new RegExp(`\\b(${sports.join('|')})\\b`, 'i');
+            const firstSportMatch = sectionText.match(sportRegex);
+            
+            if (!firstSportMatch) {
+              console.log('[Puppeteer] No sport keyword found in section text for players');
+              return [];
+            }
+            
+            const splitIndex = firstSportMatch.index || 0;
+            const namesText = sectionText.substring(0, splitIndex);
+            const statsText = sectionText.substring(splitIndex);
+            
+            // 1) Extract an ordered list of player names from namesText
+            const namePattern = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g;
+            const rawNames = [];
+            const nameExcludeWords = new Set([
+              'trending', 'players', 'subjects', 'sets', 'name', 'category', 'graded',
+              'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'past',
+              'page', 'of', 'to', 'drag', 'here', 'set', 'row', 'groups', 'column', 'labels',
+              'today', 'this', 'month', 'year', 'cards', 'card', 'total'
+            ]);
+            
+            let nm;
+            while ((nm = namePattern.exec(namesText)) !== null) {
+              const candidate = (nm[1] || '').trim();
+              if (!candidate || candidate.length < 3 || candidate.length > 50) continue;
+              if (/\d/.test(candidate)) continue; // no numbers in player names
+              
+              const lower = candidate.toLowerCase();
+              // Skip if the whole thing is one of the excluded/header words
+              if (nameExcludeWords.has(lower)) continue;
+              
+              // Skip if it's exactly a sport name
+              if (sports.some(s => lower === s.toLowerCase())) continue;
+              
+              // Basic heuristic: must contain at least one space (first + last name)
+              if (!candidate.includes(' ')) continue;
+              
+              // De-duplicate while preserving order
+              if (!rawNames.includes(candidate)) {
+                rawNames.push(candidate);
+              }
+            }
+            
+            console.log(`[Puppeteer] Parsed ${rawNames.length} player names from names block`);
+            
+            // 2) Extract an ordered list of stat rows from statsText
+            const statItems = [];
+            const sportGlobalRegex = new RegExp(`\\b(${sports.join('|')})\\b`, 'g');
+            let sm;
+            
+            while ((sm = sportGlobalRegex.exec(statsText)) !== null) {
+              const sport = sm[1];
+              const start = sm.index + sm[0].length;
+              const tail = statsText.substring(start, start + 80); // local window after sport
+              
+              // Extract the three big numbers (all-time, last week, prior week)
+              const numMatches = tail.match(/\d{1,3}(?:,\d{3})*/g) || [];
+              if (numMatches.length < 3) {
+                console.log(`[Puppeteer] Not enough numbers after sport "${sport}" in tail: "${tail.substring(0, 50)}"`);
+                continue;
+              }
+              
+              const allTime = parseInt(numMatches[0].replace(/,/g, ''), 10);
+              const lastWeek = parseInt(numMatches[1].replace(/,/g, ''), 10);
+              const priorWeek = parseInt(numMatches[2].replace(/,/g, ''), 10);
+              
+              if (!allTime && !lastWeek && !priorWeek) continue;
+              
+              // Extract the percentage change (may be positive or negative)
+              const changeMatch = tail.match(/(-?\d+)\s*%/);
+              const change = changeMatch ? parseInt(changeMatch[1], 10) : null;
+              
+              statItems.push({
+                sport,
+                allTime,
+                lastWeek,
+                priorWeek,
+                change
+              });
+            }
+            
+            console.log(`[Puppeteer] Parsed ${statItems.length} stat rows from stats block`);
+            
+            const pairCount = Math.min(rawNames.length, statItems.length);
+            const paired = [];
+            
+            for (let i = 0; i < pairCount; i++) {
+              const playerName = rawNames[i];
+              const s = statItems[i];
+              
+              paired.push({
+                player: playerName,
+                name: playerName,
+                sport: s.sport,
+                category: s.sport,
+                submissions: s.lastWeek,
+                count: s.lastWeek,
+                total_grades: s.lastWeek,
+                all_time: s.allTime,
+                prior_week: s.priorWeek,
+                change: s.change
+              });
+            }
+            
+            console.log(`[Puppeteer] Block-based mapping produced ${paired.length} player records`);
+            return paired;
+          }
+          
           const items = [];
           const categories = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG'];
           
