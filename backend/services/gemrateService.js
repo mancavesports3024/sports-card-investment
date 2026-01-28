@@ -4344,72 +4344,103 @@ class GemRateService {
             return [];
           }
           
-          // Get text from the section onwards (next 5000 characters)
-          const sectionText = allText.substring(sectionIndex, sectionIndex + 5000);
-          console.log(`[Puppeteer] Section text (first 1000 chars):`, sectionText.substring(0, 1000));
-          
-          // Look for lines that contain a name followed by a number
-          // Split by common separators and look for patterns
-          const lines = sectionText.split(/\n|\r|•|·/).map(l => normalize(l)).filter(l => l.length > 0);
-          console.log(`[Puppeteer] Found ${lines.length} lines in section`);
+          // Get text from the section onwards (next 10000 characters to get more data)
+          const sectionText = allText.substring(sectionIndex, sectionIndex + 10000);
+          console.log(`[Puppeteer] Section text (first 2000 chars):`, sectionText.substring(0, 2000));
           
           const items = [];
-          const parseCount = (text) => {
-            if (!text) return 0;
-            const cleaned = text.replace(/[,\s%()]/g, '');
-            const num = parseInt(cleaned, 10);
-            return Number.isFinite(num) && num > 0 ? num : 0;
-          };
+          const categories = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG'];
           
-          const isValidName = (txt) => {
-            if (!txt || txt.length < 2 || txt.length > 100) return false;
-            if (!/[a-zA-Z]/.test(txt)) return false;
-            // Exclude common non-name patterns (column headers, UI text, etc.)
-            const exclude = ['trending', 'past week', 'day prior', 'prior', 'items graded', 
-                           'show/hide', 'legend', 'category', 'trailing', 'average', 'pace',
-                           'drag', 'here', 'set', 'row', 'groups', 'column', 'labels', 'name',
-                           'graded', 'all', 'time', 'last', 'week', 'weekly', 'change', 'page',
-                           'of', 'to', 'subjects', 'players', 'sets'];
-            const txtLower = txt.toLowerCase().trim();
-            // Must not be exactly an exclude word, and must not contain multiple exclude words
-            if (exclude.includes(txtLower)) return false;
-            if (exclude.filter(e => txtLower.includes(e)).length > 1) return false;
-            // Must contain at least one letter and look like a name (not all caps, not all numbers)
-            if (/^[A-Z\s]+$/.test(txt) && txt.length > 10) return false; // Likely a header
-            return true;
-          };
+          // The data is concatenated like: "Michael JordanShohei Ohtani... Basketball1,840,9796,6945,24428%"
+          // Strategy: Find category words, extract names before them, and numbers after them
           
-          // Try to extract from lines
-          for (const line of lines) {
-            // Pattern: Name followed by number (with various separators)
-            const patterns = [
-              /^([A-Z][A-Za-z\s&'\-\.]{2,60}?)\s+(\d{1,3}(?:,\d{3}){0,2})/,
-              /^([A-Z][A-Za-z\s&'\-\.]{2,60}?)[:\-]\s*(\d{1,3}(?:,\d{3}){0,2})/,
-              /(\d{1,3}(?:,\d{3}){0,2})\s+([A-Z][A-Za-z\s&'\-\.]{2,60}?)$/
-            ];
+          const categoryPattern = new RegExp(`\\b(${categories.join('|')})\\b`, 'gi');
+          const categoryMatches = [...sectionText.matchAll(categoryPattern)];
+          
+          console.log(`[Puppeteer] Found ${categoryMatches.length} category matches in section`);
+          
+          for (let i = 0; i < categoryMatches.length; i++) {
+            const match = categoryMatches[i];
+            const category = match[0];
+            const categoryIndex = match.index;
             
-            for (const pattern of patterns) {
-              const match = line.match(pattern);
-              if (match) {
-                let name, count;
-                if (pattern === patterns[2]) {
-                  // Reversed
-                  count = parseCount(match[1]);
-                  name = normalize(match[2]);
-                } else {
-                  name = normalize(match[1]);
-                  count = parseCount(match[2]);
-                }
-                
-                if (isValidName(name) && count > 0 && count < 10000000) {
-                  if (which === 'players') {
-                    items.push({ player: name, name, submissions: count, count, total_grades: count });
-                  } else {
-                    items.push({ set_name: name, name, set: name, submissions: count, count, total_grades: count });
-                  }
-                  break; // Found a match for this line, move to next
-                }
+            // Get text before category (contains player/set names)
+            const startIndex = i > 0 ? categoryMatches[i - 1].index + categoryMatches[i - 1][0].length : sectionIndex;
+            const beforeCategory = sectionText.substring(Math.max(0, categoryIndex - 500), categoryIndex);
+            
+            // Get text after category (contains numbers)
+            const afterCategory = sectionText.substring(categoryIndex + category.length, categoryIndex + category.length + 200);
+            
+            // Extract numbers - format: "1,840,9796,6945,24428%"
+            // Pattern: AllTime,LastWeek,PriorWeek,Change%
+            const numberMatch = afterCategory.match(/(\d{1,3}(?:,\d{3})*),(\d{1,3}(?:,\d{3})*),(\d{1,3}(?:,\d{3})*),?(\d+)?%?/);
+            if (!numberMatch) {
+              console.log(`[Puppeteer] No number match found after category "${category}"`);
+              continue;
+            }
+            
+            const allTime = parseInt(numberMatch[1].replace(/,/g, ''), 10);
+            const lastWeek = parseInt(numberMatch[2].replace(/,/g, ''), 10);
+            const priorWeek = parseInt(numberMatch[3].replace(/,/g, ''), 10);
+            const change = numberMatch[4] ? parseInt(numberMatch[4], 10) : null;
+            
+            if (lastWeek === 0) continue;
+            
+            // Extract names from before category
+            // Names are capitalized words, separated by other capitalized words
+            // Pattern: Capital letter followed by lowercase letters, possibly with spaces and more capitalized words
+            const namePattern = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+[A-Z][a-z]+)*)/g;
+            const nameMatches = beforeCategory.match(namePattern) || [];
+            
+            // Filter out common words that aren't names
+            const excludeWords = ['Drag', 'here', 'set', 'row', 'groups', 'column', 'labels', 'Name', 'Category', 
+                                 'Graded', 'All', 'Time', 'Last', 'Week', 'Prior', 'Weekly', 'Change', 'Past',
+                                 'Trending', 'Players', 'Subjects', 'Sets', 'Page', 'of', 'To'];
+            
+            const validNames = nameMatches
+              .map(n => n.trim())
+              .filter(n => {
+                if (n.length < 3 || n.length > 50) return false;
+                if (excludeWords.includes(n)) return false;
+                if (excludeWords.some(word => n.includes(word))) return false;
+                if (/^[A-Z\s]+$/.test(n) && n.length > 15) return false; // All caps long text = header
+                if (/\d/.test(n)) return false; // Contains numbers
+                return true;
+              });
+            
+            // Use the last valid name (closest to the category) as the actual name
+            if (validNames.length > 0) {
+              const name = validNames[validNames.length - 1];
+              
+              console.log(`[Puppeteer] Extracted: name="${name}", category="${category}", lastWeek=${lastWeek}, change=${change}%`);
+              
+              if (which === 'players') {
+                items.push({ 
+                  player: name, 
+                  name, 
+                  submissions: lastWeek, 
+                  count: lastWeek, 
+                  total_grades: lastWeek,
+                  category: category,
+                  change: change,
+                  prior_week: priorWeek,
+                  all_time: allTime
+                });
+              } else {
+                items.push({ 
+                  set_name: name, 
+                  name, 
+                  set: name, 
+                  submissions: lastWeek, 
+                  count: lastWeek, 
+                  total_grades: lastWeek,
+                  change: change,
+                  prior_week: priorWeek,
+                  all_time: allTime
+                });
               }
+            } else {
+              console.log(`[Puppeteer] No valid names found before category "${category}"`);
             }
           }
           
