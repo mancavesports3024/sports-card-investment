@@ -4052,12 +4052,32 @@ class GemRateService {
         
         const filtered = unique.filter(item => {
           const name = (item.name || item.player || item.set_name || '').trim().toLowerCase();
-          return !headerPhrasesToFilter.some(phrase => 
-            name === phrase || 
-            (name.includes(phrase) && phrase.length > 5) ||
-            name.startsWith(phrase)
-          ) && name.split(/\s+/).filter(w => ['trending', 'players', 'subjects', 'sets', 'name', 'category', 'graded', 
-            'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'past', 'page'].includes(w)).length < 2;
+          
+          // Check exact matches
+          if (headerPhrasesToFilter.includes(name)) {
+            return false;
+          }
+          
+          // Check if name STARTS with any header phrase (catches "Prior Week Weekly Change Michael Jordan")
+          if (headerPhrasesToFilter.some(phrase => name.startsWith(phrase))) {
+            return false;
+          }
+          
+          // Check if name contains header phrase (for longer phrases)
+          if (headerPhrasesToFilter.some(phrase => phrase.length > 8 && name.includes(phrase))) {
+            return false;
+          }
+          
+          // Check for multiple header words
+          const words = name.split(/\s+/);
+          const headerWords = ['trending', 'players', 'subjects', 'sets', 'name', 'category', 'graded', 
+            'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'past', 'page', 'drag', 'here'];
+          const headerWordCount = words.filter(w => headerWords.includes(w)).length;
+          if (headerWordCount >= 2) {
+            return false;
+          }
+          
+          return true;
         });
         
         console.log(`✅ [Puppeteer] AG Grid filtered: ${filtered.length} ${kind} (removed ${unique.length - filtered.length} header items)`);
@@ -5394,28 +5414,33 @@ class GemRateService {
           
           // Skip exact matches
           if (headerPhrasesToFilter.includes(name)) {
+            console.log(`[Puppeteer] Final filter: Removed exact match "${item.name || item.player || item.set_name}"`);
             return false;
           }
           
-          // Skip if contains header phrase (for longer phrases)
-          if (headerPhrasesToFilter.some(phrase => phrase.length > 5 && name.includes(phrase))) {
-            return false;
-          }
-          
-          // Skip if starts with header phrase
+          // Skip if name STARTS with any header phrase (catches "Prior Week Weekly Change Michael Jordan")
           if (headerPhrasesToFilter.some(phrase => name.startsWith(phrase))) {
+            console.log(`[Puppeteer] Final filter: Removed starts with "${item.name || item.player || item.set_name}"`);
+            return false;
+          }
+          
+          // Skip if contains header phrase (for longer phrases > 8 chars to avoid false positives)
+          if (headerPhrasesToFilter.some(phrase => phrase.length > 8 && name.includes(phrase))) {
+            console.log(`[Puppeteer] Final filter: Removed contains "${item.name || item.player || item.set_name}"`);
             return false;
           }
           
           // Skip single header words
           const words = name.split(/\s+/);
           if (words.length === 1 && headerWords.includes(name)) {
+            console.log(`[Puppeteer] Final filter: Removed single word "${item.name || item.player || item.set_name}"`);
             return false;
           }
           
           // Skip if 2+ words are header words
           const headerWordCount = words.filter(w => headerWords.includes(w)).length;
           if (headerWordCount >= 2) {
+            console.log(`[Puppeteer] Final filter: Removed ${headerWordCount} header words "${item.name || item.player || item.set_name}"`);
             return false;
           }
           
