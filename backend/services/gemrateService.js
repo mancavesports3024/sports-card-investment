@@ -4403,48 +4403,78 @@ class GemRateService {
                                  'Graded', 'All', 'Time', 'Last', 'Week', 'Prior', 'Weekly', 'Change', 'Past',
                                  'Trending', 'Players', 'Subjects', 'Sets', 'Page', 'of', 'To', 'Past Week'];
             
-            // Common header phrases that should be excluded
+            // Common header phrases that should be excluded (check these FIRST)
             const headerPhrases = [
-              'Trending Players', 'Trending Subjects', 'Trending Sets', 'Past Week Drag',
-              'Name Category Graded', 'All Time Graded', 'Last Week Graded', 'Prior Week Weekly Change',
-              'Graded All Time', 'Graded Last Week', 'Graded Prior Week', 'Weekly Change',
-              'Name Category', 'All Time', 'Last Week', 'Prior Week', 'Past Week',
-              'Drag here', 'set row groups', 'column labels'
+              'trending players', 'trending subjects', 'trending sets', 'past week drag',
+              'name category graded', 'all time graded', 'last week graded', 'prior week weekly change',
+              'graded all time', 'graded last week', 'graded prior week', 'weekly change',
+              'name category', 'all time', 'last week', 'prior week', 'past week',
+              'drag here', 'set row groups', 'column labels', 'trending cards',
+              'category year set graded', 'prior week weekly change'
             ];
+            
+            const headerWords = ['drag', 'here', 'set', 'row', 'groups', 'column', 'labels', 'name', 'category', 
+                                'graded', 'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'past',
+                                'trending', 'players', 'subjects', 'sets', 'page', 'of', 'to', 'cards', 'year'];
             
             const validNames = nameMatches
               .map(n => n.trim())
               .filter(n => {
                 if (n.length < 3 || n.length > 50) return false;
                 
-                // Check if it's an exact match to an exclude word
-                if (excludeWords.includes(n)) return false;
+                const lowerN = n.toLowerCase().trim();
                 
-                // Check if it contains any exclude word (but be careful - "Jordan" contains "or")
-                // Only exclude if it's a clear header word match
-                const lowerN = n.toLowerCase();
-                const headerWords = ['drag', 'here', 'set', 'row', 'groups', 'column', 'labels', 'name', 'category', 
-                                    'graded', 'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'past',
-                                    'trending', 'players', 'subjects', 'sets', 'page', 'of', 'to'];
-                if (headerWords.some(word => lowerN === word || lowerN.startsWith(word + ' ') || lowerN.endsWith(' ' + word))) {
+                // FIRST: Check if it's an exact match to any header phrase (most important check)
+                if (headerPhrases.some(phrase => lowerN === phrase || lowerN.includes(phrase))) {
+                  console.log(`[Puppeteer] Filtered out header phrase: "${n}"`);
                   return false;
                 }
                 
-                // Check if it matches any header phrase (case-insensitive)
-                if (headerPhrases.some(phrase => lowerN === phrase.toLowerCase() || lowerN.includes(phrase.toLowerCase()))) {
+                // SECOND: Check if it starts with or ends with a header phrase
+                if (headerPhrases.some(phrase => lowerN.startsWith(phrase) || lowerN.endsWith(phrase))) {
+                  console.log(`[Puppeteer] Filtered out name starting/ending with header phrase: "${n}"`);
                   return false;
                 }
                 
-                // Exclude if it's all caps and long (likely a header)
-                if (/^[A-Z\s]+$/.test(n) && n.length > 15) return false;
+                // THIRD: Check if it's an exact match to an exclude word
+                if (excludeWords.some(word => lowerN === word.toLowerCase())) {
+                  return false;
+                }
                 
-                // Exclude if it contains numbers
-                if (/\d/.test(n)) return false;
+                // FOURTH: Check if it contains header words at the start or end
+                if (headerWords.some(word => {
+                  return lowerN === word || 
+                         lowerN.startsWith(word + ' ') || 
+                         lowerN.endsWith(' ' + word) ||
+                         lowerN.startsWith(word + 's ') ||
+                         lowerN.endsWith(' ' + word + 's');
+                })) {
+                  console.log(`[Puppeteer] Filtered out name with header word: "${n}"`);
+                  return false;
+                }
                 
-                // Exclude if it's a combination of header words (e.g., "Name Category", "All Time")
-                const words = n.split(/\s+/);
-                const headerWordCount = words.filter(w => headerWords.includes(w.toLowerCase())).length;
-                if (headerWordCount >= 2) return false; // If 2+ words are header words, it's likely a header phrase
+                // FIFTH: Exclude if it's a combination of header words (e.g., "Name Category", "All Time")
+                const words = lowerN.split(/\s+/);
+                const headerWordCount = words.filter(w => headerWords.includes(w)).length;
+                if (headerWordCount >= 2) {
+                  console.log(`[Puppeteer] Filtered out name with ${headerWordCount} header words: "${n}"`);
+                  return false;
+                }
+                
+                // SIXTH: Exclude if it's all caps and long (likely a header)
+                if (/^[A-Z\s]+$/.test(n) && n.length > 15) {
+                  return false;
+                }
+                
+                // SEVENTH: Exclude if it contains numbers
+                if (/\d/.test(n)) {
+                  return false;
+                }
+                
+                // EIGHTH: Exclude single words that are header words
+                if (words.length === 1 && headerWords.includes(lowerN)) {
+                  return false;
+                }
                 
                 return true;
               });
@@ -4485,11 +4515,45 @@ class GemRateService {
             }
           }
           
-          // Remove duplicates
+          // Remove duplicates and filter out header phrases (post-processing safety net)
+          const headerPhrasesToFilter = [
+            'trending players', 'trending subjects', 'trending sets', 'past week drag',
+            'name category graded', 'all time graded', 'last week graded', 'prior week weekly change',
+            'graded all time', 'graded last week', 'graded prior week', 'weekly change',
+            'name category', 'all time', 'last week', 'prior week', 'past week',
+            'drag here', 'set row groups', 'column labels', 'trending cards',
+            'category year set graded', 'prior week weekly change', 'subjects', 'page'
+          ];
+          
           const unique = [];
           const seen = new Set();
           for (const item of items) {
-            const key = (item.name || item.player || item.set_name || '').toLowerCase();
+            const name = (item.name || item.player || item.set_name || '').trim();
+            const lowerName = name.toLowerCase();
+            
+            // Skip if it's a header phrase
+            if (headerPhrasesToFilter.some(phrase => lowerName === phrase || lowerName.includes(phrase))) {
+              console.log(`[Puppeteer] Post-filter: Removed header phrase "${name}"`);
+              continue;
+            }
+            
+            // Skip if it's a single header word
+            const words = lowerName.split(/\s+/);
+            const headerWords = ['trending', 'players', 'subjects', 'sets', 'name', 'category', 'graded', 
+                               'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'past', 'page'];
+            if (words.length === 1 && headerWords.includes(lowerName)) {
+              console.log(`[Puppeteer] Post-filter: Removed single header word "${name}"`);
+              continue;
+            }
+            
+            // Skip if 2+ words are header words
+            const headerWordCount = words.filter(w => headerWords.includes(w)).length;
+            if (headerWordCount >= 2) {
+              console.log(`[Puppeteer] Post-filter: Removed name with ${headerWordCount} header words "${name}"`);
+              continue;
+            }
+            
+            const key = lowerName;
             if (!seen.has(key)) {
               seen.add(key);
               unique.push(item);
@@ -4497,7 +4561,7 @@ class GemRateService {
           }
           
           unique.sort((a, b) => (b.count || 0) - (a.count || 0));
-          console.log(`[Puppeteer] Simple extraction found ${unique.length} items`);
+          console.log(`[Puppeteer] Simple extraction found ${unique.length} items (after filtering)`);
           return unique.slice(0, 50);
         } catch (error) {
           console.error(`[Puppeteer] Error in simple extraction: ${error.message}`);
