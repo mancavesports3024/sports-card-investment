@@ -4253,14 +4253,39 @@ class GemRateService {
               }
             }
             
-            // Extract count - look for the submissions number (usually column 1 based on logs)
-            if (cells.length >= 2) {
-              const countText = (cells[1]?.textContent || '').trim();
-              count = parseInt(countText.replace(/,/g, ''), 10);
+            // Extract count - look for "Graded, Last Week" column
+            // Based on table structure: Name, Category, All Time, Last Week, Prior Week, Change
+            // So Last Week should be around column 3 or 4
+            for (let i = 0; i < cells.length; i++) {
+              const cellText = (cells[i]?.textContent || '').trim();
+              const num = parseInt(cellText.replace(/,/g, ''), 10);
+              // Last Week numbers are typically in the thousands range
+              if (num > 100 && num < 100000) {
+                count = num;
+                console.log(`[Puppeteer] Found count ${count} in cell ${i}`);
+                break;
+              }
             }
             
-            // If we still don't have a name and first cell is numeric, try to get it from row data
-            if (!nameText && isFirstCellNumeric) {
+            // If we found a name but no count, try to get count from a different cell
+            if (nameText && count === 0) {
+              // Look for any number that could be the count
+              for (let i = 0; i < cells.length; i++) {
+                const cellText = (cells[i]?.textContent || '').trim();
+                const num = parseInt(cellText.replace(/,/g, ''), 10);
+                if (num > 0 && num < 1000000) {
+                  count = num;
+                  break;
+                }
+              }
+            }
+            
+            // If we still don't have a name, try to get it from row data
+            if (!nameText) {
+              const firstCellText = (cells[0]?.textContent || '').trim();
+              const isFirstCellNumeric = /^-?\d{1,3}(?:,\d{3})*$/.test(firstCellText);
+              
+              if (isFirstCellNumeric) {
               // Check row data attributes
               const rowDataAttr = row.getAttribute('row-data') || row.getAttribute('data-row') || row.getAttribute('data-row-data') || '';
               if (rowDataAttr) {
