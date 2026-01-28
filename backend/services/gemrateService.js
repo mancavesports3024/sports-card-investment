@@ -4897,7 +4897,8 @@ class GemRateService {
             
             // 2) Extract stat segments in order: Sport + 3 big numbers + optional %
             const statItems = [];
-            const sportGlobal = new RegExp(`\\b(${sports.join('|')})\\b`, 'g');
+            // Allow sport words glued to years (e.g. "Baseball2025") by not requiring a trailing word boundary
+            const sportGlobal = new RegExp(`\\b(${sports.join('|')})`, 'g');
             const sportMatches = Array.from(statsText.matchAll(sportGlobal));
             
             for (let i = 0; i < sportMatches.length; i++) {
