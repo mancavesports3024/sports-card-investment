@@ -4748,7 +4748,10 @@ class GemRateService {
         return { found: unique.length > 0, items: unique.slice(0, 50) };
       }, kind);
       
-      if (simpleExtraction.found && simpleExtraction.items && simpleExtraction.items.length > 0) {
+      // For players, skip the old DOM-based extraction - we use block-based parser instead
+      if (kind === 'players') {
+        console.log(`[Puppeteer] Skipping old DOM extraction for players - using block-based parser instead`);
+      } else if (simpleExtraction.found && simpleExtraction.items && simpleExtraction.items.length > 0) {
         console.log(`✅ [Puppeteer] Simple extraction succeeded: ${simpleExtraction.items.length} ${kind}`);
         
         // Apply final filter to simple extraction results too
