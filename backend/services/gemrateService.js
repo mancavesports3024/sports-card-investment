@@ -3946,88 +3946,27 @@ class GemRateService {
           
           console.log(`[Puppeteer] Column indices:`, columnIndices);
           
-          // Try to access AG Grid's internal data model directly - MULTIPLE METHODS
+          // Try to access AG Grid's internal data model directly
           try {
-            console.log(`[Puppeteer] Attempting AG Grid API access...`);
-            
-            // Method 1: Try to find grid API via window
-            let gridApi = null;
-            
-            // Check window for AG Grid instances
-            if (window.agGrid && window.agGrid.GridApi) {
-              console.log(`[Puppeteer] Found window.agGrid`);
-            }
-            
-            // Method 2: Find all AG Grid containers and try to access their APIs
-            const agGridContainers = Array.from(document.querySelectorAll('.ag-root-wrapper, [class*="ag-root"], [class*="ag-grid"]'));
-            console.log(`[Puppeteer] Found ${agGridContainers.length} AG Grid containers`);
-            
-            for (const gridEl of agGridContainers) {
-              // Try multiple ways to get the API
-              const api = gridEl.__agGridInstance || 
-                         gridEl.gridApi || 
-                         gridEl.api ||
-                         (gridEl._agGridInstance && gridEl._agGridInstance.api) ||
-                         (window.agGrid && window.agGrid.getGridInstance && window.agGrid.getGridInstance(gridEl));
-              
-              if (api) {
-                console.log(`[Puppeteer] Found grid API via container`);
-                gridApi = api;
-                break;
-              }
-            }
-            
-            // Method 3: Try to get API from row elements
-            if (!gridApi && gridRows.length > 0) {
-              const firstRow = gridRows[0];
-              let parent = firstRow.parentElement;
-              while (parent && parent !== document.body) {
-                const api = parent.__agGridInstance || parent.gridApi || parent.api;
-                if (api) {
-                  console.log(`[Puppeteer] Found grid API via row parent`);
-                  gridApi = api;
-                  break;
-                }
-                parent = parent.parentElement;
-              }
-            }
-            
-            // Method 4: Try window.gridApi or window.gridOptions
-            if (!gridApi) {
-              gridApi = window.gridApi || (window.gridOptions && window.gridOptions.api);
-              if (gridApi) {
-                console.log(`[Puppeteer] Found grid API via window`);
-              }
-            }
-            
-            if (gridApi) {
-              // Try to get row count
-              const rowCount = gridApi.getDisplayedRowCount ? gridApi.getDisplayedRowCount() : 
-                              (gridApi.getDisplayedRowCount && typeof gridApi.getDisplayedRowCount === 'function' ? gridApi.getDisplayedRowCount() : 0);
-              console.log(`[Puppeteer] AG Grid API found with ${rowCount} rows`);
-              
-              // Get all row data
-              const allRowData = [];
-              
-              if (gridApi.forEachNode && typeof gridApi.forEachNode === 'function') {
+            const agGridInstances = Array.from(document.querySelectorAll('.ag-root-wrapper, [class*="ag-grid"]'));
+            for (const gridEl of agGridInstances) {
+              // AG Grid stores data in window or in the element
+              const gridApi = gridEl.__agGridInstance || gridEl.gridApi || window.gridApi;
+              if (gridApi && gridApi.getDisplayedRowCount) {
+                const rowCount = gridApi.getDisplayedRowCount();
+                console.log(`[Puppeteer] Found AG Grid API with ${rowCount} rows`);
+                
+                // Get all row data
+                const allRowData = [];
                 gridApi.forEachNode((node) => {
-                  if (node && node.data) {
+                  if (node.data) {
                     allRowData.push(node.data);
                   }
                 });
-              } else if (gridApi.getDisplayedRowAtIndex) {
-                // Alternative method
-                for (let i = 0; i < rowCount; i++) {
-                  const node = gridApi.getDisplayedRowAtIndex(i);
-                  if (node && node.data) {
-                    allRowData.push(node.data);
-                  }
-                }
-              }
-              
-              if (allRowData.length > 0) {
-                console.log(`[Puppeteer] ✅ Extracted ${allRowData.length} rows from AG Grid API`);
-                console.log(`[Puppeteer] First row sample:`, JSON.stringify(allRowData[0]));
+                
+                if (allRowData.length > 0) {
+                  console.log(`[Puppeteer] Extracted ${allRowData.length} rows from AG Grid API`);
+                  console.log(`[Puppeteer] First row sample:`, JSON.stringify(allRowData[0]));
                   
                   // Process row data
                   for (const rowData of allRowData) {
@@ -4114,36 +4053,16 @@ class GemRateService {
                     }
                   }
                   
-                  // If we got items from API, mark that we found data
+                  // If we got items from API, skip DOM extraction
                   if (items.length > 0) {
                     console.log(`[Puppeteer] ✅ Extracted ${items.length} ${which} from AG Grid API`);
-                    // Don't break - continue to process and return at the end
+                    break;
                   }
-                } else {
-                  console.log(`[Puppeteer] AG Grid API found but no row data extracted`);
                 }
-              } else {
-                console.log(`[Puppeteer] AG Grid API found but no getDisplayedRowCount method`);
               }
             }
           } catch (e) {
             console.log(`[Puppeteer] AG Grid API access failed: ${e.message}`);
-          }
-          
-          // If we got items from AG Grid API, return them now (skip DOM extraction)
-          if (items.length > 0) {
-            const unique = [];
-            const seen = new Set();
-            for (const item of items) {
-              const key = (item.name || item.player || item.set_name || '').toLowerCase();
-              if (!seen.has(key)) {
-                seen.add(key);
-                unique.push(item);
-              }
-            }
-            unique.sort((a, b) => (b.count || 0) - (a.count || 0));
-            console.log(`[Puppeteer] Returning ${unique.length} ${which} from AG Grid API`);
-            return { found: true, items: unique.slice(0, 50) };
           }
           
           // Now extract data rows (only if API method didn't work)
@@ -4154,71 +4073,33 @@ class GemRateService {
             const cells = Array.from(row.querySelectorAll('[role="gridcell"]'));
             if (cells.length < 2) continue;
             
-            // Log all cell contents for debugging (including innerHTML to see structure)
-            const allCellTexts = cells.map((c, i) => {
-              const text = (c.textContent || '').trim();
-              const hasLink = c.querySelector('a');
-              const hasSpan = c.querySelector('span');
-              return `[${i}]="${text}"${hasLink ? ' [has link]' : ''}${hasSpan ? ' [has span]' : ''}`;
-            }).join(', ');
+            // Log all cell contents for debugging
+            const allCellTexts = cells.map((c, i) => `[${i}]="${(c.textContent || '').trim()}"`).join(', ');
             console.log(`[Puppeteer] Row cells: ${allCellTexts}`);
             
-            // Check ALL cells for names, not just the first one
+            // Check if cells contain only numbers (indicating wrong column structure)
+            const firstCellText = (cells[0]?.textContent || '').trim();
+            const isFirstCellNumeric = /^-?\d{1,3}(?:,\d{3})*$/.test(firstCellText);
+            
+            // If first cell is numeric, the set name might be:
+            // 1. In a data attribute
+            // 2. In a child element (like a link or span)
+            // 3. In a different column structure
+            // 4. In card/tile elements instead of table rows
+            
             let nameText = '';
             let count = 0;
-            let categoryText = '';
             
-            // Method 1: Check ALL cells for links, spans, or text that looks like a name
-            for (let i = 0; i < cells.length; i++) {
-              const cell = cells[i];
-              const cellText = (cell.textContent || '').trim();
-              
-              // Skip if it's just a number
-              if (/^-?\d{1,3}(?:,\d{3})*$/.test(cellText)) continue;
-              
-              // Check for links in this cell
-              const link = cell.querySelector('a');
-              if (link) {
-                const linkText = (link.textContent || '').trim();
-                if (linkText && linkText.length >= 3 && linkText.length <= 80 && 
-                    !/^-?\d{1,3}(?:,\d{3})*$/.test(linkText) &&
-                    !['name', 'category', 'graded', 'all', 'time', 'last', 'week', 'prior', 'weekly', 'change'].includes(linkText.toLowerCase())) {
-                  nameText = linkText;
-                  console.log(`[Puppeteer] Found name in cell ${i} link: "${nameText}"`);
-                  break;
-                }
-              }
-              
-              // Check if cell text itself is a name
-              if (cellText && cellText.length >= 3 && cellText.length <= 80 && 
-                  !/^-?\d{1,3}(?:,\d{3})*$/.test(cellText) &&
-                  /[a-zA-Z]/.test(cellText) &&
-                  !['name', 'category', 'graded', 'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 
-                    'basketball', 'baseball', 'football', 'soccer'].includes(cellText.toLowerCase())) {
-                // Check if it's a category
-                const categories = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG'];
-                if (categories.includes(cellText)) {
-                  categoryText = cellText;
-                } else {
-                  nameText = cellText;
-                  console.log(`[Puppeteer] Found name in cell ${i} text: "${nameText}"`);
-                  break;
-                }
-              }
-            }
-            
-            // Method 2: Check for links anywhere in the row
-            if (!nameText) {
-              const links = Array.from(row.querySelectorAll('a'));
-              for (const link of links) {
-                const linkText = (link.textContent || '').trim();
-                if (linkText && linkText.length >= 3 && linkText.length <= 80 && 
-                    !/^-?\d{1,3}(?:,\d{3})*$/.test(linkText) &&
-                    !['name', 'category', 'graded', 'all', 'time', 'last', 'week', 'prior', 'weekly', 'change'].includes(linkText.toLowerCase())) {
-                  nameText = linkText;
-                  console.log(`[Puppeteer] Found name in row link: "${nameText}"`);
-                  break;
-                }
+            // Try to find set name in various places
+            // Method 1: Check for links or spans with set names
+            const links = Array.from(row.querySelectorAll('a, [class*="name"], [class*="set"], [class*="title"]'));
+            for (const link of links) {
+              const linkText = (link.textContent || '').trim();
+              if (linkText && linkText.length > 3 && linkText.length < 100 && 
+                  !/^-?\d{1,3}(?:,\d{3})*$/.test(linkText) &&
+                  !linkText.toLowerCase().includes('submission')) {
+                nameText = linkText;
+                break;
               }
             }
             
@@ -4251,39 +4132,14 @@ class GemRateService {
               }
             }
             
-            // Extract count - look for "Graded, Last Week" column
-            // Based on table structure: Name, Category, All Time, Last Week, Prior Week, Change
-            // So Last Week should be around column 3 or 4
-            for (let i = 0; i < cells.length; i++) {
-              const cellText = (cells[i]?.textContent || '').trim();
-              const num = parseInt(cellText.replace(/,/g, ''), 10);
-              // Last Week numbers are typically in the thousands range
-              if (num > 100 && num < 100000) {
-                count = num;
-                console.log(`[Puppeteer] Found count ${count} in cell ${i}`);
-                break;
-              }
+            // Extract count - look for the submissions number (usually column 1 based on logs)
+            if (cells.length >= 2) {
+              const countText = (cells[1]?.textContent || '').trim();
+              count = parseInt(countText.replace(/,/g, ''), 10);
             }
             
-            // If we found a name but no count, try to get count from a different cell
-            if (nameText && count === 0) {
-              // Look for any number that could be the count
-              for (let i = 0; i < cells.length; i++) {
-                const cellText = (cells[i]?.textContent || '').trim();
-                const num = parseInt(cellText.replace(/,/g, ''), 10);
-                if (num > 0 && num < 1000000) {
-                  count = num;
-                  break;
-                }
-              }
-            }
-            
-            // If we still don't have a name, try to get it from row data
-            if (!nameText) {
-              const firstCellText = (cells[0]?.textContent || '').trim();
-              const isFirstCellNumeric = /^-?\d{1,3}(?:,\d{3})*$/.test(firstCellText);
-              
-              if (isFirstCellNumeric) {
+            // If we still don't have a name and first cell is numeric, try to get it from row data
+            if (!nameText && isFirstCellNumeric) {
               // Check row data attributes
               const rowDataAttr = row.getAttribute('row-data') || row.getAttribute('data-row') || row.getAttribute('data-row-data') || '';
               if (rowDataAttr) {
@@ -4547,68 +4403,55 @@ class GemRateService {
                                  'Graded', 'All', 'Time', 'Last', 'Week', 'Prior', 'Weekly', 'Change', 'Past',
                                  'Trending', 'Players', 'Subjects', 'Sets', 'Page', 'of', 'To', 'Past Week'];
             
-            // Header phrases that should never be extracted as names
-            const headerPhrases = ['Name Category', 'Category Graded', 'All Time', 'Last Week', 'Prior Week',
-                                  'Weekly Change', 'Past Week', 'Trending Players', 'Trending Sets', 
-                                  'Graded All', 'Graded Last', 'Graded Prior', 'Drag here', 'set row',
-                                  'column labels', 'row groups'];
+            // Common header phrases that should be excluded
+            const headerPhrases = [
+              'Trending Players', 'Trending Subjects', 'Trending Sets', 'Past Week Drag',
+              'Name Category Graded', 'All Time Graded', 'Last Week Graded', 'Prior Week Weekly Change',
+              'Graded All Time', 'Graded Last Week', 'Graded Prior Week', 'Weekly Change',
+              'Name Category', 'All Time', 'Last Week', 'Prior Week', 'Past Week',
+              'Drag here', 'set row groups', 'column labels'
+            ];
             
             const validNames = nameMatches
               .map(n => n.trim())
               .filter(n => {
                 if (n.length < 3 || n.length > 50) return false;
-                // Must start with capital letter and have lowercase letters (proper name format)
-                if (!/^[A-Z][a-z]/.test(n)) return false;
-                // Exclude exact matches
+                
+                // Check if it's an exact match to an exclude word
                 if (excludeWords.includes(n)) return false;
-                // Exclude if it contains any header phrase
-                if (headerPhrases.some(phrase => n.includes(phrase))) return false;
-                // Exclude if it contains multiple exclude words (likely a header)
-                const excludeCount = excludeWords.filter(word => n.includes(word)).length;
-                if (excludeCount > 1) return false;
-                // Exclude all caps (headers)
-                if (/^[A-Z\s]+$/.test(n) && n.length > 10) return false;
+                
+                // Check if it contains any exclude word (but be careful - "Jordan" contains "or")
+                // Only exclude if it's a clear header word match
+                const lowerN = n.toLowerCase();
+                const headerWords = ['drag', 'here', 'set', 'row', 'groups', 'column', 'labels', 'name', 'category', 
+                                    'graded', 'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'past',
+                                    'trending', 'players', 'subjects', 'sets', 'page', 'of', 'to'];
+                if (headerWords.some(word => lowerN === word || lowerN.startsWith(word + ' ') || lowerN.endsWith(' ' + word))) {
+                  return false;
+                }
+                
+                // Check if it matches any header phrase (case-insensitive)
+                if (headerPhrases.some(phrase => lowerN === phrase.toLowerCase() || lowerN.includes(phrase.toLowerCase()))) {
+                  return false;
+                }
+                
+                // Exclude if it's all caps and long (likely a header)
+                if (/^[A-Z\s]+$/.test(n) && n.length > 15) return false;
+                
                 // Exclude if it contains numbers
                 if (/\d/.test(n)) return false;
-                // Must look like a proper name (capitalized words, not all caps)
-                if (!/^[A-Z][a-z]+(\s+[A-Z][a-z]+)*$/.test(n)) return false;
-                // Additional check: if it's right after header text, skip it
-                const namePos = beforeCategory.lastIndexOf(n);
-                if (namePos > 0) {
-                  const beforeName = beforeCategory.substring(Math.max(0, namePos - 100), namePos);
-                  if (headerPhrases.some(phrase => beforeName.includes(phrase))) {
-                    return false; // Too close to header
-                  }
-                }
+                
+                // Exclude if it's a combination of header words (e.g., "Name Category", "All Time")
+                const words = n.split(/\s+/);
+                const headerWordCount = words.filter(w => headerWords.includes(w.toLowerCase())).length;
+                if (headerWordCount >= 2) return false; // If 2+ words are header words, it's likely a header phrase
+                
                 return true;
               });
             
             // Use the last valid name (closest to the category) as the actual name
-            // But make sure it's not a header
             if (validNames.length > 0) {
-              // Get names, starting from the end (closest to category)
-              let name = '';
-              for (let j = validNames.length - 1; j >= 0; j--) {
-                const candidate = validNames[j];
-                // Double-check it's not a header by checking context
-                const candidatePos = beforeCategory.lastIndexOf(candidate);
-                if (candidatePos > 0) {
-                  const context = beforeCategory.substring(Math.max(0, candidatePos - 200), candidatePos + candidate.length);
-                  // If context contains header phrases, skip this candidate
-                  if (!headerPhrases.some(phrase => context.includes(phrase))) {
-                    name = candidate;
-                    break;
-                  }
-                } else {
-                  name = candidate;
-                  break;
-                }
-              }
-              
-              if (!name) {
-                console.log(`[Puppeteer] All candidate names were filtered out as headers`);
-                continue;
-              }
+              const name = validNames[validNames.length - 1];
               
               console.log(`[Puppeteer] Extracted: name="${name}", category="${category}", lastWeek=${lastWeek}, change=${change}%`);
               
