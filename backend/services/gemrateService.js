@@ -3858,8 +3858,192 @@ class GemRateService {
     });
 
     try {
-      // First, try a simple direct text extraction
-      console.log(`[Puppeteer] Attempting simple text extraction...`);
+      // FIRST: Try AG Grid API access (most reliable - gets structured data)
+      console.log(`[Puppeteer] Attempting AG Grid API access first...`);
+      const agGridExtraction = await this.page.evaluate((which) => {
+        const items = [];
+        
+        // Try multiple methods to find AG Grid API
+        let gridApi = null;
+        
+        // Method 1: Check window.gridApi
+        if (window.gridApi && typeof window.gridApi.forEachNode === 'function') {
+          gridApi = window.gridApi;
+          console.log(`[Puppeteer] Found gridApi via window.gridApi`);
+        }
+        
+        // Method 2: Check all AG Grid containers
+        if (!gridApi) {
+          const agGridContainers = Array.from(document.querySelectorAll('.ag-root-wrapper, [class*="ag-root"], [class*="ag-grid"]'));
+          for (const container of agGridContainers) {
+            const api = container.__agGridInstance || 
+                       container.gridApi || 
+                       container.api ||
+                       (container._agGridInstance && container._agGridInstance.api);
+            if (api && typeof api.forEachNode === 'function') {
+              gridApi = api;
+              console.log(`[Puppeteer] Found gridApi via container`);
+              break;
+            }
+          }
+        }
+        
+        // Method 3: Try to find via row elements
+        if (!gridApi) {
+          const rows = Array.from(document.querySelectorAll('[role="row"]'));
+          if (rows.length > 0) {
+            let parent = rows[0].parentElement;
+            for (let i = 0; i < 10 && parent; i++) {
+              const api = parent.__agGridInstance || parent.gridApi || parent.api;
+              if (api && typeof api.forEachNode === 'function') {
+                gridApi = api;
+                console.log(`[Puppeteer] Found gridApi via row parent`);
+                break;
+              }
+              parent = parent.parentElement;
+            }
+          }
+        }
+        
+        if (gridApi) {
+          console.log(`[Puppeteer] ✅ AG Grid API found, extracting row data...`);
+          const allRowData = [];
+          
+          gridApi.forEachNode((node) => {
+            if (node && node.data) {
+              allRowData.push(node.data);
+            }
+          });
+          
+          console.log(`[Puppeteer] Extracted ${allRowData.length} rows from AG Grid API`);
+          
+          if (allRowData.length > 0) {
+            // Log first row to see structure
+            console.log(`[Puppeteer] First row keys:`, Object.keys(allRowData[0]));
+            console.log(`[Puppeteer] First row sample:`, JSON.stringify(allRowData[0]).substring(0, 500));
+            
+            // Process each row
+            for (const rowData of allRowData) {
+              // Extract name - try various field names
+              const nameText = rowData.name || 
+                             rowData.set_name || 
+                             rowData.set || 
+                             rowData.title || 
+                             rowData.label || 
+                             rowData.player || 
+                             rowData.player_name ||
+                             rowData['Name'] ||
+                             rowData['Set Name'] ||
+                             '';
+              
+              // Skip header rows
+              const lowerName = (nameText || '').toLowerCase();
+              const headerPhrases = ['trending players', 'trending subjects', 'trending sets', 'name', 'category', 
+                                    'graded', 'all time', 'last week', 'prior week', 'weekly change', 'drag', 
+                                    'here', 'set row groups', 'column labels'];
+              if (headerPhrases.some(phrase => lowerName === phrase || lowerName.includes(phrase))) {
+                continue;
+              }
+              
+              if (!nameText || nameText.length < 3) continue;
+              
+              // Extract count - try various field names
+              const count = rowData['Graded, Last Week'] || 
+                          rowData['graded_last_week'] || 
+                          rowData.gradedLastWeek ||
+                          rowData.last_week ||
+                          rowData.lastWeek ||
+                          rowData['Last Week'] ||
+                          rowData.submissions || 
+                          rowData.count || 
+                          rowData.total_grades ||
+                          rowData.totalGrades ||
+                          rowData['Graded Last Week'] ||
+                          0;
+              
+              if (count === 0) continue;
+              
+              // Extract category
+              const categoryText = rowData.category || 
+                                 rowData.sport || 
+                                 rowData.Category ||
+                                 rowData['Category'] ||
+                                 '';
+              
+              // Extract change
+              const change = rowData['Weekly Change'] || 
+                           rowData.weekly_change || 
+                           rowData.weeklyChange ||
+                           rowData.change ||
+                           null;
+              
+              // Extract prior week
+              const priorWeek = rowData['Graded, Prior Week'] || 
+                              rowData.gradedPriorWeek ||
+                              rowData.prior_week ||
+                              rowData.priorWeek ||
+                              0;
+              
+              // Extract all time
+              const allTime = rowData['Graded, All Time'] || 
+                            rowData.gradedAllTime ||
+                            rowData.all_time ||
+                            rowData.allTime ||
+                            0;
+              
+              if (which === 'players') {
+                items.push({
+                  player: nameText,
+                  name: nameText,
+                  submissions: count,
+                  count: count,
+                  total_grades: count,
+                  category: categoryText,
+                  change: change,
+                  prior_week: priorWeek,
+                  all_time: allTime
+                });
+              } else {
+                items.push({
+                  set_name: nameText,
+                  name: nameText,
+                  set: nameText,
+                  submissions: count,
+                  count: count,
+                  total_grades: count,
+                  change: change,
+                  prior_week: priorWeek,
+                  all_time: allTime
+                });
+              }
+            }
+            
+            console.log(`[Puppeteer] ✅ AG Grid API extraction: ${items.length} ${which} items`);
+            return { found: true, items: items };
+          }
+        }
+        
+        return { found: false, items: [] };
+      }, kind);
+      
+      if (agGridExtraction.found && agGridExtraction.items && agGridExtraction.items.length > 0) {
+        console.log(`✅ [Puppeteer] AG Grid API extraction succeeded: ${agGridExtraction.items.length} ${kind}`);
+        // Remove duplicates and sort
+        const unique = [];
+        const seen = new Set();
+        for (const item of agGridExtraction.items) {
+          const key = (item.name || item.player || item.set_name || '').toLowerCase();
+          if (!seen.has(key)) {
+            seen.add(key);
+            unique.push(item);
+          }
+        }
+        unique.sort((a, b) => (b.count || 0) - (a.count || 0));
+        return unique.slice(0, 50);
+      }
+      
+      // FALLBACK: Try a simple direct text extraction
+      console.log(`[Puppeteer] AG Grid API not available, falling back to text extraction...`);
       const simpleExtraction = await this.page.evaluate((which) => {
         const normalize = (str) => (str || '').replace(/\s+/g, ' ').trim().replace(/\n/g, ' ');
         const allText = normalize(document.body.textContent || '');
