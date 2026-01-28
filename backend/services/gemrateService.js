@@ -4073,33 +4073,71 @@ class GemRateService {
             const cells = Array.from(row.querySelectorAll('[role="gridcell"]'));
             if (cells.length < 2) continue;
             
-            // Log all cell contents for debugging
-            const allCellTexts = cells.map((c, i) => `[${i}]="${(c.textContent || '').trim()}"`).join(', ');
+            // Log all cell contents for debugging (including innerHTML to see structure)
+            const allCellTexts = cells.map((c, i) => {
+              const text = (c.textContent || '').trim();
+              const hasLink = c.querySelector('a');
+              const hasSpan = c.querySelector('span');
+              return `[${i}]="${text}"${hasLink ? ' [has link]' : ''}${hasSpan ? ' [has span]' : ''}`;
+            }).join(', ');
             console.log(`[Puppeteer] Row cells: ${allCellTexts}`);
             
-            // Check if cells contain only numbers (indicating wrong column structure)
-            const firstCellText = (cells[0]?.textContent || '').trim();
-            const isFirstCellNumeric = /^-?\d{1,3}(?:,\d{3})*$/.test(firstCellText);
-            
-            // If first cell is numeric, the set name might be:
-            // 1. In a data attribute
-            // 2. In a child element (like a link or span)
-            // 3. In a different column structure
-            // 4. In card/tile elements instead of table rows
-            
+            // Check ALL cells for names, not just the first one
             let nameText = '';
             let count = 0;
+            let categoryText = '';
             
-            // Try to find set name in various places
-            // Method 1: Check for links or spans with set names
-            const links = Array.from(row.querySelectorAll('a, [class*="name"], [class*="set"], [class*="title"]'));
-            for (const link of links) {
-              const linkText = (link.textContent || '').trim();
-              if (linkText && linkText.length > 3 && linkText.length < 100 && 
-                  !/^-?\d{1,3}(?:,\d{3})*$/.test(linkText) &&
-                  !linkText.toLowerCase().includes('submission')) {
-                nameText = linkText;
-                break;
+            // Method 1: Check ALL cells for links, spans, or text that looks like a name
+            for (let i = 0; i < cells.length; i++) {
+              const cell = cells[i];
+              const cellText = (cell.textContent || '').trim();
+              
+              // Skip if it's just a number
+              if (/^-?\d{1,3}(?:,\d{3})*$/.test(cellText)) continue;
+              
+              // Check for links in this cell
+              const link = cell.querySelector('a');
+              if (link) {
+                const linkText = (link.textContent || '').trim();
+                if (linkText && linkText.length >= 3 && linkText.length <= 80 && 
+                    !/^-?\d{1,3}(?:,\d{3})*$/.test(linkText) &&
+                    !['name', 'category', 'graded', 'all', 'time', 'last', 'week', 'prior', 'weekly', 'change'].includes(linkText.toLowerCase())) {
+                  nameText = linkText;
+                  console.log(`[Puppeteer] Found name in cell ${i} link: "${nameText}"`);
+                  break;
+                }
+              }
+              
+              // Check if cell text itself is a name
+              if (cellText && cellText.length >= 3 && cellText.length <= 80 && 
+                  !/^-?\d{1,3}(?:,\d{3})*$/.test(cellText) &&
+                  /[a-zA-Z]/.test(cellText) &&
+                  !['name', 'category', 'graded', 'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 
+                    'basketball', 'baseball', 'football', 'soccer'].includes(cellText.toLowerCase())) {
+                // Check if it's a category
+                const categories = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG'];
+                if (categories.includes(cellText)) {
+                  categoryText = cellText;
+                } else {
+                  nameText = cellText;
+                  console.log(`[Puppeteer] Found name in cell ${i} text: "${nameText}"`);
+                  break;
+                }
+              }
+            }
+            
+            // Method 2: Check for links anywhere in the row
+            if (!nameText) {
+              const links = Array.from(row.querySelectorAll('a'));
+              for (const link of links) {
+                const linkText = (link.textContent || '').trim();
+                if (linkText && linkText.length >= 3 && linkText.length <= 80 && 
+                    !/^-?\d{1,3}(?:,\d{3})*$/.test(linkText) &&
+                    !['name', 'category', 'graded', 'all', 'time', 'last', 'week', 'prior', 'weekly', 'change'].includes(linkText.toLowerCase())) {
+                  nameText = linkText;
+                  console.log(`[Puppeteer] Found name in row link: "${nameText}"`);
+                  break;
+                }
               }
             }
             
