@@ -4433,35 +4433,55 @@ class GemRateService {
             let count = 0;
             let categoryText = '';
             
-            // Extract name from Name column (column 0) - names are usually links
+            // Extract name from Name column - try multiple methods
             if (cells.length > 0) {
-              const nameCell = cells[0];
-              // Try link first (AG Grid usually has names as links)
+              const nameCell = cells[columnIndices.name !== -1 ? columnIndices.name : 0];
+              
+              // Method 1: Try link first (AG Grid usually has names as links)
               const link = nameCell.querySelector('a');
               if (link) {
-                nameText = (link.textContent || '').trim();
-              } else {
-                // Try inner text or any child element
-                const innerText = nameCell.innerText || nameCell.textContent || '';
-                nameText = innerText.trim();
+                nameText = (link.textContent || link.innerText || '').trim();
               }
               
-              // If we got "0" or empty, try to find the actual name in the cell's HTML structure
+              // Method 2: Try inner text
               if (!nameText || nameText === '0' || nameText.length < 2) {
-                // Check for data attributes or aria-label
-                const ariaLabel = nameCell.getAttribute('aria-label') || nameCell.getAttribute('title') || '';
-                if (ariaLabel && ariaLabel.length > 2) {
+                nameText = (nameCell.innerText || nameCell.textContent || '').trim();
+              }
+              
+              // Method 3: Check for data attributes or aria-label
+              if (!nameText || nameText === '0' || nameText.length < 2) {
+                const ariaLabel = nameCell.getAttribute('aria-label') || nameCell.getAttribute('title') || nameCell.getAttribute('data-value') || '';
+                if (ariaLabel && ariaLabel.length > 2 && ariaLabel !== '0') {
                   nameText = ariaLabel;
                 }
-                
-                // Check for any text node that's not "0"
+              }
+              
+              // Method 4: Check for any text node that's not "0" or a number
+              if (!nameText || nameText === '0' || nameText.length < 2 || /^\d+$/.test(nameText)) {
                 const walker = document.createTreeWalker(nameCell, NodeFilter.SHOW_TEXT, null, false);
                 let node;
                 while (node = walker.nextNode()) {
                   const text = node.textContent.trim();
-                  if (text && text !== '0' && text.length >= 2 && /[a-zA-Z]/.test(text)) {
+                  if (text && text !== '0' && !/^\d+$/.test(text) && text.length >= 2 && /[a-zA-Z]/.test(text)) {
                     nameText = text;
                     break;
+                  }
+                }
+              }
+              
+              // Method 5: Check row data attribute (AG Grid stores data here)
+              if (!nameText || nameText === '0' || nameText.length < 2) {
+                const rowDataAttr = row.getAttribute('row-data') || row.getAttribute('data-row') || row.getAttribute('data-row-data') || '';
+                if (rowDataAttr) {
+                  try {
+                    const parsed = JSON.parse(rowDataAttr);
+                    nameText = parsed.name || parsed.set_name || parsed.player || parsed.set || '';
+                  } catch (e) {
+                    // Not JSON, try regex
+                    const nameMatch = rowDataAttr.match(/"name":\s*"([^"]+)"/) || 
+                                     rowDataAttr.match(/"player":\s*"([^"]+)"/) ||
+                                     rowDataAttr.match(/"set_name":\s*"([^"]+)"/);
+                    if (nameMatch) nameText = nameMatch[1];
                   }
                 }
               }
