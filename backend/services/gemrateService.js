@@ -4114,21 +4114,10 @@ class GemRateService {
                     }
                   }
                   
-                  // If we got items from API, skip DOM extraction
+                  // If we got items from API, mark that we found data
                   if (items.length > 0) {
                     console.log(`[Puppeteer] ✅ Extracted ${items.length} ${which} from AG Grid API`);
-                    // Return early with the items
-                    const unique = [];
-                    const seen = new Set();
-                    for (const item of items) {
-                      const key = (item.name || item.player || item.set_name || '').toLowerCase();
-                      if (!seen.has(key)) {
-                        seen.add(key);
-                        unique.push(item);
-                      }
-                    }
-                    unique.sort((a, b) => (b.count || 0) - (a.count || 0));
-                    return { found: true, items: unique.slice(0, 50) };
+                    // Don't break - continue to process and return at the end
                   }
                 } else {
                   console.log(`[Puppeteer] AG Grid API found but no row data extracted`);
@@ -4141,6 +4130,22 @@ class GemRateService {
             }
           } catch (e) {
             console.log(`[Puppeteer] AG Grid API access failed: ${e.message}`);
+          }
+          
+          // If we got items from AG Grid API, return them now (skip DOM extraction)
+          if (items.length > 0) {
+            const unique = [];
+            const seen = new Set();
+            for (const item of items) {
+              const key = (item.name || item.player || item.set_name || '').toLowerCase();
+              if (!seen.has(key)) {
+                seen.add(key);
+                unique.push(item);
+              }
+            }
+            unique.sort((a, b) => (b.count || 0) - (a.count || 0));
+            console.log(`[Puppeteer] Returning ${unique.length} ${which} from AG Grid API`);
+            return { found: true, items: unique.slice(0, 50) };
           }
           
           // Now extract data rows (only if API method didn't work)
