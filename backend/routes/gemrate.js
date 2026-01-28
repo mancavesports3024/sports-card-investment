@@ -427,4 +427,49 @@ router.get('/trending/sets', async (req, res) => {
   }
 });
 
+// GET /api/gemrate/trending/debug/:kind - Debug endpoint to see raw extracted data
+router.get('/trending/debug/:kind', async (req, res) => {
+  try {
+    const { kind } = req.params; // 'players' or 'sets'
+    const { period = 'week' } = req.query;
+
+    console.log(`🔍 GemRate trending debug request (kind: ${kind}, period: ${period})`);
+
+    if (kind === 'players') {
+      const result = await gemrateService.getTrendingPlayers(period);
+      res.json({
+        success: true,
+        rawResult: result,
+        data: result.data,
+        dataLength: result.data ? result.data.length : 0,
+        firstItem: result.data && result.data.length > 0 ? result.data[0] : null,
+        sampleItems: result.data ? result.data.slice(0, 5) : []
+      });
+    } else if (kind === 'sets') {
+      const result = await gemrateService.getTrendingSets(period);
+      res.json({
+        success: true,
+        rawResult: result,
+        data: result.data,
+        dataLength: result.data ? result.data.length : 0,
+        firstItem: result.data && result.data.length > 0 ? result.data[0] : null,
+        sampleItems: result.data ? result.data.slice(0, 5) : []
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid kind. Must be "players" or "sets"'
+      });
+    }
+  } catch (error) {
+    console.error('❌ GemRate trending debug error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to debug trending data',
+      details: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 module.exports = router;
