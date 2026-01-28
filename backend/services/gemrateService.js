@@ -4345,7 +4345,12 @@ class GemRateService {
           }
           
           // Get text from the section onwards (next 10000 characters to get more data)
-          const sectionText = allText.substring(sectionIndex, sectionIndex + 10000);
+          let sectionText = allText.substring(sectionIndex, sectionIndex + 10000);
+          
+          // Remove UI text that we don't need
+          sectionText = sectionText.replace(/Drag here to set row groupsDrag here to set column labels/gi, '');
+          sectionText = sectionText.replace(/Name\s+Category\s+Graded,\s+All Time\s+Graded,\s+Last Week\s+Graded,\s+Prior Week\s+Weekly Change/gi, '');
+          
           console.log(`[Puppeteer] Section text (first 2000 chars):`, sectionText.substring(0, 2000));
           
           const items = [];
@@ -4353,6 +4358,7 @@ class GemRateService {
           
           // The data is concatenated like: "Michael JordanShohei Ohtani... Basketball1,840,9796,6945,24428%"
           // Strategy: Find category words, extract names before them, and numbers after them
+          // Column order: Name, Category, Graded All Time, Graded Last Week, Graded Prior Week, Weekly Change
           
           const categoryPattern = new RegExp(`\\b(${categories.join('|')})\\b`, 'gi');
           const categoryMatches = [...sectionText.matchAll(categoryPattern)];
@@ -4392,10 +4398,10 @@ class GemRateService {
             const namePattern = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+[A-Z][a-z]+)*)/g;
             const nameMatches = beforeCategory.match(namePattern) || [];
             
-            // Filter out common words that aren't names
+            // Filter out common words that aren't names (including headers and UI text)
             const excludeWords = ['Drag', 'here', 'set', 'row', 'groups', 'column', 'labels', 'Name', 'Category', 
                                  'Graded', 'All', 'Time', 'Last', 'Week', 'Prior', 'Weekly', 'Change', 'Past',
-                                 'Trending', 'Players', 'Subjects', 'Sets', 'Page', 'of', 'To'];
+                                 'Trending', 'Players', 'Subjects', 'Sets', 'Page', 'of', 'To', 'Past Week'];
             
             const validNames = nameMatches
               .map(n => n.trim())
