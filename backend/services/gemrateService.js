@@ -4846,31 +4846,32 @@ class GemRateService {
           // Get text from the section onwards (next 10000 characters to get more data)
           let sectionText = allText.substring(sectionIndex, sectionIndex + 10000);
           
-          // Remove UI text that we don't need
+          // Remove UI text that we don't need (keep the header row so we can anchor on it)
           sectionText = sectionText.replace(/Drag here to set row groupsDrag here to set column labels/gi, '');
-          sectionText = sectionText.replace(/Name\s+Category\s+Graded,\s+All Time\s+Graded,\s+Last Week\s+Graded,\s+Prior Week\s+Weekly Change/gi, '');
           
           console.log(`[Puppeteer] Section text (first 2000 chars):`, sectionText.substring(0, 2000));
           
           // Special handling for players: the text comes in two logical blocks:
-          // 1) An ordered list of player names that starts right after "Weekly Change "
+          // 1) An ordered list of player names that starts right after "Prior Week Weekly Change "
           // 2) An ordered list of stat segments (Sport + 3 numbers + %) starting at the first sport word
           // We map stat segment N to player N.
           if (which === 'players') {
             console.log('[Puppeteer] Starting block-based parser for players...');
             const sports = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG'];
             
-            // Find the point just after "Weekly Change"
-            const wcIdx = sectionText.toLowerCase().indexOf('weekly change');
-            console.log(`[Puppeteer] Found "Weekly Change" at index: ${wcIdx}`);
+            // Find the point just after "Prior Week Weekly Change" in the players header
+            const anchor = 'prior week weekly change';
+            const wcIdx = sectionText.toLowerCase().indexOf(anchor);
+            console.log(`[Puppeteer] Found "Prior Week Weekly Change" anchor at index: ${wcIdx}`);
             let playersAndStats = wcIdx !== -1
-              ? sectionText.substring(wcIdx + 'weekly change'.length).trim()
+              ? sectionText.substring(wcIdx + anchor.length).trim()
               : sectionText;
             
             console.log(`[Puppeteer] Players+stats text length: ${playersAndStats.length}, first 200 chars: ${playersAndStats.substring(0, 200)}`);
             
             // Find the first sport word – that splits player block from stats block
-            const sportSplitRegex = new RegExp(`\\b(${sports.join('|')})\\b`, 'i');
+            // Allow sport words glued to years (e.g. "Baseball2025")
+            const sportSplitRegex = new RegExp(`\\b(${sports.join('|')})`, 'i');
             const firstSportMatch = playersAndStats.match(sportSplitRegex);
             if (!firstSportMatch || firstSportMatch.index == null) {
               console.log(`[Puppeteer] ERROR: No sport keyword found in section text for players. Text sample: "${playersAndStats.substring(0, 300)}"`);
@@ -4884,13 +4885,13 @@ class GemRateService {
             const statsText = playersAndStats.substring(splitIndex).trim();
             
             // 1) Extract ordered player names.
-            // Names are jammed like: "Michael JordanShohei OhtaniCooper Flagg..."
+            // Names are jammed like: "Michael JordanCooper FlaggKen Griffey Jr..."
             // Insert a delimiter between a lowercase letter and a following capital letter.
             let normalizedNames = namesText.replace(/([a-z])([A-Z])/g, '$1|$2');
             const rawNames = normalizedNames
               .split('|')
               .map(s => s.trim())
-              .filter(s => s.length > 0);
+              .filter(s => s.length > 0 && /[a-z]/i.test(s));
             
             console.log(`[Puppeteer] Parsed ${rawNames.length} player names from names block`);
             
