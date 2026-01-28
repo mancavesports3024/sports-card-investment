@@ -4148,22 +4148,6 @@ class GemRateService {
             return { found: true, items: unique.slice(0, 50) };
           }
           
-          // If we got items from AG Grid API, return them now (skip DOM extraction)
-          if (items.length > 0) {
-            const unique = [];
-            const seen = new Set();
-            for (const item of items) {
-              const key = (item.name || item.player || item.set_name || '').toLowerCase();
-              if (!seen.has(key)) {
-                seen.add(key);
-                unique.push(item);
-              }
-            }
-            unique.sort((a, b) => (b.count || 0) - (a.count || 0));
-            console.log(`[Puppeteer] Returning ${unique.length} ${which} from AG Grid API`);
-            return { found: true, items: unique.slice(0, 50) };
-          }
-          
           // Now extract data rows (only if API method didn't work)
           if (items.length === 0) {
           for (const row of gridRows) {
