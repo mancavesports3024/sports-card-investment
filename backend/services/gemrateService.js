@@ -3910,13 +3910,17 @@ class GemRateService {
           const allRowData = [];
           
           // Try multiple methods to get row data
+          console.log(`[Puppeteer] GridApi methods:`, Object.keys(gridApi).filter(k => typeof gridApi[k] === 'function').slice(0, 20));
+          
           if (typeof gridApi.forEachNode === 'function') {
+            console.log(`[Puppeteer] Using forEachNode method`);
             gridApi.forEachNode((node) => {
               if (node && node.data) {
                 allRowData.push(node.data);
               }
             });
           } else if (gridApi.getDisplayedRowAtIndex) {
+            console.log(`[Puppeteer] Using getDisplayedRowAtIndex method`);
             const rowCount = gridApi.getDisplayedRowCount ? gridApi.getDisplayedRowCount() : 100;
             for (let i = 0; i < rowCount; i++) {
               const node = gridApi.getDisplayedRowAtIndex(i);
@@ -3925,12 +3929,44 @@ class GemRateService {
               }
             }
           } else if (gridApi.getModel && gridApi.getModel().getRow) {
+            console.log(`[Puppeteer] Using getModel().getRow method`);
             const rowCount = gridApi.getDisplayedRowCount ? gridApi.getDisplayedRowCount() : 100;
             for (let i = 0; i < rowCount; i++) {
               const rowNode = gridApi.getModel().getRow(i);
               if (rowNode && rowNode.data) {
                 allRowData.push(rowNode.data);
               }
+            }
+          } else if (gridApi.getRenderedNodes) {
+            console.log(`[Puppeteer] Using getRenderedNodes method`);
+            const nodes = gridApi.getRenderedNodes();
+            nodes.forEach(node => {
+              if (node && node.data) {
+                allRowData.push(node.data);
+              }
+            });
+          } else if (gridApi.getSelectedRows) {
+            console.log(`[Puppeteer] Using getSelectedRows method (fallback)`);
+            const rows = gridApi.getSelectedRows();
+            allRowData.push(...rows);
+          }
+          
+          // If still no data, try accessing the grid's internal model directly
+          if (allRowData.length === 0 && gridApi.gridOptions && gridApi.gridOptions.rowData) {
+            console.log(`[Puppeteer] Using gridOptions.rowData`);
+            allRowData.push(...(gridApi.gridOptions.rowData || []));
+          }
+          
+          // Last resort: try to access via window or document
+          if (allRowData.length === 0) {
+            console.log(`[Puppeteer] Trying window.gridApi or document-level access`);
+            const winGridApi = window.gridApi || window.agGridApi;
+            if (winGridApi && typeof winGridApi.forEachNode === 'function') {
+              winGridApi.forEachNode((node) => {
+                if (node && node.data) {
+                  allRowData.push(node.data);
+                }
+              });
             }
           }
           
