@@ -3936,12 +3936,14 @@ class GemRateService {
                              rowData['Set Name'] ||
                              '';
               
-              // Skip header rows
-              const lowerName = (nameText || '').toLowerCase();
+              // Skip header rows - but be careful not to filter out actual names
+              const lowerName = (nameText || '').toLowerCase().trim();
               const headerPhrases = ['trending players', 'trending subjects', 'trending sets', 'name', 'category', 
                                     'graded', 'all time', 'last week', 'prior week', 'weekly change', 'drag', 
                                     'here', 'set row groups', 'column labels'];
-              if (headerPhrases.some(phrase => lowerName === phrase || lowerName.includes(phrase))) {
+              // Only skip if it's an exact match or starts with header phrase (not if it just contains one)
+              if (headerPhrases.some(phrase => lowerName === phrase || lowerName.startsWith(phrase + ' '))) {
+                console.log(`[Puppeteer] Skipping header row: "${nameText}"`);
                 continue;
               }
               
@@ -4315,54 +4317,36 @@ class GemRateService {
             
             let nameText = '';
             let count = 0;
+            let categoryText = '';
             
-            // Try to find set name in various places
-            // Method 1: Check for links or spans with set names
-            const links = Array.from(row.querySelectorAll('a, [class*="name"], [class*="set"], [class*="title"]'));
-            for (const link of links) {
-              const linkText = (link.textContent || '').trim();
-              if (linkText && linkText.length > 3 && linkText.length < 100 && 
-                  !/^-?\d{1,3}(?:,\d{3})*$/.test(linkText) &&
-                  !linkText.toLowerCase().includes('submission')) {
-                nameText = linkText;
-                break;
+            // Extract name from Name column (column 0) - names are usually links
+            if (cells.length > 0) {
+              const nameCell = cells[0];
+              const link = nameCell.querySelector('a');
+              if (link) {
+                nameText = (link.textContent || '').trim();
+              } else {
+                nameText = (nameCell.textContent || '').trim();
               }
             }
             
-            // Method 2: Check data attributes
-            if (!nameText) {
-              const rowData = row.getAttribute('row-data') || row.getAttribute('data-row') || '';
-              if (rowData) {
-                try {
-                  const parsed = JSON.parse(rowData);
-                  nameText = parsed.name || parsed.set_name || parsed.set || parsed.title || '';
-                } catch (e) {
-                  // Not JSON
-                }
-              }
+            // Extract category from Category column (column 1)
+            if (cells.length > 1) {
+              categoryText = (cells[1].textContent || '').trim();
             }
             
-            // Method 3: Check all cells for non-numeric text that looks like a name
-            if (!nameText) {
-              for (const cell of cells) {
-                const cellText = (cell.textContent || '').trim();
-                // Skip if it's just a number
-                if (/^-?\d{1,3}(?:,\d{3})*$/.test(cellText)) continue;
-                // Skip if it's a header word
-                if (['name', 'category', 'submissions', 'graded', 'change'].includes(cellText.toLowerCase())) continue;
-                // If it has letters and reasonable length, it might be a name
-                if (cellText.length >= 3 && cellText.length <= 80 && /[a-zA-Z]/.test(cellText)) {
-                  nameText = cellText;
-                  break;
-                }
-              }
-            }
-            
-            // Extract count - look for the submissions number (usually column 1 based on logs)
-            if (cells.length >= 2) {
-              const countText = (cells[1]?.textContent || '').trim();
+            // Extract count from "Graded, Last Week" column (column 3)
+            // Table structure: Name (0), Category (1), Graded All Time (2), Graded Last Week (3), Graded Prior Week (4), Weekly Change (5)
+            if (columnIndices.lastWeek !== -1 && cells.length > columnIndices.lastWeek) {
+              const countText = (cells[columnIndices.lastWeek]?.textContent || '').trim();
+              count = parseInt(countText.replace(/,/g, ''), 10);
+            } else if (cells.length >= 4) {
+              // Fallback: try column 3 (Graded Last Week)
+              const countText = (cells[3]?.textContent || '').trim();
               count = parseInt(countText.replace(/,/g, ''), 10);
             }
+            
+            console.log(`[Puppeteer] Extracted from cells: name="${nameText}", category="${categoryText}", count=${count} (from column ${columnIndices.lastWeek !== -1 ? columnIndices.lastWeek : 3})`);
             
             // If we still don't have a name and first cell is numeric, try to get it from row data
             if (!nameText && isFirstCellNumeric) {
