@@ -92,6 +92,15 @@ const TrendingPlayers = () => {
   };
 
   const players = getPlayersList();
+  
+  // Debug logging
+  console.log('🔍 TrendingPlayers Debug:', {
+    hasTrendingData: !!trendingData,
+    trendingDataType: typeof trendingData,
+    isArray: Array.isArray(trendingData),
+    playersCount: players.length,
+    firstPlayer: players[0] || null
+  });
 
   if (isLoading) {
     return (
