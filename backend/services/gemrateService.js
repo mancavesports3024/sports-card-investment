@@ -4908,6 +4908,8 @@ class GemRateService {
               const end = i + 1 < sportMatches.length ? sportMatches[i + 1].index : statsText.length;
               const segment = statsText.substring(start, end);
               
+              console.log(`[Puppeteer] Processing segment for ${sport}: "${segment.substring(0, 100)}"`);
+              
               // Parse the 4 fields: all time, this week, past week, % difference
               // Rules:
               // - If you see a comma, the next 3 digits are part of the current number
@@ -5008,17 +5010,49 @@ class GemRateService {
                 continue;
               }
               
-              // Extract percentage from what remains after the 3rd field
-              // Use the tracked end position of the 3rd field
-              const thirdFieldEndPos = fieldEndPositions.length >= 3 ? fieldEndPositions[2] : numbersPart.length;
-              const percentagePart = numbersPart.substring(thirdFieldEndPos);
+              // Extract percentage: it's always the last 1-4 digits before the %
+              // We need to find what comes after the 3rd field
+              // Strategy: find where the 3rd field's value appears in the string (accounting for commas)
               
-              // The percentage is 1-4 digits (possibly negative) at the end
-              const changeMatch = percentagePart.match(/(-?\d{1,4})$/);
+              // Build a regex pattern to find the 3rd field (it might have commas)
+              const thirdFieldPattern = fields[2].replace(/,/g, ',?'); // Make commas optional in search
+              const thirdFieldRegex = new RegExp(thirdFieldPattern.replace(/\d/g, '\\d'));
+              
+              // Find all occurrences of fields in order
+              let searchPos = 0;
+              let thirdFieldEndPos = -1;
+              
+              // Find first field
+              const firstFieldMatch = numbersPart.indexOf(fields[0], searchPos);
+              if (firstFieldMatch !== -1) {
+                searchPos = firstFieldMatch + fields[0].length;
+                
+                // Find second field
+                const secondFieldMatch = numbersPart.indexOf(fields[1], searchPos);
+                if (secondFieldMatch !== -1) {
+                  searchPos = secondFieldMatch + fields[1].length;
+                  
+                  // Find third field
+                  const thirdFieldMatch = numbersPart.indexOf(fields[2], searchPos);
+                  if (thirdFieldMatch !== -1) {
+                    thirdFieldEndPos = thirdFieldMatch + fields[2].length;
+                  }
+                }
+              }
+              
+              // Extract percentage from what remains after 3rd field
+              const percentagePart = thirdFieldEndPos > 0 
+                ? numbersPart.substring(thirdFieldEndPos)
+                : numbersPart;
+              
+              // The percentage is 1-4 digits (possibly negative) at the very end
+              // Remove any trailing non-digit characters first
+              const cleanPercentagePart = percentagePart.replace(/[^\d-]/g, '');
+              const changeMatch = cleanPercentagePart.match(/(-?\d{1,4})$/);
               let finalChange = changeMatch ? parseInt(changeMatch[1], 10) : null;
               
-              // If we couldn't find percentage, try extracting from the very end before %
-              if (finalChange === null) {
+              // Fallback: if we still can't find it, extract from the very end of numbersPart
+              if (finalChange === null || isNaN(finalChange)) {
                 const endMatch = numbersPart.match(/(-?\d{1,4})$/);
                 if (endMatch) {
                   finalChange = parseInt(endMatch[1], 10);
