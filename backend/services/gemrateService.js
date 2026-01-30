@@ -4908,44 +4908,44 @@ class GemRateService {
               const end = i + 1 < sportMatches.length ? sportMatches[i + 1].index : statsText.length;
               const segment = statsText.substring(start, end);
               
-              // Extract the three comma-separated numbers (all time, last week, prior week)
-              // Use + to require at least one comma (ensures we get numbers like "1,844,522" not just "65")
-              const commaNumberRegex = /\d{1,3}(?:,\d{3})+/g;
+              // Extract the three main numbers (all time, last week, prior week)
+              // Format: numbers with commas OR plain multi-digit numbers
+              // The percentage is always the last 1-3 digits before the %
+              
+              // First, extract percentage from the end (last 1-3 digits before %)
+              const percentIndex = segment.lastIndexOf('%');
+              if (percentIndex === -1) {
+                console.log(`[Puppeteer] No % found in segment: "${segment.substring(0, 80)}"`);
+                continue;
+              }
+              
+              // Extract percentage: last 1-3 digits before %
+              const beforePercent = segment.substring(0, percentIndex);
+              const changeMatch = beforePercent.match(/(-?\d{1,3})$/);
+              const change = changeMatch ? parseInt(changeMatch[1], 10) : null;
+              
+              // Remove the percentage digits from the segment to get just the three numbers
+              const numbersOnly = changeMatch 
+                ? beforePercent.substring(0, beforePercent.length - changeMatch[1].length)
+                : beforePercent;
+              
+              // Now extract the three numbers from what's left
+              // Match numbers with commas OR plain multi-digit numbers (3+ digits to avoid matching single digits)
+              const numberPattern = /\d{1,3}(?:,\d{3})+|\d{3,}/g;
               const numMatches = [];
               let match;
-              while ((match = commaNumberRegex.exec(segment)) !== null) {
+              while ((match = numberPattern.exec(numbersOnly)) !== null) {
                 numMatches.push(match[0]);
               }
               
               if (numMatches.length < 3) {
-                console.log(`[Puppeteer] Not enough comma-separated numbers after sport "${sport}" in segment: "${segment.substring(0, 80)}"`);
+                console.log(`[Puppeteer] Not enough numbers after sport "${sport}" in segment: "${segment.substring(0, 80)}"`);
                 continue;
               }
               
               const allTime = parseInt(numMatches[0].replace(/,/g, ''), 10);
               const lastWeek = parseInt(numMatches[1].replace(/,/g, ''), 10);
-              
-              // The third number might have extra digits jammed with the percentage
-              // Example: segment might be "4,85465%" where prior week is 4,854 and percentage is 65%
-              // Extract the prior week by taking only the comma-separated part
-              const thirdNumberStr = numMatches[2];
-              const priorWeek = parseInt(thirdNumberStr.replace(/,/g, ''), 10);
-              
-              // Extract percentage: find the last 1-3 digits (possibly negative) right before the % sign
-              // This handles cases where digits are jammed: "4,85465%" -> extract "65" from the end
-              // The percentage is always the last 1-3 digits before the % sign
-              // First, find where the % is
-              const percentIndex = segment.lastIndexOf('%');
-              if (percentIndex === -1) {
-                statItems.push({ sport, allTime, lastWeek, priorWeek, change: null });
-                continue;
-              }
-              
-              // Extract the last 1-3 digits before the %
-              // Handle negative sign if present
-              const beforePercent = segment.substring(0, percentIndex);
-              const digitsMatch = beforePercent.match(/(-?\d{1,3})$/);
-              const change = digitsMatch ? parseInt(digitsMatch[1], 10) : null;
+              const priorWeek = parseInt(numMatches[2].replace(/,/g, ''), 10);
               
               statItems.push({ sport, allTime, lastWeek, priorWeek, change });
             }
