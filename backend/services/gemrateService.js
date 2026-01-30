@@ -4931,16 +4931,27 @@ class GemRateService {
                 : beforePercent;
               
               // Now parse the 3 remaining fields (all time, this week, past week)
+              // Rules:
+              // - Comma followed by 3 digits = part of current field
+              // - After finishing a comma-separated number, if next char is digit (not comma), start new field
+              // - 4 consecutive digits (no comma) = 4th digit starts new field
+              
               let pos = 0;
               const fields = [];
               let currentField = '';
               let consecutiveDigits = 0;
+              let justFinishedCommaGroup = false;
               
               while (pos < numbersPart.length) {
                 const char = numbersPart[pos];
                 
                 if (char === ',') {
                   // Comma means next 3 digits are part of current field
+                  // If we just finished a comma group, this comma is part of the same number (e.g., 1,844,522)
+                  if (justFinishedCommaGroup) {
+                    justFinishedCommaGroup = false; // Reset, we're continuing the same number
+                  }
+                  
                   currentField += char;
                   consecutiveDigits = 0;
                   pos++;
@@ -4949,12 +4960,25 @@ class GemRateService {
                   if (pos + 3 <= numbersPart.length) {
                     currentField += numbersPart.substring(pos, pos + 3);
                     pos += 3;
+                    justFinishedCommaGroup = true;
                   } else {
                     // Not enough digits after comma, break
                     break;
                   }
                 } else if (/\d/.test(char)) {
                   // It's a digit
+                  
+                  // If we just finished a comma group and this is a digit (not another comma),
+                  // it means we're starting a new field
+                  if (justFinishedCommaGroup) {
+                    fields.push(currentField);
+                    currentField = char;
+                    consecutiveDigits = 1;
+                    justFinishedCommaGroup = false;
+                    pos++;
+                    continue;
+                  }
+                  
                   consecutiveDigits++;
                   currentField += char;
                   
@@ -4989,6 +5013,8 @@ class GemRateService {
               const allTime = parseInt(fields[0].replace(/,/g, ''), 10);
               const lastWeek = parseInt(fields[1].replace(/,/g, ''), 10);
               const priorWeek = parseInt(fields[2].replace(/,/g, ''), 10);
+              
+              console.log(`[Puppeteer] Parsed stats for ${sport}: allTime=${allTime}, lastWeek=${lastWeek}, priorWeek=${priorWeek}, change=${change} (fields: ${fields.join(' | ')})`);
               
               statItems.push({ sport, allTime, lastWeek, priorWeek, change });
             }
