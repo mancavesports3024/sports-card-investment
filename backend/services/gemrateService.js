@@ -4919,9 +4919,9 @@ class GemRateService {
                 continue;
               }
               
-              // Extract percentage: last 1-3 digits before %
+              // Extract percentage: exactly 2 digits before % (or negative sign + 2 digits)
               const beforePercent = segment.substring(0, percentIndex);
-              const changeMatch = beforePercent.match(/(-?\d{1,3})$/);
+              const changeMatch = beforePercent.match(/(-?\d{2})$/);
               const change = changeMatch ? parseInt(changeMatch[1], 10) : null;
               
               // Remove the percentage digits from the segment to get just the three numbers
