@@ -4918,7 +4918,9 @@ class GemRateService {
               const lastWeek = parseInt(numMatches[1].replace(/,/g, ''), 10);
               const priorWeek = parseInt(numMatches[2].replace(/,/g, ''), 10);
               
-              const changeMatch = segment.match(/(-?\d+)\s*%/);
+              // Extract percentage: look for a number (possibly negative) followed by % at the end
+              // This should be the last number in the segment before the %
+              const changeMatch = segment.match(/(-?\d+)\s*%$/);
               const change = changeMatch ? parseInt(changeMatch[1], 10) : null;
               
               statItems.push({ sport, allTime, lastWeek, priorWeek, change });

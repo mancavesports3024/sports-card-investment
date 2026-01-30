@@ -341,7 +341,7 @@ const TrendingPlayers = () => {
                 }}>
                   {change > 0 ? '📈' : change < 0 ? '📉' : '➡️'}
                   <span>
-                    {change > 0 ? '+' : ''}{typeof change === 'number' ? change.toFixed(1) : change}%
+                    {change > 0 ? '+' : ''}{typeof change === 'number' ? change.toFixed(0) : change}%
                   </span>
                 </div>
               )}
