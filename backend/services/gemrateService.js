@@ -4920,17 +4920,11 @@ class GemRateService {
                 continue;
               }
               
-              // Extract percentage first (last 1-4 digits before %)
-              const beforePercent = segment.substring(0, percentIndex);
-              const changeMatch = beforePercent.match(/(-?\d{1,4})$/);
-              const change = changeMatch ? parseInt(changeMatch[1], 10) : null;
+              // Get the numbers part (everything before %)
+              const numbersPart = segment.substring(0, percentIndex);
               
-              // Remove percentage from the numbers part
-              const numbersPart = changeMatch 
-                ? beforePercent.substring(0, beforePercent.length - changeMatch[1].length)
-                : beforePercent;
-              
-              // Now parse the 3 remaining fields (all time, this week, past week)
+              // Parse the 3 fields first (all time, this week, past week)
+              // Then extract percentage from what remains
               // Rules:
               // - Comma followed by 3 digits = part of current field
               // - After finishing a comma-separated number, if next char is digit (not comma), start new field
@@ -4938,11 +4932,12 @@ class GemRateService {
               
               let pos = 0;
               const fields = [];
+              const fieldEndPositions = []; // Track where each field ends
               let currentField = '';
               let consecutiveDigits = 0;
               let justFinishedCommaGroup = false;
               
-              while (pos < numbersPart.length) {
+              while (pos < numbersPart.length && fields.length < 3) {
                 const char = numbersPart[pos];
                 
                 if (char === ',') {
@@ -4972,6 +4967,7 @@ class GemRateService {
                   // it means we're starting a new field
                   if (justFinishedCommaGroup) {
                     fields.push(currentField);
+                    fieldEndPositions.push(pos); // This is where the field ended
                     currentField = char;
                     consecutiveDigits = 1;
                     justFinishedCommaGroup = false;
@@ -4989,6 +4985,7 @@ class GemRateService {
                     const fourthDigit = currentField[currentField.length - 1];
                     
                     fields.push(firstThree);
+                    fieldEndPositions.push(pos - 1); // Position after the 3rd digit
                     currentField = fourthDigit;
                     consecutiveDigits = 1; // Reset to 1 (the 4th digit is the start of new field)
                   }
@@ -5000,9 +4997,10 @@ class GemRateService {
                 }
               }
               
-              // Add the last field we were building
-              if (currentField) {
+              // Add the last field we were building (3rd field)
+              if (currentField && fields.length < 3) {
                 fields.push(currentField);
+                fieldEndPositions.push(pos);
               }
               
               if (fields.length < 3) {
@@ -5010,13 +5008,30 @@ class GemRateService {
                 continue;
               }
               
+              // Extract percentage from what remains after the 3rd field
+              // Use the tracked end position of the 3rd field
+              const thirdFieldEndPos = fieldEndPositions.length >= 3 ? fieldEndPositions[2] : numbersPart.length;
+              const percentagePart = numbersPart.substring(thirdFieldEndPos);
+              
+              // The percentage is 1-4 digits (possibly negative) at the end
+              const changeMatch = percentagePart.match(/(-?\d{1,4})$/);
+              let finalChange = changeMatch ? parseInt(changeMatch[1], 10) : null;
+              
+              // If we couldn't find percentage, try extracting from the very end before %
+              if (finalChange === null) {
+                const endMatch = numbersPart.match(/(-?\d{1,4})$/);
+                if (endMatch) {
+                  finalChange = parseInt(endMatch[1], 10);
+                }
+              }
+              
               const allTime = parseInt(fields[0].replace(/,/g, ''), 10);
               const lastWeek = parseInt(fields[1].replace(/,/g, ''), 10);
               const priorWeek = parseInt(fields[2].replace(/,/g, ''), 10);
               
-              console.log(`[Puppeteer] Parsed stats for ${sport}: allTime=${allTime}, lastWeek=${lastWeek}, priorWeek=${priorWeek}, change=${change} (fields: ${fields.join(' | ')})`);
+              console.log(`[Puppeteer] Parsed stats for ${sport}: allTime=${allTime}, lastWeek=${lastWeek}, priorWeek=${priorWeek}, change=${finalChange} (fields: ${fields.join(' | ')}, percentagePart: "${percentagePart}")`);
               
-              statItems.push({ sport, allTime, lastWeek, priorWeek, change });
+              statItems.push({ sport, allTime, lastWeek, priorWeek, change: finalChange });
             }
             
             console.log(`[Puppeteer] Parsed ${statItems.length} stat rows from stats block`);
