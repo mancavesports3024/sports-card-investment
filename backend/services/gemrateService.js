@@ -4908,44 +4908,87 @@ class GemRateService {
               const end = i + 1 < sportMatches.length ? sportMatches[i + 1].index : statsText.length;
               const segment = statsText.substring(start, end);
               
-              // Extract the three main numbers (all time, last week, prior week)
-              // Format: numbers with commas OR plain multi-digit numbers
-              // The percentage is always the last 1-3 digits before the %
+              // Parse the 4 fields: all time, this week, past week, % difference
+              // Rules:
+              // - If you see a comma, the next 3 digits are part of the current number
+              // - If you see 4 consecutive digits (no comma), the 4th digit starts a new field
+              // - The last field is the % difference (1-4 digits before %)
               
-              // First, extract percentage from the end (last 1-3 digits before %)
               const percentIndex = segment.lastIndexOf('%');
               if (percentIndex === -1) {
                 console.log(`[Puppeteer] No % found in segment: "${segment.substring(0, 80)}"`);
                 continue;
               }
               
-              // Extract percentage: exactly 2 digits before % (or negative sign + 2 digits)
+              // Extract percentage first (last 1-4 digits before %)
               const beforePercent = segment.substring(0, percentIndex);
-              const changeMatch = beforePercent.match(/(-?\d{2})$/);
+              const changeMatch = beforePercent.match(/(-?\d{1,4})$/);
               const change = changeMatch ? parseInt(changeMatch[1], 10) : null;
               
-              // Remove the percentage digits from the segment to get just the three numbers
-              const numbersOnly = changeMatch 
+              // Remove percentage from the numbers part
+              const numbersPart = changeMatch 
                 ? beforePercent.substring(0, beforePercent.length - changeMatch[1].length)
                 : beforePercent;
               
-              // Now extract the three numbers from what's left
-              // Match numbers with commas OR plain multi-digit numbers (3+ digits to avoid matching single digits)
-              const numberPattern = /\d{1,3}(?:,\d{3})+|\d{3,}/g;
-              const numMatches = [];
-              let match;
-              while ((match = numberPattern.exec(numbersOnly)) !== null) {
-                numMatches.push(match[0]);
+              // Now parse the 3 remaining fields (all time, this week, past week)
+              let pos = 0;
+              const fields = [];
+              let currentField = '';
+              let consecutiveDigits = 0;
+              
+              while (pos < numbersPart.length) {
+                const char = numbersPart[pos];
+                
+                if (char === ',') {
+                  // Comma means next 3 digits are part of current field
+                  currentField += char;
+                  consecutiveDigits = 0;
+                  pos++;
+                  
+                  // Read the next 3 digits
+                  if (pos + 3 <= numbersPart.length) {
+                    currentField += numbersPart.substring(pos, pos + 3);
+                    pos += 3;
+                  } else {
+                    // Not enough digits after comma, break
+                    break;
+                  }
+                } else if (/\d/.test(char)) {
+                  // It's a digit
+                  consecutiveDigits++;
+                  currentField += char;
+                  
+                  if (consecutiveDigits === 4) {
+                    // 4 consecutive digits means the 4th starts a new field
+                    // Save current field (first 3 digits) and start new field with 4th digit
+                    const firstThree = currentField.substring(0, currentField.length - 1);
+                    const fourthDigit = currentField[currentField.length - 1];
+                    
+                    fields.push(firstThree);
+                    currentField = fourthDigit;
+                    consecutiveDigits = 1; // Reset to 1 (the 4th digit is the start of new field)
+                  }
+                  
+                  pos++;
+                } else {
+                  // Non-digit, non-comma character - skip it
+                  pos++;
+                }
               }
               
-              if (numMatches.length < 3) {
-                console.log(`[Puppeteer] Not enough numbers after sport "${sport}" in segment: "${segment.substring(0, 80)}"`);
+              // Add the last field we were building
+              if (currentField) {
+                fields.push(currentField);
+              }
+              
+              if (fields.length < 3) {
+                console.log(`[Puppeteer] Not enough fields parsed (got ${fields.length}) in segment: "${segment.substring(0, 80)}"`);
                 continue;
               }
               
-              const allTime = parseInt(numMatches[0].replace(/,/g, ''), 10);
-              const lastWeek = parseInt(numMatches[1].replace(/,/g, ''), 10);
-              const priorWeek = parseInt(numMatches[2].replace(/,/g, ''), 10);
+              const allTime = parseInt(fields[0].replace(/,/g, ''), 10);
+              const lastWeek = parseInt(fields[1].replace(/,/g, ''), 10);
+              const priorWeek = parseInt(fields[2].replace(/,/g, ''), 10);
               
               statItems.push({ sport, allTime, lastWeek, priorWeek, change });
             }
