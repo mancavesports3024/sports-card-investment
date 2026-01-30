@@ -4908,20 +4908,44 @@ class GemRateService {
               const end = i + 1 < sportMatches.length ? sportMatches[i + 1].index : statsText.length;
               const segment = statsText.substring(start, end);
               
-              const numMatches = segment.match(/\d{1,3}(?:,\d{3})*/g) || [];
+              // Extract the three comma-separated numbers (all time, last week, prior week)
+              // Use + to require at least one comma (ensures we get numbers like "1,844,522" not just "65")
+              const commaNumberRegex = /\d{1,3}(?:,\d{3})+/g;
+              const numMatches = [];
+              let match;
+              while ((match = commaNumberRegex.exec(segment)) !== null) {
+                numMatches.push(match[0]);
+              }
+              
               if (numMatches.length < 3) {
-                console.log(`[Puppeteer] Not enough numbers after sport "${sport}" in segment: "${segment.substring(0, 80)}"`);
+                console.log(`[Puppeteer] Not enough comma-separated numbers after sport "${sport}" in segment: "${segment.substring(0, 80)}"`);
                 continue;
               }
               
               const allTime = parseInt(numMatches[0].replace(/,/g, ''), 10);
               const lastWeek = parseInt(numMatches[1].replace(/,/g, ''), 10);
-              const priorWeek = parseInt(numMatches[2].replace(/,/g, ''), 10);
               
-              // Extract percentage: look for a number (possibly negative) followed by % at the end
-              // This should be the last number in the segment before the %
-              const changeMatch = segment.match(/(-?\d+)\s*%$/);
-              const change = changeMatch ? parseInt(changeMatch[1], 10) : null;
+              // The third number might have extra digits jammed with the percentage
+              // Example: segment might be "4,85465%" where prior week is 4,854 and percentage is 65%
+              // Extract the prior week by taking only the comma-separated part
+              const thirdNumberStr = numMatches[2];
+              const priorWeek = parseInt(thirdNumberStr.replace(/,/g, ''), 10);
+              
+              // Extract percentage: find the last 1-3 digits (possibly negative) right before the % sign
+              // This handles cases where digits are jammed: "4,85465%" -> extract "65" from the end
+              // The percentage is always the last 1-3 digits before the % sign
+              // First, find where the % is
+              const percentIndex = segment.lastIndexOf('%');
+              if (percentIndex === -1) {
+                statItems.push({ sport, allTime, lastWeek, priorWeek, change: null });
+                continue;
+              }
+              
+              // Extract the last 1-3 digits before the %
+              // Handle negative sign if present
+              const beforePercent = segment.substring(0, percentIndex);
+              const digitsMatch = beforePercent.match(/(-?\d{1,3})$/);
+              const change = digitsMatch ? parseInt(digitsMatch[1], 10) : null;
               
               statItems.push({ sport, allTime, lastWeek, priorWeek, change });
             }
