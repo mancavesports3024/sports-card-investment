@@ -5100,7 +5100,7 @@ class GemRateService {
           // For sets, implement block-based parser similar to players
           if (which === 'sets') {
             console.log('[Puppeteer] Starting block-based parser for sets...');
-            const sports = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG'];
+            const sports = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG', 'Misc'];
             
             // Find the point just after "Prior Week Weekly Change" in the sets header
             const anchor = 'prior week weekly change';
@@ -5140,12 +5140,12 @@ class GemRateService {
               const end = i + 1 < sportMatches.length ? sportMatches[i + 1].index : setsText.length;
               const setSegment = setsText.substring(start, end);
               
-              // Extract year (4 digits) and set name from the segment
-              // Format: "2025Topps" or "2009Upper Deck Jordan Legacy Gold"
-              const yearMatch = setSegment.match(/^(\d{4})/);
+              // Extract year (4 digits or year range like "2023-24") and set name from the segment
+              // Format: "2025Topps" or "2023-24Panini Donruss FIFA" or "2009Upper Deck Jordan Legacy Gold"
+              const yearMatch = setSegment.match(/^(\d{4}(?:-\d{2})?)/);
               if (yearMatch) {
                 const year = yearMatch[1];
-                const setName = setSegment.substring(4).trim();
+                const setName = setSegment.substring(year.length).trim();
                 
                 if (setName.length > 0) {
                   setItems.push({ sport, year, setName });
@@ -5173,15 +5173,17 @@ class GemRateService {
               
               console.log(`[Puppeteer] Processing segment for ${sport}: "${segment.substring(0, 100)}"`);
               
-              // Extract year and set name (they come before the numbers)
-              const yearMatch = segment.match(/^(\d{4})/);
+              // Extract year (4 digits or year range) and set name (they come before the numbers)
+              const yearMatch = segment.match(/^(\d{4}(?:-\d{2})?)/);
               if (!yearMatch) continue;
               
               const year = yearMatch[1];
-              const afterYear = segment.substring(4);
+              const afterYear = segment.substring(year.length);
               
-              // Find where the numbers start (first comma or digit sequence)
-              const numberStartMatch = afterYear.match(/(\d{1,3}(?:,\d{3})+|\d{3,})/);
+              // Find where the numbers start (first comma-separated number or multi-digit number)
+              // Look for pattern like "4,911" (comma-separated) or "78354" (multi-digit)
+              // This marks the start of the stats (all time graded)
+              const numberStartMatch = afterYear.match(/(\d{1,3}(?:,\d{3})+|\d{4,})/);
               if (!numberStartMatch) continue;
               
               const setName = afterYear.substring(0, numberStartMatch.index).trim();
