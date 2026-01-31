@@ -5097,7 +5097,238 @@ class GemRateService {
             return paired;
           }
           
-          // For sets, use the old category-based parser
+          // For sets, implement block-based parser similar to players
+          if (which === 'sets') {
+            console.log('[Puppeteer] Starting block-based parser for sets...');
+            const sports = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG'];
+            
+            // Find the point just after "Prior Week Weekly Change" in the sets header
+            const anchor = 'prior week weekly change';
+            const wcIdx = sectionText.toLowerCase().indexOf(anchor);
+            console.log(`[Puppeteer] Found "Prior Week Weekly Change" anchor at index: ${wcIdx}`);
+            let setsAndStats = wcIdx !== -1
+              ? sectionText.substring(wcIdx + anchor.length).trim()
+              : sectionText;
+            
+            console.log(`[Puppeteer] Sets+stats text length: ${setsAndStats.length}, first 200 chars: ${setsAndStats.substring(0, 200)}`);
+            
+            // Find the first sport word – that splits set names block from stats block
+            const sportSplitRegex = new RegExp(`\\b(${sports.join('|')})`, 'i');
+            const firstSportMatch = setsAndStats.match(sportSplitRegex);
+            if (!firstSportMatch || firstSportMatch.index == null) {
+              console.log(`[Puppeteer] ERROR: No sport keyword found in section text for sets. Text sample: "${setsAndStats.substring(0, 300)}"`);
+              return [];
+            }
+            
+            console.log(`[Puppeteer] Found first sport "${firstSportMatch[0]}" at index ${firstSportMatch.index}`);
+            
+            const splitIndex = firstSportMatch.index;
+            const setsText = setsAndStats.substring(0, splitIndex).trim();
+            const statsText = setsAndStats.substring(splitIndex).trim();
+            
+            // 1) Extract set names: Format is "CategoryYearSetName" jammed together
+            // Example: "Basketball2025ToppsBasketball2009Upper Deck Jordan Legacy Gold..."
+            // We need to split on sport words (which mark the start of each set)
+            const setItems = [];
+            const sportPattern = new RegExp(`\\b(${sports.join('|')})`, 'gi');
+            const sportMatches = Array.from(setsText.matchAll(sportPattern));
+            
+            for (let i = 0; i < sportMatches.length; i++) {
+              const match = sportMatches[i];
+              const sport = match[1];
+              const start = match.index + match[0].length;
+              const end = i + 1 < sportMatches.length ? sportMatches[i + 1].index : setsText.length;
+              const setSegment = setsText.substring(start, end);
+              
+              // Extract year (4 digits) and set name from the segment
+              // Format: "2025Topps" or "2009Upper Deck Jordan Legacy Gold"
+              const yearMatch = setSegment.match(/^(\d{4})/);
+              if (yearMatch) {
+                const year = yearMatch[1];
+                const setName = setSegment.substring(4).trim();
+                
+                if (setName.length > 0) {
+                  setItems.push({ sport, year, setName });
+                }
+              }
+            }
+            
+            console.log(`[Puppeteer] Parsed ${setItems.length} set names from sets block`);
+            if (setItems.length > 0) {
+              console.log(`[Puppeteer] First 5 sets: ${setItems.slice(0, 5).map(s => `${s.sport} ${s.year} ${s.setName}`).join(', ')}`);
+            }
+            
+            // 2) Extract stat segments in order: Sport + Year + Set Name + 3 numbers + %
+            // Format: "Basketball2025Topps4,9111,45575393%"
+            const statItems = [];
+            const sportGlobal = new RegExp(`\\b(${sports.join('|')})`, 'g');
+            const statsSportMatches = Array.from(statsText.matchAll(sportGlobal));
+            
+            for (let i = 0; i < statsSportMatches.length; i++) {
+              const m = statsSportMatches[i];
+              const sport = m[1];
+              const start = m.index + m[0].length;
+              const end = i + 1 < statsSportMatches.length ? statsSportMatches[i + 1].index : statsText.length;
+              const segment = statsText.substring(start, end);
+              
+              console.log(`[Puppeteer] Processing segment for ${sport}: "${segment.substring(0, 100)}"`);
+              
+              // Extract year and set name (they come before the numbers)
+              const yearMatch = segment.match(/^(\d{4})/);
+              if (!yearMatch) continue;
+              
+              const year = yearMatch[1];
+              const afterYear = segment.substring(4);
+              
+              // Find where the numbers start (first comma or digit sequence)
+              const numberStartMatch = afterYear.match(/(\d{1,3}(?:,\d{3})+|\d{3,})/);
+              if (!numberStartMatch) continue;
+              
+              const setName = afterYear.substring(0, numberStartMatch.index).trim();
+              const numbersPart = afterYear.substring(numberStartMatch.index);
+              
+              // Now parse the 3 fields (all time, this week, past week) and percentage
+              // Same logic as players
+              const percentIndex = numbersPart.lastIndexOf('%');
+              if (percentIndex === -1) {
+                console.log(`[Puppeteer] No % found in segment: "${segment.substring(0, 80)}"`);
+                continue;
+              }
+              
+              const numbersOnly = numbersPart.substring(0, percentIndex);
+              
+              // Parse the 3 fields using the same logic as players
+              let pos = 0;
+              const fields = [];
+              let currentField = '';
+              let consecutiveDigits = 0;
+              let justFinishedCommaGroup = false;
+              
+              while (pos < numbersOnly.length && fields.length < 3) {
+                const char = numbersOnly[pos];
+                
+                if (char === ',') {
+                  if (justFinishedCommaGroup) {
+                    justFinishedCommaGroup = false;
+                  }
+                  
+                  currentField += char;
+                  consecutiveDigits = 0;
+                  pos++;
+                  
+                  if (pos + 3 <= numbersOnly.length) {
+                    currentField += numbersOnly.substring(pos, pos + 3);
+                    pos += 3;
+                    justFinishedCommaGroup = true;
+                  } else {
+                    break;
+                  }
+                } else if (/\d/.test(char)) {
+                  if (justFinishedCommaGroup) {
+                    fields.push(currentField);
+                    currentField = char;
+                    consecutiveDigits = 1;
+                    justFinishedCommaGroup = false;
+                    pos++;
+                    continue;
+                  }
+                  
+                  consecutiveDigits++;
+                  currentField += char;
+                  
+                  if (consecutiveDigits === 4) {
+                    const firstThree = currentField.substring(0, currentField.length - 1);
+                    const fourthDigit = currentField[currentField.length - 1];
+                    
+                    fields.push(firstThree);
+                    currentField = fourthDigit;
+                    consecutiveDigits = 1;
+                  }
+                  
+                  pos++;
+                } else {
+                  pos++;
+                }
+              }
+              
+              if (currentField && fields.length < 3) {
+                fields.push(currentField);
+              }
+              
+              if (fields.length < 3) {
+                console.log(`[Puppeteer] Not enough fields parsed (got ${fields.length}) in segment: "${segment.substring(0, 80)}"`);
+                continue;
+              }
+              
+              // Extract percentage from what remains after 3rd field
+              const allTime = parseInt(fields[0].replace(/,/g, ''), 10);
+              const lastWeek = parseInt(fields[1].replace(/,/g, ''), 10);
+              const priorWeek = parseInt(fields[2].replace(/,/g, ''), 10);
+              
+              // Find where 3rd field ends to extract percentage
+              let searchPos = 0;
+              const firstFieldMatch = numbersOnly.indexOf(fields[0], searchPos);
+              if (firstFieldMatch !== -1) {
+                searchPos = firstFieldMatch + fields[0].length;
+                const secondFieldMatch = numbersOnly.indexOf(fields[1], searchPos);
+                if (secondFieldMatch !== -1) {
+                  searchPos = secondFieldMatch + fields[1].length;
+                  const thirdFieldMatch = numbersOnly.indexOf(fields[2], searchPos);
+                  if (thirdFieldMatch !== -1) {
+                    const thirdFieldEndPos = thirdFieldMatch + fields[2].length;
+                    const percentagePart = numbersOnly.substring(thirdFieldEndPos);
+                    const cleanPercentagePart = percentagePart.replace(/[^\d-]/g, '');
+                    const changeMatch = cleanPercentagePart.match(/(-?\d{1,4})$/);
+                    let finalChange = changeMatch ? parseInt(changeMatch[1], 10) : null;
+                    
+                    if (finalChange === null || isNaN(finalChange)) {
+                      const endMatch = numbersOnly.match(/(-?\d{1,4})$/);
+                      if (endMatch) {
+                        finalChange = parseInt(endMatch[1], 10);
+                      }
+                    }
+                    
+                    statItems.push({ sport, year, setName, allTime, lastWeek, priorWeek, change: finalChange });
+                  }
+                }
+              }
+            }
+            
+            console.log(`[Puppeteer] Parsed ${statItems.length} stat rows from stats block`);
+            
+            // Zip sets with stats by index
+            const pairCount = Math.min(setItems.length, statItems.length);
+            const paired = [];
+            for (let i = 0; i < pairCount; i++) {
+              const setInfo = setItems[i];
+              const s = statItems[i];
+              
+              // Use stat's set name if available (more accurate), otherwise use parsed set name
+              const finalSetName = s.setName || setInfo.setName;
+              
+              paired.push({
+                set_name: finalSetName,
+                name: finalSetName,
+                set: finalSetName,
+                sport: s.sport || setInfo.sport,
+                category: s.sport || setInfo.sport,
+                year: s.year || setInfo.year,
+                submissions: s.lastWeek,
+                count: s.lastWeek,
+                total_grades: s.lastWeek,
+                all_time: s.allTime,
+                prior_week: s.priorWeek,
+                change: s.change
+              });
+            }
+            
+            console.log(`[Puppeteer] Block-based mapping produced ${paired.length} set records`);
+            if (paired.length > 0) {
+              console.log(`[Puppeteer] First 3 paired results:`, paired.slice(0, 3).map(p => `${p.set_name}: ${p.sport} ${p.year} ${p.submissions}`));
+            }
+            return paired;
+          }
+          
           // For players, we should never reach here (should return from block above)
           if (which === 'players') {
             console.log('[Puppeteer] ERROR: Players parser should have returned from block-based mapping above');
