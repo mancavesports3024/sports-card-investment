@@ -5181,13 +5181,19 @@ class GemRateService {
               const afterYear = segment.substring(year.length);
               
               // Find where the numbers start (first comma-separated number or multi-digit number)
-              // Look for pattern like "4,911" (comma-separated) or "78354" (multi-digit)
+              // Look for pattern like "43,837" (comma-separated) or "78354" (multi-digit)
               // This marks the start of the stats (all time graded)
+              // The set name is everything between the year and the first number
               const numberStartMatch = afterYear.match(/(\d{1,3}(?:,\d{3})+|\d{4,})/);
-              if (!numberStartMatch) continue;
+              if (!numberStartMatch) {
+                console.log(`[Puppeteer] No number pattern found in segment after year for ${sport}: "${afterYear.substring(0, 100)}"`);
+                continue;
+              }
               
               const setName = afterYear.substring(0, numberStartMatch.index).trim();
               const numbersPart = afterYear.substring(numberStartMatch.index);
+              
+              console.log(`[Puppeteer] Extracted set: ${sport} ${year} "${setName}" -> numbers: "${numbersPart.substring(0, 50)}"`);
               
               // Now parse the 3 fields (all time, this week, past week) and percentage
               // Same logic as players
