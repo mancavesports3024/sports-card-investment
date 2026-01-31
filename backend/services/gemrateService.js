@@ -5178,64 +5178,23 @@ class GemRateService {
             
             console.log(`[Puppeteer] Sets+stats text length: ${setsAndStats.length}, first 200 chars: ${setsAndStats.substring(0, 200)}`);
             
-            // Find the first sport word – that splits set names block from stats block
-            const sportSplitRegex = new RegExp(`\\b(${sports.join('|')})`, 'i');
-            const firstSportMatch = setsAndStats.match(sportSplitRegex);
-            if (!firstSportMatch || firstSportMatch.index == null) {
-              console.log(`[Puppeteer] ERROR: No sport keyword found in section text for sets. Text sample: "${setsAndStats.substring(0, 300)}"`);
-              return [];
-            }
+            // For sets, the data format is: SportYearSetNameNumbers%
+            // Example: "Baseball2025Bowman Chrome Prospect Autographs43,8372,2101,42955%"
+            // There's no separate names block - everything is combined
+            // We parse directly from setsAndStats by finding each sport word
             
-            console.log(`[Puppeteer] Found first sport "${firstSportMatch[0]}" at index ${firstSportMatch.index}`);
-            
-            const splitIndex = firstSportMatch.index;
-            const setsText = setsAndStats.substring(0, splitIndex).trim();
-            const statsText = setsAndStats.substring(splitIndex).trim();
-            
-            // 1) Extract set names: Format is "CategoryYearSetName" jammed together
-            // Example: "Basketball2025ToppsBasketball2009Upper Deck Jordan Legacy Gold..."
-            // We need to split on sport words (which mark the start of each set)
-            const setItems = [];
-            const sportPattern = new RegExp(`\\b(${sports.join('|')})`, 'gi');
-            const sportMatches = Array.from(setsText.matchAll(sportPattern));
-            
-            for (let i = 0; i < sportMatches.length; i++) {
-              const match = sportMatches[i];
-              const sport = match[1];
-              const start = match.index + match[0].length;
-              const end = i + 1 < sportMatches.length ? sportMatches[i + 1].index : setsText.length;
-              const setSegment = setsText.substring(start, end);
-              
-              // Extract year (4 digits or year range like "2023-24") and set name from the segment
-              // Format: "2025Topps" or "2023-24Panini Donruss FIFA" or "2009Upper Deck Jordan Legacy Gold"
-              const yearMatch = setSegment.match(/^(\d{4}(?:-\d{2})?)/);
-              if (yearMatch) {
-                const year = yearMatch[1];
-                const setName = setSegment.substring(year.length).trim();
-                
-                if (setName.length > 0) {
-                  setItems.push({ sport, year, setName });
-                }
-              }
-            }
-            
-            console.log(`[Puppeteer] Parsed ${setItems.length} set names from sets block`);
-            if (setItems.length > 0) {
-              console.log(`[Puppeteer] First 5 sets: ${setItems.slice(0, 5).map(s => `${s.sport} ${s.year} ${s.setName}`).join(', ')}`);
-            }
-            
-            // 2) Extract stat segments in order: Sport + Year + Set Name + 3 numbers + %
-            // Format: "Basketball2025Topps4,9111,45575393%"
             const statItems = [];
             const sportGlobal = new RegExp(`\\b(${sports.join('|')})`, 'g');
-            const statsSportMatches = Array.from(statsText.matchAll(sportGlobal));
+            const statsSportMatches = Array.from(setsAndStats.matchAll(sportGlobal));
+            
+            console.log(`[Puppeteer] Found ${statsSportMatches.length} sport matches in sets data`);
             
             for (let i = 0; i < statsSportMatches.length; i++) {
               const m = statsSportMatches[i];
               const sport = m[1];
               const start = m.index + m[0].length;
-              const end = i + 1 < statsSportMatches.length ? statsSportMatches[i + 1].index : statsText.length;
-              const segment = statsText.substring(start, end);
+              const end = i + 1 < statsSportMatches.length ? statsSportMatches[i + 1].index : setsAndStats.length;
+              const segment = setsAndStats.substring(start, end);
               
               console.log(`[Puppeteer] Processing segment for ${sport}: "${segment.substring(0, 100)}"`);
               
@@ -5368,37 +5327,27 @@ class GemRateService {
               }
             }
             
-            console.log(`[Puppeteer] Parsed ${statItems.length} stat rows from stats block`);
+            console.log(`[Puppeteer] Parsed ${statItems.length} set records from combined data`);
             
-            // Zip sets with stats by index
-            const pairCount = Math.min(setItems.length, statItems.length);
-            const paired = [];
-            for (let i = 0; i < pairCount; i++) {
-              const setInfo = setItems[i];
-              const s = statItems[i];
-              
-              // Use stat's set name if available (more accurate), otherwise use parsed set name
-              const finalSetName = s.setName || setInfo.setName;
-              
-              paired.push({
-                set_name: finalSetName,
-                name: finalSetName,
-                set: finalSetName,
-                sport: s.sport || setInfo.sport,
-                category: s.sport || setInfo.sport,
-                year: s.year || setInfo.year,
-                submissions: s.lastWeek,
-                count: s.lastWeek,
-                total_grades: s.lastWeek,
-                all_time: s.allTime,
-                prior_week: s.priorWeek,
-                change: s.change
-              });
-            }
+            // Convert statItems directly to final format (they already contain all info)
+            const paired = statItems.map(s => ({
+              set_name: s.setName || '',
+              name: s.setName || '',
+              set: s.setName || '',
+              sport: s.sport || '',
+              category: s.sport || '',
+              year: s.year || '',
+              submissions: s.lastWeek || 0,
+              count: s.lastWeek || 0,
+              total_grades: s.lastWeek || 0,
+              all_time: s.allTime || 0,
+              prior_week: s.priorWeek || 0,
+              change: s.change || 0
+            }));
             
             console.log(`[Puppeteer] Block-based mapping produced ${paired.length} set records`);
             if (paired.length > 0) {
-              console.log(`[Puppeteer] First 3 paired results:`, paired.slice(0, 3).map(p => `${p.set_name}: ${p.sport} ${p.year} ${p.submissions}`));
+              console.log(`[Puppeteer] First 3 results:`, paired.slice(0, 3).map(p => `${p.set_name}: ${p.sport} ${p.year} ${p.submissions}`));
             }
             return paired;
           }
