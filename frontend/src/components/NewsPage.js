@@ -3,12 +3,13 @@ import { Helmet } from 'react-helmet';
 import config from '../config';
 import TrendingPlayers from './TrendingPlayers';
 import TrendingSets from './TrendingSets';
+import TrendingCards from './TrendingCards';
 
 const API_BASE_URL = config.API_BASE_URL || 'https://web-production-9efa.up.railway.app';
 
 const NewsPage = () => {
   const [activeTab, setActiveTab] = useState('releases');
-  const [trendingSubTab, setTrendingSubTab] = useState('players'); // 'players' or 'sets'
+  const [trendingSubTab, setTrendingSubTab] = useState('players'); // 'players', 'sets', or 'cards'
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [releases, setReleases] = useState([]);
@@ -1339,10 +1340,26 @@ const NewsPage = () => {
             >
               📦 Sets
             </button>
+            <button
+              onClick={() => setTrendingSubTab('cards')}
+              style={{
+                background: trendingSubTab === 'cards' ? '#ffd700' : '#374151',
+                color: trendingSubTab === 'cards' ? '#000' : '#fff',
+                border: '2px solid #ffd700',
+                padding: '0.5rem 1rem',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              🃏 Cards
+            </button>
           </div>
           
           {/* Trending Content */}
-          {trendingSubTab === 'players' ? <TrendingPlayers /> : <TrendingSets />}
+          {trendingSubTab === 'players' ? <TrendingPlayers /> : trendingSubTab === 'sets' ? <TrendingSets /> : <TrendingCards />}
         </div>
       )}
       {renderReleaseModal()}

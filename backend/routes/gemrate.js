@@ -427,10 +427,44 @@ router.get('/trending/sets', async (req, res) => {
   }
 });
 
+// GET /api/gemrate/trending/cards - Get trending cards from GemRate API
+router.get('/trending/cards', async (req, res) => {
+  try {
+    const { period = 'week' } = req.query;
+
+    console.log(`📈 GemRate trending cards request (period: ${period})`);
+
+    const result = await gemrateService.getTrendingCards(period);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        period: result.period,
+        data: result.data,
+        timestamp: result.timestamp
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: result.error || 'Failed to fetch trending cards',
+        period: result.period,
+        timestamp: result.timestamp
+      });
+    }
+  } catch (error) {
+    console.error('❌ GemRate trending cards error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get trending cards',
+      details: error.message
+    });
+  }
+});
+
 // GET /api/gemrate/trending/debug/:kind - Debug endpoint to see raw extracted data
 router.get('/trending/debug/:kind', async (req, res) => {
   try {
-    const { kind } = req.params; // 'players' or 'sets'
+    const { kind } = req.params; // 'players', 'sets', or 'cards'
     const { period = 'week' } = req.query;
 
     console.log(`🔍 GemRate trending debug request (kind: ${kind}, period: ${period})`);
@@ -455,10 +489,20 @@ router.get('/trending/debug/:kind', async (req, res) => {
         firstItem: result.data && result.data.length > 0 ? result.data[0] : null,
         sampleItems: result.data ? result.data.slice(0, 5) : []
       });
+    } else if (kind === 'cards') {
+      const result = await gemrateService.getTrendingCards(period);
+      res.json({
+        success: true,
+        rawResult: result,
+        data: result.data,
+        dataLength: result.data ? result.data.length : 0,
+        firstItem: result.data && result.data.length > 0 ? result.data[0] : null,
+        sampleItems: result.data ? result.data.slice(0, 5) : []
+      });
     } else {
       res.status(400).json({
         success: false,
-        error: 'Invalid kind. Must be "players" or "sets"'
+        error: 'Invalid kind. Must be "players", "sets", or "cards"'
       });
     }
   } catch (error) {

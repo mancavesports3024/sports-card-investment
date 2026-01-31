@@ -3743,8 +3743,65 @@ class GemRateService {
   }
 
   /**
-   * Use Puppeteer to load the GemRate dashboard and extract trending players or sets
-   * @param {'players' | 'sets'} kind
+   * Get trending cards from GemRate dashboard page
+   * @param {string} period - Time period: 'day', 'week', 'month' (default: 'week')
+   * @returns {Promise<Object>} Trending cards data
+   */
+  async getTrendingCards(period = 'week') {
+    try {
+      console.log(`📈 Fetching trending cards from GemRate dashboard (period: ${period})`);
+      
+      await this.ensureSession();
+      
+      const validPeriods = ['day', 'week', 'month'];
+      if (!validPeriods.includes(period)) {
+        throw new Error(`Invalid period. Must be one of: ${validPeriods.join(', ')}`);
+      }
+
+      // Use Puppeteer to scrape the /dash page
+      console.log('⚠️ Trending cards not found in script tags, trying HTML parsing...');
+      console.log('⚠️ No trending cards from static HTML, trying Puppeteer...');
+      try {
+        const puppeteerCards = await this.scrapeDashboardTrendingWithPuppeteer('cards');
+        if (puppeteerCards && puppeteerCards.length > 0) {
+          console.log(`✅ Retrieved ${puppeteerCards.length} trending cards via Puppeteer`);
+          return {
+            success: true,
+            period: period,
+            data: puppeteerCards,
+            timestamp: new Date().toISOString()
+          };
+        } else {
+          console.log('⚠️ Puppeteer did not return any trending cards');
+        }
+      } catch (puppeteerError) {
+        console.log(`⚠️ Puppeteer trending cards scrape failed: ${puppeteerError.message}`);
+      }
+
+      console.log(`⚠️ No trending cards data found on dashboard`);
+      return {
+        success: false,
+        period: period,
+        error: 'No trending cards data found on dashboard page',
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('❌ Error fetching trending cards:', error.message);
+      if (error.response) {
+        console.error(`   Status: ${error.response.status}`);
+      }
+      return {
+        success: false,
+        period: period,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+   * Use Puppeteer to load the GemRate dashboard and extract trending players, sets, or cards
+   * @param {'players' | 'sets' | 'cards'} kind
    * @returns {Promise<Array>} Array of normalized objects
    */
   async scrapeDashboardTrendingWithPuppeteer(kind) {
@@ -4835,7 +4892,16 @@ class GemRateService {
           console.log(`[Puppeteer] Total page text length: ${allText.length}`);
           
           // Find the trending section
-          const sectionKeyword = which === 'players' ? 'trending players & subjects' : 'trending sets';
+          let sectionKeyword;
+          if (which === 'players') {
+            sectionKeyword = 'trending players & subjects';
+          } else if (which === 'sets') {
+            sectionKeyword = 'trending sets';
+          } else if (which === 'cards') {
+            sectionKeyword = 'trending cards';
+          } else {
+            sectionKeyword = 'trending';
+          }
           const sectionIndex = allText.toLowerCase().indexOf(sectionKeyword.toLowerCase());
           
           if (sectionIndex === -1) {
@@ -5333,6 +5399,89 @@ class GemRateService {
             console.log(`[Puppeteer] Block-based mapping produced ${paired.length} set records`);
             if (paired.length > 0) {
               console.log(`[Puppeteer] First 3 paired results:`, paired.slice(0, 3).map(p => `${p.set_name}: ${p.sport} ${p.year} ${p.submissions}`));
+            }
+            return paired;
+          }
+          
+          // For cards, implement block-based parser
+          if (which === 'cards') {
+            console.log('[Puppeteer] Starting block-based parser for cards...');
+            
+            // Find the point just after "Prior Week Weekly Change" in the cards header
+            const anchor = 'prior week weekly change';
+            const wcIdx = sectionText.toLowerCase().indexOf(anchor);
+            console.log(`[Puppeteer] Found "Prior Week Weekly Change" anchor at index: ${wcIdx}`);
+            let cardsAndStats = wcIdx !== -1
+              ? sectionText.substring(wcIdx + anchor.length).trim()
+              : sectionText;
+            
+            console.log(`[Puppeteer] Cards+stats text length: ${cardsAndStats.length}, first 200 chars: ${cardsAndStats.substring(0, 200)}`);
+            
+            // For cards, the format might be simpler - just names followed by numbers
+            // Format: "Topps Silver Pack105Topps9Cooper Flagg9Base9..."
+            // We need to find where numbers start to separate names from stats
+            
+            // Find the first number pattern (comma-separated or multi-digit)
+            const firstNumberMatch = cardsAndStats.match(/(\d{1,3}(?:,\d{3})+|\d{2,})/);
+            if (!firstNumberMatch) {
+              console.log(`[Puppeteer] ERROR: No number pattern found in cards section. Text sample: "${cardsAndStats.substring(0, 300)}"`);
+              return [];
+            }
+            
+            const splitIndex = firstNumberMatch.index;
+            const cardsText = cardsAndStats.substring(0, splitIndex).trim();
+            const statsText = cardsAndStats.substring(splitIndex).trim();
+            
+            console.log(`[Puppeteer] Split at index ${splitIndex}, cards text length: ${cardsText.length}, stats text length: ${statsText.length}`);
+            
+            // 1) Extract card names: Names are jammed together like "Topps Silver PackToppsCooper Flagg..."
+            // Insert delimiter between a lowercase letter and a following capital letter
+            let normalizedNames = cardsText.replace(/([a-z])([A-Z])/g, '$1|$2');
+            const rawNames = normalizedNames
+              .split('|')
+              .map(s => s.trim())
+              .filter(s => s.length > 0 && /[a-z]/i.test(s));
+            
+            console.log(`[Puppeteer] Parsed ${rawNames.length} card names from names block`);
+            if (rawNames.length > 0) {
+              console.log(`[Puppeteer] First 5 names: ${rawNames.slice(0, 5).join(', ')}`);
+            }
+            
+            // 2) Extract stats: Format is just numbers (submission counts)
+            // Pattern: "1059,9,9,8,8,8..." - these are the submission counts
+            // We need to extract numbers in order
+            const statItems = [];
+            const numberPattern = /\d{1,3}(?:,\d{3})*|\d{2,}/g;
+            let match;
+            while ((match = numberPattern.exec(statsText)) !== null) {
+              const count = parseInt(match[0].replace(/,/g, ''), 10);
+              if (count > 0) {
+                statItems.push({ submissions: count });
+              }
+            }
+            
+            console.log(`[Puppeteer] Parsed ${statItems.length} stat rows from stats block`);
+            
+            // Zip cards with stats by index
+            const pairCount = Math.min(rawNames.length, statItems.length);
+            const paired = [];
+            for (let i = 0; i < pairCount; i++) {
+              const cardName = rawNames[i];
+              const s = statItems[i];
+              
+              paired.push({
+                card_name: cardName,
+                name: cardName,
+                card: cardName,
+                submissions: s.submissions,
+                count: s.submissions,
+                total_grades: s.submissions
+              });
+            }
+            
+            console.log(`[Puppeteer] Block-based mapping produced ${paired.length} card records`);
+            if (paired.length > 0) {
+              console.log(`[Puppeteer] First 3 paired results:`, paired.slice(0, 3).map(p => `${p.name}: ${p.submissions}`));
             }
             return paired;
           }
