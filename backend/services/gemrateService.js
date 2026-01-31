@@ -4909,8 +4909,26 @@ class GemRateService {
             return [];
           }
           
-          // Get text from the section onwards (next 10000 characters to get more data)
-          let sectionText = allText.substring(sectionIndex, sectionIndex + 10000);
+          // Get text from the section onwards, but stop at the next trending section
+          // Find where the next section starts (if any)
+          const nextSectionPatterns = [
+            'trending players & subjects',
+            'trending sets',
+            'trending cards'
+          ];
+          let sectionEnd = sectionIndex + 10000; // Default to 10000 chars
+          for (const pattern of nextSectionPatterns) {
+            if (pattern.toLowerCase() !== sectionKeyword.toLowerCase()) {
+              const nextIndex = allText.toLowerCase().indexOf(pattern.toLowerCase(), sectionIndex + 1);
+              if (nextIndex !== -1 && nextIndex < sectionEnd) {
+                sectionEnd = nextIndex;
+              }
+            }
+          }
+          
+          let sectionText = allText.substring(sectionIndex, sectionEnd);
+          
+          console.log(`[Puppeteer] Section "${sectionKeyword}" found at index ${sectionIndex}, extracted ${sectionText.length} chars (stopped at ${sectionEnd})`);
           
           // Remove UI text that we don't need (keep the header row so we can anchor on it)
           sectionText = sectionText.replace(/Drag here to set row groupsDrag here to set column labels/gi, '');
@@ -5217,6 +5235,20 @@ class GemRateService {
               
               const setName = afterYear.substring(0, numberStartMatch.index).trim();
               const numbersPart = afterYear.substring(numberStartMatch.index);
+              
+              // Validate set name - should not be a single word or player name
+              // Sets should have multiple words or be recognizable set names
+              if (!setName || setName.length < 3) {
+                console.log(`[Puppeteer] Skipping invalid set name (too short): "${setName}"`);
+                continue;
+              }
+              
+              // Filter out common player names and generic terms that might leak from other sections
+              const invalidSetNames = ['base', 'score', 'cooper flagg', 'bo jackson', 'michael jordan', 'shohei ohtani'];
+              if (invalidSetNames.some(invalid => setName.toLowerCase().includes(invalid))) {
+                console.log(`[Puppeteer] Skipping invalid set name (looks like player/generic): "${setName}"`);
+                continue;
+              }
               
               console.log(`[Puppeteer] Extracted set: ${sport} ${year} "${setName}" -> numbers: "${numbersPart.substring(0, 50)}"`);
               
