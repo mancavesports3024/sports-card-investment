@@ -3764,6 +3764,14 @@ class GemRateService {
         if (puppeteerCards && puppeteerCards.length > 0) {
           console.log(`📊 [Trending Cards] Raw count from Puppeteer: ${puppeteerCards.length}`);
           const firstCard = puppeteerCards[0];
+          const firstKeys = firstCard && typeof firstCard === 'object' ? Object.keys(firstCard) : [];
+          console.log(`📊 [Trending Cards] Keys on first card: ${firstKeys.join(', ')}`);
+          console.log(`📊 [Trending Cards] Sample raw data (first 2 full objects):`);
+          puppeteerCards.slice(0, 2).forEach((c, i) => {
+            const str = JSON.stringify(c, null, 2);
+            const truncated = str.length > 600 ? str.substring(0, 600) + '...' : str;
+            console.log(`   --- Card ${i + 1} ---\n${truncated}`);
+          });
           const firstName = (firstCard && (firstCard.name || firstCard.card_name || firstCard.card)) ? String(firstCard.name || firstCard.card_name || firstCard.card).substring(0, 80) : '(no name)';
           const firstSubs = firstCard && (firstCard.submissions != null || firstCard.count != null) ? (firstCard.submissions ?? firstCard.count) : null;
           console.log(`📊 [Trending Cards] First card (will drop): "${firstName}${firstName.length >= 80 ? '...' : ''}" | submissions: ${firstSubs}`);
@@ -3794,6 +3802,40 @@ class GemRateService {
           }
         }
         if (puppeteerCards && puppeteerCards.length > 0) {
+          // Ensure each card name starts with a sport (Category column)
+          const sportList = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG'];
+          const sportRegex = new RegExp('\\b(' + sportList.join('|') + ')\\b', 'i');
+          puppeteerCards = puppeteerCards.map((c) => {
+            let name = (c.name || c.card_name || c.card || '').trim();
+            const sportMatch = name.match(sportRegex);
+            if (sportMatch && sportMatch.index > 0) {
+              name = name.substring(sportMatch.index).trim();
+            } else if (sportMatch && sportMatch.index === 0) {
+              // already starts with sport
+            } else if (name.length > 0) {
+              name = name.replace(/^\d+\s*/, '').trim();
+            }
+            if (name.length > 70) {
+              const secondSport = name.substring(20).match(sportRegex);
+              if (secondSport && secondSport.index !== undefined) {
+                name = name.substring(0, 20 + secondSport.index).trim();
+              }
+            }
+            return { ...c, name, card_name: name, card: name };
+          });
+          console.log(`📊 [Trending Cards] Sample normalized data (first 3 cards):`);
+          puppeteerCards.slice(0, 3).forEach((c, i) => {
+            const name = c.name || c.card_name || c.card || '';
+            const subs = c.submissions ?? c.count ?? c.total_grades;
+            const extra = [];
+            if (c.category != null) extra.push(`category=${c.category}`);
+            if (c.year != null) extra.push(`year=${c.year}`);
+            if (c.set != null) extra.push(`set=${c.set}`);
+            if (c.card_number != null) extra.push(`card#=${c.card_number}`);
+            if (c.parallel != null) extra.push(`parallel=${c.parallel}`);
+            const extraStr = extra.length > 0 ? ` | ${extra.join(', ')}` : '';
+            console.log(`   [${i + 1}] name="${name.substring(0, 70)}${name.length > 70 ? '...' : ''}" | submissions=${subs}${extraStr}`);
+          });
           console.log(`✅ Retrieved ${puppeteerCards.length} trending cards via Puppeteer`);
           return {
             success: true,
@@ -4322,7 +4364,14 @@ class GemRateService {
         if (kind === 'cards') {
           console.log(`📊 [Trending Cards] Source: AG Grid | count: ${filtered.length}`);
           if (filtered.length > 0) {
-            console.log(`   First: "${(filtered[0].name || filtered[0].card_name || '').substring(0, 60)}..."`);
+            const f0 = filtered[0];
+            console.log(`   First: "${(f0.name || f0.card_name || '').substring(0, 60)}..." | subs: ${f0.submissions ?? f0.count}`);
+            const keys = Object.keys(f0);
+            console.log(`   AG Grid card keys: ${keys.join(', ')}`);
+            if (filtered.length >= 2) {
+              const f1 = filtered[1];
+              console.log(`   Second: "${(f1.name || f1.card_name || '').substring(0, 60)}..." | subs: ${f1.submissions ?? f1.count}`);
+            }
           }
         }
         return filtered.slice(0, 50);
@@ -5438,6 +5487,8 @@ class GemRateService {
               return [];
             }
             
+            const sports = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG'];
+            const sportRegex = new RegExp('\\b(' + sports.join('|') + ')\\b', 'i');
             const paired = [];
             for (let i = 0; i < matches.length; i++) {
               const start = i === 0 ? 0 : matches[i - 1].index + matches[i - 1].length;
@@ -5450,6 +5501,22 @@ class GemRateService {
               // Skip header-like text (column labels leaked into first row)
               const lower = cardName.toLowerCase();
               if (lower.includes('gem rate') || (lower.includes('graded') && lower.includes('last week') && cardName.length < 60)) continue;
+              // Ensure each card starts with a sport name (Category column); strip leading ID/digits
+              const sportMatch = cardName.match(sportRegex);
+              if (sportMatch && sportMatch.index > 0) {
+                cardName = cardName.substring(sportMatch.index).trim();
+              } else if (sportMatch && sportMatch.index === 0) {
+                // already starts with sport
+              } else {
+                // no sport found - trim leading digits only
+                cardName = cardName.replace(/^\d+\s*/, '').trim();
+              }
+              // If still concatenated (two cards in one: second sport word after ~20 chars), take first card only
+              const secondSport = cardName.substring(20).match(sportRegex);
+              if (secondSport && secondSport.index !== undefined && cardName.length > 70) {
+                cardName = cardName.substring(0, 20 + secondSport.index).trim();
+              }
+              if (cardName.length < 3) continue;
               paired.push({
                 card_name: cardName,
                 name: cardName,
