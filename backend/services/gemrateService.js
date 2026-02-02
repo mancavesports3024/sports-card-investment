@@ -3758,7 +3758,41 @@ class GemRateService {
       debugLog('⚠️ Trending cards not found in script tags, trying HTML parsing...');
       console.log('⚠️ No trending cards from static HTML, trying Puppeteer...');
       try {
-        const puppeteerCards = await this.scrapeDashboardTrendingWithPuppeteer('cards');
+        let puppeteerCards = await this.scrapeDashboardTrendingWithPuppeteer('cards');
+        const rawCount = puppeteerCards && puppeteerCards.length ? puppeteerCards.length : 0;
+        // Log trending cards for debugging odd data / missing first player
+        if (puppeteerCards && puppeteerCards.length > 0) {
+          console.log(`📊 [Trending Cards] Raw count from Puppeteer: ${puppeteerCards.length}`);
+          const firstCard = puppeteerCards[0];
+          const firstName = (firstCard && (firstCard.name || firstCard.card_name || firstCard.card)) ? String(firstCard.name || firstCard.card_name || firstCard.card).substring(0, 80) : '(no name)';
+          const firstSubs = firstCard && (firstCard.submissions != null || firstCard.count != null) ? (firstCard.submissions ?? firstCard.count) : null;
+          console.log(`📊 [Trending Cards] First card (will drop): "${firstName}${firstName.length >= 80 ? '...' : ''}" | submissions: ${firstSubs}`);
+          // Flag possible concatenated entries (very long names = two cards in one)
+          const longNames = puppeteerCards.filter(c => {
+            const n = (c.name || c.card_name || c.card || '').length;
+            return n > 70;
+          });
+          if (longNames.length > 0) {
+            console.log(`📊 [Trending Cards] Possible concatenated entries (name length > 70): ${longNames.length}`);
+            longNames.slice(0, 3).forEach((c, i) => {
+              const n = c.name || c.card_name || c.card || '';
+              console.log(`   [${i + 1}] length=${n.length} | "${n.substring(0, 100)}${n.length > 100 ? '...' : ''}" | submissions: ${c.submissions ?? c.count}`);
+            });
+          }
+        }
+        // Drop the first card (often header/duplicate). Table has 11 cols: Category, Year, Set, Card #, Name, Parallel, Graded All Time, Graded Last Week, Graded Prior Week, Weekly Change, Gem Rate All Time
+        if (puppeteerCards && puppeteerCards.length > 0) {
+          puppeteerCards = puppeteerCards.slice(1);
+          console.log(`📊 [Trending Cards] After dropping first: count=${puppeteerCards.length}`);
+          if (puppeteerCards.length > 0) {
+            const newFirst = puppeteerCards[0];
+            const newFirstName = (newFirst.name || newFirst.card_name || newFirst.card || '').substring(0, 60);
+            console.log(`📊 [Trending Cards] New first card: "${newFirstName}${newFirstName.length >= 60 ? '...' : ''}" | submissions: ${newFirst.submissions ?? newFirst.count}`);
+            if (puppeteerCards.length >= 2) {
+              console.log(`📊 [Trending Cards] Second card: "${(puppeteerCards[1].name || puppeteerCards[1].card_name || '').substring(0, 60)}..." | submissions: ${puppeteerCards[1].submissions ?? puppeteerCards[1].count}`);
+            }
+          }
+        }
         if (puppeteerCards && puppeteerCards.length > 0) {
           console.log(`✅ Retrieved ${puppeteerCards.length} trending cards via Puppeteer`);
           return {
@@ -3768,9 +3802,13 @@ class GemRateService {
             timestamp: new Date().toISOString()
           };
         } else {
+          if (rawCount === 1) {
+            console.log(`📊 [Trending Cards] Only 1 card was returned; after dropping first, 0 cards remain.`);
+          }
           debugLog('⚠️ Puppeteer did not return any trending cards');
         }
       } catch (puppeteerError) {
+        console.error(`📊 [Trending Cards] Puppeteer scrape failed:`, puppeteerError.message);
         debugLog(`⚠️ Puppeteer trending cards scrape failed: ${puppeteerError.message}`);
       }
 
@@ -4156,16 +4194,36 @@ class GemRateService {
                   all_time: allTime
                 });
               } else if (which === 'cards') {
+                // 11 columns: Category, Year, Set, Card #, Name, Parallel, Graded All Time, Graded Last Week, Graded Prior Week, Weekly Change, Gem Rate All Time
+                const year = rowData.year || rowData.Year || rowData['Year'] || '';
+                const set = rowData.set || rowData.set_name || rowData.setName || rowData.Set || rowData['Set'] || '';
+                const cardNum = rowData.card_number || rowData.cardNumber || rowData.number || rowData['Card #'] || rowData['Card Number'] || '';
+                const playerName = rowData.name || rowData.player || rowData.player_name || rowData.card_name || rowData.Name || rowData['Name'] || '';
+                const parallel = rowData.parallel || rowData.parallel_type || rowData.parallelName || rowData.Parallel || rowData['Parallel'] || '';
+                const gemRateAllTime = rowData['Gem Rate, All Time'] || rowData.gem_rate_all_time || rowData.gemRateAllTime || null;
+                const gemRateLastWeek = rowData['Gem Rate, Last Week'] || rowData.gem_rate_last_week || rowData.gemRateLastWeek || null;
                 items.push({
                   card_name: nameText,
                   name: nameText,
                   card: nameText,
+                  category: categoryText,
+                  year,
+                  set,
+                  card_number: cardNum,
+                  player_name: playerName,
+                  parallel,
                   submissions: count,
                   count: count,
                   total_grades: count,
-                  change: change,
+                  graded_all_time: allTime,
+                  graded_last_week: lastWeek,
+                  graded_prior_week: priorWeek,
+                  weekly_change: change,
+                  change,
                   prior_week: priorWeek,
-                  all_time: allTime
+                  all_time: allTime,
+                  gem_rate_all_time: gemRateAllTime,
+                  gem_rate_last_week: gemRateLastWeek
                 });
               }
             }
@@ -4261,6 +4319,12 @@ class GemRateService {
         });
         
         debugLog(`✅ [Puppeteer] AG Grid filtered: ${filtered.length} ${kind} (removed ${unique.length - filtered.length} header items)`);
+        if (kind === 'cards') {
+          console.log(`📊 [Trending Cards] Source: AG Grid | count: ${filtered.length}`);
+          if (filtered.length > 0) {
+            console.log(`   First: "${(filtered[0].name || filtered[0].card_name || '').substring(0, 60)}..."`);
+          }
+        }
         return filtered.slice(0, 50);
       }
       
@@ -5627,6 +5691,17 @@ class GemRateService {
       
       if (simpleResults && simpleResults.length > 0) {
         debugLog(`✅ [Puppeteer] Simple extraction succeeded: ${simpleResults.length} ${kind}`);
+        if (kind === 'cards') {
+          console.log(`📊 [Trending Cards] Source: block-based parser (simpleResults) | count: ${simpleResults.length}`);
+          if (simpleResults.length > 0) {
+            const first = simpleResults[0].name || simpleResults[0].card_name || '';
+            console.log(`   First: "${first.substring(0, 70)}${first.length > 70 ? '...' : ''}" | subs: ${simpleResults[0].submissions ?? simpleResults[0].count}`);
+            if (simpleResults.length >= 2) {
+              const second = simpleResults[1].name || simpleResults[1].card_name || '';
+              console.log(`   Second: "${second.substring(0, 70)}${second.length > 70 ? '...' : ''}" | subs: ${simpleResults[1].submissions ?? simpleResults[1].count}`);
+            }
+          }
+        }
         if (kind === 'players' && simpleResults.length > 0) {
           debugLog(`[Puppeteer] First 3 player results:`, simpleResults.slice(0, 3).map(p => `${p.player}: ${p.sport} ${p.submissions}`));
         }
@@ -6210,37 +6285,37 @@ class GemRateService {
                            'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'past', 'page', 'drag', 'here'];
         
         const filtered = results.filter(item => {
-          const name = (item.name || item.player || item.set_name || '').trim().toLowerCase();
+          const name = (item.name || item.player || item.set_name || item.card_name || '').trim().toLowerCase();
           
           // Skip exact matches
           if (headerPhrasesToFilter.includes(name)) {
-            debugLog(`[Puppeteer] Final filter: Removed exact match "${item.name || item.player || item.set_name}"`);
+            debugLog(`[Puppeteer] Final filter: Removed exact match "${item.name || item.player || item.set_name || item.card_name}"`);
             return false;
           }
           
           // Skip if name STARTS with any header phrase (catches "Prior Week Weekly Change Michael Jordan")
           if (headerPhrasesToFilter.some(phrase => name.startsWith(phrase))) {
-            debugLog(`[Puppeteer] Final filter: Removed starts with "${item.name || item.player || item.set_name}"`);
+            debugLog(`[Puppeteer] Final filter: Removed starts with "${item.name || item.player || item.set_name || item.card_name}"`);
             return false;
           }
           
           // Skip if contains header phrase (for longer phrases > 8 chars to avoid false positives)
           if (headerPhrasesToFilter.some(phrase => phrase.length > 8 && name.includes(phrase))) {
-            debugLog(`[Puppeteer] Final filter: Removed contains "${item.name || item.player || item.set_name}"`);
+            debugLog(`[Puppeteer] Final filter: Removed contains "${item.name || item.player || item.set_name || item.card_name}"`);
             return false;
           }
           
           // Skip single header words
           const words = name.split(/\s+/);
           if (words.length === 1 && headerWords.includes(name)) {
-            debugLog(`[Puppeteer] Final filter: Removed single word "${item.name || item.player || item.set_name}"`);
+            debugLog(`[Puppeteer] Final filter: Removed single word "${item.name || item.player || item.set_name || item.card_name}"`);
             return false;
           }
           
           // Skip if 2+ words are header words
           const headerWordCount = words.filter(w => headerWords.includes(w)).length;
           if (headerWordCount >= 2) {
-            debugLog(`[Puppeteer] Final filter: Removed ${headerWordCount} header words "${item.name || item.player || item.set_name}"`);
+            debugLog(`[Puppeteer] Final filter: Removed ${headerWordCount} header words "${item.name || item.player || item.set_name || item.card_name}"`);
             return false;
           }
           
@@ -6248,6 +6323,13 @@ class GemRateService {
         });
         
         debugLog(`✅ [Puppeteer] Final filter: ${filtered.length} ${kind} (removed ${results.length - filtered.length} header items)`);
+        if (kind === 'cards') {
+          console.log(`📊 [Trending Cards] Source: comprehensive fallback (results) | count: ${filtered.length}`);
+          if (filtered.length > 0) {
+            const first = filtered[0].name || filtered[0].card_name || '';
+            console.log(`   First: "${first.substring(0, 70)}${first.length > 70 ? '...' : ''}" | subs: ${filtered[0].submissions ?? filtered[0].count}`);
+          }
+        }
         return filtered;
       }
 
