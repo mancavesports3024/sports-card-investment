@@ -56,6 +56,12 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // In development (localhost), don't intercept - let requests go to the network.
+  // This avoids 503 errors when cache is cleared and backend isn't running.
+  if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1') {
+    return;
+  }
+
   // Skip non-GET requests
   if (request.method !== 'GET') {
     return;

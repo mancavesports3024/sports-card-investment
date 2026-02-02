@@ -1237,61 +1237,76 @@ const NewsPage = () => {
         </p>
       </div>
 
-      {/* Tab Navigation */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        marginBottom: '2rem',
-        gap: '1rem',
-        flexWrap: 'wrap'
-      }}>
+      {/* Tab Navigation: all three tabs always shown - Release Calendar | Industry News | Trending */}
+      <div
+        className="news-page-tab-bar"
+        role="tablist"
+        aria-label="News section tabs"
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '0.75rem',
+          marginBottom: '2rem',
+          width: '100%',
+          padding: '0.5rem 0'
+        }}
+      >
         <button
+          role="tab"
+          aria-selected={activeTab === 'releases'}
           onClick={() => setActiveTab('releases')}
           style={{
             background: activeTab === 'releases' ? '#ffd700' : '#374151',
             color: activeTab === 'releases' ? '#000' : '#fff',
             border: '2px solid #ffd700',
-            padding: '0.75rem 1.5rem',
+            padding: '0.75rem 1.25rem',
             borderRadius: 8,
             cursor: 'pointer',
             fontWeight: 600,
-            fontSize: '1rem',
+            fontSize: '0.95rem',
             transition: 'all 0.3s ease'
           }}
         >
           📅 Release Calendar
         </button>
         <button
+          role="tab"
+          aria-selected={activeTab === 'news'}
           onClick={() => setActiveTab('news')}
           style={{
             background: activeTab === 'news' ? '#ffd700' : '#374151',
             color: activeTab === 'news' ? '#000' : '#fff',
             border: '2px solid #ffd700',
-            padding: '0.75rem 1.5rem',
+            padding: '0.75rem 1.25rem',
             borderRadius: 8,
             cursor: 'pointer',
             fontWeight: 600,
-            fontSize: '1rem',
+            fontSize: '0.95rem',
             transition: 'all 0.3s ease'
           }}
         >
           📰 Industry News
         </button>
         <button
+          role="tab"
+          aria-selected={activeTab === 'trending'}
+          aria-label="Trending players, sets, and cards"
           onClick={() => setActiveTab('trending')}
           style={{
             background: activeTab === 'trending' ? '#ffd700' : '#374151',
             color: activeTab === 'trending' ? '#000' : '#fff',
             border: '2px solid #ffd700',
-            padding: '0.75rem 1.5rem',
+            padding: '0.75rem 1.25rem',
             borderRadius: 8,
             cursor: 'pointer',
             fontWeight: 600,
-            fontSize: '1rem',
+            fontSize: '0.95rem',
             transition: 'all 0.3s ease'
           }}
         >
-          🔥 Trending Players
+          🔥 Trending
         </button>
       </div>
 

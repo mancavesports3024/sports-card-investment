@@ -5,6 +5,10 @@ const cheerio = require('cheerio');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
+// Only log verbose GemRate/Puppeteer debug when GEMRATE_DEBUG=true (reduces Railway log noise)
+const GEMRATE_DEBUG = process.env.GEMRATE_DEBUG === 'true';
+const debugLog = GEMRATE_DEBUG ? (...args) => console.log(...args) : () => {};
+
 class GemRateService {
   constructor() {
     this.baseUrl = 'https://www.gemrate.com';
@@ -114,10 +118,10 @@ class GemRateService {
       await this.page.setUserAgent(this.baseHeaders['User-Agent']);
       await this.page.setViewport({ width: 1366, height: 768 });
       
-      console.log('✅ Puppeteer browser initialized for GemRate');
+      debugLog('✅ Puppeteer browser initialized for GemRate');
       return true;
     } catch (error) {
-      console.log('⚠️ Puppeteer not available:', error.message);
+      debugLog('⚠️ Puppeteer not available:', error.message);
       return false;
     }
   }
@@ -160,9 +164,9 @@ class GemRateService {
         headers: this.pageHeaders
       });
       this.sessionInitialized = true;
-      console.log('✅ GemRate session initialized');
+      debugLog('✅ GemRate session initialized');
     } catch (error) {
-      console.log(`⚠️ GemRate warm-up failed: ${error.message}`);
+      debugLog(`⚠️ GemRate warm-up failed: ${error.message}`);
     }
   }
 
@@ -196,7 +200,7 @@ class GemRateService {
             }
           });
           if (response.status === 200) {
-            console.log(`✅ GemRate card page visited at path ${path} (status ${response.status})`);
+            debugLog(`✅ GemRate card page visited at path ${path} (status ${response.status})`);
             if (!firstSuccessfulPath) {
               firstSuccessfulPath = path;
             }
@@ -209,16 +213,16 @@ class GemRateService {
           // Only log as warning if it's not a 404, or if we don't have a fallback path yet
           const is404 = innerErr.response?.status === 404;
           if (!is404 || !firstSuccessfulPath) {
-            console.log(`⚠️ GemRate card page attempt ${path} failed: ${innerErr.response?.status || innerErr.message}`);
+            debugLog(`⚠️ GemRate card page attempt ${path} failed: ${innerErr.response?.status || innerErr.message}`);
           }
         }
       }
       if (firstSuccessfulPath) {
         return firstSuccessfulPath;
       }
-      console.log(`⚠️ GemRate card page warm-up failed for ${gemrateId} (slug: ${cardSlug || 'none'}) - all paths attempted`);
+      debugLog(`⚠️ GemRate card page warm-up failed for ${gemrateId} (slug: ${cardSlug || 'none'}) - all paths attempted`);
     } catch (error) {
-      console.log(`⚠️ GemRate card page warm-up failed for ${gemrateId}: ${error.message}`);
+      debugLog(`⚠️ GemRate card page warm-up failed for ${gemrateId}: ${error.message}`);
     }
     return null;
   }
@@ -257,7 +261,7 @@ class GemRateService {
       const tokenMatch = html.match(/const\s+cardDetailsToken\s*=\s*"([^"]+)"/);
       if (tokenMatch && tokenMatch[1]) {
         cardDetailsToken = tokenMatch[1];
-        console.log('🔐 Parsed GemRate cardDetailsToken from universal search page');
+        debugLog('🔐 Parsed GemRate cardDetailsToken from universal search page');
       }
 
       $('a[href]').each((_, el) => {
@@ -307,7 +311,7 @@ class GemRateService {
 
       return { slug, paths: Array.from(pathsSet), universalPopPath, cardDetailsToken };
     } catch (error) {
-      console.log(`⚠️ Unable to parse universal search page for ${gemrateId}: ${error.message}`);
+      debugLog(`⚠️ Unable to parse universal search page for ${gemrateId}: ${error.message}`);
       return { slug: null, paths: [], cardDetailsToken: null };
     }
   }
@@ -337,7 +341,7 @@ class GemRateService {
         cleanQuery = cleanQuery.replace(/\s*-\s*\w+/g, '').trim();
       }
       
-      console.log(`🔍 GemRate search: "${cleanQuery}"`);
+      debugLog(`🔍 GemRate search: "${cleanQuery}"`);
 
       // Step 1: Search for gemrate_id
       const searchResponse = await this.httpClient.post(this.searchPath, {
@@ -348,7 +352,7 @@ class GemRateService {
       });
 
       if (!searchResponse.data || searchResponse.status !== 200) {
-        console.log(`❌ No GemRate search results for: ${searchQuery}`);
+        debugLog(`❌ No GemRate search results for: ${searchQuery}`);
         return {
           success: false,
           card: searchQuery,
@@ -361,9 +365,9 @@ class GemRateService {
       // Extract gemrate_id from search results
       const { gemrateId, cardSlug, sampleEntry } = this.extractGemrateInfo(searchResponse.data);
       if (!gemrateId) {
-        console.log(`❌ No gemrate_id found in search results for: ${searchQuery}`);
+        debugLog(`❌ No gemrate_id found in search results for: ${searchQuery}`);
         if (searchResponse.data) {
-          console.log('🔍 GemRate search data sample:', JSON.stringify(searchResponse.data, null, 2).slice(0, 1000));
+          debugLog('🔍 GemRate search data sample:', JSON.stringify(searchResponse.data, null, 2).slice(0, 1000));
         }
         return {
           success: false,
@@ -374,9 +378,9 @@ class GemRateService {
         };
       }
 
-      console.log(`🔍 Found gemrate_id: ${gemrateId}${cardSlug ? ` (slug: ${cardSlug})` : ''}`);
+      debugLog(`🔍 Found gemrate_id: ${gemrateId}${cardSlug ? ` (slug: ${cardSlug})` : ''}`);
       if (!cardSlug && sampleEntry) {
-        console.log('🔍 GemRate first result sample:', JSON.stringify(sampleEntry, null, 2).slice(0, 1000));
+        debugLog('🔍 GemRate first result sample:', JSON.stringify(sampleEntry, null, 2).slice(0, 1000));
       }
 
       let resolvedSlug = cardSlug;
@@ -387,12 +391,12 @@ class GemRateService {
         const slugInfo = await this.fetchSlugFromUniversalSearch(gemrateId);
         if (slugInfo.slug) {
           resolvedSlug = slugInfo.slug;
-          console.log(`🔍 Derived slug from universal search page: ${resolvedSlug}`);
+          debugLog(`🔍 Derived slug from universal search page: ${resolvedSlug}`);
         }
         if (slugInfo.paths && slugInfo.paths.length > 0) {
           extraPaths = slugInfo.paths;
         if (!resolvedSlug) {
-          console.log('🔍 Universal search paths discovered:', slugInfo.paths.slice(0, 5));
+          debugLog('🔍 Universal search paths discovered:', slugInfo.paths.slice(0, 5));
         }
         }
         if (slugInfo.universalPopPath) {
@@ -425,7 +429,7 @@ class GemRateService {
       // Step 2: Get detailed card data using gemrate_id
       const cardDetails = await this.getCardDetails(gemrateId, resolvedSlug, warmedPath, refererOverride, cardDetailsToken);
       if (!cardDetails) {
-        console.log(`❌ No card details found for gemrate_id: ${gemrateId}`);
+        debugLog(`❌ No card details found for gemrate_id: ${gemrateId}`);
         return {
           success: false,
           card: searchQuery,
@@ -435,7 +439,7 @@ class GemRateService {
         };
       }
 
-      console.log(`✅ Found GemRate data for: ${searchQuery}`);
+      debugLog(`✅ Found GemRate data for: ${searchQuery}`);
       return {
         success: true,
         card: searchQuery,
@@ -515,7 +519,7 @@ class GemRateService {
           );
           if (universalEntry) {
             inspectEntry(universalEntry, true);
-            console.log('🔍 Found Universal entry in search results');
+            debugLog('🔍 Found Universal entry in search results');
             return;
           }
           
@@ -526,7 +530,7 @@ class GemRateService {
           );
           if (psaEntry) {
             inspectEntry(psaEntry, true);
-            console.log('🔍 Found PSA entry in search results');
+            debugLog('🔍 Found PSA entry in search results');
             return;
           }
           
@@ -535,7 +539,7 @@ class GemRateService {
             const firstEntry = data[0];
             const popType = firstEntry?.population_type;
             if (popType && popType !== 'Universal' && popType !== 'PSA' && popType !== 'universal' && popType !== 'psa') {
-              console.log(`⚠️ First entry has population_type "${popType}", will use as fallback but prefer Universal/PSA`);
+              debugLog(`⚠️ First entry has population_type "${popType}", will use as fallback but prefer Universal/PSA`);
             }
             inspectEntry(firstEntry, false);
           }
@@ -544,11 +548,11 @@ class GemRateService {
           const popType = data.population_type;
           if (popType === 'Universal' || popType === 'universal') {
             inspectEntry(data, true);
-            console.log(`🔍 Found Universal entry in search results`);
+            debugLog(`🔍 Found Universal entry in search results`);
             return;
           } else if (popType === 'PSA' || popType === 'psa') {
             inspectEntry(data, true);
-            console.log(`🔍 Found PSA entry in search results`);
+            debugLog(`🔍 Found PSA entry in search results`);
             return;
           }
           
@@ -579,10 +583,10 @@ class GemRateService {
       }
 
       if (!info.gemrateId) {
-        console.log('🔍 Unable to find gemrate_id in search data.');
+        debugLog('🔍 Unable to find gemrate_id in search data.');
       }
       if (!info.cardSlug) {
-        console.log('⚠️ No slug found in search data. Available keys:', Object.keys(searchData || {}));
+        debugLog('⚠️ No slug found in search data. Available keys:', Object.keys(searchData || {}));
       }
       return info;
     } catch (error) {
@@ -598,7 +602,7 @@ class GemRateService {
    */
   async getCardDetails(gemrateId, cardSlug = null, warmedPath = null, refererOverride = null, cardDetailsToken = null) {
     try {
-      console.log(`📊 Getting card details for gemrate_id: ${gemrateId}`);
+      debugLog(`📊 Getting card details for gemrate_id: ${gemrateId}`);
 
       const refererPath =
         refererOverride ||
@@ -609,7 +613,7 @@ class GemRateService {
       let effectiveToken = cardDetailsToken || this.latestCardDetailsToken || null;
       
       if (!effectiveToken) {
-        console.log('📄 Fetching /universal-search page to extract cardDetailsToken...');
+        debugLog('📄 Fetching /universal-search page to extract cardDetailsToken...');
         try {
           const universalSearchResponse = await this.httpClient.get('/universal-search', {
             params: { gemrate_id: gemrateId },
@@ -623,13 +627,13 @@ class GemRateService {
             if (tokenMatch && tokenMatch[1]) {
               effectiveToken = tokenMatch[1];
               this.latestCardDetailsToken = effectiveToken;
-              console.log('🔐 Extracted cardDetailsToken from /universal-search page');
+              debugLog('🔐 Extracted cardDetailsToken from /universal-search page');
             } else {
-              console.log('⚠️ Could not extract cardDetailsToken from /universal-search page');
+              debugLog('⚠️ Could not extract cardDetailsToken from /universal-search page');
             }
           }
         } catch (tokenError) {
-          console.log(`⚠️ Failed to fetch /universal-search for token: ${tokenError.message}`);
+          debugLog(`⚠️ Failed to fetch /universal-search for token: ${tokenError.message}`);
         }
       }
 
@@ -646,7 +650,7 @@ class GemRateService {
       };
 
       if (!effectiveToken) {
-        console.log('⚠️ No cardDetailsToken available; attempting request without it');
+        debugLog('⚠️ No cardDetailsToken available; attempting request without it');
       }
 
       const response = await this.httpClient.get('/card-details', {
@@ -655,22 +659,22 @@ class GemRateService {
       });
 
       if (response.data && response.status === 200) {
-        console.log(`✅ Retrieved card details for gemrate_id: ${gemrateId}`);
-        console.log(`[getCardDetails] Response data type: ${typeof response.data}, isArray: ${Array.isArray(response.data)}`);
+        debugLog(`✅ Retrieved card details for gemrate_id: ${gemrateId}`);
+        debugLog(`[getCardDetails] Response data type: ${typeof response.data}, isArray: ${Array.isArray(response.data)}`);
         if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
-          console.log(`[getCardDetails] Response data keys: ${Object.keys(response.data).join(', ')}`);
+          debugLog(`[getCardDetails] Response data keys: ${Object.keys(response.data).join(', ')}`);
         }
         return response.data;
       } else {
-        console.log(`❌ No card details found for gemrate_id: ${gemrateId} (status: ${response.status})`);
+        debugLog(`❌ No card details found for gemrate_id: ${gemrateId} (status: ${response.status})`);
         return null;
       }
     } catch (error) {
       // Check if it's a 404 - this is expected for some cards
       if (error.response?.status === 404) {
-        console.log(`⚠️ GemRate card details returned 404 for gemrate_id: ${gemrateId} - card may not have detailed page`);
+        debugLog(`⚠️ GemRate card details returned 404 for gemrate_id: ${gemrateId} - card may not have detailed page`);
       } else if (error.response?.status === 403) {
-        console.log(`⚠️ GemRate card details returned 403 for gemrate_id: ${gemrateId} - access may be blocked`);
+        debugLog(`⚠️ GemRate card details returned 403 for gemrate_id: ${gemrateId} - access may be blocked`);
       } else {
         console.error('❌ Error getting card details:', error.message);
       }
@@ -685,17 +689,17 @@ class GemRateService {
    */
   parsePopulationData(rawData) {
     try {
-      console.log(`[parsePopulationData] Starting parse. Type: ${typeof rawData}, isArray: ${Array.isArray(rawData)}`);
+      debugLog(`[parsePopulationData] Starting parse. Type: ${typeof rawData}, isArray: ${Array.isArray(rawData)}`);
       if (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) {
-        console.log(`[parsePopulationData] Raw data keys: ${Object.keys(rawData).join(', ')}`);
+        debugLog(`[parsePopulationData] Raw data keys: ${Object.keys(rawData).join(', ')}`);
         // Log a sample of the structure (first 2000 chars)
         const sample = JSON.stringify(rawData, null, 2).substring(0, 2000);
-        console.log(`[parsePopulationData] Raw data sample:\n${sample}`);
+        debugLog(`[parsePopulationData] Raw data sample:\n${sample}`);
       }
       
       // Handle HTML responses from /universal-search
       if (rawData && rawData.html && typeof rawData.html === 'string') {
-        console.log('📊 Parsing HTML response from /universal-search');
+        debugLog('📊 Parsing HTML response from /universal-search');
         const html = rawData.html;
         const $ = cheerio.load(html);
         
@@ -740,7 +744,7 @@ class GemRateService {
         if (totalPopText) {
           const totalMatch = totalPopText.match(/(\d+)/);
           if (totalMatch) {
-            console.log(`📊 Extracted total population from HTML: ${totalMatch[1]}`);
+            debugLog(`📊 Extracted total population from HTML: ${totalMatch[1]}`);
             // Return basic structure - caller can use this
             return {
               total: parseInt(totalMatch[1], 10),
@@ -754,7 +758,7 @@ class GemRateService {
       }
       
       if (!rawData || typeof rawData !== 'object') {
-        console.log(`[parsePopulationData] Invalid rawData type: ${typeof rawData}`);
+        debugLog(`[parsePopulationData] Invalid rawData type: ${typeof rawData}`);
         return null;
       }
 
@@ -762,60 +766,60 @@ class GemRateService {
       let psaData = null;
       
       if (rawData.population_data && Array.isArray(rawData.population_data)) {
-        console.log(`[parsePopulationData] Found population_data array with ${rawData.population_data.length} entries`);
+        debugLog(`[parsePopulationData] Found population_data array with ${rawData.population_data.length} entries`);
         // Log first entry to see structure
         if (rawData.population_data.length > 0) {
-          console.log(`[parsePopulationData] First population_data entry keys: ${Object.keys(rawData.population_data[0] || {}).join(', ')}`);
-          console.log(`[parsePopulationData] First population_data entry grader: ${rawData.population_data[0]?.grader || 'undefined'}`);
+          debugLog(`[parsePopulationData] First population_data entry keys: ${Object.keys(rawData.population_data[0] || {}).join(', ')}`);
+          debugLog(`[parsePopulationData] First population_data entry grader: ${rawData.population_data[0]?.grader || 'undefined'}`);
         }
         // Find the PSA entry in the population_data array
         psaData = rawData.population_data.find(item => item.grader === 'psa');
         if (psaData) {
-          console.log(`[parsePopulationData] Found PSA entry in population_data array`);
+          debugLog(`[parsePopulationData] Found PSA entry in population_data array`);
         } else {
           const graders = rawData.population_data.map(item => item?.grader).filter(Boolean);
-          console.log(`[parsePopulationData] No PSA entry found. Available graders: ${graders.join(', ')}`);
+          debugLog(`[parsePopulationData] No PSA entry found. Available graders: ${graders.join(', ')}`);
           // If no PSA but we have entries, log what we do have
           if (rawData.population_data.length > 0) {
-            console.log(`[parsePopulationData] Sample entry structure:`, JSON.stringify(rawData.population_data[0], null, 2).substring(0, 500));
+            debugLog(`[parsePopulationData] Sample entry structure:`, JSON.stringify(rawData.population_data[0], null, 2).substring(0, 500));
           }
         }
       }
       
       // Fallback to other possible structures
       if (!psaData) {
-        console.log(`[parsePopulationData] Checking alternative locations for PSA data...`);
+        debugLog(`[parsePopulationData] Checking alternative locations for PSA data...`);
         if (rawData.psa) {
-          console.log(`[parsePopulationData] Found rawData.psa`);
+          debugLog(`[parsePopulationData] Found rawData.psa`);
           psaData = rawData.psa;
         } else if (rawData.data && rawData.data.psa) {
-          console.log(`[parsePopulationData] Found rawData.data.psa`);
+          debugLog(`[parsePopulationData] Found rawData.data.psa`);
           psaData = rawData.data.psa;
         } else if (rawData.population && rawData.population.psa) {
-          console.log(`[parsePopulationData] Found rawData.population.psa`);
+          debugLog(`[parsePopulationData] Found rawData.population.psa`);
           psaData = rawData.population.psa;
         } else if (rawData.grading && rawData.grading.psa) {
-          console.log(`[parsePopulationData] Found rawData.grading.psa`);
+          debugLog(`[parsePopulationData] Found rawData.grading.psa`);
           psaData = rawData.grading.psa;
         } else if (rawData.results && rawData.results.psa) {
-          console.log(`[parsePopulationData] Found rawData.results.psa`);
+          debugLog(`[parsePopulationData] Found rawData.results.psa`);
           psaData = rawData.results.psa;
         } else if (rawData.card && rawData.card.psa) {
-          console.log(`[parsePopulationData] Found rawData.card.psa`);
+          debugLog(`[parsePopulationData] Found rawData.card.psa`);
           psaData = rawData.card.psa;
         } else {
-          console.log(`[parsePopulationData] No PSA data found in any expected location`);
+          debugLog(`[parsePopulationData] No PSA data found in any expected location`);
         }
       }
 
       if (!psaData) {
-        console.log(`[parsePopulationData] Returning null - no PSA data found`);
+        debugLog(`[parsePopulationData] Returning null - no PSA data found`);
         return null;
       }
       
-      console.log(`[parsePopulationData] PSA data keys: ${Object.keys(psaData).join(', ')}`);
+      debugLog(`[parsePopulationData] PSA data keys: ${Object.keys(psaData).join(', ')}`);
       const psaSample = JSON.stringify(psaData, null, 2).substring(0, 1000);
-      console.log(`[parsePopulationData] PSA data sample:\n${psaSample}`);
+      debugLog(`[parsePopulationData] PSA data sample:\n${psaSample}`);
 
       // Parse the PSA data structure from the actual GemRate response
       // Try multiple possible field names for each value
@@ -871,7 +875,7 @@ class GemRateService {
         rawPsaData: psaData
       };
 
-      console.log(`[parsePopulationData] Parsed population:`, {
+      debugLog(`[parsePopulationData] Parsed population:`, {
         total,
         perfect,
         grade9,
@@ -907,7 +911,7 @@ class GemRateService {
    */
   async getGradingTrends(cardName) {
     try {
-      console.log(`📈 Getting GemRate grading trends for: ${cardName}`);
+      debugLog(`📈 Getting GemRate grading trends for: ${cardName}`);
       
       // This would connect to GemRate's grading trends API
       const trendsData = {
@@ -938,7 +942,7 @@ class GemRateService {
    */
   async getSetPopulation(setName) {
     try {
-      console.log(`📊 Getting GemRate set population for: ${setName}`);
+      debugLog(`📊 Getting GemRate set population for: ${setName}`);
       
       const setData = {
         setName: setName,
@@ -969,7 +973,7 @@ class GemRateService {
     try {
       await this.ensureSession();
       
-      console.log('📊 Fetching universal-pop-report sets...');
+      debugLog('📊 Fetching universal-pop-report sets...');
       
       // First, try to find an API endpoint that returns JSON directly
       let setsData = null;
@@ -987,7 +991,7 @@ class GemRateService {
       ];
       
       // Also try to find fetch calls in the HTML that might reveal the API endpoint
-      console.log('🔍 Searching for API endpoints in HTML...');
+      debugLog('🔍 Searching for API endpoints in HTML...');
       
       for (const endpoint of apiEndpoints) {
         try {
@@ -1005,15 +1009,15 @@ class GemRateService {
             // Check if it's an array or has a data property
             if (Array.isArray(apiResponse.data)) {
               setsData = apiResponse.data;
-              console.log(`✅ Found sets data via API endpoint: ${endpoint} (${setsData.length} sets)`);
+              debugLog(`✅ Found sets data via API endpoint: ${endpoint} (${setsData.length} sets)`);
               break;
             } else if (apiResponse.data.data && Array.isArray(apiResponse.data.data)) {
               setsData = apiResponse.data.data;
-              console.log(`✅ Found sets data via API endpoint: ${endpoint} (${setsData.length} sets)`);
+              debugLog(`✅ Found sets data via API endpoint: ${endpoint} (${setsData.length} sets)`);
               break;
             } else if (apiResponse.data.sets && Array.isArray(apiResponse.data.sets)) {
               setsData = apiResponse.data.sets;
-              console.log(`✅ Found sets data via API endpoint: ${endpoint} (${setsData.length} sets)`);
+              debugLog(`✅ Found sets data via API endpoint: ${endpoint} (${setsData.length} sets)`);
               break;
             }
           }
@@ -1044,11 +1048,11 @@ class GemRateService {
         // Try to find API endpoints in fetch calls or script tags
         const fetchMatches = html.match(/fetch\s*\(\s*['"`]([^'"`]+)['"`]/gi);
         if (fetchMatches) {
-          console.log(`🔍 Found ${fetchMatches.length} fetch calls in HTML`);
+          debugLog(`🔍 Found ${fetchMatches.length} fetch calls in HTML`);
           for (const match of fetchMatches) {
             const urlMatch = match.match(/['"`]([^'"`]+)['"`]/);
             if (urlMatch && (urlMatch[1].includes('api') || urlMatch[1].includes('data') || urlMatch[1].includes('sets'))) {
-              console.log(`📡 Potential API endpoint found: ${urlMatch[1]}`);
+              debugLog(`📡 Potential API endpoint found: ${urlMatch[1]}`);
               // Try this endpoint
               try {
                 const apiUrl = urlMatch[1].startsWith('http') ? urlMatch[1] : `https://www.gemrate.com${urlMatch[1]}`;
@@ -1061,7 +1065,7 @@ class GemRateService {
                 });
                 if (apiResponse.data && Array.isArray(apiResponse.data)) {
                   setsData = apiResponse.data;
-                  console.log(`✅ Found sets data via discovered API: ${urlMatch[1]} (${setsData.length} sets)`);
+                  debugLog(`✅ Found sets data via discovered API: ${urlMatch[1]} (${setsData.length} sets)`);
                   break;
                 }
               } catch (e) {
@@ -1135,18 +1139,18 @@ class GemRateService {
               setsData = JSON.parse(jsonStr);
               
               if (Array.isArray(setsData) && setsData.length > 0) {
-                console.log(`✅ Found sets data in script tag #${scriptCount} using pattern ${i + 1}: ${setsData.length} sets`);
+                debugLog(`✅ Found sets data in script tag #${scriptCount} using pattern ${i + 1}: ${setsData.length} sets`);
                 // Log first set as sample
                 if (setsData[0]) {
-                  console.log(`📋 Sample set: ${JSON.stringify(setsData[0]).substring(0, 200)}...`);
+                  debugLog(`📋 Sample set: ${JSON.stringify(setsData[0]).substring(0, 200)}...`);
                 }
                 return false; // Break out of each loop
               }
             } catch (e) {
               // Log the error for debugging
               if (i === patterns.length - 1) { // Only log for the last pattern to avoid spam
-                console.log(`⚠️ Could not parse JSON from pattern ${i + 1}: ${e.message}`);
-                console.log(`📝 Sample of matched text (first 500 chars): ${(matches[1] || matches[0]).substring(0, 500)}`);
+                debugLog(`⚠️ Could not parse JSON from pattern ${i + 1}: ${e.message}`);
+                debugLog(`📝 Sample of matched text (first 500 chars): ${(matches[1] || matches[0]).substring(0, 500)}`);
               }
               continue;
             }
@@ -1154,22 +1158,22 @@ class GemRateService {
         }
       });
       
-      console.log(`🔍 Checked ${scriptCount} script tags for data`);
+      debugLog(`🔍 Checked ${scriptCount} script tags for data`);
 
       // If no JSON found, try to parse from table
       if (!setsData || setsData.length === 0) {
-        console.log('⚠️ No JSON data found in script tags, attempting to parse from HTML table...');
-        console.log(`📄 HTML length: ${html.length} characters`);
-        console.log(`📊 Found ${$('table').length} tables in HTML`);
+        debugLog('⚠️ No JSON data found in script tags, attempting to parse from HTML table...');
+        debugLog(`📄 HTML length: ${html.length} characters`);
+        debugLog(`📊 Found ${$('table').length} tables in HTML`);
         setsData = this.parseSetsFromTable($);
       }
       
       // If still no data, try to find any JSON-like structures in the entire HTML
       if (!setsData || setsData.length === 0) {
-        console.log('⚠️ No data from table parsing, trying to find JSON in entire HTML...');
+        debugLog('⚠️ No data from table parsing, trying to find JSON in entire HTML...');
         const jsonMatches = html.match(/(\[[\s\S]{500,}?\])/g);
         if (jsonMatches) {
-          console.log(`🔍 Found ${jsonMatches.length} potential JSON arrays in HTML`);
+          debugLog(`🔍 Found ${jsonMatches.length} potential JSON arrays in HTML`);
           for (const jsonMatch of jsonMatches) {
             try {
               const cleaned = jsonMatch.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
@@ -1178,7 +1182,7 @@ class GemRateService {
                 // Check if it looks like set data
                 if (parsed[0].set_name || parsed[0].set_id || parsed[0].name) {
                   setsData = parsed;
-                  console.log(`✅ Found sets data in HTML: ${setsData.length} sets`);
+                  debugLog(`✅ Found sets data in HTML: ${setsData.length} sets`);
                   break;
                 }
               }
@@ -1191,7 +1195,7 @@ class GemRateService {
       
       // Last resort: Use Puppeteer to execute JavaScript and extract data
       if (!setsData || setsData.length === 0) {
-        console.log('⚠️ Trying Puppeteer to execute JavaScript and extract data...');
+        debugLog('⚠️ Trying Puppeteer to execute JavaScript and extract data...');
         const browserInitialized = await this.initializeBrowser();
         if (browserInitialized && this.page) {
           try {
@@ -1262,13 +1266,13 @@ class GemRateService {
             }
             
             if (setsData && setsData.length > 0) {
-              console.log(`✅ Found ${setsData.length} sets using Puppeteer`);
+              debugLog(`✅ Found ${setsData.length} sets using Puppeteer`);
             }
             
             // Close browser to free memory
             await this.closeBrowser();
           } catch (e) {
-            console.log(`⚠️ Puppeteer extraction failed: ${e.message}`);
+            debugLog(`⚠️ Puppeteer extraction failed: ${e.message}`);
             await this.closeBrowser();
           }
         }
@@ -1276,7 +1280,7 @@ class GemRateService {
       } // Close the if (!setsData || setsData.length === 0) block
 
       if (!setsData || setsData.length === 0) {
-        console.log('❌ No sets data found in universal-pop-report');
+        debugLog('❌ No sets data found in universal-pop-report');
         return { categories: {} };
       }
 
@@ -1311,7 +1315,7 @@ class GemRateService {
         });
       });
 
-      console.log(`✅ Organized ${setsData.length} sets into ${Object.keys(categories).length} categories`);
+      debugLog(`✅ Organized ${setsData.length} sets into ${Object.keys(categories).length} categories`);
       
       return { categories };
     } catch (error) {
@@ -1339,7 +1343,7 @@ class GemRateService {
       let foundRows = false;
       for (const selector of selectors) {
         const rows = $(selector);
-        console.log(`🔍 Trying selector "${selector}": found ${rows.length} rows`);
+        debugLog(`🔍 Trying selector "${selector}": found ${rows.length} rows`);
         
         if (rows.length > 0) {
           foundRows = true;
@@ -1410,17 +1414,17 @@ class GemRateService {
           });
           
           if (sets.length > 0) {
-            console.log(`✅ Found ${sets.length} sets using selector "${selector}"`);
+            debugLog(`✅ Found ${sets.length} sets using selector "${selector}"`);
             break;
           }
         }
       }
       
       if (!foundRows) {
-        console.log('⚠️ No table rows found with any selector');
+        debugLog('⚠️ No table rows found with any selector');
       }
       
-      console.log(`✅ Parsed ${sets.length} sets from HTML table`);
+      debugLog(`✅ Parsed ${sets.length} sets from HTML table`);
     } catch (error) {
       console.error('❌ Error parsing sets from table:', error);
     }
@@ -1436,7 +1440,7 @@ class GemRateService {
     try {
       await this.ensureSession();
       
-      console.log(`📋 Fetching checklist for set: ${setPath}`);
+      debugLog(`📋 Fetching checklist for set: ${setPath}`);
       
       // Clean up the setPath - remove "null" if present
       let cleanPath = setPath.replace(/-null\s+/g, '-').replace(/\s+null\s+/g, ' ');
@@ -1451,7 +1455,7 @@ class GemRateService {
       if (browserInitialized && this.page) {
         try {
           const fullUrl = `https://www.gemrate.com${url}`;
-          console.log(`🌐 Loading page with Puppeteer: ${fullUrl}`);
+          debugLog(`🌐 Loading page with Puppeteer: ${fullUrl}`);
           
           // Set up network request interception BEFORE navigation to capture API responses
           const apiResponses = [];
@@ -1467,10 +1471,10 @@ class GemRateService {
                   const responseData = await response.json().catch(() => null);
                   if (responseData) {
                     apiResponses.push({ url, data: responseData });
-                    console.log(`📡 Found API response: ${url}`);
+                    debugLog(`📡 Found API response: ${url}`);
                     // Check if this looks like card data
                     if (Array.isArray(responseData) || (responseData.data && Array.isArray(responseData.data))) {
-                      console.log(`✅ Potential card data found in: ${url}`);
+                      debugLog(`✅ Potential card data found in: ${url}`);
                     }
                   }
                 }
@@ -1480,32 +1484,24 @@ class GemRateService {
             }
           });
           
-          // Capture console logs from page.evaluate()
-          this.page.on('console', msg => {
-            const text = msg.text();
-            if (text.includes('📊') || text.includes('AG Grid') || text.includes('Column mapping') || text.includes('Card') || text.includes('extraction')) {
-              console.log(`[Browser Console] ${text}`);
-            }
-          });
-          
           // Use 'load' instead of 'networkidle0' for faster initial load, then wait for specific elements
-          console.log(`🌐 Navigating to page (timeout: 120s)...`);
+          debugLog(`🌐 Navigating to page (timeout: 120s)...`);
           try {
             await this.page.goto(fullUrl, { waitUntil: 'load', timeout: 120000 });
-            console.log('✅ Page loaded successfully');
+            debugLog('✅ Page loaded successfully');
           } catch (navError) {
-            console.log(`⚠️ Navigation error: ${navError.message}`);
+            debugLog(`⚠️ Navigation error: ${navError.message}`);
             // Continue anyway - page might have partially loaded
           }
           
-          console.log('⏳ Waiting for AG Grid to load...');
+          debugLog('⏳ Waiting for AG Grid to load...');
           
           // Wait for AG Grid container to appear first
           try {
             await this.page.waitForSelector('[role="grid"], .ag-root-wrapper, div[role="row"]', { timeout: 60000 });
-            console.log('✅ AG Grid container detected');
+            debugLog('✅ AG Grid container detected');
           } catch (e) {
-            console.log('⚠️ AG Grid container not found, checking page state...');
+            debugLog('⚠️ AG Grid container not found, checking page state...');
             // Check what's actually on the page
             const pageState = await this.page.evaluate(() => {
               return {
@@ -1515,26 +1511,26 @@ class GemRateService {
                 bodyText: document.body.textContent.substring(0, 200)
               };
             });
-            console.log('📄 Page state:', pageState);
+            debugLog('📄 Page state:', pageState);
           }
           
           // Give the grid time to populate with data
-          console.log('⏳ Waiting 5 seconds for grid data to populate...');
+          debugLog('⏳ Waiting 5 seconds for grid data to populate...');
           await new Promise(resolve => setTimeout(resolve, 5000));
           
           // Wait for AG Grid rows (the checklist table) to render
           try {
             const rowCount = await this.page.evaluate(() => document.querySelectorAll('div[role="row"]').length);
-            console.log(`📊 Found ${rowCount} AG Grid rows on page`);
+            debugLog(`📊 Found ${rowCount} AG Grid rows on page`);
             
             if (rowCount === 0) {
-              console.log('⚠️ No rows found, waiting longer...');
+              debugLog('⚠️ No rows found, waiting longer...');
               await this.page.waitForSelector('div[role="row"]', { timeout: 30000 });
               const newRowCount = await this.page.evaluate(() => document.querySelectorAll('div[role="row"]').length);
-              console.log(`📊 After wait: Found ${newRowCount} rows`);
+              debugLog(`📊 After wait: Found ${newRowCount} rows`);
             }
           } catch (e) {
-            console.log('⚠️ AG Grid rows not detected before extraction:', e.message);
+            debugLog('⚠️ AG Grid rows not detected before extraction:', e.message);
           }
           
           // Wait a bit longer for grid to fully populate with data
@@ -1550,7 +1546,7 @@ class GemRateService {
           
           if (viewport) {
             try {
-              console.log('📜 Scrolling grid to load all rows...');
+              debugLog('📜 Scrolling grid to load all rows...');
               
               // Helper function to safely extract cards
               const extractCardsSafely = async () => {
@@ -1595,7 +1591,7 @@ class GemRateService {
                     return cards;
                   });
                 } catch (e) {
-                  console.log(`⚠️ Extraction error: ${e.message}`);
+                  debugLog(`⚠️ Extraction error: ${e.message}`);
                   return [];
                 }
               };
@@ -1607,7 +1603,7 @@ class GemRateService {
                   allExtractedCards.set(card.key, card);
                 }
               });
-              console.log(`📊 Initial extraction: ${allExtractedCards.size} unique cards`);
+              debugLog(`📊 Initial extraction: ${allExtractedCards.size} unique cards`);
               
               // Scroll to middle
               try {
@@ -1621,9 +1617,9 @@ class GemRateService {
                     allExtractedCards.set(card.key, card);
                   }
                 });
-                console.log(`📊 After middle scroll: ${allExtractedCards.size} unique cards`);
+                debugLog(`📊 After middle scroll: ${allExtractedCards.size} unique cards`);
               } catch (e) {
-                console.log(`⚠️ Middle scroll error: ${e.message}`);
+                debugLog(`⚠️ Middle scroll error: ${e.message}`);
               }
               
               // Scroll to bottom
@@ -1638,9 +1634,9 @@ class GemRateService {
                     allExtractedCards.set(card.key, card);
                   }
                 });
-                console.log(`📊 After bottom scroll: ${allExtractedCards.size} unique cards`);
+                debugLog(`📊 After bottom scroll: ${allExtractedCards.size} unique cards`);
               } catch (e) {
-                console.log(`⚠️ Bottom scroll error: ${e.message}`);
+                debugLog(`⚠️ Bottom scroll error: ${e.message}`);
               }
               
               // Scroll back to top to capture any rows we missed
@@ -1655,9 +1651,9 @@ class GemRateService {
                     allExtractedCards.set(card.key, card);
                   }
                 });
-                console.log(`📊 After top scroll: ${allExtractedCards.size} unique cards`);
+                debugLog(`📊 After top scroll: ${allExtractedCards.size} unique cards`);
               } catch (e) {
-                console.log(`⚠️ Top scroll error: ${e.message}`);
+                debugLog(`⚠️ Top scroll error: ${e.message}`);
               }
               
               // Convert Map to array for return
@@ -1676,15 +1672,15 @@ class GemRateService {
               });
               
               if (finalCards.length > 0) {
-                console.log(`✅ Returning ${finalCards.length} cards from simplified extraction`);
+                debugLog(`✅ Returning ${finalCards.length} cards from simplified extraction`);
                 await this.closeBrowser();
                 return finalCards;
               }
             } catch (e) {
-              console.log(`⚠️ Scrolling/extraction failed: ${e.message}`);
+              debugLog(`⚠️ Scrolling/extraction failed: ${e.message}`);
             }
           } else {
-            console.log('⚠️ No viewport found for scrolling, will try standard extraction');
+            debugLog('⚠️ No viewport found for scrolling, will try standard extraction');
           }
           
           // Check if we got card-like data from API responses
@@ -1723,11 +1719,11 @@ class GemRateService {
               );
 
               if (!sampleItem) {
-                console.log(`⚠️ API response does not look like card data, skipping: ${apiResponse.url}`);
+                debugLog(`⚠️ API response does not look like card data, skipping: ${apiResponse.url}`);
                 continue;
               }
 
-              console.log(`✅ Found potential card array (${cardData.length} items) from API: ${apiResponse.url}`);
+              debugLog(`✅ Found potential card array (${cardData.length} items) from API: ${apiResponse.url}`);
 
               const cards = cardData
                 .filter((item) => item && typeof item === 'object')
@@ -1743,7 +1739,7 @@ class GemRateService {
                 return cards;
               }
             } catch (apiErr) {
-              console.log(`⚠️ Failed to parse API response as card data (${apiResponse.url}): ${apiErr.message}`);
+              debugLog(`⚠️ Failed to parse API response as card data (${apiResponse.url}): ${apiErr.message}`);
               // Keep trying other responses
             }
           }
@@ -1760,7 +1756,7 @@ class GemRateService {
           for (const selector of tableSelectors) {
             try {
               await this.page.waitForSelector(selector, { timeout: 5000 });
-              console.log(`✅ Found table with selector: ${selector}`);
+              debugLog(`✅ Found table with selector: ${selector}`);
               foundTable = true;
               break;
             } catch (e) {
@@ -1769,13 +1765,13 @@ class GemRateService {
           }
           
           if (!foundTable) {
-            console.log('⚠️ No table found, trying to extract from page content...');
+            debugLog('⚠️ No table found, trying to extract from page content...');
             // Only wait 2 seconds if no table found
             await new Promise(resolve => setTimeout(resolve, 2000));
           }
           
           // First, try to extract data from script tags - look for any array with card-like data
-          console.log('🔍 Looking for card data in script tags...');
+          debugLog('🔍 Looking for card data in script tags...');
           const rowDataCards = await this.page.evaluate(() => {
             const scripts = document.querySelectorAll('script');
             const foundArrays = [];
@@ -1810,7 +1806,7 @@ class GemRateService {
                     jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
                     const data = JSON.parse(jsonStr);
                     if (Array.isArray(data) && data.length > 0) {
-                      console.log(`✅ Found data in variable "${match[1]}" with ${data.length} items`);
+                      debugLog(`✅ Found data in variable "${match[1]}" with ${data.length} items`);
                       foundArrays.push({ source: match[1], data });
                     }
                   } catch (e) {
@@ -1834,7 +1830,7 @@ class GemRateService {
                           jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
                           const data = JSON.parse(jsonStr);
                           if (Array.isArray(data) && data.length > 0) {
-                            console.log(`✅ Found data (precise) in "${match[1]}" with ${data.length} items`);
+                            debugLog(`✅ Found data (precise) in "${match[1]}" with ${data.length} items`);
                             foundArrays.push({ source: match[1], data });
                           }
                         }
@@ -1856,7 +1852,7 @@ class GemRateService {
                     jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
                     const data = JSON.parse(jsonStr);
                     if (Array.isArray(data) && data.length > 0) {
-                      console.log(`✅ Found data in function call with ${data.length} items`);
+                      debugLog(`✅ Found data in function call with ${data.length} items`);
                       foundArrays.push({ source: 'function', data });
                     }
                   } catch (e) {
@@ -1869,7 +1865,7 @@ class GemRateService {
             // Return the largest array found (likely to be the card data)
             if (foundArrays.length > 0) {
               foundArrays.sort((a, b) => b.data.length - a.data.length);
-              console.log(`📊 Found ${foundArrays.length} data arrays, using largest (${foundArrays[0].data.length} items)`);
+              debugLog(`📊 Found ${foundArrays.length} data arrays, using largest (${foundArrays[0].data.length} items)`);
               return foundArrays[0].data;
             }
             
@@ -1877,8 +1873,8 @@ class GemRateService {
           });
           
           if (rowDataCards && Array.isArray(rowDataCards) && rowDataCards.length > 0) {
-            console.log(`✅ Extracted ${rowDataCards.length} items from rowData`);
-            console.log(`📊 First item sample:`, JSON.stringify(rowDataCards[0], null, 2));
+            debugLog(`✅ Extracted ${rowDataCards.length} items from rowData`);
+            debugLog(`📊 First item sample:`, JSON.stringify(rowDataCards[0], null, 2));
             
             // Filter to only items that look like actual cards
             // Cards should have card_number, number, or player_name fields
@@ -1928,14 +1924,14 @@ class GemRateService {
                 team: card.team
               }));
             
-            console.log(`📋 Filtered to ${cards.length} actual cards (removed ${rowDataCards.length - cards.length} non-card items)`);
+            debugLog(`📋 Filtered to ${cards.length} actual cards (removed ${rowDataCards.length - cards.length} non-card items)`);
             
             await this.closeBrowser();
             if (cards.length > 0) {
-              console.log(`✅ Found ${cards.length} cards from rowData`);
+              debugLog(`✅ Found ${cards.length} cards from rowData`);
               return cards;
             } else {
-              console.log(`⚠️ No valid cards found in rowData, falling back to table extraction`);
+              debugLog(`⚠️ No valid cards found in rowData, falling back to table extraction`);
             }
           }
           
@@ -1950,17 +1946,17 @@ class GemRateService {
               pageText: document.body.textContent.substring(0, 500)
             };
             
-            console.log('Page structure:', JSON.stringify(debug));
+            debugLog('Page structure:', JSON.stringify(debug));
 
             // -------- Try AG Grid rows (div-based grid) --------
             try {
               const initialRows = document.querySelectorAll('div[role="row"]');
-              console.log(`AG Grid rows found (initial): ${initialRows.length}`);
+              debugLog(`AG Grid rows found (initial): ${initialRows.length}`);
 
               // Try to infer column indexes from AG Grid headers
               const headerCells = Array.from(document.querySelectorAll('.ag-header-cell-text'));
               const headerTexts = headerCells.map(h => (h.textContent || '').trim());
-              console.log('AG Grid headers:', headerTexts);
+              debugLog('AG Grid headers:', headerTexts);
 
               // Map specific fields with detailed logging
               let nameCol = headerTexts.findIndex(h => h.toLowerCase() === 'name' || h.toLowerCase().includes('player'));
@@ -1969,24 +1965,24 @@ class GemRateService {
               let psaCol = headerTexts.findIndex(h => h.toLowerCase() === 'psa' || h.toLowerCase().includes('psa'));
               let totalCol = headerTexts.findIndex(h => h.toLowerCase() === 'total' || h.toLowerCase().includes('total'));
 
-              console.log(`📊 Column mapping: nameCol=${nameCol}, numberCol=${numberCol}, setCol=${setCol}, psaCol=${psaCol}, totalCol=${totalCol}`);
-              console.log(`📊 Full header array:`, headerTexts.map((h, i) => `${i}: "${h}"`).join(', '));
+              debugLog(`📊 Column mapping: nameCol=${nameCol}, numberCol=${numberCol}, setCol=${setCol}, psaCol=${psaCol}, totalCol=${totalCol}`);
+              debugLog(`📊 Full header array:`, headerTexts.map((h, i) => `${i}: "${h}"`).join(', '));
 
               // Fallbacks if some columns weren't found
               if (nameCol === -1) {
                 nameCol = 1;
-                console.log(`⚠️ Name column not found, using fallback index ${nameCol}`);
+                debugLog(`⚠️ Name column not found, using fallback index ${nameCol}`);
               }
               if (numberCol === -1) {
                 numberCol = 2;
-                console.log(`⚠️ Number column not found, using fallback index ${numberCol}`);
+                debugLog(`⚠️ Number column not found, using fallback index ${numberCol}`);
               }
               if (setCol === -1) {
                 setCol = 3;
-                console.log(`⚠️ Set column not found, using fallback index ${setCol}`);
+                debugLog(`⚠️ Set column not found, using fallback index ${setCol}`);
               }
               if (psaCol === -1 && totalCol === -1) {
-                console.log(`⚠️ Neither PSA nor Total column found! Trying alternative patterns...`);
+                debugLog(`⚠️ Neither PSA nor Total column found! Trying alternative patterns...`);
                 // Try alternative patterns
                 psaCol = headerTexts.findIndex(h => {
                   const lower = h.toLowerCase();
@@ -1996,7 +1992,7 @@ class GemRateService {
                   const lower = h.toLowerCase();
                   return lower === 'total' || (lower.includes('total') && lower.includes('grade'));
                 });
-                console.log(`📊 After alternative search: psaCol=${psaCol}, totalCol=${totalCol}`);
+                debugLog(`📊 After alternative search: psaCol=${psaCol}, totalCol=${totalCol}`);
               }
 
               // Helper to safely extract card data from a single row element
@@ -2027,8 +2023,8 @@ class GemRateService {
                 
                 // Log extraction details for first few cards
                 if (cards.length < 3) {
-                  console.log(`📊 Card ${cards.length + 1} extraction: name="${name}", number="${number}", set="${cardSet}", psaText="${psaText}", psaCountStr="${psaCountStr}", source=${psaSource}, cells.length=${cells.length}`);
-                  console.log(`📊 All cell texts:`, Array.from(cells).map((c, i) => `${i}: "${c.textContent?.trim() || ''}"`).join(', '));
+                  debugLog(`📊 Card ${cards.length + 1} extraction: name="${name}", number="${number}", set="${cardSet}", psaText="${psaText}", psaCountStr="${psaCountStr}", source=${psaSource}, cells.length=${cells.length}`);
+                  debugLog(`📊 All cell texts:`, Array.from(cells).map((c, i) => `${i}: "${c.textContent?.trim() || ''}"`).join(', '));
                 }
 
                 const hasNumber = number && /^\d+$/.test(number);
@@ -2056,25 +2052,25 @@ class GemRateService {
 
               // Extract all visible rows (grid should already be scrolled by Puppeteer)
               const rows = document.querySelectorAll('div[role="row"]');
-              console.log(`📊 Extracting from ${rows.length} visible AG Grid rows`);
+              debugLog(`📊 Extracting from ${rows.length} visible AG Grid rows`);
               
               rows.forEach((row) => extractFromRow(row, seenKeys, cards));
               
-              console.log(`✅ Extracted ${cards.length} unique cards from AG Grid`);
+              debugLog(`✅ Extracted ${cards.length} unique cards from AG Grid`);
 
               if (cards.length > 0) {
-                console.log(`✅ Extracted ${cards.length} cards from AG Grid rows (top virtual rows)`);
+                debugLog(`✅ Extracted ${cards.length} cards from AG Grid rows (top virtual rows)`);
                 // Sort by PSA graded count (descending) when available
                 cards.sort((a, b) => {
                   const aPsa = typeof a.psaGraded === 'number' ? a.psaGraded : -1;
                   const bPsa = typeof b.psaGraded === 'number' ? b.psaGraded : -1;
                   return bPsa - aPsa;
                 });
-                console.log(`📊 Top AG Grid card sample:`, JSON.stringify(cards[0], null, 2));
+                debugLog(`📊 Top AG Grid card sample:`, JSON.stringify(cards[0], null, 2));
                 return { cards, debug };
               }
             } catch (e) {
-              console.log('⚠️ AG Grid extraction failed:', e.message);
+              debugLog('⚠️ AG Grid extraction failed:', e.message);
             }
             
             // -------- Fallback: table/list-based extraction --------
@@ -2101,7 +2097,7 @@ class GemRateService {
               rows = document.querySelectorAll(selector);
               if (rows.length > 0) {
                 usedSelector = selector;
-                console.log(`✅ Found ${rows.length} rows with selector: ${selector}`);
+                debugLog(`✅ Found ${rows.length} rows with selector: ${selector}`);
                 break;
               }
             }
@@ -2109,7 +2105,7 @@ class GemRateService {
             if (rows.length === 0) {
               // Try to find any table and get all rows
               const tables = document.querySelectorAll('table');
-              console.log(`Found ${tables.length} tables on page`);
+              debugLog(`Found ${tables.length} tables on page`);
               
               // Look for table with "Card #" or "Player" headers (actual card checklist)
               for (let i = 0; i < tables.length; i++) {
@@ -2120,7 +2116,7 @@ class GemRateService {
                 
                 if (hasCardHeader) {
                   const tableRows = table.querySelectorAll('tr');
-                  console.log(`Table ${i} looks like card checklist (${tableRows.length} rows)`);
+                  debugLog(`Table ${i} looks like card checklist (${tableRows.length} rows)`);
                   if (tableRows.length > 1) {
                     rows = tableRows;
                     usedSelector = `table[${i}] tr (card checklist)`;
@@ -2133,7 +2129,7 @@ class GemRateService {
               if (rows.length === 0) {
                 for (let i = 0; i < tables.length; i++) {
                   const tableRows = tables[i].querySelectorAll('tr');
-                  console.log(`Table ${i} has ${tableRows.length} rows`);
+                  debugLog(`Table ${i} has ${tableRows.length} rows`);
                   if (tableRows.length > 1) { // More than just header
                     rows = tableRows;
                     usedSelector = `table[${i}] tr`;
@@ -2146,7 +2142,7 @@ class GemRateService {
             // Also try to find cards in list items or divs
             if (rows.length === 0) {
               const listItems = document.querySelectorAll('li, .card, [class*="card"]');
-              console.log(`Found ${listItems.length} potential card elements`);
+              debugLog(`Found ${listItems.length} potential card elements`);
               if (listItems.length > 0) {
                 // Convert to array-like structure
                 rows = Array.from(listItems);
@@ -2156,7 +2152,7 @@ class GemRateService {
             
             // Limit to prevent memory issues
             const maxRows = Math.min(rows.length, 2000);
-            console.log(`Processing ${maxRows} rows using selector: ${usedSelector}`);
+            debugLog(`Processing ${maxRows} rows using selector: ${usedSelector}`);
             
             for (let i = 0; i < maxRows; i++) {
               const row = rows[i];
@@ -2257,23 +2253,23 @@ class GemRateService {
               }
             }
             
-            console.log(`Extracted ${cards.length} cards`);
+            debugLog(`Extracted ${cards.length} cards`);
             return { cards, debug };
           });
           
-          console.log(`📊 Page debug info:`, cards.debug);
+          debugLog(`📊 Page debug info:`, cards.debug);
           const extractedCards = cards.cards || cards;
           
           await this.closeBrowser();
           
           if (extractedCards.length > 0) {
-            console.log(`✅ Found ${extractedCards.length} cards using Puppeteer`);
+            debugLog(`✅ Found ${extractedCards.length} cards using Puppeteer`);
             return extractedCards;
           } else {
-            console.log(`⚠️ No cards found. Debug info: ${JSON.stringify(cards.debug || {})}`);
+            debugLog(`⚠️ No cards found. Debug info: ${JSON.stringify(cards.debug || {})}`);
           }
         } catch (e) {
-          console.log(`⚠️ Puppeteer extraction failed: ${e.message}`);
+          debugLog(`⚠️ Puppeteer extraction failed: ${e.message}`);
           await this.closeBrowser();
         }
       }
@@ -2323,7 +2319,7 @@ class GemRateService {
               jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
               cardsData = JSON.parse(jsonStr);
               if (Array.isArray(cardsData) && cardsData.length > 0) {
-                console.log(`✅ Found rowData in script tag: ${cardsData.length} items`);
+                debugLog(`✅ Found rowData in script tag: ${cardsData.length} items`);
                 return false; // Break out of each loop
               }
             } catch (e) {
@@ -2347,7 +2343,7 @@ class GemRateService {
                     jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
                     cardsData = JSON.parse(jsonStr);
                     if (Array.isArray(cardsData) && cardsData.length > 0) {
-                      console.log(`✅ Found rowData (precise extraction) in script tag: ${cardsData.length} items`);
+                      debugLog(`✅ Found rowData (precise extraction) in script tag: ${cardsData.length} items`);
                       return false; // Break out of each loop
                     }
                   }
@@ -2375,7 +2371,7 @@ class GemRateService {
               jsonStr = jsonStr.replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
               cardsData = JSON.parse(jsonStr);
               if (Array.isArray(cardsData) && cardsData.length > 0) {
-                console.log(`✅ Found cards data in script tag: ${cardsData.length} cards`);
+                debugLog(`✅ Found cards data in script tag: ${cardsData.length} cards`);
                 return false; // Break out of each loop
               }
             } catch (e) {
@@ -2401,7 +2397,7 @@ class GemRateService {
             });
           }
         });
-        console.log(`✅ Processed ${cards.length} cards from JSON data`);
+        debugLog(`✅ Processed ${cards.length} cards from JSON data`);
       } else {
         // Parse from HTML table
         $('tbody tr, table tr, .card-row, [data-card-id]').each((_, el) => {
@@ -2437,7 +2433,7 @@ class GemRateService {
         });
       }
 
-      console.log(`✅ Found ${cards.length} cards in set`);
+      debugLog(`✅ Found ${cards.length} cards in set`);
       return cards;
     } catch (error) {
       console.error('❌ Error fetching set checklist:', error);
@@ -2519,8 +2515,8 @@ class GemRateService {
               if (Array.isArray(rawData) && rawData.length > 0) {
                 // Log first row to see available fields
                 if (rawData.length > 0) {
-                  console.log(`[getPlayerCards] Sample RowData fields: ${Object.keys(rawData[0]).join(', ')}`);
-                  console.log(`[getPlayerCards] Sample RowData gemrateId fields:`, {
+                  debugLog(`[getPlayerCards] Sample RowData fields: ${Object.keys(rawData[0]).join(', ')}`);
+                  debugLog(`[getPlayerCards] Sample RowData gemrateId fields:`, {
                     gemrateId: rawData[0].gemrateId,
                     gemrate_id: rawData[0].gemrate_id,
                     universal_gemrate_id: rawData[0].universal_gemrate_id,
@@ -2530,14 +2526,14 @@ class GemRateService {
                   // Log the full first row to see all possible ID fields
                   const firstRowKeys = Object.keys(rawData[0]);
                   const idLikeKeys = firstRowKeys.filter(k => k.toLowerCase().includes('id') || k.toLowerCase().includes('gemrate'));
-                  console.log(`[getPlayerCards] ID-like fields in first row:`, idLikeKeys.map(k => `${k}: ${rawData[0][k]}`).join(', '));
+                  debugLog(`[getPlayerCards] ID-like fields in first row:`, idLikeKeys.map(k => `${k}: ${rawData[0][k]}`).join(', '));
                 }
                 
                 // Map RowData to our card format (using Postman field names)
                 // Debug: Log first rowData to see available fields
                 if (rawData.length > 0) {
-                  console.log('[getPlayerCards] First rowData keys:', Object.keys(rawData[0]));
-                  console.log('[getPlayerCards] First rowData parallel fields:', {
+                  debugLog('[getPlayerCards] First rowData keys:', Object.keys(rawData[0]));
+                  debugLog('[getPlayerCards] First rowData parallel fields:', {
                     parallel: rawData[0].parallel,
                     parallel_type: rawData[0].parallel_type,
                     parallelName: rawData[0].parallelName,
@@ -2579,10 +2575,10 @@ class GemRateService {
                 // Log summary of gemrateId extraction
                 const cardsWithId = cards.filter(c => c.gemrateId).length;
                 const cardsWithParallel = cards.filter(c => c.parallel && c.parallel.trim() !== '').length;
-                console.log(`[getPlayerCards] Total cards: ${cards.length}, Cards with gemrateId: ${cardsWithId}, Cards with parallel: ${cardsWithParallel}`);
+                debugLog(`[getPlayerCards] Total cards: ${cards.length}, Cards with gemrateId: ${cardsWithId}, Cards with parallel: ${cardsWithParallel}`);
                 if (cardsWithParallel > 0) {
                   const sampleParallels = cards.filter(c => c.parallel && c.parallel.trim() !== '').slice(0, 3).map(c => c.parallel);
-                  console.log(`[getPlayerCards] Sample parallel values:`, sampleParallels);
+                  debugLog(`[getPlayerCards] Sample parallel values:`, sampleParallels);
                 }
                 
                 // Log a few sample cards to help debug gemrate_id matching issues
@@ -2594,7 +2590,7 @@ class GemRateService {
                     number: c.number,
                     gemrateId: c.gemrateId
                   }));
-                  console.log(`[getPlayerCards] Sample cards (first 5):`, JSON.stringify(sampleCards, null, 2));
+                  debugLog(`[getPlayerCards] Sample cards (first 5):`, JSON.stringify(sampleCards, null, 2));
                 }
 
                 // Sort by total grades desc
@@ -2607,14 +2603,14 @@ class GemRateService {
                 return cards;
               }
             } catch (parseError) {
-              console.log(`⚠️ Failed to parse RowData JSON: ${parseError.message}`);
+              debugLog(`⚠️ Failed to parse RowData JSON: ${parseError.message}`);
             }
           }
         }
 
-        console.log('⚠️ RowData not found in HTTP response, falling back to Puppeteer...');
+        debugLog('⚠️ RowData not found in HTTP response, falling back to Puppeteer...');
       } catch (httpError) {
-        console.log(`⚠️ HTTP request failed: ${httpError.message}, trying Puppeteer...`);
+        debugLog(`⚠️ HTTP request failed: ${httpError.message}, trying Puppeteer...`);
       }
 
       // Fallback to Puppeteer if HTTP request fails
@@ -2716,7 +2712,7 @@ class GemRateService {
                 const rawData = JSON.parse(jsonString);
                 
                 if (Array.isArray(rawData) && rawData.length > 0) {
-                  console.log(`✅ Extracted ${rawData.length} cards from RawData`);
+                  debugLog(`✅ Extracted ${rawData.length} cards from RawData`);
                   
                   // Map RawData to our card format
                   const cards = rawData.map((rowData) => {
@@ -2755,28 +2751,28 @@ class GemRateService {
                   return cards;
                 }
               } catch (parseError) {
-                console.log(`⚠️ Failed to parse RawData JSON: ${parseError.message}`);
+                debugLog(`⚠️ Failed to parse RawData JSON: ${parseError.message}`);
               }
             }
           }
           
           if (!foundMatch) {
-            console.log('⚠️ RawData not found in HTML, falling back to DOM extraction');
+            debugLog('⚠️ RawData not found in HTML, falling back to DOM extraction');
           }
           }
         } else {
-          console.log('⚠️ Page not available for RawData extraction');
+          debugLog('⚠️ Page not available for RawData extraction');
         }
       } catch (rawDataError) {
-        console.log(`⚠️ RawData extraction failed: ${rawDataError.message}`);
+        debugLog(`⚠️ RawData extraction failed: ${rawDataError.message}`);
       }
 
       // Verify page is still available, recreate page if needed
       if (!this.page || this.page.isClosed()) {
-        console.log('⚠️ Page closed after wait, attempting to recreate...');
+        debugLog('⚠️ Page closed after wait, attempting to recreate...');
         // Check if browser is still available
         if (this.browser && !this.browser.isConnected()) {
-          console.log('⚠️ Browser disconnected, reinitializing...');
+          debugLog('⚠️ Browser disconnected, reinitializing...');
           this.browser = null;
           this.page = null;
         }
@@ -2787,9 +2783,9 @@ class GemRateService {
             this.page = await this.browser.newPage();
             await this.page.setUserAgent(this.baseHeaders['User-Agent']);
             await this.page.setViewport({ width: 1366, height: 768 });
-            console.log('✅ Created new page from existing browser');
+            debugLog('✅ Created new page from existing browser');
           } catch (e) {
-            console.log('⚠️ Failed to create new page, reinitializing browser...');
+            debugLog('⚠️ Failed to create new page, reinitializing browser...');
             this.browser = null;
             this.page = null;
           }
@@ -2859,7 +2855,7 @@ class GemRateService {
         const extractCardsSafely = async () => {
           try {
             if (!this.page || this.page.isClosed()) {
-              console.log('⚠️ Page closed during extraction');
+              debugLog('⚠️ Page closed during extraction');
               return [];
             }
             return await this.page.evaluate(() => {
@@ -2917,7 +2913,7 @@ class GemRateService {
                           }
                         });
                         if (allRows.length > 0) {
-                          console.log(`✅ Using AG Grid RowModel: found ${allRows.length} total rows`);
+                          debugLog(`✅ Using AG Grid RowModel: found ${allRows.length} total rows`);
                           return allRows.map((rowData) => {
                             const category = rowData.category || rowData.cat || '';
                             const year = rowData.year || '';
@@ -2960,7 +2956,7 @@ class GemRateService {
                   });
                   
                   if (allRows.length > 0) {
-                    console.log(`✅ Using AG Grid API: found ${allRows.length} total rows`);
+                    debugLog(`✅ Using AG Grid API: found ${allRows.length} total rows`);
                     return allRows.map((rowData) => {
                       const category = rowData.category || rowData.cat || '';
                       const year = rowData.year || '';
@@ -2990,7 +2986,7 @@ class GemRateService {
                   }
                 }
               } catch (apiError) {
-                console.log('⚠️ AG Grid API access failed, falling back to DOM extraction:', apiError.message);
+                debugLog('⚠️ AG Grid API access failed, falling back to DOM extraction:', apiError.message);
               }
               
               // Fallback to DOM extraction
@@ -3104,13 +3100,13 @@ class GemRateService {
                   try {
                     // Try to set pagination page size to 100 or 250
                     gridInstance.api.paginationSetPageSize(250);
-                    console.log('✅ Changed AG Grid page size to 250');
+                    debugLog('✅ Changed AG Grid page size to 250');
                     return;
                   } catch (e) {
                     // Try alternative method
                     if (gridInstance.api.gridOptionsApi) {
                       gridInstance.api.gridOptionsApi.setGridOption('paginationPageSize', 250);
-                      console.log('✅ Changed AG Grid page size to 250 (alternative method)');
+                      debugLog('✅ Changed AG Grid page size to 250 (alternative method)');
                       return;
                     }
                   }
@@ -3121,7 +3117,7 @@ class GemRateService {
             await new Promise(resolve => setTimeout(resolve, 2000));
           }
         } catch (e) {
-          console.log('⚠️ Could not change AG Grid page size:', e.message);
+          debugLog('⚠️ Could not change AG Grid page size:', e.message);
         }
 
         // Extract from first page
@@ -3133,7 +3129,7 @@ class GemRateService {
         });
         // If we got a large number of cards (likely from AG Grid API or increased page size), skip pagination
         if (firstPageCards.length > 100) {
-          console.log(`✅ Got ${firstPageCards.length} cards, skipping pagination`);
+          debugLog(`✅ Got ${firstPageCards.length} cards, skipping pagination`);
           // Skip pagination loop
         } else {
 
@@ -3142,7 +3138,7 @@ class GemRateService {
         for (let pageIndex = 0; pageIndex < 10; pageIndex++) {
           // Verify page is still available before pagination
           if (!this.page || this.page.isClosed()) {
-            console.log(`⚠️ Page closed before pagination attempt ${pageIndex + 1}`);
+            debugLog(`⚠️ Page closed before pagination attempt ${pageIndex + 1}`);
             break;
           }
 
@@ -3194,7 +3190,7 @@ class GemRateService {
           
           // Verify page is still available
           if (!this.page || this.page.isClosed()) {
-            console.log(`⚠️ Page closed during pagination at page ${pageIndex + 2}`);
+            debugLog(`⚠️ Page closed during pagination at page ${pageIndex + 2}`);
             break;
           }
 
@@ -3203,7 +3199,7 @@ class GemRateService {
             await new Promise(resolve => setTimeout(resolve, 500));
             
             if (!this.page || this.page.isClosed()) {
-              console.log(`⚠️ Page closed while waiting for grid update`);
+              debugLog(`⚠️ Page closed while waiting for grid update`);
               break;
             }
             
@@ -3222,12 +3218,12 @@ class GemRateService {
             
             if (newFirstRow && newFirstRow !== firstRowContent) {
               firstRowContent = newFirstRow;
-              console.log(`✅ Grid updated for page ${pageIndex + 2}, first row: ${newFirstRow.substring(0, 50)}...`);
+              debugLog(`✅ Grid updated for page ${pageIndex + 2}, first row: ${newFirstRow.substring(0, 50)}...`);
               break;
             }
             
             if (waitAttempt === 9) {
-              console.log(`⚠️ Grid may not have updated for page ${pageIndex + 2}`);
+              debugLog(`⚠️ Grid may not have updated for page ${pageIndex + 2}`);
             }
           }
           
@@ -3243,7 +3239,7 @@ class GemRateService {
           
           // If we didn't get any new cards, pagination might not be working
           if (newCardsThisPage === 0 && pageIndex > 0) {
-            console.log(`⚠️ No new cards on page ${pageIndex + 2}, stopping pagination`);
+            debugLog(`⚠️ No new cards on page ${pageIndex + 2}, stopping pagination`);
             break;
           }
         }
@@ -3271,7 +3267,7 @@ class GemRateService {
         return bTotal - aTotal;
       });
 
-      console.log(`✅ GemRate player cards extracted: ${finalCards.length}`);
+      debugLog(`✅ GemRate player cards extracted: ${finalCards.length}`);
       return finalCards;
     } catch (error) {
       console.error('❌ Error fetching GemRate player cards:', error);
@@ -3287,7 +3283,7 @@ class GemRateService {
    */
   async analyzeInvestmentPotential(cardName, priceData) {
     try {
-      console.log(`💰 Analyzing investment potential for: ${cardName}`);
+      debugLog(`💰 Analyzing investment potential for: ${cardName}`);
       
       const populationData = await this.getPopulationData(cardName);
       
@@ -3438,7 +3434,7 @@ class GemRateService {
    */
   async getTrendingPlayers(period = 'week') {
     try {
-      console.log(`📈 Fetching trending players from GemRate dashboard (period: ${period})`);
+      debugLog(`📈 Fetching trending players from GemRate dashboard (period: ${period})`);
       
       await this.ensureSession();
       
@@ -3490,7 +3486,7 @@ class GemRateService {
               const parsed = JSON.parse(jsonStr);
               if (Array.isArray(parsed) && parsed.length > 0) {
                 trendingPlayers = parsed;
-                console.log(`✅ Found trending players in script tag (${parsed.length} items)`);
+                debugLog(`✅ Found trending players in script tag (${parsed.length} items)`);
                 return false; // Break out of each loop
               }
             } catch (e) {
@@ -3502,7 +3498,7 @@ class GemRateService {
 
       // If not found in scripts, try to parse from HTML structure
       if (!trendingPlayers) {
-        console.log('⚠️ Trending players not found in script tags, trying HTML parsing...');
+        debugLog('⚠️ Trending players not found in script tags, trying HTML parsing...');
         
         // Look for sections with "Trending Players" heading
         $('h4, h5, h6, .trending-players, [id*="trending"], [class*="trending"]').each((_, el) => {
@@ -3531,7 +3527,7 @@ class GemRateService {
               });
               
               if (trendingPlayers.length > 0) {
-                console.log(`✅ Parsed ${trendingPlayers.length} players from HTML`);
+                debugLog(`✅ Parsed ${trendingPlayers.length} players from HTML`);
                 return false; // Break out of each loop
               }
             }
@@ -3548,10 +3544,10 @@ class GemRateService {
             trendingPlayers = puppeteerPlayers;
             console.log(`✅ Retrieved ${puppeteerPlayers.length} trending players via Puppeteer`);
           } else {
-            console.log('⚠️ Puppeteer did not return any trending players');
+            debugLog('⚠️ Puppeteer did not return any trending players');
           }
         } catch (puppeteerError) {
-          console.log(`⚠️ Puppeteer trending players scrape failed: ${puppeteerError.message}`);
+          debugLog(`⚠️ Puppeteer trending players scrape failed: ${puppeteerError.message}`);
         }
       }
 
@@ -3593,7 +3589,7 @@ class GemRateService {
    */
   async getTrendingSets(period = 'week') {
     try {
-      console.log(`📈 Fetching trending sets from GemRate dashboard (period: ${period})`);
+      debugLog(`📈 Fetching trending sets from GemRate dashboard (period: ${period})`);
       
       await this.ensureSession();
       
@@ -3645,7 +3641,7 @@ class GemRateService {
               const parsed = JSON.parse(jsonStr);
               if (Array.isArray(parsed) && parsed.length > 0) {
                 trendingSets = parsed;
-                console.log(`✅ Found trending sets in script tag (${parsed.length} items)`);
+                debugLog(`✅ Found trending sets in script tag (${parsed.length} items)`);
                 return false; // Break out of each loop
               }
             } catch (e) {
@@ -3657,7 +3653,7 @@ class GemRateService {
 
       // If not found in scripts, try to parse from HTML structure
       if (!trendingSets) {
-        console.log('⚠️ Trending sets not found in script tags, trying HTML parsing...');
+        debugLog('⚠️ Trending sets not found in script tags, trying HTML parsing...');
         
         // Look for sections with "Trending Sets" heading
         $('h4, h5, h6, .trending-sets, [id*="trending"], [class*="trending"]').each((_, el) => {
@@ -3687,7 +3683,7 @@ class GemRateService {
               });
               
               if (trendingSets.length > 0) {
-                console.log(`✅ Parsed ${trendingSets.length} sets from HTML`);
+                debugLog(`✅ Parsed ${trendingSets.length} sets from HTML`);
                 return false; // Break out of each loop
               }
             }
@@ -3697,17 +3693,17 @@ class GemRateService {
 
       // If still no data, fall back to Puppeteer to execute dashboard JS
       if (!trendingSets || trendingSets.length === 0) {
-        console.log('⚠️ No trending sets from static HTML, trying Puppeteer...');
+        debugLog('⚠️ No trending sets from static HTML, trying Puppeteer...');
         try {
           const puppeteerSets = await this.scrapeDashboardTrendingWithPuppeteer('sets');
           if (puppeteerSets && puppeteerSets.length > 0) {
             trendingSets = puppeteerSets;
             console.log(`✅ Retrieved ${puppeteerSets.length} trending sets via Puppeteer`);
           } else {
-            console.log('⚠️ Puppeteer did not return any trending sets');
+            debugLog('⚠️ Puppeteer did not return any trending sets');
           }
         } catch (puppeteerError) {
-          console.log(`⚠️ Puppeteer trending sets scrape failed: ${puppeteerError.message}`);
+          debugLog(`⚠️ Puppeteer trending sets scrape failed: ${puppeteerError.message}`);
         }
       }
 
@@ -3720,7 +3716,7 @@ class GemRateService {
           timestamp: new Date().toISOString()
         };
       } else {
-        console.log(`⚠️ No trending sets data found on dashboard`);
+        debugLog(`⚠️ No trending sets data found on dashboard`);
         return {
           success: false,
           period: period,
@@ -3749,7 +3745,7 @@ class GemRateService {
    */
   async getTrendingCards(period = 'week') {
     try {
-      console.log(`📈 Fetching trending cards from GemRate dashboard (period: ${period})`);
+      debugLog(`📈 Fetching trending cards from GemRate dashboard (period: ${period})`);
       
       await this.ensureSession();
       
@@ -3759,7 +3755,7 @@ class GemRateService {
       }
 
       // Use Puppeteer to scrape the /dash page
-      console.log('⚠️ Trending cards not found in script tags, trying HTML parsing...');
+      debugLog('⚠️ Trending cards not found in script tags, trying HTML parsing...');
       console.log('⚠️ No trending cards from static HTML, trying Puppeteer...');
       try {
         const puppeteerCards = await this.scrapeDashboardTrendingWithPuppeteer('cards');
@@ -3772,10 +3768,10 @@ class GemRateService {
             timestamp: new Date().toISOString()
           };
         } else {
-          console.log('⚠️ Puppeteer did not return any trending cards');
+          debugLog('⚠️ Puppeteer did not return any trending cards');
         }
       } catch (puppeteerError) {
-        console.log(`⚠️ Puppeteer trending cards scrape failed: ${puppeteerError.message}`);
+        debugLog(`⚠️ Puppeteer trending cards scrape failed: ${puppeteerError.message}`);
       }
 
       console.log(`⚠️ No trending cards data found on dashboard`);
@@ -3811,7 +3807,7 @@ class GemRateService {
     }
 
     const url = `${this.baseUrl}/dash`;
-    console.log(`🌐 [Puppeteer] Loading GemRate dashboard: ${url}`);
+    debugLog(`🌐 [Puppeteer] Loading GemRate dashboard: ${url}`);
 
     // Intercept network requests to see if there's an API call for trending data
     const apiResponses = [];
@@ -3826,10 +3822,10 @@ class GemRateService {
             const data = await response.json().catch(() => null);
             if (data) {
               apiResponses.push({ url, data });
-              console.log(`📡 [Puppeteer] Found API response: ${url}`);
+              debugLog(`📡 [Puppeteer] Found API response: ${url}`);
               // Log a sample of the data
               if (Array.isArray(data) || (typeof data === 'object' && data !== null)) {
-                console.log(`📡 [Puppeteer] Response data sample:`, JSON.stringify(data).substring(0, 1000));
+                debugLog(`📡 [Puppeteer] Response data sample:`, JSON.stringify(data).substring(0, 1000));
               }
             }
           }
@@ -3839,32 +3835,18 @@ class GemRateService {
       }
     });
 
-    // Also intercept fetch and XHR requests
-    await this.page.evaluateOnNewDocument(() => {
-      // Intercept fetch
-      const originalFetch = window.fetch;
-      window.fetch = function(...args) {
-        const url = args[0];
-        if (typeof url === 'string' && (url.includes('trending') || url.includes('api') || url.includes('data'))) {
-          console.log(`[Puppeteer] Intercepted fetch: ${url}`);
-        }
-        return originalFetch.apply(this, args);
-      };
-
-      // Intercept XMLHttpRequest
-      const originalOpen = XMLHttpRequest.prototype.open;
-      XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-        if (typeof url === 'string' && (url.includes('trending') || url.includes('api') || url.includes('data'))) {
-          console.log(`[Puppeteer] Intercepted XHR: ${method} ${url}`);
-        }
-        return originalOpen.apply(this, [method, url, ...rest]);
-      };
-    });
+    // Silence browser console so no [Browser Console] / Intercepted fetch / Section text floods Railway logs
+    await this.page.evaluateOnNewDocument((silence) => {
+      if (silence) {
+        console.log = function () {};
+        console.info = function () {};
+      }
+    }, !GEMRATE_DEBUG);
 
     try {
       await this.page.goto(url, { waitUntil: 'networkidle2', timeout: 120000 });
     } catch (navError) {
-      console.log(`⚠️ [Puppeteer] Navigation error for dashboard: ${navError.message}`);
+      debugLog(`⚠️ [Puppeteer] Navigation error for dashboard: ${navError.message}`);
       // Try a softer wait condition
       try {
         await this.page.goto(url, { waitUntil: 'domcontentloaded', timeout: 120000 });
@@ -3875,10 +3857,10 @@ class GemRateService {
 
     // Check if we found any API responses with trending data
     if (apiResponses.length > 0) {
-      console.log(`📡 [Puppeteer] Found ${apiResponses.length} potential API responses`);
+      debugLog(`📡 [Puppeteer] Found ${apiResponses.length} potential API responses`);
       for (const resp of apiResponses) {
         if (Array.isArray(resp.data) || (resp.data && typeof resp.data === 'object')) {
-          console.log(`📡 [Puppeteer] API response from ${resp.url}:`, JSON.stringify(resp.data).substring(0, 500));
+          debugLog(`📡 [Puppeteer] API response from ${resp.url}:`, JSON.stringify(resp.data).substring(0, 500));
         }
       }
     }
@@ -3890,7 +3872,7 @@ class GemRateService {
     try {
       await this.page.waitForSelector('h2, h3, h4, h5, canvas, [class*="trending"]', { timeout: 15000 }).catch(() => {});
     } catch (e) {
-      console.log('⚠️ [Puppeteer] Timeout waiting for page elements');
+      debugLog('⚠️ [Puppeteer] Timeout waiting for page elements');
     }
 
     // Wait for Chart.js to initialize (charts take time to render)
@@ -3898,25 +3880,19 @@ class GemRateService {
       await this.page.waitForFunction(() => {
         return window.Chart && (window.Chart.instances || document.querySelectorAll('canvas').length > 0);
       }, { timeout: 20000 }).catch(() => {});
-      console.log('✅ [Puppeteer] Charts detected/initialized');
+      debugLog('✅ [Puppeteer] Charts detected/initialized');
     } catch (e) {
-      console.log('⚠️ [Puppeteer] Charts may not be loaded yet');
+      debugLog('⚠️ [Puppeteer] Charts may not be loaded yet');
     }
 
     // Additional wait for dynamic content to fully render
     await new Promise(resolve => setTimeout(resolve, 5000));
 
-    // Capture console.log from page.evaluate
-    this.page.on('console', msg => {
-      const text = msg.text();
-      if (text.includes('[Puppeteer]') || text.includes('trending') || text.includes('Chart')) {
-        console.log(`[Browser Console] ${text}`);
-      }
-    });
+    // Do not forward browser console to Node (was flooding Railway logs)
 
     try {
       // FIRST: Try AG Grid API access (most reliable - gets structured data)
-      console.log(`[Puppeteer] Attempting AG Grid API access first...`);
+      debugLog(`[Puppeteer] Attempting AG Grid API access first...`);
       const agGridExtraction = await this.page.evaluate((which) => {
         const items = [];
         
@@ -3926,7 +3902,7 @@ class GemRateService {
         // Method 1: Check window.gridApi
         if (window.gridApi && typeof window.gridApi.forEachNode === 'function') {
           gridApi = window.gridApi;
-          console.log(`[Puppeteer] Found gridApi via window.gridApi`);
+          debugLog(`[Puppeteer] Found gridApi via window.gridApi`);
         }
         
         // Method 2: Check all AG Grid containers
@@ -3939,7 +3915,7 @@ class GemRateService {
                        (container._agGridInstance && container._agGridInstance.api);
             if (api && typeof api.forEachNode === 'function') {
               gridApi = api;
-              console.log(`[Puppeteer] Found gridApi via container`);
+              debugLog(`[Puppeteer] Found gridApi via container`);
               break;
             }
           }
@@ -3954,7 +3930,7 @@ class GemRateService {
               const api = parent.__agGridInstance || parent.gridApi || parent.api;
               if (api && typeof api.forEachNode === 'function') {
                 gridApi = api;
-                console.log(`[Puppeteer] Found gridApi via row parent`);
+                debugLog(`[Puppeteer] Found gridApi via row parent`);
                 break;
               }
               parent = parent.parentElement;
@@ -3963,21 +3939,21 @@ class GemRateService {
         }
         
         if (gridApi) {
-          console.log(`[Puppeteer] ✅ AG Grid API found, extracting row data...`);
+          debugLog(`[Puppeteer] ✅ AG Grid API found, extracting row data...`);
           const allRowData = [];
           
           // Try multiple methods to get row data
-          console.log(`[Puppeteer] GridApi methods:`, Object.keys(gridApi).filter(k => typeof gridApi[k] === 'function').slice(0, 20));
+          debugLog(`[Puppeteer] GridApi methods:`, Object.keys(gridApi).filter(k => typeof gridApi[k] === 'function').slice(0, 20));
           
           if (typeof gridApi.forEachNode === 'function') {
-            console.log(`[Puppeteer] Using forEachNode method`);
+            debugLog(`[Puppeteer] Using forEachNode method`);
             gridApi.forEachNode((node) => {
               if (node && node.data) {
                 allRowData.push(node.data);
               }
             });
           } else if (gridApi.getDisplayedRowAtIndex) {
-            console.log(`[Puppeteer] Using getDisplayedRowAtIndex method`);
+            debugLog(`[Puppeteer] Using getDisplayedRowAtIndex method`);
             const rowCount = gridApi.getDisplayedRowCount ? gridApi.getDisplayedRowCount() : 100;
             for (let i = 0; i < rowCount; i++) {
               const node = gridApi.getDisplayedRowAtIndex(i);
@@ -3986,7 +3962,7 @@ class GemRateService {
               }
             }
           } else if (gridApi.getModel && gridApi.getModel().getRow) {
-            console.log(`[Puppeteer] Using getModel().getRow method`);
+            debugLog(`[Puppeteer] Using getModel().getRow method`);
             const rowCount = gridApi.getDisplayedRowCount ? gridApi.getDisplayedRowCount() : 100;
             for (let i = 0; i < rowCount; i++) {
               const rowNode = gridApi.getModel().getRow(i);
@@ -3995,7 +3971,7 @@ class GemRateService {
               }
             }
           } else if (gridApi.getRenderedNodes) {
-            console.log(`[Puppeteer] Using getRenderedNodes method`);
+            debugLog(`[Puppeteer] Using getRenderedNodes method`);
             const nodes = gridApi.getRenderedNodes();
             nodes.forEach(node => {
               if (node && node.data) {
@@ -4003,20 +3979,20 @@ class GemRateService {
               }
             });
           } else if (gridApi.getSelectedRows) {
-            console.log(`[Puppeteer] Using getSelectedRows method (fallback)`);
+            debugLog(`[Puppeteer] Using getSelectedRows method (fallback)`);
             const rows = gridApi.getSelectedRows();
             allRowData.push(...rows);
           }
           
           // If still no data, try accessing the grid's internal model directly
           if (allRowData.length === 0 && gridApi.gridOptions && gridApi.gridOptions.rowData) {
-            console.log(`[Puppeteer] Using gridOptions.rowData`);
+            debugLog(`[Puppeteer] Using gridOptions.rowData`);
             allRowData.push(...(gridApi.gridOptions.rowData || []));
           }
           
           // Last resort: try to access via window or document
           if (allRowData.length === 0) {
-            console.log(`[Puppeteer] Trying window.gridApi or document-level access`);
+            debugLog(`[Puppeteer] Trying window.gridApi or document-level access`);
             const winGridApi = window.gridApi || window.agGridApi;
             if (winGridApi && typeof winGridApi.forEachNode === 'function') {
               winGridApi.forEachNode((node) => {
@@ -4027,12 +4003,12 @@ class GemRateService {
             }
           }
           
-          console.log(`[Puppeteer] Extracted ${allRowData.length} rows from AG Grid API`);
+          debugLog(`[Puppeteer] Extracted ${allRowData.length} rows from AG Grid API`);
           
           if (allRowData.length > 0) {
             // Log first row to see structure
-            console.log(`[Puppeteer] First row keys:`, Object.keys(allRowData[0]));
-            console.log(`[Puppeteer] First row sample:`, JSON.stringify(allRowData[0]).substring(0, 500));
+            debugLog(`[Puppeteer] First row keys:`, Object.keys(allRowData[0]));
+            debugLog(`[Puppeteer] First row sample:`, JSON.stringify(allRowData[0]).substring(0, 500));
             
             // Also try to get data from visible DOM cells as backup
             const heading = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6')).find(h => {
@@ -4056,11 +4032,11 @@ class GemRateService {
                     return !['name', 'category', 'graded', 'all', 'time', 'last', 'week', 'prior', 'weekly', 'change'].includes(firstCell);
                   });
                   
-                  console.log(`[Puppeteer] Found ${dataRows.length} data rows in DOM`);
+                  debugLog(`[Puppeteer] Found ${dataRows.length} data rows in DOM`);
                   
                   // If we have row data from API but want to verify, or if API data is empty, use DOM
                   if (dataRows.length > 0 && (allRowData.length === 0 || allRowData.length < dataRows.length)) {
-                    console.log(`[Puppeteer] Using DOM rows as backup/verification`);
+                    debugLog(`[Puppeteer] Using DOM rows as backup/verification`);
                     // Parse DOM rows
                     for (const row of dataRows.slice(0, 50)) {
                       const cells = Array.from(row.querySelectorAll('[role="gridcell"]'));
@@ -4128,7 +4104,7 @@ class GemRateService {
                                     'here', 'set row groups', 'column labels'];
               // Only skip if it's an exact match or starts with header phrase (not if it just contains one)
               if (headerPhrases.some(phrase => lowerName === phrase || lowerName.startsWith(phrase + ' '))) {
-                console.log(`[Puppeteer] Skipping header row: "${nameText}"`);
+                debugLog(`[Puppeteer] Skipping header row: "${nameText}"`);
                 continue;
               }
               
@@ -4205,7 +4181,7 @@ class GemRateService {
               }
             }
             
-            console.log(`[Puppeteer] ✅ AG Grid API extraction: ${items.length} ${which} items`);
+            debugLog(`[Puppeteer] ✅ AG Grid API extraction: ${items.length} ${which} items`);
             return { found: true, items: items };
           }
         }
@@ -4214,7 +4190,7 @@ class GemRateService {
       }, kind);
       
       if (agGridExtraction.found && agGridExtraction.items && agGridExtraction.items.length > 0) {
-        console.log(`✅ [Puppeteer] AG Grid API extraction succeeded: ${agGridExtraction.items.length} ${kind}`);
+        debugLog(`✅ [Puppeteer] AG Grid API extraction succeeded: ${agGridExtraction.items.length} ${kind}`);
         // Remove duplicates and sort
         const unique = [];
         const seen = new Set();
@@ -4263,7 +4239,7 @@ class GemRateService {
                   item.name = remaining;
                   item.player = remaining;
                   item.set_name = remaining;
-                  console.log(`[Puppeteer] Extracted name "${remaining}" from "${name}"`);
+                  debugLog(`[Puppeteer] Extracted name "${remaining}" from "${name}"`);
                   break; // Don't filter it out, we fixed it
                 }
               }
@@ -4289,12 +4265,12 @@ class GemRateService {
           return true;
         });
         
-        console.log(`✅ [Puppeteer] AG Grid filtered: ${filtered.length} ${kind} (removed ${unique.length - filtered.length} header items)`);
+        debugLog(`✅ [Puppeteer] AG Grid filtered: ${filtered.length} ${kind} (removed ${unique.length - filtered.length} header items)`);
         return filtered.slice(0, 50);
       }
       
       // FALLBACK: Try a simple direct text extraction
-      console.log(`[Puppeteer] AG Grid API not available, falling back to text extraction...`);
+      debugLog(`[Puppeteer] AG Grid API not available, falling back to text extraction...`);
       const simpleExtraction = await this.page.evaluate((which) => {
         const normalize = (str) => (str || '').replace(/\s+/g, ' ').trim().replace(/\n/g, ' ');
         const allText = normalize(document.body.textContent || '');
@@ -4304,7 +4280,7 @@ class GemRateService {
         if (idx === -1) return { found: false, items: [] };
         
         const section = allText.substring(idx, idx + 5000);
-        console.log(`[Puppeteer] Section text (first 2000 chars):`, section.substring(0, 2000));
+        debugLog(`[Puppeteer] Section text (first 2000 chars):`, section.substring(0, 2000));
         
         // The data is from an AG Grid table - text is concatenated
         // Pattern: "Michael JordanShohei Ohtani... Basketball1,840,9796,6945,24428%"
@@ -4330,7 +4306,7 @@ class GemRateService {
               const grid = container.querySelector('[role="grid"], .ag-root-wrapper, [class*="ag-grid"]');
               if (grid) {
                 gridRows = Array.from(grid.querySelectorAll('[role="row"]'));
-                console.log(`[Puppeteer] Found grid near heading with ${gridRows.length} rows`);
+                debugLog(`[Puppeteer] Found grid near heading with ${gridRows.length} rows`);
                 break;
               }
               container = container.parentElement;
@@ -4340,12 +4316,12 @@ class GemRateService {
           // Fallback: get all rows
           if (gridRows.length === 0) {
             gridRows = Array.from(document.querySelectorAll('[role="row"]'));
-            console.log(`[Puppeteer] Found ${gridRows.length} total AG Grid rows (fallback)`);
+            debugLog(`[Puppeteer] Found ${gridRows.length} total AG Grid rows (fallback)`);
           }
           
           // Also try to find card elements (the UI might show cards, not just table rows)
           const cardElements = Array.from(document.querySelectorAll('[class*="card"], [class*="Card"], [data-testid*="card"], [class*="trending"]'));
-          console.log(`[Puppeteer] Found ${cardElements.length} potential card elements`);
+          debugLog(`[Puppeteer] Found ${cardElements.length} potential card elements`);
           
           // First, find the header row to identify column order
           let headerRow = null;
@@ -4355,7 +4331,7 @@ class GemRateService {
             const headerCells = Array.from(row.querySelectorAll('[role="columnheader"], [role="gridcell"]'));
             if (headerCells.length > 0) {
               const headerText = headerCells.map(c => (c.textContent || '').toLowerCase().trim()).join('|');
-              console.log(`[Puppeteer] Header row text: ${headerText}`);
+              debugLog(`[Puppeteer] Header row text: ${headerText}`);
               
               // Find column indices
               for (let i = 0; i < headerCells.length; i++) {
@@ -4379,7 +4355,7 @@ class GemRateService {
             }
           }
           
-          console.log(`[Puppeteer] Column indices:`, columnIndices);
+          debugLog(`[Puppeteer] Column indices:`, columnIndices);
           
           // Try to access AG Grid's internal data model directly
           try {
@@ -4389,7 +4365,7 @@ class GemRateService {
               const gridApi = gridEl.__agGridInstance || gridEl.gridApi || window.gridApi;
               if (gridApi && gridApi.getDisplayedRowCount) {
                 const rowCount = gridApi.getDisplayedRowCount();
-                console.log(`[Puppeteer] Found AG Grid API with ${rowCount} rows`);
+                debugLog(`[Puppeteer] Found AG Grid API with ${rowCount} rows`);
                 
                 // Get all row data
                 const allRowData = [];
@@ -4400,15 +4376,15 @@ class GemRateService {
                 });
                 
                 if (allRowData.length > 0) {
-                  console.log(`[Puppeteer] Extracted ${allRowData.length} rows from AG Grid API`);
-                  console.log(`[Puppeteer] First row sample:`, JSON.stringify(allRowData[0]));
+                  debugLog(`[Puppeteer] Extracted ${allRowData.length} rows from AG Grid API`);
+                  debugLog(`[Puppeteer] First row sample:`, JSON.stringify(allRowData[0]));
                   
                   // Process row data
                   for (const rowData of allRowData) {
                     // Log first row to see structure
                     if (allRowData.indexOf(rowData) === 0) {
-                      console.log(`[Puppeteer] Sample row data keys:`, Object.keys(rowData));
-                      console.log(`[Puppeteer] Sample row data:`, JSON.stringify(rowData, null, 2));
+                      debugLog(`[Puppeteer] Sample row data keys:`, Object.keys(rowData));
+                      debugLog(`[Puppeteer] Sample row data:`, JSON.stringify(rowData, null, 2));
                     }
                     
                     // Extract name - try various field names
@@ -4490,14 +4466,14 @@ class GemRateService {
                   
                   // If we got items from API, skip DOM extraction
                   if (items.length > 0) {
-                    console.log(`[Puppeteer] ✅ Extracted ${items.length} ${which} from AG Grid API`);
+                    debugLog(`[Puppeteer] ✅ Extracted ${items.length} ${which} from AG Grid API`);
                     break;
                   }
                 }
               }
             }
           } catch (e) {
-            console.log(`[Puppeteer] AG Grid API access failed: ${e.message}`);
+            debugLog(`[Puppeteer] AG Grid API access failed: ${e.message}`);
           }
           
           // Now extract data rows (only if API method didn't work)
@@ -4526,7 +4502,7 @@ class GemRateService {
             return true;
           });
           
-          console.log(`[Puppeteer] Filtered to ${dataRows.length} data rows (from ${gridRows.length} total rows)`);
+          debugLog(`[Puppeteer] Filtered to ${dataRows.length} data rows (from ${gridRows.length} total rows)`);
           
           for (const row of dataRows) {
             const cells = Array.from(row.querySelectorAll('[role="gridcell"]'));
@@ -4535,7 +4511,7 @@ class GemRateService {
             // Log all cell contents for debugging (only first few)
             if (items.length < 3) {
               const allCellTexts = cells.map((c, i) => `[${i}]="${(c.textContent || '').trim()}"`).join(', ');
-              console.log(`[Puppeteer] Row cells: ${allCellTexts}`);
+              debugLog(`[Puppeteer] Row cells: ${allCellTexts}`);
             }
             
             // Check if cells contain only numbers (indicating wrong column structure)
@@ -4627,16 +4603,16 @@ class GemRateService {
             
             // Skip if we didn't get valid data
             if (!nameText || nameText === '0' || nameText.length < 2) {
-              console.log(`[Puppeteer] Skipping row - invalid name: "${nameText}"`);
+              debugLog(`[Puppeteer] Skipping row - invalid name: "${nameText}"`);
               continue;
             }
             
             if (count === 0 || isNaN(count)) {
-              console.log(`[Puppeteer] Skipping row - invalid count: ${count}`);
+              debugLog(`[Puppeteer] Skipping row - invalid count: ${count}`);
               continue;
             }
             
-            console.log(`[Puppeteer] ✅ Extracted from cells: name="${nameText}", category="${categoryText}", count=${count}`);
+            debugLog(`[Puppeteer] ✅ Extracted from cells: name="${nameText}", category="${categoryText}", count=${count}`);
             
             // If we still don't have a name and first cell is numeric, try to get it from row data
             if (!nameText && isFirstCellNumeric) {
@@ -4646,7 +4622,7 @@ class GemRateService {
                 try {
                   const parsed = JSON.parse(rowDataAttr);
                   nameText = parsed.name || parsed.set_name || parsed.set || parsed.title || parsed.label || '';
-                  console.log(`[Puppeteer] Found name in row data: "${nameText}"`);
+                  debugLog(`[Puppeteer] Found name in row data: "${nameText}"`);
                 } catch (e) {
                   // Not JSON, try as string
                   if (rowDataAttr.includes('"name"') || rowDataAttr.includes('"set')) {
@@ -4666,7 +4642,7 @@ class GemRateService {
               
               // Last resort: skip this row if we can't find a name
               if (!nameText) {
-                console.log(`[Puppeteer] Skipping row - first cell is numeric (${firstCellText}), no name found in row data`);
+                debugLog(`[Puppeteer] Skipping row - first cell is numeric (${firstCellText}), no name found in row data`);
                 continue;
               }
             }
@@ -4682,12 +4658,12 @@ class GemRateService {
             
             // Log first few rows for debugging
             if (items.length < 3) {
-              console.log(`[Puppeteer] Row ${items.length + 1}: name="${nameText}", category="${categoryText}", count=${count}, isExcluded=${isExcluded}, isCategory=${isCategory}`);
-              console.log(`[Puppeteer] All cells:`, cells.map((c, i) => `[${i}]="${(c.textContent || '').trim()}"`).join(', '));
+              debugLog(`[Puppeteer] Row ${items.length + 1}: name="${nameText}", category="${categoryText}", count=${count}, isExcluded=${isExcluded}, isCategory=${isCategory}`);
+              debugLog(`[Puppeteer] All cells:`, cells.map((c, i) => `[${i}]="${(c.textContent || '').trim()}"`).join(', '));
             }
             
             if (nameText && nameText.length >= 3 && nameText.length <= 80 && count > 0 && !isExcluded && !isCategory) {
-              console.log(`[Puppeteer] ✅ Extracted ${which}: name="${nameText}", category="${categoryText}", count=${count}`);
+              debugLog(`[Puppeteer] ✅ Extracted ${which}: name="${nameText}", category="${categoryText}", count=${count}`);
               if (which === 'players') {
                 items.push({ 
                   player: nameText, 
@@ -4713,7 +4689,7 @@ class GemRateService {
           
           // If we didn't get items from table rows, try card elements
           if (items.length === 0 && cardElements.length > 0) {
-            console.log(`[Puppeteer] Trying card elements extraction...`);
+            debugLog(`[Puppeteer] Trying card elements extraction...`);
             for (const card of cardElements) {
               const cardText = (card.textContent || '').trim();
               // Look for set name in card (usually in a heading or title element)
@@ -4734,12 +4710,12 @@ class GemRateService {
             }
           }
         } catch (e) {
-          console.log(`[Puppeteer] AG Grid DOM extraction failed: ${e.message}`);
+          debugLog(`[Puppeteer] AG Grid DOM extraction failed: ${e.message}`);
         }
         
         // Method 2: Parse concatenated text by splitting on categories
         if (items.length === 0) {
-          console.log(`[Puppeteer] Trying text parsing method...`);
+          debugLog(`[Puppeteer] Trying text parsing method...`);
           const categoryPattern = new RegExp(`(${categories.join('|')})`, 'gi');
           const parts = section.split(categoryPattern);
           
@@ -4801,15 +4777,15 @@ class GemRateService {
         }
         unique.sort((a, b) => (b.count || 0) - (a.count || 0));
         
-        console.log(`✅ [Puppeteer] Extracted ${unique.length} ${which} items`);
+        debugLog(`✅ [Puppeteer] Extracted ${unique.length} ${which} items`);
         return { found: unique.length > 0, items: unique.slice(0, 50) };
       }, kind);
       
-      // For players, skip the old DOM-based extraction - we use block-based parser instead
-      if (kind === 'players') {
-        console.log(`[Puppeteer] Skipping old DOM extraction for players - using block-based parser instead`);
+      // For players/sets/cards, skip the old DOM-based extraction - we use block-based parser instead
+      if (kind === 'players' || kind === 'sets' || kind === 'cards') {
+        debugLog(`[Puppeteer] Skipping old DOM extraction for ${kind} - using block-based parser instead`);
       } else if (simpleExtraction.found && simpleExtraction.items && simpleExtraction.items.length > 0) {
-        console.log(`✅ [Puppeteer] Simple extraction succeeded: ${simpleExtraction.items.length} ${kind}`);
+        debugLog(`✅ [Puppeteer] Simple extraction succeeded: ${simpleExtraction.items.length} ${kind}`);
         
         // Apply final filter to simple extraction results too
         const headerPhrasesToFilter = [
@@ -4828,41 +4804,21 @@ class GemRateService {
           const name = (item.name || item.player || item.set_name || '').trim().toLowerCase();
           
           // Skip exact matches
-          if (headerPhrasesToFilter.includes(name)) {
-            console.log(`[Puppeteer] Simple filter: Removed exact match "${item.name || item.player || item.set_name}"`);
-            return false;
-          }
-          
+          if (headerPhrasesToFilter.includes(name)) return false;
           // Skip if contains header phrase (for longer phrases)
-          if (headerPhrasesToFilter.some(phrase => phrase.length > 5 && name.includes(phrase))) {
-            console.log(`[Puppeteer] Simple filter: Removed contains "${item.name || item.player || item.set_name}"`);
-            return false;
-          }
-          
+          if (headerPhrasesToFilter.some(phrase => phrase.length > 5 && name.includes(phrase))) return false;
           // Skip if starts with header phrase
-          if (headerPhrasesToFilter.some(phrase => name.startsWith(phrase))) {
-            console.log(`[Puppeteer] Simple filter: Removed starts with "${item.name || item.player || item.set_name}"`);
-            return false;
-          }
-          
+          if (headerPhrasesToFilter.some(phrase => name.startsWith(phrase))) return false;
           // Skip single header words
           const words = name.split(/\s+/);
-          if (words.length === 1 && headerWords.includes(name)) {
-            console.log(`[Puppeteer] Simple filter: Removed single word "${item.name || item.player || item.set_name}"`);
-            return false;
-          }
-          
+          if (words.length === 1 && headerWords.includes(name)) return false;
           // Skip if 2+ words are header words
-          const headerWordCount = words.filter(w => headerWords.includes(w)).length;
-          if (headerWordCount >= 2) {
-            console.log(`[Puppeteer] Simple filter: Removed ${headerWordCount} header words "${item.name || item.player || item.set_name}"`);
-            return false;
-          }
+          if (words.filter(w => headerWords.includes(w)).length >= 2) return false;
           
           return true;
         });
         
-        console.log(`✅ [Puppeteer] Simple extraction filtered: ${filtered.length} ${kind} (removed ${simpleExtraction.items.length - filtered.length} header items)`);
+        debugLog(`✅ [Puppeteer] Simple extraction filtered: ${filtered.length} ${kind} (removed ${simpleExtraction.items.length - filtered.length} header items)`);
         return filtered;
       }
 
@@ -4878,10 +4834,10 @@ class GemRateService {
           hasTrendingText: document.body.textContent.toLowerCase().includes('trending')
         };
       });
-      console.log(`[Puppeteer] Page info:`, JSON.stringify(pageInfo, null, 2));
+      debugLog(`[Puppeteer] Page info:`, JSON.stringify(pageInfo, null, 2));
 
       // First, try a simple approach - get ALL text and look for patterns
-      console.log(`[Puppeteer] Starting simple text extraction for ${kind}...`);
+      debugLog(`[Puppeteer] Starting simple text extraction for ${kind}...`);
       
       const simpleResults = await this.page.evaluate((which) => {
         try {
@@ -4889,7 +4845,7 @@ class GemRateService {
           
           // Get ALL text content from the page
           const allText = normalize(document.body.textContent || '');
-          console.log(`[Puppeteer] Total page text length: ${allText.length}`);
+          debugLog(`[Puppeteer] Total page text length: ${allText.length}`);
           
           // Find the trending section
           let sectionKeyword;
@@ -4905,7 +4861,7 @@ class GemRateService {
           const sectionIndex = allText.toLowerCase().indexOf(sectionKeyword.toLowerCase());
           
           if (sectionIndex === -1) {
-            console.log(`[Puppeteer] Section keyword "${sectionKeyword}" not found in page text`);
+            debugLog(`[Puppeteer] Section keyword "${sectionKeyword}" not found in page text`);
             return [];
           }
           
@@ -4928,41 +4884,41 @@ class GemRateService {
           
           let sectionText = allText.substring(sectionIndex, sectionEnd);
           
-          console.log(`[Puppeteer] Section "${sectionKeyword}" found at index ${sectionIndex}, extracted ${sectionText.length} chars (stopped at ${sectionEnd})`);
+          debugLog(`[Puppeteer] Section "${sectionKeyword}" found at index ${sectionIndex}, extracted ${sectionText.length} chars (stopped at ${sectionEnd})`);
           
           // Remove UI text that we don't need (keep the header row so we can anchor on it)
           sectionText = sectionText.replace(/Drag here to set row groupsDrag here to set column labels/gi, '');
           
-          console.log(`[Puppeteer] Section text (first 2000 chars):`, sectionText.substring(0, 2000));
+          debugLog(`[Puppeteer] Section text (first 2000 chars):`, sectionText.substring(0, 2000));
           
           // Special handling for players: the text comes in two logical blocks:
           // 1) An ordered list of player names that starts right after "Prior Week Weekly Change "
           // 2) An ordered list of stat segments (Sport + 3 numbers + %) starting at the first sport word
           // We map stat segment N to player N.
           if (which === 'players') {
-            console.log('[Puppeteer] Starting block-based parser for players...');
+            debugLog('[Puppeteer] Starting block-based parser for players...');
             const sports = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG'];
             
             // Find the point just after "Prior Week Weekly Change" in the players header
             const anchor = 'prior week weekly change';
             const wcIdx = sectionText.toLowerCase().indexOf(anchor);
-            console.log(`[Puppeteer] Found "Prior Week Weekly Change" anchor at index: ${wcIdx}`);
+            debugLog(`[Puppeteer] Found "Prior Week Weekly Change" anchor at index: ${wcIdx}`);
             let playersAndStats = wcIdx !== -1
               ? sectionText.substring(wcIdx + anchor.length).trim()
               : sectionText;
             
-            console.log(`[Puppeteer] Players+stats text length: ${playersAndStats.length}, first 200 chars: ${playersAndStats.substring(0, 200)}`);
+            debugLog(`[Puppeteer] Players+stats text length: ${playersAndStats.length}, first 200 chars: ${playersAndStats.substring(0, 200)}`);
             
             // Find the first sport word – that splits player block from stats block
             // Allow sport words glued to years (e.g. "Baseball2025")
             const sportSplitRegex = new RegExp(`\\b(${sports.join('|')})`, 'i');
             const firstSportMatch = playersAndStats.match(sportSplitRegex);
             if (!firstSportMatch || firstSportMatch.index == null) {
-              console.log(`[Puppeteer] ERROR: No sport keyword found in section text for players. Text sample: "${playersAndStats.substring(0, 300)}"`);
+              debugLog(`[Puppeteer] ERROR: No sport keyword found in section text for players. Text sample: "${playersAndStats.substring(0, 300)}"`);
               return [];
             }
             
-            console.log(`[Puppeteer] Found first sport "${firstSportMatch[0]}" at index ${firstSportMatch.index}`);
+            debugLog(`[Puppeteer] Found first sport "${firstSportMatch[0]}" at index ${firstSportMatch.index}`);
             
             const splitIndex = firstSportMatch.index;
             const namesText = playersAndStats.substring(0, splitIndex).trim();
@@ -4977,7 +4933,7 @@ class GemRateService {
               .map(s => s.trim())
               .filter(s => s.length > 0 && /[a-z]/i.test(s));
             
-            console.log(`[Puppeteer] Parsed ${rawNames.length} player names from names block`);
+            debugLog(`[Puppeteer] Parsed ${rawNames.length} player names from names block`);
             
             // 2) Extract stat segments in order: Sport + 3 big numbers + optional %
             const statItems = [];
@@ -4992,7 +4948,7 @@ class GemRateService {
               const end = i + 1 < sportMatches.length ? sportMatches[i + 1].index : statsText.length;
               const segment = statsText.substring(start, end);
               
-              console.log(`[Puppeteer] Processing segment for ${sport}: "${segment.substring(0, 100)}"`);
+              debugLog(`[Puppeteer] Processing segment for ${sport}: "${segment.substring(0, 100)}"`);
               
               // Parse the 4 fields: all time, this week, past week, % difference
               // Rules:
@@ -5002,7 +4958,7 @@ class GemRateService {
               
               const percentIndex = segment.lastIndexOf('%');
               if (percentIndex === -1) {
-                console.log(`[Puppeteer] No % found in segment: "${segment.substring(0, 80)}"`);
+                debugLog(`[Puppeteer] No % found in segment: "${segment.substring(0, 80)}"`);
                 continue;
               }
               
@@ -5090,7 +5046,7 @@ class GemRateService {
               }
               
               if (fields.length < 3) {
-                console.log(`[Puppeteer] Not enough fields parsed (got ${fields.length}) in segment: "${segment.substring(0, 80)}"`);
+                debugLog(`[Puppeteer] Not enough fields parsed (got ${fields.length}) in segment: "${segment.substring(0, 80)}"`);
                 continue;
               }
               
@@ -5147,12 +5103,12 @@ class GemRateService {
               const lastWeek = parseInt(fields[1].replace(/,/g, ''), 10);
               const priorWeek = parseInt(fields[2].replace(/,/g, ''), 10);
               
-              console.log(`[Puppeteer] Parsed stats for ${sport}: allTime=${allTime}, lastWeek=${lastWeek}, priorWeek=${priorWeek}, change=${finalChange} (fields: ${fields.join(' | ')}, percentagePart: "${percentagePart}")`);
+              debugLog(`[Puppeteer] Parsed stats for ${sport}: allTime=${allTime}, lastWeek=${lastWeek}, priorWeek=${priorWeek}, change=${finalChange} (fields: ${fields.join(' | ')}, percentagePart: "${percentagePart}")`);
               
               statItems.push({ sport, allTime, lastWeek, priorWeek, change: finalChange });
             }
             
-            console.log(`[Puppeteer] Parsed ${statItems.length} stat rows from stats block`);
+            debugLog(`[Puppeteer] Parsed ${statItems.length} stat rows from stats block`);
             
             const pairCount = Math.min(rawNames.length, statItems.length);
             const paired = [];
@@ -5174,27 +5130,27 @@ class GemRateService {
               });
             }
             
-            console.log(`[Puppeteer] Block-based mapping produced ${paired.length} player records`);
+            debugLog(`[Puppeteer] Block-based mapping produced ${paired.length} player records`);
             if (paired.length > 0) {
-              console.log(`[Puppeteer] First 3 paired results:`, paired.slice(0, 3).map(p => `${p.player}: ${p.sport} ${p.submissions}`));
+              debugLog(`[Puppeteer] First 3 paired results:`, paired.slice(0, 3).map(p => `${p.player}: ${p.sport} ${p.submissions}`));
             }
             return paired;
           }
           
           // For sets, implement block-based parser similar to players
           if (which === 'sets') {
-            console.log('[Puppeteer] Starting block-based parser for sets...');
+            debugLog('[Puppeteer] Starting block-based parser for sets...');
             const sports = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG', 'Misc'];
             
             // Find the point just after "Prior Week Weekly Change" in the sets header
             const anchor = 'prior week weekly change';
             const wcIdx = sectionText.toLowerCase().indexOf(anchor);
-            console.log(`[Puppeteer] Found "Prior Week Weekly Change" anchor at index: ${wcIdx}`);
+            debugLog(`[Puppeteer] Found "Prior Week Weekly Change" anchor at index: ${wcIdx}`);
             let setsAndStats = wcIdx !== -1
               ? sectionText.substring(wcIdx + anchor.length).trim()
               : sectionText;
             
-            console.log(`[Puppeteer] Sets+stats text length: ${setsAndStats.length}, first 200 chars: ${setsAndStats.substring(0, 200)}`);
+            debugLog(`[Puppeteer] Sets+stats text length: ${setsAndStats.length}, first 200 chars: ${setsAndStats.substring(0, 200)}`);
             
             // For sets, the data format is: SportYearSetNameNumbers%
             // Example: "Baseball2025Bowman Chrome Prospect Autographs43,8372,2101,42955%"
@@ -5205,7 +5161,7 @@ class GemRateService {
             const sportGlobal = new RegExp(`\\b(${sports.join('|')})`, 'g');
             const statsSportMatches = Array.from(setsAndStats.matchAll(sportGlobal));
             
-            console.log(`[Puppeteer] Found ${statsSportMatches.length} sport matches in sets data`);
+            debugLog(`[Puppeteer] Found ${statsSportMatches.length} sport matches in sets data`);
             
             for (let i = 0; i < statsSportMatches.length; i++) {
               const m = statsSportMatches[i];
@@ -5214,7 +5170,7 @@ class GemRateService {
               const end = i + 1 < statsSportMatches.length ? statsSportMatches[i + 1].index : setsAndStats.length;
               const segment = setsAndStats.substring(start, end);
               
-              console.log(`[Puppeteer] Processing segment for ${sport}: "${segment.substring(0, 100)}"`);
+              debugLog(`[Puppeteer] Processing segment for ${sport}: "${segment.substring(0, 100)}"`);
               
               // Extract year (4 digits or year range) and set name (they come before the numbers)
               const yearMatch = segment.match(/^(\d{4}(?:-\d{2})?)/);
@@ -5229,7 +5185,7 @@ class GemRateService {
               // The set name is everything between the year and the first number
               const numberStartMatch = afterYear.match(/(\d{1,3}(?:,\d{3})+|\d{4,})/);
               if (!numberStartMatch) {
-                console.log(`[Puppeteer] No number pattern found in segment after year for ${sport}: "${afterYear.substring(0, 100)}"`);
+                debugLog(`[Puppeteer] No number pattern found in segment after year for ${sport}: "${afterYear.substring(0, 100)}"`);
                 continue;
               }
               
@@ -5239,24 +5195,24 @@ class GemRateService {
               // Validate set name - should not be a single word or player name
               // Sets should have multiple words or be recognizable set names
               if (!setName || setName.length < 3) {
-                console.log(`[Puppeteer] Skipping invalid set name (too short): "${setName}"`);
+                debugLog(`[Puppeteer] Skipping invalid set name (too short): "${setName}"`);
                 continue;
               }
               
               // Filter out common player names and generic terms that might leak from other sections
               const invalidSetNames = ['base', 'score', 'cooper flagg', 'bo jackson', 'michael jordan', 'shohei ohtani'];
               if (invalidSetNames.some(invalid => setName.toLowerCase().includes(invalid))) {
-                console.log(`[Puppeteer] Skipping invalid set name (looks like player/generic): "${setName}"`);
+                debugLog(`[Puppeteer] Skipping invalid set name (looks like player/generic): "${setName}"`);
                 continue;
               }
               
-              console.log(`[Puppeteer] Extracted set: ${sport} ${year} "${setName}" -> numbers: "${numbersPart.substring(0, 50)}"`);
+              debugLog(`[Puppeteer] Extracted set: ${sport} ${year} "${setName}" -> numbers: "${numbersPart.substring(0, 50)}"`);
               
               // Now parse the 3 fields (all time, this week, past week) and percentage
               // Same logic as players
               const percentIndex = numbersPart.lastIndexOf('%');
               if (percentIndex === -1) {
-                console.log(`[Puppeteer] No % found in segment: "${segment.substring(0, 80)}"`);
+                debugLog(`[Puppeteer] No % found in segment: "${segment.substring(0, 80)}"`);
                 continue;
               }
               
@@ -5321,7 +5277,7 @@ class GemRateService {
               }
               
               if (fields.length < 3) {
-                console.log(`[Puppeteer] Not enough fields parsed (got ${fields.length}) in segment: "${segment.substring(0, 80)}"`);
+                debugLog(`[Puppeteer] Not enough fields parsed (got ${fields.length}) in segment: "${segment.substring(0, 80)}"`);
                 continue;
               }
               
@@ -5359,7 +5315,7 @@ class GemRateService {
               }
             }
             
-            console.log(`[Puppeteer] Parsed ${statItems.length} set records from combined data`);
+            debugLog(`[Puppeteer] Parsed ${statItems.length} set records from combined data`);
             
             // Convert statItems directly to final format (they already contain all info)
             const paired = statItems.map(s => ({
@@ -5377,26 +5333,26 @@ class GemRateService {
               change: s.change || 0
             }));
             
-            console.log(`[Puppeteer] Block-based mapping produced ${paired.length} set records`);
+            debugLog(`[Puppeteer] Block-based mapping produced ${paired.length} set records`);
             if (paired.length > 0) {
-              console.log(`[Puppeteer] First 3 results:`, paired.slice(0, 3).map(p => `${p.set_name}: ${p.sport} ${p.year} ${p.submissions}`));
+              debugLog(`[Puppeteer] First 3 results:`, paired.slice(0, 3).map(p => `${p.set_name}: ${p.sport} ${p.year} ${p.submissions}`));
             }
             return paired;
           }
           
           // For cards, implement block-based parser
           if (which === 'cards') {
-            console.log('[Puppeteer] Starting block-based parser for cards...');
+            debugLog('[Puppeteer] Starting block-based parser for cards...');
             
             // Find the point just after "Prior Week Weekly Change" in the cards header
             const anchor = 'prior week weekly change';
             const wcIdx = sectionText.toLowerCase().indexOf(anchor);
-            console.log(`[Puppeteer] Found "Prior Week Weekly Change" anchor at index: ${wcIdx}`);
+            debugLog(`[Puppeteer] Found "Prior Week Weekly Change" anchor at index: ${wcIdx}`);
             let cardsAndStats = wcIdx !== -1
               ? sectionText.substring(wcIdx + anchor.length).trim()
               : sectionText;
             
-            console.log(`[Puppeteer] Cards+stats text length: ${cardsAndStats.length}, first 200 chars: ${cardsAndStats.substring(0, 200)}`);
+            debugLog(`[Puppeteer] Cards+stats text length: ${cardsAndStats.length}, first 200 chars: ${cardsAndStats.substring(0, 200)}`);
             
             // For cards, the format might be simpler - just names followed by numbers
             // Format: "Topps Silver Pack105Topps9Cooper Flagg9Base9..."
@@ -5405,7 +5361,7 @@ class GemRateService {
             // Find the first number pattern (comma-separated or multi-digit)
             const firstNumberMatch = cardsAndStats.match(/(\d{1,3}(?:,\d{3})+|\d{2,})/);
             if (!firstNumberMatch) {
-              console.log(`[Puppeteer] ERROR: No number pattern found in cards section. Text sample: "${cardsAndStats.substring(0, 300)}"`);
+              debugLog(`[Puppeteer] ERROR: No number pattern found in cards section. Text sample: "${cardsAndStats.substring(0, 300)}"`);
               return [];
             }
             
@@ -5413,7 +5369,7 @@ class GemRateService {
             const cardsText = cardsAndStats.substring(0, splitIndex).trim();
             const statsText = cardsAndStats.substring(splitIndex).trim();
             
-            console.log(`[Puppeteer] Split at index ${splitIndex}, cards text length: ${cardsText.length}, stats text length: ${statsText.length}`);
+            debugLog(`[Puppeteer] Split at index ${splitIndex}, cards text length: ${cardsText.length}, stats text length: ${statsText.length}`);
             
             // 1) Extract card names: Names are jammed together like "Topps Silver PackToppsCooper Flagg..."
             // Insert delimiter between a lowercase letter and a following capital letter
@@ -5423,9 +5379,9 @@ class GemRateService {
               .map(s => s.trim())
               .filter(s => s.length > 0 && /[a-z]/i.test(s));
             
-            console.log(`[Puppeteer] Parsed ${rawNames.length} card names from names block`);
+            debugLog(`[Puppeteer] Parsed ${rawNames.length} card names from names block`);
             if (rawNames.length > 0) {
-              console.log(`[Puppeteer] First 5 names: ${rawNames.slice(0, 5).join(', ')}`);
+              debugLog(`[Puppeteer] First 5 names: ${rawNames.slice(0, 5).join(', ')}`);
             }
             
             // 2) Extract stats: Format is just numbers (submission counts)
@@ -5441,7 +5397,7 @@ class GemRateService {
               }
             }
             
-            console.log(`[Puppeteer] Parsed ${statItems.length} stat rows from stats block`);
+            debugLog(`[Puppeteer] Parsed ${statItems.length} stat rows from stats block`);
             
             // Zip cards with stats by index
             const pairCount = Math.min(rawNames.length, statItems.length);
@@ -5460,16 +5416,16 @@ class GemRateService {
               });
             }
             
-            console.log(`[Puppeteer] Block-based mapping produced ${paired.length} card records`);
+            debugLog(`[Puppeteer] Block-based mapping produced ${paired.length} card records`);
             if (paired.length > 0) {
-              console.log(`[Puppeteer] First 3 paired results:`, paired.slice(0, 3).map(p => `${p.name}: ${p.submissions}`));
+              debugLog(`[Puppeteer] First 3 paired results:`, paired.slice(0, 3).map(p => `${p.name}: ${p.submissions}`));
             }
             return paired;
           }
           
           // For players, we should never reach here (should return from block above)
           if (which === 'players') {
-            console.log('[Puppeteer] ERROR: Players parser should have returned from block-based mapping above');
+            debugLog('[Puppeteer] ERROR: Players parser should have returned from block-based mapping above');
             return [];
           }
           
@@ -5483,7 +5439,7 @@ class GemRateService {
           const categoryPattern = new RegExp(`\\b(${categories.join('|')})\\b`, 'gi');
           const categoryMatches = [...sectionText.matchAll(categoryPattern)];
           
-          console.log(`[Puppeteer] Found ${categoryMatches.length} category matches in section`);
+          debugLog(`[Puppeteer] Found ${categoryMatches.length} category matches in section`);
           
           for (let i = 0; i < categoryMatches.length; i++) {
             const match = categoryMatches[i];
@@ -5501,7 +5457,7 @@ class GemRateService {
             // Pattern: AllTime,LastWeek,PriorWeek,Change%
             const numberMatch = afterCategory.match(/(\d{1,3}(?:,\d{3})*),(\d{1,3}(?:,\d{3})*),(\d{1,3}(?:,\d{3})*),?(\d+)?%?/);
             if (!numberMatch) {
-              console.log(`[Puppeteer] No number match found after category "${category}"`);
+              debugLog(`[Puppeteer] No number match found after category "${category}"`);
               continue;
             }
             
@@ -5546,13 +5502,13 @@ class GemRateService {
                 
                 // FIRST: Check if it's an exact match to any header phrase (most important check)
                 if (headerPhrases.some(phrase => lowerN === phrase || lowerN.includes(phrase))) {
-                  console.log(`[Puppeteer] Filtered out header phrase: "${n}"`);
+                  debugLog(`[Puppeteer] Filtered out header phrase: "${n}"`);
                   return false;
                 }
                 
                 // SECOND: Check if it starts with or ends with a header phrase
                 if (headerPhrases.some(phrase => lowerN.startsWith(phrase) || lowerN.endsWith(phrase))) {
-                  console.log(`[Puppeteer] Filtered out name starting/ending with header phrase: "${n}"`);
+                  debugLog(`[Puppeteer] Filtered out name starting/ending with header phrase: "${n}"`);
                   return false;
                 }
                 
@@ -5569,7 +5525,7 @@ class GemRateService {
                          lowerN.startsWith(word + 's ') ||
                          lowerN.endsWith(' ' + word + 's');
                 })) {
-                  console.log(`[Puppeteer] Filtered out name with header word: "${n}"`);
+                  debugLog(`[Puppeteer] Filtered out name with header word: "${n}"`);
                   return false;
                 }
                 
@@ -5577,7 +5533,7 @@ class GemRateService {
                 const words = lowerN.split(/\s+/);
                 const headerWordCount = words.filter(w => headerWords.includes(w)).length;
                 if (headerWordCount >= 2) {
-                  console.log(`[Puppeteer] Filtered out name with ${headerWordCount} header words: "${n}"`);
+                  debugLog(`[Puppeteer] Filtered out name with ${headerWordCount} header words: "${n}"`);
                   return false;
                 }
                 
@@ -5603,7 +5559,7 @@ class GemRateService {
             if (validNames.length > 0) {
               const name = validNames[validNames.length - 1];
               
-              console.log(`[Puppeteer] Extracted: name="${name}", category="${category}", lastWeek=${lastWeek}, change=${change}%`);
+              debugLog(`[Puppeteer] Extracted: name="${name}", category="${category}", lastWeek=${lastWeek}, change=${change}%`);
               
               if (which === 'players') {
                 items.push({ 
@@ -5631,7 +5587,7 @@ class GemRateService {
                 });
               }
             } else {
-              console.log(`[Puppeteer] No valid names found before category "${category}"`);
+              debugLog(`[Puppeteer] No valid names found before category "${category}"`);
             }
           }
           
@@ -5653,7 +5609,7 @@ class GemRateService {
             
             // Skip if it's a header phrase
             if (headerPhrasesToFilter.some(phrase => lowerName === phrase || lowerName.includes(phrase))) {
-              console.log(`[Puppeteer] Post-filter: Removed header phrase "${name}"`);
+              debugLog(`[Puppeteer] Post-filter: Removed header phrase "${name}"`);
               continue;
             }
             
@@ -5662,14 +5618,14 @@ class GemRateService {
             const headerWords = ['trending', 'players', 'subjects', 'sets', 'name', 'category', 'graded', 
                                'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'past', 'page'];
             if (words.length === 1 && headerWords.includes(lowerName)) {
-              console.log(`[Puppeteer] Post-filter: Removed single header word "${name}"`);
+              debugLog(`[Puppeteer] Post-filter: Removed single header word "${name}"`);
               continue;
             }
             
             // Skip if 2+ words are header words
             const headerWordCount = words.filter(w => headerWords.includes(w)).length;
             if (headerWordCount >= 2) {
-              console.log(`[Puppeteer] Post-filter: Removed name with ${headerWordCount} header words "${name}"`);
+              debugLog(`[Puppeteer] Post-filter: Removed name with ${headerWordCount} header words "${name}"`);
               continue;
             }
             
@@ -5681,7 +5637,7 @@ class GemRateService {
           }
           
           unique.sort((a, b) => (b.count || 0) - (a.count || 0));
-          console.log(`[Puppeteer] Simple extraction found ${unique.length} items (after filtering)`);
+          debugLog(`[Puppeteer] Simple extraction found ${unique.length} items (after filtering)`);
           return unique.slice(0, 50);
         } catch (error) {
           console.error(`[Puppeteer] Error in simple extraction: ${error.message}`);
@@ -5690,16 +5646,16 @@ class GemRateService {
       }, kind);
       
       if (simpleResults && simpleResults.length > 0) {
-        console.log(`✅ [Puppeteer] Simple extraction succeeded: ${simpleResults.length} ${kind}`);
+        debugLog(`✅ [Puppeteer] Simple extraction succeeded: ${simpleResults.length} ${kind}`);
         if (kind === 'players' && simpleResults.length > 0) {
-          console.log(`[Puppeteer] First 3 player results:`, simpleResults.slice(0, 3).map(p => `${p.player}: ${p.sport} ${p.submissions}`));
+          debugLog(`[Puppeteer] First 3 player results:`, simpleResults.slice(0, 3).map(p => `${p.player}: ${p.sport} ${p.submissions}`));
         }
         return simpleResults;
       }
       
-      console.log(`⚠️ [Puppeteer] Simple extraction found nothing (returned: ${simpleResults ? 'empty array' : 'null/undefined'}), trying comprehensive approach...`);
+      debugLog(`⚠️ [Puppeteer] Simple extraction found nothing (returned: ${simpleResults ? 'empty array' : 'null/undefined'}), trying comprehensive approach...`);
       if (kind === 'players') {
-        console.log(`[Puppeteer] ERROR: Block-based parser for players returned empty. This should not happen.`);
+        debugLog(`[Puppeteer] ERROR: Block-based parser for players returned empty. This should not happen.`);
       }
       
       const results = await this.page.evaluate((which) => {
@@ -5715,24 +5671,24 @@ class GemRateService {
           text: normalize(h.textContent || ''),
           tag: h.tagName
         }));
-        console.log(`[Puppeteer] All headings on page (${allHeadings.length}):`, allHeadings.slice(0, 15).map(h => `${h.tag}: "${h.text}"`).join(', '));
+        debugLog(`[Puppeteer] All headings on page (${allHeadings.length}):`, allHeadings.slice(0, 15).map(h => `${h.tag}: "${h.text}"`).join(', '));
 
         // Get ALL text content on the page for pattern matching
         const allPageText = normalize(document.body.textContent || '');
-        console.log(`[Puppeteer] Total page text length: ${allPageText.length} characters`);
+        debugLog(`[Puppeteer] Total page text length: ${allPageText.length} characters`);
         
         // Find the section with trending data
         const trendingSectionStart = allPageText.toLowerCase().indexOf(which === 'players' ? 'trending players' : 'trending sets');
         if (trendingSectionStart !== -1) {
           const sectionText = allPageText.substring(trendingSectionStart, trendingSectionStart + 5000);
-          console.log(`[Puppeteer] Found trending section, first 500 chars:`, sectionText.substring(0, 500));
+          debugLog(`[Puppeteer] Found trending section, first 500 chars:`, sectionText.substring(0, 500));
         }
 
         // First, try to find data in JavaScript variables (most reliable)
         const windowVars = ['trendingPlayers', 'trendingSets', 'trendingData', 'dashboardData'];
         for (const varName of windowVars) {
           if (window[varName] && Array.isArray(window[varName]) && window[varName].length > 0) {
-            console.log(`[Puppeteer] Found ${varName} in window with ${window[varName].length} items`);
+            debugLog(`[Puppeteer] Found ${varName} in window with ${window[varName].length} items`);
             return window[varName];
           }
         }
@@ -5744,7 +5700,7 @@ class GemRateService {
         // Method 1: Chart.instances (older versions)
         if (window.Chart && window.Chart.instances) {
           chartInstances = Object.values(window.Chart.instances);
-          console.log(`[Puppeteer] Found Chart.js instances (method 1): ${chartInstances.length}`);
+          debugLog(`[Puppeteer] Found Chart.js instances (method 1): ${chartInstances.length}`);
         }
         
         // Method 2: Chart.getChart() from canvas elements (v3+)
@@ -5769,7 +5725,7 @@ class GemRateService {
           }
         }
         
-        console.log(`[Puppeteer] Total chart instances found: ${chartInstances.length}`);
+        debugLog(`[Puppeteer] Total chart instances found: ${chartInstances.length}`);
         
         // Extract data from all charts
         for (let i = 0; i < chartInstances.length; i++) {
@@ -5783,7 +5739,7 @@ class GemRateService {
                              '';
             const chartLabel = chart.data.datasets?.[0]?.label || '';
             
-            console.log(`[Puppeteer] Chart ${i}: title="${chartTitle}", label="${chartLabel}"`);
+            debugLog(`[Puppeteer] Chart ${i}: title="${chartTitle}", label="${chartLabel}"`);
             
             // Check if this chart is for trending players/sets
             const titleLower = chartTitle.toLowerCase();
@@ -5796,7 +5752,7 @@ class GemRateService {
               const labels = chart.data.labels || [];
               const datasets = chart.data.datasets || [];
               
-              console.log(`[Puppeteer] Chart ${i} has ${labels.length} labels and ${datasets.length} datasets`);
+              debugLog(`[Puppeteer] Chart ${i} has ${labels.length} labels and ${datasets.length} datasets`);
               
               // Try each dataset
               for (const dataset of datasets) {
@@ -5816,27 +5772,27 @@ class GemRateService {
                     }
                   }
                   if (items.length > 0) {
-                    console.log(`[Puppeteer] Extracted ${items.length} ${which} from Chart.js chart ${i}`);
+                    debugLog(`[Puppeteer] Extracted ${items.length} ${which} from Chart.js chart ${i}`);
                     return items;
                   }
                 }
               }
             }
           } catch (e) {
-            console.log(`[Puppeteer] Error processing chart ${i}: ${e.message}`);
+            debugLog(`[Puppeteer] Error processing chart ${i}: ${e.message}`);
           }
         }
 
         // Try to find Chart.js charts via canvas elements
         const canvasElements = Array.from(document.querySelectorAll('canvas'));
-        console.log(`[Puppeteer] Found ${canvasElements.length} canvas elements (potential charts)`);
+        debugLog(`[Puppeteer] Found ${canvasElements.length} canvas elements (potential charts)`);
         for (const canvas of canvasElements) {
           // Try to access Chart.js instance via canvas
           const chartInstance = canvas._chart || canvas.chart;
           if (chartInstance && chartInstance.data) {
             const label = chartInstance.config?.options?.plugins?.title?.text || '';
             if (label.toLowerCase().includes(which === 'players' ? 'player' : 'set')) {
-              console.log(`[Puppeteer] Found chart via canvas: ${label}`);
+              debugLog(`[Puppeteer] Found chart via canvas: ${label}`);
               if (chartInstance.data.datasets && chartInstance.data.datasets[0]?.data) {
                 return chartInstance.data.datasets[0].data;
               }
@@ -5861,7 +5817,7 @@ class GemRateService {
                 let jsonStr = match[1].replace(/,\s*\]/g, ']').replace(/,\s*\}/g, '}');
                 const parsed = JSON.parse(jsonStr);
                 if (Array.isArray(parsed) && parsed.length > 0) {
-                  console.log(`[Puppeteer] Found trending data in script tag: ${parsed.length} items`);
+                  debugLog(`[Puppeteer] Found trending data in script tag: ${parsed.length} items`);
                   return parsed;
                 }
               } catch (e) {
@@ -5872,7 +5828,7 @@ class GemRateService {
         }
 
         // If no JS data found, parse from DOM
-        console.log(`[Puppeteer] No JS data found, parsing from DOM...`);
+        debugLog(`[Puppeteer] No JS data found, parsing from DOM...`);
 
         // Find the section heading - be more specific
         const headingSelectors = ['h2', 'h3', 'h4', 'h5', 'h6', '[class*="heading"]', '[class*="title"]'];
@@ -5892,17 +5848,17 @@ class GemRateService {
         }
 
         if (!targetHeading) {
-          console.log(`[Puppeteer] No heading found for ${which}. Available headings:`, 
+          debugLog(`[Puppeteer] No heading found for ${which}. Available headings:`, 
             Array.from(document.querySelectorAll('h2,h3,h4,h5,h6')).map(h => h.textContent.trim()).slice(0, 10));
           return [];
         }
 
-        console.log(`[Puppeteer] Found heading: "${targetHeading.textContent.trim()}"`);
+        debugLog(`[Puppeteer] Found heading: "${targetHeading.textContent.trim()}"`);
 
         // Debug: Log the HTML structure near the heading
         const headingParent = targetHeading.parentElement;
         const headingSiblings = Array.from(headingParent?.children || []).slice(0, 20);
-        console.log(`[Puppeteer] Heading siblings (first 20):`, headingSiblings.map((el, i) => ({
+        debugLog(`[Puppeteer] Heading siblings (first 20):`, headingSiblings.map((el, i) => ({
           index: i,
           tag: el.tagName,
           text: normalize(el.textContent || '').substring(0, 150),
@@ -5923,7 +5879,7 @@ class GemRateService {
           });
           nextElement = nextElement.nextElementSibling;
         }
-        console.log(`[Puppeteer] Elements after heading:`, nextElements);
+        debugLog(`[Puppeteer] Elements after heading:`, nextElements);
 
         // Find the container - look for the next table/list/chart after the heading
         let container = targetHeading.closest('section,div[class*="section"],div[class*="container"]') || 
@@ -5932,12 +5888,12 @@ class GemRateService {
 
         // Look for Chart.js canvas near the heading
         const nearbyCanvases = Array.from(container.querySelectorAll('canvas'));
-        console.log(`[Puppeteer] Found ${nearbyCanvases.length} canvas elements near heading`);
+        debugLog(`[Puppeteer] Found ${nearbyCanvases.length} canvas elements near heading`);
         for (const canvas of nearbyCanvases) {
           try {
             const chart = canvas._chart || canvas.chart || (window.Chart && window.Chart.getChart(canvas));
             if (chart && chart.data && chart.data.labels && chart.data.datasets) {
-              console.log(`[Puppeteer] Found Chart.js chart with ${chart.data.labels.length} labels`);
+              debugLog(`[Puppeteer] Found Chart.js chart with ${chart.data.labels.length} labels`);
               // Extract labels (names) and data (counts) from chart
               const labels = chart.data.labels || [];
               const dataValues = chart.data.datasets[0]?.data || [];
@@ -5957,32 +5913,32 @@ class GemRateService {
                   }
                 }
                 if (items.length > 0) {
-                  console.log(`[Puppeteer] Extracted ${items.length} ${which} from Chart.js`);
+                  debugLog(`[Puppeteer] Extracted ${items.length} ${which} from Chart.js`);
                   return items;
                 }
               }
             }
           } catch (e) {
-            console.log(`[Puppeteer] Error accessing chart: ${e.message}`);
+            debugLog(`[Puppeteer] Error accessing chart: ${e.message}`);
           }
         }
 
         // Look for table rows - be more specific
         let rows = Array.from(container.querySelectorAll('table tbody tr'));
         
-        console.log(`[Puppeteer] Found ${rows.length} table rows in container`);
+        debugLog(`[Puppeteer] Found ${rows.length} table rows in container`);
         
         // If no table rows, try to find any data rows nearby
         if (rows.length === 0) {
           // Look for divs or other elements that might contain the data
           const dataElements = Array.from(container.querySelectorAll('div[class*="row"], div[class*="item"], tr, li'));
-          console.log(`[Puppeteer] Found ${dataElements.length} potential data elements`);
+          debugLog(`[Puppeteer] Found ${dataElements.length} potential data elements`);
           rows = dataElements;
         }
 
         // If still no rows, try to find text-based data near the heading
         if (rows.length === 0) {
-          console.log(`[Puppeteer] No table/chart data found, trying comprehensive text-based extraction...`);
+          debugLog(`[Puppeteer] No table/chart data found, trying comprehensive text-based extraction...`);
           
           // Get all text content in a large area around the heading
           let container = targetHeading.closest('div, section') || document.body;
@@ -5990,13 +5946,13 @@ class GemRateService {
           // Try to find the actual content container - look for divs with class names that might contain data
           const possibleContainers = Array.from(container.querySelectorAll('div[class*="chart"], div[class*="data"], div[class*="trending"], div[class*="list"]'));
           if (possibleContainers.length > 0) {
-            console.log(`[Puppeteer] Found ${possibleContainers.length} potential data containers`);
+            debugLog(`[Puppeteer] Found ${possibleContainers.length} potential data containers`);
             container = possibleContainers[0]; // Use first potential container
           }
           
           const allText = normalize(container.textContent || '');
-          console.log(`[Puppeteer] Container text length: ${allText.length} chars`);
-          console.log(`[Puppeteer] Container text sample (first 500 chars):`, allText.substring(0, 500));
+          debugLog(`[Puppeteer] Container text length: ${allText.length} chars`);
+          debugLog(`[Puppeteer] Container text sample (first 500 chars):`, allText.substring(0, 500));
           
           // Look for patterns: "Name" followed by numbers, or lines with names and numbers
           // Try multiple patterns - be more flexible
@@ -6015,10 +5971,10 @@ class GemRateService {
           for (let pIdx = 0; pIdx < patterns.length; pIdx++) {
             const pattern = patterns[pIdx];
             const matches = [...allText.matchAll(pattern)];
-            console.log(`[Puppeteer] Pattern ${pIdx + 1} matched ${matches.length} potential items`);
+            debugLog(`[Puppeteer] Pattern ${pIdx + 1} matched ${matches.length} potential items`);
             
             if (matches.length > 0) {
-              console.log(`[Puppeteer] Sample matches (first 5):`, matches.slice(0, 5).map(m => `${m[1]} -> ${m[2]}`));
+              debugLog(`[Puppeteer] Sample matches (first 5):`, matches.slice(0, 5).map(m => `${m[1]} -> ${m[2]}`));
             }
             
             for (const match of matches) {
@@ -6055,18 +6011,18 @@ class GemRateService {
             }
             
             if (items.length > 0) {
-              console.log(`[Puppeteer] Found ${items.length} items with pattern ${pIdx + 1}`);
+              debugLog(`[Puppeteer] Found ${items.length} items with pattern ${pIdx + 1}`);
               break; // Found data with this pattern
             }
           }
           
           if (items.length > 0) {
-            console.log(`[Puppeteer] Extracted ${items.length} ${which} from text patterns`);
+            debugLog(`[Puppeteer] Extracted ${items.length} ${which} from text patterns`);
             // Sort by count descending and limit to top results
             items.sort((a, b) => (b.count || 0) - (a.count || 0));
             return items.slice(0, 50); // Return top 50
           } else {
-            console.log(`[Puppeteer] No items extracted from text patterns`);
+            debugLog(`[Puppeteer] No items extracted from text patterns`);
           }
         }
         
@@ -6082,12 +6038,12 @@ class GemRateService {
           ];
           const shouldExclude = excludePatterns.some(pattern => text.includes(pattern));
           if (shouldExclude) {
-            console.log(`[Puppeteer] Excluding row: "${text.substring(0, 50)}"`);
+            debugLog(`[Puppeteer] Excluding row: "${text.substring(0, 50)}"`);
           }
           return !shouldExclude;
         });
         
-        console.log(`[Puppeteer] After filtering: ${rows.length} rows remain`);
+        debugLog(`[Puppeteer] After filtering: ${rows.length} rows remain`);
 
         const items = [];
         const parseCount = (text) => {
@@ -6171,12 +6127,12 @@ class GemRateService {
           }
         }
 
-        console.log(`[Puppeteer] Extracted ${items.length} ${which} from DOM`);
+        debugLog(`[Puppeteer] Extracted ${items.length} ${which} from DOM`);
         
         // Last resort: If we still have nothing, try extracting from the entire page text
         // Look for the trending section and extract any name/number pairs
         if (items.length === 0) {
-          console.log(`[Puppeteer] No items found via DOM, trying full-page text extraction as last resort...`);
+          debugLog(`[Puppeteer] No items found via DOM, trying full-page text extraction as last resort...`);
           
           const pageText = normalize(document.body.textContent || '');
           const sectionKeyword = which === 'players' ? 'trending players' : 'trending sets';
@@ -6185,13 +6141,13 @@ class GemRateService {
           if (sectionIndex !== -1) {
             // Get text from the trending section onwards (next 3000 chars)
             const sectionText = pageText.substring(sectionIndex, sectionIndex + 3000);
-            console.log(`[Puppeteer] Section text (first 800 chars):`, sectionText.substring(0, 800));
+            debugLog(`[Puppeteer] Section text (first 800 chars):`, sectionText.substring(0, 800));
             
             // Try to find name/number pairs - be very flexible
             const flexiblePattern = /([A-Z][A-Za-z\s&'\-\.]{2,80}?)\s+(\d{1,3}(?:,\d{3}){0,2})/g;
             const matches = [...sectionText.matchAll(flexiblePattern)];
             
-            console.log(`[Puppeteer] Found ${matches.length} potential matches in section text`);
+            debugLog(`[Puppeteer] Found ${matches.length} potential matches in section text`);
             
             for (const match of matches.slice(0, 100)) { // Limit to first 100 matches
               const name = normalize(match[1]);
@@ -6224,7 +6180,7 @@ class GemRateService {
                 }
               }
               unique.sort((a, b) => (b.count || 0) - (a.count || 0));
-              console.log(`[Puppeteer] Extracted ${unique.length} unique ${which} from full-page text`);
+              debugLog(`[Puppeteer] Extracted ${unique.length} unique ${which} from full-page text`);
               return unique.slice(0, 50);
             }
           }
@@ -6238,10 +6194,10 @@ class GemRateService {
         }
       }, kind);
 
-      console.log(`[Puppeteer] Evaluation completed, results type: ${typeof results}, isArray: ${Array.isArray(results)}, length: ${Array.isArray(results) ? results.length : 'N/A'}`);
+      debugLog(`[Puppeteer] Evaluation completed, results type: ${typeof results}, isArray: ${Array.isArray(results)}, length: ${Array.isArray(results) ? results.length : 'N/A'}`);
       
       if (Array.isArray(results) && results.length > 0) {
-        console.log(`[Puppeteer] Sample results (first 3):`, JSON.stringify(results.slice(0, 3), null, 2));
+        debugLog(`[Puppeteer] Sample results (first 3):`, JSON.stringify(results.slice(0, 3), null, 2));
         
         // FINAL FILTER: Remove header phrases from ALL results (ultimate safety net)
         const headerPhrasesToFilter = [
@@ -6261,40 +6217,40 @@ class GemRateService {
           
           // Skip exact matches
           if (headerPhrasesToFilter.includes(name)) {
-            console.log(`[Puppeteer] Final filter: Removed exact match "${item.name || item.player || item.set_name}"`);
+            debugLog(`[Puppeteer] Final filter: Removed exact match "${item.name || item.player || item.set_name}"`);
             return false;
           }
           
           // Skip if name STARTS with any header phrase (catches "Prior Week Weekly Change Michael Jordan")
           if (headerPhrasesToFilter.some(phrase => name.startsWith(phrase))) {
-            console.log(`[Puppeteer] Final filter: Removed starts with "${item.name || item.player || item.set_name}"`);
+            debugLog(`[Puppeteer] Final filter: Removed starts with "${item.name || item.player || item.set_name}"`);
             return false;
           }
           
           // Skip if contains header phrase (for longer phrases > 8 chars to avoid false positives)
           if (headerPhrasesToFilter.some(phrase => phrase.length > 8 && name.includes(phrase))) {
-            console.log(`[Puppeteer] Final filter: Removed contains "${item.name || item.player || item.set_name}"`);
+            debugLog(`[Puppeteer] Final filter: Removed contains "${item.name || item.player || item.set_name}"`);
             return false;
           }
           
           // Skip single header words
           const words = name.split(/\s+/);
           if (words.length === 1 && headerWords.includes(name)) {
-            console.log(`[Puppeteer] Final filter: Removed single word "${item.name || item.player || item.set_name}"`);
+            debugLog(`[Puppeteer] Final filter: Removed single word "${item.name || item.player || item.set_name}"`);
             return false;
           }
           
           // Skip if 2+ words are header words
           const headerWordCount = words.filter(w => headerWords.includes(w)).length;
           if (headerWordCount >= 2) {
-            console.log(`[Puppeteer] Final filter: Removed ${headerWordCount} header words "${item.name || item.player || item.set_name}"`);
+            debugLog(`[Puppeteer] Final filter: Removed ${headerWordCount} header words "${item.name || item.player || item.set_name}"`);
             return false;
           }
           
           return true;
         });
         
-        console.log(`✅ [Puppeteer] Final filter: ${filtered.length} ${kind} (removed ${results.length - filtered.length} header items)`);
+        debugLog(`✅ [Puppeteer] Final filter: ${filtered.length} ${kind} (removed ${results.length - filtered.length} header items)`);
         return filtered;
       }
 
