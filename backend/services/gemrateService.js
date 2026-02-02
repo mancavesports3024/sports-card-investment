@@ -4089,21 +4089,22 @@ class GemRateService {
             
             // Process each row
             for (const rowData of allRowData) {
-              // Extract name - try various field names
-              const nameText = rowData.name || 
-                             rowData.set_name || 
-                             rowData.set || 
-                             rowData.title || 
-                             rowData.label || 
-                             rowData.player || 
-                             rowData.player_name ||
-                             rowData.card_name ||
-                             rowData.cardName ||
-                             rowData.card ||
-                             rowData['Name'] ||
-                             rowData['Set Name'] ||
-                             rowData['Card Name'] ||
-                             '';
+              // Extract category
+              const categoryText = rowData.category || rowData.sport || rowData.Category || rowData['Category'] || '';
+              // For cards: build full display name from Category, Year, Set, Card #, Name, Parallel
+              let nameText;
+              if (which === 'cards') {
+                const year = rowData.year || rowData.Year || rowData['Year'] || '';
+                const set = rowData.set || rowData.set_name || rowData.setName || rowData.Set || rowData['Set'] || '';
+                const cardNum = rowData.card_number || rowData.cardNumber || rowData.number || rowData['Card #'] || rowData['Card Number'] || '';
+                const name = rowData.name || rowData.player || rowData.player_name || rowData.card_name || rowData.Name || rowData['Name'] || '';
+                const parallel = rowData.parallel || rowData.parallel_type || rowData.parallelName || rowData.Parallel || rowData['Parallel'] || '';
+                nameText = [categoryText, year, set, cardNum, name, parallel].filter(Boolean).map(String).join(' ').trim();
+              } else {
+                nameText = rowData.name || rowData.set_name || rowData.set || rowData.title || rowData.label ||
+                           rowData.player || rowData.player_name || rowData.card_name || rowData.cardName ||
+                           rowData.card || rowData['Name'] || rowData['Set Name'] || rowData['Card Name'] || '';
+              }
               
               // Skip header rows - but be careful not to filter out actual names
               const lowerName = (nameText || '').toLowerCase().trim();
@@ -4118,49 +4119,17 @@ class GemRateService {
               
               if (!nameText || nameText.length < 3) continue;
               
-              // Extract count - try various field names
-              const count = rowData['Graded, Last Week'] || 
-                          rowData['graded_last_week'] || 
-                          rowData.gradedLastWeek ||
-                          rowData.last_week ||
-                          rowData.lastWeek ||
-                          rowData['Last Week'] ||
-                          rowData.submissions || 
-                          rowData.count || 
-                          rowData.total_grades ||
-                          rowData.totalGrades ||
-                          rowData['Graded Last Week'] ||
-                          0;
+              // Extract count - for cards table GemRate shows "Graded, All Time"; also try Last Week
+              const lastWeek = rowData['Graded, Last Week'] || rowData.graded_last_week || rowData.gradedLastWeek ||
+                               rowData.last_week || rowData.lastWeek || rowData['Last Week'] || 0;
+              const allTime = rowData['Graded, All Time'] || rowData.gradedAllTime || rowData.all_time || rowData.allTime || 0;
+              const count = lastWeek > 0 ? lastWeek : (allTime > 0 ? allTime : (rowData.submissions || rowData.count || rowData.total_grades || rowData.totalGrades || 0));
               
               if (count === 0) continue;
               
-              // Extract category
-              const categoryText = rowData.category || 
-                                 rowData.sport || 
-                                 rowData.Category ||
-                                 rowData['Category'] ||
-                                 '';
-              
               // Extract change
-              const change = rowData['Weekly Change'] || 
-                           rowData.weekly_change || 
-                           rowData.weeklyChange ||
-                           rowData.change ||
-                           null;
-              
-              // Extract prior week
-              const priorWeek = rowData['Graded, Prior Week'] || 
-                              rowData.gradedPriorWeek ||
-                              rowData.prior_week ||
-                              rowData.priorWeek ||
-                              0;
-              
-              // Extract all time
-              const allTime = rowData['Graded, All Time'] || 
-                            rowData.gradedAllTime ||
-                            rowData.all_time ||
-                            rowData.allTime ||
-                            0;
+              const change = rowData['Weekly Change'] || rowData.weekly_change || rowData.weeklyChange || rowData.change || null;
+              const priorWeek = rowData['Graded, Prior Week'] || rowData.gradedPriorWeek || rowData.prior_week || rowData.priorWeek || 0;
               
               if (which === 'players') {
                 items.push({
@@ -4230,11 +4199,17 @@ class GemRateService {
           'graded all time', 'graded last week', 'graded prior week', 'weekly change',
           'name category', 'all time', 'last week', 'prior week', 'past week',
           'drag here', 'set row groups', 'column labels', 'trending cards',
-          'category year set graded', 'subjects', 'page'
+          'category year set graded', 'subjects', 'page',
+          'gem rate', 'graded, all time', 'gem rate, all time gem rate, last week'
         ];
         
         const filtered = unique.filter(item => {
           const name = (item.name || item.player || item.set_name || item.card_name || '').trim().toLowerCase();
+          
+          // Cards: drop header/column text (e.g. "Gem Rate, All Time Gem Rate, Last Week Basketball")
+          if (kind === 'cards' && (name.includes('gem rate') || (name.includes('graded') && name.includes('last week') && name.length < 60))) {
+            return false;
+          }
           
           // Check exact matches
           if (headerPhrasesToFilter.includes(name)) {
@@ -5365,20 +5340,27 @@ class GemRateService {
             return paired;
           }
           
-          // For cards, implement block-based parser (similar to sets: Category + names + stat block)
+          // For cards, implement block-based parser: table has Category, Year, Set, Card #, Name, Parallel, Graded All Time
+          // Concatenated text is like "Basketball2025Topps201Cooper FlaggBase2,179Baseball1989Upper Deck1Ken Griffey JrBase128,029..."
           if (which === 'cards') {
             debugLog('[Puppeteer] Starting block-based parser for cards...');
             
             const anchor = 'prior week weekly change';
             const wcIdx = sectionText.toLowerCase().indexOf(anchor);
-            debugLog(`[Puppeteer] Found "Prior Week Weekly Change" anchor at index: ${wcIdx}`);
+            if (wcIdx === -1) {
+              const altAnchor = 'graded, all time';
+              const altIdx = sectionText.toLowerCase().indexOf(altAnchor);
+              if (altIdx !== -1) {
+                debugLog(`[Puppeteer] Using "Graded, All Time" anchor at index: ${altIdx}`);
+              }
+            }
             let cardsAndStats = wcIdx !== -1
               ? sectionText.substring(wcIdx + anchor.length).trim()
               : sectionText;
             
             debugLog(`[Puppeteer] Cards+stats text length: ${cardsAndStats.length}, first 200 chars: ${cardsAndStats.substring(0, 200)}`);
             
-            // Split at first GRADED-style number (comma-separated, e.g. 1,234) so we don't split on year (2024) or small digits
+            // Split at first comma-separated number (Graded All Time column) so we don't split on year (2024)
             const commaNumMatch = cardsAndStats.match(/\d{1,3}(?:,\d{3})+/);
             let splitIndex = -1;
             if (commaNumMatch) {
@@ -5395,88 +5377,56 @@ class GemRateService {
             const cardsText = cardsAndStats.substring(0, splitIndex).trim();
             const statsText = cardsAndStats.substring(splitIndex).trim();
             
-            debugLog(`[Puppeteer] Split at index ${splitIndex}, cards text length: ${cardsText.length}, stats text length: ${statsText.length}`);
-            
-            // 1) Extract card names: jammed like "Basketball2024 ToppsCooper Flagg..." or "Topps Silver PackToppsCooper Flagg..."
-            let normalizedNames = cardsText.replace(/([a-z])([A-Z])/g, '$1|$2').replace(/(\d)([A-Za-z])/g, '$1|$2').replace(/([A-Za-z])(\d)/g, '$1|$2');
-            const rawNames = normalizedNames
-              .split('|')
-              .map(s => s.trim())
-              .filter(s => s.length >= 2 && /[a-zA-Z]/.test(s) && !/^\d+$/.test(s));
-            
-            // Filter out header-only tokens but keep category words (Basketball, etc.) and card/set names
-            const cardHeaderWords = ['drag', 'here', 'name', 'category', 'year', 'set', 'graded', 'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'trending', 'cards', 'column', 'labels', 'row', 'groups'];
-            const filteredNames = rawNames.filter(n => {
-              const lower = n.toLowerCase();
-              if (n.length < 2) return false;
-              if (cardHeaderWords.includes(lower) && n.length < 12) return false;
-              return true;
-            });
-            
-            debugLog(`[Puppeteer] Parsed ${filteredNames.length} card name parts from names block`);
-            if (filteredNames.length > 0) {
-              debugLog(`[Puppeteer] First 5 names: ${filteredNames.slice(0, 5).join(', ')}`);
+            // 1) Split cards text by CATEGORY words (Basketball, Baseball, etc.) - each segment = one row = one card
+            const categories = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG'];
+            const categoryRegex = new RegExp(`\\b(${categories.join('|')})\\b`, 'gi');
+            const parts = cardsText.split(categoryRegex);
+            const rowSegments = [];
+            for (let i = 1; i < parts.length; i += 2) {
+              const cat = (parts[i] || '').trim();
+              const rest = (parts[i + 1] || '').trim();
+              const segment = (cat + ' ' + rest).trim();
+              if (segment.length >= 5 && !/^(category|year|set|name|parallel|card|graded)/i.test(segment.substring(0, 20))) {
+                rowSegments.push(segment);
+              }
+            }
+            if (rowSegments.length === 0) {
+              rowSegments.push(cardsText);
             }
             
-            // 2) Extract stats: "AllTime,LastWeek,PriorWeek,Change%" per row - take LastWeek (2nd number) for submission count
+            debugLog(`[Puppeteer] Split cards text into ${rowSegments.length} row segments by category`);
+            if (rowSegments.length > 0) {
+              debugLog(`[Puppeteer] First 3 segments:`, rowSegments.slice(0, 3));
+            }
+            
+            // 2) Extract "Graded, All Time" numbers (one per row) - comma-separated like 2,179 128,029 7,564
             const statItems = [];
-            const statBlockRegex = /(\d{1,3}(?:,\d{3})*),(\d{1,3}(?:,\d{3})*),(\d{1,3}(?:,\d{3})*),?(\d+)?%?/g;
-            let statMatch;
-            while ((statMatch = statBlockRegex.exec(statsText)) !== null) {
-              const lastWeek = parseInt(statMatch[2].replace(/,/g, ''), 10);
-              if (lastWeek > 0) {
-                statItems.push({
-                  submissions: lastWeek,
-                  all_time: parseInt(statMatch[1].replace(/,/g, ''), 10),
-                  prior_week: parseInt(statMatch[3].replace(/,/g, ''), 10),
-                  change: statMatch[4] ? parseInt(statMatch[4], 10) : null
-                });
-              }
-            }
-            // Fallback: single numbers as submission counts
-            if (statItems.length === 0) {
-              const numberPattern = /\d{1,3}(?:,\d{3})*|\d{2,}/g;
-              let match;
-              while ((match = numberPattern.exec(statsText)) !== null) {
-                const count = parseInt(match[0].replace(/,/g, ''), 10);
-                if (count > 0) statItems.push({ submissions: count });
+            const commaNumbers = statsText.match(/\d{1,3}(?:,\d{3})+/g) || [];
+            for (const numStr of commaNumbers) {
+              const count = parseInt(numStr.replace(/,/g, ''), 10);
+              if (count > 0) {
+                statItems.push({ submissions: count });
               }
             }
             
-            debugLog(`[Puppeteer] Parsed ${statItems.length} stat rows from stats block`);
+            debugLog(`[Puppeteer] Parsed ${statItems.length} stat numbers (Graded All Time) from stats block`);
             
-            // Build card names: if we have category+year+set+name style, combine every 2-4 parts per card; else 1:1 with stat rows
+            // 3) Pair row segment i with stat i (one card per row)
             const paired = [];
-            if (filteredNames.length >= statItems.length && statItems.length > 0) {
-              const namesPerRow = Math.max(1, Math.floor(filteredNames.length / statItems.length));
-              for (let i = 0; i < statItems.length; i++) {
-                const start = i * namesPerRow;
-                const end = Math.min(start + namesPerRow, filteredNames.length);
-                const cardName = filteredNames.slice(start, end).filter(Boolean).join(' ').trim() || filteredNames[start] || 'Unknown';
-                const s = statItems[i];
-                paired.push({
-                  card_name: cardName,
-                  name: cardName,
-                  card: cardName,
-                  submissions: s.submissions,
-                  count: s.submissions,
-                  total_grades: s.submissions
-                });
-              }
-            } else {
-              const pairCount = Math.min(filteredNames.length, statItems.length);
-              for (let i = 0; i < pairCount; i++) {
-                const cardName = filteredNames[i];
-                const s = statItems[i];
-                paired.push({
-                  card_name: cardName,
-                  name: cardName,
-                  card: cardName,
-                  submissions: s.submissions,
-                  count: s.submissions,
-                  total_grades: s.submissions
-                });
-              }
+            const pairCount = Math.min(rowSegments.length, statItems.length);
+            for (let i = 0; i < pairCount; i++) {
+              let cardName = rowSegments[i].trim();
+              cardName = cardName.replace(/\s+/g, ' ').replace(/\n/g, ' ');
+              if (cardName.length < 3) continue;
+              const s = statItems[i];
+              paired.push({
+                card_name: cardName,
+                name: cardName,
+                card: cardName,
+                submissions: s.submissions,
+                count: s.submissions,
+                total_grades: s.submissions
+              });
             }
             
             debugLog(`[Puppeteer] Block-based mapping produced ${paired.length} card records`);
