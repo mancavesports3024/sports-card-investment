@@ -4014,7 +4014,10 @@ class GemRateService {
             // Also try to get data from visible DOM cells as backup
             const heading = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6')).find(h => {
               const text = (h.textContent || '').toLowerCase();
-              return text.includes(which === 'players' ? 'trending players' : 'trending sets');
+              if (which === 'players') return text.includes('trending players');
+              if (which === 'sets') return text.includes('trending sets');
+              if (which === 'cards') return text.includes('trending cards');
+              return false;
             });
             
             if (heading) {
@@ -4094,13 +4097,17 @@ class GemRateService {
                              rowData.label || 
                              rowData.player || 
                              rowData.player_name ||
+                             rowData.card_name ||
+                             rowData.cardName ||
+                             rowData.card ||
                              rowData['Name'] ||
                              rowData['Set Name'] ||
+                             rowData['Card Name'] ||
                              '';
               
               // Skip header rows - but be careful not to filter out actual names
               const lowerName = (nameText || '').toLowerCase().trim();
-              const headerPhrases = ['trending players', 'trending subjects', 'trending sets', 'name', 'category', 
+              const headerPhrases = ['trending players', 'trending subjects', 'trending sets', 'trending cards', 'name', 'category', 
                                     'graded', 'all time', 'last week', 'prior week', 'weekly change', 'drag', 
                                     'here', 'set row groups', 'column labels'];
               // Only skip if it's an exact match or starts with header phrase (not if it just contains one)
@@ -4167,11 +4174,23 @@ class GemRateService {
                   prior_week: priorWeek,
                   all_time: allTime
                 });
-              } else {
+              } else if (which === 'sets') {
                 items.push({
                   set_name: nameText,
                   name: nameText,
                   set: nameText,
+                  submissions: count,
+                  count: count,
+                  total_grades: count,
+                  change: change,
+                  prior_week: priorWeek,
+                  all_time: allTime
+                });
+              } else if (which === 'cards') {
+                items.push({
+                  card_name: nameText,
+                  name: nameText,
+                  card: nameText,
                   submissions: count,
                   count: count,
                   total_grades: count,
@@ -4196,7 +4215,7 @@ class GemRateService {
         const unique = [];
         const seen = new Set();
         for (const item of agGridExtraction.items) {
-          const key = (item.name || item.player || item.set_name || '').toLowerCase();
+          const key = (item.name || item.player || item.set_name || item.card_name || '').toLowerCase();
           if (!seen.has(key)) {
             seen.add(key);
             unique.push(item);
@@ -4215,7 +4234,7 @@ class GemRateService {
         ];
         
         const filtered = unique.filter(item => {
-          const name = (item.name || item.player || item.set_name || '').trim().toLowerCase();
+          const name = (item.name || item.player || item.set_name || item.card_name || '').trim().toLowerCase();
           
           // Check exact matches
           if (headerPhrasesToFilter.includes(name)) {
@@ -4297,7 +4316,10 @@ class GemRateService {
           // Look for the heading first, then find the grid near it
           const heading = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6')).find(h => {
             const text = (h.textContent || '').toLowerCase();
-            return text.includes(which === 'players' ? 'trending players' : 'trending sets');
+            if (which === 'players') return text.includes('trending players');
+            if (which === 'sets') return text.includes('trending sets');
+            if (which === 'cards') return text.includes('trending cards');
+            return false;
           });
           
           let gridRows = [];
@@ -4803,7 +4825,7 @@ class GemRateService {
                            'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'past', 'page', 'drag', 'here'];
         
         const filtered = simpleExtraction.items.filter(item => {
-          const name = (item.name || item.player || item.set_name || '').trim().toLowerCase();
+          const name = (item.name || item.player || item.set_name || item.card_name || '').trim().toLowerCase();
           
           // Skip exact matches
           if (headerPhrasesToFilter.includes(name)) return false;
@@ -5343,11 +5365,10 @@ class GemRateService {
             return paired;
           }
           
-          // For cards, implement block-based parser
+          // For cards, implement block-based parser (similar to sets: Category + names + stat block)
           if (which === 'cards') {
             debugLog('[Puppeteer] Starting block-based parser for cards...');
             
-            // Find the point just after "Prior Week Weekly Change" in the cards header
             const anchor = 'prior week weekly change';
             const wcIdx = sectionText.toLowerCase().indexOf(anchor);
             debugLog(`[Puppeteer] Found "Prior Week Weekly Change" anchor at index: ${wcIdx}`);
@@ -5357,66 +5378,105 @@ class GemRateService {
             
             debugLog(`[Puppeteer] Cards+stats text length: ${cardsAndStats.length}, first 200 chars: ${cardsAndStats.substring(0, 200)}`);
             
-            // For cards, the format might be simpler - just names followed by numbers
-            // Format: "Topps Silver Pack105Topps9Cooper Flagg9Base9..."
-            // We need to find where numbers start to separate names from stats
+            // Split at first GRADED-style number (comma-separated, e.g. 1,234) so we don't split on year (2024) or small digits
+            const commaNumMatch = cardsAndStats.match(/\d{1,3}(?:,\d{3})+/);
+            let splitIndex = -1;
+            if (commaNumMatch) {
+              splitIndex = cardsAndStats.indexOf(commaNumMatch[0]);
+            } else {
+              const fallback = cardsAndStats.match(/(\d{1,3}(?:,\d{3})+|\d{2,})/);
+              if (fallback) splitIndex = fallback.index;
+            }
             
-            // Find the first number pattern (comma-separated or multi-digit)
-            const firstNumberMatch = cardsAndStats.match(/(\d{1,3}(?:,\d{3})+|\d{2,})/);
-            if (!firstNumberMatch) {
+            if (splitIndex < 0) {
               debugLog(`[Puppeteer] ERROR: No number pattern found in cards section. Text sample: "${cardsAndStats.substring(0, 300)}"`);
               return [];
             }
-            
-            const splitIndex = firstNumberMatch.index;
             const cardsText = cardsAndStats.substring(0, splitIndex).trim();
             const statsText = cardsAndStats.substring(splitIndex).trim();
             
             debugLog(`[Puppeteer] Split at index ${splitIndex}, cards text length: ${cardsText.length}, stats text length: ${statsText.length}`);
             
-            // 1) Extract card names: Names are jammed together like "Topps Silver PackToppsCooper Flagg..."
-            // Insert delimiter between a lowercase letter and a following capital letter
-            let normalizedNames = cardsText.replace(/([a-z])([A-Z])/g, '$1|$2');
+            // 1) Extract card names: jammed like "Basketball2024 ToppsCooper Flagg..." or "Topps Silver PackToppsCooper Flagg..."
+            let normalizedNames = cardsText.replace(/([a-z])([A-Z])/g, '$1|$2').replace(/(\d)([A-Za-z])/g, '$1|$2').replace(/([A-Za-z])(\d)/g, '$1|$2');
             const rawNames = normalizedNames
               .split('|')
               .map(s => s.trim())
-              .filter(s => s.length > 0 && /[a-z]/i.test(s));
+              .filter(s => s.length >= 2 && /[a-zA-Z]/.test(s) && !/^\d+$/.test(s));
             
-            debugLog(`[Puppeteer] Parsed ${rawNames.length} card names from names block`);
-            if (rawNames.length > 0) {
-              debugLog(`[Puppeteer] First 5 names: ${rawNames.slice(0, 5).join(', ')}`);
+            // Filter out header-only tokens but keep category words (Basketball, etc.) and card/set names
+            const cardHeaderWords = ['drag', 'here', 'name', 'category', 'year', 'set', 'graded', 'all', 'time', 'last', 'week', 'prior', 'weekly', 'change', 'trending', 'cards', 'column', 'labels', 'row', 'groups'];
+            const filteredNames = rawNames.filter(n => {
+              const lower = n.toLowerCase();
+              if (n.length < 2) return false;
+              if (cardHeaderWords.includes(lower) && n.length < 12) return false;
+              return true;
+            });
+            
+            debugLog(`[Puppeteer] Parsed ${filteredNames.length} card name parts from names block`);
+            if (filteredNames.length > 0) {
+              debugLog(`[Puppeteer] First 5 names: ${filteredNames.slice(0, 5).join(', ')}`);
             }
             
-            // 2) Extract stats: Format is just numbers (submission counts)
-            // Pattern: "1059,9,9,8,8,8..." - these are the submission counts
-            // We need to extract numbers in order
+            // 2) Extract stats: "AllTime,LastWeek,PriorWeek,Change%" per row - take LastWeek (2nd number) for submission count
             const statItems = [];
-            const numberPattern = /\d{1,3}(?:,\d{3})*|\d{2,}/g;
-            let match;
-            while ((match = numberPattern.exec(statsText)) !== null) {
-              const count = parseInt(match[0].replace(/,/g, ''), 10);
-              if (count > 0) {
-                statItems.push({ submissions: count });
+            const statBlockRegex = /(\d{1,3}(?:,\d{3})*),(\d{1,3}(?:,\d{3})*),(\d{1,3}(?:,\d{3})*),?(\d+)?%?/g;
+            let statMatch;
+            while ((statMatch = statBlockRegex.exec(statsText)) !== null) {
+              const lastWeek = parseInt(statMatch[2].replace(/,/g, ''), 10);
+              if (lastWeek > 0) {
+                statItems.push({
+                  submissions: lastWeek,
+                  all_time: parseInt(statMatch[1].replace(/,/g, ''), 10),
+                  prior_week: parseInt(statMatch[3].replace(/,/g, ''), 10),
+                  change: statMatch[4] ? parseInt(statMatch[4], 10) : null
+                });
+              }
+            }
+            // Fallback: single numbers as submission counts
+            if (statItems.length === 0) {
+              const numberPattern = /\d{1,3}(?:,\d{3})*|\d{2,}/g;
+              let match;
+              while ((match = numberPattern.exec(statsText)) !== null) {
+                const count = parseInt(match[0].replace(/,/g, ''), 10);
+                if (count > 0) statItems.push({ submissions: count });
               }
             }
             
             debugLog(`[Puppeteer] Parsed ${statItems.length} stat rows from stats block`);
             
-            // Zip cards with stats by index
-            const pairCount = Math.min(rawNames.length, statItems.length);
+            // Build card names: if we have category+year+set+name style, combine every 2-4 parts per card; else 1:1 with stat rows
             const paired = [];
-            for (let i = 0; i < pairCount; i++) {
-              const cardName = rawNames[i];
-              const s = statItems[i];
-              
-              paired.push({
-                card_name: cardName,
-                name: cardName,
-                card: cardName,
-                submissions: s.submissions,
-                count: s.submissions,
-                total_grades: s.submissions
-              });
+            if (filteredNames.length >= statItems.length && statItems.length > 0) {
+              const namesPerRow = Math.max(1, Math.floor(filteredNames.length / statItems.length));
+              for (let i = 0; i < statItems.length; i++) {
+                const start = i * namesPerRow;
+                const end = Math.min(start + namesPerRow, filteredNames.length);
+                const cardName = filteredNames.slice(start, end).filter(Boolean).join(' ').trim() || filteredNames[start] || 'Unknown';
+                const s = statItems[i];
+                paired.push({
+                  card_name: cardName,
+                  name: cardName,
+                  card: cardName,
+                  submissions: s.submissions,
+                  count: s.submissions,
+                  total_grades: s.submissions
+                });
+              }
+            } else {
+              const pairCount = Math.min(filteredNames.length, statItems.length);
+              for (let i = 0; i < pairCount; i++) {
+                const cardName = filteredNames[i];
+                const s = statItems[i];
+                paired.push({
+                  card_name: cardName,
+                  name: cardName,
+                  card: cardName,
+                  submissions: s.submissions,
+                  count: s.submissions,
+                  total_grades: s.submissions
+                });
+              }
             }
             
             debugLog(`[Puppeteer] Block-based mapping produced ${paired.length} card records`);
@@ -5666,7 +5726,9 @@ class GemRateService {
         try {
         const textMatch = which === 'players'
           ? ['trending players', 'trending players & subjects', 'trending subjects', 'players & subjects', 'past week']
-          : ['trending sets', 'past week'];
+          : which === 'cards'
+            ? ['trending cards', 'past week']
+            : ['trending sets', 'past week'];
 
         const normalize = (str) => (str || '').replace(/\s+/g, ' ').trim();
 
@@ -5682,7 +5744,8 @@ class GemRateService {
         debugLog(`[Puppeteer] Total page text length: ${allPageText.length} characters`);
         
         // Find the section with trending data
-        const trendingSectionStart = allPageText.toLowerCase().indexOf(which === 'players' ? 'trending players' : 'trending sets');
+        const sectionNeedle = which === 'players' ? 'trending players' : which === 'cards' ? 'trending cards' : 'trending sets';
+        const trendingSectionStart = allPageText.toLowerCase().indexOf(sectionNeedle);
         if (trendingSectionStart !== -1) {
           const sectionText = allPageText.substring(trendingSectionStart, trendingSectionStart + 5000);
           debugLog(`[Puppeteer] Found trending section, first 500 chars:`, sectionText.substring(0, 500));
@@ -5748,8 +5811,8 @@ class GemRateService {
             // Check if this chart is for trending players/sets
             const titleLower = chartTitle.toLowerCase();
             const labelLower = chartLabel.toLowerCase();
-            const isRelevant = titleLower.includes(which === 'players' ? 'player' : 'set') ||
-                             labelLower.includes(which === 'players' ? 'player' : 'set') ||
+            const chartKeyword = which === 'players' ? 'player' : which === 'cards' ? 'card' : 'set';
+            const isRelevant = titleLower.includes(chartKeyword) || labelLower.includes(chartKeyword) ||
                              (i >= chartInstances.length - 3); // Last few charts might be trending
             
             if (isRelevant && chart.data.labels && chart.data.datasets) {
@@ -5770,6 +5833,8 @@ class GemRateService {
                     if (isValidName(name) && count > 0) {
                       if (which === 'players') {
                         items.push({ player: name, name, submissions: count, count, total_grades: count });
+                      } else if (which === 'cards') {
+                        items.push({ card_name: name, name, card: name, submissions: count, count, total_grades: count });
                       } else {
                         items.push({ set_name: name, name, set: name, submissions: count, count, total_grades: count });
                       }
@@ -6119,6 +6184,15 @@ class GemRateService {
               count,
               total_grades: count
             });
+          } else if (which === 'cards') {
+            items.push({
+              card_name: name,
+              name,
+              card: name,
+              submissions: count,
+              count,
+              total_grades: count
+            });
           } else {
             items.push({
               set_name: name,
@@ -6139,7 +6213,7 @@ class GemRateService {
           debugLog(`[Puppeteer] No items found via DOM, trying full-page text extraction as last resort...`);
           
           const pageText = normalize(document.body.textContent || '');
-          const sectionKeyword = which === 'players' ? 'trending players' : 'trending sets';
+          const sectionKeyword = which === 'players' ? 'trending players' : which === 'cards' ? 'trending cards' : 'trending sets';
           const sectionIndex = pageText.toLowerCase().indexOf(sectionKeyword);
           
           if (sectionIndex !== -1) {
@@ -6166,6 +6240,8 @@ class GemRateService {
                   !name.toLowerCase().includes('prior')) {
                 if (which === 'players') {
                   items.push({ player: name, name, submissions: count, count, total_grades: count });
+                } else if (which === 'cards') {
+                  items.push({ card_name: name, name, card: name, submissions: count, count, total_grades: count });
                 } else {
                   items.push({ set_name: name, name, set: name, submissions: count, count, total_grades: count });
                 }
@@ -6177,7 +6253,7 @@ class GemRateService {
               const unique = [];
               const seen = new Set();
               for (const item of items) {
-                const key = (item.name || item.player || item.set_name || '').toLowerCase();
+                const key = (item.name || item.player || item.set_name || item.card_name || '').toLowerCase();
                 if (!seen.has(key)) {
                   seen.add(key);
                   unique.push(item);
