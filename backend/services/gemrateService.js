@@ -3893,7 +3893,8 @@ class GemRateService {
     try {
       // FIRST: Try AG Grid API access (most reliable - gets structured data)
       debugLog(`[Puppeteer] Attempting AG Grid API access first...`);
-      const agGridExtraction = await this.page.evaluate((which) => {
+      const agGridExtraction = await this.page.evaluate((which, silenceBrowserLog) => {
+        const debugLog = (silenceBrowserLog === false) ? function () { try { console.log.apply(console, arguments); } catch (e) {} } : function () {};
         const items = [];
         
         // Try multiple methods to find AG Grid API
@@ -4187,7 +4188,7 @@ class GemRateService {
         }
         
         return { found: false, items: [] };
-      }, kind);
+      }, kind, !GEMRATE_DEBUG);
       
       if (agGridExtraction.found && agGridExtraction.items && agGridExtraction.items.length > 0) {
         debugLog(`✅ [Puppeteer] AG Grid API extraction succeeded: ${agGridExtraction.items.length} ${kind}`);
@@ -4271,7 +4272,8 @@ class GemRateService {
       
       // FALLBACK: Try a simple direct text extraction
       debugLog(`[Puppeteer] AG Grid API not available, falling back to text extraction...`);
-      const simpleExtraction = await this.page.evaluate((which) => {
+      const simpleExtraction = await this.page.evaluate((which, silenceBrowserLog) => {
+        const debugLog = (silenceBrowserLog === false) ? function () { try { console.log.apply(console, arguments); } catch (e) {} } : function () {};
         const normalize = (str) => (str || '').replace(/\s+/g, ' ').trim().replace(/\n/g, ' ');
         const allText = normalize(document.body.textContent || '');
         const keyword = which === 'players' ? 'trending players & subjects' : 'trending sets';
@@ -4779,7 +4781,7 @@ class GemRateService {
         
         debugLog(`✅ [Puppeteer] Extracted ${unique.length} ${which} items`);
         return { found: unique.length > 0, items: unique.slice(0, 50) };
-      }, kind);
+      }, kind, !GEMRATE_DEBUG);
       
       // For players/sets/cards, skip the old DOM-based extraction - we use block-based parser instead
       if (kind === 'players' || kind === 'sets' || kind === 'cards') {
@@ -4839,7 +4841,8 @@ class GemRateService {
       // First, try a simple approach - get ALL text and look for patterns
       debugLog(`[Puppeteer] Starting simple text extraction for ${kind}...`);
       
-      const simpleResults = await this.page.evaluate((which) => {
+      const simpleResults = await this.page.evaluate((which, silenceBrowserLog) => {
+        const debugLog = (silenceBrowserLog === false) ? function () { try { console.log.apply(console, arguments); } catch (e) {} } : function () {};
         try {
           const normalize = (str) => (str || '').replace(/\s+/g, ' ').trim().replace(/\n/g, ' ');
           
@@ -5643,7 +5646,7 @@ class GemRateService {
           console.error(`[Puppeteer] Error in simple extraction: ${error.message}`);
           return [];
         }
-      }, kind);
+      }, kind, !GEMRATE_DEBUG);
       
       if (simpleResults && simpleResults.length > 0) {
         debugLog(`✅ [Puppeteer] Simple extraction succeeded: ${simpleResults.length} ${kind}`);
@@ -5658,7 +5661,8 @@ class GemRateService {
         debugLog(`[Puppeteer] ERROR: Block-based parser for players returned empty. This should not happen.`);
       }
       
-      const results = await this.page.evaluate((which) => {
+      const results = await this.page.evaluate((which, silenceBrowserLog) => {
+        const debugLog = (silenceBrowserLog === false) ? function () { try { console.log.apply(console, arguments); } catch (e) {} } : function () {};
         try {
         const textMatch = which === 'players'
           ? ['trending players', 'trending players & subjects', 'trending subjects', 'players & subjects', 'past week']
@@ -6192,7 +6196,7 @@ class GemRateService {
           console.error(`[Puppeteer] Error stack: ${error.stack}`);
           return [];
         }
-      }, kind);
+      }, kind, !GEMRATE_DEBUG);
 
       debugLog(`[Puppeteer] Evaluation completed, results type: ${typeof results}, isArray: ${Array.isArray(results)}, length: ${Array.isArray(results) ? results.length : 'N/A'}`);
       
