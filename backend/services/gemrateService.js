@@ -5360,76 +5360,43 @@ class GemRateService {
             
             debugLog(`[Puppeteer] Cards+stats text length: ${cardsAndStats.length}, first 200 chars: ${cardsAndStats.substring(0, 200)}`);
             
-            // Split at first comma-separated number (Graded All Time column) so we don't split on year (2024)
-            const commaNumMatch = cardsAndStats.match(/\d{1,3}(?:,\d{3})+/);
-            let splitIndex = -1;
-            if (commaNumMatch) {
-              splitIndex = cardsAndStats.indexOf(commaNumMatch[0]);
-            } else {
-              const fallback = cardsAndStats.match(/(\d{1,3}(?:,\d{3})+|\d{2,})/);
-              if (fallback) splitIndex = fallback.index;
+            // Table layout is row1text + row1number + row2text + row2number + ... (e.g. "Basketball2025Topps201Cooper FlaggBase2,179Baseball1989...128,029")
+            // Find ALL comma-separated numbers; the text immediately BEFORE each number is that row's card name
+            const commaNumRegex = /\d{1,3}(?:,\d{3})+/g;
+            const matches = [];
+            let m;
+            while ((m = commaNumRegex.exec(cardsAndStats)) !== null) {
+              matches.push({ index: m.index, length: m[0].length, numStr: m[0] });
             }
             
-            if (splitIndex < 0) {
-              debugLog(`[Puppeteer] ERROR: No number pattern found in cards section. Text sample: "${cardsAndStats.substring(0, 300)}"`);
+            if (matches.length === 0) {
+              debugLog(`[Puppeteer] ERROR: No comma-number pattern found in cards section. Text sample: "${cardsAndStats.substring(0, 300)}"`);
               return [];
             }
-            const cardsText = cardsAndStats.substring(0, splitIndex).trim();
-            const statsText = cardsAndStats.substring(splitIndex).trim();
             
-            // 1) Split cards text by CATEGORY words (Basketball, Baseball, etc.) - each segment = one row = one card
-            const categories = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Hockey', 'Golf', 'Pokemon', 'TCG'];
-            const categoryRegex = new RegExp(`\\b(${categories.join('|')})\\b`, 'gi');
-            const parts = cardsText.split(categoryRegex);
-            const rowSegments = [];
-            for (let i = 1; i < parts.length; i += 2) {
-              const cat = (parts[i] || '').trim();
-              const rest = (parts[i + 1] || '').trim();
-              const segment = (cat + ' ' + rest).trim();
-              if (segment.length >= 5 && !/^(category|year|set|name|parallel|card|graded)/i.test(segment.substring(0, 20))) {
-                rowSegments.push(segment);
-              }
-            }
-            if (rowSegments.length === 0) {
-              rowSegments.push(cardsText);
-            }
-            
-            debugLog(`[Puppeteer] Split cards text into ${rowSegments.length} row segments by category`);
-            if (rowSegments.length > 0) {
-              debugLog(`[Puppeteer] First 3 segments:`, rowSegments.slice(0, 3));
-            }
-            
-            // 2) Extract "Graded, All Time" numbers (one per row) - comma-separated like 2,179 128,029 7,564
-            const statItems = [];
-            const commaNumbers = statsText.match(/\d{1,3}(?:,\d{3})+/g) || [];
-            for (const numStr of commaNumbers) {
-              const count = parseInt(numStr.replace(/,/g, ''), 10);
-              if (count > 0) {
-                statItems.push({ submissions: count });
-              }
-            }
-            
-            debugLog(`[Puppeteer] Parsed ${statItems.length} stat numbers (Graded All Time) from stats block`);
-            
-            // 3) Pair row segment i with stat i (one card per row)
             const paired = [];
-            const pairCount = Math.min(rowSegments.length, statItems.length);
-            for (let i = 0; i < pairCount; i++) {
-              let cardName = rowSegments[i].trim();
+            for (let i = 0; i < matches.length; i++) {
+              const start = i === 0 ? 0 : matches[i - 1].index + matches[i - 1].length;
+              const end = matches[i].index;
+              let cardName = cardsAndStats.substring(start, end).trim();
               cardName = cardName.replace(/\s+/g, ' ').replace(/\n/g, ' ');
+              const count = parseInt(matches[i].numStr.replace(/,/g, ''), 10);
+              if (count <= 0) continue;
               if (cardName.length < 3) continue;
-              const s = statItems[i];
+              // Skip header-like text (column labels leaked into first row)
+              const lower = cardName.toLowerCase();
+              if (lower.includes('gem rate') || (lower.includes('graded') && lower.includes('last week') && cardName.length < 60)) continue;
               paired.push({
                 card_name: cardName,
                 name: cardName,
                 card: cardName,
-                submissions: s.submissions,
-                count: s.submissions,
-                total_grades: s.submissions
+                submissions: count,
+                count: count,
+                total_grades: count
               });
             }
             
-            debugLog(`[Puppeteer] Block-based mapping produced ${paired.length} card records`);
+            debugLog(`[Puppeteer] Block-based mapping produced ${paired.length} card records (one per Graded All Time number)`);
             if (paired.length > 0) {
               debugLog(`[Puppeteer] First 3 paired results:`, paired.slice(0, 3).map(p => `${p.name}: ${p.submissions}`));
             }

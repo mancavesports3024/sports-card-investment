@@ -146,7 +146,11 @@ const TrendingCards = () => {
         marginTop: '1rem'
       }}>
         {cards.map((card, index) => {
-          const cardName = card.name || card.card_name || card.card || 'Unknown';
+          let cardName = card.name || card.card_name || card.card || 'Unknown';
+          // Add spaces for concatenated text (e.g. "Basketball2025Topps201" -> "Basketball 2025 Topps 201")
+          if (typeof cardName === 'string' && /[a-z][A-Z]|[0-9][A-Za-z]|[A-Za-z][0-9]/.test(cardName)) {
+            cardName = cardName.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/(\d)([A-Za-z])/g, '$1 $2').replace(/([A-Za-z])(\d)/g, '$1 $2').replace(/\s+/g, ' ').trim();
+          }
           const submissions = card.submissions || card.count || card.total_grades || 0;
           
           return (
