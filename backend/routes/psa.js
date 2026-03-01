@@ -42,83 +42,44 @@ router.get('/cert/:certNumber', async (req, res) => {
   }
 });
 
-// GET /api/psa/cert/order/:orderNumber - Cards by PSA order number
-router.get('/cert/order/:orderNumber', async (req, res) => {
+// --- Population (SpecID from cert lookup; official API only has this) ---
+// GET /api/psa/pop/spec/:specId - Population by spec (use SpecID from cert response, e.g. 14158474)
+router.get('/pop/spec/:specId', async (req, res) => {
   try {
-    const result = await psaService.getCardsByOrder(req.params.orderNumber);
-    return sendResult(res, result, 'Failed to fetch order');
+    const result = await psaService.getSpecPopulation(req.params.specId);
+    return sendResult(res, result, 'Failed to fetch spec population');
   } catch (error) {
     return handleRouteError(res, error);
   }
 });
 
-// --- Population Report ---
-// GET /api/psa/pop/sports
-router.get('/pop/sports', async (req, res) => {
+// --- Order progress ---
+// GET /api/psa/order/progress/:orderNumber
+router.get('/order/progress/:orderNumber', async (req, res) => {
   try {
-    const result = await psaService.getSports();
-    return sendResult(res, result, 'Failed to fetch sports');
+    const result = await psaService.getOrderProgress(req.params.orderNumber);
+    return sendResult(res, result, 'Failed to fetch order progress');
   } catch (error) {
     return handleRouteError(res, error);
   }
 });
 
-// GET /api/psa/pop/brands
-router.get('/pop/brands', async (req, res) => {
+// GET /api/psa/order/submission/:submissionNumber
+router.get('/order/submission/:submissionNumber', async (req, res) => {
   try {
-    const result = await psaService.getBrands();
-    return sendResult(res, result, 'Failed to fetch brands');
+    const result = await psaService.getSubmissionProgress(req.params.submissionNumber);
+    return sendResult(res, result, 'Failed to fetch submission progress');
   } catch (error) {
     return handleRouteError(res, error);
   }
 });
 
-// GET /api/psa/pop/sets/year/:year
-router.get('/pop/sets/year/:year', async (req, res) => {
+// --- Cert images ---
+// GET /api/psa/cert/:certNumber/images
+router.get('/cert/:certNumber/images', async (req, res) => {
   try {
-    const result = await psaService.getSetsByYear(req.params.year);
-    return sendResult(res, result, 'Failed to fetch sets by year');
-  } catch (error) {
-    return handleRouteError(res, error);
-  }
-});
-
-// GET /api/psa/pop/sets/brand/:brandId
-router.get('/pop/sets/brand/:brandId', async (req, res) => {
-  try {
-    const result = await psaService.getSetsByBrand(req.params.brandId);
-    return sendResult(res, result, 'Failed to fetch sets by brand');
-  } catch (error) {
-    return handleRouteError(res, error);
-  }
-});
-
-// GET /api/psa/pop/set/:setId - Set info
-router.get('/pop/set/:setId', async (req, res) => {
-  try {
-    const result = await psaService.getSetInfo(req.params.setId);
-    return sendResult(res, result, 'Failed to fetch set info');
-  } catch (error) {
-    return handleRouteError(res, error);
-  }
-});
-
-// GET /api/psa/pop/report/:setId - Population report for set (grades, etc.)
-router.get('/pop/report/:setId', async (req, res) => {
-  try {
-    const result = await psaService.getPopulationReport(req.params.setId);
-    return sendResult(res, result, 'Failed to fetch population report');
-  } catch (error) {
-    return handleRouteError(res, error);
-  }
-});
-
-// --- SMR Pricing ---
-// GET /api/psa/smr/price/:certNumber
-router.get('/smr/price/:certNumber', async (req, res) => {
-  try {
-    const result = await psaService.getSMRPriceByCertNumber(req.params.certNumber);
-    return sendResult(res, result, 'Failed to fetch SMR price');
+    const result = await psaService.getCertImages(req.params.certNumber);
+    return sendResult(res, result, 'Failed to fetch cert images');
   } catch (error) {
     return handleRouteError(res, error);
   }
