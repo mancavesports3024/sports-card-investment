@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import config from '../config';
 
 const API_BASE_URL = config.API_BASE_URL || 'https://web-production-9efa.up.railway.app';
@@ -9,11 +9,7 @@ const TrendingPlayers = () => {
   const [error, setError] = useState(null);
   const [period, setPeriod] = useState('week');
 
-  useEffect(() => {
-    fetchTrendingPlayers();
-  }, [period]);
-
-  const fetchTrendingPlayers = async () => {
+  const fetchTrendingPlayers = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -43,7 +39,11 @@ const TrendingPlayers = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [period]);
+
+  useEffect(() => {
+    fetchTrendingPlayers();
+  }, [fetchTrendingPlayers]);
 
   const formatNumber = (num) => {
     if (num == null || num === undefined) return 'N/A';

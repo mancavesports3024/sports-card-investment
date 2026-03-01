@@ -155,6 +155,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
     }
   }, [card]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchCardData intentionally omitted to avoid refetch loops
   useEffect(() => {
     if (initialCardData) {
       // Use preloaded data (e.g., from SearchPage or player search summary) and skip refetch
@@ -171,6 +172,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       setLoading(true);
       fetchCardData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchCardData omitted to avoid refetch loops
   }, [card, initialCardData]);
 
   // Keep gemrateData in sync with any provided initialGemrateData
@@ -222,6 +224,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
       console.log(`[ScoreCardSummary] Card does NOT have gemrateId - will search GemRate by query`);
       searchGemRateData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- card/gemrateData deps omitted to avoid refetch loops
   }, [card?.gemrateId, card?.player, card?.name, card?.set, card?.number, fetchGemrateData, searchGemRateData, initialCardData, initialGemrateData]);
 
   // Filter raw cards (same logic as SearchPage)
@@ -404,7 +407,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
           
           // Check for numbered parallels (e.g., "#/25", "#/50", "/25", "/50")
           // But NOT card numbers like "#1", "#347" (single digit or 3+ digits without /)
-          const hasNumberedParallel = /\#\s*\d{1,2}\s*\/\s*\d+|\/\s*\d{1,3}\s*\/\s*\d+/.test(lowerTitle);
+          const hasNumberedParallel = /#\s*\d{1,2}\s*\/\s*\d+|\/\s*\d{1,3}\s*\/\s*\d+/.test(lowerTitle);
           
           return hasParallelKeyword || hasNumberedParallel;
         };
@@ -685,7 +688,7 @@ const ScoreCardSummary = ({ card, setInfo, onBack = null, initialCardData = null
         // Check if the exclusion keyword appears in the query
         // Use word boundaries to avoid partial matches (e.g., "downtown" in "downtown!" should match)
         const exclusionRegex = new RegExp(`\\b${exclusionLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-        return !exclusionRegex.test(query);
+        return !exclusionRegex.test(queryLower);
       });
       
       // Only add exclusions if there are any left after filtering

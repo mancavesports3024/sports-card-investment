@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import config from '../config';
 
 const API_BASE_URL = config.API_BASE_URL || 'https://web-production-9efa.up.railway.app';
@@ -9,11 +9,7 @@ const TrendingSets = () => {
   const [error, setError] = useState(null);
   const [period, setPeriod] = useState('week');
 
-  useEffect(() => {
-    fetchTrendingSets();
-  }, [period]);
-
-  const fetchTrendingSets = async () => {
+  const fetchTrendingSets = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -37,7 +33,11 @@ const TrendingSets = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [period]);
+
+  useEffect(() => {
+    fetchTrendingSets();
+  }, [fetchTrendingSets]);
 
   const formatNumber = (num) => {
     if (num == null || num === undefined) return 'N/A';

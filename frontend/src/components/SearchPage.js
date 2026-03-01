@@ -7,7 +7,6 @@ import { Helmet } from 'react-helmet';
 import { InContentAd, SearchResultsAd } from './AdSense';
 import FeaturedEbayRotator from './FeaturedEbayRotator';
 import PageLayout from './PageLayout';
-import BaseballFieldCard from './BaseballFieldCard';
 import ScoreCardSummary from './ScoreCardSummary';
 
 const SearchPage = () => {
@@ -755,7 +754,6 @@ const SearchPage = () => {
                     // Check sale type explicitly - don't rely on numBids to determine auction
                     const isAuction = card.saleType === 'auction' || card.listingType === 'AUCTION';
                     const isBestOffer = card.saleType === 'best_offer';
-                    const isFixedPrice = card.saleType === 'fixed_price';
                     
                     if (isAuction) {
                       // Show auction with bid count

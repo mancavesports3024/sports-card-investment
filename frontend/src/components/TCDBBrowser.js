@@ -27,11 +27,11 @@ const TCDBBrowser = () => {
   const [playerSearchSortDirection, setPlayerSearchSortDirection] = useState('desc'); // 'asc' | 'desc'
   
   // Image recognition states
-  const [imageFile, setImageFile] = useState(null);
+  const [, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrError, setOcrError] = useState('');
-  const [showCamera, setShowCamera] = useState(false);
+  const [, setShowCamera] = useState(false);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -102,7 +102,7 @@ const TCDBBrowser = () => {
     }
   };
 
-  const handleBack = () => {
+  const handleBack = () => { // eslint-disable-line no-unused-vars -- reserved for back button
     if (currentStep === 'score-card-summary') {
       setCurrentStep('player-search');
       setSelectedCardForSummary(null);
@@ -738,8 +738,8 @@ const TCDBBrowser = () => {
     processImageWithOCR(file);
   };
 
-  // Handle camera capture
-  const startCamera = async () => {
+  // Handle camera capture (reserved for future use)
+  const startCamera = async () => { // eslint-disable-line no-unused-vars
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'environment' } // Use back camera on mobile
@@ -763,7 +763,7 @@ const TCDBBrowser = () => {
     setShowCamera(false);
   };
 
-  const capturePhoto = () => {
+  const capturePhoto = () => { // eslint-disable-line no-unused-vars
     if (!videoRef.current) return;
     
     const canvas = document.createElement('canvas');
