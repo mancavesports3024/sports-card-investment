@@ -4,6 +4,7 @@ const { wrapper } = require('axios-cookiejar-support');
 const cheerio = require('cheerio');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const gemrateFormatter = require('./gemrateFormatter');
 
 // Only log verbose GemRate/Puppeteer debug when GEMRATE_DEBUG=true (reduces Railway log noise)
 const GEMRATE_DEBUG = process.env.GEMRATE_DEBUG === 'true';
@@ -3553,10 +3554,15 @@ class GemRateService {
 
       if (trendingPlayers && trendingPlayers.length > 0) {
         console.log(`✅ Retrieved ${trendingPlayers.length} trending players (period: ${period})`);
+        // Attach normalized GemRate formatter fields without changing existing shape
+        const formatted = trendingPlayers.map(p => ({
+          ...p,
+          ...gemrateFormatter.formatTrendingPlayer(p)
+        }));
         return {
           success: true,
           period: period,
-          data: trendingPlayers,
+          data: formatted,
           timestamp: new Date().toISOString()
         };
       } else {
@@ -3709,10 +3715,14 @@ class GemRateService {
 
       if (trendingSets && trendingSets.length > 0) {
         console.log(`✅ Retrieved ${trendingSets.length} trending sets (period: ${period})`);
+        const formatted = trendingSets.map(s => ({
+          ...s,
+          ...gemrateFormatter.formatTrendingSet(s)
+        }));
         return {
           success: true,
           period: period,
-          data: trendingSets,
+          data: formatted,
           timestamp: new Date().toISOString()
         };
       } else {
@@ -3821,7 +3831,10 @@ class GemRateService {
                 name = name.substring(0, 20 + secondSport.index).trim();
               }
             }
-            return { ...c, name, card_name: name, card: name };
+            // Normalize name first, then apply formatter to get structured fields
+            const baseCard = { ...c, name, card_name: name, card: name };
+            const normalized = gemrateFormatter.formatTrendingCard(baseCard);
+            return { ...baseCard, ...normalized };
           });
           console.log(`📊 [Trending Cards] Sample normalized data (first 3 cards):`);
           puppeteerCards.slice(0, 3).forEach((c, i) => {
