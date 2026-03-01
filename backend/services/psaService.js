@@ -138,58 +138,58 @@ class PsaService {
     }
   }
 
-  // --- Population Report (from Postman/Swagger) ---
+  // --- Population Report (from Postman/Swagger: paths under /api/...) ---
 
-  /** GET /pop/GetSports - All sports in the population report */
+  /** GET /api/pop/GetSports - All sports in the population report */
   async getSports() {
-    return this._get('/pop/GetSports');
+    return this._get('/api/pop/GetSports');
   }
 
-  /** GET /pop/GetBrands - All brands */
+  /** GET /api/pop/GetBrands - All brands */
   async getBrands() {
-    return this._get('/pop/GetBrands');
+    return this._get('/api/pop/GetBrands');
   }
 
-  /** GET /pop/GetSetsByYear/{year} - Sets for a given year (e.g. 2023) */
+  /** GET /api/pop/GetSetsByYear/{year} - Sets for a given year (e.g. 2023) */
   async getSetsByYear(year) {
     if (!year) return { success: false, error: 'Missing year' };
-    return this._get(`/pop/GetSetsByYear/${encodeURIComponent(year)}`);
+    return this._get(`/api/pop/GetSetsByYear/${encodeURIComponent(year)}`);
   }
 
-  /** GET /pop/GetSetsByBrand/{brandId} - Sets for a brand */
+  /** GET /api/pop/GetSetsByBrand/{brandId} - Sets for a brand */
   async getSetsByBrand(brandId) {
     if (!brandId) return { success: false, error: 'Missing brandId' };
-    return this._get(`/pop/GetSetsByBrand/${encodeURIComponent(brandId)}`);
+    return this._get(`/api/pop/GetSetsByBrand/${encodeURIComponent(brandId)}`);
   }
 
-  /** GET /pop/GetSetInfo/{setId} - Info for a specific set */
+  /** GET /api/pop/GetSetInfo/{setId} - Info for a specific set */
   async getSetInfo(setId) {
     if (!setId) return { success: false, error: 'Missing setId' };
-    return this._get(`/pop/GetSetInfo/${encodeURIComponent(setId)}`);
+    return this._get(`/api/pop/GetSetInfo/${encodeURIComponent(setId)}`);
   }
 
-  /** GET /pop/GetPopulationReport/{setId} - Population report for a set (grades, etc.) */
+  /** GET /api/pop/GetPopulationReport/{setId} - Population report for a set (grades, etc.) */
   async getPopulationReport(setId) {
     if (!setId) return { success: false, error: 'Missing setId' };
-    return this._get(`/pop/GetPopulationReport/${encodeURIComponent(setId)}`);
+    return this._get(`/api/pop/GetPopulationReport/${encodeURIComponent(setId)}`);
   }
 
   // --- Card lookup by order ---
 
-  /** GET /cert/GetByOrder/{orderNumber} - All cards in a PSA order */
+  /** GET /api/cert/GetByOrder/{orderNumber} - All cards in a PSA order */
   async getCardsByOrder(orderNumber) {
     if (!orderNumber) return { success: false, error: 'Missing order number' };
-    return this._get(`/cert/GetByOrder/${encodeURIComponent(orderNumber)}`);
+    return this._get(`/api/cert/GetByOrder/${encodeURIComponent(orderNumber)}`);
   }
 
   // --- SMR Pricing ---
 
-  /** GET /smr/GetSMRPriceByCertNumber/{certNumber} - SMR price for a cert */
+  /** GET /api/smr/GetSMRPriceByCertNumber/{certNumber} - SMR price for a cert */
   async getSMRPriceByCertNumber(certNumber) {
     if (!certNumber) return { success: false, error: 'Missing cert number' };
     const trimmed = String(certNumber).trim();
     if (!/^\d+$/.test(trimmed)) return { success: false, error: 'Cert number must be numeric' };
-    return this._get(`/smr/GetSMRPriceByCertNumber/${encodeURIComponent(trimmed)}`);
+    return this._get(`/api/smr/GetSMRPriceByCertNumber/${encodeURIComponent(trimmed)}`);
   }
 }
 
