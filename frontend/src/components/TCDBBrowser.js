@@ -31,6 +31,7 @@ const TCDBBrowser = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrError, setOcrError] = useState('');
+  const [identifiedCard, setIdentifiedCard] = useState(null); // CardSight result
   const [, setShowCamera] = useState(false);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -609,14 +610,60 @@ const TCDBBrowser = () => {
     });
   };
 
-  // Process image with OCR
+  // Identify card via CardSight AI (then fall back to OCR if needed)
+  const identifyWithCardSight = async (imageFile) => {
+    const formData = new FormData();
+    formData.append('image', imageFile, imageFile.name || 'image.jpg');
+    const response = await fetch(`${API_BASE_URL}/api/cardsight/identify`, {
+      method: 'POST',
+      body: formData,
+    });
+    const json = await response.json().catch(() => ({}));
+    return json;
+  };
+
+  // Extract search string from CardSight identify response (player/card name)
+  const getSearchNameFromCardSight = (data) => {
+    if (!data) return null;
+    const card = data.card || data.identification?.card || data;
+    const name = card?.subject ?? card?.name ?? card?.player ?? card?.cardName
+      ?? data.identification?.subject ?? data.identification?.name
+      ?? data.name;
+    return typeof name === 'string' && name.trim() ? name.trim() : null;
+  };
+
+  // Process image: try CardSight first, then OCR fallback
   const processImageWithOCR = async (imageFile) => {
     setOcrLoading(true);
     setOcrError('');
-    
+    setIdentifiedCard(null);
+
     try {
-      console.log('[OCR] Starting image recognition...');
-      
+      // 1) Try CardSight AI identification first
+      console.log('[CardSight] Identifying card...');
+      const csResult = await identifyWithCardSight(imageFile);
+      const searchName = csResult?.success && csResult?.data ? getSearchNameFromCardSight(csResult.data) : null;
+
+      if (searchName) {
+        console.log('[CardSight] Identified:', searchName);
+        setIdentifiedCard(csResult.data);
+        setPlayerSearchName(searchName);
+        setOcrError('');
+        setOcrLoading(false);
+        setTimeout(() => {
+          handlePlayerSearch();
+        }, 300);
+        return;
+      }
+
+      if (csResult?.success && csResult?.data) {
+        // CardSight returned data but we couldn't extract a name; still show result if useful
+        setIdentifiedCard(csResult.data);
+      }
+
+      // 2) Fall back to OCR
+      console.log('[OCR] Starting image recognition (fallback)...');
+
       // Try multiple OCR passes with different settings
       // Pass 1: Original image with AUTO mode (good for general text)
       // Try both English and Japanese (for Japanese cards like Pokemon, One Piece)
@@ -891,6 +938,7 @@ const TCDBBrowser = () => {
                   setImagePreview(null);
                   setImageFile(null);
                   setOcrError('');
+                  setIdentifiedCard(null);
                 }}
                 className="clear-image-btn"
               >
@@ -905,7 +953,12 @@ const TCDBBrowser = () => {
               {ocrLoading && (
                 <div className="analysis-loading">
                   <div className="loading-spinner"></div>
-                  <p>Reading card text...</p>
+                  <p>Identifying card...</p>
+                </div>
+              )}
+              {!ocrLoading && identifiedCard && (
+                <div className="identified-card-badge" style={{ marginTop: 8, padding: 8, background: 'rgba(0,128,0,0.2)', borderRadius: 6, fontSize: '0.9em' }}>
+                  ✓ Identified via CardSight — search running above
                 </div>
               )}
             </div>
