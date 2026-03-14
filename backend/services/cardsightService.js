@@ -9,7 +9,8 @@ const axios = require('axios');
 const FormData = require('form-data');
 
 const BASE_URL = 'https://api.cardsight.ai';
-const TIMEOUT_MS = 30000;
+// 60s for identify (mobile upload + CardSight AI can be slow); 408 timeouts common on phone
+const TIMEOUT_MS = 60000;
 
 // In-memory cache: same image = same result (saves API calls). Max 500 entries, 7-day TTL.
 const identifyCache = new Map();
@@ -122,13 +123,19 @@ async function identifyCard(imageBuffer, filename = 'image.jpg') {
   } catch (err) {
     const status = err.response?.status;
     const body = err.response?.data;
-    console.error('CardSight identify error:', { status, body: body || err.message, fullData: body });
-    const details = body?.message ?? body?.detail ?? (body?.error ? `${body.error}${body.code ? ` (${body.code})` : ''}` : null) ?? (typeof body === 'object' ? JSON.stringify(body) : body);
+    const isTimeout = status === 408 || err.code === 'ECONNABORTED' || body?.code === 'TIMEOUT_ERROR';
+    console.error('CardSight identify error:', { status, body: body || err.message, fullData: body, isTimeout });
+    let error = err.response ? `CardSight API error (${status})` : err.message || 'Request failed';
+    let details = body?.message ?? body?.detail ?? (body?.error ? `${body.error}${body.code ? ` (${body.code})` : ''}` : null) ?? (typeof body === 'object' ? JSON.stringify(body) : body) ?? err.message;
+    if (isTimeout) {
+      error = 'Request timed out';
+      details = 'CardSight took too long to respond. On mobile, try Wi‑Fi, a smaller photo, or try again in a moment.';
+    }
     return {
       success: false,
-      status,
-      error: err.response ? `CardSight API error (${status})` : err.message || 'Request failed',
-      details: details || err.message,
+      status: status || 408,
+      error,
+      details,
     };
   }
 }

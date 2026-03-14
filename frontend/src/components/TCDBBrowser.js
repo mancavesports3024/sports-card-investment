@@ -764,6 +764,13 @@ const TCDBBrowser = () => {
       const csResult = await identifyWithCardSight(imageFile);
       const searchName = csResult?.success && csResult?.data ? getSearchNameFromCardSight(csResult.data) : null;
 
+      // CardSight request failed (e.g. timeout on mobile) — show message so user can retry
+      if (!csResult?.success && (csResult?.status === 408 || (csResult?.details && String(csResult.details).toLowerCase().includes('timeout')))) {
+        setOcrLoading(false);
+        setOcrError(csResult?.details || csResult?.error || 'Request timed out. Try Wi‑Fi or a smaller photo.');
+        return;
+      }
+
       // CardSight returned "identification failed" — show message and response, don't claim success
       if (csResult?.success && csResult?.data && csResult.data.success === false) {
         setOcrLoading(false);
@@ -1104,7 +1111,8 @@ const TCDBBrowser = () => {
               {ocrLoading && (
                 <div className="analysis-loading">
                   <div className="loading-spinner"></div>
-                  <p>Identifying card...</p>
+                  <p>Identifying card…</p>
+                  <p style={{ fontSize: '0.85em', marginTop: 4, opacity: 0.9 }}>May take up to a minute on mobile</p>
                 </div>
               )}
               {!ocrLoading && identifiedCard && (
