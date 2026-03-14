@@ -77,12 +77,20 @@ async function identifyCard(imageBuffer, filename = 'image.jpg') {
       maxBodyLength: Infinity,
     });
     const result = { success: true, status: response.status, data: response.data };
+    console.log('CardSight identify response:', {
+      status: response.status,
+      dataSuccess: response.data?.success,
+      requestId: response.data?.requestId,
+      processingTime: response.data?.processingTime,
+      dataKeys: response.data && typeof response.data === 'object' ? Object.keys(response.data) : [],
+      data: response.data,
+    });
     setCachedIdentify(hash, result);
     return result;
   } catch (err) {
     const status = err.response?.status;
     const body = err.response?.data;
-    console.error('CardSight identify error:', { status, body: body || err.message });
+    console.error('CardSight identify error:', { status, body: body || err.message, fullData: body });
     return {
       success: false,
       status,

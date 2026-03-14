@@ -764,6 +764,14 @@ const TCDBBrowser = () => {
       const csResult = await identifyWithCardSight(imageFile);
       const searchName = csResult?.success && csResult?.data ? getSearchNameFromCardSight(csResult.data) : null;
 
+      // CardSight returned "identification failed" — show message and response, don't claim success
+      if (csResult?.success && csResult?.data && csResult.data.success === false) {
+        setOcrLoading(false);
+        setUniversalSearchDebugData(csResult.data);
+        setUniversalSearchError('CardSight could not identify this card. See response below. Type a query (e.g. 2024 bowman paul skenes 49) or try another image.');
+        return;
+      }
+
       if (searchName || (csResult?.data && typeof csResult.data === 'object')) {
         console.log('[CardSight] Identified:', searchName);
         setIdentifiedCard(csResult.data);
