@@ -809,7 +809,8 @@ async function initializeServer() {
   app.use('/api/releases', require('./routes/releases'));
   // New PSA API proxy
   app.use('/api/psa', require('./routes/psa'));
-  
+  app.use('/api/cardsight', require('./routes/cardsight'));
+
   // Auth & image analysis
   app.use('/api/auth', require('./routes/auth'));
   app.use('/api', require('./routes/imageAnalysis'));
