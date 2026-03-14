@@ -41,6 +41,12 @@ const TCDBBrowser = () => {
   // Database info
   const [dbInfo, setDbInfo] = useState({ total: 0 });
 
+  // Universal search (GemRate): query "year type name parallel number" after scan
+  const [universalSearchQuery, setUniversalSearchQuery] = useState('');
+  const [universalSearchResult, setUniversalSearchResult] = useState(null);
+  const [universalSearchLoading, setUniversalSearchLoading] = useState(false);
+  const [universalSearchError, setUniversalSearchError] = useState('');
+
   // Fetch database count on mount
   useEffect(() => {
     fetchDbInfo();
@@ -669,6 +675,58 @@ const TCDBBrowser = () => {
     return other.length > 0 ? other[0] : null;
   };
 
+  // Extract year, type (set/release), name, parallel, number from CardSight for universal-search: "year type name parallel number"
+  const extractUniversalSearchParts = (data) => {
+    if (!data || typeof data !== 'object') return { year: '', type: '', name: '', parallel: '', number: '' };
+    const card = data.card || data.identification?.card || data.detections?.[0]?.card || data;
+    const id = data.identification || data;
+    const year = card?.releaseYear ?? card?.year ?? id?.releaseYear ?? data?.year ?? '';
+    const type = card?.releaseName ?? card?.setName ?? card?.set ?? id?.releaseName ?? id?.setName ?? data?.set ?? '';
+    const name = card?.subject ?? card?.name ?? card?.player ?? id?.subject ?? getSearchNameFromCardSight(data) ?? '';
+    const parallel = card?.parallel ?? card?.parallelName ?? id?.parallel ?? data?.parallel ?? '';
+    const number = card?.number ?? card?.cardNumber ?? card?.card_number ?? id?.number ?? data?.number ?? '';
+    return {
+      year: String(year || '').trim(),
+      type: String(type || '').trim(),
+      name: String(name || '').trim(),
+      parallel: String(parallel || '').trim(),
+      number: String(number || '').trim()
+    };
+  };
+
+  const buildUniversalQuery = (parts) => {
+    const { year, type, name, parallel, number } = parts;
+    return [year, type, name, parallel, number].filter(Boolean).join(' ').trim();
+  };
+
+  // Run GemRate universal-search with query "year type name parallel number"
+  const runUniversalSearch = async (query) => {
+    const q = (query || universalSearchQuery || '').trim();
+    if (!q) {
+      setUniversalSearchError('Enter a search query (e.g. 2018 bowman shohei ohtani purple 49)');
+      return;
+    }
+    setUniversalSearchLoading(true);
+    setUniversalSearchError('');
+    setUniversalSearchResult(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/gemrate/search/${encodeURIComponent(q)}`);
+      const data = await response.json();
+      if (data.success && data.data) {
+        setUniversalSearchResult(data.data);
+        setUniversalSearchError('');
+      } else {
+        setUniversalSearchResult(null);
+        setUniversalSearchError(data.error || 'No results');
+      }
+    } catch (err) {
+      setUniversalSearchResult(null);
+      setUniversalSearchError('Search failed: ' + (err.message || 'Unknown error'));
+    } finally {
+      setUniversalSearchLoading(false);
+    }
+  };
+
   // Process image: try CardSight first, then OCR fallback
   const processImageWithOCR = async (imageFile) => {
     setOcrLoading(true);
@@ -681,15 +739,24 @@ const TCDBBrowser = () => {
       const csResult = await identifyWithCardSight(imageFile);
       const searchName = csResult?.success && csResult?.data ? getSearchNameFromCardSight(csResult.data) : null;
 
-      if (searchName) {
+      if (searchName || (csResult?.data && typeof csResult.data === 'object')) {
         console.log('[CardSight] Identified:', searchName);
         setIdentifiedCard(csResult.data);
-        setPlayerSearchName(searchName);
+        if (searchName) setPlayerSearchName(searchName);
         setOcrError('');
         setOcrLoading(false);
-        setTimeout(() => {
-          handlePlayerSearch();
-        }, 300);
+        // Build universal-search query: year type name parallel number (e.g. "2018 bowman shohei ohtani purple 49")
+        const parts = extractUniversalSearchParts(csResult.data);
+        const query = buildUniversalQuery(parts);
+        if (query) {
+          setUniversalSearchQuery(query);
+          runUniversalSearch(query);
+        }
+        if (searchName) {
+          setTimeout(() => {
+            handlePlayerSearch();
+          }, 300);
+        }
         return;
       }
 
@@ -976,6 +1043,9 @@ const TCDBBrowser = () => {
                   setImageFile(null);
                   setOcrError('');
                   setIdentifiedCard(null);
+                  setUniversalSearchQuery('');
+                  setUniversalSearchResult(null);
+                  setUniversalSearchError('');
                 }}
                 className="clear-image-btn"
               >
@@ -995,7 +1065,7 @@ const TCDBBrowser = () => {
               )}
               {!ocrLoading && identifiedCard && (
                 <div className="identified-card-badge" style={{ marginTop: 8, padding: 8, background: 'rgba(0,128,0,0.2)', borderRadius: 6, fontSize: '0.9em' }}>
-                  ✓ Identified via CardSight — search running above
+                  ✓ Identified via CardSight — universal search run below
                 </div>
               )}
             </div>
@@ -1006,6 +1076,59 @@ const TCDBBrowser = () => {
               {ocrError}
             </div>
           )}
+
+          {/* Universal Search: year type name parallel number (after scan) */}
+          <div className="universal-search-section" style={{ marginTop: 20, padding: 16, background: 'rgba(0,0,0,0.2)', borderRadius: 8 }}>
+            <h3 style={{ color: '#ffd700', marginBottom: 10, fontSize: '1.1em' }}>🔍 Universal Search (year type name parallel number)</h3>
+            <p style={{ color: '#aaa', fontSize: '0.9em', marginBottom: 10 }}>
+              After scanning, the query is built as: <strong>year</strong> <strong>set/type</strong> <strong>player name</strong> <strong>parallel</strong> <strong>card #</strong> — e.g. 2018 bowman shohei ohtani purple 49
+            </p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              <input
+                type="text"
+                placeholder="e.g. 2018 bowman shohei ohtani purple 49"
+                value={universalSearchQuery}
+                onChange={(e) => setUniversalSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    runUniversalSearch(universalSearchQuery);
+                  }
+                }}
+                className="player-search-input"
+                style={{ flex: '1 1 280px' }}
+              />
+              <button
+                type="button"
+                onClick={() => runUniversalSearch(universalSearchQuery)}
+                disabled={universalSearchLoading || !universalSearchQuery.trim()}
+                className="upload-btn"
+              >
+                {universalSearchLoading ? 'Searching…' : 'Search GemRate'}
+              </button>
+            </div>
+            {universalSearchError && (
+              <div className="error-message" style={{ marginTop: 10 }}>{universalSearchError}</div>
+            )}
+            {universalSearchResult && (
+              <div className="universal-search-result" style={{ marginTop: 14, padding: 12, background: 'rgba(0,0,0,0.25)', borderRadius: 6, fontSize: '0.95em' }}>
+                <strong style={{ color: '#ffd700' }}>Result</strong>
+                {universalSearchResult.gemrateId && (
+                  <p style={{ margin: '6px 0 0', color: '#aaa' }}>GemRate ID: {universalSearchResult.gemrateId}</p>
+                )}
+                {universalSearchResult.population && (
+                  <pre style={{ margin: '8px 0 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#ddd' }}>
+                    {JSON.stringify(universalSearchResult.population, null, 2)}
+                  </pre>
+                )}
+                {!universalSearchResult.population && (
+                  <pre style={{ margin: '8px 0 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#ddd' }}>
+                    {JSON.stringify(universalSearchResult, null, 2)}
+                  </pre>
+                )}
+              </div>
+            )}
+          </div>
         </div>
         
         <div className="player-search-form">
