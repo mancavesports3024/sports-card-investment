@@ -103,14 +103,20 @@ async function identifyCard(imageBuffer, filename = 'image.jpg') {
       maxBodyLength: Infinity,
     });
     const result = { success: true, status: response.status, data: response.data };
+    const data = response.data;
     console.log('CardSight identify response:', {
       status: response.status,
-      dataSuccess: response.data?.success,
-      requestId: response.data?.requestId,
-      processingTime: response.data?.processingTime,
-      dataKeys: response.data && typeof response.data === 'object' ? Object.keys(response.data) : [],
-      data: response.data,
+      dataSuccess: data?.success,
+      requestId: data?.requestId,
+      processingTime: data?.processingTime,
+      dataKeys: data && typeof data === 'object' ? Object.keys(data) : [],
     });
+    // Full response for debugging extraction (what did CardSight actually return?)
+    try {
+      console.log('CardSight identify full response (for debugging):', JSON.stringify(data, null, 2));
+    } catch (e) {
+      console.log('CardSight identify full response (stringify failed):', data);
+    }
     setCachedIdentify(hash, result);
     return result;
   } catch (err) {

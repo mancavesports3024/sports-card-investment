@@ -773,16 +773,18 @@ const TCDBBrowser = () => {
       }
 
       if (searchName || (csResult?.data && typeof csResult.data === 'object')) {
+        const rawData = csResult.data;
         console.log('[CardSight] Identified:', searchName);
-        setIdentifiedCard(csResult.data);
+        console.log('[CardSight] Full API response (for debugging extraction):', JSON.stringify(rawData, null, 2));
+        setIdentifiedCard(rawData);
         if (searchName) setPlayerSearchName(searchName);
         setOcrError('');
         setOcrLoading(false);
         // Build universal-search query: year type name parallel number (e.g. "2018 bowman shohei ohtani purple 49")
-        const parts = extractUniversalSearchParts(csResult.data);
+        const parts = extractUniversalSearchParts(rawData);
         let query = buildUniversalQuery(parts);
         if (!query && searchName) query = searchName.trim();
-        console.log('[Universal Search] Parts from CardSight:', parts, '→ query:', query || '(empty)');
+        console.log('[Universal Search] Extracted parts:', parts, '→ built query:', query || '(empty)');
         setUniversalSearchQuery(query || '');
         if (query) {
           console.log('[Universal Search] Calling GemRate search with query:', query);
@@ -1179,6 +1181,17 @@ const TCDBBrowser = () => {
                   </pre>
                 )}
               </div>
+            )}
+            {identifiedCard && (
+              <details style={{ marginTop: 14, padding: 10, background: 'rgba(0,0,0,0.2)', borderRadius: 6 }}>
+                <summary style={{ cursor: 'pointer', color: '#ffd700' }}>View CardSight raw response (debug)</summary>
+                <p style={{ marginTop: 6, fontSize: '0.85em', color: '#aaa' }}>
+                  Full data returned by CardSight — use this to see why the query above might be incomplete (e.g. player name in a different field).
+                </p>
+                <pre style={{ marginTop: 8, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.8em', color: '#ccc', maxHeight: 280, overflow: 'auto' }}>
+                  {JSON.stringify(identifiedCard, null, 2)}
+                </pre>
+              </details>
             )}
           </div>
         </div>
