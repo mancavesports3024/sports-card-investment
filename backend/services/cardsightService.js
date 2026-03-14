@@ -1,6 +1,7 @@
 // CardSight AI – trading card identification & catalog
-// Docs: https://cardsight.ai/documentation/api-reference
-// Base: https://api.cardsight.ai
+// API docs: https://api.cardsight.ai/documentation (OpenAPI/Swagger)
+// Web docs: https://cardsight.ai/documentation/api-reference
+// Base URL: https://api.cardsight.ai
 // Auth: X-API-Key header (32-char alphanumeric). Set CARDSIGHT_API_KEY in .env.
 
 const crypto = require('crypto');
@@ -52,6 +53,22 @@ function getHeaders(extra = {}) {
   };
 }
 
+// Infer MIME type from buffer magic bytes (CardSight may require correct Content-Type)
+function getImageMimeType(buffer) {
+  if (!buffer || buffer.length < 4) return 'image/jpeg';
+  if (buffer[0] === 0xff && buffer[1] === 0xd8) return 'image/jpeg';
+  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) return 'image/png';
+  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) return 'image/gif';
+  if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46) return 'image/webp';
+  return 'image/jpeg';
+}
+
+function normalizeImageFilename(filename) {
+  const name = (filename || 'image').trim() || 'image';
+  if (/\.(jpe?g|png|gif|webp)$/i.test(name)) return name;
+  return name.replace(/\.[^.]*$/, '') + '.jpg';
+}
+
 /**
  * Identify a card from an image (multipart). Results are cached by image hash to save API calls.
  * @param {Buffer} imageBuffer - Raw image bytes
@@ -59,14 +76,23 @@ function getHeaders(extra = {}) {
  * @returns {Promise<{ success: boolean, data?: any, error?: string, status?: number, cached?: boolean }>}
  */
 async function identifyCard(imageBuffer, filename = 'image.jpg') {
+  if (!imageBuffer || !Buffer.isBuffer(imageBuffer) || imageBuffer.length === 0) {
+    console.error('CardSight identify: invalid or empty image buffer');
+    return { success: false, status: 400, error: 'Invalid image', details: 'No image data provided.' };
+  }
   const hash = getImageHash(imageBuffer);
   const cached = getCachedIdentify(hash);
   if (cached) {
     return { ...cached, cached: true };
   }
+  const contentType = getImageMimeType(imageBuffer);
+  const normalizedFilename = normalizeImageFilename(filename);
   try {
     const form = new FormData();
-    form.append('image', imageBuffer, { filename });
+    form.append('image', imageBuffer, {
+      filename: normalizedFilename,
+      contentType,
+    });
     const response = await axios.post(`${BASE_URL}/v1/identify/card`, form, {
       headers: {
         ...getHeaders(),
@@ -91,11 +117,12 @@ async function identifyCard(imageBuffer, filename = 'image.jpg') {
     const status = err.response?.status;
     const body = err.response?.data;
     console.error('CardSight identify error:', { status, body: body || err.message, fullData: body });
+    const details = body?.message ?? body?.detail ?? (body?.error ? `${body.error}${body.code ? ` (${body.code})` : ''}` : null) ?? (typeof body === 'object' ? JSON.stringify(body) : body);
     return {
       success: false,
       status,
       error: err.response ? `CardSight API error (${status})` : err.message || 'Request failed',
-      details: body?.message || body?.detail || (typeof body === 'object' ? JSON.stringify(body) : body),
+      details: details || err.message,
     };
   }
 }
@@ -104,9 +131,17 @@ async function identifyCard(imageBuffer, filename = 'image.jpg') {
  * Detect if a trading card is present in an image (no identification).
  */
 async function detectCard(imageBuffer, filename = 'image.jpg') {
+  if (!imageBuffer || !Buffer.isBuffer(imageBuffer) || imageBuffer.length === 0) {
+    return { success: false, status: 400, error: 'Invalid image', details: 'No image data provided.' };
+  }
+  const contentType = getImageMimeType(imageBuffer);
+  const normalizedFilename = normalizeImageFilename(filename);
   try {
     const form = new FormData();
-    form.append('image', imageBuffer, { filename });
+    form.append('image', imageBuffer, {
+      filename: normalizedFilename,
+      contentType,
+    });
     const response = await axios.post(`${BASE_URL}/v1/detect/card`, form, {
       headers: {
         ...getHeaders(),
