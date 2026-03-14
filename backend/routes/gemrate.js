@@ -21,7 +21,7 @@ router.get('/search/:query', async (req, res) => {
     const { options } = req.query;
     const cleanQuery = sanitizeGemrateQuery(decodeURIComponent(query));
     
-    console.log(`🔍 GemRate search request: "${cleanQuery}" (original: "${decodeURIComponent(query)}")`);
+    console.log(`🔍 GemRate universal-search: "${cleanQuery}" (original: "${decodeURIComponent(query)}")`);
     
     if (!cleanQuery || cleanQuery.trim().length === 0) {
       return res.status(400).json({
@@ -33,7 +33,7 @@ router.get('/search/:query', async (req, res) => {
     
     const result = await gemrateService.searchCardPopulation(cleanQuery, options ? JSON.parse(options) : {});
     
-    console.log(`🔍 GemRate search result: success=${result?.success}, hasPopulation=${!!result?.population}`);
+    console.log(`🔍 GemRate universal-search result: success=${result?.success}, hasPopulation=${!!result?.population}, gemrateId=${result?.gemrateId || 'n/a'}`);
 
     res.json({
       success: true,

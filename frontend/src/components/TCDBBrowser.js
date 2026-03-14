@@ -675,22 +675,41 @@ const TCDBBrowser = () => {
     return other.length > 0 ? other[0] : null;
   };
 
+  // Recursively find first string value for a set of keys in CardSight response (handles any nesting)
+  const findFirstInObject = (obj, keys, out = {}) => {
+    if (!obj || typeof obj !== 'object') return out;
+    const keyList = Array.isArray(keys) ? keys : [keys];
+    for (const k of keyList) {
+      if (out[k] !== undefined && out[k] !== '') return out;
+      const v = obj[k];
+      if (typeof v === 'string' && v.trim()) {
+        out[k] = v.trim();
+        return out;
+      }
+    }
+    const next = Array.isArray(obj) ? obj : Object.values(obj);
+    for (const v of next) {
+      if (v && typeof v === 'object') findFirstInObject(v, keyList, out);
+    }
+    return out;
+  };
+
   // Extract year, type (set/release), name, parallel, number from CardSight for universal-search: "year type name parallel number"
   const extractUniversalSearchParts = (data) => {
     if (!data || typeof data !== 'object') return { year: '', type: '', name: '', parallel: '', number: '' };
-    const card = data.card || data.identification?.card || data.detections?.[0]?.card || data;
-    const id = data.identification || data;
-    const year = card?.releaseYear ?? card?.year ?? id?.releaseYear ?? data?.year ?? '';
-    const type = card?.releaseName ?? card?.setName ?? card?.set ?? id?.releaseName ?? id?.setName ?? data?.set ?? '';
-    const name = card?.subject ?? card?.name ?? card?.player ?? id?.subject ?? getSearchNameFromCardSight(data) ?? '';
-    const parallel = card?.parallel ?? card?.parallelName ?? id?.parallel ?? data?.parallel ?? '';
-    const number = card?.number ?? card?.cardNumber ?? card?.card_number ?? id?.number ?? data?.number ?? '';
+    const found = {};
+    findFirstInObject(data, ['releaseYear', 'year'], found);
+    findFirstInObject(data, ['releaseName', 'setName', 'set', 'brand', 'product'], found);
+    findFirstInObject(data, ['subject', 'name', 'player', 'playerName', 'cardName', 'title'], found);
+    findFirstInObject(data, ['parallel', 'parallelName', 'variety'], found);
+    findFirstInObject(data, ['number', 'cardNumber', 'card_number'], found);
+    const name = found.name || found.subject || found.player || found.playerName || found.cardName || found.title || getSearchNameFromCardSight(data) || '';
     return {
-      year: String(year || '').trim(),
-      type: String(type || '').trim(),
-      name: String(name || '').trim(),
-      parallel: String(parallel || '').trim(),
-      number: String(number || '').trim()
+      year: String(found.releaseYear || found.year || '').trim(),
+      type: String(found.releaseName || found.setName || found.set || found.brand || found.product || '').trim(),
+      name: String(name).trim(),
+      parallel: String(found.parallel || found.parallelName || found.variety || '').trim(),
+      number: String(found.number || found.cardNumber || found.card_number || '').trim()
     };
   };
 
@@ -709,9 +728,12 @@ const TCDBBrowser = () => {
     setUniversalSearchLoading(true);
     setUniversalSearchError('');
     setUniversalSearchResult(null);
+    const url = `${API_BASE_URL}/api/gemrate/search/${encodeURIComponent(q)}`;
+    console.log('[Universal Search] GemRate request:', url);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/gemrate/search/${encodeURIComponent(q)}`);
+      const response = await fetch(url);
       const data = await response.json();
+      console.log('[Universal Search] GemRate response:', response.status, data?.success ? 'success' : data?.error, data);
       if (data.success && data.data) {
         setUniversalSearchResult(data.data);
         setUniversalSearchError('');
@@ -720,6 +742,7 @@ const TCDBBrowser = () => {
         setUniversalSearchError(data.error || 'No results');
       }
     } catch (err) {
+      console.error('[Universal Search] GemRate request failed:', err);
       setUniversalSearchResult(null);
       setUniversalSearchError('Search failed: ' + (err.message || 'Unknown error'));
     } finally {
@@ -747,10 +770,15 @@ const TCDBBrowser = () => {
         setOcrLoading(false);
         // Build universal-search query: year type name parallel number (e.g. "2018 bowman shohei ohtani purple 49")
         const parts = extractUniversalSearchParts(csResult.data);
-        const query = buildUniversalQuery(parts);
+        let query = buildUniversalQuery(parts);
+        if (!query && searchName) query = searchName.trim();
+        console.log('[Universal Search] Parts from CardSight:', parts, '→ query:', query || '(empty)');
+        setUniversalSearchQuery(query || '');
         if (query) {
-          setUniversalSearchQuery(query);
+          console.log('[Universal Search] Calling GemRate search with query:', query);
           runUniversalSearch(query);
+        } else {
+          setUniversalSearchError('Could not build a search query from card data. Try typing one (e.g. 2024 bowman paul skenes 49).');
         }
         if (searchName) {
           setTimeout(() => {
