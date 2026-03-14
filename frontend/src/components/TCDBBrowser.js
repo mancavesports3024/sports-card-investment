@@ -622,14 +622,51 @@ const TCDBBrowser = () => {
     return json;
   };
 
-  // Extract search string from CardSight identify response (player/card name)
+  // Check if string is mostly Latin (so we prefer "Chris Sale" over Japanese "トメ")
+  const isMostlyLatin = (s) => {
+    if (!s || typeof s !== 'string') return false;
+    const trimmed = s.trim();
+    if (trimmed.length < 2) return false;
+    const latin = (trimmed.match(/[a-zA-Z\s\-'.]/g) || []).length;
+    const japanese = (trimmed.match(/[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/g) || []).length;
+    return latin >= trimmed.length * 0.6 && japanese < trimmed.length * 0.5;
+  };
+
+  const isMostlyJapanese = (s) => {
+    if (!s || typeof s !== 'string') return false;
+    const japanese = (s.match(/[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/g) || []).length;
+    return japanese >= s.length * 0.5;
+  };
+
+  // Collect all name-like string candidates from nested CardSight response
+  const collectNameCandidates = (obj, out = new Set()) => {
+    if (!obj || typeof obj !== 'object') return out;
+    if (typeof obj === 'string') {
+      const t = obj.trim();
+      if (t.length >= 2 && t.length <= 80 && !/^https?:\/\//.test(t) && !/^[0-9a-f-]{36}$/i.test(t)) out.add(t);
+      return out;
+    }
+    const nameKeys = ['subject', 'name', 'player', 'playerName', 'cardName', 'title', 'description'];
+    for (const key of nameKeys) {
+      if (typeof obj[key] === 'string') {
+        const t = obj[key].trim();
+        if (t.length >= 2 && t.length <= 80) out.add(t);
+      }
+    }
+    const arr = Array.isArray(obj) ? obj : Object.values(obj);
+    for (const v of arr) collectNameCandidates(v, out);
+    return out;
+  };
+
+  // Extract search string from CardSight identify response; prefer Latin player name (e.g. "Chris Sale")
   const getSearchNameFromCardSight = (data) => {
     if (!data) return null;
-    const card = data.card || data.identification?.card || data;
-    const name = card?.subject ?? card?.name ?? card?.player ?? card?.cardName
-      ?? data.identification?.subject ?? data.identification?.name
-      ?? data.name;
-    return typeof name === 'string' && name.trim() ? name.trim() : null;
+    const candidates = collectNameCandidates(data);
+    const latin = [...candidates].filter(isMostlyLatin).sort((a, b) => b.length - a.length);
+    if (latin.length > 0) return latin[0];
+    // Fallback: use any non-Japanese name-like string so we don't populate "トメ" for a US card
+    const other = [...candidates].filter((s) => s.length >= 3 && !isMostlyJapanese(s)).sort((a, b) => b.length - a.length);
+    return other.length > 0 ? other[0] : null;
   };
 
   // Process image: try CardSight first, then OCR fallback

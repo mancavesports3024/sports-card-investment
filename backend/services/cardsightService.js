@@ -3,11 +3,39 @@
 // Base: https://api.cardsight.ai
 // Auth: X-API-Key header (32-char alphanumeric). Set CARDSIGHT_API_KEY in .env.
 
+const crypto = require('crypto');
 const axios = require('axios');
 const FormData = require('form-data');
 
 const BASE_URL = 'https://api.cardsight.ai';
 const TIMEOUT_MS = 30000;
+
+// In-memory cache: same image = same result (saves API calls). Max 500 entries, 7-day TTL.
+const identifyCache = new Map();
+const CACHE_MAX = 500;
+const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+function getImageHash(buffer) {
+  return crypto.createHash('sha256').update(buffer).digest('hex');
+}
+
+function getCachedIdentify(hash) {
+  const entry = identifyCache.get(hash);
+  if (!entry) return null;
+  if (Date.now() - entry.at > CACHE_TTL_MS) {
+    identifyCache.delete(hash);
+    return null;
+  }
+  return entry.data;
+}
+
+function setCachedIdentify(hash, data) {
+  if (identifyCache.size >= CACHE_MAX) {
+    const first = identifyCache.keys().next().value;
+    if (first) identifyCache.delete(first);
+  }
+  identifyCache.set(hash, { data, at: Date.now() });
+}
 
 function getApiKey() {
   const key = process.env.CARDSIGHT_API_KEY;
@@ -25,12 +53,17 @@ function getHeaders(extra = {}) {
 }
 
 /**
- * Identify a card from an image (multipart).
+ * Identify a card from an image (multipart). Results are cached by image hash to save API calls.
  * @param {Buffer} imageBuffer - Raw image bytes
  * @param {string} [filename] - Optional filename (e.g. 'card.jpg')
- * @returns {Promise<{ success: boolean, data?: any, error?: string, status?: number }>}
+ * @returns {Promise<{ success: boolean, data?: any, error?: string, status?: number, cached?: boolean }>}
  */
 async function identifyCard(imageBuffer, filename = 'image.jpg') {
+  const hash = getImageHash(imageBuffer);
+  const cached = getCachedIdentify(hash);
+  if (cached) {
+    return { ...cached, cached: true };
+  }
   try {
     const form = new FormData();
     form.append('image', imageBuffer, { filename });
@@ -43,7 +76,9 @@ async function identifyCard(imageBuffer, filename = 'image.jpg') {
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
     });
-    return { success: true, status: response.status, data: response.data };
+    const result = { success: true, status: response.status, data: response.data };
+    setCachedIdentify(hash, result);
+    return result;
   } catch (err) {
     const status = err.response?.status;
     const body = err.response?.data;
