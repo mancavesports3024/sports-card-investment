@@ -46,6 +46,7 @@ const TCDBBrowser = () => {
   const [universalSearchResult, setUniversalSearchResult] = useState(null);
   const [universalSearchLoading, setUniversalSearchLoading] = useState(false);
   const [universalSearchError, setUniversalSearchError] = useState('');
+  const [universalSearchDebugData, setUniversalSearchDebugData] = useState(null); // CardSight response when query build failed
 
   // Fetch database count on mount
   useEffect(() => {
@@ -728,6 +729,7 @@ const TCDBBrowser = () => {
     setUniversalSearchLoading(true);
     setUniversalSearchError('');
     setUniversalSearchResult(null);
+    setUniversalSearchDebugData(null);
     const url = `${API_BASE_URL}/api/gemrate/search/${encodeURIComponent(q)}`;
     console.log('[Universal Search] GemRate request:', url);
     try {
@@ -778,7 +780,10 @@ const TCDBBrowser = () => {
           console.log('[Universal Search] Calling GemRate search with query:', query);
           runUniversalSearch(query);
         } else {
-          setUniversalSearchError('Could not build a search query from card data. Try typing one (e.g. 2024 bowman paul skenes 49).');
+          // Log and show CardSight response so you can see why extraction failed
+          console.warn('[Universal Search] Could not build query. CardSight raw response:', JSON.stringify(csResult?.data, null, 2));
+          setUniversalSearchDebugData(csResult?.data ?? null);
+          setUniversalSearchError('Could not build a search query from card data. See "Why it didn\'t work" below, or type a query (e.g. 2024 bowman paul skenes 49) and click Search GemRate.');
         }
         if (searchName) {
           setTimeout(() => {
@@ -1074,6 +1079,7 @@ const TCDBBrowser = () => {
                   setUniversalSearchQuery('');
                   setUniversalSearchResult(null);
                   setUniversalSearchError('');
+                  setUniversalSearchDebugData(null);
                 }}
                 className="clear-image-btn"
               >
@@ -1136,7 +1142,17 @@ const TCDBBrowser = () => {
               </button>
             </div>
             {universalSearchError && (
-              <div className="error-message" style={{ marginTop: 10 }}>{universalSearchError}</div>
+              <>
+                <div className="error-message" style={{ marginTop: 10 }}>{universalSearchError}</div>
+                {universalSearchDebugData && (
+                  <details style={{ marginTop: 10, padding: 10, background: 'rgba(0,0,0,0.2)', borderRadius: 6 }}>
+                    <summary style={{ cursor: 'pointer', color: '#ffd700' }}>Why it didn&apos;t work — CardSight response</summary>
+                    <pre style={{ marginTop: 8, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.85em', color: '#ccc', maxHeight: 200, overflow: 'auto' }}>
+                      {JSON.stringify(universalSearchDebugData, null, 2)}
+                    </pre>
+                  </details>
+                )}
+              </>
             )}
             {universalSearchResult && (
               <div className="universal-search-result" style={{ marginTop: 14, padding: 12, background: 'rgba(0,0,0,0.25)', borderRadius: 6, fontSize: '0.95em' }}>
