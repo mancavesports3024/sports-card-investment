@@ -200,6 +200,31 @@ async function _get(path, params = {}) {
   }
 }
 
+/**
+ * POST request with JSON body to CardSight (collectors, collections, etc.).
+ */
+async function _postJson(path, body = {}) {
+  try {
+    const response = await axios.post(`${BASE_URL}${path.startsWith('/') ? path : '/' + path}`, body, {
+      headers: {
+        ...getHeaders(),
+        'Content-Type': 'application/json',
+      },
+      timeout: TIMEOUT_MS,
+    });
+    return { success: true, status: response.status, data: response.data };
+  } catch (err) {
+    const status = err.response?.status;
+    const respBody = err.response?.data;
+    return {
+      success: false,
+      status,
+      error: err.response ? `CardSight API error (${status})` : err.message || 'Request failed',
+      details: respBody?.message || respBody?.detail || (typeof respBody === 'object' ? JSON.stringify(respBody) : respBody),
+    };
+  }
+}
+
 /** Catalog search – cards, sets, releases, parallels */
 async function searchCatalog(query = {}, params = {}) {
   const path = '/v1/catalog/search';
@@ -226,6 +251,38 @@ async function getHealthAuth() {
   return _get('/health/auth');
 }
 
+// --- Collections & collectors helpers ---
+
+/** Create a collector */
+async function createCollector(body) {
+  return _postJson('/v1/collectors/', body);
+}
+
+/** List collectors */
+async function getCollectors(params = {}) {
+  return _get('/v1/collectors/', params);
+}
+
+/** Create a collection */
+async function createCollection(body) {
+  return _postJson('/v1/collection/', body);
+}
+
+/** List collections */
+async function getCollections(params = {}) {
+  return _get('/v1/collection/', params);
+}
+
+/** Add one or more cards to a collection */
+async function addCollectionCards(collectionId, body) {
+  return _postJson(`/v1/collection/${collectionId}/cards`, body);
+}
+
+/** List cards in a collection */
+async function getCollectionCards(collectionId, params = {}) {
+  return _get(`/v1/collection/${collectionId}/cards`, params);
+}
+
 module.exports = {
   identifyCard,
   detectCard,
@@ -234,4 +291,10 @@ module.exports = {
   getSegments,
   getSubscription,
   getHealthAuth,
+  createCollector,
+  getCollectors,
+  createCollection,
+  getCollections,
+  addCollectionCards,
+  getCollectionCards,
 };

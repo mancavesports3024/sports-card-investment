@@ -7,6 +7,7 @@ import CardSetAnalysis from './components/CardSetAnalysis';
 import NewsPage from './components/NewsPage';
 import EbayItemLookup from './pages/EbayItemLookup';
 import AdminCardDatabase from './components/AdminCardDatabase';
+import AdminCollections from './components/AdminCollections';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import tokenService from './services/tokenService';
 import { isAdminUser } from './config/adminEmails';
@@ -108,9 +109,12 @@ function App() {
               <a href="/card-set-analysis" className="header-nav-link">Card Set Analysis</a>
               <a href="/news" className="header-nav-link">News</a>
               <a href="/ebay-bidding" className="header-nav-link">eBay Item Lookup</a>
-              {/* Admin-only card database link */}
+              {/* Admin-only links */}
               {isLoggedIn && isAdminUser() && (
-                <a href="/admin/cards" className="header-nav-link admin-link">🎯 Card Database</a>
+                <>
+                  <a href="/admin/cards" className="header-nav-link admin-link">🎯 Card Database</a>
+                  <a href="/admin/collections" className="header-nav-link admin-link">📂 Collections</a>
+                </>
               )}
             </div>
             <div className="header-social-group">
@@ -139,6 +143,7 @@ function App() {
           <Route path="/news" element={<NewsPage />} />
           <Route path="/ebay-bidding" element={<EbayItemLookup />} />
           <Route path="/admin/cards" element={<AdminCardDatabase />} />
+          <Route path="/admin/collections" element={<AdminCollections />} />
           <Route path="/auth-success" element={<AuthSuccess onAuthSuccess={checkAuthStatus} />} />
         </Routes>
       </div>

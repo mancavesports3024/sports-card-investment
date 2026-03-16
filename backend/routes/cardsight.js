@@ -121,4 +121,68 @@ router.get('/health', async (req, res) => {
   }
 });
 
+// ---- Collections & collectors (CardSight) ----
+
+// POST /api/cardsight/collectors – create a collector
+router.post('/collectors', async (req, res) => {
+  try {
+    const result = await cardsight.createCollector(req.body || {});
+    return sendResult(res, result, 'Failed to create collector');
+  } catch (err) {
+    return handleError(res, err);
+  }
+});
+
+// GET /api/cardsight/collectors – list collectors
+router.get('/collectors', async (req, res) => {
+  try {
+    const result = await cardsight.getCollectors(req.query || {});
+    return sendResult(res, result, 'Failed to fetch collectors');
+  } catch (err) {
+    return handleError(res, err);
+  }
+});
+
+// POST /api/cardsight/collections – create a collection
+router.post('/collections', async (req, res) => {
+  try {
+    const result = await cardsight.createCollection(req.body || {});
+    return sendResult(res, result, 'Failed to create collection');
+  } catch (err) {
+    return handleError(res, err);
+  }
+});
+
+// GET /api/cardsight/collections – list collections
+router.get('/collections', async (req, res) => {
+  try {
+    const result = await cardsight.getCollections(req.query || {});
+    return sendResult(res, result, 'Failed to fetch collections');
+  } catch (err) {
+    return handleError(res, err);
+  }
+});
+
+// POST /api/cardsight/collections/:collectionId/cards – add cards to a collection
+router.post('/collections/:collectionId/cards', async (req, res) => {
+  try {
+    const { collectionId } = req.params;
+    const result = await cardsight.addCollectionCards(collectionId, req.body || {});
+    return sendResult(res, result, 'Failed to add cards to collection');
+  } catch (err) {
+    return handleError(res, err);
+  }
+});
+
+// GET /api/cardsight/collections/:collectionId/cards – list cards in a collection
+router.get('/collections/:collectionId/cards', async (req, res) => {
+  try {
+    const { collectionId } = req.params;
+    const result = await cardsight.getCollectionCards(collectionId, req.query || {});
+    return sendResult(res, result, 'Failed to fetch collection cards');
+  } catch (err) {
+    return handleError(res, err);
+  }
+});
+
 module.exports = router;
