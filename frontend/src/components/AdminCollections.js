@@ -17,6 +17,9 @@ const AdminCollections = () => {
   const [newCardPayload, setNewCardPayload] = useState('');
 
   const [cardSearchQuery, setCardSearchQuery] = useState('');
+  const [cardSearchYear, setCardSearchYear] = useState('');
+  const [cardSearchRelease, setCardSearchRelease] = useState('');
+  const [cardSearchName, setCardSearchName] = useState('');
   const [cardSearchResults, setCardSearchResults] = useState([]);
   const [cardSearchLoading, setCardSearchLoading] = useState(false);
   const [cardSearchError, setCardSearchError] = useState('');
@@ -207,25 +210,53 @@ const AdminCollections = () => {
     e.preventDefault();
     setCardSearchError('');
     setCardSearchResults([]);
-    if (!cardSearchQuery.trim()) {
-      setCardSearchError('Enter a search term (player / set / card).');
+    if (
+      !cardSearchName.trim() &&
+      !cardSearchQuery.trim()
+    ) {
+      setCardSearchError('Enter at least a player / card name.');
       return;
     }
     setCardSearchLoading(true);
     try {
-      const params = new URLSearchParams({
-        q: cardSearchQuery.trim(),
-        take: '25',
-      });
-      const res = await fetch(`${API_BASE_URL}/api/cardsight/catalog/search?${params.toString()}`);
-      const json = await res.json();
-      if (json.success) {
-        const results = json.data?.results || json.data?.cards || json.data || [];
-        setCardSearchResults(Array.isArray(results) ? results : []);
+      const attempts = [];
+
+      // 1) Structured (name + optional year/release)
+      if (cardSearchName.trim()) {
+        const base = { q: cardSearchName.trim(), take: '25' };
+        if (cardSearchYear.trim()) base.year = cardSearchYear.trim();
+        if (cardSearchRelease.trim()) base.release = cardSearchRelease.trim();
+        attempts.push(base);
+      }
+
+      // 2) Name only
+      if (cardSearchName.trim()) {
+        attempts.push({ q: cardSearchName.trim(), take: '25' });
+      }
+
+      // 3) Raw text fallback
+      if (cardSearchQuery.trim()) {
+        attempts.push({ q: cardSearchQuery.trim(), take: '25' });
+      }
+
+      let found = null;
+      for (const paramsObj of attempts) {
+        const params = new URLSearchParams(paramsObj);
+        const res = await fetch(`${API_BASE_URL}/api/cardsight/catalog/search?${params.toString()}`);
+        const json = await res.json();
+        if (json.success) {
+          const results = json.data?.results || json.data?.cards || json.data || [];
+          if (Array.isArray(results) && results.length > 0) {
+            found = results;
+            break;
+          }
+        }
+      }
+
+      if (found && found.length > 0) {
+        setCardSearchResults(found);
       } else {
-        setCardSearchError(
-          json.error || json.details || 'Search failed'
-        );
+        setCardSearchError('No matches found. Try adjusting year or release.');
       }
     } catch (err) {
       setCardSearchError(err.message || 'Search failed');
@@ -391,10 +422,31 @@ const AdminCollections = () => {
         {/* CardSight catalog search to help pick cardId */}
         <div style={{ marginBottom: 16, background: 'rgba(0,0,0,0.25)', padding: 12, borderRadius: 8 }}>
           <h3>Search CardSight Catalog (Cards)</h3>
-          <form onSubmit={handleCardSearch} style={{ marginBottom: 8 }}>
+          <form onSubmit={handleCardSearch} style={{ marginBottom: 8, display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
             <input
               type="text"
-              placeholder="Player / set / card (e.g. 2024 Bowman Nick Kurtz)"
+              placeholder="Year (e.g. 2025)"
+              value={cardSearchYear}
+              onChange={(e) => setCardSearchYear(e.target.value)}
+              className="player-search-input"
+            />
+            <input
+              type="text"
+              placeholder="Release (e.g. Topps)"
+              value={cardSearchRelease}
+              onChange={(e) => setCardSearchRelease(e.target.value)}
+              className="player-search-input"
+            />
+            <input
+              type="text"
+              placeholder="Player / card name (e.g. Cooper Flagg)"
+              value={cardSearchName}
+              onChange={(e) => setCardSearchName(e.target.value)}
+              className="player-search-input"
+            />
+            <input
+              type="text"
+              placeholder="Extra keywords (optional)"
               value={cardSearchQuery}
               onChange={(e) => setCardSearchQuery(e.target.value)}
               className="player-search-input"
@@ -402,8 +454,8 @@ const AdminCollections = () => {
             <button
               type="submit"
               className="upload-btn"
-              disabled={cardSearchLoading || !cardSearchQuery.trim()}
-              style={{ marginTop: 6 }}
+              disabled={cardSearchLoading || (!cardSearchName.trim() && !cardSearchQuery.trim())}
+              style={{ gridColumn: 'span 4', marginTop: 2 }}
             >
               {cardSearchLoading ? 'Searching…' : 'Search Cards'}
             </button>
