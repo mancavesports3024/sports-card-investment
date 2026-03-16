@@ -231,6 +231,11 @@ async function searchCatalog(query = {}, params = {}) {
   return _get(path, { ...query, ...params });
 }
 
+/** Search cards catalog (name, card number, etc.) */
+async function searchCards(params = {}) {
+  return _get('/v1/catalog/cards', params);
+}
+
 /** Catalog statistics */
 async function getCatalogStatistics() {
   return _get('/v1/catalog/statistics');
@@ -287,6 +292,7 @@ module.exports = {
   identifyCard,
   detectCard,
   searchCatalog,
+  searchCards,
   getCatalogStatistics,
   getSegments,
   getSubscription,

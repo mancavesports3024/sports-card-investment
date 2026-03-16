@@ -221,31 +221,38 @@ const AdminCollections = () => {
     try {
       const attempts = [];
 
-      // 1) Structured (name + optional year/release)
-      if (cardSearchName.trim()) {
-        const base = { q: cardSearchName.trim(), take: '25' };
-        if (cardSearchYear.trim()) base.year = cardSearchYear.trim();
-        if (cardSearchRelease.trim()) base.release = cardSearchRelease.trim();
-        attempts.push(base);
+      // 1) Preferred: name + cardNumber
+      if (cardSearchName.trim() && cardSearchQuery.trim()) {
+        attempts.push({
+          name: cardSearchName.trim(),
+          cardNumber: cardSearchQuery.trim(),
+          take: '25',
+        });
       }
 
-      // 2) Name only
+      // 2) Fallback: name only
       if (cardSearchName.trim()) {
-        attempts.push({ q: cardSearchName.trim(), take: '25' });
+        attempts.push({
+          name: cardSearchName.trim(),
+          take: '25',
+        });
       }
 
-      // 3) Raw text fallback
-      if (cardSearchQuery.trim()) {
-        attempts.push({ q: cardSearchQuery.trim(), take: '25' });
+      // 3) Last resort: raw extra text as name
+      if (cardSearchQuery.trim() && !cardSearchName.trim()) {
+        attempts.push({
+          name: cardSearchQuery.trim(),
+          take: '25',
+        });
       }
 
       let found = null;
       for (const paramsObj of attempts) {
         const params = new URLSearchParams(paramsObj);
-        const res = await fetch(`${API_BASE_URL}/api/cardsight/catalog/search?${params.toString()}`);
+        const res = await fetch(`${API_BASE_URL}/api/cardsight/cards?${params.toString()}`);
         const json = await res.json();
         if (json.success) {
-          const results = json.data?.results || json.data?.cards || json.data || [];
+          const results = json.data?.cards || json.data?.results || json.data || [];
           if (Array.isArray(results) && results.length > 0) {
             found = results;
             break;
@@ -256,7 +263,7 @@ const AdminCollections = () => {
       if (found && found.length > 0) {
         setCardSearchResults(found);
       } else {
-        setCardSearchError('No matches found. Try adjusting year or release.');
+        setCardSearchError('No matches found. Try adjusting name or card number.');
       }
     } catch (err) {
       setCardSearchError(err.message || 'Search failed');
@@ -425,14 +432,14 @@ const AdminCollections = () => {
           <form onSubmit={handleCardSearch} style={{ marginBottom: 8, display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
             <input
               type="text"
-              placeholder="Year (e.g. 2025)"
+              placeholder="Year (optional)"
               value={cardSearchYear}
               onChange={(e) => setCardSearchYear(e.target.value)}
               className="player-search-input"
             />
             <input
               type="text"
-              placeholder="Release (e.g. Topps)"
+              placeholder="Release (optional)"
               value={cardSearchRelease}
               onChange={(e) => setCardSearchRelease(e.target.value)}
               className="player-search-input"
@@ -446,7 +453,7 @@ const AdminCollections = () => {
             />
             <input
               type="text"
-              placeholder="Extra keywords (optional)"
+              placeholder="Card # (e.g. 401)"
               value={cardSearchQuery}
               onChange={(e) => setCardSearchQuery(e.target.value)}
               className="player-search-input"

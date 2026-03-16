@@ -81,6 +81,16 @@ router.get('/catalog/search', async (req, res) => {
   }
 });
 
+// GET /api/cardsight/cards – card catalog search (name, cardNumber, etc.)
+router.get('/cards', async (req, res) => {
+  try {
+    const result = await cardsight.searchCards(req.query || {});
+    return sendResult(res, result, 'Card search failed');
+  } catch (err) {
+    return handleError(res, err);
+  }
+});
+
 // GET /api/cardsight/catalog/statistics
 router.get('/catalog/statistics', async (req, res) => {
   try {
