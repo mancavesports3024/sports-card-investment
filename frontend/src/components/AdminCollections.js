@@ -81,6 +81,8 @@ const AdminCollections = () => {
     }
   };
 
+  // Initial load of collectors (dependencies intentionally omitted to avoid refetch loop)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchCollectors();
   }, []);
