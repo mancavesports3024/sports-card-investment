@@ -1097,7 +1097,6 @@ const TCDBBrowser = () => {
                   setUniversalSearchResult(null);
                   setUniversalSearchError('');
                   setUniversalSearchDebugData(null);
-                  setLastLinkedKey(null);
                 }}
                 className="clear-image-btn"
               >

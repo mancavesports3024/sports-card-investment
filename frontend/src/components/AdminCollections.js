@@ -5,15 +5,6 @@ import './AdminCardDatabase.css';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://web-production-9efa.up.railway.app';
 
 const AdminCollections = () => {
-  if (!isAdminUser()) {
-    return (
-      <div className="admin-only-message">
-        <h2>🔒 Admin Access Required</h2>
-        <p>You must be logged in as an admin to access this page.</p>
-      </div>
-    );
-  }
-
   const [collectors, setCollectors] = useState([]);
   const [collections, setCollections] = useState([]);
   const [selectedCollectorId, setSelectedCollectorId] = useState('');
@@ -208,6 +199,15 @@ const AdminCollections = () => {
 
   const selectedCollector = collectors.find(c => c.id === selectedCollectorId);
   const selectedCollection = collections.find(c => c.id === selectedCollectionId);
+
+  if (!isAdminUser()) {
+    return (
+      <div className="admin-only-message">
+        <h2>🔒 Admin Access Required</h2>
+        <p>You must be logged in as an admin to access this page.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="tcdb-browser">
