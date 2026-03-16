@@ -215,7 +215,6 @@ const AdminCollections = () => {
     try {
       const params = new URLSearchParams({
         q: cardSearchQuery.trim(),
-        type: 'cards',
         take: '25',
       });
       const res = await fetch(`${API_BASE_URL}/api/cardsight/catalog/search?${params.toString()}`);
@@ -224,7 +223,9 @@ const AdminCollections = () => {
         const results = json.data?.results || json.data?.cards || json.data || [];
         setCardSearchResults(Array.isArray(results) ? results : []);
       } else {
-        setCardSearchError(json.error || 'Search failed');
+        setCardSearchError(
+          json.error || json.details || 'Search failed'
+        );
       }
     } catch (err) {
       setCardSearchError(err.message || 'Search failed');
