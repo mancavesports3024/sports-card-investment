@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { isAdminUser } from '../config/adminEmails';
 import './AdminCardDatabase.css';
 
@@ -25,7 +25,7 @@ const AdminCollections = () => {
     setMessage('');
   };
 
-  const fetchCollectors = async () => {
+  const fetchCollectors = useCallback(async () => {
     clearStatus();
     try {
       const res = await fetch(`${API_BASE_URL}/api/cardsight/collectors`);
@@ -38,7 +38,7 @@ const AdminCollections = () => {
     } catch (e) {
       setError(e.message || 'Failed to load collectors');
     }
-  };
+  }, []);
 
   const fetchCollections = async (collectorId) => {
     clearStatus();
@@ -81,11 +81,9 @@ const AdminCollections = () => {
     }
   };
 
-  // Initial load of collectors (dependencies intentionally omitted to avoid refetch loop)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchCollectors();
-  }, []);
+  }, [fetchCollectors]);
 
   const handleCreateCollector = async (e) => {
     e.preventDefault();
