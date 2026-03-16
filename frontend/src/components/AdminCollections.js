@@ -16,6 +16,11 @@ const AdminCollections = () => {
   const [newCollectionDescription, setNewCollectionDescription] = useState('');
   const [newCardPayload, setNewCardPayload] = useState('');
 
+  const [cardSearchQuery, setCardSearchQuery] = useState('');
+  const [cardSearchResults, setCardSearchResults] = useState([]);
+  const [cardSearchLoading, setCardSearchLoading] = useState(false);
+  const [cardSearchError, setCardSearchError] = useState('');
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -23,6 +28,7 @@ const AdminCollections = () => {
   const clearStatus = () => {
     setError('');
     setMessage('');
+    setCardSearchError('');
   };
 
   const fetchCollectors = useCallback(async () => {
@@ -197,6 +203,36 @@ const AdminCollections = () => {
     }
   };
 
+  const handleCardSearch = async (e) => {
+    e.preventDefault();
+    setCardSearchError('');
+    setCardSearchResults([]);
+    if (!cardSearchQuery.trim()) {
+      setCardSearchError('Enter a search term (player / set / card).');
+      return;
+    }
+    setCardSearchLoading(true);
+    try {
+      const params = new URLSearchParams({
+        q: cardSearchQuery.trim(),
+        type: 'cards',
+        take: '25',
+      });
+      const res = await fetch(`${API_BASE_URL}/api/cardsight/catalog/search?${params.toString()}`);
+      const json = await res.json();
+      if (json.success) {
+        const results = json.data?.results || json.data?.cards || json.data || [];
+        setCardSearchResults(Array.isArray(results) ? results : []);
+      } else {
+        setCardSearchError(json.error || 'Search failed');
+      }
+    } catch (err) {
+      setCardSearchError(err.message || 'Search failed');
+    } finally {
+      setCardSearchLoading(false);
+    }
+  };
+
   const selectedCollector = collectors.find(c => c.id === selectedCollectorId);
   const selectedCollection = collections.find(c => c.id === selectedCollectionId);
 
@@ -350,6 +386,59 @@ const AdminCollections = () => {
           Cards in Collection{' '}
           {selectedCollection ? (selectedCollection.name || selectedCollection.id) : ''}
         </h2>
+
+        {/* CardSight catalog search to help pick cardId */}
+        <div style={{ marginBottom: 16, background: 'rgba(0,0,0,0.25)', padding: 12, borderRadius: 8 }}>
+          <h3>Search CardSight Catalog (Cards)</h3>
+          <form onSubmit={handleCardSearch} style={{ marginBottom: 8 }}>
+            <input
+              type="text"
+              placeholder="Player / set / card (e.g. 2024 Bowman Nick Kurtz)"
+              value={cardSearchQuery}
+              onChange={(e) => setCardSearchQuery(e.target.value)}
+              className="player-search-input"
+            />
+            <button
+              type="submit"
+              className="upload-btn"
+              disabled={cardSearchLoading || !cardSearchQuery.trim()}
+              style={{ marginTop: 6 }}
+            >
+              {cardSearchLoading ? 'Searching…' : 'Search Cards'}
+            </button>
+          </form>
+          {cardSearchError && (
+            <div className="error-message" style={{ marginBottom: 8 }}>
+              {cardSearchError}
+            </div>
+          )}
+          <div style={{ maxHeight: 200, overflow: 'auto', borderTop: '1px solid #333', paddingTop: 6 }}>
+            {cardSearchResults.length === 0 && !cardSearchLoading && (
+              <p style={{ color: '#aaa', fontSize: '0.85em' }}>No search results yet. Try a player or set name.</p>
+            )}
+            {cardSearchResults.map((card) => (
+              <div
+                key={card.id}
+                style={{
+                  padding: '4px 0',
+                  borderBottom: '1px solid rgba(255,255,255,0.05)',
+                  cursor: 'pointer',
+                }}
+                onClick={() => {
+                  // Pre-fill payload to add this card to the selected collection
+                  const payload = { cardId: card.id };
+                  setNewCardPayload(JSON.stringify(payload, null, 2));
+                  setMessage(`Prepared payload for card ${card.name || card.cardName || card.id}. Click "Add Card(s) to Collection".`);
+                }}
+              >
+                <div style={{ fontWeight: 'bold' }}>{card.cardName || card.name || card.id}</div>
+                <div style={{ fontSize: '0.8em', color: '#aaa' }}>
+                  {[card.releaseYear, card.releaseName, card.setName].filter(Boolean).join(' • ')}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <form onSubmit={handleAddCard} style={{ marginBottom: 12 }}>
           <textarea
