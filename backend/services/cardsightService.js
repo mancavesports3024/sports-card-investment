@@ -236,6 +236,19 @@ async function searchCards(params = {}) {
   return _get('/v1/catalog/cards', params);
 }
 
+/** Get detailed card info by CardSight card ID */
+async function getCardById(cardId) {
+  if (!cardId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing cardId',
+      details: 'CardSight card ID is required',
+    };
+  }
+  return _get(`/v1/catalog/cards/${cardId}`);
+}
+
 /** Catalog statistics */
 async function getCatalogStatistics() {
   return _get('/v1/catalog/statistics');
@@ -303,4 +316,5 @@ module.exports = {
   getCollections,
   addCollectionCards,
   getCollectionCards,
+  getCardById,
 };

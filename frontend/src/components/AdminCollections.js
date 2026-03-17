@@ -81,7 +81,28 @@ const AdminCollections = () => {
       const res = await fetch(`${API_BASE_URL}/api/cardsight/collections/${collectionId}/cards`);
       const json = await res.json();
       if (json.success) {
-        setCollectionCards(json.data?.cards || json.data || []);
+        const rawCards = json.data?.cards || json.data || [];
+        // Enrich each entry with catalog card details when possible
+        const withDetails = await Promise.all(
+          (Array.isArray(rawCards) ? rawCards : []).map(async (entry) => {
+            const cardId = entry.cardId || entry.card_id || entry.card?.id;
+            if (!cardId) return entry;
+            try {
+              const detailRes = await fetch(`${API_BASE_URL}/api/cardsight/cards/${cardId}`);
+              const detailJson = await detailRes.json();
+              if (detailJson.success && detailJson.data) {
+                return {
+                  ...entry,
+                  cardDetails: detailJson.data,
+                };
+              }
+            } catch (e) {
+              // ignore per-card detail errors; keep base entry
+            }
+            return entry;
+          })
+        );
+        setCollectionCards(withDetails);
       } else {
         setError(json.error || 'Failed to load collection cards');
       }
@@ -476,16 +497,17 @@ const AdminCollections = () => {
             {cardSearchResults.length === 0 && !cardSearchLoading && (
               <p style={{ color: '#aaa', fontSize: '0.85em' }}>No search results yet. Try a name and card number.</p>
             )}
-            {cardSearchResults.map((card) => {
-              const name = card.cardName || card.name || card.id;
+              {cardSearchResults.map((card) => {
+              const details = card.cardDetails || card;
+              const name = details.cardName || details.name || card.id;
               const setLine = [
-                card.releaseYear,
-                card.releaseName,
-                card.setName,
+                details.releaseYear,
+                details.releaseName,
+                details.setName,
               ].filter(Boolean).join(' • ');
               const detailsLine = [
-                card.cardNumber && `#${card.cardNumber}`,
-                card.parallelName || card.parallel,
+                details.cardNumber && `#${details.cardNumber}`,
+                details.parallelName || details.parallel,
               ].filter(Boolean).join(' • ');
               return (
                 <div
@@ -496,7 +518,7 @@ const AdminCollections = () => {
                     cursor: 'pointer',
                   }}
                   onClick={() => {
-                    const payload = { cardId: card.id };
+                  const payload = { cardId: card.id };
                     setNewCardPayload(JSON.stringify(payload, null, 2));
                     setMessage(`Prepared payload for card ${name}. Click "Add Card(s) to Collection".`);
                   }}
@@ -548,13 +570,14 @@ const AdminCollections = () => {
               </thead>
               <tbody>
                 {collectionCards.map((card) => {
-                  const name = card.cardName || card.name || card.id || card.cardId;
+                  const details = card.cardDetails || card;
+                  const name = details.cardName || details.name || card.id || card.cardId;
                   const setLine = [
-                    card.releaseYear,
-                    card.releaseName,
-                    card.setName,
+                    details.releaseYear,
+                    details.releaseName,
+                    details.setName,
                   ].filter(Boolean).join(' • ');
-                  const parallel = card.parallelName || card.parallel || '';
+                  const parallel = details.parallelName || details.parallel || '';
                   const qty = card.quantity ?? card.count ?? 1;
                   return (
                     <tr

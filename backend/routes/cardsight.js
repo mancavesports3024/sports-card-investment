@@ -91,6 +91,17 @@ router.get('/cards', async (req, res) => {
   }
 });
 
+// GET /api/cardsight/cards/:cardId – detailed card info by ID
+router.get('/cards/:cardId', async (req, res) => {
+  try {
+    const { cardId } = req.params;
+    const result = await cardsight.getCardById(cardId);
+    return sendResult(res, result, 'Failed to fetch card details');
+  } catch (err) {
+    return handleError(res, err);
+  }
+});
+
 // GET /api/cardsight/catalog/statistics
 router.get('/catalog/statistics', async (req, res) => {
   try {
