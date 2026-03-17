@@ -268,4 +268,15 @@ router.get('/collections/:collectionId/cards', async (req, res) => {
   }
 });
 
+// DELETE /api/cardsight/collections/:collectionId/cards/:cardId – remove a card from a collection
+router.delete('/collections/:collectionId/cards/:cardId', async (req, res) => {
+  try {
+    const { collectionId, cardId } = req.params;
+    const result = await cardsight.removeCollectionCard(collectionId, cardId);
+    return sendResult(res, result, 'Failed to remove card from collection');
+  } catch (err) {
+    return handleError(res, err);
+  }
+});
+
 module.exports = router;

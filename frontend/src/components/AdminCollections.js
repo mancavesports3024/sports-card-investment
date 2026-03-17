@@ -485,9 +485,15 @@ const AdminCollections = () => {
                 details.releaseName,
                 details.setName,
               ].filter(Boolean).join(' • ');
+              const cardNumber =
+                details.cardNumber ||
+                details.card_number ||
+                details.number ||
+                '';
+              const parallel = details.parallelName || details.parallel || 'Base';
               const detailsLine = [
-                details.cardNumber && `#${details.cardNumber}`,
-                details.parallelName || details.parallel,
+                cardNumber && `#${cardNumber}`,
+                parallel,
               ].filter(Boolean).join(' • ');
               return (
                 <div
@@ -545,7 +551,7 @@ const AdminCollections = () => {
                   <th style={{ padding: '4px 6px' }}>Card #</th>
                   <th style={{ padding: '4px 6px' }}>Parallel</th>
                   <th style={{ padding: '4px 6px' }}>Qty</th>
-                  <th style={{ padding: '4px 6px' }}>Details</th>
+                  <th style={{ padding: '4px 6px' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -572,8 +578,35 @@ const AdminCollections = () => {
                       <td style={{ padding: '4px 6px', textAlign: 'center' }}>{parallel}</td>
                       <td style={{ padding: '4px 6px', textAlign: 'center' }}>{qty}</td>
                       <td style={{ padding: '4px 6px', textAlign: 'center' }}>
-                        <details>
-                          <summary style={{ cursor: 'pointer', color: '#ffd700', fontSize: '0.85em' }}>
+                        <button
+                          type="button"
+                          className="clear-db-btn"
+                          style={{ marginRight: 6, padding: '2px 6px', fontSize: '0.8em' }}
+                          onClick={async () => {
+                            if (!selectedCollectionId) return;
+                            const confirmed = window.confirm(`Remove "${name}" from this collection?`);
+                            if (!confirmed) return;
+                            try {
+                              const res = await fetch(
+                                `${API_BASE_URL}/api/cardsight/collections/${selectedCollectionId}/cards/${card.cardId || card.card_id || card.cardSnapshot?.cardsightCardId || details.id}`,
+                                { method: 'DELETE' }
+                              );
+                              const json = await res.json();
+                              if (json.success) {
+                                setMessage('Card removed from collection.');
+                                fetchCollectionCards(selectedCollectionId);
+                              } else {
+                                setError(json.error || 'Failed to remove card from collection');
+                              }
+                            } catch (e) {
+                              setError(e.message || 'Failed to remove card from collection');
+                            }
+                          }}
+                        >
+                          Delete
+                        </button>
+                        <details style={{ display: 'inline-block' }}>
+                          <summary style={{ cursor: 'pointer', color: '#ffd700', fontSize: '0.85em', display: 'inline' }}>
                             View
                           </summary>
                           <pre style={{ marginTop: 4, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.75em', color: '#ccc' }}>

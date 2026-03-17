@@ -301,6 +301,33 @@ async function getCollectionCards(collectionId, params = {}) {
   return _get(`/v1/collection/${collectionId}/cards`, params);
 }
 
+/** Remove a card from a collection */
+async function removeCollectionCard(collectionId, cardId) {
+  if (!collectionId || !cardId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing collectionId or cardId',
+    };
+  }
+  try {
+    const response = await axios.delete(
+      `${BASE_URL}/v1/collection/${collectionId}/cards/${cardId}`,
+      { headers: getHeaders(), timeout: TIMEOUT_MS }
+    );
+    return { success: true, status: response.status, data: response.data };
+  } catch (err) {
+    const status = err.response?.status;
+    const body = err.response?.data;
+    return {
+      success: false,
+      status,
+      error: err.response ? `CardSight API error (${status})` : err.message || 'Request failed',
+      details: body?.message || body?.detail || (typeof body === 'object' ? JSON.stringify(body) : body),
+    };
+  }
+}
+
 module.exports = {
   identifyCard,
   detectCard,
@@ -316,5 +343,6 @@ module.exports = {
   getCollections,
   addCollectionCards,
   getCollectionCards,
+  removeCollectionCard,
   getCardById,
 };
