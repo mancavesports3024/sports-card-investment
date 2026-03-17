@@ -557,19 +557,21 @@ const AdminCollections = () => {
                     details.releaseName,
                     details.setName,
                   ].filter(Boolean).join(' • ');
-                  const parallel = details.parallelName || details.parallel || '';
+                  const rawParallel = details.parallelName || details.parallel || '';
+                  const parallel = rawParallel || 'Base';
+                  const cardNumber = details.cardNumber || '';
                   const qty = card.quantity ?? card.count ?? 1;
                   return (
                     <tr
                       key={card.id || card.cardId}
                       style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
                     >
-                      <td style={{ padding: '4px 6px' }}>{name}</td>
-                      <td style={{ padding: '4px 6px' }}>{setLine}</td>
-                      <td style={{ padding: '4px 6px' }}>{card.cardNumber || ''}</td>
-                      <td style={{ padding: '4px 6px' }}>{parallel}</td>
-                      <td style={{ padding: '4px 6px' }}>{qty}</td>
-                      <td style={{ padding: '4px 6px' }}>
+                      <td style={{ padding: '4px 6px', textAlign: 'left' }}>{name}</td>
+                      <td style={{ padding: '4px 6px', textAlign: 'center' }}>{setLine}</td>
+                      <td style={{ padding: '4px 6px', textAlign: 'center' }}>{cardNumber}</td>
+                      <td style={{ padding: '4px 6px', textAlign: 'center' }}>{parallel}</td>
+                      <td style={{ padding: '4px 6px', textAlign: 'center' }}>{qty}</td>
+                      <td style={{ padding: '4px 6px', textAlign: 'center' }}>
                         <details>
                           <summary style={{ cursor: 'pointer', color: '#ffd700', fontSize: '0.85em' }}>
                             View
