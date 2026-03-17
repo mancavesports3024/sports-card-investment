@@ -472,31 +472,45 @@ const AdminCollections = () => {
               {cardSearchError}
             </div>
           )}
-          <div style={{ maxHeight: 200, overflow: 'auto', borderTop: '1px solid #333', paddingTop: 6 }}>
+          <div style={{ maxHeight: 240, overflow: 'auto', borderTop: '1px solid #333', paddingTop: 6 }}>
             {cardSearchResults.length === 0 && !cardSearchLoading && (
-              <p style={{ color: '#aaa', fontSize: '0.85em' }}>No search results yet. Try a player or set name.</p>
+              <p style={{ color: '#aaa', fontSize: '0.85em' }}>No search results yet. Try a name and card number.</p>
             )}
-            {cardSearchResults.map((card) => (
-              <div
-                key={card.id}
-                style={{
-                  padding: '4px 0',
-                  borderBottom: '1px solid rgba(255,255,255,0.05)',
-                  cursor: 'pointer',
-                }}
-                onClick={() => {
-                  // Pre-fill payload to add this card to the selected collection
-                  const payload = { cardId: card.id };
-                  setNewCardPayload(JSON.stringify(payload, null, 2));
-                  setMessage(`Prepared payload for card ${card.name || card.cardName || card.id}. Click "Add Card(s) to Collection".`);
-                }}
-              >
-                <div style={{ fontWeight: 'bold' }}>{card.cardName || card.name || card.id}</div>
-                <div style={{ fontSize: '0.8em', color: '#aaa' }}>
-                  {[card.releaseYear, card.releaseName, card.setName].filter(Boolean).join(' • ')}
+            {cardSearchResults.map((card) => {
+              const name = card.cardName || card.name || card.id;
+              const setLine = [
+                card.releaseYear,
+                card.releaseName,
+                card.setName,
+              ].filter(Boolean).join(' • ');
+              const detailsLine = [
+                card.cardNumber && `#${card.cardNumber}`,
+                card.parallelName || card.parallel,
+              ].filter(Boolean).join(' • ');
+              return (
+                <div
+                  key={card.id}
+                  style={{
+                    padding: '6px 0',
+                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => {
+                    const payload = { cardId: card.id };
+                    setNewCardPayload(JSON.stringify(payload, null, 2));
+                    setMessage(`Prepared payload for card ${name}. Click "Add Card(s) to Collection".`);
+                  }}
+                >
+                  <div style={{ fontWeight: 'bold' }}>{name}</div>
+                  {setLine && (
+                    <div style={{ fontSize: '0.8em', color: '#aaa' }}>{setLine}</div>
+                  )}
+                  {detailsLine && (
+                    <div style={{ fontSize: '0.8em', color: '#bbb' }}>{detailsLine}</div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -520,20 +534,54 @@ const AdminCollections = () => {
 
         <div style={{ maxHeight: 260, overflow: 'auto', borderTop: '1px solid #333', paddingTop: 8 }}>
           {collectionCards.length === 0 && <p style={{ color: '#aaa' }}>No cards in this collection yet.</p>}
-          {collectionCards.map(card => (
-            <div
-              key={card.id || card.cardId}
-              style={{
-                padding: '4px 0',
-                borderBottom: '1px solid rgba(255,255,255,0.05)',
-              }}
-            >
-              <div style={{ fontWeight: 'bold' }}>{card.cardName || card.name || card.id || card.cardId}</div>
-              <pre style={{ margin: '4px 0 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.8em', color: '#ccc' }}>
-                {JSON.stringify(card, null, 2)}
-              </pre>
-            </div>
-          ))}
+          {collectionCards.length > 0 && (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9em' }}>
+              <thead>
+                <tr style={{ textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
+                  <th style={{ padding: '4px 6px' }}>Name</th>
+                  <th style={{ padding: '4px 6px' }}>Set / Release</th>
+                  <th style={{ padding: '4px 6px' }}>Card #</th>
+                  <th style={{ padding: '4px 6px' }}>Parallel</th>
+                  <th style={{ padding: '4px 6px' }}>Qty</th>
+                  <th style={{ padding: '4px 6px' }}>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {collectionCards.map((card) => {
+                  const name = card.cardName || card.name || card.id || card.cardId;
+                  const setLine = [
+                    card.releaseYear,
+                    card.releaseName,
+                    card.setName,
+                  ].filter(Boolean).join(' • ');
+                  const parallel = card.parallelName || card.parallel || '';
+                  const qty = card.quantity ?? card.count ?? 1;
+                  return (
+                    <tr
+                      key={card.id || card.cardId}
+                      style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                    >
+                      <td style={{ padding: '4px 6px' }}>{name}</td>
+                      <td style={{ padding: '4px 6px' }}>{setLine}</td>
+                      <td style={{ padding: '4px 6px' }}>{card.cardNumber || ''}</td>
+                      <td style={{ padding: '4px 6px' }}>{parallel}</td>
+                      <td style={{ padding: '4px 6px' }}>{qty}</td>
+                      <td style={{ padding: '4px 6px' }}>
+                        <details>
+                          <summary style={{ cursor: 'pointer', color: '#ffd700', fontSize: '0.85em' }}>
+                            View
+                          </summary>
+                          <pre style={{ marginTop: 4, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.75em', color: '#ccc' }}>
+                            {JSON.stringify(card, null, 2)}
+                          </pre>
+                        </details>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>
