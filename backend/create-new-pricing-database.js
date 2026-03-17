@@ -360,6 +360,21 @@ class NewPricingDatabase {
             )
         `;
 
+        const createCardsightCardsTable = `
+            CREATE TABLE IF NOT EXISTS cardsight_cards (
+                cardsight_card_id TEXT PRIMARY KEY,
+                name TEXT,
+                release_year TEXT,
+                release_name TEXT,
+                set_name TEXT,
+                card_number TEXT,
+                parallel_name TEXT,
+                raw_json TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `;
+
         const createIndexes = [
             'CREATE INDEX IF NOT EXISTS idx_title ON cards(title)',
             'CREATE INDEX IF NOT EXISTS idx_summary_title ON cards(summary_title)',
@@ -374,6 +389,7 @@ class NewPricingDatabase {
 
         try {
             await this.runQuery(createCardsTable);
+            await this.runQuery(createCardsightCardsTable);
             
             for (const indexQuery of createIndexes) {
                 await this.runQuery(indexQuery);
@@ -1113,6 +1129,76 @@ class NewPricingDatabase {
                 }
             });
         });
+    }
+
+    /** Get cached CardSight card snapshot by ID */
+    async getCardsightCardById(cardsightCardId) {
+        const row = await this.getQuery(
+            `
+            SELECT 
+                cardsight_card_id as cardsightCardId,
+                name,
+                release_year as releaseYear,
+                release_name as releaseName,
+                set_name as setName,
+                card_number as cardNumber,
+                parallel_name as parallelName,
+                raw_json as rawJson,
+                created_at as createdAt,
+                updated_at as updatedAt
+            FROM cardsight_cards
+            WHERE cardsight_card_id = ?
+            `,
+            [cardsightCardId]
+        );
+        if (!row) return null;
+        if (row.rawJson && typeof row.rawJson === 'string') {
+            try { row.rawJson = JSON.parse(row.rawJson); } catch (_) { /* leave as string */ }
+        }
+        return row;
+    }
+
+    /** Upsert CardSight card snapshot */
+    async upsertCardsightCard(snapshot) {
+        if (!snapshot || !snapshot.id) return null;
+        const now = new Date().toISOString();
+        const raw = typeof snapshot === 'string' ? snapshot : JSON.stringify(snapshot);
+        const name = snapshot.cardName || snapshot.name || null;
+        const releaseYear = snapshot.releaseYear || null;
+        const releaseName = snapshot.releaseName || null;
+        const setName = snapshot.setName || null;
+        const cardNumber = snapshot.cardNumber || null;
+        const parallelName = snapshot.parallelName || snapshot.parallel || null;
+
+        const sql = `
+            INSERT INTO cardsight_cards
+                (cardsight_card_id, name, release_year, release_name, set_name, card_number, parallel_name, raw_json, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(cardsight_card_id) DO UPDATE SET
+                name = COALESCE(excluded.name, name),
+                release_year = COALESCE(excluded.release_year, release_year),
+                release_name = COALESCE(excluded.release_name, release_name),
+                set_name = COALESCE(excluded.set_name, set_name),
+                card_number = COALESCE(excluded.card_number, card_number),
+                parallel_name = COALESCE(excluded.parallel_name, parallel_name),
+                raw_json = COALESCE(excluded.raw_json, raw_json),
+                updated_at = excluded.updated_at
+        `;
+
+        await this.runQuery(sql, [
+            snapshot.id,
+            name,
+            releaseYear,
+            releaseName,
+            setName,
+            cardNumber,
+            parallelName,
+            raw,
+            now,
+            now,
+        ]);
+
+        return this.getCardsightCardById(snapshot.id);
     }
 
     // Query methods for comprehensive database

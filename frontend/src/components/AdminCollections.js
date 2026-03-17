@@ -82,27 +82,7 @@ const AdminCollections = () => {
       const json = await res.json();
       if (json.success) {
         const rawCards = json.data?.cards || json.data || [];
-        // Enrich each entry with catalog card details when possible
-        const withDetails = await Promise.all(
-          (Array.isArray(rawCards) ? rawCards : []).map(async (entry) => {
-            const cardId = entry.cardId || entry.card_id || entry.card?.id;
-            if (!cardId) return entry;
-            try {
-              const detailRes = await fetch(`${API_BASE_URL}/api/cardsight/cards/${cardId}`);
-              const detailJson = await detailRes.json();
-              if (detailJson.success && detailJson.data) {
-                return {
-                  ...entry,
-                  cardDetails: detailJson.data,
-                };
-              }
-            } catch (e) {
-              // ignore per-card detail errors; keep base entry
-            }
-            return entry;
-          })
-        );
-        setCollectionCards(withDetails);
+        setCollectionCards(Array.isArray(rawCards) ? rawCards : []);
       } else {
         setError(json.error || 'Failed to load collection cards');
       }
@@ -497,8 +477,8 @@ const AdminCollections = () => {
             {cardSearchResults.length === 0 && !cardSearchLoading && (
               <p style={{ color: '#aaa', fontSize: '0.85em' }}>No search results yet. Try a name and card number.</p>
             )}
-              {cardSearchResults.map((card) => {
-              const details = card.cardDetails || card;
+            {cardSearchResults.map((card) => {
+              const details = card.cardSnapshot || card.cardDetails || card;
               const name = details.cardName || details.name || card.id;
               const setLine = [
                 details.releaseYear,
@@ -570,7 +550,7 @@ const AdminCollections = () => {
               </thead>
               <tbody>
                 {collectionCards.map((card) => {
-                  const details = card.cardDetails || card;
+                  const details = card.cardSnapshot || card.cardDetails || card;
                   const name = details.cardName || details.name || card.id || card.cardId;
                   const setLine = [
                     details.releaseYear,

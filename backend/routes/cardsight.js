@@ -200,7 +200,69 @@ router.get('/collections/:collectionId/cards', async (req, res) => {
   try {
     const { collectionId } = req.params;
     const result = await cardsight.getCollectionCards(collectionId, req.query || {});
-    return sendResult(res, result, 'Failed to fetch collection cards');
+    if (!result.success) {
+      return sendResult(res, result, 'Failed to fetch collection cards');
+    }
+
+    // Enrich with cached CardSight card snapshots, and fetch+cache missing ones
+    const NewPricingDatabase = require('../create-new-pricing-database.js');
+    const db = new NewPricingDatabase();
+    await db.connect();
+
+    const rawCards = result.data?.cards || result.data || [];
+    const entries = Array.isArray(rawCards) ? rawCards : [];
+
+    const uniqueIds = Array.from(
+      new Set(
+        entries
+          .map((entry) => entry.cardId || entry.card_id || entry.card?.id)
+          .filter(Boolean)
+      )
+    );
+
+    const snapshotMap = {};
+
+    // First try cache
+    for (const id of uniqueIds) {
+      const cached = await db.getCardsightCardById(id);
+      if (cached) {
+        snapshotMap[id] = cached;
+      }
+    }
+
+    // For IDs not in cache, call CardSight once per ID and cache snapshot
+    for (const id of uniqueIds) {
+      if (snapshotMap[id]) continue;
+      try {
+        const detail = await cardsight.getCardById(id);
+        if (detail.success && detail.data) {
+          const stored = await db.upsertCardsightCard(detail.data);
+          snapshotMap[id] = stored || { rawJson: detail.data };
+        }
+      } catch (e) {
+        // If CardSight fails, just skip caching and continue
+      }
+    }
+
+    await db.close();
+
+    const enriched = entries.map((entry) => {
+      const id = entry.cardId || entry.card_id || entry.card?.id;
+      const snapshot = id ? snapshotMap[id] : null;
+      return {
+        ...entry,
+        cardSnapshot: snapshot || null,
+      };
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        cards: enriched,
+      },
+      status: result.status,
+      timestamp: new Date().toISOString(),
+    });
   } catch (err) {
     return handleError(res, err);
   }
