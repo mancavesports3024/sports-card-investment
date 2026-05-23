@@ -139,6 +139,144 @@ class GemRateService {
     }
   }
 
+  /**
+   * Copy cookies from the Puppeteer page into the axios cookie jar so follow-up HTTP calls
+   * may succeed after a browser session (e.g. Cloudflare clearance).
+   */
+  async mergePuppeteerCookiesIntoJar() {
+    if (!this.page) return;
+    try {
+      const cookies = await this.page.cookies();
+      for (const c of cookies) {
+        const parts = [`${c.name}=${c.value}`, `Path=${c.path || '/'}`];
+        if (c.domain) parts.push(`Domain=${c.domain}`);
+        if (c.secure) parts.push('Secure');
+        if (c.httpOnly) parts.push('HttpOnly');
+        if (c.sameSite && c.sameSite !== 'None') parts.push(`SameSite=${c.sameSite}`);
+        const cookieStr = parts.join('; ');
+        await this.cookieJar.setCookie(cookieStr, this.baseUrl);
+      }
+      debugLog(`🍪 Merged ${cookies.length} cookies from Puppeteer into GemRate jar`);
+    } catch (e) {
+      debugLog(`⚠️ Cookie merge failed: ${e.message}`);
+    }
+  }
+
+  /**
+   * Load universal-search HTML in a real browser (WAF / 403 fallback).
+   */
+  async fetchUniversalSearchHtmlViaBrowser(gemrateId) {
+    const ready = await this.initializeBrowser();
+    if (!ready || !this.page) return null;
+    const url = `${this.baseUrl}/universal-search?gemrate_id=${encodeURIComponent(gemrateId)}`;
+    await this.page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await new Promise((r) => setTimeout(r, 1200));
+    await this.mergePuppeteerCookiesIntoJar();
+    this.sessionInitialized = true;
+    return await this.page.content();
+  }
+
+  /**
+   * POST /universal-search-query from inside the browser (same cookies / client as a real visit).
+   */
+  async postUniversalSearchQueryViaBrowser(body) {
+    const ready = await this.initializeBrowser();
+    if (!ready || !this.page) {
+      throw new Error('Request failed with status code 403');
+    }
+    await this.page.goto(`${this.baseUrl}/universal-search`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000
+    });
+    await new Promise((r) => setTimeout(r, 1500));
+    await this.mergePuppeteerCookiesIntoJar();
+    this.sessionInitialized = true;
+
+    const result = await this.page.evaluate(async (payload) => {
+      const res = await fetch('https://www.gemrate.com/universal-search-query', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          Accept: 'application/json, text/plain, */*',
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(payload)
+      });
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { _parseError: true, _httpStatus: res.status, _preview: text.slice(0, 800) };
+      }
+      return { status: res.status, data };
+    }, body);
+
+    if (result.status !== 200) {
+      throw new Error(`Request failed with status code ${result.status}`);
+    }
+    return result.data;
+  }
+
+  /**
+   * GET /card-details from inside the browser after visiting universal-search for the same item.
+   */
+  async getCardDetailsViaBrowser(gemrateId, cardSlug, warmedPath, refererOverride, cardDetailsToken) {
+    const refererPath =
+      refererOverride ||
+      warmedPath ||
+      (cardSlug ? `/card/${cardSlug}` : `/universal-search?gemrate_id=${gemrateId}`);
+
+    const ready = await this.initializeBrowser();
+    if (!ready || !this.page) return null;
+
+    await this.page.goto(`${this.baseUrl}/universal-search?gemrate_id=${encodeURIComponent(gemrateId)}`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000
+    });
+    await new Promise((r) => setTimeout(r, 1200));
+    await this.mergePuppeteerCookiesIntoJar();
+
+    const html = await this.page.content();
+    let effectiveToken = cardDetailsToken || this.latestCardDetailsToken || null;
+    if (!effectiveToken) {
+      const tokenMatch = html.match(/const\s+cardDetailsToken\s*=\s*"([^"]+)"/);
+      if (tokenMatch && tokenMatch[1]) {
+        effectiveToken = tokenMatch[1];
+        this.latestCardDetailsToken = effectiveToken;
+      }
+    }
+
+    const result = await this.page.evaluate(
+      async ({ gid, token, refPath }) => {
+        const headers = {
+          Accept: 'application/json, text/plain, */*',
+          'X-Requested-With': 'XMLHttpRequest',
+          Referer: `https://www.gemrate.com${refPath}`
+        };
+        if (token) headers['X-Card-Details-Token'] = token;
+        const res = await fetch(
+          `https://www.gemrate.com/card-details?gemrate_id=${encodeURIComponent(gid)}`,
+          { credentials: 'include', headers }
+        );
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = null;
+        }
+        return { status: res.status, data };
+      },
+      { gid: gemrateId, token: effectiveToken, refPath: refererPath }
+    );
+
+    if (result.status === 200 && result.data) return result.data;
+    debugLog(`⚠️ GemRate browser /card-details returned status=${result.status}`);
+    return null;
+  }
+
   normalizePath(href) {
     if (!href) return '/';
     try {
@@ -228,7 +366,90 @@ class GemRateService {
     return null;
   }
 
+  /**
+   * Parse universal-search HTML for slug, paths, and cardDetailsToken (shared by axios + browser paths).
+   */
+  _parseUniversalSearchHtml(html) {
+    const empty = { slug: null, paths: [], universalPopPath: null, cardDetailsToken: null };
+    if (!html || typeof html !== 'string') {
+      return empty;
+    }
+
+    const $ = cheerio.load(html);
+    const pathsSet = new Set();
+    let slug = null;
+    let universalPopPath = null;
+    let cardDetailsToken = null;
+
+    const addPath = (href) => {
+      if (!href) return;
+      const normalized = this.normalizePath(href);
+      if (normalized) {
+        pathsSet.add(normalized);
+      }
+    };
+
+    const canonical = $('link[rel="canonical"]').attr('href');
+    if (canonical) {
+      addPath(canonical);
+    }
+
+    const tokenMatch = html.match(/const\s+cardDetailsToken\s*=\s*"([^"]+)"/);
+    if (tokenMatch && tokenMatch[1]) {
+      cardDetailsToken = tokenMatch[1];
+      debugLog('🔐 Parsed GemRate cardDetailsToken from universal search page');
+    }
+
+    $('a[href]').each((_, el) => {
+      const href = $(el).attr('href');
+      if (href && (href.includes('/card/') || href.includes('/universal-pop-report/'))) {
+        addPath(href);
+      }
+    });
+
+    const urlPathRegex = /"url_path":"([^"]+)"/g;
+    let match;
+    while ((match = urlPathRegex.exec(html)) !== null) {
+      addPath(match[1]);
+    }
+
+    const canonicalRegex = /"canonical_url":"([^"]+)"/g;
+    while ((match = canonicalRegex.exec(html)) !== null) {
+      addPath(match[1]);
+    }
+
+    const slugRegex = /"slug":"([^"]+)"/g;
+    while ((match = slugRegex.exec(html)) !== null) {
+      if (!slug) {
+        slug = decodeURIComponent(match[1]);
+      }
+    }
+
+    if (slug) {
+      addPath(`/card/${slug}`);
+      addPath(`/card/${slug}/pop`);
+    }
+
+    for (const path of pathsSet) {
+      const m = path.match(/\/card\/([^/?#]+)/i);
+      if (m) {
+        slug = decodeURIComponent(m[1]);
+        break;
+      }
+      if (!universalPopPath && path.startsWith('/universal-pop-report/')) {
+        universalPopPath = path;
+        const popMatch = path.match(/\/universal-pop-report\/[^/]+\/([^/?#]+)/i);
+        if (popMatch && !slug) {
+          slug = decodeURIComponent(popMatch[1]);
+        }
+      }
+    }
+
+    return { slug, paths: Array.from(pathsSet), universalPopPath, cardDetailsToken };
+  }
+
   async fetchSlugFromUniversalSearch(gemrateId) {
+    const empty = { slug: null, paths: [], universalPopPath: null, cardDetailsToken: null };
     try {
       const response = await this.httpClient.get('/universal-search', {
         params: { gemrate_id: gemrateId },
@@ -236,84 +457,24 @@ class GemRateService {
       });
 
       if (response.status !== 200 || typeof response.data !== 'string') {
-        return { slug: null, paths: [] };
+        return empty;
       }
 
-      const html = response.data;
-      const $ = cheerio.load(html);
-      const pathsSet = new Set();
-      let slug = null;
-      let universalPopPath = null;
-      let cardDetailsToken = null;
-
-      const addPath = (href) => {
-        if (!href) return;
-        const normalized = this.normalizePath(href);
-        if (normalized) {
-          pathsSet.add(normalized);
-        }
-      };
-
-      const canonical = $('link[rel="canonical"]').attr('href');
-      if (canonical) {
-        addPath(canonical);
-      }
-
-      const tokenMatch = html.match(/const\s+cardDetailsToken\s*=\s*"([^"]+)"/);
-      if (tokenMatch && tokenMatch[1]) {
-        cardDetailsToken = tokenMatch[1];
-        debugLog('🔐 Parsed GemRate cardDetailsToken from universal search page');
-      }
-
-      $('a[href]').each((_, el) => {
-        const href = $(el).attr('href');
-        if (href && (href.includes('/card/') || href.includes('/universal-pop-report/'))) {
-          addPath(href);
-        }
-      });
-
-      const urlPathRegex = /"url_path":"([^"]+)"/g;
-      let match;
-      while ((match = urlPathRegex.exec(response.data)) !== null) {
-        addPath(match[1]);
-      }
-
-      const canonicalRegex = /"canonical_url":"([^"]+)"/g;
-      while ((match = canonicalRegex.exec(response.data)) !== null) {
-        addPath(match[1]);
-      }
-
-      const slugRegex = /"slug":"([^"]+)"/g;
-      while ((match = slugRegex.exec(response.data)) !== null) {
-        if (!slug) {
-          slug = decodeURIComponent(match[1]);
-        }
-      }
-
-      if (slug) {
-        addPath(`/card/${slug}`);
-        addPath(`/card/${slug}/pop`);
-      }
-
-      for (const path of pathsSet) {
-        const match = path.match(/\/card\/([^/?#]+)/i);
-        if (match) {
-          slug = decodeURIComponent(match[1]);
-          break;
-        }
-        if (!universalPopPath && path.startsWith('/universal-pop-report/')) {
-          universalPopPath = path;
-          const popMatch = path.match(/\/universal-pop-report\/[^/]+\/([^/?#]+)/i);
-          if (popMatch && !slug) {
-            slug = decodeURIComponent(popMatch[1]);
-          }
-        }
-      }
-
-      return { slug, paths: Array.from(pathsSet), universalPopPath, cardDetailsToken };
+      return this._parseUniversalSearchHtml(response.data);
     } catch (error) {
-      debugLog(`⚠️ Unable to parse universal search page for ${gemrateId}: ${error.message}`);
-      return { slug: null, paths: [], cardDetailsToken: null };
+      debugLog(`⚠️ Universal search fetch failed for ${gemrateId}: ${error.message}`);
+      if (error.response?.status === 403) {
+        try {
+          const html = await this.fetchUniversalSearchHtmlViaBrowser(gemrateId);
+          if (html) {
+            debugLog('✅ GemRate universal-search loaded via browser (403 fallback)');
+            return this._parseUniversalSearchHtml(html);
+          }
+        } catch (browserErr) {
+          debugLog(`⚠️ Browser universal-search failed: ${browserErr.message}`);
+        }
+      }
+      return empty;
     }
   }
 
@@ -344,13 +505,22 @@ class GemRateService {
       
       debugLog(`🔍 GemRate search: "${cleanQuery}"`);
 
-      // Step 1: Search for gemrate_id
-      const searchResponse = await this.httpClient.post(this.searchPath, {
-        query: cleanQuery,
-        ...options
-      }, {
-        headers: this.searchHeaders
-      });
+      // Step 1: Search for gemrate_id (axios first; real browser if WAF returns 403)
+      const searchBody = { query: cleanQuery, ...options };
+      let searchResponse;
+      try {
+        searchResponse = await this.httpClient.post(this.searchPath, searchBody, {
+          headers: this.searchHeaders
+        });
+      } catch (axiosErr) {
+        if (axiosErr.response?.status === 403) {
+          console.warn('⚠️ GemRate POST /universal-search-query returned 403; retrying via headless browser...');
+          const data = await this.postUniversalSearchQueryViaBrowser(searchBody);
+          searchResponse = { data, status: 200, statusText: 'OK', headers: {}, config: {} };
+        } else {
+          throw axiosErr;
+        }
+      }
 
       if (!searchResponse.data || searchResponse.status !== 200) {
         debugLog(`❌ No GemRate search results for: ${searchQuery}`);
@@ -671,11 +841,25 @@ class GemRateService {
         return null;
       }
     } catch (error) {
-      // Check if it's a 404 - this is expected for some cards
       if (error.response?.status === 404) {
         debugLog(`⚠️ GemRate card details returned 404 for gemrate_id: ${gemrateId} - card may not have detailed page`);
       } else if (error.response?.status === 403) {
-        debugLog(`⚠️ GemRate card details returned 403 for gemrate_id: ${gemrateId} - access may be blocked`);
+        debugLog(`⚠️ GemRate card details returned 403 for gemrate_id: ${gemrateId} - trying browser fallback...`);
+        try {
+          const browserData = await this.getCardDetailsViaBrowser(
+            gemrateId,
+            cardSlug,
+            warmedPath,
+            refererOverride,
+            cardDetailsToken || this.latestCardDetailsToken
+          );
+          if (browserData) {
+            debugLog(`✅ Retrieved card details via browser for gemrate_id: ${gemrateId}`);
+            return browserData;
+          }
+        } catch (browserErr) {
+          debugLog(`⚠️ Browser card details failed: ${browserErr.message}`);
+        }
       } else {
         console.error('❌ Error getting card details:', error.message);
       }
