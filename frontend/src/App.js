@@ -1,16 +1,34 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import './App.css';
 import HomePage from './components/HomePage';
-import SearchPage from './components/SearchPage';
-import AuthSuccess from './components/AuthSuccess';
-import CardSetAnalysis from './components/CardSetAnalysis';
-import NewsPage from './components/NewsPage';
-import EbayItemLookup from './pages/EbayItemLookup';
-import AdminCardDatabase from './components/AdminCardDatabase';
-import AdminCollections from './components/AdminCollections';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import tokenService from './services/tokenService';
 import { isAdminUser } from './config/adminEmails';
+
+const SearchPage = lazy(() => import('./components/SearchPage'));
+const AuthSuccess = lazy(() => import('./components/AuthSuccess'));
+const CardSetAnalysis = lazy(() => import('./components/CardSetAnalysis'));
+const NewsPage = lazy(() => import('./components/NewsPage'));
+const EbayItemLookup = lazy(() => import('./pages/EbayItemLookup'));
+const AdminCardDatabase = lazy(() => import('./components/AdminCardDatabase'));
+const AdminCollections = lazy(() => import('./components/AdminCollections'));
+
+const routeFallbackStyle = {
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  minHeight: '60vh',
+  background: '#000',
+  color: '#ffd700',
+};
+
+function RouteFallback() {
+  return (
+    <div style={routeFallbackStyle} aria-busy="true">
+      <div>Loading...</div>
+    </div>
+  );
+}
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -136,16 +154,18 @@ function App() {
             </div>
           </div>
         </header>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/card-set-analysis" element={<CardSetAnalysis />} />
-          <Route path="/news" element={<NewsPage />} />
-          <Route path="/ebay-bidding" element={<EbayItemLookup />} />
-          <Route path="/admin/cards" element={<AdminCardDatabase />} />
-          <Route path="/admin/collections" element={<AdminCollections />} />
-          <Route path="/auth-success" element={<AuthSuccess onAuthSuccess={checkAuthStatus} />} />
-        </Routes>
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/card-set-analysis" element={<CardSetAnalysis />} />
+            <Route path="/news" element={<NewsPage />} />
+            <Route path="/ebay-bidding" element={<EbayItemLookup />} />
+            <Route path="/admin/cards" element={<AdminCardDatabase />} />
+            <Route path="/admin/collections" element={<AdminCollections />} />
+            <Route path="/auth-success" element={<AuthSuccess onAuthSuccess={checkAuthStatus} />} />
+          </Routes>
+        </Suspense>
       </div>
     </Router>
   );
