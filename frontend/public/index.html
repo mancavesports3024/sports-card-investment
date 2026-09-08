@@ -11,28 +11,43 @@
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5981606678113994" crossorigin="anonymous"></script>
     
-    <!-- SEO Meta Tags -->
+    <!--
+      SEO Meta Tags.
+
+      Every route-varying tag below is stamped with data-react-helmet="true".
+      That attribute hands ownership to react-helmet: on mount it replaces these
+      tags instead of appending beside them, so the live DOM never ends up with
+      two canonicals or two og:title values. src/components/DefaultSeo.js
+      supplies the matching values for routes that declare none of their own,
+      and backend/generate-article-pages.js swaps this whole block out for
+      route-specific tags in each generated /news/index.html and
+      /news/<slug>/index.html.
+
+      Keep these values in sync with SITE_DEFAULTS in
+      src/services/siteMetadata.js -- siteDefaults.test.js enforces it.
+    -->
     <title>Scorecard - Home</title>
-    <meta name="description" content="Track trading card sales on eBay. Get real-time price data, market analysis, and investment insights for sports cards, Magic: The Gathering, Pokemon, and more. Find recent sales, price trends, and live listings." />
-    <meta name="keywords" content="trading cards, sports cards, eBay sales, card prices, market analysis, investment, Magic: The Gathering, Pokemon, Yu-Gi-Oh, PSA graded cards, card values" />
-    <meta name="author" content="Scorecard" />
+    <meta data-react-helmet="true" name="description" content="Track trading card sales on eBay. Get real-time price data, market analysis, and investment insights for sports cards, Magic: The Gathering, Pokemon, and more. Find recent sales, price trends, and live listings." />
+    <meta data-react-helmet="true" name="keywords" content="trading cards, sports cards, eBay sales, card prices, market analysis, investment, Magic: The Gathering, Pokemon, Yu-Gi-Oh, PSA graded cards, card values" />
+    <meta data-react-helmet="true" name="author" content="Scorecard" />
     
     <!-- Open Graph Meta Tags (for social media) -->
-    <meta property="og:title" content="Scorecard - Home" />
-    <meta property="og:description" content="Track trading card sales on eBay. Get real-time price data, market analysis, and investment insights for sports cards, Magic: The Gathering, Pokemon, and more." />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.mancavesportscardsllc.com" />
-    <meta property="og:image" content="%PUBLIC_URL%/logo512.png" />
+    <meta data-react-helmet="true" property="og:title" content="Scorecard - Home" />
+    <meta data-react-helmet="true" property="og:description" content="Track trading card sales on eBay. Get real-time price data, market analysis, and investment insights for sports cards, Magic: The Gathering, Pokemon, and more." />
+    <meta data-react-helmet="true" property="og:type" content="website" />
+    <meta data-react-helmet="true" property="og:url" content="https://www.mancavesportscardsllc.com/" />
+    <meta data-react-helmet="true" property="og:site_name" content="Scorecard" />
+    <meta data-react-helmet="true" property="og:image" content="https://www.mancavesportscardsllc.com/logo512.png" />
     
     <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Scorecard - Home" />
-    <meta name="twitter:description" content="Track trading card sales on eBay. Get real-time price data, market analysis, and investment insights." />
-    <meta name="twitter:image" content="%PUBLIC_URL%/logo512.png" />
+    <meta data-react-helmet="true" name="twitter:card" content="summary_large_image" />
+    <meta data-react-helmet="true" name="twitter:title" content="Scorecard - Home" />
+    <meta data-react-helmet="true" name="twitter:description" content="Track trading card sales on eBay. Get real-time price data, market analysis, and investment insights." />
+    <meta data-react-helmet="true" name="twitter:image" content="https://www.mancavesportscardsllc.com/logo512.png" />
     
     <!-- Additional SEO Meta Tags -->
-    <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://www.mancavesportscardsllc.com/" />
+    <meta data-react-helmet="true" name="robots" content="index, follow" />
+    <link data-react-helmet="true" rel="canonical" href="https://www.mancavesportscardsllc.com/" />
     <meta name="googlebot" content="index, follow" />
     
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />

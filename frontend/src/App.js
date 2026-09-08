@@ -1,6 +1,7 @@
 import React, { useEffect, useState, Suspense, lazy } from 'react';
 import './App.css';
 import HomePage from './components/HomePage';
+import DefaultSeo from './components/DefaultSeo';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import tokenService from './services/tokenService';
 import { isAdminUser } from './config/adminEmails';
@@ -9,9 +10,11 @@ const SearchPage = lazy(() => import('./components/SearchPage'));
 const AuthSuccess = lazy(() => import('./components/AuthSuccess'));
 const CardSetAnalysis = lazy(() => import('./components/CardSetAnalysis'));
 const NewsPage = lazy(() => import('./components/NewsPage'));
+const NewsArticlePage = lazy(() => import('./components/NewsArticlePage'));
 const EbayItemLookup = lazy(() => import('./pages/EbayItemLookup'));
 const AdminCardDatabase = lazy(() => import('./components/AdminCardDatabase'));
 const AdminCollections = lazy(() => import('./components/AdminCollections'));
+const NotFoundPage = lazy(() => import('./components/NotFoundPage'));
 
 const routeFallbackStyle = {
   display: 'flex',
@@ -113,6 +116,8 @@ function App() {
   return (
     <Router>
       <div className="App">
+        {/* Site-wide SEO baseline; route-level Helmet blocks override it */}
+        <DefaultSeo />
         {/* Global Header */}
         <header className="global-header responsive-header">
           {/* First row: Scorecard title only, centered and larger */}
@@ -160,10 +165,14 @@ function App() {
             <Route path="/search" element={<SearchPage />} />
             <Route path="/card-set-analysis" element={<CardSetAnalysis />} />
             <Route path="/news" element={<NewsPage />} />
+            <Route path="/news/:slug" element={<NewsArticlePage />} />
             <Route path="/ebay-bidding" element={<EbayItemLookup />} />
             <Route path="/admin/cards" element={<AdminCardDatabase />} />
             <Route path="/admin/collections" element={<AdminCollections />} />
             <Route path="/auth-success" element={<AuthSuccess onAuthSuccess={checkAuthStatus} />} />
+            {/* Catch-all: a useful page instead of an empty shell, marked
+                noindex. Still answers HTTP 200 -- see NotFoundPage.js. */}
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
       </div>
