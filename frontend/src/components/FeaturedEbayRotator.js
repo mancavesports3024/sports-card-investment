@@ -120,7 +120,7 @@ const FeaturedEbayRotator = ({ apiUrl = `${API_BASE_URL}/api/live-listings/featu
   const item = items[current];
 
   return (
-    <div className="featured-ebay-listing" style={containerStyle}>
+    <div className="featured-ebay-listing" style={containerStyle} role="region" aria-label="Featured eBay items carousel">
       {/* Content wrapper for proper spacing */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start' }}>
         {/* Fixed-size image container with CSS Grid centering */}
@@ -138,7 +138,7 @@ const FeaturedEbayRotator = ({ apiUrl = `${API_BASE_URL}/api/live-listings/featu
         {item.image && imagesLoaded[current] !== false ? (
           <img 
             src={item.image} 
-            alt={item.title} 
+            alt={`${item.title} - Featured sports card`}
             style={{ 
               maxWidth: '160px',
               maxHeight: '160px',
@@ -166,7 +166,7 @@ const FeaturedEbayRotator = ({ apiUrl = `${API_BASE_URL}/api/live-listings/featu
             justifySelf: 'center',
             alignSelf: 'center'
           }}>
-            {imagesLoaded[current] === false ? 'Image Error' : 'Loading...'}
+            {imagesLoaded[current] === false ? 'No image available' : 'Loading image...'}
           </div>
         )}
       </div>
@@ -202,6 +202,7 @@ const FeaturedEbayRotator = ({ apiUrl = `${API_BASE_URL}/api/live-listings/featu
       </div>
       
       <a href={item.affiliateLink} target="_blank" rel="noopener noreferrer"
+         aria-label={`Shop ${item.title} on eBay`}
          style={{ 
            background: '#ffd700', 
            color: '#000', 
@@ -223,35 +224,41 @@ const FeaturedEbayRotator = ({ apiUrl = `${API_BASE_URL}/api/live-listings/featu
            e.target.style.background = '#ffd700';
            e.target.style.color = '#000';
          }}>
-        View on eBay
+        Shop this Card on eBay
       </a>
       
-      <div style={{ marginTop: 15, paddingBottom: 5, display: 'flex', justifyContent: 'center', gap: 16 }}>
+      <div style={{ marginTop: 15, paddingBottom: 5, display: 'flex', justifyContent: 'center', gap: 16, alignItems: 'center' }}>
         <button 
-          onClick={() => goTo((current - 1 + items.length) % items.length)} 
+          onClick={() => goTo((current - 1 + items.length) % items.length)}
+          aria-label="View previous featured item"
           style={{ 
             fontSize: 18, 
             border: 'none', 
             background: 'none', 
             cursor: 'pointer',
             color: '#666',
-            transition: 'color 0.3s ease'
+            transition: 'color 0.3s ease',
+            padding: '0.5em'
           }}
           onMouseEnter={(e) => e.target.style.color = '#000'}
           onMouseLeave={(e) => e.target.style.color = '#666'}
         >
           &lt;
         </button>
-        <span style={{ fontSize: 14, color: '#666', fontWeight: 600 }}>{current + 1} / {items.length}</span>
+        <span style={{ fontSize: 14, color: '#666', fontWeight: 600 }} aria-live="polite" aria-atomic="true">
+          Item {current + 1} of {items.length}
+        </span>
         <button 
-          onClick={() => goTo((current + 1) % items.length)} 
+          onClick={() => goTo((current + 1) % items.length)}
+          aria-label="View next featured item"
           style={{ 
             fontSize: 18, 
             border: 'none', 
             background: 'none', 
             cursor: 'pointer',
             color: '#666',
-            transition: 'color 0.3s ease'
+            transition: 'color 0.3s ease',
+            padding: '0.5em'
           }}
           onMouseEnter={(e) => e.target.style.color = '#000'}
           onMouseLeave={(e) => e.target.style.color = '#666'}

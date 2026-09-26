@@ -5,7 +5,6 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Ca
 import SavedSearches from './SavedSearches';
 import { Helmet } from 'react-helmet';
 import { InContentAd, SearchResultsAd } from './AdSense';
-import FeaturedEbayRotator from './FeaturedEbayRotator';
 import PageLayout from './PageLayout';
 import ScoreCardSummary from './ScoreCardSummary';
 
@@ -34,6 +33,8 @@ const SearchPage = () => {
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   // Add state for expanded card sections
   const [expandedSections, setExpandedSections] = useState({});
+  // Add state for grade filter
+  const [gradeFilter, setGradeFilter] = useState('all');
   // Add refs for live listings sections
   const rawLiveRef = useRef(null);
   const psa9LiveRef = useRef(null);
@@ -132,19 +133,16 @@ const SearchPage = () => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    // If Advanced Search is filled, use only that
-    let combinedQuery = '';
-    if (searchQuery) {
-      combinedQuery = searchQuery.trim();
-    } else {
-      if (playerName) combinedQuery += playerName + ' ';
-      if (cardSet) combinedQuery += cardSet + ' ';
-      if (year) combinedQuery += year + ' ';
-      if (cardNumber) combinedQuery += cardNumber + ' ';
-      if (cardType) combinedQuery += cardType + ' ';
-      if (exclude) combinedQuery += `-(${exclude})`;
-      combinedQuery = combinedQuery.trim();
-    }
+    const queryParts = [
+      searchQuery.trim(),
+      playerName.trim(),
+      year.trim(),
+      cardSet.trim(),
+      cardNumber.trim(),
+      cardType.trim(),
+      exclude.trim() ? `-(${exclude.trim()})` : '',
+    ].filter(Boolean);
+    const combinedQuery = queryParts.join(' ');
     if (!combinedQuery) return;
 
     console.log('🔍 Starting search with query:', combinedQuery);
@@ -1097,6 +1095,12 @@ const SearchPage = () => {
 
   // Handler for reusing a saved search
   const handleReuseSavedSearch = (search) => {
+    setPlayerName('');
+    setCardSet('');
+    setYear('');
+    setCardNumber('');
+    setCardType('');
+    setExclude('');
     setSearchQuery(search.query || search.searchQuery);
     setTimeout(() => {
       document.getElementById('searchQuery')?.focus();
@@ -1128,143 +1132,76 @@ const SearchPage = () => {
   return (
     <>
       <Helmet>
-        <title>Scorecard - Search Cards</title>
-        <meta name="description" content="Search for sports card prices, market data, and investment insights." />
+        <title>Recent Sales Search | Scorecard</title>
+        <meta name="description" content="Search recent sports card sales by player, year, set, and card number." />
         <link rel="canonical" href="https://www.mancavesportscardsllc.com/search" />
       </Helmet>
       {/* Main Content */}
       <main className="App-main">
         <PageLayout
-          title="Search Cards"
-          subtitle="Search for trading cards and get real-time pricing data from recent sales"
+          title="Recent Sales Search"
+          subtitle="Search recent sales by player, year, set, or card number. Dates and available item details can vary by result."
           icon="🔍"
         >
-          {/* Welcome Message with eBay Items */}
-          <div className="welcome-section" style={{
-            background: 'linear-gradient(135deg, #000 0%, #333 100%)',
-            color: '#ffd700',
-            padding: '1rem',
-            borderRadius: 12,
-            marginBottom: '2rem',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            border: '2px solid #ffd700',
-            maxWidth: '600px',
-            margin: '0 auto 2rem auto'
-          }}>
-            <p style={{ 
-              fontSize: '0.95rem', 
-              lineHeight: '1.4', 
-              marginBottom: '1rem',
-              textAlign: 'center',
-              color: '#fff'
-            }}>
-              Your destination for all things trading cards—specializing in sports cards and Pokémon!
-            </p>
-            <h3 style={{ 
-              margin: '0 0 0.75rem 0', 
-              fontSize: '1.2rem', 
-              fontWeight: 600,
-              textAlign: 'center',
-              color: '#ffd700'
-            }}>
-              Featured Items from Our eBay Store
-            </h3>
-            <FeaturedEbayRotator />
-          </div>
-
-          {/* Search Form - Narrower */}
+          {/* Start with one search box; keep structured fields available on demand. */}
           <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <form id="search-form" onSubmit={handleSearch} className="search-form">
-          <div className="form-fields-container">
-            <div className="form-group">
-              <label htmlFor="playerName">Player Name:</label>
-              <input
-                type="text"
-                id="playerName"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                placeholder="e.g., Mike Trout"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="cardSet">Card Set:</label>
-              <input
-                type="text"
-                id="cardSet"
-                value={cardSet}
-                onChange={(e) => setCardSet(e.target.value)}
-                placeholder="e.g., Topps Chrome"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="year">Year:</label>
-              <input
-                type="text"
-                id="year"
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                placeholder="e.g., 2011"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="cardNumber">Card Number:</label>
-              <input
-                type="text"
-                id="cardNumber"
-                value={cardNumber}
-                onChange={(e) => setCardNumber(e.target.value)}
-                placeholder="e.g., 175"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="cardType">Card Type:</label>
-              <input
-                type="text"
-                id="cardType"
-                value={cardType}
-                onChange={(e) => setCardType(e.target.value)}
-                placeholder="e.g., Base, Insert, Auto, Relic"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="exclude">Exclude (keywords):</label>
-              <input
-                type="text"
-                id="exclude"
-                value={exclude}
-                onChange={(e) => setExclude(e.target.value)}
-                placeholder="e.g., graded, PSA"
-              />
-            </div>
-            <div className="form-group advanced-search">
-              <label htmlFor="searchQuery"><strong>Advanced Search</strong> (overrides all fields):</label>
-              <small className="search-helper">
-                For best results: <em>year, brand, set, player</em> - exclusion words<br />
-                Example: <code>2025 Topps Chrome Jackson Holliday -pick -custom</code>
-              </small>
-              <input
-                type="text"
-                id="searchQuery"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="e.g., 2025 Bowman Chrome Jackson Chourio -PSA"
-              />
-            </div>
+            <form id="search-form" onSubmit={handleSearch} className="search-form">
+              <div className="form-group">
+                <label htmlFor="searchQuery">Search recent card sales</label>
+                <input
+                  type="text"
+                  id="searchQuery"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Enter a player, year, set, and card number"
+                  aria-describedby="search-examples"
+                />
+                <small id="search-examples" className="search-helper">
+                  Examples: <button type="button" onClick={() => setSearchQuery('2025 Topps Chrome Mike Trout #1')}>2025 Topps Chrome Mike Trout #1</button>
+                  {' · '}
+                  <button type="button" onClick={() => setSearchQuery('2011 Topps Mike Trout #175')}>2011 Topps Mike Trout #175</button>
+                </small>
+              </div>
+              <details className="advanced-search">
+                <summary>Advanced search fields</summary>
+                <div className="form-fields-container" style={{ marginTop: '1rem' }}>
+                  <div className="form-group">
+                    <label htmlFor="playerName">Player name</label>
+                    <input type="text" id="playerName" value={playerName} onChange={(e) => setPlayerName(e.target.value)} placeholder="e.g., Mike Trout" />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="cardSet">Card set</label>
+                    <input type="text" id="cardSet" value={cardSet} onChange={(e) => setCardSet(e.target.value)} placeholder="e.g., Topps Chrome" />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="year">Year</label>
+                    <input type="text" id="year" value={year} onChange={(e) => setYear(e.target.value)} placeholder="e.g., 2011" />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="cardNumber">Card number</label>
+                    <input type="text" id="cardNumber" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} placeholder="e.g., 175" />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="cardType">Card type</label>
+                    <input type="text" id="cardType" value={cardType} onChange={(e) => setCardType(e.target.value)} placeholder="e.g., Base, Insert, Auto, Relic" />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="exclude">Exclude keywords</label>
+                    <input type="text" id="exclude" value={exclude} onChange={(e) => setExclude(e.target.value)} placeholder="e.g., graded, PSA" />
+                  </div>
+                </div>
+              </details>
+              <div className="form-buttons-container">
+                <button type="submit" disabled={isLoading} className="search-button">
+                  {isLoading ? 'Searching…' : 'Search Recent Sales'}
+                </button>
+                <button type="button" onClick={handleClear} className="clear-button">Clear</button>
+              </div>
+            </form>
           </div>
-          <div className="form-buttons-container">
-            <button type="submit" disabled={isLoading} className="search-button">
-              {isLoading ? '🔍 Searching...' : '🔍 Search Cards'}
-            </button>
-            <button
-              type="button"
-              onClick={handleClear}
-              className="clear-button"
-            >
-              Clear
-            </button>
-          </div>
-        </form>
-        </div>
+        <p className="search-helper" style={{ maxWidth: 800, margin: '0.75rem auto 1.5rem' }}>
+          Recent sales are searched from eBay results available when you search. Sale dates appear when the listing data includes them; compare the exact card, grade, and condition before using a price.
+        </p>
         {/* Saved Searches below the form */}
         <div id="saved-searches-section">
           <SavedSearches onSearchAgain={handleReuseSavedSearch} refetchTrigger={savedSearchesRefetch} forceOpen={savedSearchesOpen} />
@@ -1303,6 +1240,53 @@ const SearchPage = () => {
                     💡 <button type="button" onClick={handleLogin} style={{ background: 'none', border: 'none', padding: 0, color: '#ffd700', textDecoration: 'underline', cursor: 'pointer', fontWeight: 700 }}>Sign in</button> to save this search
                   </p>
                 )}
+              </div>
+              <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button
+                  onClick={() => setGradeFilter('all')}
+                  style={{
+                    background: gradeFilter === 'all' ? '#ffd700' : '#374151',
+                    color: gradeFilter === 'all' ? '#000' : '#fff',
+                    border: gradeFilter === 'all' ? '2px solid #000' : '2px solid #374151',
+                    padding: '0.5rem 1rem',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  All Cards
+                </button>
+                <button
+                  onClick={() => setGradeFilter('raw')}
+                  style={{
+                    background: gradeFilter === 'raw' ? '#ffd700' : '#374151',
+                    color: gradeFilter === 'raw' ? '#000' : '#fff',
+                    border: gradeFilter === 'raw' ? '2px solid #000' : '2px solid #374151',
+                    padding: '0.5rem 1rem',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  Raw Only
+                </button>
+                <button
+                  onClick={() => setGradeFilter('graded')}
+                  style={{
+                    background: gradeFilter === 'graded' ? '#ffd700' : '#374151',
+                    color: gradeFilter === 'graded' ? '#000' : '#fff',
+                    border: gradeFilter === 'graded' ? '2px solid #000' : '2px solid #374151',
+                    padding: '0.5rem 1rem',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  Graded Only
+                </button>
               </div>
             </div>
 
@@ -1488,13 +1472,13 @@ const SearchPage = () => {
             </div>
 
             {/* Card Sections */}
-            {renderCardSection('Raw Cards', results.results.raw, '📄')}
+            {(gradeFilter === 'all' || gradeFilter === 'raw') && renderCardSection('Raw Cards', results.results.raw, '📄')}
             
             {/* Ad after first card section */}
             <SearchResultsAd />
             
-            {renderCardSection('PSA 9', results.results.psa9, '🏆')}
-            {renderCardSection('PSA 10', results.results.psa10, '🏆')}
+            {(gradeFilter === 'all' || gradeFilter === 'graded') && renderCardSection('PSA 9', results.results.psa9, '🏆')}
+            {(gradeFilter === 'all' || gradeFilter === 'graded') && renderCardSection('PSA 10', results.results.psa10, '🏆')}
           </div>
         )}
 

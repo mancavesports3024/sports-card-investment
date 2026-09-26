@@ -71,13 +71,13 @@ describe('application shell', () => {
 
     const header = screen.getByRole('banner');
 
-    ['Home', 'Search Cards', 'Card Set Analysis', 'News', 'eBay Item Lookup'].forEach(
+    ['Home', 'Recent Sales Search', 'Card Set Analysis', 'Releases & Guides', 'eBay Item Lookup'].forEach(
       (label) => {
         expect(within(header).getByRole('link', { name: label })).toBeInTheDocument();
       }
     );
 
-    expect(within(header).getByRole('link', { name: 'News' })).toHaveAttribute(
+    expect(within(header).getByRole('link', { name: 'Releases & Guides' })).toHaveAttribute(
       'href',
       '/news'
     );
@@ -104,7 +104,7 @@ describe('routing', () => {
     render(<App />);
 
     expect(
-      screen.getByRole('heading', { name: 'Why Choose Scorecard?' })
+      screen.getByRole('heading', { name: 'Scorecard by Man Cave Sports Cards LLC' })
     ).toBeInTheDocument();
   });
 

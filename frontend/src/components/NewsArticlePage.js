@@ -2,7 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useParams } from 'react-router-dom';
 import NewsArticleBody from './NewsArticleBody';
-import { formatArticleDate, getArticleBySlug } from '../services/newsArticleService';
+import { formatArticleDate, getArticleBySlug, getAllArticles } from '../services/newsArticleService';
 import { buildArticleSeo } from '../services/newsArticleSeo';
 
 const BACK_TO_NEWS_STYLE = {
@@ -10,6 +10,31 @@ const BACK_TO_NEWS_STYLE = {
   fontWeight: 600,
   textDecoration: 'none',
 };
+
+function findRelatedArticles(currentArticle, maxResults = 3) {
+  const allArticles = getAllArticles();
+  
+  return allArticles
+    .filter((article) => article.slug !== currentArticle.slug)
+    .map((article) => {
+      let score = 0;
+      
+      if (article.category === currentArticle.category) {
+        score += 10;
+      }
+      
+      const commonTags = article.tags.filter((tag) =>
+        currentArticle.tags.includes(tag)
+      );
+      score += commonTags.length * 5;
+      
+      return { article, score };
+    })
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, maxResults)
+    .map(({ article }) => article);
+}
 
 // KNOWN LIMITATION: an unknown slug still returns HTTP 200. Only published
 // articles get a generated static shell, so anything else falls through
@@ -251,6 +276,68 @@ const NewsArticlePage = ({ slug: slugProp }) => {
           </section>
         )}
       </article>
+
+      {(() => {
+        const relatedArticles = findRelatedArticles(article);
+        if (relatedArticles.length === 0) return null;
+
+        return (
+          <section style={{ marginTop: '2rem' }}>
+            <h2 style={{ color: '#ffd700', fontSize: '1.3rem', marginBottom: '1rem', fontWeight: 700 }}>
+              Related Articles
+            </h2>
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              {relatedArticles.map((relatedArticle) => (
+                <article
+                  key={relatedArticle.slug}
+                  style={{
+                    background: '#1f2937',
+                    borderRadius: 12,
+                    padding: '1.25rem',
+                    border: '2px solid #374151',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  }}
+                >
+                  <div style={{ marginBottom: '0.5rem' }}>
+                    <span
+                      style={{
+                        background: '#374151',
+                        color: '#d1d5db',
+                        padding: '0.2rem 0.6rem',
+                        borderRadius: 12,
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {relatedArticle.category}
+                    </span>
+                  </div>
+                  <h3 style={{ margin: '0 0 0.5rem 0', lineHeight: '1.3' }}>
+                    <Link
+                      to={`/news/${relatedArticle.slug}`}
+                      style={{
+                        color: '#ffd700',
+                        fontSize: '1.1rem',
+                        fontWeight: 700,
+                        textDecoration: 'none',
+                      }}
+                    >
+                      {relatedArticle.title}
+                    </Link>
+                  </h3>
+                  <p style={{ color: '#d1d5db', fontSize: '0.95rem', margin: '0 0 0.75rem 0' }}>
+                    {relatedArticle.excerpt}
+                  </p>
+                  <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
+                    {formatArticleDate(relatedArticle.publishedAt)} · {relatedArticle.readingTime}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
 
       <nav style={{ marginTop: '2rem' }}>
         <Link to="/news?tab=news" style={BACK_TO_NEWS_STYLE}>

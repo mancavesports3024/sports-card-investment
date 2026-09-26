@@ -32,29 +32,30 @@ beforeEach(() => {
 });
 
 describe('the three News tabs are preserved', () => {
-  it('renders Release Calendar, Industry News and Trending tabs', async () => {
+  it('renders Release Calendar, Blog & Guides and Trending tabs', async () => {
     await renderNewsPage();
 
     const tabs = screen.getAllByRole('tab');
 
     expect(tabs).toHaveLength(3);
     expect(screen.getByRole('tab', { name: /Release Calendar/ })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /Industry News/ })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /Blog & Guides/ })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /Trending/ })).toBeInTheDocument();
   });
 
-  it('shows the Release Calendar by default', async () => {
+  it('opens Blog & Guides by default', async () => {
     await renderNewsPage();
 
-    expect(screen.getByRole('tab', { name: /Release Calendar/ })).toHaveAttribute(
+    expect(screen.getByRole('tab', { name: /Blog & Guides/ })).toHaveAttribute(
       'aria-selected',
       'true'
     );
-    expect(screen.getByText(/Card Release Calendar/)).toBeInTheDocument();
+    expect(screen.getAllByRole('article').length).toBeGreaterThan(0);
   });
 
   it('keeps the Release Calendar working', async () => {
     await renderNewsPage();
+    await userEvent.click(screen.getByRole('tab', { name: /Release Calendar/ }));
 
     // The calendar grid renders once the releases request settles.
     expect(await screen.findByText('Sun')).toBeInTheDocument();
@@ -78,11 +79,11 @@ describe('the three News tabs are preserved', () => {
   });
 });
 
-describe('Industry News tab', () => {
+describe('Blog & Guides tab', () => {
   it('lists article cards when selected', async () => {
     await renderNewsPage();
 
-    await userEvent.click(screen.getByRole('tab', { name: /Industry News/ }));
+    await userEvent.click(screen.getByRole('tab', { name: /Blog & Guides/ }));
 
     expect(screen.getAllByRole('article')).toHaveLength(getAllArticles().length);
     expect(
@@ -95,7 +96,7 @@ describe('Industry News tab', () => {
   it('can be deep-linked with ?tab=news so article pages can link back', async () => {
     await renderNewsPage('/news?tab=news');
 
-    expect(screen.getByRole('tab', { name: /Industry News/ })).toHaveAttribute(
+    expect(screen.getByRole('tab', { name: /Blog & Guides/ })).toHaveAttribute(
       'aria-selected',
       'true'
     );
@@ -105,7 +106,7 @@ describe('Industry News tab', () => {
   it('no longer contains article bodies in the page itself', async () => {
     await renderNewsPage();
 
-    await userEvent.click(screen.getByRole('tab', { name: /Industry News/ }));
+    await userEvent.click(screen.getByRole('tab', { name: /Blog & Guides/ }));
 
     // Body copy lives on /news/:slug now; the index shows excerpts only.
     expect(

@@ -14,6 +14,7 @@ const NewsArticlePage = lazy(() => import('./components/NewsArticlePage'));
 const EbayItemLookup = lazy(() => import('./pages/EbayItemLookup'));
 const AdminCardDatabase = lazy(() => import('./components/AdminCardDatabase'));
 const AdminCollections = lazy(() => import('./components/AdminCollections'));
+const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const NotFoundPage = lazy(() => import('./components/NotFoundPage'));
 
 const routeFallbackStyle = {
@@ -122,15 +123,15 @@ function App() {
         <header className="global-header responsive-header">
           {/* First row: Scorecard title only, centered and larger */}
           <div className="header-row header-row-top" style={{ justifyContent: 'center' }}>
-            <span className="header-title main-title">Scorecard</span>
+            <span className="header-title main-title">Scorecard <span style={{ fontSize: "0.45em", fontWeight: 500 }}>by Man Cave Sports Cards LLC</span></span>
           </div>
           {/* Second row: navigation, social left, login/logout right */}
           <div className="header-row header-row-bottom" style={{ justifyContent: 'space-between' }}>
             <div className="header-nav-group">
               <a href="/" className="header-nav-link">Home</a>
-              <a href="/search" className="header-nav-link">Search Cards</a>
+              <a href="/search" className="header-nav-link">Recent Sales Search</a>
               <a href="/card-set-analysis" className="header-nav-link">Card Set Analysis</a>
-              <a href="/news" className="header-nav-link">News</a>
+              <a href="/news" className="header-nav-link">Releases &amp; Guides</a>
               <a href="/ebay-bidding" className="header-nav-link">eBay Item Lookup</a>
               {/* Admin-only links */}
               {isLoggedIn && isAdminUser() && (
@@ -169,6 +170,7 @@ function App() {
             <Route path="/ebay-bidding" element={<EbayItemLookup />} />
             <Route path="/admin/cards" element={<AdminCardDatabase />} />
             <Route path="/admin/collections" element={<AdminCollections />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/auth-success" element={<AuthSuccess onAuthSuccess={checkAuthStatus} />} />
             {/* Catch-all: a useful page instead of an empty shell, marked
                 noindex. Still answers HTTP 200 -- see NotFoundPage.js. */}
