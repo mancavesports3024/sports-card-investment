@@ -11,13 +11,29 @@ const renderIndex = (props = {}) =>
   );
 
 describe('NewsIndex article cards', () => {
-  it('renders a card for every article', () => {
+  it('shows latest article separately at top with featured styling', () => {
+    renderIndex();
+
+    const latestHeading = screen.getByText('Latest Article');
+    expect(latestHeading).toBeInTheDocument();
+    
+    const featuredBadge = screen.getByText('FEATURED');
+    expect(featuredBadge).toBeInTheDocument();
+  });
+
+  it('renders remaining articles below the featured one', () => {
     renderIndex();
 
     const articles = getAllArticles();
     const cards = screen.getAllByRole('article');
 
+    // Total cards = all articles (1 featured + rest in list)
     expect(cards).toHaveLength(articles.length);
+    
+    // Should show "More Articles" heading if there are articles beyond the featured one
+    if (articles.length > 1) {
+      expect(screen.getByText('More Articles')).toBeInTheDocument();
+    }
   });
 
   it('shows title, date, excerpt, category, tags and reading time on a card', () => {
@@ -61,13 +77,49 @@ describe('NewsIndex article cards', () => {
     expect(renderedTitles).toEqual(getAllArticles().map((a) => a.title));
   });
 
-  it('marks the newest featured article as featured', () => {
+  it('shows only one featured badge on the latest article', () => {
     renderIndex();
 
-    expect(screen.getAllByText('FEATURED')).toHaveLength(1);
+    const featuredBadges = screen.getAllByText('FEATURED');
+    expect(featuredBadges).toHaveLength(1);
 
+    const latestArticle = getAllArticles()[0];
     const featuredCard = screen.getAllByRole('article')[0];
-    expect(within(featuredCard).getByText('FEATURED')).toBeInTheDocument();
+    expect(within(featuredCard).getByText(latestArticle.title)).toBeInTheDocument();
+  });
+
+  it('includes all articles in search results without separate featured display', () => {
+    const articles = getAllArticles();
+    renderIndex({ articles });
+
+    // With search active, all matching articles go in the list
+    const searchInput = screen.getByPlaceholderText('Search articles...');
+    fireEvent.change(searchInput, { target: { value: 'guide' } });
+
+    // Should not show "Latest Article" heading when searching
+    expect(screen.queryByText('Latest Article')).not.toBeInTheDocument();
+    
+    // All matching articles in the list
+    const cards = screen.queryAllByRole('article');
+    expect(cards.length).toBeGreaterThan(0);
+  });
+
+  it('shows all articles in filtered categories without separate featured display', () => {
+    const articles = getAllArticles();
+    renderIndex({ articles });
+
+    // Click a category filter
+    const filters = screen.getAllByRole('button').filter(btn => 
+      btn.textContent.includes('Collecting Guides') || 
+      btn.textContent.includes('Set Building')
+    );
+    
+    if (filters.length > 0) {
+      fireEvent.click(filters[0]);
+      
+      // Should not show "Latest Article" when category filter active
+      expect(screen.queryByText('Latest Article')).not.toBeInTheDocument();
+    }
   });
 
   it('shows an empty state instead of crashing when no articles load', () => {
@@ -180,12 +232,17 @@ describe('NewsIndex pagination', () => {
     }));
   };
 
-  it('shows 12 articles per page', () => {
+  it('shows latest article plus 11 more on first page (12 total visible)', () => {
     const articles = createManyArticles(25);
     renderIndex({ articles });
 
     const visibleCards = screen.getAllByRole('article');
+    // 1 featured at top + 11 in the list = 12 visible on page 1
     expect(visibleCards).toHaveLength(12);
+    
+    // Should show Latest Article heading
+    expect(screen.getByText('Latest Article')).toBeInTheDocument();
+    expect(screen.getByText('More Articles')).toBeInTheDocument();
   });
 
   it('does not show pagination for 12 or fewer articles', () => {
@@ -250,14 +307,17 @@ describe('NewsIndex pagination', () => {
     expect(screen.getByText('Previous')).not.toBeDisabled();
   });
 
-  it('only shows featured badge on page 1', () => {
+  it('only shows featured article section on page 1', () => {
     const articles = createManyArticles(25);
     renderIndex({ articles });
 
+    expect(screen.getByText('Latest Article')).toBeInTheDocument();
     expect(screen.getByText('FEATURED')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('Next'));
 
+    // Featured section should not appear on other pages
+    expect(screen.queryByText('Latest Article')).not.toBeInTheDocument();
     expect(screen.queryByText('FEATURED')).not.toBeInTheDocument();
   });
 

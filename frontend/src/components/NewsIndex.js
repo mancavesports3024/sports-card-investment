@@ -79,12 +79,39 @@ const NewsIndex = ({ articles = getAllArticles() }) => {
   
   const categoryFiltered = filterArticlesByCategory(articles, categoryFilter);
   const searchFiltered = searchArticles(categoryFiltered, searchQuery);
-  const sorted = searchFiltered;
-  const featuredSlug = sorted[0]?.slug;
   
-  const totalPages = Math.ceil(sorted.length / ARTICLES_PER_PAGE);
-  const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
-  const endIndex = startIndex + ARTICLES_PER_PAGE;
+  const sorted = searchFiltered;
+  
+  // Show latest article separately only on page 1 with no filters/search
+  const showFeaturedSeparately = !searchQuery && categoryFilter === 'all' && currentPage === 1;
+  const latestArticle = showFeaturedSeparately ? sorted[0] : null;
+  
+  // Calculate pagination
+  const itemsPerPage = ARTICLES_PER_PAGE;
+  let startIndex, endIndex, totalPages;
+  
+  if (!searchQuery && categoryFilter === 'all') {
+    // Special handling when showing all articles (to account for featured on page 1)
+    if (currentPage === 1) {
+      // Page 1: Show items 1-11 in list (item 0 is featured separately)
+      startIndex = 1;
+      endIndex = itemsPerPage;
+    } else {
+      // Subsequent pages: offset by 1 less to account for featured article already shown
+      startIndex = itemsPerPage + (currentPage - 2) * itemsPerPage;
+      endIndex = startIndex + itemsPerPage;
+    }
+    // Page 1 shows 11 items, subsequent pages show 12
+    // Total pages = 1 + ceil((remaining after page 1) / 12)
+    const remainingAfterPage1 = Math.max(0, sorted.length - itemsPerPage);
+    totalPages = sorted.length > 0 ? 1 + Math.ceil(remainingAfterPage1 / itemsPerPage) : 0;
+  } else {
+    // Normal pagination when search/filter active
+    startIndex = (currentPage - 1) * itemsPerPage;
+    endIndex = startIndex + itemsPerPage;
+    totalPages = Math.ceil(sorted.length / itemsPerPage);
+  }
+  
   const paginatedArticles = sorted.slice(startIndex, endIndex);
   
   const handleSearch = (e) => {
@@ -216,7 +243,24 @@ const NewsIndex = ({ articles = getAllArticles() }) => {
         )}
       </div>
 
-      {sorted.length === 0 ? (
+      {/* Latest Article Feature (only when no filters active) */}
+      {latestArticle && (
+        <div style={{ marginBottom: '3rem' }}>
+          <h2 style={{ color: '#ffd700', fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem', textAlign: 'center' }}>
+            Latest Article
+          </h2>
+          <NewsArticleCard article={latestArticle} featured={true} />
+        </div>
+      )}
+
+      {/* Article List Heading */}
+      {latestArticle && sorted.length > 0 && (
+        <h2 style={{ color: '#d1d5db', fontSize: '1.3rem', fontWeight: 600, marginBottom: '1.5rem', textAlign: 'center' }}>
+          More Articles
+        </h2>
+      )}
+
+      {sorted.length === 0 && !latestArticle ? (
         <div
           style={{
             background: '#1f2937',
@@ -237,14 +281,14 @@ const NewsIndex = ({ articles = getAllArticles() }) => {
               : 'Try a different category or view all articles.'}
           </div>
         </div>
-      ) : (
+      ) : sorted.length > 0 ? (
         <>
           <div style={{ display: 'grid', gap: '2rem' }}>
             {paginatedArticles.map((article) => (
               <NewsArticleCard
                 key={article.slug}
                 article={article}
-                featured={article.slug === featuredSlug && currentPage === 1}
+                featured={false}
               />
             ))}
           </div>
@@ -325,7 +369,7 @@ const NewsIndex = ({ articles = getAllArticles() }) => {
             </div>
           )}
         </>
-      )}
+      ) : null}
     </div>
   );
 };
