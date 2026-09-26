@@ -52,16 +52,16 @@ function searchArticles(articles, searchQuery) {
     const categoryMatch = article.category.toLowerCase().includes(query);
     const tagsMatch = article.tags.some(tag => tag.toLowerCase().includes(query));
     
-    const bodyMatch = article.body.some(block => {
-      if (block.type === 'paragraph' || block.type === 'heading') {
+    const bodyMatch = article.body && article.body.some(block => {
+      if ((block.type === 'paragraph' || block.type === 'heading') && block.content) {
         return block.content.some(inline => 
-          inline.type === 'text' && inline.text.toLowerCase().includes(query)
+          inline && inline.type === 'text' && inline.text && inline.text.toLowerCase().includes(query)
         );
       }
-      if (block.type === 'list') {
+      if (block.type === 'list' && block.items) {
         return block.items.some(item =>
-          item.some(inline =>
-            inline.type === 'text' && inline.text.toLowerCase().includes(query)
+          Array.isArray(item) && item.some(inline =>
+            inline && inline.type === 'text' && inline.text && inline.text.toLowerCase().includes(query)
           )
         );
       }
