@@ -23,7 +23,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "prebuild": "node ../backend/generate-sitemap.js",
-    "postbuild": "node ../backend/generate-article-pages.js"
+    "postbuild": "node ../backend/generate-article-pages.js && node ../backend/generate-rss-feed.js"
   },
   "eslintConfig": {
     "extends": [
