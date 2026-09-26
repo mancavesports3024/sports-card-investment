@@ -36,6 +36,9 @@ const HomePage = () => {
               <a href={EBAY_STORE_URL} className="ebay-store-btn" target="_blank" rel="noopener noreferrer">Shop Our eBay Store</a>
               <a href="/news" className="header-nav-link">Read Collecting Guides</a>
             </div>
+            <p style={{ color: '#d1d5db', fontSize: '0.9rem', margin: '-1rem auto 1.5rem', maxWidth: 700 }}>
+              Some eBay links are affiliate links. Man Cave Sports Cards LLC may earn a commission from qualifying purchases.
+            </p>
             <h2 style={{ margin: '0 0 0.75rem', fontSize: '1.2rem', color: '#ffd700' }}>Featured items from our eBay store</h2>
             <FeaturedEbayRotator />
           </section>
