@@ -122,7 +122,7 @@ function App() {
         <header className="global-header responsive-header">
           {/* First row: Scorecard title only, centered and larger */}
           <div className="header-row header-row-top" style={{ justifyContent: 'center' }}>
-            <span className="header-title main-title">Scorecard <span className="header-brand-by">by Man Cave Sports Cards LLC</span></span>
+            <span className="header-title main-title">Scorecard <span style={{ fontSize: "0.45em", fontWeight: 500 }}>by Man Cave Sports Cards LLC</span></span>
           </div>
           {/* Second row: navigation, social left, login/logout right */}
           <div className="header-row header-row-bottom" style={{ justifyContent: 'space-between' }}>
