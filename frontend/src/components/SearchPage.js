@@ -1197,6 +1197,9 @@ const SearchPage = () => {
               </div>
             </form>
           </div>
+        <p className="search-helper" style={{ maxWidth: 800, margin: '0.75rem auto 1.5rem' }}>
+          Recent sales are searched from eBay results available when you search. Sale dates appear when the listing data includes them; compare the exact card, grade, and condition before using a price.
+        </p>
         {/* Saved Searches below the form */}
         <div id="saved-searches-section">
           <SavedSearches onSearchAgain={handleReuseSavedSearch} refetchTrigger={savedSearchesRefetch} forceOpen={savedSearchesOpen} />
