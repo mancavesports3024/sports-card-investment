@@ -131,19 +131,16 @@ const SearchPage = () => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    // If Advanced Search is filled, use only that
-    let combinedQuery = '';
-    if (searchQuery) {
-      combinedQuery = searchQuery.trim();
-    } else {
-      if (playerName) combinedQuery += playerName + ' ';
-      if (cardSet) combinedQuery += cardSet + ' ';
-      if (year) combinedQuery += year + ' ';
-      if (cardNumber) combinedQuery += cardNumber + ' ';
-      if (cardType) combinedQuery += cardType + ' ';
-      if (exclude) combinedQuery += `-(${exclude})`;
-      combinedQuery = combinedQuery.trim();
-    }
+    const queryParts = [
+      searchQuery.trim(),
+      playerName.trim(),
+      year.trim(),
+      cardSet.trim(),
+      cardNumber.trim(),
+      cardType.trim(),
+      exclude.trim() ? `-(${exclude.trim()})` : '',
+    ].filter(Boolean);
+    const combinedQuery = queryParts.join(' ');
     if (!combinedQuery) return;
 
     console.log('🔍 Starting search with query:', combinedQuery);
@@ -1096,6 +1093,12 @@ const SearchPage = () => {
 
   // Handler for reusing a saved search
   const handleReuseSavedSearch = (search) => {
+    setPlayerName('');
+    setCardSet('');
+    setYear('');
+    setCardNumber('');
+    setCardType('');
+    setExclude('');
     setSearchQuery(search.query || search.searchQuery);
     setTimeout(() => {
       document.getElementById('searchQuery')?.focus();
