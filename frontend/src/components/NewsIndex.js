@@ -26,8 +26,7 @@ const NewsIndex = ({ articles = getAllArticles() }) => {
           📰 Blog &amp; Guides
         </h3>
         <p style={{ margin: 0, color: '#333', fontSize: '0.95rem' }}>
-          Stay updated with the latest news, trends, and insights from the trading card industry.
-          Expert analysis and market insights for collectors and investors.
+          Read our latest articles on card releases, set building, and practical buying and selling.
         </p>
       </div>
 
