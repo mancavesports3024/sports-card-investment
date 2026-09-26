@@ -9,7 +9,7 @@ import { getAllArticles } from '../services/newsArticleService';
 
 const NewsIndex = ({ articles = getAllArticles() }) => {
   const sorted = articles;
-  const featuredSlug = sorted.find((article) => article.featured)?.slug;
+  const featuredSlug = sorted[0]?.slug;
 
   return (
     <div>
@@ -23,7 +23,7 @@ const NewsIndex = ({ articles = getAllArticles() }) => {
         }}
       >
         <h3 style={{ margin: '0 0 1rem 0', color: '#000', fontSize: '1.2rem', fontWeight: 700 }}>
-          📰 Industry News &amp; Analysis
+          📰 Blog &amp; Guides
         </h3>
         <p style={{ margin: 0, color: '#333', fontSize: '0.95rem' }}>
           Stay updated with the latest news, trends, and insights from the trading card industry.
@@ -45,7 +45,7 @@ const NewsIndex = ({ articles = getAllArticles() }) => {
             📭 No articles published yet
           </div>
           <div style={{ color: '#d1d5db' }}>
-            Check back soon for industry news and market analysis.
+            Check back soon for new releases and collecting guides.
           </div>
         </div>
       ) : (
