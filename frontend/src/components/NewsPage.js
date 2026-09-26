@@ -21,7 +21,7 @@ const NewsPage = () => {
   // Lets article pages link back to a specific tab, e.g. /news?tab=news
   const requestedTab = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(
-    VALID_TABS.includes(requestedTab) ? requestedTab : 'releases'
+    VALID_TABS.includes(requestedTab) ? requestedTab : 'news'
   );
   const [trendingSubTab, setTrendingSubTab] = useState('players'); // 'players', 'sets', or 'cards'
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -868,10 +868,10 @@ const NewsPage = () => {
           marginBottom: '1rem',
           textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
         }}>
-          📰 Sports Card News
+          📰 Releases &amp; Guides
         </h1>
         <p style={{ fontSize: '1.1rem', color: '#fff', maxWidth: 600, margin: '0 auto', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
-          Stay updated on the latest releases, industry news, and market insights
+          Collecting guides, recent articles, and upcoming card release dates
         </p>
       </div>
 
@@ -925,7 +925,7 @@ const NewsPage = () => {
             transition: 'all 0.3s ease'
           }}
         >
-          📰 Industry News
+          📰 Blog &amp; Guides
         </button>
         <button
           role="tab"
