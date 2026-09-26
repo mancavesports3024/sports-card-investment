@@ -83,7 +83,7 @@ describe('Blog & Guides tab', () => {
   it('lists article cards when selected', async () => {
     await renderNewsPage();
 
-    await userEvent.click(screen.getByRole('tab', { name: /Industry News/ }));
+    await userEvent.click(screen.getByRole('tab', { name: /Blog & Guides/ }));
 
     expect(screen.getAllByRole('article')).toHaveLength(getAllArticles().length);
     expect(
@@ -96,7 +96,7 @@ describe('Blog & Guides tab', () => {
   it('can be deep-linked with ?tab=news so article pages can link back', async () => {
     await renderNewsPage('/news?tab=news');
 
-    expect(screen.getByRole('tab', { name: /Industry News/ })).toHaveAttribute(
+    expect(screen.getByRole('tab', { name: /Blog & Guides/ })).toHaveAttribute(
       'aria-selected',
       'true'
     );
@@ -106,7 +106,7 @@ describe('Blog & Guides tab', () => {
   it('no longer contains article bodies in the page itself', async () => {
     await renderNewsPage();
 
-    await userEvent.click(screen.getByRole('tab', { name: /Industry News/ }));
+    await userEvent.click(screen.getByRole('tab', { name: /Blog & Guides/ }));
 
     // Body copy lives on /news/:slug now; the index shows excerpts only.
     expect(
