@@ -14,6 +14,7 @@ const NewsArticlePage = lazy(() => import('./components/NewsArticlePage'));
 const EbayItemLookup = lazy(() => import('./pages/EbayItemLookup'));
 const AdminCardDatabase = lazy(() => import('./components/AdminCardDatabase'));
 const AdminCollections = lazy(() => import('./components/AdminCollections'));
+const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const NotFoundPage = lazy(() => import('./components/NotFoundPage'));
 
 const routeFallbackStyle = {
@@ -169,6 +170,7 @@ function App() {
             <Route path="/ebay-bidding" element={<EbayItemLookup />} />
             <Route path="/admin/cards" element={<AdminCardDatabase />} />
             <Route path="/admin/collections" element={<AdminCollections />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/auth-success" element={<AuthSuccess onAuthSuccess={checkAuthStatus} />} />
             {/* Catch-all: a useful page instead of an empty shell, marked
                 noindex. Still answers HTTP 200 -- see NotFoundPage.js. */}

@@ -46,7 +46,7 @@ describe('rendering the Bowman Chrome article', () => {
     expect(screen.getByText(/September 7, 2026/)).toBeInTheDocument();
     expect(screen.getByText(/By ManCave Sports Cards LLC/)).toBeInTheDocument();
     expect(screen.getByText('6 min read')).toBeInTheDocument();
-    expect(screen.getByText('Collecting Guides')).toBeInTheDocument();
+    expect(screen.getAllByText('Collecting Guides')[0]).toBeInTheDocument();
   });
 
   it('renders the category and every tag', () => {

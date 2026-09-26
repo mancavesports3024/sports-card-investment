@@ -112,6 +112,9 @@ const HomePage = () => {
               <a href="https://www.instagram.com/mancavesportscardllc" className="social-link" target="_blank" rel="noopener noreferrer"><span>📷</span> Instagram</a>
               <a href="https://www.facebook.com/profile.php?id=100062665574017" className="social-link" target="_blank" rel="noopener noreferrer"><span>📘</span> Facebook</a>
             </div>
+            <p style={{ marginTop: '1rem', fontSize: '0.9rem' }}>
+              <a href="/privacy-policy" style={{ color: '#93c5fd', textDecoration: 'none' }}>Privacy Policy</a>
+            </p>
           </div>
           <div className="footer-section">
             <h4>Shop on eBay</h4>

@@ -114,6 +114,12 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
   };
 
   const handleClearAll = async () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete all saved searches? This action cannot be undone.'
+    );
+    
+    if (!confirmed) return;
+    
     try {
       const response = await tokenService.authenticatedFetch(config.getClearHistoryUrl(), {
         method: 'DELETE'
@@ -121,14 +127,19 @@ const SavedSearches = ({ onSearchAgain, refetchTrigger, forceOpen }) => {
       
       if (response.ok) {
         await refetchSavedSearches();
+        setError('All search history cleared successfully.');
+        setTimeout(() => setError(null), 3000);
       } else {
         console.error('Clear all failed:', response.status);
+        setError('Failed to clear search history. Please try again.');
       }
     } catch (err) {
       console.error('Clear all error:', err);
       if (err.message.includes('Authentication failed')) {
         setError('Authentication failed. Please log in again.');
         setIsLoggedIn(false);
+      } else {
+        setError('Failed to clear search history: ' + err.message);
       }
     }
   };

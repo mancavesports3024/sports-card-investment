@@ -33,6 +33,8 @@ const SearchPage = () => {
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   // Add state for expanded card sections
   const [expandedSections, setExpandedSections] = useState({});
+  // Add state for grade filter
+  const [gradeFilter, setGradeFilter] = useState('all');
   // Add refs for live listings sections
   const rawLiveRef = useRef(null);
   const psa9LiveRef = useRef(null);
@@ -1239,6 +1241,53 @@ const SearchPage = () => {
                   </p>
                 )}
               </div>
+              <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button
+                  onClick={() => setGradeFilter('all')}
+                  style={{
+                    background: gradeFilter === 'all' ? '#ffd700' : '#374151',
+                    color: gradeFilter === 'all' ? '#000' : '#fff',
+                    border: gradeFilter === 'all' ? '2px solid #000' : '2px solid #374151',
+                    padding: '0.5rem 1rem',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  All Cards
+                </button>
+                <button
+                  onClick={() => setGradeFilter('raw')}
+                  style={{
+                    background: gradeFilter === 'raw' ? '#ffd700' : '#374151',
+                    color: gradeFilter === 'raw' ? '#000' : '#fff',
+                    border: gradeFilter === 'raw' ? '2px solid #000' : '2px solid #374151',
+                    padding: '0.5rem 1rem',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  Raw Only
+                </button>
+                <button
+                  onClick={() => setGradeFilter('graded')}
+                  style={{
+                    background: gradeFilter === 'graded' ? '#ffd700' : '#374151',
+                    color: gradeFilter === 'graded' ? '#000' : '#fff',
+                    border: gradeFilter === 'graded' ? '2px solid #000' : '2px solid #374151',
+                    padding: '0.5rem 1rem',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  Graded Only
+                </button>
+              </div>
             </div>
 
             {/* Chart Placeholder for Last Sales - moved to top */}
@@ -1423,13 +1472,13 @@ const SearchPage = () => {
             </div>
 
             {/* Card Sections */}
-            {renderCardSection('Raw Cards', results.results.raw, '📄')}
+            {(gradeFilter === 'all' || gradeFilter === 'raw') && renderCardSection('Raw Cards', results.results.raw, '📄')}
             
             {/* Ad after first card section */}
             <SearchResultsAd />
             
-            {renderCardSection('PSA 9', results.results.psa9, '🏆')}
-            {renderCardSection('PSA 10', results.results.psa10, '🏆')}
+            {(gradeFilter === 'all' || gradeFilter === 'graded') && renderCardSection('PSA 9', results.results.psa9, '🏆')}
+            {(gradeFilter === 'all' || gradeFilter === 'graded') && renderCardSection('PSA 10', results.results.psa10, '🏆')}
           </div>
         )}
 

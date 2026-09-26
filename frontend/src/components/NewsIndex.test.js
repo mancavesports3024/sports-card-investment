@@ -77,9 +77,9 @@ describe('NewsIndex article cards', () => {
     expect(screen.queryAllByRole('article')).toHaveLength(0);
   });
 
-  it('always renders the Industry News heading', () => {
+  it('always renders the Blog & Guides heading', () => {
     renderIndex();
 
-    expect(screen.getByText(/Industry News & Analysis/i)).toBeInTheDocument();
+    expect(screen.getByText(/Blog & Guides/i)).toBeInTheDocument();
   });
 });

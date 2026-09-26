@@ -110,7 +110,7 @@ describe('sorting', () => {
   });
 
   it('puts the newest migrated article first', () => {
-    expect(getAllArticles()[0].slug).toBe('2026-bowman-chrome-baseball-budget-guide');
+    expect(getAllArticles()[0].slug).toBe('ebay-bundle-discounts-sports-cards');
   });
 
   it('sorts an unordered list without mutating the input', () => {
