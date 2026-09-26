@@ -2,161 +2,125 @@ import React from 'react';
 import { HeaderAd, InContentAd } from './AdSense';
 import FeaturedEbayRotator from './FeaturedEbayRotator';
 import PageLayout from './PageLayout';
+import { formatArticleDate, getAllArticles } from '../services/newsArticleService';
+
+const EBAY_STORE_URL = 'https://www.ebay.com/str/mancavesportsllc';
 
 const HomePage = () => {
+  const latestArticles = getAllArticles().slice(0, 3);
+
   return (
     <div className="home-page">
-      {/* Main Content */}
       <main className="App-main">
         <PageLayout
-          title="Home"
-          subtitle="Welcome to your trading card destination - find the best deals and track card values"
-          icon="🏠"
+          title="Affordable sports cards and practical tools for set builders"
+          subtitle="Find recent sales, research card sets, read budget-friendly collecting guides, and shop raw baseball, football, and basketball cards from Man Cave Sports Cards LLC."
+          icon="🃏"
         >
-          {/* Welcome Message with eBay Items */}
-          <div className="welcome-section" style={{
+          <section className="welcome-section" style={{
             background: 'linear-gradient(135deg, #000 0%, #333 100%)',
             color: '#ffd700',
-            padding: '1rem',
+            padding: '1.25rem',
             borderRadius: 12,
-            marginBottom: '2rem',
+            margin: '0 auto 2rem',
             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             border: '2px solid #ffd700',
-            maxWidth: '600px',
-            margin: '0 auto 2rem auto'
+            maxWidth: 900,
+            textAlign: 'center'
           }}>
-            <p style={{ 
-              fontSize: '0.95rem', 
-              lineHeight: '1.4', 
-              marginBottom: '1rem',
-              textAlign: 'center',
-              color: '#fff'
-            }}>
-              Your destination for all things trading cards—specializing in sports cards and Pokémon!
+            <p style={{ color: '#fff', fontSize: '1rem', lineHeight: 1.6, margin: '0 auto 1.25rem', maxWidth: 720 }}>
+              Scorecard is the research side of Man Cave Sports Cards LLC. Use it to check recent card sales and explore collecting guides, then visit our eBay store to shop singles for your sets.
             </p>
-            <h3 style={{ 
-              margin: '0 0 0.75rem 0', 
-              fontSize: '1.2rem', 
-              fontWeight: 600,
-              textAlign: 'center',
-              color: '#ffd700'
-            }}>
-              Featured Items from Our eBay Store
-            </h3>
+            <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.75rem' }}>
+              <a href="/search" className="cta-button">Search Recent Card Sales</a>
+              <a href={EBAY_STORE_URL} className="ebay-store-btn" target="_blank" rel="noopener noreferrer">Shop Our eBay Store</a>
+              <a href="/news" className="header-nav-link">Read Collecting Guides</a>
+            </div>
+            <h2 style={{ margin: '0 0 0.75rem', fontSize: '1.2rem', color: '#ffd700' }}>Featured items from our eBay store</h2>
             <FeaturedEbayRotator />
-          </div>
+          </section>
 
-
-
-          {/* Header Ad */}
           <HeaderAd />
 
-          {/* Features Section */}
-          <section className="features-section">
-            <h2 className="section-title">Why Choose Scorecard?</h2>
+          <section className="features-section" aria-labelledby="home-ways-to-collect">
+            <h2 className="section-title" id="home-ways-to-collect">Collect, research, and learn</h2>
             <div className="features-grid">
-              <div className="feature-card">
-                <div className="feature-icon">🔍</div>
-                <h3>Real-Time Search</h3>
-                <p>Search across multiple platforms including eBay, 130point, and more to get comprehensive pricing data.</p>
-              </div>
-              <div className="feature-card">
-                <div className="feature-icon">📊</div>
-                <h3>Market Analytics</h3>
-                <p>Track price trends, market movements, and historical data to make informed decisions.</p>
-              </div>
-              <div className="feature-card">
-                <div className="feature-icon">📱</div>
-                <h3>Mobile Optimized</h3>
-                <p>Access your card data anywhere with our responsive design that works on all devices.</p>
-              </div>
-              <div className="feature-card">
-                <div className="feature-icon">⚡</div>
-                <h3>Lightning Fast</h3>
-                <p>Get results instantly with our optimized search algorithms and caching system.</p>
-              </div>
-              <div className="feature-card">
-                <div className="feature-icon">📈</div>
-                <h3>Live Listings</h3>
-                <p>Monitor active auctions and listings to track real-time market activity.</p>
-              </div>
-              <div className="feature-card">
-                <div className="feature-icon">🃏</div>
-                <h3>Card Set Analysis</h3>
-                <p>Discover the most valuable and best-selling cards from specific sets like Topps 2025 Series One.</p>
-              </div>
-              <div className="feature-card">
-                <div className="feature-icon">📰</div>
-                <h3>Release Calendar</h3>
-                <p>Stay updated on the latest card releases with our comprehensive calendar and industry news.</p>
-              </div>
+              <article className="feature-card">
+                <div className="feature-icon" aria-hidden="true">🧩</div>
+                <h3>Complete Your Set</h3>
+                <p>Browse our pick-your-card listings for affordable baseball, football, and basketball singles.</p>
+                <a href={EBAY_STORE_URL} target="_blank" rel="noopener noreferrer">Shop singles on eBay</a>
+              </article>
+              <article className="feature-card">
+                <div className="feature-icon" aria-hidden="true">📊</div>
+                <h3>Check Recent Sales</h3>
+                <p>Search by player, year, set, or card number to compare recently reported sales. Sale dates and item details may vary by result.</p>
+                <a href="/search">Open Recent Sales Search</a>
+              </article>
+              <article className="feature-card">
+                <div className="feature-icon" aria-hidden="true">📚</div>
+                <h3>Latest Collecting Guides</h3>
+                <p>Read practical articles about new releases, set building, and buying or selling low-end sports cards.</p>
+                <a href="/news">Browse Blog &amp; Guides</a>
+              </article>
             </div>
           </section>
 
-          {/* In-Content Ad */}
+          <section aria-labelledby="latest-guides-title" style={{ margin: '2rem 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '1rem', flexWrap: 'wrap' }}>
+              <h2 className="section-title" id="latest-guides-title">Latest Guides</h2>
+              <a href="/news" className="header-nav-link">All releases &amp; guides</a>
+            </div>
+            {latestArticles.length === 0 ? (
+              <p style={{ color: '#d1d5db' }}>New collecting guides will appear here.</p>
+            ) : (
+              <div className="features-grid">
+                {latestArticles.map((article) => (
+                  <article className="feature-card" key={article.slug}>
+                    <p style={{ color: '#ffd700', fontSize: '0.9rem', margin: '0 0 0.5rem' }}>
+                      {article.category} · {formatArticleDate(article.publishedAt)}
+                    </p>
+                    <h3>{article.title}</h3>
+                    <p>{article.excerpt}</p>
+                    <a href={`/news/${article.slug}`}>Read guide</a>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+
           <InContentAd />
 
-          {/* How It Works */}
-          <section className="how-it-works">
-            <h2 className="section-title">How It Works</h2>
-            <div className="steps-grid">
-              <div className="step-card">
-                <div className="step-number">1</div>
-                <h3>Search Your Card</h3>
-                <p>Enter the card name, player, or set to find current market data and pricing information.</p>
-              </div>
-              <div className="step-card">
-                <div className="step-number">2</div>
-                <h3>Analyze Results</h3>
-                <p>Review sold listings, current auctions, and price trends to understand market value.</p>
-              </div>
-              <div className="step-card">
-                <div className="step-number">3</div>
-                <h3>Make Decisions</h3>
-                <p>Use the comprehensive data to make informed buying, selling, or trading decisions.</p>
-              </div>
-            </div>
-          </section>
-
-          {/* CTA Section */}
-          <section className="cta-section">
-            <h2>Ready to Start?</h2>
-            <p>Join thousands of collectors who trust Scorecard for their sports card research.</p>
-            <a href="/search" className="cta-button">Search Cards Now</a>
+          <section className="cta-section" aria-labelledby="about-scorecard-title">
+            <h2 id="about-scorecard-title">Scorecard by Man Cave Sports Cards LLC</h2>
+            <p>We sell affordable raw sports cards for collectors and set builders, and publish practical guides to help you research the hobby.</p>
+            <a href="/search" className="cta-button">Search Recent Card Sales</a>
           </section>
         </PageLayout>
       </main>
 
-      {/* Footer */}
       <footer className="home-footer">
         <div className="footer-content">
           <div className="footer-section">
-            <h4>Connect With Us</h4>
+            <h4>Man Cave Sports Cards LLC</h4>
+            <p>Scorecard is our sports-card research and collecting-guides site.</p>
             <div className="social-links">
-              <a href="https://twitter.com/scorecard" className="social-link" target="_blank" rel="noopener noreferrer">
-                <span>𝕏</span> Follow on X
-              </a>
-              <a href="https://instagram.com/scorecard" className="social-link" target="_blank" rel="noopener noreferrer">
-                <span>📷</span> Instagram
-              </a>
-              <a href="https://facebook.com/scorecard" className="social-link" target="_blank" rel="noopener noreferrer">
-                <span>📘</span> Facebook
-              </a>
+              <a href="https://x.com/Mancavesportsc1" className="social-link" target="_blank" rel="noopener noreferrer"><span>𝕏</span> Follow on X</a>
+              <a href="https://www.instagram.com/mancavesportscardllc" className="social-link" target="_blank" rel="noopener noreferrer"><span>📷</span> Instagram</a>
+              <a href="https://www.facebook.com/profile.php?id=100062665574017" className="social-link" target="_blank" rel="noopener noreferrer"><span>📘</span> Facebook</a>
             </div>
           </div>
           <div className="footer-section">
             <h4>Shop on eBay</h4>
             <div className="ebay-promo">
-              <p>Find great deals on sports cards!</p>
-              <a href="https://ebay.com" className="ebay-store-btn" target="_blank" rel="noopener noreferrer">             Visit eBay Store
-              </a>
+              <p>Browse affordable sports cards from Man Cave Sports Cards LLC.</p>
+              <a href={EBAY_STORE_URL} className="ebay-store-btn" target="_blank" rel="noopener noreferrer">Visit Man Cave eBay Store</a>
             </div>
           </div>
         </div>
-        
       </footer>
     </div>
   );
 };
 
-export default HomePage; 
+export default HomePage;
