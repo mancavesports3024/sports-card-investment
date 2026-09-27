@@ -114,13 +114,13 @@ describe('rendering the Bowman Chrome article', () => {
     expect(ebaySource).toHaveAttribute('href', 'https://pages.ebay.com/price-guide/');
   });
 
-  it('links back to Industry News', () => {
+  it('links back to Releases & Guides', () => {
     renderArticleRoute(BOWMAN_SLUG);
 
-    const backLinks = screen.getAllByRole('link', { name: /Back to Industry News/ });
+    const backLinks = screen.getAllByRole('link', { name: /Back to Releases & Guides/i });
 
     expect(backLinks.length).toBeGreaterThan(0);
-    expect(backLinks[0]).toHaveAttribute('href', '/news?tab=news');
+    expect(backLinks[0]).toHaveAttribute('href', '/news');
   });
 
   it('omits the updated date when it matches the publication date', () => {

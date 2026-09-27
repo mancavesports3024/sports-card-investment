@@ -71,7 +71,7 @@ function ArticleNotFound() {
           incorrect.
         </p>
         <Link
-          to="/news?tab=news"
+          to="/news"
           style={{
             display: 'inline-block',
             background: '#ffd700',
@@ -82,7 +82,7 @@ function ArticleNotFound() {
             textDecoration: 'none',
           }}
         >
-          Browse Industry News
+          Browse Releases &amp; Guides
         </Link>
       </div>
     </div>
@@ -121,8 +121,8 @@ const NewsArticlePage = ({ slug: slugProp }) => {
       </Helmet>
 
       <nav style={{ marginBottom: '1.5rem' }}>
-        <Link to="/news?tab=news" style={BACK_TO_NEWS_STYLE}>
-          ← Back to Industry News
+        <Link to="/news" style={BACK_TO_NEWS_STYLE}>
+          ← Back to Releases &amp; Guides
         </Link>
       </nav>
 
@@ -340,8 +340,8 @@ const NewsArticlePage = ({ slug: slugProp }) => {
       })()}
 
       <nav style={{ marginTop: '2rem' }}>
-        <Link to="/news?tab=news" style={BACK_TO_NEWS_STYLE}>
-          ← Back to Industry News
+        <Link to="/news" style={BACK_TO_NEWS_STYLE}>
+          ← Back to Releases &amp; Guides
         </Link>
       </nav>
     </div>
