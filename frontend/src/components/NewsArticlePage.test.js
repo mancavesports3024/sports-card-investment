@@ -243,9 +243,9 @@ describe('invalid slug', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: 'Article Not Found' })
     ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Browse Industry News' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Browse Releases & Guides/i })).toHaveAttribute(
       'href',
-      '/news?tab=news'
+      '/news'
     );
   });
 

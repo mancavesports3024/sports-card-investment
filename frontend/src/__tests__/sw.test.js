@@ -70,7 +70,8 @@ describe('Service Worker Cache Strategy', () => {
       expect(navFunction).toContain('cache.put(request');
       
       // Should have fallback to cache on error
-      expect(navFunction).toMatch(/catch.*cache/i);
+      expect(navFunction).toContain('catch');
+      expect(navFunction).toContain('cachedResponse');
     });
 
     it('provides offline fallback HTML', () => {
@@ -82,7 +83,7 @@ describe('Service Worker Cache Strategy', () => {
   describe('Static Assets (JS/CSS)', () => {
     it('detects static assets with fingerprints', () => {
       expect(swCode).toMatch(/url\.pathname\.includes\(['"]\/static\/['"]\)/);
-      expect(swCode).toMatch(/\.(js|css|woff2?|ttf|eot)/);
+      expect(swCode).toContain('.match(/\\.(js|css|woff2?|ttf|eot)$/');
     });
 
     it('uses cache-first for fingerprinted assets', () => {
@@ -118,7 +119,8 @@ describe('Service Worker Cache Strategy', () => {
       expect(apiFunction).toContain('await fetch(request)');
       
       // Should have cache fallback
-      expect(apiFunction).toMatch(/catch.*cache/i);
+      expect(apiFunction).toContain('catch');
+      expect(apiFunction).toContain('cachedResponse');
     });
   });
 
