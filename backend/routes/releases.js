@@ -177,7 +177,17 @@ router.get('/unverified', isAdmin, async (req, res) => {
 // GET /api/releases/:id - Get single release by ID
 router.get('/:id', async (req, res) => {
     try {
-        const release = await loadServices().releaseDatabaseService.getReleaseById(parseInt(req.params.id));
+        const id = parseInt(req.params.id);
+        
+        if (isNaN(id)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid release ID',
+                message: 'Release ID must be a valid integer'
+            });
+        }
+        
+        const release = await loadServices().releaseDatabaseService.getReleaseById(id);
         
         if (!release) {
             return res.status(404).json({
@@ -192,10 +202,10 @@ router.get('/:id', async (req, res) => {
         });
     } catch (error) {
         console.error('❌ Error getting release:', error.message);
-        res.status(500).json({
-            success: false,
+        res.status(500).json({ 
+            success: false, 
             error: 'Failed to fetch release',
-            message: error.message
+            message: error.message 
         });
     }
 });
