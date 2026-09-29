@@ -71,9 +71,10 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Handle static assets (JS, CSS with fingerprints) - cache-first
+  // Only cache assets with content hashes (e.g., main.abc123.js, main.def456.css)
+  // Webpack/CRA builds include 8+ char hex hash before extension
   if (url.origin === self.location.origin &&
-      (url.pathname.includes('/static/') || 
-       url.pathname.match(/\.(js|css|woff2?|ttf|eot)$/))) {
+      url.pathname.match(/\/static\/.*\.[a-f0-9]{8,}\.(js|css|woff2?|ttf|eot)$/)) {
     event.respondWith(handleStaticAsset(request));
     return;
   }

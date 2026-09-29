@@ -82,8 +82,9 @@ describe('Service Worker Cache Strategy', () => {
 
   describe('Static Assets (JS/CSS)', () => {
     it('detects static assets with fingerprints', () => {
-      expect(swCode).toMatch(/url\.pathname\.includes\(['"]\/static\/['"]\)/);
-      expect(swCode).toContain('.match(/\\.(js|css|woff2?|ttf|eot)$/');
+      // Should match assets with content hashes (e.g., main.abc123.js)
+      expect(swCode).toMatch(/\/static\/.*\.[a-f0-9]{8,}\./);
+      expect(swCode).toContain('content hashes');
     });
 
     it('uses cache-first for fingerprinted assets', () => {

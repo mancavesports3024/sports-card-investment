@@ -1,5 +1,8 @@
 # Release Calendar Data Source Analysis
 
+**Checked on**: September 27, 2026  
+**Status**: Source analysis only - no scraper implementation changes in this PR
+
 ## Current Implementation
 
 ### Data Pipeline
@@ -53,123 +56,127 @@ releases (
 
 #### Topps
 - **Website**: https://www.topps.com/collections/baseball-cards, https://www.topps.com/collections/coming-soon
-- **Feed/API**: ❌ No public API or RSS feed
+- **Feed/API**: ❌ No public API or RSS feed (checked Sep 27, 2026)
 - **Data Quality**: ✅ Official dates (most accurate when posted)
-- **Update Frequency**: Irregular; releases announced 2-8 weeks before launch
+- **Update Frequency**: Irregular (observed from site inspection; exact frequency not documented)
 - **Coverage**: Baseball, WWE, Star Wars, F1, UEFA (Topps products only)
-- **Access Constraints**: No scraping ToS restrictions, but no structured feed
-- **Scraping Difficulty**: Moderate (JavaScript-rendered pages, Shopify storefront)
-- **Reliability**: High for posted releases; incomplete for future dates
+- **Access Constraints**: No explicit scraping ToS prohibition found (as of Sep 27, 2026), but no structured feed
+- **Scraping Difficulty**: Moderate (JavaScript-rendered pages, Shopify storefront - observed during inspection)
+- **Reliability**: High for posted releases; incomplete for future dates (inferred from site structure)
 
 #### Panini America
 - **Website**: https://www.paniniamerica.net/release-calendar, https://www.paniniamerica.net/category/panini-previews
-- **Feed/API**: ❌ No public API or RSS feed  
+- **Feed/API**: ❌ No public API or RSS feed (checked Sep 27, 2026)
 - **Data Quality**: ✅ Official dates (most accurate when posted)
-- **Update Frequency**: Irregular; releases announced 2-6 weeks before launch
+- **Update Frequency**: Irregular (observed from site; exact frequency not documented)
 - **Coverage**: Football, Basketball, Soccer, Baseball, Multi-Sport (Panini products only)
-- **Access Constraints**: No scraping ToS restrictions, but WordPress site
-- **Scraping Difficulty**: Moderate (dynamic content loading)
-- **Reliability**: High for posted releases; incomplete for future dates
+- **Access Constraints**: No explicit scraping ToS prohibition found (as of Sep 27, 2026); WordPress site
+- **Scraping Difficulty**: Moderate (dynamic content loading - observed during inspection)
+- **Reliability**: High for posted releases; incomplete for future dates (inferred from site structure)
 
 #### Upper Deck
 - **Website**: https://upperdeckstore.com/, https://www.upperdeckblog.com/
-- **Feed/API**: ❌ No public API (blog has RSS but doesn't list future releases)
+- **Feed/API**: ❌ No public API (blog has RSS for articles but not future releases - checked Sep 27, 2026)
 - **Data Quality**: ✅ Official when posted
-- **Update Frequency**: Irregular; very little advance notice
+- **Update Frequency**: Irregular (observed from site; timing varies)
 - **Coverage**: Hockey, Marvel, gaming products (Upper Deck products only)
-- **Access Constraints**: No API access
-- **Scraping Difficulty**: Moderate
-- **Reliability**: Medium (announcements often day-of or last minute)
+- **Access Constraints**: No public API (as of Sep 27, 2026)
+- **Scraping Difficulty**: Moderate (site structure observed during inspection)
+- **Reliability**: Medium (release timing observed to vary significantly)
 
 #### Bowman (Topps Subsidiary)
 - **Website**: https://www.topps.com/collections/bowman
-- **Feed/API**: ❌ No separate feed (integrated with Topps)
+- **Feed/API**: ❌ No separate feed (integrated with Topps - checked Sep 27, 2026)
 - **Data Quality**: ✅ Official
-- **Update Frequency**: Same as Topps
+- **Update Frequency**: Same as Topps (irregular)
 - **Coverage**: Baseball only
 - **Access Constraints**: Same as Topps
-- **Scraping Difficulty**: Same as Topps
+- **Scraping Difficulty**: Same as Topps (moderate)
 - **Reliability**: High for posted releases
 
 #### Fanatics (Topps Successor)
 - **Website**: https://www.fanatics.com/trading-cards/o-2398+z-92793-3509862569
-- **Feed/API**: ❌ No public API
-- **Data Quality**: ✅ Will be official source starting 2025/2026 for MLB/NBA/NFL
-- **Update Frequency**: Not yet established
-- **Coverage**: Will replace Topps/Panini for major sports
-- **Access Constraints**: Unknown (new platform)
-- **Scraping Difficulty**: Unknown
-- **Reliability**: Not yet launched for trading cards
+- **Feed/API**: ❌ No public API (checked Sep 27, 2026)
+- **Data Quality**: Expected to be official source (timeline based on industry announcements)
+- **Update Frequency**: Not yet established (platform still in development as of Sep 2026)
+- **Coverage**: Expected to replace Topps/Panini for major sports (MLB/NBA/NFL)
+- **Access Constraints**: Unknown (platform not yet launched for trading cards)
+- **Scraping Difficulty**: Unknown (platform not yet launched)
+- **Reliability**: Not yet launched for trading cards (as of Sep 27, 2026)
 
 ---
 
 ### 2. Multi-Brand Aggregator Sources
 
-#### Beckett (https://www.beckett.com/sports-cards-collectibles-release-calendar)
-- **Feed/API**: ❌ No public API or RSS feed
-- **Data Quality**: ⚠️ Aggregated from multiple sources; generally reliable but sometimes delayed
-- **Update Frequency**: Weekly to bi-weekly manual updates
+#### Beckett
+- **Website**: https://www.beckett.com/sports-cards-collectibles-release-calendar
+- **Feed/API**: ❌ No public API or RSS feed (checked Sep 27, 2026)
+- **Data Quality**: ⚠️ Aggregated from multiple sources (quality inferred from site inspection)
+- **Update Frequency**: Updates observed but exact schedule not documented
 - **Coverage**: ✅ Multi-brand (Topps, Panini, Upper Deck, Bowman, Leaf, Onyx, etc.)
 - **Coverage Sports**: Baseball, Basketball, Football, Hockey, Soccer, Multi-Sport
-- **Date Status**: Dates marked as "Estimated" or confirmed when known
-- **Pricing**: ❌ No retail/hobby prices listed
-- **Access Constraints**: Paywall for some features; scraping not explicitly prohibited but heavy anti-bot measures
-- **Scraping Difficulty**: High (JavaScript-heavy, dynamic content, potential CAPTCHA)
-- **Reliability**: Medium-High (community-trusted but not always up-to-date)
-- **Additional Notes**: Requires careful parsing to distinguish confirmed vs. estimated dates
+- **Date Status**: Some dates marked as "Estimated" (observed Sep 27, 2026)
+- **Pricing**: ❌ No retail/hobby prices listed on calendar (as of Sep 27, 2026)
+- **Access Constraints**: Paywall observed for some features; ToS not explicitly prohibiting scraping (as of Sep 27, 2026), but anti-bot measures present
+- **Scraping Difficulty**: High (JavaScript-heavy site observed during inspection)
+- **Reliability**: Medium-High (reputation based on industry presence)
+- **Additional Notes**: Parsing required to distinguish confirmed vs. estimated dates
 
-#### Cardboard Connection (https://www.cardboardconnection.com/sports-card-release-dates)
-- **Feed/API**: ❌ No public API; site has RSS for blog posts but not release calendar
-- **Data Quality**: ✅ High-quality aggregation; manually curated by industry experts
-- **Update Frequency**: Daily to weekly updates
+#### Cardboard Connection
+- **Website**: https://www.cardboardconnection.com/sports-card-release-dates
+- **Feed/API**: ❌ No public API (checked Sep 27, 2026); RSS available for blog posts but not for release calendar
+- **Data Quality**: ✅ High-quality aggregation (observed from site inspection)
+- **Update Frequency**: Updates observed; exact schedule not documented
 - **Coverage**: ✅ Multi-brand (Topps, Panini, Upper Deck, Bowman, Leaf, Onyx, Sage, etc.)
 - **Coverage Sports**: Baseball, Basketball, Football, Hockey, Soccer, Non-Sport
-- **Date Status**: ✅ Clearly marked as "Confirmed," "Estimated," or "TBD"
-- **Pricing**: ✅ Hobby box prices listed when available
-- **Access Constraints**: No explicit anti-scraping ToS; reasonable rate limiting expected
-- **Scraping Difficulty**: Moderate (WordPress-based, structured HTML)
-- **Reliability**: High (industry-standard resource, frequently cited)
+- **Date Status**: ✅ Dates marked as "Confirmed," "Estimated," or "TBD" (verified Sep 27, 2026)
+- **Pricing**: ✅ Hobby box prices listed for many releases (observed Sep 27, 2026)
+- **Access Constraints**: No explicit anti-scraping clause found in ToS (as of Sep 27, 2026)
+- **Scraping Difficulty**: Moderate (WordPress-based site observed during inspection)
+- **Reliability**: High (established industry resource)
 - **Additional Notes**: 
-  - Includes product checklists, set details, and box configurations
-  - Community-driven corrections and updates
-  - Most comprehensive free source for multi-brand releases
+  - Includes product checklists, set details, and box configurations (verified Sep 27, 2026)
+  - Community corrections accepted
+  - Comprehensive free multi-brand source
 
-#### Blowout Cards (https://www.blowoutcards.com/sports-cards/release-calendar)
-- **Feed/API**: ❌ No public API
-- **Data Quality**: ✅ High (driven by pre-order inventory dates)
-- **Update Frequency**: Real-time as products become available for pre-order
+#### Blowout Cards
+- **Website**: https://www.blowoutcards.com/sports-cards/release-calendar
+- **Feed/API**: ❌ No public API (checked Sep 27, 2026)
+- **Data Quality**: ✅ High for inventory items (reflects their pre-order dates)
+- **Update Frequency**: Real-time based on inventory (observed Sep 27, 2026)
 - **Coverage**: ✅ Multi-brand (products they stock)
-- **Coverage Sports**: All major sports
+- **Coverage Sports**: All major sports (verified Sep 27, 2026)
 - **Date Status**: Dates reflect pre-order availability (may differ from official retail dates)
-- **Pricing**: ✅ Pre-order prices (hobby boxes, retail, etc.)
-- **Access Constraints**: Commercial scraping discouraged; rate limiting in place
-- **Scraping Difficulty**: High (e-commerce platform with bot protection)
-- **Reliability**: High for products in their inventory; incomplete for retail-only or exclusives
-- **Additional Notes**: Best for hobby box release dates; retail dates may differ
+- **Pricing**: ✅ Pre-order prices listed (hobby boxes, retail, etc. - verified Sep 27, 2026)
+- **Access Constraints**: E-commerce ToS likely discourage automated scraping; bot protection observed
+- **Scraping Difficulty**: High (e-commerce platform with anti-bot measures observed)
+- **Reliability**: High for stocked products; incomplete for non-stocked items
+- **Additional Notes**: Dates reflect their inventory timeline, not necessarily official release dates
 
-#### Steel City Collectibles (https://www.steelcitycollectibles.com/release-calendar)
-- **Feed/API**: ❌ No public API
-- **Data Quality**: ✅ High (based on distributor allocation dates)
-- **Update Frequency**: Real-time as allocations confirmed
+#### Steel City Collectibles
+- **Website**: https://www.steelcitycollectibles.com/release-calendar
+- **Feed/API**: ❌ No public API (checked Sep 27, 2026)
+- **Data Quality**: ✅ High for inventory items (reflects distributor allocations)
+- **Update Frequency**: Real-time based on allocations (observed Sep 27, 2026)
 - **Coverage**: ✅ Multi-brand (products they stock)
-- **Date Status**: Dates reflect expected shipment to their warehouse
-- **Pricing**: ✅ Pre-order prices
-- **Access Constraints**: Commercial scraping discouraged
-- **Scraping Difficulty**: High (e-commerce platform with bot protection)
-- **Reliability**: High for hobby products; less reliable for retail exclusives
+- **Date Status**: Dates reflect expected shipment to their warehouse (not official retail dates)
+- **Pricing**: ✅ Pre-order prices listed (verified Sep 27, 2026)
+- **Access Constraints**: E-commerce ToS likely discourage automated scraping
+- **Scraping Difficulty**: High (e-commerce platform; bot protection expected)
+- **Reliability**: High for stocked hobby products; incomplete for non-stocked items
 
 #### Bleacher Seats Collectibles (Current Source)
 - **Website**: https://bleacherseatscollectibles.com/release-calendar/
-- **Feed/API**: ❌ No public API or RSS feed
-- **Data Quality**: ⚠️ Moderate; manually maintained, sometimes outdated
-- **Update Frequency**: Irregular (appears weekly to monthly)
-- **Coverage**: ✅ Multi-brand
-- **Date Status**: ❌ No distinction between confirmed/estimated/TBD
-- **Pricing**: ❌ Not listed on calendar
-- **Access Constraints**: No explicit restrictions observed
-- **Scraping Difficulty**: ✅ Low (simple HTML structure, accessible via axios + cheerio)
-- **Reliability**: Medium (calendar is low-priority for their site; updates can lag)
-- **Current Implementation**: Successfully scraping since initial implementation
+- **Feed/API**: ❌ No public API or RSS feed (checked Sep 27, 2026)
+- **Data Quality**: ⚠️ Moderate; manually maintained (observed from scraper results)
+- **Update Frequency**: Irregular (inferred from scraper logs; exact schedule unknown)
+- **Coverage**: ✅ Multi-brand (verified from scraped data)
+- **Date Status**: ❌ No distinction between confirmed/estimated/TBD (verified Sep 27, 2026)
+- **Pricing**: ❌ Not listed on calendar page (verified Sep 27, 2026)
+- **Access Constraints**: No explicit restrictions found in robots.txt or ToS (as of Sep 27, 2026)
+- **Scraping Difficulty**: ✅ Low (simple HTML structure verified in current implementation)
+- **Reliability**: Medium (completeness varies; observed from scraper results)
+- **Current Implementation**: Actively scraped weekly by `backend/services/bleacherSeatsScraperService.js`
 
 ---
 
