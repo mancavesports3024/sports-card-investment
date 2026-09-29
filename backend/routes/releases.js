@@ -62,15 +62,38 @@ function loadServices() {
     return { releaseDatabaseService, releaseInfoService, bleacherSeatsScraper, releaseScheduledJobs };
 }
 
-// Middleware to check if user is authenticated admin (placeholder - implement based on your auth system)
+// Middleware to check if user is authenticated admin
+// SECURITY: Requires environment variable ADMIN_EMAILS (comma-separated list)
+// Example: ADMIN_EMAILS="admin@example.com,owner@example.com"
 const isAdmin = (req, res, next) => {
-    // TODO: Implement actual admin check based on your authentication system
-    // For now, allow if there's a user in the session
-    if (req.user && req.user.email) {
-        // You can add admin email check here
-        return next();
+    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+    
+    // Require both authentication AND admin email list
+    if (!req.user || !req.user.email) {
+        return res.status(401).json({ 
+            success: false, 
+            error: 'Authentication required' 
+        });
     }
-    return res.status(401).json({ success: false, error: 'Unauthorized - Admin access required' });
+    
+    // Check if user email is in admin list
+    if (adminEmails.length === 0) {
+        // If no admin emails configured, block all access (fail-safe)
+        console.error('⚠️  ADMIN_EMAILS not configured - blocking admin endpoint access');
+        return res.status(403).json({ 
+            success: false, 
+            error: 'Admin access not configured. Contact site administrator.' 
+        });
+    }
+    
+    if (!adminEmails.includes(req.user.email.toLowerCase())) {
+        return res.status(403).json({ 
+            success: false, 
+            error: 'Admin access required' 
+        });
+    }
+    
+    next();
 };
 
 // GET /api/releases - Get all releases with optional filters
@@ -112,6 +135,34 @@ router.get('/', async (req, res) => {
             success: false,
             error: 'Failed to fetch releases',
             message: error.message
+        });
+    }
+});
+
+// GET /api/releases/unverified - Get releases needing verification (admin only)
+router.get('/unverified', isAdmin, async (req, res) => {
+    try {
+        const { Pool } = require('pg');
+        const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+        const result = await pool.query(`
+            SELECT * FROM releases
+            WHERE date_status = 'estimated'
+            AND (last_verified_at IS NULL OR last_verified_at < NOW() - INTERVAL '30 days')
+            ORDER BY release_date ASC
+        `);
+        
+        res.json({
+            success: true,
+            count: result.rows.length,
+            releases: result.rows
+        });
+    } catch (error) {
+        console.error('❌ Error fetching unverified releases:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch unverified releases',
+            message: error.message 
         });
     }
 });

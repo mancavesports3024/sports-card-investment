@@ -162,13 +162,9 @@ class ReleaseDatabaseService {
                 CREATE INDEX IF NOT EXISTS idx_is_active ON releases(is_active)
             `);
 
-            await pool.query(`
-                CREATE INDEX IF NOT EXISTS idx_date_status ON releases(date_status)
-            `);
-
-            await pool.query(`
-                CREATE INDEX IF NOT EXISTS idx_last_verified_at ON releases(last_verified_at)
-            `);
+            // Note: Additional schema fields (source_url, date_status, last_verified_at, etc.)
+            // should be added via migrations/001_add_release_verification_fields.sql
+            // Run: psql $DATABASE_URL -f backend/migrations/001_add_release_verification_fields.sql
 
             // Create release_sources table
             await client.query(`

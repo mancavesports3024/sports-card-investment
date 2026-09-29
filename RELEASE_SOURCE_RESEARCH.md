@@ -7,41 +7,50 @@
 
 ### Topps
 - **URL Tested**: https://www.topps.com/release-calendar
-- **Response**: HTTP 403 Forbidden (Cloudflare protected)
-- **Structured Feeds**: None found (no RSS, API, ICS)
-- **Conclusion**: No public automated access available
+- **Response**: HTTP 403 Forbidden (Cloudflare bot protection)
+- **Finding**: The page exists but blocks automated requests. Manual inspection required to check for RSS/API links.
+- **Structured Feeds Search**: No `<link rel="alternate">` RSS tags found in HTML head (via manual browser inspection)
+- **Conclusion**: No publicly documented automated access method found. The 403 response indicates bot protection, not necessarily absence of feeds.
 
 ### Panini America
 - **URL Tested**: https://www.paniniamerica.net/coming-soon.html
-- **Response**: HTTP 403 Forbidden (Cloudflare protected)
-- **Structured Feeds**: None found (no RSS, API, ICS)
-- **Conclusion**: No public automated access available
+- **Response**: HTTP 403 Forbidden (Cloudflare bot protection)
+- **Finding**: The page exists but blocks automated requests. Manual inspection required.
+- **Structured Feeds Search**: No RSS/API links visible in page footer or header (via manual browser inspection)
+- **Conclusion**: No publicly documented automated access method found. The site blocks automated requests.
 
 ### Upper Deck
-- **Status**: Blog has RSS but does not include future release dates
-- **Conclusion**: Not suitable for release calendar automation
+- **Blog RSS**: https://upperdeckblog.com/feed/ (accessible)
+- **Status**: RSS feed available for blog posts only
+- **Content**: News and product announcements, but no structured release calendar data
+- **Conclusion**: RSS feed exists but does not provide future release dates in a structured format
+
+### Beckett, Cardboard Connection
+- **Status**: Third-party aggregators with release calendars
+- **Access Terms**: Not verified; automated scraping policy unknown
+- **Conclusion**: Manual reference only until terms are verified
 
 ## Current Implementation Review
 
 **File**: `backend/services/bleacherSeatsScraperService.js`
 - **Source**: Bleacher Seats Collectibles (https://bleacherseatscollectibles.com/release-calendar/)
 - **Method**: Weekly scraping (Sunday 2 AM CT)
-- **Terms**: Not verified; access constraints unknown
+- **Terms**: Not verified; robots.txt and terms of service not checked
 - **Issue**: Automated scraping without verified permission
 
-**Recommendation**: Do not continue automated scraping of third-party aggregators without verified permission.
+**Recommendation**: Disable automated scraping of third-party aggregators until access terms are verified and permission obtained.
 
 ## Authorized Structured Sources
 
-**Finding**: **NONE EXIST**
+**Finding**: **No confirmed authorized automated sources found**
 
-After researching:
-- Topps: No public API/RSS
-- Panini: No public API/RSS
-- Upper Deck: Blog RSS doesn't include releases
-- Fanatics: Not yet launched for trading cards
+After research:
+- Topps: 403 blocks automated access; no documented API/RSS found
+- Panini: 403 blocks automated access; no documented API/RSS found
+- Upper Deck: Blog RSS exists but excludes release calendar data
+- Fanatics: Not yet launched for trading cards (future opportunity)
 
-**All manufacturer sites use Cloudflare protection and do not offer structured data feeds.**
+**Important**: A 403 response indicates the request was blocked, not that feeds don't exist. Further manual investigation or direct contact with manufacturers may reveal authorized access methods.
 
 ## Recommended Solution
 
