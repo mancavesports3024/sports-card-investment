@@ -55,23 +55,23 @@ releases (
 ### 1. Official Manufacturer Sources
 
 #### Topps
-- **Website**: https://www.topps.com/collections/baseball-cards, https://www.topps.com/collections/coming-soon
+- **Website**: https://www.topps.com/release-calendar
 - **Feed/API**: ❌ No public API or RSS feed (checked Sep 27, 2026)
 - **Data Quality**: ✅ Official dates (most accurate when posted)
 - **Update Frequency**: Irregular (observed from site inspection; exact frequency not documented)
 - **Coverage**: Baseball, WWE, Star Wars, F1, UEFA (Topps products only)
-- **Access Constraints**: No explicit scraping ToS prohibition found (as of Sep 27, 2026), but no structured feed
-- **Scraping Difficulty**: Moderate (JavaScript-rendered pages, Shopify storefront - observed during inspection)
+- **Access Constraints**: Not verified; no structured feed available
+- **Scraping Difficulty**: Not verified (site structure observed during inspection)
 - **Reliability**: High for posted releases; incomplete for future dates (inferred from site structure)
 
 #### Panini America
-- **Website**: https://www.paniniamerica.net/release-calendar, https://www.paniniamerica.net/category/panini-previews
+- **Website**: https://www.paniniamerica.net/coming-soon.html
 - **Feed/API**: ❌ No public API or RSS feed (checked Sep 27, 2026)
 - **Data Quality**: ✅ Official dates (most accurate when posted)
 - **Update Frequency**: Irregular (observed from site; exact frequency not documented)
 - **Coverage**: Football, Basketball, Soccer, Baseball, Multi-Sport (Panini products only)
-- **Access Constraints**: No explicit scraping ToS prohibition found (as of Sep 27, 2026); WordPress site
-- **Scraping Difficulty**: Moderate (dynamic content loading - observed during inspection)
+- **Access Constraints**: Not verified; no structured feed available
+- **Scraping Difficulty**: Not verified (site structure observed during inspection)
 - **Reliability**: High for posted releases; incomplete for future dates (inferred from site structure)
 
 #### Upper Deck
@@ -117,8 +117,8 @@ releases (
 - **Coverage Sports**: Baseball, Basketball, Football, Hockey, Soccer, Multi-Sport
 - **Date Status**: Some dates marked as "Estimated" (observed Sep 27, 2026)
 - **Pricing**: ❌ No retail/hobby prices listed on calendar (as of Sep 27, 2026)
-- **Access Constraints**: Paywall observed for some features; ToS not explicitly prohibiting scraping (as of Sep 27, 2026), but anti-bot measures present
-- **Scraping Difficulty**: High (JavaScript-heavy site observed during inspection)
+- **Access Constraints**: Paywall observed for some features; terms of service and bot protection not verified
+- **Scraping Difficulty**: Not verified (JavaScript-heavy site observed during inspection)
 - **Reliability**: Medium-High (reputation based on industry presence)
 - **Additional Notes**: Parsing required to distinguish confirmed vs. estimated dates
 
@@ -131,8 +131,8 @@ releases (
 - **Coverage Sports**: Baseball, Basketball, Football, Hockey, Soccer, Non-Sport
 - **Date Status**: ✅ Dates marked as "Confirmed," "Estimated," or "TBD" (verified Sep 27, 2026)
 - **Pricing**: ✅ Hobby box prices listed for many releases (observed Sep 27, 2026)
-- **Access Constraints**: No explicit anti-scraping clause found in ToS (as of Sep 27, 2026)
-- **Scraping Difficulty**: Moderate (WordPress-based site observed during inspection)
+- **Access Constraints**: Terms of service not verified
+- **Scraping Difficulty**: Not verified (WordPress-based site observed during inspection)
 - **Reliability**: High (established industry resource)
 - **Additional Notes**: 
   - Includes product checklists, set details, and box configurations (verified Sep 27, 2026)
@@ -148,8 +148,8 @@ releases (
 - **Coverage Sports**: All major sports (verified Sep 27, 2026)
 - **Date Status**: Dates reflect pre-order availability (may differ from official retail dates)
 - **Pricing**: ✅ Pre-order prices listed (hobby boxes, retail, etc. - verified Sep 27, 2026)
-- **Access Constraints**: E-commerce ToS likely discourage automated scraping; bot protection observed
-- **Scraping Difficulty**: High (e-commerce platform with anti-bot measures observed)
+- **Access Constraints**: Terms of service and bot protection not verified
+- **Scraping Difficulty**: Not verified (e-commerce platform)
 - **Reliability**: High for stocked products; incomplete for non-stocked items
 - **Additional Notes**: Dates reflect their inventory timeline, not necessarily official release dates
 
@@ -161,8 +161,8 @@ releases (
 - **Coverage**: ✅ Multi-brand (products they stock)
 - **Date Status**: Dates reflect expected shipment to their warehouse (not official retail dates)
 - **Pricing**: ✅ Pre-order prices listed (verified Sep 27, 2026)
-- **Access Constraints**: E-commerce ToS likely discourage automated scraping
-- **Scraping Difficulty**: High (e-commerce platform; bot protection expected)
+- **Access Constraints**: Terms of service not verified
+- **Scraping Difficulty**: Not verified (e-commerce platform)
 - **Reliability**: High for stocked hobby products; incomplete for non-stocked items
 
 #### Bleacher Seats Collectibles (Current Source)
@@ -173,7 +173,7 @@ releases (
 - **Coverage**: ✅ Multi-brand (verified from scraped data)
 - **Date Status**: ❌ No distinction between confirmed/estimated/TBD (verified Sep 27, 2026)
 - **Pricing**: ❌ Not listed on calendar page (verified Sep 27, 2026)
-- **Access Constraints**: No explicit restrictions found in robots.txt or ToS (as of Sep 27, 2026)
+- **Access Constraints**: Not verified; currently scraped without restrictions
 - **Scraping Difficulty**: ✅ Low (simple HTML structure verified in current implementation)
 - **Reliability**: Medium (completeness varies; observed from scraper results)
 - **Current Implementation**: Actively scraped weekly by `backend/services/bleacherSeatsScraperService.js`
@@ -318,11 +318,6 @@ CREATE INDEX IF NOT EXISTS idx_scraped_at ON releases(scraped_at);
 - **Bleacher Seats**: Max 1 request per 3 seconds
 - **Manufacturer Sites**: Max 1 request per 10 seconds (heavier pages)
 
-### User-Agent Rotation
-- Use realistic browser user-agents
-- Rotate between Chrome, Firefox, Safari on Windows/macOS/Linux
-- Match user-agent with actual rendering engine when using Puppeteer
-
 ### Error Handling
 - Implement exponential backoff on 429/503 errors
 - Log all failures with timestamp and error details
@@ -331,9 +326,8 @@ CREATE INDEX IF NOT EXISTS idx_scraped_at ON releases(scraped_at);
 
 ### Respect for Source Sites
 - Cache scraped data for at least 24 hours before re-scraping
-- Don't scrape during peak hours (9 AM - 5 PM EST)
 - Follow robots.txt directives when present
-- Provide contact info in user-agent string for site owners to reach us
+- Respect rate limits and usage terms
 
 ### Legal/Ethical Considerations
 - Release dates are factual information (not copyrightable)
