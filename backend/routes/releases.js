@@ -142,6 +142,111 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// POST /api/releases/manual-add - Add release with verification metadata
+router.post('/manual-add', isAdmin, async (req, res) => {
+    try {
+        const {
+            title, brand, sport, releaseDate, year, description, retailPrice, hobbyPrice,
+            sourceUrl, dateStatus = 'estimated', verificationNotes, verifiedBy
+        } = req.body;
+
+        if (!title || !releaseDate) {
+            return res.status(400).json({
+                success: false,
+                error: 'Title and releaseDate are required'
+            });
+        }
+
+        const { Pool } = require('pg');
+        const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+        const result = await pool.query(`
+            INSERT INTO releases (
+                title, brand, sport, release_date, year, description,
+                retail_price, hobby_price, source, source_url, date_status,
+                last_verified_at, last_verified_by, verification_notes
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), $12, $13)
+            RETURNING *
+        `, [
+            title, brand, sport, releaseDate, year, description,
+            retailPrice || 'TBD', hobbyPrice || 'TBD', 'Manual Entry', sourceUrl, dateStatus,
+            verifiedBy || req.user?.email || req.user?.name || 'admin', verificationNotes
+        ]);
+
+        // Clear cache
+        await loadServices().releaseInfoService.clearCache();
+
+        res.status(201).json({
+            success: true,
+            release: result.rows[0]
+        });
+    } catch (error) {
+        console.error('❌ Error manually adding release:', error.message);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to add release',
+            message: error.message
+        });
+    }
+});
+
+// PATCH /api/releases/:id/verify - Verify a release date with source
+router.patch('/:id/verify', isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { sourceUrl, dateStatus = 'confirmed', verificationNotes, verifiedBy } = req.body;
+
+        if (!sourceUrl) {
+            return res.status(400).json({
+                success: false,
+                error: 'sourceUrl is required for verification'
+            });
+        }
+
+        const { Pool } = require('pg');
+        const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+        const result = await pool.query(`
+            UPDATE releases
+            SET source_url = $1,
+                date_status = $2,
+                last_verified_at = NOW(),
+                last_verified_by = $3,
+                verification_notes = $4,
+                updated_at = NOW()
+            WHERE id = $5
+            RETURNING *
+        `, [
+            sourceUrl, dateStatus,
+            verifiedBy || req.user?.email || req.user?.name || 'admin',
+            verificationNotes, id
+        ]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Release not found'
+            });
+        }
+
+        // Clear cache
+        await loadServices().releaseInfoService.clearCache();
+
+        res.json({
+            success: true,
+            release: result.rows[0]
+        });
+    } catch (error) {
+        console.error('❌ Error verifying release:', error.message);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to verify release',
+            message: error.message
+        });
+    }
+});
+
 // POST /api/releases - Add new release (requires authentication)
 router.post('/', isAdmin, async (req, res) => {
     try {

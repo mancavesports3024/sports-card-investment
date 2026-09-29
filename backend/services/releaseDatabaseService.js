@@ -128,6 +128,11 @@ class ReleaseDatabaseService {
                     retail_price VARCHAR(50) DEFAULT 'TBD',
                     hobby_price VARCHAR(50) DEFAULT 'TBD',
                     source VARCHAR(100) DEFAULT 'Manual',
+                    source_url TEXT,
+                    date_status VARCHAR(20) DEFAULT 'estimated',
+                    last_verified_at TIMESTAMP,
+                    last_verified_by VARCHAR(100) DEFAULT 'system',
+                    verification_notes TEXT,
                     status VARCHAR(20) DEFAULT 'Announced',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -155,6 +160,14 @@ class ReleaseDatabaseService {
             `);
             await client.query(`
                 CREATE INDEX IF NOT EXISTS idx_is_active ON releases(is_active)
+            `);
+
+            await pool.query(`
+                CREATE INDEX IF NOT EXISTS idx_date_status ON releases(date_status)
+            `);
+
+            await pool.query(`
+                CREATE INDEX IF NOT EXISTS idx_last_verified_at ON releases(last_verified_at)
             `);
 
             // Create release_sources table
