@@ -160,13 +160,32 @@ const FeaturedEbayRotator = ({ apiUrl = `${API_BASE_URL}/api/live-listings/featu
           />
         ) : (
           <div style={{
-            color: '#999',
-            fontSize: '0.9rem',
-            textAlign: 'center',
-            justifySelf: 'center',
-            alignSelf: 'center'
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: imagesLoaded[current] === false ? '#f5f5f5' : 'transparent',
+            border: imagesLoaded[current] === false ? '2px dashed #ddd' : 'none',
+            borderRadius: 8,
+            padding: '1rem'
           }}>
-            {imagesLoaded[current] === false ? 'No image available' : 'Loading image...'}
+            <div style={{
+              color: imagesLoaded[current] === false ? '#666' : '#999',
+              fontSize: imagesLoaded[current] === false ? '2rem' : '0.9rem',
+              marginBottom: imagesLoaded[current] === false ? '0.5rem' : 0
+            }}>
+              {imagesLoaded[current] === false ? '🖼️' : '⏳'}
+            </div>
+            <div style={{
+              color: imagesLoaded[current] === false ? '#666' : '#999',
+              fontSize: '0.85rem',
+              textAlign: 'center',
+              fontWeight: imagesLoaded[current] === false ? 600 : 400
+            }}>
+              {imagesLoaded[current] === false ? 'Image not available' : 'Loading...'}
+            </div>
           </div>
         )}
       </div>
