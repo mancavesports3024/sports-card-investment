@@ -320,7 +320,7 @@ CREATE INDEX IF NOT EXISTS idx_scraped_at ON releases(scraped_at);
 ## Scraping Best Practices
 
 ### Rate Limiting
-- **Bleacher Seats**: Max 1 request per 3 seconds (currently implemented)
+- **Bleacher Seats**: Single request during weekly scheduled sync (Sunday 2 AM CT)
 - **Other sources**: Rate limits not specified until access terms are verified
 
 ### Error Handling
