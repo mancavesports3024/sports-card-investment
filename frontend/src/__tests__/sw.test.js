@@ -83,7 +83,9 @@ describe('Service Worker Cache Strategy', () => {
   describe('Static Assets (JS/CSS)', () => {
     it('detects static assets with fingerprints', () => {
       // Should match assets with content hashes (e.g., main.abc123.js)
-      expect(swCode).toMatch(/\/static\/.*\.[a-f0-9]{8,}\./);
+      // Pattern is in a regex, so it will have escaped slashes
+      expect(swCode).toContain('\\/static\\/');
+      expect(swCode).toContain('[a-f0-9]{8,}');
       expect(swCode).toContain('content hashes');
     });
 
