@@ -128,6 +128,11 @@ class ReleaseDatabaseService {
                     retail_price VARCHAR(50) DEFAULT 'TBD',
                     hobby_price VARCHAR(50) DEFAULT 'TBD',
                     source VARCHAR(100) DEFAULT 'Manual',
+                    source_url TEXT,
+                    date_status VARCHAR(20) DEFAULT 'estimated',
+                    last_verified_at TIMESTAMP,
+                    last_verified_by VARCHAR(100) DEFAULT 'system',
+                    verification_notes TEXT,
                     status VARCHAR(20) DEFAULT 'Announced',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -156,6 +161,10 @@ class ReleaseDatabaseService {
             await client.query(`
                 CREATE INDEX IF NOT EXISTS idx_is_active ON releases(is_active)
             `);
+
+            // Note: Additional schema fields (source_url, date_status, last_verified_at, etc.)
+            // should be added via migrations/001_add_release_verification_fields.sql
+            // Run: psql $DATABASE_URL -f backend/migrations/001_add_release_verification_fields.sql
 
             // Create release_sources table
             await client.query(`
