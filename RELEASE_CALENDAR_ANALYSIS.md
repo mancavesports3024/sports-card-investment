@@ -207,10 +207,15 @@ releases (
 ### Medium-Term: Multi-Source Strategy
 **Goal**: Reduce single-source dependency while maintaining maintainability
 
-1. **Add Cardboard Connection as Secondary Source**
+1. **Use Cardboard Connection as Manual Cross-Check**
    - **Why**: Most comprehensive, clearly marks date status, includes pricing, community-trusted
-   - **How**: Create `cardboardConnectionScraperService.js` using Puppeteer (JavaScript-rendered)
-   - **Merge Strategy**: 
+   - **How**: Manual review and cross-reference for date verification
+   - **Status**: Automated scraping not recommended until access terms and permissions are verified
+   - **Future**: Automation can be reconsidered after confirming:
+     - Terms of service permit automated access, or an authorized API/feed becomes available
+     - Site structure and update patterns are stable
+     - Rate limits and access constraints are documented
+   - **Merge Strategy** (when/if automation is verified): 
      - Use Cardboard Connection as primary where dates are marked "Confirmed"
      - Use Bleacher Seats as fallback or for cross-validation
      - When dates conflict, prefer "Confirmed" over "Estimated"
@@ -298,10 +303,11 @@ CREATE INDEX IF NOT EXISTS idx_scraped_at ON releases(scraped_at);
 4. Improve scraper error handling and monitoring
 
 ### Future PRs (Medium Priority)
-1. Implement Cardboard Connection scraper (Puppeteer-based)
-2. Add source priority system and conflict resolution
-3. Create dashboard to compare sources and flag discrepancies
-4. Add automated alerts for scraper failures
+1. Verify access terms for additional sources (Cardboard Connection, Beckett, etc.)
+2. If authorized: implement verified secondary source with appropriate access method
+3. Add source priority system and conflict resolution
+4. Create dashboard to compare sources and flag discrepancies
+5. Add automated alerts for scraper failures
 
 ### Future PRs (Lower Priority)
 1. Price tracking integration
@@ -314,9 +320,8 @@ CREATE INDEX IF NOT EXISTS idx_scraped_at ON releases(scraped_at);
 ## Scraping Best Practices
 
 ### Rate Limiting
-- **Beckett/Cardboard Connection**: Max 1 request per 5 seconds
-- **Bleacher Seats**: Max 1 request per 3 seconds
-- **Manufacturer Sites**: Max 1 request per 10 seconds (heavier pages)
+- **Bleacher Seats**: Max 1 request per 3 seconds (currently implemented)
+- **Other sources**: Rate limits not specified until access terms are verified
 
 ### Error Handling
 - Implement exponential backoff on 429/503 errors
@@ -332,9 +337,10 @@ CREATE INDEX IF NOT EXISTS idx_scraped_at ON releases(scraped_at);
 ### Legal/Ethical Considerations
 - Release dates are factual information (not copyrightable)
 - Do not scrape content (reviews, articles, images) without permission
-- Attribute sources when displaying data: "Data via Cardboard Connection"
+- Verify terms of service before implementing automated access
+- Attribute sources when displaying data (e.g., "Data via [Source Name]")
 - Link back to original source when possible
-- Do not frame or misrepresent scraped content as original
+- Do not frame or misrepresent content as original
 
 ---
 
@@ -342,6 +348,6 @@ CREATE INDEX IF NOT EXISTS idx_scraped_at ON releases(scraped_at);
 
 **Current Approach**: Bleacher Seats scraping + database + hardcoded fallback is functional but has single-source risk.
 
-**Recommended Next Step**: Fix service worker caching (this PR), then add Cardboard Connection as a secondary source with conflict resolution logic. This provides redundancy while maintaining a simple, maintainable architecture.
+**Recommended Next Step**: Fix service worker caching (this PR), then verify access terms for potential secondary sources. Use Cardboard Connection for manual cross-checking until automation permissions are confirmed. This ensures compliance while improving data quality.
 
 **Long-Term Goal**: Multi-source aggregation with manufacturer verification, community corrections, and price tracking—but start simple and iterate based on user feedback and data quality needs.
