@@ -66,9 +66,13 @@ function loadServices() {
 // SECURITY: Requires environment variable ADMIN_EMAILS (comma-separated list)
 // Example: ADMIN_EMAILS="admin@example.com,owner@example.com"
 const isAdmin = (req, res, next) => {
-    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+    // Parse and normalize admin emails: trim whitespace, lowercase, filter empty
+    const adminEmails = (process.env.ADMIN_EMAILS || '')
+        .split(',')
+        .map(e => e.trim().toLowerCase())
+        .filter(Boolean);
     
-    // Require both authentication AND admin email list
+    // Step 1: Check authentication (is user logged in?)
     if (!req.user || !req.user.email) {
         return res.status(401).json({ 
             success: false, 
@@ -76,9 +80,8 @@ const isAdmin = (req, res, next) => {
         });
     }
     
-    // Check if user email is in admin list
+    // Step 2: Fail-safe - if ADMIN_EMAILS not configured, block ALL access
     if (adminEmails.length === 0) {
-        // If no admin emails configured, block all access (fail-safe)
         console.error('⚠️  ADMIN_EMAILS not configured - blocking admin endpoint access');
         return res.status(403).json({ 
             success: false, 
@@ -86,13 +89,17 @@ const isAdmin = (req, res, next) => {
         });
     }
     
-    if (!adminEmails.includes(req.user.email.toLowerCase())) {
+    // Step 3: Check authorization (is user's email in admin list?)
+    const userEmail = req.user.email.toLowerCase();
+    if (!adminEmails.includes(userEmail)) {
+        console.warn(`⚠️  Non-admin user attempted admin access: ${req.user.email}`);
         return res.status(403).json({ 
             success: false, 
             error: 'Admin access required' 
         });
     }
     
+    // All checks passed
     next();
 };
 
