@@ -60,18 +60,23 @@ File sizes after gzip:
 
 ```
 Name:  ADMIN_EMAILS
-Value: mancavesportscardsllc@gmail.com
+Value: mancavesportscardsllc@gmail.com,sparkmandrew@gmail.com,cgcardsfan2011@gmail.com
 ```
 
-**Why this email?**
-- This is the Google account used for site authentication
-- Verified from git commit history
-- Must match exactly as it appears in Google OAuth
+**These emails from `frontend/src/config/adminEmails.js`**:
+- `mancavesportscardsllc@gmail.com` (primary owner account)
+- `sparkmandrew@gmail.com` (admin)
+- `cgcardsfan2011@gmail.com` (admin)
+
+**Critical**:
+- All three emails already configured in frontend admin list
+- Must match exactly as they appear in Google OAuth
+- Comma-separated, no spaces
 
 **Security verification**:
 - ✅ Without this configured, ALL admin access is blocked (fail-safe)
 - ✅ Non-admin users will see "Access Denied"
-- ✅ Only this email can access `/admin/releases` and admin API endpoints
+- ✅ Only these three emails can access `/admin/releases` and admin API endpoints
 
 ---
 
@@ -148,10 +153,13 @@ git push origin improve/clarify-brand-blog-search
 **Test 3**: Sign in with admin email ✅
 ```
 1. Sign out
-2. Sign in with: mancavesportscardsllc@gmail.com
+2. Sign in with any of:
+   - mancavesportscardsllc@gmail.com
+   - sparkmandrew@gmail.com
+   - cgcardsfan2011@gmail.com
 3. Visit https://your-site.com/admin/releases
 4. Expected: Admin interface loads with three tabs
-5. Verify email shown in header: "Signed in as: mancavesportscardsllc@gmail.com"
+5. Verify email shown in header: "Signed in as: [your-email]"
 ```
 
 **Test 4**: Add test release
@@ -231,11 +239,12 @@ git push origin improve/clarify-brand-blog-search
    - Admin UI shows error messages
    - Cannot add or verify releases
 
-3. **Email must match exactly**:
-   - Use: `mancavesportscardsllc@gmail.com`
-   - NOT: `mancavesports3024@gmail.com`
-   - NOT: `MancaveSportsCardsLLC@gmail.com` (case-insensitive but best to match)
+3. **Emails must match exactly**:
+   - Use: `mancavesportscardsllc@gmail.com,sparkmandrew@gmail.com,cgcardsfan2011@gmail.com`
+   - These are from `frontend/src/config/adminEmails.js`
+   - Case-insensitive matching (converted to lowercase)
    - Must be the email from Google OAuth login
+   - Comma-separated, no spaces between emails
 
 ---
 
@@ -244,7 +253,7 @@ git push origin improve/clarify-brand-blog-search
 ### Access
 ```
 URL: https://your-site.com/admin/releases
-Auth: Google sign-in with mancavesportscardsllc@gmail.com
+Auth: Google sign-in with one of the three admin emails
 ```
 
 ### Add Release (30 seconds)
@@ -405,6 +414,6 @@ Deployment successful when:
 
 **CRITICAL**: Do not merge until Steps 1 & 2 complete.
 
-**Email to use**: `mancavesportscardsllc@gmail.com`
+**Emails to use**: `mancavesportscardsllc@gmail.com,sparkmandrew@gmail.com,cgcardsfan2011@gmail.com`
 
 **Status**: Ready for production deployment after configuration.
