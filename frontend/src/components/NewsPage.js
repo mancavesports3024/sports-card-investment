@@ -360,12 +360,24 @@ const NewsPage = () => {
               <strong style={{ color: '#ffd700' }}>Release Date:</strong>
               <div style={{ color: '#d1d5db' }}>
                 {selectedRelease.releaseDate ? (
-                  new Date(selectedRelease.releaseDate).toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })
+                  <>
+                    {new Date(selectedRelease.releaseDate).toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                    {selectedRelease.date_status && selectedRelease.date_status !== 'confirmed' && (
+                      <span style={{ 
+                        marginLeft: '0.5rem', 
+                        fontSize: '0.85rem', 
+                        color: selectedRelease.date_status === 'estimated' ? '#f39c12' : '#95a5a6',
+                        textTransform: 'capitalize'
+                      }}>
+                        ({selectedRelease.date_status})
+                      </span>
+                    )}
+                  </>
                 ) : (
                   'TBD'
                 )}
@@ -444,12 +456,24 @@ const NewsPage = () => {
           <strong style={{ color: '#374151' }}>Release Date:</strong>
           <div style={{ color: '#6b7280' }}>
             {release.releaseDate ? (
-              new Date(release.releaseDate).toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })
+              <>
+                {new Date(release.releaseDate).toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+                {release.date_status && release.date_status !== 'confirmed' && (
+                  <span style={{ 
+                    marginLeft: '0.5rem', 
+                    fontSize: '0.85rem', 
+                    color: release.date_status === 'estimated' ? '#f39c12' : '#95a5a6',
+                    textTransform: 'capitalize'
+                  }}>
+                    ({release.date_status})
+                  </span>
+                )}
+              </>
             ) : (
               'TBD'
             )}
