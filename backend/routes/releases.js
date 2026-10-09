@@ -62,15 +62,45 @@ function loadServices() {
     return { releaseDatabaseService, releaseInfoService, bleacherSeatsScraper, releaseScheduledJobs };
 }
 
-// Middleware to check if user is authenticated admin (placeholder - implement based on your auth system)
+// Middleware to check if user is authenticated admin
+// SECURITY: Requires environment variable ADMIN_EMAILS (comma-separated list)
+// Example: ADMIN_EMAILS="admin@example.com,owner@example.com"
 const isAdmin = (req, res, next) => {
-    // TODO: Implement actual admin check based on your authentication system
-    // For now, allow if there's a user in the session
-    if (req.user && req.user.email) {
-        // You can add admin email check here
-        return next();
+    // Parse and normalize admin emails: trim whitespace, lowercase, filter empty
+    const adminEmails = (process.env.ADMIN_EMAILS || '')
+        .split(',')
+        .map(e => e.trim().toLowerCase())
+        .filter(Boolean);
+    
+    // Step 1: Check authentication (is user logged in?)
+    if (!req.user || !req.user.email) {
+        return res.status(401).json({ 
+            success: false, 
+            error: 'Authentication required' 
+        });
     }
-    return res.status(401).json({ success: false, error: 'Unauthorized - Admin access required' });
+    
+    // Step 2: Fail-safe - if ADMIN_EMAILS not configured, block ALL access
+    if (adminEmails.length === 0) {
+        console.error('⚠️  ADMIN_EMAILS not configured - blocking admin endpoint access');
+        return res.status(403).json({ 
+            success: false, 
+            error: 'Admin access not configured. Contact site administrator.' 
+        });
+    }
+    
+    // Step 3: Check authorization (is user's email in admin list?)
+    const userEmail = req.user.email.toLowerCase();
+    if (!adminEmails.includes(userEmail)) {
+        console.warn(`⚠️  Non-admin user attempted admin access: ${req.user.email}`);
+        return res.status(403).json({ 
+            success: false, 
+            error: 'Admin access required' 
+        });
+    }
+    
+    // All checks passed
+    next();
 };
 
 // GET /api/releases - Get all releases with optional filters
@@ -116,10 +146,48 @@ router.get('/', async (req, res) => {
     }
 });
 
+// GET /api/releases/unverified - Get releases needing verification (admin only)
+router.get('/unverified', isAdmin, async (req, res) => {
+    try {
+        const { Pool } = require('pg');
+        const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+        const result = await pool.query(`
+            SELECT * FROM releases
+            WHERE date_status = 'estimated'
+            AND (last_verified_at IS NULL OR last_verified_at < NOW() - INTERVAL '30 days')
+            ORDER BY release_date ASC
+        `);
+        
+        res.json({
+            success: true,
+            count: result.rows.length,
+            releases: result.rows
+        });
+    } catch (error) {
+        console.error('❌ Error fetching unverified releases:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch unverified releases',
+            message: error.message 
+        });
+    }
+});
+
 // GET /api/releases/:id - Get single release by ID
 router.get('/:id', async (req, res) => {
     try {
-        const release = await loadServices().releaseDatabaseService.getReleaseById(parseInt(req.params.id));
+        const id = parseInt(req.params.id);
+        
+        if (isNaN(id)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid release ID',
+                message: 'Release ID must be a valid integer'
+            });
+        }
+        
+        const release = await loadServices().releaseDatabaseService.getReleaseById(id);
         
         if (!release) {
             return res.status(404).json({
@@ -134,9 +202,114 @@ router.get('/:id', async (req, res) => {
         });
     } catch (error) {
         console.error('❌ Error getting release:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch release',
+            message: error.message 
+        });
+    }
+});
+
+// POST /api/releases/manual-add - Add release with verification metadata
+router.post('/manual-add', isAdmin, async (req, res) => {
+    try {
+        const {
+            title, brand, sport, releaseDate, year, description, retailPrice, hobbyPrice,
+            sourceUrl, dateStatus = 'estimated', verificationNotes, verifiedBy
+        } = req.body;
+
+        if (!title || !releaseDate) {
+            return res.status(400).json({
+                success: false,
+                error: 'Title and releaseDate are required'
+            });
+        }
+
+        const { Pool } = require('pg');
+        const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+        const result = await pool.query(`
+            INSERT INTO releases (
+                title, brand, sport, release_date, year, description,
+                retail_price, hobby_price, source, source_url, date_status,
+                last_verified_at, last_verified_by, verification_notes
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), $12, $13)
+            RETURNING *
+        `, [
+            title, brand, sport, releaseDate, year, description,
+            retailPrice || 'TBD', hobbyPrice || 'TBD', 'Manual Entry', sourceUrl, dateStatus,
+            verifiedBy || req.user?.email || req.user?.name || 'admin', verificationNotes
+        ]);
+
+        // Clear cache
+        await loadServices().releaseInfoService.clearCache();
+
+        res.status(201).json({
+            success: true,
+            release: result.rows[0]
+        });
+    } catch (error) {
+        console.error('❌ Error manually adding release:', error.message);
         res.status(500).json({
             success: false,
-            error: 'Failed to fetch release',
+            error: 'Failed to add release',
+            message: error.message
+        });
+    }
+});
+
+// PATCH /api/releases/:id/verify - Verify a release date with source
+router.patch('/:id/verify', isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { sourceUrl, dateStatus = 'confirmed', verificationNotes, verifiedBy } = req.body;
+
+        if (!sourceUrl) {
+            return res.status(400).json({
+                success: false,
+                error: 'sourceUrl is required for verification'
+            });
+        }
+
+        const { Pool } = require('pg');
+        const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+        const result = await pool.query(`
+            UPDATE releases
+            SET source_url = $1,
+                date_status = $2,
+                last_verified_at = NOW(),
+                last_verified_by = $3,
+                verification_notes = $4,
+                updated_at = NOW()
+            WHERE id = $5
+            RETURNING *
+        `, [
+            sourceUrl, dateStatus,
+            verifiedBy || req.user?.email || req.user?.name || 'admin',
+            verificationNotes, id
+        ]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Release not found'
+            });
+        }
+
+        // Clear cache
+        await loadServices().releaseInfoService.clearCache();
+
+        res.json({
+            success: true,
+            release: result.rows[0]
+        });
+    } catch (error) {
+        console.error('❌ Error verifying release:', error.message);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to verify release',
             message: error.message
         });
     }
