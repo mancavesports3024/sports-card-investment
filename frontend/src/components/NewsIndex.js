@@ -41,32 +41,61 @@ function filterArticlesByCategory(articles, categoryFilter) {
   }
 }
 
+function textIncludes(value, query) {
+  return typeof value === 'string' && value.toLowerCase().includes(query);
+}
+
+// Published articles store spans as `{ text }` after validation. Some fixtures
+// also set `type: 'text'`. Either form is searchable body text.
+function spanMatches(span, query) {
+  if (typeof span === 'string') return textIncludes(span, query);
+  if (!span || typeof span !== 'object') return false;
+  if (span.type && span.type !== 'text') return false;
+  return textIncludes(span.text, query);
+}
+
+function spanListMatches(spans, query) {
+  return Array.isArray(spans) && spans.some((span) => spanMatches(span, query));
+}
+
+function bodyMatches(article, query) {
+  if (!Array.isArray(article.body)) return false;
+
+  return article.body.some((block) => {
+    if (!block || typeof block !== 'object') return false;
+
+    if (block.type === 'heading' && textIncludes(block.text, query)) return true;
+    if (block.type === 'callout' && textIncludes(block.title, query)) return true;
+
+    if (
+      (block.type === 'paragraph' || block.type === 'heading' || block.type === 'callout') &&
+      spanListMatches(block.content, query)
+    ) {
+      return true;
+    }
+
+    if (
+      (block.type === 'unorderedList' || block.type === 'orderedList' || block.type === 'callout' || block.type === 'list') &&
+      Array.isArray(block.items)
+    ) {
+      return block.items.some((item) => spanMatches(item, query) || spanListMatches(item, query));
+    }
+
+    return false;
+  });
+}
+
 function searchArticles(articles, searchQuery) {
   if (!searchQuery.trim()) return articles;
   
   const query = searchQuery.toLowerCase().trim();
   
   return articles.filter(article => {
-    const titleMatch = article.title.toLowerCase().includes(query);
-    const excerptMatch = article.excerpt.toLowerCase().includes(query);
-    const categoryMatch = article.category.toLowerCase().includes(query);
-    const tagsMatch = article.tags.some(tag => tag.toLowerCase().includes(query));
-    
-    const bodyMatch = article.body && article.body.some(block => {
-      if ((block.type === 'paragraph' || block.type === 'heading') && block.content) {
-        return block.content.some(inline => 
-          inline && inline.type === 'text' && inline.text && inline.text.toLowerCase().includes(query)
-        );
-      }
-      if (block.type === 'list' && block.items) {
-        return block.items.some(item =>
-          Array.isArray(item) && item.some(inline =>
-            inline && inline.type === 'text' && inline.text && inline.text.toLowerCase().includes(query)
-          )
-        );
-      }
-      return false;
-    });
+    const titleMatch = textIncludes(article.title, query);
+    const excerptMatch = textIncludes(article.excerpt, query);
+    const categoryMatch = textIncludes(article.category, query);
+    const tagsMatch = Array.isArray(article.tags) && article.tags.some(tag => textIncludes(tag, query));
+    const bodyMatch = bodyMatches(article, query);
     
     return titleMatch || excerptMatch || categoryMatch || tagsMatch || bodyMatch;
   });

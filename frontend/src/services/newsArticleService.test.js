@@ -109,8 +109,12 @@ describe('sorting', () => {
     expect(timestamps).toEqual(descending);
   });
 
-  it('puts the newest migrated article first', () => {
-    expect(getAllArticles()[0].slug).toBe('ebay-bundle-discounts-sports-cards');
+  it('puts the newest published article first', () => {
+    const [newest] = getAllArticles();
+
+    // Later guides were published after the eBay bundle-discounts article.
+    expect(newest.slug).toBe('price-low-end-sports-cards-ebay');
+    expect(newest.publishedAt).toBe('2026-10-08');
   });
 
   it('sorts an unordered list without mutating the input', () => {

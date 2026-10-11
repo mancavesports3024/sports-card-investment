@@ -145,19 +145,69 @@ describe('NewsIndex search', () => {
     expect(searchInput).toHaveAttribute('type', 'search');
   });
 
-  it('filters articles by title', () => {
-    const articles = getAllArticles();
-    renderIndex({ articles });
+  it('matches Bowman in titles, excerpts, tags, and body text', () => {
+    renderIndex({ articles: getAllArticles() });
 
     const searchInput = screen.getByPlaceholderText('Search articles...');
     fireEvent.change(searchInput, { target: { value: 'Bowman' } });
 
-    const visibleCards = screen.queryAllByRole('article');
-    const bowmanArticles = articles.filter(a => 
-      a.title.toLowerCase().includes('bowman')
+    const hrefs = screen.getAllByRole('article').map((card) =>
+      within(card).getByRole('heading').querySelector('a').getAttribute('href')
     );
-    
-    expect(visibleCards.length).toBe(Math.min(12, bowmanArticles.length));
+
+    // Newest first. The October watchlist matches its excerpt and tags.
+    // The parallels and set-completion guides mention Bowman only in the body.
+    expect(hrefs).toEqual([
+      '/news/october-2026-sports-card-releases-budget-guide',
+      '/news/sports-card-parallels-vs-inserts-guide',
+      '/news/complete-sports-card-set-on-ebay-budget',
+      '/news/2026-bowman-chrome-baseball-budget-guide',
+    ]);
+    expect(screen.getByText('Found 4 articles')).toBeInTheDocument();
+  });
+
+  it('matches normalized body spans, headings, and lists', () => {
+    const article = (slug, publishedAt, body) => ({
+      slug,
+      title: 'Unrelated title',
+      excerpt: 'Unrelated excerpt',
+      publishedAt,
+      category: 'Guides',
+      tags: ['Other'],
+      readingTime: '1 min',
+      body,
+    });
+
+    renderIndex({
+      articles: [
+        article('span-match', '2026-03-03', [
+          { type: 'paragraph', content: [{ text: 'mentions Bowman in a normalized span' }] },
+        ]),
+        article('heading-match', '2026-03-02', [
+          { type: 'heading', level: 2, text: 'A Bowman heading' },
+        ]),
+        article('list-match', '2026-03-01', [
+          { type: 'unorderedList', items: [[{ text: 'a Bowman list item' }]] },
+        ]),
+        article('miss', '2026-02-01', [
+          { type: 'paragraph', content: [{ text: 'no keyword here' }] },
+        ]),
+      ],
+    });
+
+    fireEvent.change(screen.getByPlaceholderText('Search articles...'), {
+      target: { value: 'Bowman' },
+    });
+
+    const hrefs = screen.getAllByRole('article').map((card) =>
+      within(card).getByRole('heading').querySelector('a').getAttribute('href')
+    );
+
+    expect(hrefs).toEqual([
+      '/news/span-match',
+      '/news/heading-match',
+      '/news/list-match',
+    ]);
   });
 
   it('filters articles by excerpt', () => {
