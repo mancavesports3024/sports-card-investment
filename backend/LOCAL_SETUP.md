@@ -47,7 +47,7 @@ After updating your `.env` file:
 
 ```bash
 # Stop the current server (Ctrl+C)
-cd ScoreCard/backend
+cd backend
 npm start
 ```
 
@@ -60,7 +60,7 @@ You should see:
 
 1. Start your frontend:
 ```bash
-cd ScoreCard/frontend && npm start
+cd frontend && npm start
 ```
 2. Go to your app in the browser
 3. Click "Login with Google"

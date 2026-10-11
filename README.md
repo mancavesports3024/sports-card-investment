@@ -17,7 +17,7 @@ A React application that fetches and analyzes recent eBay sales of sports cards,
 
 1. Navigate to the backend directory:
 ```bash
-cd ScoreCard/backend
+cd backend
 ```
 
 2. Install dependencies:
@@ -81,7 +81,7 @@ EBAY_AUTH_TOKEN=your_access_token
 
 1. Navigate to the frontend directory:
 ```bash
-cd ScoreCard/frontend
+cd frontend
 ```
 
 2. Install dependencies:
@@ -93,7 +93,7 @@ npm install
 
 ### Start the Backend
 ```bash
-cd ScoreCard/backend
+cd backend
 npm start
 ```
 
@@ -104,7 +104,7 @@ The backend will:
 
 ### Start the Frontend
 ```bash
-cd ScoreCard/frontend
+cd frontend
 npm start
 ```
 
@@ -170,7 +170,7 @@ If you only set `EBAY_AUTH_TOKEN`:
 
 ### Project Structure
 ```
-ScoreCard/
+sports-card-investment/
 ├── backend/
 │   ├── index.js              # Main server file
 │   ├── routes/

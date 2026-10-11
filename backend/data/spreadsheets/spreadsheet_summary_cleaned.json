@@ -49,9 +49,9 @@
     "9"
   ],
   "filesCreated": [
-    "C:\\ScoreCard\\backend\\data\\spreadsheets\\Card_Sets_cleaned.csv",
-    "C:\\ScoreCard\\backend\\data\\spreadsheets\\Sport_Year_Combinations_cleaned.csv",
-    "C:\\ScoreCard\\backend\\data\\spreadsheets\\Statistics_cleaned.csv"
+    "backend/data/spreadsheets/Card_Sets_cleaned.csv",
+    "backend/data/spreadsheets/Sport_Year_Combinations_cleaned.csv",
+    "backend/data/spreadsheets/Statistics_cleaned.csv"
   ],
   "generatedAt": "2025-07-29T13:45:27.651Z"
 }
