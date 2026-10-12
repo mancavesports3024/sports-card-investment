@@ -131,7 +131,7 @@ describe('Service Worker Behavioral Tests', () => {
       });
 
       // Put old HTML in cache
-      const cache = await mockCaches.open('scorecard-v2-static');
+      const cache = await mockCaches.open('scorecard-v3-static');
       await cache.put(
         request.url,
         new globalScope.Response('<html><body>OLD</body></html>', {
@@ -173,7 +173,7 @@ describe('Service Worker Behavioral Tests', () => {
       });
 
       // Put HTML in cache
-      const cache = await mockCaches.open('scorecard-v2-static');
+      const cache = await mockCaches.open('scorecard-v3-static');
       await cache.put(
         request.url,
         new globalScope.Response('<html><body>CACHED</body></html>', {
@@ -237,7 +237,7 @@ describe('Service Worker Behavioral Tests', () => {
       );
 
       // Put asset in cache
-      const cache = await mockCaches.open('scorecard-v2-static');
+      const cache = await mockCaches.open('scorecard-v3-static');
       const cachedResponse = new globalScope.Response('CACHED_JS_CONTENT', {
         status: 200,
         headers: { 'Content-Type': 'application/javascript' },
@@ -276,7 +276,7 @@ describe('Service Worker Behavioral Tests', () => {
       );
 
       // Put asset in cache
-      const cache = await mockCaches.open('scorecard-v2-static');
+      const cache = await mockCaches.open('scorecard-v3-static');
       const cachedResponse = new globalScope.Response('CACHED_CSS_CONTENT', {
         status: 200,
         headers: { 'Content-Type': 'text/css' },
@@ -348,7 +348,7 @@ describe('Service Worker Behavioral Tests', () => {
       );
 
       // Put old content in cache
-      const cache = await mockCaches.open('scorecard-v2-static');
+      const cache = await mockCaches.open('scorecard-v3-static');
       await cache.put(
         request.url,
         new globalScope.Response('OLD_JS', {
@@ -395,7 +395,7 @@ describe('Service Worker Behavioral Tests', () => {
       );
 
       // Put old content in cache
-      const cache = await mockCaches.open('scorecard-v2-static');
+      const cache = await mockCaches.open('scorecard-v3-static');
       await cache.put(
         request.url,
         new globalScope.Response('OLD_CSS', {
@@ -434,78 +434,29 @@ describe('Service Worker Behavioral Tests', () => {
   });
 
   describe('API requests', () => {
-    it('uses network-first for API requests', async () => {
-      const request = new globalScope.Request('https://example.com/api/news', {
-        method: 'GET',
-      });
-
-      // Put old data in cache
-      const cache = await mockCaches.open('scorecard-v2-api');
-      await cache.put(
-        request.url,
-        new globalScope.Response(JSON.stringify({ data: 'OLD' }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      );
-
-      // Mock fetch to return new data
-      mockFetch.mockResolvedValueOnce(
-        new globalScope.Response(JSON.stringify({ data: 'NEW' }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      );
-
-      // Simulate fetch event
-      let response;
-      const event = {
-        request,
-        respondWith: jest.fn((promise) => {
-          response = promise;
-        }),
-      };
-
+    it.each(['https://example.com/api/news', 'https://railway.example/api/user/profile'])('leaves %s to the browser without caching private responses', (url) => {
+      const request = new globalScope.Request(url, { method: 'GET' });
+      request.headers = { Authorization: 'Bearer private-token' };
+      const event = { request, respondWith: jest.fn() };
       fetchHandler(event);
-      const result = await response;
-
-      // Should return fresh network data
-      expect(mockFetch).toHaveBeenCalledWith(request);
-      expect(result.body).toContain('"NEW"');
+      expect(event.respondWith).not.toHaveBeenCalled();
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(mockCaches.open).not.toHaveBeenCalled();
+      expect(mockCaches.match).not.toHaveBeenCalled();
     });
 
-    it('falls back to cached API response when offline', async () => {
-      const request = new globalScope.Request('https://example.com/api/news', {
-        method: 'GET',
-      });
-
-      // Put data in cache
-      const cache = await mockCaches.open('scorecard-v2-api');
-      await cache.put(
-        request.url,
-        new globalScope.Response(JSON.stringify({ data: 'CACHED' }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      );
-
-      // Mock fetch to fail
-      mockFetch.mockRejectedValueOnce(new Error('Network error'));
-
-      // Simulate fetch event
-      let response;
-      const event = {
-        request,
-        respondWith: jest.fn((promise) => {
-          response = promise;
-        }),
-      };
-
+    it('never serves an old cached private API response when offline', async () => {
+      const request = new globalScope.Request('https://example.com/api/user/profile');
+      const oldCache = await mockCaches.open('scorecard-v2-api');
+      await oldCache.put(request.url, new globalScope.Response('PRIVATE_OLD_DATA'));
+      mockCaches.open.mockClear();
+      mockFetch.mockRejectedValue(new Error('Offline'));
+      const event = { request, respondWith: jest.fn() };
       fetchHandler(event);
-      const result = await response;
-
-      // Should return cached data
-      expect(result.body).toContain('"CACHED"');
+      expect(event.respondWith).not.toHaveBeenCalled();
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(mockCaches.open).not.toHaveBeenCalled();
+      expect(mockCaches.match).not.toHaveBeenCalled();
     });
   });
 });

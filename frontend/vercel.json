@@ -1,4 +1,9 @@
 {
+  "git": {
+    "deploymentEnabled": {
+      "codex/legal-01-privacy-tracking": false
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",

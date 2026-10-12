@@ -51,7 +51,7 @@ const TEMPLATE = [
   '<!doctype html><html lang="en"><head>',
   '<meta charset="utf-8"/>',
   '<meta name="viewport" content="width=device-width,initial-scale=1"/>',
-  '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5981606678113994" crossorigin="anonymous"></script>',
+  '<!-- Advertising disabled pending certified CMP -->',
   '<title>Scorecard - Home</title>',
   '<meta data-react-helmet="true" name="description" content="Site default description."/>',
   '<meta data-react-helmet="true" property="og:title" content="Scorecard - Home"/>',
@@ -535,11 +535,11 @@ describe('static article page generation', () => {
     expect(html).not.toContain('content="Scorecard - Home"');
   });
 
-  it('keeps the app bundle, AdSense and unmanaged tags untouched', () => {
+  it('keeps the app bundle and unmanaged tags without reintroducing advertising', () => {
     const html = renderArticleHtml(TEMPLATE, article());
 
     expect(html).toContain('src="/static/js/main.abc123.js"');
-    expect(html).toContain('adsbygoogle.js?client=ca-pub-5981606678113994');
+    expect(html).not.toContain('adsbygoogle.js?client=ca-pub-5981606678113994');
     expect(html).toContain('<meta charset="utf-8"/>');
     expect(html).toContain('<meta name="googlebot" content="index, follow"/>');
     expect(html).toContain('<link rel="manifest" href="/manifest.json"/>');
@@ -698,7 +698,7 @@ describe('static News index generation', () => {
 
     expect(html).toContain('src="/static/js/main.abc123.js"');
     expect(html).toContain('<div id="root"></div>');
-    expect(html).toContain('adsbygoogle.js?client=ca-pub-5981606678113994');
+    expect(html).not.toContain('adsbygoogle.js?client=ca-pub-5981606678113994');
   });
 
   it('handles an empty ItemList without breaking the document', () => {
