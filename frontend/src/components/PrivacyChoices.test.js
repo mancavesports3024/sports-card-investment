@@ -35,3 +35,13 @@ test('storage failure leaves choices open and clearly reports that preference wa
   expect(screen.getByRole('alert')).toHaveTextContent('could not save the choice');
   expect(screen.getByRole('button', { name: 'Reject analytics' })).toBeVisible();
 });
+
+test('failed withdrawal keeps preferences open and says Analytics is off on this page', () => {
+  readChoice.mockReturnValue({ analytics: true });
+  saveChoice.mockReturnValue(false);
+  render(<PrivacyChoices />);
+  fireEvent.click(screen.getByRole('button', { name: 'Privacy preferences' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Reject analytics' }));
+  expect(screen.getByRole('alert')).toHaveTextContent('Analytics is off on this page');
+  expect(screen.getByRole('button', { name: 'Accept analytics' })).toBeVisible();
+});

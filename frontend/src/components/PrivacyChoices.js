@@ -10,7 +10,7 @@ export default function PrivacyChoices() {
   }, []);
   const choose = value => {
     if (saveChoice(value)) { setError(false); setOpen(false); }
-    else setError(true);
+    else { setError(true); setOpen(true); }
   };
   return <aside style={{ background: '#1f2937', color: '#fff', padding: '1rem' }} aria-label="Privacy choices">
     <a href="/privacy-policy" style={{ color: '#93c5fd' }}>Privacy policy</a>{' '}
@@ -18,10 +18,10 @@ export default function PrivacyChoices() {
     {open && <div role="region" aria-label="Choose analytics preference">
       <h2>Optional analytics</h2>
       <p>With your permission, Google Analytics uses cookies and receives page visits and card interactions to help us understand site use. Essential sign-in and saved-search features work without analytics. Advertising is currently disabled.</p>
-      <p>You can change this choice here at any time. We remember it on this browser for 180 days. Global Privacy Control keeps analytics off.</p>
+      <p>You can change this choice here at any time. A saved choice is valid for 180 days; its record remains until replaced or cleared. Global Privacy Control keeps analytics off.</p>
       <button onClick={() => choose(false)}>Reject analytics</button>{' '}
       <button onClick={() => choose(true)}>Accept analytics</button>
-      {error && <p role="alert">Your browser could not save the choice. Enable browser storage to save a preference.</p>}
+      {error && <p role="alert">Your browser could not save the choice. Analytics is off on this page. Enable browser storage and save again to remember your preference on future visits.</p>}
     </div>}
   </aside>;
 }
