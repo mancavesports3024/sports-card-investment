@@ -233,7 +233,7 @@ function workbookToCSV(workbook, outputDir) {
         });
         
         fs.writeFileSync(filepath, csv);
-        files.push(filepath);
+        files.push(path.relative(path.join(__dirname, '..', '..'), filepath));
     });
     
     return files;

@@ -1,0 +1,10 @@
+# This image installs dependencies before copying the backend source.
+node_modules
+
+# Local secrets and credential backups.
+.env
+.env.*
+.json
+resend backup.txt
+logs
+*.log

@@ -1,0 +1,16 @@
+# Local installs must not replace dependencies npm already installed in the image.
+node_modules
+**/node_modules
+
+# The API image does not serve the frontend production bundle.
+frontend/build
+
+# Local secrets and credential backups.
+**/.env
+**/.env.*
+backend/.json
+backend/resend backup.txt
+backend/logs
+**/*.log
+
+.git

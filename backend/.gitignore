@@ -90,4 +90,8 @@ ehthumbs.db
 Thumbs.db
 
 # Test files
-test-*.js 
+test-*.js
+
+# Local credential backups. Keep these on disk; do not commit them.
+.json
+resend backup.txt
