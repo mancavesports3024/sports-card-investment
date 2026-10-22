@@ -1,9 +1,8 @@
 // Service Worker for Scorecard
 // Version: Update this when making breaking changes to cache strategy
-const SW_VERSION = 'v2';
+const SW_VERSION = 'v3';
 const CACHE_VERSION = `scorecard-${SW_VERSION}`;
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
-const API_CACHE = `${CACHE_VERSION}-api`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
 
 // Install event - skip waiting to activate immediately
@@ -22,7 +21,7 @@ self.addEventListener('activate', (event) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
             // Delete any cache that doesn't match current version
-            if (!cacheName.startsWith(CACHE_VERSION)) {
+            if (cacheName.startsWith('scorecard-') && !cacheName.startsWith(CACHE_VERSION)) {
               console.log(`[SW ${SW_VERSION}] Deleting old cache:`, cacheName);
               return caches.delete(cacheName);
             }
@@ -52,11 +51,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle API requests (network-first with cache fallback)
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(handleApiRequest(request));
-    return;
-  }
+  // Never retain private API responses or token-bearing OAuth navigation.
+  // Applies to all origins, including the Railway API.
+  if (url.pathname.startsWith('/api/') || url.pathname === '/auth-success' || url.search) return;
 
   // Handle navigation requests (HTML pages) - network-first
   if (request.mode === 'navigate' || 
@@ -180,39 +177,6 @@ async function handleStaticAsset(request) {
       status: 503,
       headers: { 'Content-Type': 'text/plain' }
     });
-  }
-}
-
-// Handle API requests - network-first with cache fallback
-async function handleApiRequest(request) {
-  const cache = await caches.open(API_CACHE);
-  
-  try {
-    // Try network first
-    const networkResponse = await fetch(request);
-    
-    // Cache successful responses
-    if (networkResponse.ok) {
-      cache.put(request, networkResponse.clone());
-    }
-    
-    return networkResponse;
-  } catch (error) {
-    // Network failed, try cache
-    const cachedResponse = await cache.match(request);
-    if (cachedResponse) {
-      console.log(`[SW ${SW_VERSION}] API cache hit:`, request.url);
-      return cachedResponse;
-    }
-    
-    // No cache available
-    return new Response(
-      JSON.stringify({ error: 'Network unavailable and no cached data' }),
-      {
-        status: 503,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
   }
 }
 
