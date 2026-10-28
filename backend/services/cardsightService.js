@@ -328,7 +328,84 @@ async function removeCollectionCard(collectionId, cardId) {
   }
 }
 
+// Recent auction sales via GET /v1/pricing/search (listing_type=auction only: completed auction sales).
+// Buy It Now records are asking prices, not confirmed sales, so they are never requested.
+const AUCTION_SEARCH_TIMEOUT_MS = 20000;
+const AUCTION_SEARCH_PERIOD = '90d';
+const AUCTION_SEARCH_LIMIT = 50;
+
+class CardSightSalesError extends Error {
+  constructor(code, message, status) {
+    super(message);
+    this.code = code;
+    this.status = status;
+  }
+}
+
+function normalizeAuctionSale(record) {
+  const grade = record.grade && (record.grade.company_name || record.grade.grade_value)
+    ? { company: record.grade.company_name || null, value: record.grade.grade_value || null }
+    : null;
+  const card = record.matched_card;
+  return {
+    title: record.title || null,
+    price: record.price,
+    currency: 'USD',
+    soldDate: record.date || null,
+    source: record.source,
+    url: record.url || null,
+    imageUrl: record.image_url || null,
+    listingType: 'auction',
+    // Absent grade means CardSight did not report one; the UI must show it as unknown, not raw.
+    grade,
+    parallel: record.parallel_name || null,
+    matchedCard: card
+      ? { name: card.name || null, number: card.number || null, release: card.set?.release || null, year: card.set?.year || null }
+      : null,
+  };
+}
+
+/**
+ * Search recent completed auction sales by listing title.
+ * Resolves { sales, totalRecords } (sales may be empty for a genuine no-match).
+ * Rejects with CardSightSalesError for auth, rate-limit, timeout, provider, or malformed-response failures.
+ */
+async function searchAuctionSales(query) {
+  let headers;
+  try {
+    headers = getHeaders();
+  } catch (err) {
+    throw new CardSightSalesError('PROVIDER_CONFIG', err.message);
+  }
+  let response;
+  try {
+    response = await axios.get(`${BASE_URL}/v1/pricing/search`, {
+      headers,
+      params: { q: query, listing_type: 'auction', period: AUCTION_SEARCH_PERIOD, limit: AUCTION_SEARCH_LIMIT },
+      timeout: AUCTION_SEARCH_TIMEOUT_MS,
+    });
+  } catch (err) {
+    const status = err.response?.status;
+    if (status === 401 || status === 403) throw new CardSightSalesError('PROVIDER_AUTH', 'CardSight rejected the API key', status);
+    if (status === 429) throw new CardSightSalesError('PROVIDER_RATE_LIMIT', 'CardSight rate limit exceeded', status);
+    if (status) throw new CardSightSalesError('PROVIDER_ERROR', `CardSight returned HTTP ${status}`, status);
+    if (err.code === 'ECONNABORTED' || err.code === 'ETIMEDOUT') throw new CardSightSalesError('PROVIDER_TIMEOUT', 'CardSight request timed out');
+    throw new CardSightSalesError('PROVIDER_UNREACHABLE', err.message || 'CardSight request failed');
+  }
+
+  const data = response.data;
+  if (!data || typeof data !== 'object' || !Array.isArray(data.results)) {
+    throw new CardSightSalesError('PROVIDER_MALFORMED', 'CardSight returned an unexpected response shape', response.status);
+  }
+  const sales = data.results
+    .filter(r => r && r.listing_type === 'auction' && typeof r.price === 'number' && r.price > 0)
+    .map(normalizeAuctionSale);
+  return { sales, totalRecords: data.meta?.total_records ?? sales.length };
+}
+
 module.exports = {
+  searchAuctionSales,
+  CardSightSalesError,
   identifyCard,
   detectCard,
   searchCatalog,

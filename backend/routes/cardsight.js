@@ -126,6 +126,10 @@ router.get('/catalog/segments', async (req, res) => {
 router.get('/subscription', async (req, res) => {
   try {
     const result = await cardsight.getSubscription();
+    // CardSight echoes the API key in api_keys[].key; never send it to browsers.
+    if (result.success && Array.isArray(result.data?.api_keys)) {
+      result.data = { ...result.data, api_keys: result.data.api_keys.map(({ key, ...rest }) => rest) };
+    }
     return sendResult(res, result, 'Failed to fetch subscription');
   } catch (err) {
     return handleError(res, err);

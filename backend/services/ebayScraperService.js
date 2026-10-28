@@ -401,6 +401,8 @@ class EbayScraperService {
     }
 
     async searchSoldCards(searchTerm, sport = null, maxResults = 200, expectedGrade = null, originalIsAutograph = null, targetPrintRun = null, cardType = null, season = null, forceRefresh = false) {
+        // Set by fetchPageResults when eBay blocks or errors, so callers can tell a failed lookup from zero matches.
+        this.lastError = null;
         try {
             // Check cache first (unless forceRefresh is true)
             // Include maxResults in cache key to prevent returning wrong number of results
@@ -464,6 +466,7 @@ class EbayScraperService {
             return {
                 success: false,
                 results: [],
+                error: this.lastError || undefined,
                 method: 'pagination_failed',
                 searchUrl: this.buildSearchUrl(searchTerm, sport, expectedGrade, originalIsAutograph, cardType, season)
             };
@@ -550,6 +553,13 @@ class EbayScraperService {
                 }
             }
 
+            const finalUrl = response?.request?.res?.responseUrl || '';
+            if (finalUrl.includes('signin.ebay.com')) {
+                this.lastError = 'eBay redirected sold-listings search to sign-in';
+                console.log(`🛑 ${this.lastError}`);
+                return [];
+            }
+
             if (response && response.data) {
                 console.log(`✅ Direct HTTP request successful (${response.data.length} characters), parsing HTML...`);
                 
@@ -589,6 +599,7 @@ class EbayScraperService {
             return [];
 
         } catch (error) {
+            this.lastError = error.response?.status ? `eBay HTTP ${error.response.status}` : (error.message || 'Unknown eBay error');
             console.error('Error in fetchPageResults:', error.message);
             return [];
         }

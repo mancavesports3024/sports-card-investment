@@ -129,7 +129,7 @@ function App() {
           <div className="header-row header-row-bottom" style={{ justifyContent: 'space-between' }}>
             <div className="header-nav-group">
               <a href="/" className="header-nav-link">Home</a>
-              <a href="/search" className="header-nav-link">Recent Sales Search</a>
+              <a href="/search" className="header-nav-link">Recent Auction Sales</a>
               <a href="/card-set-analysis" className="header-nav-link">Card Set Analysis</a>
               <a href="/news" className="header-nav-link">Releases &amp; Guides</a>
               <a href="/ebay-bidding" className="header-nav-link">eBay Item Lookup</a>
