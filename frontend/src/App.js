@@ -2,6 +2,7 @@ import React, { useEffect, useState, Suspense, lazy } from 'react';
 import './App.css';
 import HomePage from './components/HomePage';
 import DefaultSeo from './components/DefaultSeo';
+import PrivacyChoices from './components/PrivacyChoices';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import tokenService from './services/tokenService';
 import { isAdminUser } from './config/adminEmails';
@@ -119,6 +120,7 @@ function App() {
       <div className="App">
         {/* Site-wide SEO baseline; route-level Helmet blocks override it */}
         <DefaultSeo />
+        <PrivacyChoices />
         {/* Global Header */}
         <header className="global-header responsive-header">
           {/* First row: Scorecard title only, centered and larger */}

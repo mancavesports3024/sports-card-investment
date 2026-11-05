@@ -151,7 +151,7 @@ const SearchPage = () => {
     // Google Analytics 4 site search event
     if (window.gtag) {
       window.gtag('event', 'search', {
-        search_term: combinedQuery
+        search_performed: true,
       });
     }
 
