@@ -28,6 +28,8 @@ class Point130Service {
      * @returns {Array} Array of sold card data
      */
     async searchSoldCards(searchTerm, options = {}) {
+        // Failures still return [] for existing callers; lastError lets callers tell a failed lookup from zero matches.
+        this.lastError = null;
         try {
             if (!searchTerm || searchTerm.trim().length === 0) {
                 return [];
@@ -150,6 +152,7 @@ class Point130Service {
             return cardData;
 
         } catch (error) {
+            this.lastError = error.message || 'Unknown 130point error';
             console.error('❌ 130point search failed:', error.message);
             if (error.response) {
                 console.error('Status:', error.response.status);

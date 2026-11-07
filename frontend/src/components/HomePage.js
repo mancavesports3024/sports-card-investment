@@ -56,9 +56,9 @@ const HomePage = () => {
               </article>
               <article className="feature-card">
                 <div className="feature-icon" aria-hidden="true">📊</div>
-                <h3>Check Recent Sales</h3>
+                <h3>Check Recent Auction Sales</h3>
                 <p>Search by player, year, set, or card number to compare recently reported sales. Sale dates and item details may vary by result.</p>
-                <a href="/search">Open Recent Sales Search</a>
+                <a href="/search">Open Recent Auction Sales</a>
               </article>
               <article className="feature-card">
                 <div className="feature-icon" aria-hidden="true">📚</div>

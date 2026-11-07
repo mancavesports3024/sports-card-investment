@@ -71,7 +71,7 @@ describe('application shell', () => {
 
     const header = screen.getByRole('banner');
 
-    ['Home', 'Recent Sales Search', 'Card Set Analysis', 'Releases & Guides', 'eBay Item Lookup'].forEach(
+    ['Home', 'Recent Auction Sales', 'Card Set Analysis', 'Releases & Guides', 'eBay Item Lookup'].forEach(
       (label) => {
         expect(within(header).getByRole('link', { name: label })).toBeInTheDocument();
       }

@@ -7,6 +7,7 @@ import { Helmet } from 'react-helmet';
 import { InContentAd, SearchResultsAd } from './AdSense';
 import PageLayout from './PageLayout';
 import ScoreCardSummary from './ScoreCardSummary';
+import RecentAuctionSales from './RecentAuctionSales';
 
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -185,7 +186,8 @@ const SearchPage = () => {
       console.log('📡 API Response status:', response.status);
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorBody = await response.json().catch(() => null);
+        throw new Error(errorBody?.message || errorBody?.error || `HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
@@ -225,7 +227,8 @@ const SearchPage = () => {
           ...(resultsObj.sgc10 || []),
           ...(resultsObj.aigrade9 || []),
           ...(resultsObj.aigrade10 || []),
-          ...(resultsObj.otherGraded || [])
+          ...(resultsObj.otherGraded || []),
+          ...(data.sales || [])
         ].length > 0;
         if (hasCards) {
           try {
@@ -1132,22 +1135,22 @@ const SearchPage = () => {
   return (
     <>
       <Helmet>
-        <title>Recent Sales Search | Scorecard</title>
-        <meta name="description" content="Search recent sports card sales by player, year, set, and card number." />
+        <title>Recent Auction Sales | Scorecard</title>
+        <meta name="description" content="Search recent completed sports card auction sales by player, year, set, and card number." />
         <link rel="canonical" href="https://www.mancavesportscardsllc.com/search" />
       </Helmet>
       {/* Main Content */}
       <main className="App-main">
         <PageLayout
-          title="Recent Sales Search"
-          subtitle="Search recent sales by player, year, set, or card number. Dates and available item details can vary by result."
+          title="Recent Auction Sales"
+          subtitle="Search completed auction sales by player, year, set, or card number. Buy It Now sales are not included."
           icon="🔍"
         >
           {/* Start with one search box; keep structured fields available on demand. */}
           <div style={{ maxWidth: '800px', margin: '0 auto' }}>
             <form id="search-form" onSubmit={handleSearch} className="search-form">
               <div className="form-group">
-                <label htmlFor="searchQuery">Search recent card sales</label>
+                <label htmlFor="searchQuery">Search recent auction sales</label>
                 <input
                   type="text"
                   id="searchQuery"
@@ -1193,14 +1196,14 @@ const SearchPage = () => {
               </details>
               <div className="form-buttons-container">
                 <button type="submit" disabled={isLoading} className="search-button">
-                  {isLoading ? 'Searching…' : 'Search Recent Sales'}
+                  {isLoading ? 'Searching…' : 'Search Auction Sales'}
                 </button>
                 <button type="button" onClick={handleClear} className="clear-button">Clear</button>
               </div>
             </form>
           </div>
         <p className="search-helper" style={{ maxWidth: 800, margin: '0.75rem auto 1.5rem' }}>
-          Recent sales are searched from eBay results available when you search. Sale dates appear when the listing data includes them; compare the exact card, grade, and condition before using a price.
+          Shows completed eBay auction sales from the last 90 days, provided by CardSight. Buy It Now sales are excluded because the data source cannot confirm which Buy It Now prices were completed sales. Compare the exact card, grade, and condition before using a price.
         </p>
         {/* Saved Searches below the form */}
         <div id="saved-searches-section">
@@ -1229,7 +1232,9 @@ const SearchPage = () => {
         )}
 
         {/* Results Display */}
-        {results && (
+        {results && results.provider === 'cardsight' && <RecentAuctionSales results={results} />}
+
+        {results && results.results && (
           <div className="search-results">
             <div className="results-header">
               <h2 style={{ color: '#fff', fontWeight: 800, textShadow: '1px 1px 6px #000' }}>📊 Search Results for "{results.searchParams.searchQuery}"</h2>
