@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet';
 export default function PrivacyPolicy() {
   return <main style={{ maxWidth: 900, margin: '0 auto', padding: '2rem', color: '#d1d5db' }}>
     <Helmet><title>Privacy Policy | Scorecard</title><meta name="robots" content="noindex, follow" /></Helmet>
-    <h1>Privacy Policy</h1><p>Updated October 25, 2026</p>
+    <h1>Privacy Policy</h1><p>Updated November 7, 2026</p>
     <p>Scorecard is operated by Mancave Sports Cards LLC and provides card searches, market information and related tools at mancavesportscardsllc.com.</p>
     <h2>Account and feature data</h2>
     <p>Google sign-in provides your Google account ID, name and email address. We use this information to authenticate you and associate saved searches with your account. Signed-in search history can include queries, results, price analysis, grading data and timestamps. Application logs may also include queries, user IDs and email addresses.</p>
