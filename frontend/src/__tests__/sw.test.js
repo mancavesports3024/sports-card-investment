@@ -26,12 +26,14 @@ describe('Service Worker Cache Strategy', () => {
     it('includes version in cache names', () => {
       expect(swCode).toMatch(/const CACHE_VERSION = `scorecard-\$\{SW_VERSION\}`/);
       expect(swCode).toMatch(/const STATIC_CACHE = `\$\{CACHE_VERSION\}-static`/);
-      expect(swCode).toMatch(/const API_CACHE = `\$\{CACHE_VERSION\}-api`/);
+      expect(swCode).toMatch(/const SW_VERSION = ['"]v3['"]/);
+      expect(swCode).not.toContain('const API_CACHE');
     });
 
     it('cleans up old caches on activation', () => {
       expect(swCode).toContain("addEventListener('activate'");
-      expect(swCode).toMatch(/if \(!cacheName\.startsWith\(CACHE_VERSION\)\)/);
+      expect(swCode).toContain("cacheName.startsWith('scorecard-')");
+      expect(swCode).toContain('!cacheName.startsWith(CACHE_VERSION)');
       expect(swCode).toContain('caches.delete(cacheName)');
     });
 
@@ -110,20 +112,9 @@ describe('Service Worker Cache Strategy', () => {
       expect(swCode).toMatch(/url\.pathname\.startsWith\(['"]\/api\/['"]\)/);
     });
 
-    it('uses network-first for API requests', () => {
-      expect(swCode).toContain('handleApiRequest');
-      const apiFunctionMatch = swCode.match(
-        /async function handleApiRequest[\s\S]*?^\}/m
-      );
-      expect(apiFunctionMatch).toBeTruthy();
-      const apiFunction = apiFunctionMatch[0];
-      
-      // Should try network first
-      expect(apiFunction).toContain('await fetch(request)');
-      
-      // Should have cache fallback
-      expect(apiFunction).toContain('catch');
-      expect(apiFunction).toContain('cachedResponse');
+    it('bypasses API requests without a private offline cache handler', () => {
+      expect(swCode).not.toContain('handleApiRequest');
+      expect(swCode).toMatch(/if \(url\.pathname\.startsWith\('\/api\/'\)[^\n]*\) return;/);
     });
   });
 
