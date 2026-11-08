@@ -1,6 +1,6 @@
 const cacheService = require('./cacheService');
-const bleacherSeatsScraper = require('./bleacherSeatsScraperService');
 const releaseDatabaseService = require('./releaseDatabaseService');
+const { todayInCalendarZone, normalizeRelease } = require('../utils/releaseCalendar');
 
 class ReleaseInfoService {
   constructor() {
@@ -1225,82 +1225,26 @@ class ReleaseInfoService {
     }
   }
 
+  // Curated database rows only. Scraped listings are not merged or written here:
+  // that re-added unverified rows on every page view (see RELEASE_CALENDAR_MAINTENANCE.md).
   async getMergedReleases() {
+    let releases;
     try {
-      console.log('🔄 Merging database and scraped release data...');
-      
-      // Get releases from database (with fallback to hardcoded)
-      let databaseReleases = [];
-      try {
-        if (this.useDatabase) {
-          databaseReleases = await releaseDatabaseService.getAllReleases();
-          console.log(`✅ Loaded ${databaseReleases.length} releases from database`);
-        } else {
-          throw new Error('Database disabled via USE_RELEASE_DATABASE=false');
-        }
-      } catch (dbError) {
-        console.warn('⚠️ Failed to load from database, using hardcoded data:', dbError.message);
-        // Fallback to hardcoded releases
-        databaseReleases = this.getComprehensiveReleases();
-        console.log(`✅ Using ${databaseReleases.length} hardcoded releases as fallback`);
+      if (!this.useDatabase) {
+        throw new Error('Database disabled via USE_RELEASE_DATABASE=false');
       }
-      
-      // Try to get scraped releases
-      let scrapedReleases = [];
-      try {
-        scrapedReleases = await bleacherSeatsScraper.getLatestReleases();
-        console.log(`✅ Successfully scraped ${scrapedReleases.length} releases from Bleacher Seats`);
-        
-        // Sync scraped releases to database (if using database)
-        if (this.useDatabase && scrapedReleases.length > 0) {
-          try {
-            await releaseDatabaseService.syncScrapedReleases(scrapedReleases);
-          } catch (syncError) {
-            console.warn('⚠️ Failed to sync scraped releases to database:', syncError.message);
-          }
-        }
-      } catch (scrapeError) {
-        console.warn('⚠️ Failed to scrape Bleacher Seats, using database data only:', scrapeError.message);
-      }
-      
-      // Merge releases, avoiding duplicates based on title and date
-      const mergedReleases = [...databaseReleases];
-      const existingTitles = new Set(databaseReleases.map(r => `${r.title}-${r.releaseDate}`));
-      
-      scrapedReleases.forEach(scrapedRelease => {
-        const key = `${scrapedRelease.title}-${scrapedRelease.releaseDate}`;
-        if (!existingTitles.has(key)) {
-          // Add missing fields to match release format
-          const enhancedRelease = {
-            ...scrapedRelease,
-            sport: scrapedRelease.sport || this.determineSport(scrapedRelease.title),
-            year: scrapedRelease.year || scrapedRelease.releaseDate.split('-')[0],
-            description: scrapedRelease.description || `${scrapedRelease.brand} ${scrapedRelease.title}`,
-            retailPrice: scrapedRelease.retailPrice || 'TBD',
-            hobbyPrice: scrapedRelease.hobbyPrice || 'TBD',
-            source: 'Bleacher Seats',
-            status: scrapedRelease.status || this.determineStatus(scrapedRelease.releaseDate)
-          };
-          mergedReleases.push(enhancedRelease);
-          existingTitles.add(key);
-        }
-      });
-      
-      // Sort by release date
-      mergedReleases.sort((a, b) => {
-        const dateA = new Date(a.releaseDate || 0);
-        const dateB = new Date(b.releaseDate || 0);
-        return dateA - dateB;
-      });
-      
-      console.log(`✅ Merged ${mergedReleases.length} total releases (${databaseReleases.length} database + ${scrapedReleases.length} scraped)`);
-      return mergedReleases;
-      
-    } catch (error) {
-      console.error('❌ Error merging releases:', error.message);
-      // Final fallback to hardcoded releases
-      return this.getComprehensiveReleases();
+      releases = await releaseDatabaseService.getAllReleases();
+      console.log(`✅ Loaded ${releases.length} releases from database`);
+    } catch (dbError) {
+      console.warn('⚠️ Failed to load from database, using hardcoded data:', dbError.message);
+      releases = this.getComprehensiveReleases();
     }
+
+    const today = todayInCalendarZone();
+    return releases
+      .map(release => normalizeRelease(release, today))
+      .filter(release => release.releaseDate)
+      .sort((a, b) => a.releaseDate.localeCompare(b.releaseDate));
   }
 
   determineSport(title) {

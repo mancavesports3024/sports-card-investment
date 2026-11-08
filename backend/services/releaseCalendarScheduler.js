@@ -34,21 +34,8 @@ class ReleaseCalendarScheduler {
         this.jobs.push({ name: 'dailyStatusUpdate', job: dailyStatusJob });
         console.log('✅ Scheduled: Daily status update (midnight CT)');
 
-        // Weekly scraper sync - runs every Sunday at 2:00 AM
-        const weeklySyncJob = cron.schedule('0 2 * * 0', async () => {
-            console.log('⏰ [Cron] Running weekly scraper sync job...');
-            try {
-                await releaseScheduledJobs.syncScrapedReleases();
-            } catch (error) {
-                console.error('❌ [Cron] Error in weekly scraper sync:', error.message);
-            }
-        }, {
-            scheduled: true,
-            timezone: 'America/Chicago' // Central Time
-        });
-
-        this.jobs.push({ name: 'weeklyScraperSync', job: weeklySyncJob });
-        console.log('✅ Scheduled: Weekly scraper sync (Sunday 2:00 AM CT)');
+        // No scheduled scraper sync: releases are curated manually from verified
+        // sources each week (RELEASE_CALENDAR_MAINTENANCE.md).
 
         // Optional: Monthly cleanup - runs on the 1st of every month at 3:00 AM
         const monthlyCleanupJob = cron.schedule('0 3 1 * *', async () => {
