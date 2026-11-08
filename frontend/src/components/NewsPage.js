@@ -8,6 +8,16 @@ import TrendingSets from './TrendingSets';
 import TrendingCards from './TrendingCards';
 import { getAllArticles } from '../services/newsArticleService';
 import { buildNewsIndexSeo } from '../services/newsArticleSeo';
+import {
+  RECENT_DAYS,
+  deriveStatus,
+  formatReleaseDate,
+  hasPrice,
+  isArchived,
+  parseDateOnly,
+  toDateKey,
+  todayInCalendarZone,
+} from '../services/releaseCalendar';
 
 const API_BASE_URL = config.API_BASE_URL || 'https://web-production-9efa.up.railway.app';
 
@@ -24,8 +34,10 @@ const NewsPage = () => {
     VALID_TABS.includes(requestedTab) ? requestedTab : 'news'
   );
   const [trendingSubTab, setTrendingSubTab] = useState('players'); // 'players', 'sets', or 'cards'
-  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const today = todayInCalendarZone();
+  const [currentMonth, setCurrentMonth] = useState(() => parseDateOnly(todayInCalendarZone()).month);
+  const [currentYear, setCurrentYear] = useState(() => parseDateOnly(todayInCalendarZone()).year);
+  const [releaseView, setReleaseView] = useState('current'); // 'current' (upcoming + last 30 days) or 'archive'
   const [releases, setReleases] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -70,6 +82,16 @@ const NewsPage = () => {
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
+  const datedReleases = releases
+    .filter(release => parseDateOnly(release.releaseDate))
+    .map(release => ({ ...release, status: deriveStatus(release.releaseDate, today) }));
+  const visibleReleases = datedReleases.filter(release =>
+    releaseView === 'archive' ? isArchived(release.releaseDate, today) : !isArchived(release.releaseDate, today)
+  );
+  const monthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+  const archiveHasMonth = releaseView === 'current' &&
+    datedReleases.some(release => release.releaseDate.startsWith(monthKey) && isArchived(release.releaseDate, today));
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'Released':
@@ -89,8 +111,6 @@ const NewsPage = () => {
         return '#1e3a8a';
       case 'Panini':
         return '#dc2626';
-      case 'Bowman':
-        return '#059669';
       case 'Upper Deck':
         return '#7c3aed';
       default:
@@ -108,21 +128,8 @@ const NewsPage = () => {
   };
 
   const getReleasesForDate = (day, month, year) => {
-    const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const filteredReleases = releases.filter(release => {
-      if (!release.releaseDate) return false;
-      const releaseDate = new Date(release.releaseDate);
-      return releaseDate.getFullYear() === year && 
-             releaseDate.getMonth() === month && 
-             releaseDate.getDate() === day;
-    });
-    
-    // Debug logging for September 2025
-    if (month === 8 && year === 2025 && filteredReleases.length > 0) {
-      console.log(`📅 Found ${filteredReleases.length} releases for ${dateString}:`, filteredReleases);
-    }
-    
-    return filteredReleases;
+    const dateString = toDateKey(year, month, day);
+    return visibleReleases.filter(release => release.releaseDate.slice(0, 10) === dateString);
   };
 
   const handleReleaseClick = (release) => {
@@ -137,13 +144,7 @@ const NewsPage = () => {
 
   const renderCalendarDay = (day, month, year, isCurrentMonth = true) => {
     const releasesForDay = getReleasesForDate(day, month, year);
-    const today = new Date();
-    const isToday =
-      today.getDate() === day &&
-      today.getMonth() === currentMonth &&
-      today.getFullYear() === currentYear &&
-      month === currentMonth &&
-      year === currentYear;
+    const isToday = isCurrentMonth && toDateKey(year, month, day) === today;
     
     return (
       <div
@@ -359,22 +360,25 @@ const NewsPage = () => {
             <div>
               <strong style={{ color: '#ffd700' }}>Release Date:</strong>
               <div style={{ color: '#d1d5db' }}>
-                {selectedRelease.releaseDate ? (
-                  new Date(selectedRelease.releaseDate).toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })
-                ) : (
-                  'TBD'
-                )}
+                {formatReleaseDate(selectedRelease.releaseDate)}
               </div>
             </div>
             <div>
               <strong style={{ color: '#ffd700' }}>Sport:</strong>
               <div style={{ color: '#d1d5db' }}>{selectedRelease.sport || 'Trading Cards'}</div>
             </div>
+            {hasPrice(selectedRelease.hobbyPrice) && (
+              <div>
+                <strong style={{ color: '#ffd700' }}>Hobby Price:</strong>
+                <div style={{ color: '#d1d5db' }}>{selectedRelease.hobbyPrice}</div>
+              </div>
+            )}
+            {hasPrice(selectedRelease.retailPrice) && (
+              <div>
+                <strong style={{ color: '#ffd700' }}>Retail Price:</strong>
+                <div style={{ color: '#d1d5db' }}>{selectedRelease.retailPrice}</div>
+              </div>
+            )}
             <div>
               <strong style={{ color: '#ffd700' }}>Status:</strong>
               <div style={{
@@ -443,16 +447,7 @@ const NewsPage = () => {
         <div>
           <strong style={{ color: '#374151' }}>Release Date:</strong>
           <div style={{ color: '#6b7280' }}>
-            {release.releaseDate ? (
-              new Date(release.releaseDate).toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })
-            ) : (
-              'TBD'
-            )}
+            {formatReleaseDate(release.releaseDate)}
           </div>
         </div>
         <div>
@@ -468,6 +463,18 @@ const NewsPage = () => {
           <strong style={{ color: '#374151' }}>Sport:</strong>
           <div style={{ color: '#6b7280' }}>{release.sport || 'Trading Cards'}</div>
         </div>
+        {hasPrice(release.hobbyPrice) && (
+          <div>
+            <strong style={{ color: '#374151' }}>Hobby Price:</strong>
+            <div style={{ color: '#6b7280' }}>{release.hobbyPrice}</div>
+          </div>
+        )}
+        {hasPrice(release.retailPrice) && (
+          <div>
+            <strong style={{ color: '#374151' }}>Retail Price:</strong>
+            <div style={{ color: '#6b7280' }}>{release.retailPrice}</div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -494,9 +501,6 @@ const NewsPage = () => {
           <div style={{ fontSize: '1.2rem', color: '#ffd700', marginBottom: '1rem' }}>
             🔄 Loading release information...
           </div>
-          <div style={{ color: '#fff' }}>
-            Fetching data from Blowout Forums and other sources
-          </div>
         </div>
       )}
 
@@ -512,6 +516,36 @@ const NewsPage = () => {
           ❌ {error}
         </div>
       )}
+
+      {/* Current window vs archive */}
+      <div
+        role="group"
+        aria-label="Release calendar view"
+        style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '1rem' }}
+      >
+        {[
+          { id: 'current', label: `Upcoming & last ${RECENT_DAYS} days` },
+          { id: 'archive', label: 'Archive' },
+        ].map(view => (
+          <button
+            key={view.id}
+            aria-pressed={releaseView === view.id}
+            onClick={() => setReleaseView(view.id)}
+            style={{
+              background: releaseView === view.id ? '#ffd700' : '#374151',
+              color: releaseView === view.id ? '#000' : '#fff',
+              border: '2px solid #ffd700',
+              padding: '0.5rem 1rem',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '0.9rem'
+            }}
+          >
+            {view.label}
+          </button>
+        ))}
+      </div>
 
       {/* Calendar Navigation */}
       <div style={{ 
@@ -677,7 +711,7 @@ const NewsPage = () => {
                   color: '#fff', 
                   fontSize: 'clamp(0.8rem, 2.2vw, 0.9rem)',
                   fontWeight: 500
-                }}>Topps</span>
+                }}>Topps / Bowman</span>
               </div>
               <div style={{ 
                 display: 'flex', 
@@ -696,24 +730,6 @@ const NewsPage = () => {
                   fontSize: 'clamp(0.8rem, 2.2vw, 0.9rem)',
                   fontWeight: 500
                 }}>Panini</span>
-              </div>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '0.5rem',
-                justifyContent: 'center'
-              }}>
-                <div style={{
-                  width: 'clamp(10px, 3vw, 12px)',
-                  height: 'clamp(10px, 3vw, 12px)',
-                  backgroundColor: '#059669',
-                  borderRadius: '2px'
-                }}></div>
-                <span style={{ 
-                  color: '#fff', 
-                  fontSize: 'clamp(0.8rem, 2.2vw, 0.9rem)',
-                  fontWeight: 500
-                }}>Bowman</span>
               </div>
               <div style={{ 
                 display: 'flex', 
@@ -808,12 +824,7 @@ const NewsPage = () => {
               {months[currentMonth]} {currentYear} Releases
             </h3>
             {(() => {
-              const monthlyReleases = releases.filter(release => {
-                if (!release.releaseDate) return false;
-                const releaseDate = new Date(release.releaseDate);
-                return releaseDate.getFullYear() === currentYear && 
-                       releaseDate.getMonth() === currentMonth;
-              });
+              const monthlyReleases = visibleReleases.filter(release => release.releaseDate.startsWith(monthKey));
 
               if (monthlyReleases.length > 0) {
                 return monthlyReleases.map((release, index) => renderReleaseCard(release, index));
@@ -827,11 +838,32 @@ const NewsPage = () => {
                     border: '2px solid #374151'
                   }}>
                     <div style={{ color: '#ffd700', fontSize: '1.2rem', marginBottom: '1rem' }}>
-                      📭 No releases found for {months[currentMonth]} {currentYear}
+                      📭 No {releaseView === 'archive' ? 'archived ' : ''}releases for {months[currentMonth]} {currentYear}
                     </div>
                     <div style={{ color: '#d1d5db' }}>
-                      No release information is currently available for this month. Try selecting a different month.
+                      {archiveHasMonth
+                        ? `Releases older than ${RECENT_DAYS} days are in the archive.`
+                        : releaseView === 'archive'
+                          ? `The archive holds releases older than ${RECENT_DAYS} days.`
+                          : 'No verified release dates are listed for this month yet.'}
                     </div>
+                    {archiveHasMonth && (
+                      <button
+                        onClick={() => setReleaseView('archive')}
+                        style={{
+                          marginTop: '1rem',
+                          background: '#ffd700',
+                          color: '#000',
+                          border: 'none',
+                          padding: '0.5rem 1rem',
+                          borderRadius: 8,
+                          cursor: 'pointer',
+                          fontWeight: 600
+                        }}
+                      >
+                        View archive
+                      </button>
+                    )}
                   </div>
                 );
               }

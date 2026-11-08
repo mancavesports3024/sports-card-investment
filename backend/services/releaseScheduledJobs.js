@@ -116,7 +116,6 @@ class ReleaseScheduledJobs {
         
         const results = {
             statusUpdate: await this.updateReleaseStatuses(),
-            sync: await this.syncScrapedReleases(),
             cleanup: await this.cleanupOldReleases()
         };
 

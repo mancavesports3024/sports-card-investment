@@ -1,4 +1,31 @@
 const { Pool } = require('pg');
+const {
+    todayInCalendarZone,
+    toDateOnly,
+    addDays,
+    deriveStatus,
+    normalizePrice
+} = require('../utils/releaseCalendar');
+
+function mapReleaseRow(row) {
+    const releaseDate = toDateOnly(row.release_date);
+    return {
+        id: row.id,
+        title: row.title,
+        brand: row.brand,
+        sport: row.sport,
+        releaseDate,
+        year: row.year,
+        description: row.description,
+        retailPrice: normalizePrice(row.retail_price),
+        hobbyPrice: normalizePrice(row.hobby_price),
+        source: row.source,
+        status: deriveStatus(releaseDate),
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        createdBy: row.created_by
+    };
+}
 
 class ReleaseDatabaseService {
     constructor() {
@@ -125,8 +152,8 @@ class ReleaseDatabaseService {
                     release_date DATE NOT NULL,
                     year VARCHAR(4),
                     description TEXT,
-                    retail_price VARCHAR(50) DEFAULT 'TBD',
-                    hobby_price VARCHAR(50) DEFAULT 'TBD',
+                    retail_price VARCHAR(50),
+                    hobby_price VARCHAR(50),
                     source VARCHAR(100) DEFAULT 'Manual',
                     status VARCHAR(20) DEFAULT 'Announced',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -165,8 +192,12 @@ class ReleaseDatabaseService {
                     source_name VARCHAR(100) NOT NULL,
                     source_url TEXT,
                     last_scraped_at TIMESTAMP,
+                    source_checked_at DATE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
+            `);
+            await client.query(`
+                ALTER TABLE release_sources ADD COLUMN IF NOT EXISTS source_checked_at DATE
             `);
 
             await client.query('COMMIT');
@@ -228,22 +259,7 @@ class ReleaseDatabaseService {
 
             const result = await client.query(query, params);
             
-            return result.rows.map(row => ({
-                id: row.id,
-                title: row.title,
-                brand: row.brand,
-                sport: row.sport,
-                releaseDate: row.release_date.toISOString().split('T')[0],
-                year: row.year,
-                description: row.description,
-                retailPrice: row.retail_price,
-                hobbyPrice: row.hobby_price,
-                source: row.source,
-                status: row.status,
-                createdAt: row.created_at,
-                updatedAt: row.updated_at,
-                createdBy: row.created_by
-            }));
+            return result.rows.map(mapReleaseRow);
         } catch (error) {
             console.error('❌ Error getting releases:', error.message);
             throw error;
@@ -268,23 +284,7 @@ class ReleaseDatabaseService {
                 return null;
             }
 
-            const row = result.rows[0];
-            return {
-                id: row.id,
-                title: row.title,
-                brand: row.brand,
-                sport: row.sport,
-                releaseDate: row.release_date.toISOString().split('T')[0],
-                year: row.year,
-                description: row.description,
-                retailPrice: row.retail_price,
-                hobbyPrice: row.hobby_price,
-                source: row.source,
-                status: row.status,
-                createdAt: row.created_at,
-                updatedAt: row.updated_at,
-                createdBy: row.created_by
-            };
+            return mapReleaseRow(result.rows[0]);
         } catch (error) {
             console.error('❌ Error getting release by ID:', error.message);
             throw error;
@@ -310,31 +310,15 @@ class ReleaseDatabaseService {
                     releaseData.releaseDate,
                     releaseData.year || null,
                     releaseData.description || null,
-                    releaseData.retailPrice || 'TBD',
-                    releaseData.hobbyPrice || 'TBD',
+                    normalizePrice(releaseData.retailPrice),
+                    normalizePrice(releaseData.hobbyPrice),
                     releaseData.source || 'Manual',
-                    releaseData.status || 'Announced',
+                    deriveStatus(releaseData.releaseDate),
                     releaseData.createdBy || null
                 ]
             );
 
-            const row = result.rows[0];
-            return {
-                id: row.id,
-                title: row.title,
-                brand: row.brand,
-                sport: row.sport,
-                releaseDate: row.release_date.toISOString().split('T')[0],
-                year: row.year,
-                description: row.description,
-                retailPrice: row.retail_price,
-                hobbyPrice: row.hobby_price,
-                source: row.source,
-                status: row.status,
-                createdAt: row.created_at,
-                updatedAt: row.updated_at,
-                createdBy: row.created_by
-            };
+            return mapReleaseRow(result.rows[0]);
         } catch (error) {
             if (error.code === '23505') { // Unique constraint violation
                 console.log('⚠️ Duplicate release detected, skipping:', releaseData.title);
@@ -388,12 +372,12 @@ class ReleaseDatabaseService {
             if (releaseData.retailPrice !== undefined) {
                 paramCount++;
                 updates.push(`retail_price = $${paramCount}`);
-                params.push(releaseData.retailPrice);
+                params.push(normalizePrice(releaseData.retailPrice));
             }
             if (releaseData.hobbyPrice !== undefined) {
                 paramCount++;
                 updates.push(`hobby_price = $${paramCount}`);
-                params.push(releaseData.hobbyPrice);
+                params.push(normalizePrice(releaseData.hobbyPrice));
             }
             if (releaseData.status !== undefined) {
                 paramCount++;
@@ -422,23 +406,7 @@ class ReleaseDatabaseService {
                 return null;
             }
 
-            const row = result.rows[0];
-            return {
-                id: row.id,
-                title: row.title,
-                brand: row.brand,
-                sport: row.sport,
-                releaseDate: row.release_date.toISOString().split('T')[0],
-                year: row.year,
-                description: row.description,
-                retailPrice: row.retail_price,
-                hobbyPrice: row.hobby_price,
-                source: row.source,
-                status: row.status,
-                createdAt: row.created_at,
-                updatedAt: row.updated_at,
-                createdBy: row.created_by
-            };
+            return mapReleaseRow(result.rows[0]);
         } catch (error) {
             console.error('❌ Error updating release:', error.message);
             throw error;
@@ -483,10 +451,9 @@ class ReleaseDatabaseService {
                         releaseDate: scrapedRelease.releaseDate,
                         year: scrapedRelease.year,
                         description: scrapedRelease.description,
-                        retailPrice: scrapedRelease.retailPrice || 'TBD',
-                        hobbyPrice: scrapedRelease.hobbyPrice || 'TBD',
-                        source: 'Bleacher Seats',
-                        status: scrapedRelease.status || 'Announced'
+                        retailPrice: scrapedRelease.retailPrice,
+                        hobbyPrice: scrapedRelease.hobbyPrice,
+                        source: 'Bleacher Seats'
                     });
 
                     if (result) {
@@ -535,35 +502,23 @@ class ReleaseDatabaseService {
         const client = await this.pool.connect();
         
         try {
-            const now = new Date();
-            const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-            const today = now.toISOString().split('T')[0];
-            const thirtyDaysDate = thirtyDaysFromNow.toISOString().split('T')[0];
+            const today = todayInCalendarZone();
 
-            console.log(`🔄 Updating release statuses (today: ${today}, 30 days: ${thirtyDaysDate})`);
+            console.log(`🔄 Updating release statuses (today: ${today})`);
 
-            // Mark past releases as Released
+            // Same rule as deriveStatus(): released on or before today, otherwise upcoming
             await client.query(
                 `UPDATE releases
                  SET status = 'Released', updated_at = CURRENT_TIMESTAMP
-                 WHERE release_date < $1::date AND status != 'Released' AND is_active = TRUE`,
+                 WHERE release_date <= $1::date AND status IS DISTINCT FROM 'Released' AND is_active = TRUE`,
                 [today]
             );
 
-            // Mark upcoming releases (next 30 days) as Upcoming
             await client.query(
                 `UPDATE releases
                  SET status = 'Upcoming', updated_at = CURRENT_TIMESTAMP
-                 WHERE release_date >= $1 AND release_date <= $2 AND status != 'Upcoming' AND is_active = TRUE`,
-                [today, thirtyDaysDate]
-            );
-
-            // Mark future releases (beyond 30 days) as Announced
-            await client.query(
-                `UPDATE releases
-                 SET status = 'Announced', updated_at = CURRENT_TIMESTAMP
-                 WHERE release_date > $1::date AND status != 'Announced' AND is_active = TRUE`,
-                [thirtyDaysDate]
+                 WHERE release_date > $1::date AND status IS DISTINCT FROM 'Upcoming' AND is_active = TRUE`,
+                [today]
             );
 
             console.log('✅ Updated release statuses automatically');
@@ -580,12 +535,11 @@ class ReleaseDatabaseService {
         const client = await this.pool.connect();
         
         try {
-            const today = new Date().toISOString().split('T')[0];
-            const futureDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            const today = todayInCalendarZone();
 
             return await this.getAllReleases({
                 startDate: today,
-                endDate: futureDate
+                endDate: addDays(today, days)
             });
         } catch (error) {
             console.error('❌ Error getting upcoming releases:', error.message);
@@ -599,11 +553,10 @@ class ReleaseDatabaseService {
         const client = await this.pool.connect();
         
         try {
-            const today = new Date().toISOString().split('T')[0];
-            const pastDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            const today = todayInCalendarZone();
 
             return await this.getAllReleases({
-                startDate: pastDate,
+                startDate: addDays(today, -days),
                 endDate: today
             });
         } catch (error) {

@@ -5,6 +5,11 @@ import NewsPage from './NewsPage';
 import { getAllArticles } from '../services/newsArticleService';
 import { buildNewsIndexSeo } from '../services/newsArticleSeo';
 
+jest.mock('../services/releaseCalendar', () => ({
+  ...jest.requireActual('../services/releaseCalendar'),
+  todayInCalendarZone: () => '2026-11-07',
+}));
+
 // The Release Calendar and Trending tabs both fetch on mount. Letting those
 // promises settle inside act() is what keeps the output free of "an update was
 // not wrapped in act(...)" warnings.
@@ -76,6 +81,62 @@ describe('the three News tabs are preserved', () => {
     expect(screen.getByRole('button', { name: /Players/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Sets/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Cards/ })).toBeInTheDocument();
+  });
+});
+
+describe('Release Calendar data display', () => {
+  const releases = [
+    { id: 159, title: 'Yu-Gi-Oh! Beyond the Brave', brand: 'Yu-Gi-Oh!', sport: 'Gaming', releaseDate: '2026-10-09', hobbyPrice: null, retailPrice: '$4.49 per pack', status: 'Released' },
+    { title: '2026 Topps Chrome Football', brand: 'Topps', sport: 'Football', releaseDate: '2026-11-18', hobbyPrice: '$439.99', retailPrice: null, status: 'Released' },
+    { id: 132, title: '2026 Leaf Seasons In The Sun Baseball', brand: 'Leaf', sport: 'Baseball', releaseDate: '2026-08-07', hobbyPrice: null, retailPrice: null, status: 'Released' },
+  ];
+
+  const openCalendar = async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true, releases, data: [] }) })
+    );
+    await renderNewsPage();
+    await userEvent.click(screen.getByRole('tab', { name: /Release Calendar/ }));
+    await screen.findByText('November 2026 Releases');
+  };
+
+  it('derives status from the date and shows only published prices', async () => {
+    await openCalendar();
+
+    expect(screen.getByRole('heading', { name: '2026 Topps Chrome Football' })).toBeInTheDocument();
+    expect(screen.getByText('Upcoming')).toBeInTheDocument();
+    expect(screen.getByText('$439.99')).toBeInTheDocument();
+    expect(screen.queryByText('Retail Price:')).not.toBeInTheDocument();
+    expect(screen.queryByText('TBD')).not.toBeInTheDocument();
+  });
+
+  it('renders a date-only release on its calendar day', async () => {
+    await openCalendar();
+    await userEvent.click(screen.getByRole('button', { name: '← October' }));
+
+    expect(screen.getByText('Friday, October 9, 2026')).toBeInTheDocument();
+    expect(screen.getByText('$4.49 per pack')).toBeInTheDocument();
+    expect(screen.queryByText('Hobby Price:')).not.toBeInTheDocument();
+  });
+
+  it('keeps releases older than 30 days in the archive', async () => {
+    await openCalendar();
+    for (const label of ['← October', '← September', '← August']) {
+      await userEvent.click(screen.getByRole('button', { name: label }));
+    }
+
+    expect(screen.getByText(/No releases for August 2026/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'View archive' }));
+    expect(screen.getByRole('heading', { name: '2026 Leaf Seasons In The Sun Baseball' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Archive' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('shows a clear empty-month state', async () => {
+    await openCalendar();
+    await userEvent.click(screen.getByRole('button', { name: 'December →' }));
+
+    expect(screen.getByText(/No releases for December 2026/)).toBeInTheDocument();
+    expect(screen.getByText('No verified release dates are listed for this month yet.')).toBeInTheDocument();
   });
 });
 

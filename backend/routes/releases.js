@@ -1,4 +1,5 @@
 const express = require('express');
+const { isAdminEmail } = require('../config/adminEmails');
 const router = express.Router();
 
 // Health check endpoint to verify route is loaded
@@ -71,6 +72,22 @@ const isAdmin = (req, res, next) => {
         return next();
     }
     return res.status(401).json({ success: false, error: 'Unauthorized - Admin access required' });
+};
+
+const requireAdminEmail = (req, res, next) => {
+    if (req.user && isAdminEmail(req.user.email)) {
+        return next();
+    }
+    return res.status(401).json({ success: false, error: 'Unauthorized - Admin access required' });
+};
+
+// Scraped imports bypass the reviewed dry-run process (RELEASE_CALENDAR_MAINTENANCE.md).
+const scrapedSyncDisabled = (req, res) => {
+    res.status(410).json({
+        success: false,
+        error: 'Scraped release sync is disabled',
+        message: 'Release changes must go through the reviewed dry run in scripts/release-calendar-fix.'
+    });
 };
 
 // GET /api/releases - Get all releases with optional filters
@@ -381,39 +398,8 @@ router.post('/migrate', async (req, res) => {
     }
 });
 
-// POST /api/releases/sync - Manually trigger sync with Bleacher Seats scraper (requires authentication)
-router.post('/sync', isAdmin, async (req, res) => {
-    try {
-        console.log('🔄 Manual sync triggered...');
-        
-        // Get scraped releases
-        const scrapedReleases = await loadServices().bleacherSeatsScraper.getLatestReleases();
-        console.log(`✅ Scraped ${scrapedReleases.length} releases from Bleacher Seats`);
-
-        // Sync to database
-        const result = await loadServices().releaseDatabaseService.syncScrapedReleases(scrapedReleases);
-
-        // Update statuses
-        await loadServices().releaseDatabaseService.updateStatuses();
-
-        // Clear cache
-        await loadServices().releaseInfoService.clearCache();
-
-        res.json({
-            success: true,
-            message: 'Sync completed successfully',
-            added: result.added,
-            skipped: result.skipped
-        });
-    } catch (error) {
-        console.error('❌ Error syncing releases:', error.message);
-        res.status(500).json({
-            success: false,
-            error: 'Sync failed',
-            message: error.message
-        });
-    }
-});
+// POST /api/releases/sync - Disabled (scraped imports bypass review)
+router.post('/sync', requireAdminEmail, scrapedSyncDisabled);
 
 // GET /api/releases/upcoming - Get upcoming releases (next 30 days)
 router.get('/upcoming', async (req, res) => {
@@ -478,24 +464,8 @@ router.post('/jobs/update-statuses', async (req, res) => {
     }
 });
 
-// POST /api/releases/jobs/sync - Manually trigger sync job (requires authentication)
-router.post('/jobs/sync', isAdmin, async (req, res) => {
-    try {
-        const result = await loadServices().releaseScheduledJobs.syncScrapedReleases();
-        res.json({
-            success: result.success,
-            message: result.success ? 'Sync job completed' : 'Sync job failed',
-            result
-        });
-    } catch (error) {
-        console.error('❌ Error running sync job:', error.message);
-        res.status(500).json({
-            success: false,
-            error: 'Sync job failed',
-            message: error.message
-        });
-    }
-});
+// POST /api/releases/jobs/sync - Disabled (scraped imports bypass review)
+router.post('/jobs/sync', requireAdminEmail, scrapedSyncDisabled);
 
 // POST /api/releases/jobs/cleanup - Manually trigger cleanup job (requires authentication)
 router.post('/jobs/cleanup', isAdmin, async (req, res) => {
@@ -529,7 +499,7 @@ router.get('/jobs/status', (req, res) => {
                 jobs: status.jobs,
                 schedules: {
                     dailyStatusUpdate: 'Every day at midnight (00:00) Central Time',
-                    weeklyScraperSync: 'Every Sunday at 2:00 AM Central Time',
+                    weeklyScraperSync: 'Disabled (manual reviewed process)',
                     monthlyCleanup: '1st of every month at 3:00 AM Central Time'
                 }
             }
