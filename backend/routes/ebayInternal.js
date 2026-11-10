@@ -2,11 +2,16 @@
 // Auth: header `Authorization: Bearer <CRON_SECRET>`. Secrets in query strings are rejected.
 //   GET /api/internal/ebay-pull-list[?lookbackDays=1..730]
 //   GET /api/internal/ebay-money[?days=1..90]
+//   GET /api/internal/ebay-demand?q=<query>[&limit=1..50]   (application token, not the seller token)
+//   POST /api/internal/ebay-send-thanks {"orderId": "...", "test": true}   (one order; the only write endpoint)
 const crypto = require('crypto');
 const express = require('express');
 const { createEbaySellerClient } = require('../services/ebaySellerClient');
+const { sendThanks, validOrderId, ThanksError } = require('../services/ebayBuyerThanks');
+const { createThanksStore, StoreUnavailableError } = require('../services/ebayThanksStore');
 const { buildPullList, boundedLookbackDays, MAX_LOOKBACK_DAYS } = require('../services/ebayPullList');
 const { buildMoneyView, boundedDays, MAX_DAYS } = require('../services/ebayMoney');
+const { createDemandService, boundedLimit, validQuery, MAX_LIMIT, MAX_QUERY_LENGTH } = require('../services/ebayDemand');
 
 const SECRET_QUERY_KEYS = /^(secret|token|key|auth|authorization|cron_secret|api_key|access_token)$/i;
 
@@ -51,7 +56,15 @@ function sendProviderError(res, err, log) {
   return res.status(status).json(body);
 }
 
-function createEbayInternalRouter({ env = process.env, client = createEbaySellerClient({ env }), now = () => Date.now(), log = console.warn } = {}) {
+function createEbayInternalRouter({
+  env = process.env,
+  client = createEbaySellerClient({ env }),
+  appClient = createEbaySellerClient({ env, grantType: 'client_credentials' }),
+  thanksStore = createThanksStore({ env }),
+  now = () => Date.now(),
+  log = console.warn
+} = {}) {
+  const demand = createDemandService({ client: appClient, now });
   const router = express.Router();
   router.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
   router.use(requireCronSecret(env));
@@ -72,6 +85,35 @@ function createEbayInternalRouter({ env = process.env, client = createEbaySeller
     try {
       return res.json(await buildMoneyView(client, { days, now: now() }));
     } catch (err) {
+      return sendProviderError(res, err, log);
+    }
+  });
+
+  router.get('/ebay-demand', async (req, res) => {
+    const q = validQuery(req.query.q);
+    if (q === null) return res.status(400).json({ error: 'INVALID_QUERY', message: `q is required: 2 to ${MAX_QUERY_LENGTH} characters, no * wildcard.` });
+    const limit = boundedLimit(req.query.limit);
+    if (limit === null) return res.status(400).json({ error: 'INVALID_LIMIT', message: `limit must be an integer from 1 to ${MAX_LIMIT}.` });
+    try {
+      return res.json(await demand.buildDemand({ q, limit }));
+    } catch (err) {
+      return sendProviderError(res, err, log);
+    }
+  });
+
+  router.post('/ebay-send-thanks', express.json({ limit: '2kb' }), async (req, res) => {
+    const body = req.body;
+    if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some((k) => k !== 'orderId' && k !== 'test')) {
+      return res.status(400).json({ error: 'INVALID_BODY', message: 'Body must be {"orderId": "<order id>", "test": true}.' });
+    }
+    if (body.test !== true) return res.status(400).json({ error: 'TEST_MODE_REQUIRED', message: 'This endpoint is test-only; send "test": true.' });
+    const orderId = validOrderId(body.orderId);
+    if (!orderId) return res.status(400).json({ error: 'INVALID_ORDER_ID', message: 'orderId must be a single eBay order id.' });
+    try {
+      return res.status(201).json(await sendThanks({ client, store: thanksStore, orderId, log }));
+    } catch (err) {
+      if (err instanceof ThanksError) return res.status(err.httpStatus).json({ error: err.code, message: err.message, orderId });
+      if (err instanceof StoreUnavailableError) return res.status(503).json({ error: err.code, message: err.message });
       return sendProviderError(res, err, log);
     }
   });
