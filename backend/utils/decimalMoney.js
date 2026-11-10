@@ -59,4 +59,4 @@ class CurrencyTotals {
   }
 }
 
-module.exports = { parseUnits, formatUnits, amountOrNull, CurrencyTotals, currencyDigits };
+module.exports = { parseUnits, formatUnits, amountOrNull, CurrencyTotals, currencyDigits, SCALE };

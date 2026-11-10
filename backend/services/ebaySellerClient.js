@@ -1,4 +1,5 @@
-// Isolated, read-only eBay Sell API client for the internal seller endpoints.
+// Isolated eBay API client for the internal endpoints. Reads retry once on 401; post() is single-attempt.
+// grantType 'refresh_token' (default) uses the seller token; 'client_credentials' mints application tokens.
 // Credentials come only from environment variables; nothing is persisted to disk.
 // Separate from services/ebayApiService.js, which keeps its own config and scope.
 const axios = require('axios');
@@ -6,24 +7,34 @@ const axios = require('axios');
 const TOKEN_URL = 'https://api.ebay.com/identity/v1/oauth2/token';
 const SCOPES = {
   fulfillment: 'https://api.ebay.com/oauth/api_scope/sell.fulfillment.readonly',
-  finances: 'https://api.ebay.com/oauth/api_scope/sell.finances'
+  finances: 'https://api.ebay.com/oauth/api_scope/sell.finances',
+  message: 'https://api.ebay.com/oauth/api_scope/commerce.message',
+  publicApp: 'https://api.ebay.com/oauth/api_scope',
+  marketplaceInsights: 'https://api.ebay.com/oauth/api_scope/buy.marketplace.insights'
 };
 const REFRESH_MARGIN_MS = 120 * 1000;
 const DEFAULT_TIMEOUT_MS = 20000;
 
 class EbaySellerError extends Error {
   // kind: NOT_CONFIGURED | AUTH_FAILED | PERMISSION_DENIED | RATE_LIMITED | UPSTREAM_ERROR | TIMEOUT | NETWORK_ERROR | INCOMPLETE_DATA
-  constructor(kind, { status = null, ebayErrorIds = [] } = {}) {
+  constructor(kind, { status = null, ebayErrorIds = [], oauthError = null } = {}) {
     super(`eBay seller API error: ${kind}`);
     this.name = 'EbaySellerError';
     this.kind = kind;
     this.status = status;
     this.ebayErrorIds = ebayErrorIds;
+    this.oauthError = oauthError;
   }
 }
 
 function errorIds(data) {
   return Array.isArray(data && data.errors) ? data.errors.map((e) => e && e.errorId).filter((id) => Number.isInteger(id)) : [];
+}
+
+// OAuth error codes are a fixed vocabulary (RFC 6749); anything else is dropped.
+function oauthErrorCode(data) {
+  const code = data && data.error;
+  return typeof code === 'string' && /^[a-z_]{1,40}$/.test(code) ? code : null;
 }
 
 function classifyHttp(status, data) {
@@ -35,12 +46,13 @@ function classifyHttp(status, data) {
   return 'UPSTREAM_ERROR';
 }
 
-function createEbaySellerClient({ env = process.env, http = axios, now = () => Date.now(), timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
+function createEbaySellerClient({ env = process.env, http = axios, now = () => Date.now(), timeoutMs = DEFAULT_TIMEOUT_MS, grantType = 'refresh_token' } = {}) {
   const cache = new Map(); // scope -> { token, expiresAt }
   const inflight = new Map(); // scope -> Promise<string>
+  const appGrant = grantType === 'client_credentials';
 
   function configured() {
-    return Boolean(env.EBAY_CLIENT_ID && env.EBAY_CLIENT_SECRET && env.EBAY_REFRESH_TOKEN);
+    return Boolean(env.EBAY_CLIENT_ID && env.EBAY_CLIENT_SECRET && (appGrant || env.EBAY_REFRESH_TOKEN));
   }
 
   async function send(config) {
@@ -52,17 +64,20 @@ function createEbaySellerClient({ env = process.env, http = axios, now = () => D
       throw new EbaySellerError(kind);
     }
     if (res.status < 200 || res.status >= 300) {
-      throw new EbaySellerError(classifyHttp(res.status, res.data), { status: res.status, ebayErrorIds: errorIds(res.data) });
+      throw new EbaySellerError(classifyHttp(res.status, res.data), { status: res.status, ebayErrorIds: errorIds(res.data), oauthError: oauthErrorCode(res.data) });
     }
     return res.data;
   }
 
   async function fetchToken(scope) {
     const basic = Buffer.from(`${env.EBAY_CLIENT_ID}:${env.EBAY_CLIENT_SECRET}`).toString('base64');
+    const params = appGrant
+      ? { grant_type: 'client_credentials', scope }
+      : { grant_type: 'refresh_token', refresh_token: env.EBAY_REFRESH_TOKEN, scope };
     const data = await send({
       method: 'post',
       url: TOKEN_URL,
-      data: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: env.EBAY_REFRESH_TOKEN, scope }).toString(),
+      data: new URLSearchParams(params).toString(),
       headers: { Authorization: `Basic ${basic}`, 'Content-Type': 'application/x-www-form-urlencoded' }
     });
     if (!data || typeof data.access_token !== 'string') throw new EbaySellerError('AUTH_FAILED');
@@ -98,7 +113,16 @@ function createEbaySellerClient({ env = process.env, http = axios, now = () => D
     throw new EbaySellerError('AUTH_FAILED');
   }
 
-  return { get, getAccessToken, configured };
+  // Single attempt, never retried: callers use it for non-idempotent writes.
+  async function post(url, scope, body) {
+    const token = await getAccessToken(scope);
+    return send({ method: 'post', url, data: body, headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } });
+  }
+
+  return { get, post, getAccessToken, configured };
 }
 
-module.exports = { createEbaySellerClient, EbaySellerError, SCOPES };
+// Scopes the seller refresh token must carry: pull list, money view, and buyer messaging.
+const SELLER_CONSENT_SCOPES = [SCOPES.fulfillment, SCOPES.finances, SCOPES.message];
+
+module.exports = { createEbaySellerClient, EbaySellerError, SCOPES, SELLER_CONSENT_SCOPES };
