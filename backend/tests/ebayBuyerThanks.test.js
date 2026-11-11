@@ -60,7 +60,7 @@ async function setup(opts = {}) {
 const EXPECTED_TEXT = [
   `Hi buyer_${ORDER_ID},`,
   '',
-  "Thank you for your purchase from ManCave Sports Cards! Your 2022 Topps Heritage #1-400 You Pick is being pulled and packed with care, and it'll ship by Tuesday, November 10, 2026.",
+  'Thank you for your purchase from ManCave Sports Cards! Your 2022 Topps Heritage #1\u2013400 You Pick is being pulled and packed with care. It\u2019ll ship by Tuesday, November 10, 2026.',
   '',
   'If you enjoyed shopping with us, you can follow our eBay store, ManCaveSportsLLC, to see new cards as we list them.',
   '',
@@ -240,15 +240,21 @@ test('multi-listing orders name each listing once and reference the listing with
     t('C', '304413', '2021 Topps Baseball #1-#165 Complete your set Please Buy 2+ & Save', 3)
   ] }));
   assert.strictEqual(two.legacyItemId, '304413');
-  assert.match(two.messageText, /Your 2021 Topps Baseball #1-#165 and 2021 Topps Baseball #166-#330 are being pulled and packed with care, and it'll ship by Thursday, November 12, 2026\./);
+  assert.match(two.messageText, /Your cards from the 2021 Topps Baseball \(#1\u2013#165 and #166\u2013#330\) are being pulled and packed with care\. They\u2019ll ship by Thursday, November 12, 2026\./);
   assert.ok(!/complete your set/i.test(two.messageText));
 
   const three = buildThanks(order({ id: ORDER_ID, items: [t('A', '1', 'Set A'), t('B', '2', 'Set B', 2), t('C', '3', 'Set C')] }));
   assert.strictEqual(three.legacyItemId, '2');
-  assert.match(three.messageText, /Your Set A, Set B, and Set C are being/);
+  assert.match(three.messageText, /Your Set A, Set B, and Set C are being pulled and packed with care\. They\u2019ll ship/);
+
+  const shared = buildThanks(order({ id: ORDER_ID, items: [t('A', '1', '2020 Topps Update #1-100'), t('B', '2', '2020 Topps Update #101-200'), t('C', '3', '2020 Topps Update #201-300')] }));
+  assert.match(shared.messageText, /Your cards from the 2020 Topps Update \(#1\u2013100, #101\u2013200, and #201\u2013300\) are being/);
+
+  const oneSharedWord = buildThanks(order({ id: ORDER_ID, items: [t('A', '1', '2021 Topps Chrome #5'), t('B', '2', '2021 Bowman #3')] }));
+  assert.match(oneSharedWord.messageText, /Your 2021 Topps Chrome #5 and 2021 Bowman #3 are being/);
 
   const sameName = buildThanks(order({ id: ORDER_ID, items: [t('A', '1', 'Set A'), t('B', '2', 'Set A')] }));
-  assert.match(sameName.messageText, /Your Set A is being/);
+  assert.match(sameName.messageText, /Your Set A is being pulled and packed with care\. It\u2019ll ship/);
 });
 
 test('uses the earliest ship-by among unshipped lines of the one listing', () => {

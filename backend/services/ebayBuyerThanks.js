@@ -10,11 +10,12 @@ const MAX_MESSAGE_LENGTH = 2000;
 const SHIP_BY_TIME_ZONE = 'America/Los_Angeles';
 const ORDER_ID_RE = /^[A-Za-z0-9-]{5,40}$/;
 
-// Approved by Carl Nov 10, 2026. Verbatim apart from the three placeholders.
+// Approved by Carl Nov 10, 2026 (second sentence revised the same day). Verbatim apart from the placeholders;
+// several items switch "is"/"It\u2019ll" to "are"/"They\u2019ll".
 const TEMPLATE = [
   'Hi [buyer username],',
   '',
-  "Thank you for your purchase from ManCave Sports Cards! Your [item / set name] is being pulled and packed with care, and it'll ship by [ship-by date].",
+  'Thank you for your purchase from ManCave Sports Cards! Your [item / set name] is being pulled and packed with care. It\u2019ll ship by [ship-by date].',
   '',
   'If you enjoyed shopping with us, you can follow our eBay store, ManCaveSportsLLC, to see new cards as we list them.',
   '',
@@ -49,6 +50,21 @@ function joinNames(names) {
   return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
 }
 
+const NUMBER_RANGE_RE = /(#?\d+)-(#?\d+)/g;
+const enDashRanges = (s) => s.replace(NUMBER_RANGE_RE, '$1\u2013$2');
+
+// One name: "X". Several sharing a 2+ word lead: "cards from the 2021 Topps Baseball (#1–#165 and #166–#330)".
+function describeItems(names) {
+  if (names.length === 1) return enDashRanges(names[0]);
+  const words = names.map((n) => n.split(' '));
+  let shared = 0;
+  while (words.every((w) => shared < w.length - 1 && w[shared] === words[0][shared])) shared += 1;
+  if (shared < 2) return enDashRanges(joinNames(names));
+  const lead = words[0].slice(0, shared).join(' ');
+  const rests = words.map((w) => w.slice(shared).join(' '));
+  return enDashRanges(`cards from the ${lead} (${joinNames(rests)})`);
+}
+
 const SHIP_BY_FORMAT = new Intl.DateTimeFormat('en-US', { timeZone: SHIP_BY_TIME_ZONE, weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
 // eBay shipByDate is a UTC instant; the ship-by DAY is its calendar date in Pacific time.
@@ -58,10 +74,11 @@ function formatShipBy(isoInstant) {
   return SHIP_BY_FORMAT.format(new Date(ms));
 }
 
-// Several item names take "are" instead of "is" (Carl, Nov 10, 2026).
 function renderMessage({ buyerUsername, itemName, shipBy, plural = false }) {
-  return TEMPLATE
-    .replace('[item / set name] is being', plural ? '[item / set name] are being' : '[item / set name] is being')
+  const text = plural
+    ? TEMPLATE.replace('is being pulled', 'are being pulled').replace('It\u2019ll ship', 'They\u2019ll ship')
+    : TEMPLATE;
+  return text
     .replace('[buyer username]', () => buyerUsername)
     .replace('[item / set name]', () => itemName)
     .replace('[ship-by date]', () => shipBy);
@@ -92,7 +109,7 @@ function buildThanks(order) {
   if (!listings.size) throw new ThanksError('MISSING_LISTING', 422, 'Order has no unshipped listing.');
   if ([...listings.values()].some((l) => !l.name)) throw new ThanksError('MISSING_TITLE', 422, 'Listing title is empty.');
   const names = [...new Set([...listings.values()].map((l) => l.name))];
-  const itemName = joinNames(names);
+  const itemName = describeItems(names);
   // sendMessage accepts one LISTING reference: use the listing with the most unshipped units (first on ties).
   const legacyItemId = [...listings.entries()].reduce((best, cur) => (cur[1].units > best[1].units ? cur : best))[0];
 
