@@ -240,12 +240,15 @@ test('multi-listing orders name each listing once and reference the listing with
     t('C', '304413', '2021 Topps Baseball #1-#165 Complete your set Please Buy 2+ & Save', 3)
   ] }));
   assert.strictEqual(two.legacyItemId, '304413');
-  assert.match(two.messageText, /Your 2021 Topps Baseball #1-#165 and 2021 Topps Baseball #166-#330 is being pulled and packed with care, and it'll ship by Thursday, November 12, 2026\./);
+  assert.match(two.messageText, /Your 2021 Topps Baseball #1-#165 and 2021 Topps Baseball #166-#330 are being pulled and packed with care, and it'll ship by Thursday, November 12, 2026\./);
   assert.ok(!/complete your set/i.test(two.messageText));
 
   const three = buildThanks(order({ id: ORDER_ID, items: [t('A', '1', 'Set A'), t('B', '2', 'Set B', 2), t('C', '3', 'Set C')] }));
   assert.strictEqual(three.legacyItemId, '2');
-  assert.match(three.messageText, /Your Set A, Set B, and Set C is being/);
+  assert.match(three.messageText, /Your Set A, Set B, and Set C are being/);
+
+  const sameName = buildThanks(order({ id: ORDER_ID, items: [t('A', '1', 'Set A'), t('B', '2', 'Set A')] }));
+  assert.match(sameName.messageText, /Your Set A is being/);
 });
 
 test('uses the earliest ship-by among unshipped lines of the one listing', () => {

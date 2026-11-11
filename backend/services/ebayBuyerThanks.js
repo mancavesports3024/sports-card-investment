@@ -58,8 +58,10 @@ function formatShipBy(isoInstant) {
   return SHIP_BY_FORMAT.format(new Date(ms));
 }
 
-function renderMessage({ buyerUsername, itemName, shipBy }) {
+// Several item names take "are" instead of "is" (Carl, Nov 10, 2026).
+function renderMessage({ buyerUsername, itemName, shipBy, plural = false }) {
   return TEMPLATE
+    .replace('[item / set name] is being', plural ? '[item / set name] are being' : '[item / set name] is being')
     .replace('[buyer username]', () => buyerUsername)
     .replace('[item / set name]', () => itemName)
     .replace('[ship-by date]', () => shipBy);
@@ -89,7 +91,8 @@ function buildThanks(order) {
   }
   if (!listings.size) throw new ThanksError('MISSING_LISTING', 422, 'Order has no unshipped listing.');
   if ([...listings.values()].some((l) => !l.name)) throw new ThanksError('MISSING_TITLE', 422, 'Listing title is empty.');
-  const itemName = joinNames([...new Set([...listings.values()].map((l) => l.name))]);
+  const names = [...new Set([...listings.values()].map((l) => l.name))];
+  const itemName = joinNames(names);
   // sendMessage accepts one LISTING reference: use the listing with the most unshipped units (first on ties).
   const legacyItemId = [...listings.entries()].reduce((best, cur) => (cur[1].units > best[1].units ? cur : best))[0];
 
@@ -97,7 +100,7 @@ function buildThanks(order) {
   if (!shipBys.length) throw new ThanksError('MISSING_SHIP_BY', 422, 'Order has no ship-by date.');
   const earliest = shipBys.sort((a, b) => Date.parse(a) - Date.parse(b))[0];
 
-  const messageText = renderMessage({ buyerUsername, itemName, shipBy: formatShipBy(earliest) });
+  const messageText = renderMessage({ buyerUsername, itemName, shipBy: formatShipBy(earliest), plural: names.length > 1 });
   if (messageText.length > MAX_MESSAGE_LENGTH) throw new ThanksError('MESSAGE_TOO_LONG', 422, `Message exceeds ${MAX_MESSAGE_LENGTH} characters.`);
   return { buyerUsername, legacyItemId, messageText };
 }
