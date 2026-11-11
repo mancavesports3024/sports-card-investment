@@ -182,13 +182,11 @@ test('eBay 4xx rejection is recorded FAILED_NOT_SENT and a later call may send',
   } finally { await app.close(); }
 });
 
-test('ineligible, ambiguous, or missing orders are rejected before claiming or sending', async () => {
-  const many = order({ id: ORDER_ID, items: [lineItem({ id: 'A', itemId: '1' }), lineItem({ id: 'B', itemId: '2' })] });
+test('ineligible or missing orders are rejected before claiming or sending', async () => {
   const cases = [
     [order({ id: ORDER_ID, status: 'FULFILLED', items: [lineItem({ id: 'A' })] }), 409, 'ORDER_NOT_ELIGIBLE'],
     [order({ id: ORDER_ID, cancel: 'CANCELED', items: [lineItem({ id: 'A' })] }), 409, 'ORDER_NOT_ELIGIBLE'],
     [order({ id: ORDER_ID, payment: 'FULLY_REFUNDED', items: [lineItem({ id: 'A' })] }), 409, 'ORDER_NOT_ELIGIBLE'],
-    [many, 422, 'MULTIPLE_LISTINGS'],
     [order({ id: ORDER_ID, items: [lineItem({ id: 'A', shipBy: null })] }), 422, 'MISSING_SHIP_BY'],
     [order({ id: ORDER_ID, items: [lineItem({ id: 'A', title: 'x'.repeat(2000) })] }), 422, 'MESSAGE_TOO_LONG'],
     [new EbaySellerError('UPSTREAM_ERROR', { status: 404 }), 404, 'ORDER_NOT_FOUND']
@@ -220,11 +218,34 @@ test('title suffix removal and Pacific ship-by day formatting', () => {
     assert.strictEqual(cleanTitle(t), '2022 Topps Heritage You Pick', t);
   }
   assert.strictEqual(cleanTitle('Please Buy 2+ & Save Topps lot'), 'Please Buy 2+ & Save Topps lot');
+  for (const [t, want] of [
+    ['2021 Topps Baseball #1-#165 Complete your set Please Buy 2+ & Save', '2021 Topps Baseball #1-#165'],
+    ['2022 Topps Heritage - COMPLETE YOUR SET - You Pick', '2022 Topps Heritage - You Pick'],
+    ['2023 Topps Series 2 (Complete Your Set!)', '2023 Topps Series 2'],
+    ['Complete your set: 2020 Topps Update', '2020 Topps Update']
+  ]) assert.strictEqual(cleanTitle(t), want, t);
+  assert.strictEqual(cleanTitle('Topps set completers'), 'Topps set completers');
   assert.strictEqual(formatShipBy('2026-11-11T07:59:59.000Z'), 'Tuesday, November 10, 2026');
   assert.strictEqual(formatShipBy('2026-11-11T08:00:00.000Z'), 'Wednesday, November 11, 2026');
   assert.strictEqual(formatShipBy('2026-07-01T06:59:59.000Z'), 'Tuesday, June 30, 2026');
   assert.strictEqual(formatShipBy('2026-07-01T07:00:00.000Z'), 'Wednesday, July 1, 2026');
   assert.strictEqual(formatShipBy('not a date'), null);
+});
+
+test('multi-listing orders name each listing once and reference the listing with the most unshipped units', () => {
+  const t = (id, itemId, title, qty = 1) => lineItem({ id, itemId, qty, title, shipBy: '2026-11-13T07:59:59.000Z' });
+  const two = buildThanks(order({ id: ORDER_ID, items: [
+    t('A', '304413', '2021 Topps Baseball #1-#165 Complete your set Please Buy 2+ & Save'),
+    t('B', '317569', '2021 Topps Baseball #166-#330 Complete your set Please Buy 2+ & Save'),
+    t('C', '304413', '2021 Topps Baseball #1-#165 Complete your set Please Buy 2+ & Save', 3)
+  ] }));
+  assert.strictEqual(two.legacyItemId, '304413');
+  assert.match(two.messageText, /Your 2021 Topps Baseball #1-#165 and 2021 Topps Baseball #166-#330 is being pulled and packed with care, and it'll ship by Thursday, November 12, 2026\./);
+  assert.ok(!/complete your set/i.test(two.messageText));
+
+  const three = buildThanks(order({ id: ORDER_ID, items: [t('A', '1', 'Set A'), t('B', '2', 'Set B', 2), t('C', '3', 'Set C')] }));
+  assert.strictEqual(three.legacyItemId, '2');
+  assert.match(three.messageText, /Your Set A, Set B, and Set C is being/);
 });
 
 test('uses the earliest ship-by among unshipped lines of the one listing', () => {
@@ -233,7 +254,9 @@ test('uses the earliest ship-by among unshipped lines of the one listing', () =>
     lineItem({ id: 'B', itemId: '9', shipBy: '2026-11-12T07:59:59.000Z' }),
     lineItem({ id: 'C', itemId: '8', status: 'FULFILLED', shipBy: '2026-11-01T07:59:59.000Z' })
   ] });
-  assert.match(buildThanks(o).messageText, /ship by Wednesday, November 11, 2026\./);
+  const built = buildThanks(o);
+  assert.match(built.messageText, /ship by Wednesday, November 11, 2026\./);
+  assert.strictEqual(built.legacyItemId, '9', 'fulfilled lines are ignored');
 });
 
 test('Postgres store claims atomically with ON CONFLICT and only reclaims FAILED_NOT_SENT rows', async () => {

@@ -1,6 +1,7 @@
 // Sends Carl's approved thank-you message for ONE order via the Commerce Message API (test phase only).
 // eBay's sendMessage has no subject field and only supports LISTING references, so the message carries
-// the approved body and references the order's listing (approved Nov 10, 2026).
+// the approved body and references the order's listing with the most unshipped units (approved Nov 10, 2026).
+// Multi-listing orders name every listing ("A and B") in the item placeholder.
 const { SCOPES, EbaySellerError } = require('./ebaySellerClient');
 
 const ORDER_URL = 'https://api.ebay.com/sell/fulfillment/v1/order';
@@ -30,9 +31,22 @@ class ThanksError extends Error {
 }
 
 const SUFFIX_RE = /[\s\-\u2013\u2014|:,~*!]*\(?\s*please\s+buy\s+2\s*\+\s*(?:&|and)\s*save\s*!*\s*\)?[\s\-\u2013\u2014|:,~*!]*$/i;
+const COMPLETE_YOUR_SET_RE = /[\s\-\u2013\u2014|:,~*!]*\(?\s*complete\s+your\s+set\s*!*\s*\)?(?=[\s\-\u2013\u2014|:,~*!]|$)/gi;
+const EDGE_SEPARATORS_RE = /^[\s\-\u2013\u2014|:,~*]+|[\s\-\u2013\u2014|:,~*]+$/g;
 
+// Removes the "Please Buy 2+ & Save" suffix and the "Complete your set" phrase (Carl, Nov 10, 2026).
 function cleanTitle(title) {
-  return String(title || '').replace(SUFFIX_RE, '').trim();
+  return String(title || '')
+    .replace(SUFFIX_RE, '')
+    .replace(COMPLETE_YOUR_SET_RE, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .replace(EDGE_SEPARATORS_RE, '')
+    .trim();
+}
+
+function joinNames(names) {
+  if (names.length <= 2) return names.join(' and ');
+  return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
 }
 
 const SHIP_BY_FORMAT = new Intl.DateTimeFormat('en-US', { timeZone: SHIP_BY_TIME_ZONE, weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
@@ -66,10 +80,18 @@ function buildThanks(order) {
   if (!buyerUsername) throw new ThanksError('MISSING_BUYER', 422, 'Order has no buyer username.');
 
   const lines = (order.lineItems || []).filter((li) => li.lineItemFulfillmentStatus !== 'FULFILLED');
-  const listingIds = [...new Set(lines.map((li) => li.legacyItemId).filter(Boolean))];
-  if (listingIds.length !== 1) throw new ThanksError('MULTIPLE_LISTINGS', 422, 'Order must contain unshipped items from exactly one listing.');
-  const itemName = cleanTitle(lines.find((li) => li.legacyItemId === listingIds[0]).title);
-  if (!itemName) throw new ThanksError('MISSING_TITLE', 422, 'Listing title is empty.');
+  const listings = new Map(); // legacyItemId -> { name, units }, in order of first appearance
+  for (const li of lines) {
+    if (!li.legacyItemId) continue;
+    const entry = listings.get(li.legacyItemId) || { name: cleanTitle(li.title), units: 0 };
+    entry.units += Number.isInteger(li.quantity) ? li.quantity : 0;
+    listings.set(li.legacyItemId, entry);
+  }
+  if (!listings.size) throw new ThanksError('MISSING_LISTING', 422, 'Order has no unshipped listing.');
+  if ([...listings.values()].some((l) => !l.name)) throw new ThanksError('MISSING_TITLE', 422, 'Listing title is empty.');
+  const itemName = joinNames([...new Set([...listings.values()].map((l) => l.name))]);
+  // sendMessage accepts one LISTING reference: use the listing with the most unshipped units (first on ties).
+  const legacyItemId = [...listings.entries()].reduce((best, cur) => (cur[1].units > best[1].units ? cur : best))[0];
 
   const shipBys = lines.map((li) => li.lineItemFulfillmentInstructions && li.lineItemFulfillmentInstructions.shipByDate).filter((d) => d && !Number.isNaN(Date.parse(d)));
   if (!shipBys.length) throw new ThanksError('MISSING_SHIP_BY', 422, 'Order has no ship-by date.');
@@ -77,7 +99,7 @@ function buildThanks(order) {
 
   const messageText = renderMessage({ buyerUsername, itemName, shipBy: formatShipBy(earliest) });
   if (messageText.length > MAX_MESSAGE_LENGTH) throw new ThanksError('MESSAGE_TOO_LONG', 422, `Message exceeds ${MAX_MESSAGE_LENGTH} characters.`);
-  return { buyerUsername, legacyItemId: listingIds[0], messageText };
+  return { buyerUsername, legacyItemId, messageText };
 }
 
 // eBay answered with a 4xx: the message was not accepted. Anything else after the request left is ambiguous.
