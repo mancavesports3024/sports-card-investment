@@ -1,0 +1,231 @@
+{
+  "slug": "sports-card-inventory-system-ebay-sellers",
+  "status": "published",
+  "title": "A Simple Sports Card Inventory System for eBay Sellers",
+  "excerpt": "A practical location-code and SKU system that helps small sports-card sellers connect each eBay listing to the correct card and find sold inventory quickly.",
+  "publishedAt": "2026-11-12",
+  "updatedAt": "2026-11-12",
+  "author": "ManCave Sports Cards LLC",
+  "category": "eBay Selling",
+  "tags": [
+    "eBay Selling",
+    "Inventory Management",
+    "Raw Cards",
+    "Small Sellers",
+    "Organization"
+  ],
+  "readingTime": "6 min read",
+  "featured": false,
+  "metaTitle": "Sports Card Inventory System for eBay Sellers | Scorecard",
+  "metaDescription": "Build a simple sports card inventory system using location codes, eBay custom labels, and a repeatable pick-and-pack routine.",
+  "sourceLinks": [
+    {
+      "label": "eBay: Inventory onboarding guide and custom labels",
+      "url": "https://pages.ebay.com/sh/reports/help/create-listings-bulk/"
+    },
+    {
+      "label": "eBay: Seller Hub Reports",
+      "url": "https://www.ebay.com/help/selling/file-exchange/seller-hub-reports?id=4096"
+    },
+    {
+      "label": "eBay: Bulk shipping labels",
+      "url": "https://www.ebay.com/gslblui/help"
+    },
+    {
+      "label": "eBay: Seller Hub overview",
+      "url": "https://www.ebay.com/help/selling/ebay-tools/listing-tool?id=4095"
+    }
+  ],
+  "cta": {
+    "label": "Check Recent Card Sales",
+    "url": "/search"
+  },
+  "body": [
+    {
+      "type": "paragraph",
+      "lead": true,
+      "content": "A low-end sports-card sale can become unprofitable before it is packed if the seller spends ten minutes searching through boxes for one card. The solution is not expensive inventory software. It is a location code that connects the physical card, the eBay listing, and the order."
+    },
+    {
+      "type": "paragraph",
+      "content": "A small seller can build that connection with labeled boxes, inexpensive dividers, and eBay’s Custom label field. The system only works when every code follows the same pattern and every card is returned to the correct location after photos or listing work."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Give Every Storage Location a Short Code"
+    },
+    {
+      "type": "paragraph",
+      "content": "Start with the physical storage, not the spreadsheet. Assign each box a number, each row or section a letter, and each divider a number range. A code such as B03-R2-D07 can mean Box 3, Row 2, Divider 7. The wording is less important than making each location unique."
+    },
+    {
+      "type": "paragraph",
+      "content": "Keep the code short enough to type correctly. Put a large label on the box and a matching label on the divider. Do not use descriptions such as “basketball box” or “new cards,” because those labels become ambiguous as inventory grows."
+    },
+    {
+      "type": "callout",
+      "title": "A practical code pattern",
+      "items": [
+        "B03: the third physical storage box.",
+        "R2: the second row or internal section.",
+        "D07: the seventh divider or numbered pocket.",
+        "Complete code: B03-R2-D07.",
+        "The code identifies a location, not the card’s value or condition."
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Put the Same Code in eBay’s Custom Label Field"
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "eBay’s official "
+        },
+        {
+          "text": "inventory onboarding guide",
+          "href": "https://pages.ebay.com/sh/reports/help/create-listings-bulk/"
+        },
+        {
+          "text": " defines Custom label (SKU) as an optional unique identifier for the item and says buyers do not see it. That makes the field useful for a private storage code rather than promotional text."
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": "For a single-card listing, enter the location code exactly as it appears on the box. If several copies share one listing, use the location where all saleable copies are stored. If the cards are split between boxes, consolidate them or create separate internal records; one code should not send the seller to three possible locations."
+    },
+    {
+      "type": "paragraph",
+      "content": "A custom label does not identify the card by itself. The listing still needs the correct year, product, player, card number, version, condition, and photographs. The location code answers a different question: where is the exact inventory represented by this listing?"
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Choose One Physical Order and Keep It"
+    },
+    {
+      "type": "paragraph",
+      "content": "Within each divider, use one predictable sequence. Card number works well for set-building inventory. Alphabetical player order can work for star or player lots. Team order can work for focused team inventory. Mixing all three methods in the same row creates searching rather than organization."
+    },
+    {
+      "type": "paragraph",
+      "content": "Store listed cards separately from unlisted bulk whenever possible. A clearly marked listed-inventory section prevents an unlisted duplicate from being mistaken for the photographed copy. It also reduces the risk of selling or trading away a card that is already active on eBay."
+    },
+    {
+      "type": "paragraph",
+      "content": "If condition differs between copies, do not treat them as interchangeable. Keep the photographed card in a sleeve or team bag marked with the listing or location code, particularly when a visible corner, centering difference, or surface mark is disclosed in the listing."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Use a Simple Listing-to-Box Routine"
+    },
+    {
+      "type": "orderedList",
+      "items": [
+        "Identify and photograph the exact card before assigning inventory.",
+        "Place the card in its permanent box and divider.",
+        "Enter that location in eBay’s Custom label field.",
+        "Publish the listing only after confirming that the card and code match.",
+        "After a sale, use the code to pull the card and compare it with the listing photos.",
+        "Remove the card from the location record before packing the order."
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": "The final comparison matters. A location code can lead to the correct divider while the seller still pulls the wrong parallel, variation, or duplicate. Match the player, card number, front, back, and visible condition to the sold listing before sealing the package."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Let the Shipping Label Help With Picking"
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "eBay’s "
+        },
+        {
+          "text": "bulk-label guidance",
+          "href": "https://www.ebay.com/gslblui/help"
+        },
+        {
+          "text": " says sellers can add the SKU, item ID, item ID with variations, or custom text to shipping labels. Printing the SKU can place the location clue directly in the pick-and-pack workflow."
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": "That feature is optional. A small seller can also read the Custom label from the order page and write a pull list. Whichever method is used, pull and verify the card before marking the order packed. Do not include customer names, addresses, or other personal information in storage labels or shared inventory files."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Audit Small Sections Instead of Recounting Everything"
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "text": "The "
+        },
+        {
+          "text": "Seller Hub overview",
+          "href": "https://www.ebay.com/help/selling/ebay-tools/listing-tool?id=4095"
+        },
+        {
+          "text": " provides Listings, Orders, Performance, and Reports tools. eBay also explains that "
+        },
+        {
+          "text": "Seller Hub Reports",
+          "href": "https://www.ebay.com/help/selling/file-exchange/seller-hub-reports?id=4096"
+        },
+        {
+          "text": " can download listing and order information for record-keeping and auditing."
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": "For an ordinary low-end card operation, a monthly spot check is more realistic than a complete recount. Choose one box, compare a sample of active listings with the physical cards, correct missing or duplicate codes, and note any cards that were moved without an update."
+    },
+    {
+      "type": "paragraph",
+      "content": "A spreadsheet becomes useful when it records only fields that help: location code, eBay item number, short card identity, quantity, listing status, and last checked date. Do not create a second catalog that takes longer to maintain than the listings themselves."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Common Inventory Mistakes"
+    },
+    {
+      "type": "unorderedList",
+      "items": [
+        "Assigning a code before deciding where the card will permanently live.",
+        "Moving cards after photos without updating the Custom label.",
+        "Using one vague code for several boxes.",
+        "Combining noticeably different-condition copies under one interchangeable listing.",
+        "Keeping sold, listed, and unlisted cards mixed together.",
+        "Adding a complicated database before a basic box-and-divider system works."
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "The Bottom Line"
+    },
+    {
+      "type": "paragraph",
+      "content": "A useful sports-card inventory system should shorten the path from sale to shipment. Give every storage location a unique code, copy that code into eBay’s private Custom label field, and verify the physical card against the sold listing before packing."
+    },
+    {
+      "type": "paragraph",
+      "content": "Start with one box and one consistent code pattern. Once that routine works, extend it to the next box. For a small seller, a simple system used every time is more valuable than sophisticated software applied inconsistently."
+    }
+  ]
+}
