@@ -1,6 +1,6 @@
 import React from 'react';
 import TCDBBrowser from './TCDBBrowser';
-import './AdminCardDatabase.css';
+import './adminSharedStyles';
 import { isAdminUser } from '../config/adminEmails';
 
 const AdminCardDatabase = () => {
