@@ -65,7 +65,8 @@ describe('sitemap news entries', () => {
     expect(locations).toContain('/');
     expect(locations).toContain('/search');
     expect(locations).toContain('/news');
-    expect(locations).toContain('/ebay-bidding');
+    expect(locations).not.toContain('/ebay-bidding');
+    expect(locations).toContain('/release-calendar');
     expect(locations).toContain('/card-set-analysis');
   });
 
@@ -80,7 +81,7 @@ describe('sitemap news entries', () => {
         .slice(1)
         .find((block) => block.includes(`<loc>${BASE}${loc}</loc>`));
 
-    ['/', '/search', '/card-set-analysis', '/ebay-bidding'].forEach((loc) => {
+    ['/', '/search', '/card-set-analysis', '/release-calendar'].forEach((loc) => {
       expect(buildRoutes().find((r) => r.loc === loc).lastmod).toBeUndefined();
       expect(blockFor(loc)).not.toContain('<lastmod>');
     });

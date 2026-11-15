@@ -1,0 +1,23 @@
+.sc-cookie-shell { text-align: center; padding: 12px 20px; }
+.sc-cookie-reopen { color: #bdbdbd; background: transparent; border: 0; text-decoration: underline; cursor: pointer; font: inherit; font-size: 12px; padding: 8px; }
+.sc-cookie-banner { position: fixed; z-index: 1000; bottom: 16px; left: 16px; right: 16px; max-width: 1180px; margin: auto; background: #161616; color: #ededed; border: 1px solid #666; border-top: 3px solid #ffd700; border-radius: 10px; padding: 24px; text-align: left; box-shadow: 0 10px 50px #000a; max-height: calc(100dvh - 32px); overflow-y: auto; }
+.sc-cookie-summary { display: flex; gap: 32px; align-items: center; justify-content: space-between; }
+.sc-cookie-copy { flex: 1; min-width: 0; }
+.sc-cookie-copy h2 { margin: 0 0 9px; color: #ffd700; font-size: 20px; line-height: 1.3; }
+.sc-cookie-copy p { margin: 0; color: #ccc; font-size: 13px; line-height: 1.7; }
+.sc-cookie-banner a { color: #ffd700; text-decoration: underline; }
+.sc-cookie-actions { display: flex; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
+.sc-cookie-actions button { padding: 12px 16px; min-height: 44px; background: #ffd700; color: #080808; border: 1px solid #ffd700; border-radius: 5px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.sc-cookie-actions button:hover { background: #ffe657; }
+.sc-cookie-actions .sc-cookie-settings { background: transparent; color: #ffd700; border-color: #777; }
+.sc-cookie-actions .sc-cookie-settings:hover { background: #2a2a2a; }
+.sc-cookie-banner button:focus-visible, .sc-cookie-banner a:focus-visible, .sc-cookie-reopen:focus-visible { outline: 3px solid #ffd700; outline-offset: 4px; }
+.sc-cookie-details { border-top: 1px solid #444; margin-top: 20px; padding-top: 6px; }
+.sc-cookie-details > div { padding: 12px 0; }
+.sc-cookie-details h3 { font-size: 14px; margin: 0 0 7px; color: #fff; }
+.sc-cookie-details h3 span { display: inline-block; font-size: 11px; font-weight: 500; border: 1px solid #666; border-radius: 4px; padding: 3px 8px; margin-left: 10px; color: #ffd700; }
+.sc-cookie-details p { margin: 0; color: #ccc; font-size: 12px; line-height: 1.7; }
+.sc-cookie-details .sc-cookie-note { margin-top: 8px; color: #aaa; }
+.sc-cookie-banner .sc-cookie-error { color: #ffcf91; font-size: 13px; line-height: 1.6; margin: 16px 0 0; }
+@media (max-width: 1000px) { .sc-cookie-summary { flex-direction: column; align-items: stretch; gap: 18px; } }
+@media (max-width: 600px) { .sc-cookie-banner { bottom: 10px; left: 10px; right: 10px; padding: 18px; max-height: calc(100dvh - 20px); } .sc-cookie-actions { display: grid; grid-template-columns: 1fr 1fr; } .sc-cookie-actions .sc-cookie-settings { grid-column: 1 / -1; } }

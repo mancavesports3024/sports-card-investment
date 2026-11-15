@@ -114,10 +114,10 @@ describe('rendering the Bowman Chrome article', () => {
     expect(ebaySource).toHaveAttribute('href', 'https://pages.ebay.com/price-guide/');
   });
 
-  it('links back to Releases & Guides', () => {
+  it('links back to Collecting Guides', () => {
     renderArticleRoute(BOWMAN_SLUG);
 
-    const backLinks = screen.getAllByRole('link', { name: /Back to Releases & Guides/i });
+    const backLinks = screen.getAllByRole('link', { name: /Back to Collecting Guides/i });
 
     expect(backLinks.length).toBeGreaterThan(0);
     expect(backLinks[0]).toHaveAttribute('href', '/news');
@@ -243,7 +243,7 @@ describe('invalid slug', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: 'Article Not Found' })
     ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Browse Releases & Guides/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Browse Collecting Guides/i })).toHaveAttribute(
       'href',
       '/news'
     );

@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import config from '../config';
 import NewsIndex from './NewsIndex';
-import TrendingPlayers from './TrendingPlayers';
-import TrendingSets from './TrendingSets';
-import TrendingCards from './TrendingCards';
 import { getAllArticles } from '../services/newsArticleService';
 import { buildNewsIndexSeo } from '../services/newsArticleSeo';
 import {
@@ -21,19 +18,27 @@ import {
 
 const API_BASE_URL = config.API_BASE_URL || 'https://web-production-9efa.up.railway.app';
 
-const VALID_TABS = ['releases', 'news', 'trending'];
+const VALID_TABS = ['releases', 'news'];
 
 const NewsPage = () => {
   // Published only: getAllArticles() is the public accessor, and drafts are not
   // in the bundle for it to return.
-  const seo = buildNewsIndexSeo(getAllArticles());
   const [searchParams] = useSearchParams();
-  // Lets article pages link back to a specific tab, e.g. /news?tab=news
+  const location = useLocation();
+  // Preserve existing bookmarked calendar URLs while giving it its own page.
   const requestedTab = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState(
-    VALID_TABS.includes(requestedTab) ? requestedTab : 'news'
-  );
-  const [trendingSubTab, setTrendingSubTab] = useState('players'); // 'players', 'sets', or 'cards'
+  const activeTab = location.pathname === '/release-calendar' ? 'releases'
+    : VALID_TABS.includes(requestedTab) ? requestedTab : 'news';
+  const isCalendar = activeTab === 'releases';
+  const seo = isCalendar ? {
+    title: 'Sports Card Release Calendar | Scorecard',
+    canonical: 'https://www.mancavesportscardsllc.com/release-calendar',
+    meta: [
+      { name: 'description', content: 'Explore upcoming sports card release dates and browse past releases.' },
+      { property: 'og:title', content: 'Sports Card Release Calendar | Scorecard' },
+      { property: 'og:url', content: 'https://www.mancavesportscardsllc.com/release-calendar' },
+    ],
+  } : buildNewsIndexSeo(getAllArticles());
   const today = todayInCalendarZone();
   const [currentMonth, setCurrentMonth] = useState(() => parseDateOnly(todayInCalendarZone()).month);
   const [currentYear, setCurrentYear] = useState(() => parseDateOnly(todayInCalendarZone()).year);
@@ -46,6 +51,7 @@ const NewsPage = () => {
 
   // Fetch release data from API
   useEffect(() => {
+    if (!isCalendar) return;
     const fetchReleases = async () => {
       try {
         setIsLoading(true);
@@ -75,7 +81,7 @@ const NewsPage = () => {
     };
 
     fetchReleases();
-  }, []);
+  }, [isCalendar]);
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -889,7 +895,7 @@ const NewsPage = () => {
           />
         ))}
         <link rel="canonical" href={seo.canonical} />
-        <script type="application/ld+json">{JSON.stringify(seo.jsonLd)}</script>
+        {seo.jsonLd && <script type="application/ld+json">{JSON.stringify(seo.jsonLd)}</script>}
       </Helmet>
 
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
@@ -900,153 +906,16 @@ const NewsPage = () => {
           marginBottom: '1rem',
           textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
         }}>
-          📰 Releases &amp; Guides
+          {isCalendar ? 'Release Calendar' : 'Collecting Guides'}
         </h1>
         <p style={{ fontSize: '1.1rem', color: '#fff', maxWidth: 600, margin: '0 auto', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
-          Collecting guides, recent articles, and upcoming card release dates
+          {isCalendar ? 'Find upcoming sports card releases and browse the archive.' : 'Practical collecting advice and hobby articles.'}
         </p>
-      </div>
-
-      {/* Tab Navigation: all three tabs always shown - Release Calendar | Industry News | Trending */}
-      <div
-        className="news-page-tab-bar"
-        role="tablist"
-        aria-label="News section tabs"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '0.75rem',
-          marginBottom: '2rem',
-          width: '100%',
-          padding: '0.5rem 0'
-        }}
-      >
-        <button
-          role="tab"
-          aria-selected={activeTab === 'releases'}
-          onClick={() => setActiveTab('releases')}
-          style={{
-            background: activeTab === 'releases' ? '#ffd700' : '#374151',
-            color: activeTab === 'releases' ? '#000' : '#fff',
-            border: '2px solid #ffd700',
-            padding: '0.75rem 1.25rem',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontWeight: 600,
-            fontSize: '0.95rem',
-            transition: 'all 0.3s ease'
-          }}
-        >
-          📅 Release Calendar
-        </button>
-        <button
-          role="tab"
-          aria-selected={activeTab === 'news'}
-          onClick={() => setActiveTab('news')}
-          style={{
-            background: activeTab === 'news' ? '#ffd700' : '#374151',
-            color: activeTab === 'news' ? '#000' : '#fff',
-            border: '2px solid #ffd700',
-            padding: '0.75rem 1.25rem',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontWeight: 600,
-            fontSize: '0.95rem',
-            transition: 'all 0.3s ease'
-          }}
-        >
-          📰 Blog &amp; Guides
-        </button>
-        <button
-          role="tab"
-          aria-selected={activeTab === 'trending'}
-          aria-label="Trending players, sets, and cards"
-          onClick={() => setActiveTab('trending')}
-          style={{
-            background: activeTab === 'trending' ? '#ffd700' : '#374151',
-            color: activeTab === 'trending' ? '#000' : '#fff',
-            border: '2px solid #ffd700',
-            padding: '0.75rem 1.25rem',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontWeight: 600,
-            fontSize: '0.95rem',
-            transition: 'all 0.3s ease'
-          }}
-        >
-          🔥 Trending
-        </button>
       </div>
 
       {/* Tab Content */}
       {activeTab === 'releases' && renderReleasesTab()}
       {activeTab === 'news' && <NewsIndex />}
-      {activeTab === 'trending' && (
-        <div>
-          {/* Trending Sub-Tabs */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            gap: '0.5rem',
-            marginBottom: '2rem',
-            flexWrap: 'wrap'
-          }}>
-            <button
-              onClick={() => setTrendingSubTab('players')}
-              style={{
-                background: trendingSubTab === 'players' ? '#ffd700' : '#374151',
-                color: trendingSubTab === 'players' ? '#000' : '#fff',
-                border: '2px solid #ffd700',
-                padding: '0.5rem 1rem',
-                borderRadius: 8,
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '0.9rem',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              👤 Players
-            </button>
-            <button
-              onClick={() => setTrendingSubTab('sets')}
-              style={{
-                background: trendingSubTab === 'sets' ? '#ffd700' : '#374151',
-                color: trendingSubTab === 'sets' ? '#000' : '#fff',
-                border: '2px solid #ffd700',
-                padding: '0.5rem 1rem',
-                borderRadius: 8,
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '0.9rem',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              📦 Sets
-            </button>
-            <button
-              onClick={() => setTrendingSubTab('cards')}
-              style={{
-                background: trendingSubTab === 'cards' ? '#ffd700' : '#374151',
-                color: trendingSubTab === 'cards' ? '#000' : '#fff',
-                border: '2px solid #ffd700',
-                padding: '0.5rem 1rem',
-                borderRadius: 8,
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '0.9rem',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              🃏 Cards
-            </button>
-          </div>
-          
-          {/* Trending Content */}
-          {trendingSubTab === 'players' ? <TrendingPlayers /> : trendingSubTab === 'sets' ? <TrendingSets /> : <TrendingCards />}
-        </div>
-      )}
       {renderReleaseModal()}
     </div>
   );

@@ -10,9 +10,7 @@ jest.mock('../services/releaseCalendar', () => ({
   todayInCalendarZone: () => '2026-11-07',
 }));
 
-// The Release Calendar and Trending tabs both fetch on mount. Letting those
-// promises settle inside act() is what keeps the output free of "an update was
-// not wrapped in act(...)" warnings.
+// Let calendar requests settle inside act() before checking the rendered page.
 const flushRequests = () => act(async () => {});
 
 const renderNewsPage = async (initialEntry = '/news') => {
@@ -36,31 +34,22 @@ beforeEach(() => {
   );
 });
 
-describe('the three News tabs are preserved', () => {
-  it('renders Release Calendar, Blog & Guides and Trending tabs', async () => {
+describe('separate guides and calendar pages', () => {
+  it('opens guides directly without a tab bar or trending requests', async () => {
     await renderNewsPage();
-
-    const tabs = screen.getAllByRole('tab');
-
-    expect(tabs).toHaveLength(3);
-    expect(screen.getByRole('tab', { name: /Release Calendar/ })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /Blog & Guides/ })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /Trending/ })).toBeInTheDocument();
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('article').length).toBeGreaterThan(0);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('opens Blog & Guides by default', async () => {
-    await renderNewsPage();
-
-    expect(screen.getByRole('tab', { name: /Blog & Guides/ })).toHaveAttribute(
-      'aria-selected',
-      'true'
-    );
-    expect(screen.getAllByRole('article').length).toBeGreaterThan(0);
+  it('old trending links now show guides without fetching trends', async () => {
+    await renderNewsPage('/news?tab=trending');
+    expect(screen.getByRole('heading', { name: 'Collecting Guides' })).toBeInTheDocument();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('keeps the Release Calendar working', async () => {
-    await renderNewsPage();
-    await userEvent.click(screen.getByRole('tab', { name: /Release Calendar/ }));
+    await renderNewsPage('/release-calendar');
 
     // The calendar grid renders once the releases request settles.
     expect(await screen.findByText('Sun')).toBeInTheDocument();
@@ -68,20 +57,6 @@ describe('the three News tabs are preserved', () => {
     expect(screen.getByText('Legend')).toBeInTheDocument();
   });
 
-  it('keeps the Trending tab and its sub-tabs working', async () => {
-    await renderNewsPage();
-
-    await userEvent.click(screen.getByRole('tab', { name: /Trending/ }));
-    await flushRequests();
-
-    expect(screen.getByRole('tab', { name: /Trending/ })).toHaveAttribute(
-      'aria-selected',
-      'true'
-    );
-    expect(screen.getByRole('button', { name: /Players/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Sets/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Cards/ })).toBeInTheDocument();
-  });
 });
 
 describe('Release Calendar data display', () => {
@@ -95,8 +70,7 @@ describe('Release Calendar data display', () => {
     global.fetch = jest.fn(() =>
       Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true, releases, data: [] }) })
     );
-    await renderNewsPage();
-    await userEvent.click(screen.getByRole('tab', { name: /Release Calendar/ }));
+    await renderNewsPage('/release-calendar');
     await screen.findByText('November 2026 Releases');
   };
 
@@ -140,16 +114,15 @@ describe('Release Calendar data display', () => {
   });
 });
 
-describe('Blog & Guides tab', () => {
+describe('Guides page', () => {
   it('lists article cards when selected', async () => {
     await renderNewsPage();
 
-    await userEvent.click(screen.getByRole('tab', { name: /Blog & Guides/ }));
 
-    expect(screen.getAllByRole('article')).toHaveLength(getAllArticles().length);
+    expect(screen.getAllByRole('article')).toHaveLength(Math.min(12, getAllArticles().length));
     expect(
       screen.getByRole('link', {
-        name: "2026 Bowman Chrome Baseball: A Budget Collector's Guide",
+        name: getAllArticles()[0].title,
       })
     ).toBeInTheDocument();
   });
@@ -157,17 +130,13 @@ describe('Blog & Guides tab', () => {
   it('can be deep-linked with ?tab=news so article pages can link back', async () => {
     await renderNewsPage('/news?tab=news');
 
-    expect(screen.getByRole('tab', { name: /Blog & Guides/ })).toHaveAttribute(
-      'aria-selected',
-      'true'
-    );
+    expect(screen.getByRole('heading', { name: 'Collecting Guides' })).toBeInTheDocument();
     expect(screen.getAllByRole('article').length).toBeGreaterThan(0);
   });
 
   it('no longer contains article bodies in the page itself', async () => {
     await renderNewsPage();
 
-    await userEvent.click(screen.getByRole('tab', { name: /Blog & Guides/ }));
 
     // Body copy lives on /news/:slug now; the index shows excerpts only.
     expect(
@@ -181,8 +150,8 @@ describe('Blog & Guides tab', () => {
     // Drafts live outside src and are not in the bundle at all, so there is no
     // draft list to compare against here. Injecting one is the job of
     // newsDraftExclusion.test.js; this asserts the index is driven by the
-    // published-only accessor and renders exactly those articles.
-    expect(screen.getAllByRole('article')).toHaveLength(getAllArticles().length);
+    // published-only accessor, with the first page capped at 12 articles.
+    expect(screen.getAllByRole('article')).toHaveLength(Math.min(12, getAllArticles().length));
   });
 });
 
