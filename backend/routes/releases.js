@@ -1,4 +1,5 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const { isAdminEmail } = require('../config/adminEmails');
 const router = express.Router();
 
@@ -74,12 +75,58 @@ const isAdmin = (req, res, next) => {
     return res.status(401).json({ success: false, error: 'Unauthorized - Admin access required' });
 };
 
+// The frontend signs in with a Bearer JWT (routes/auth.js); a passport session user also counts.
 const requireAdminEmail = (req, res, next) => {
-    if (req.user && isAdminEmail(req.user.email)) {
+    const auth = req.headers.authorization;
+    if (auth && auth.startsWith('Bearer ')) {
+        try {
+            const decoded = jwt.verify(auth.substring(7), process.env.JWT_SECRET || 'dev_secret');
+            if (isAdminEmail(decoded.email)) {
+                req.user = decoded;
+                return next();
+            }
+        } catch (error) {
+            // Fall through to 401
+        }
+    } else if (req.user && isAdminEmail(req.user.email)) {
         return next();
     }
     return res.status(401).json({ success: false, error: 'Unauthorized - Admin access required' });
 };
+
+const RELEASE_FIELDS = ['title', 'brand', 'sport', 'releaseDate', 'year', 'description', 'retailPrice', 'hobbyPrice', 'source'];
+
+function isValidDateOnly(value) {
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const [y, m, d] = value.split('-').map(Number);
+    const check = new Date(Date.UTC(y, m - 1, d));
+    return check.getUTCFullYear() === y && check.getUTCMonth() === m - 1 && check.getUTCDate() === d;
+}
+
+// Status is never taken from the request; the service derives it from releaseDate.
+function pickReleaseFields(body, { partial }) {
+    const data = {};
+    for (const field of RELEASE_FIELDS) {
+        if (body[field] === undefined) continue;
+        const value = body[field];
+        data[field] = typeof value === 'string' ? value.trim() : value;
+    }
+    const errors = [];
+    if (!partial || data.title !== undefined) {
+        if (!data.title) errors.push('title is required');
+    }
+    if (!partial || data.releaseDate !== undefined) {
+        if (!isValidDateOnly(data.releaseDate)) errors.push('releaseDate must be a valid YYYY-MM-DD date');
+    }
+    if (data.year && !/^\d{4}$/.test(String(data.year))) errors.push('year must be 4 digits');
+    for (const [field, max] of [['title', 500], ['brand', 100], ['sport', 50], ['retailPrice', 50], ['hobbyPrice', 50], ['source', 100]]) {
+        if (data[field] && String(data[field]).length > max) errors.push(`${field} must be ${max} characters or fewer`);
+    }
+    for (const field of ['brand', 'sport', 'year', 'description', 'retailPrice', 'hobbyPrice', 'source']) {
+        if (data[field] === '') data[field] = null;
+    }
+    return { data, errors };
+}
 
 // Scraped imports bypass the reviewed dry-run process (RELEASE_CALENDAR_MAINTENANCE.md).
 const scrapedSyncDisabled = (req, res) => {
@@ -160,29 +207,16 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/releases - Add new release (requires authentication)
-router.post('/', isAdmin, async (req, res) => {
+router.post('/', requireAdminEmail, async (req, res) => {
     try {
-        const { title, brand, sport, releaseDate, year, description, retailPrice, hobbyPrice, status } = req.body;
-
-        if (!title || !releaseDate) {
-            return res.status(400).json({
-                success: false,
-                error: 'Title and releaseDate are required'
-            });
+        const { data, errors } = pickReleaseFields(req.body || {}, { partial: false });
+        if (errors.length) {
+            return res.status(400).json({ success: false, error: errors.join('; ') });
         }
 
         const release = await loadServices().releaseDatabaseService.addRelease({
-            title,
-            brand,
-            sport,
-            releaseDate,
-            year,
-            description,
-            retailPrice: retailPrice || 'TBD',
-            hobbyPrice: hobbyPrice || 'TBD',
-            source: 'Manual',
-            status: status || 'Announced',
-            createdBy: req.user?.email || req.user?.name || 'API'
+            ...data,
+            createdBy: req.user.email
         });
 
         if (!release) {
@@ -210,9 +244,16 @@ router.post('/', isAdmin, async (req, res) => {
 });
 
 // PUT /api/releases/:id - Update existing release (requires authentication)
-router.put('/:id', isAdmin, async (req, res) => {
+router.put('/:id', requireAdminEmail, async (req, res) => {
     try {
-        const release = await loadServices().releaseDatabaseService.updateRelease(parseInt(req.params.id), req.body);
+        const { data, errors } = pickReleaseFields(req.body || {}, { partial: true });
+        if (errors.length) {
+            return res.status(400).json({ success: false, error: errors.join('; ') });
+        }
+        const id = parseInt(req.params.id, 10);
+        const release = Number.isInteger(id)
+            ? await loadServices().releaseDatabaseService.updateRelease(id, data)
+            : null;
 
         if (!release) {
             return res.status(404).json({
@@ -229,6 +270,9 @@ router.put('/:id', isAdmin, async (req, res) => {
             release
         });
     } catch (error) {
+        if (error.code === '23505') {
+            return res.status(409).json({ success: false, error: 'A release with this title and date already exists' });
+        }
         console.error('❌ Error updating release:', error.message);
         res.status(500).json({
             success: false,
@@ -239,9 +283,12 @@ router.put('/:id', isAdmin, async (req, res) => {
 });
 
 // DELETE /api/releases/:id - Soft delete release (requires authentication)
-router.delete('/:id', isAdmin, async (req, res) => {
+router.delete('/:id', requireAdminEmail, async (req, res) => {
     try {
-        const deleted = await loadServices().releaseDatabaseService.deleteRelease(parseInt(req.params.id));
+        const id = parseInt(req.params.id, 10);
+        const deleted = Number.isInteger(id)
+            ? await loadServices().releaseDatabaseService.deleteRelease(id)
+            : false;
 
         if (!deleted) {
             return res.status(404).json({
