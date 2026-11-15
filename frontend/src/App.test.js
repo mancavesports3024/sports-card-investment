@@ -94,6 +94,7 @@ describe('application shell', () => {
     ).not.toBeInTheDocument();
     expect(within(header).queryByText(/Card Database/)).not.toBeInTheDocument();
     expect(within(header).queryByText(/Collections/)).not.toBeInTheDocument();
+    expect(within(header).queryByRole('link', { name: /📅 Releases/ })).not.toBeInTheDocument();
   });
 });
 
