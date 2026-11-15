@@ -35,7 +35,7 @@ const STATIC_HEAD = INDEX_HTML.match(/<head>([\s\S]*?)<\/head>/i)[1]
   .replace(/<script[\s\S]*?<\/script>/gi, '')
   .replace(/%PUBLIC_URL%/g, '');
 
-const PRIVATE_ROUTES = ['/admin/cards', '/admin/collections', '/admin/releases', '/auth-success'];
+const PRIVATE_ROUTES = ['/admin/cards', '/admin/collections', '/admin/ebay-inventory', '/admin/releases', '/auth-success'];
 
 /** react-helmet writes to the DOM on a later frame; let it land. */
 const settleHelmet = async () => {

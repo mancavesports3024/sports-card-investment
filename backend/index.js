@@ -811,6 +811,7 @@ async function initializeServer() {
   app.use('/api/psa', require('./routes/psa'));
   app.use('/api/cardsight', require('./routes/cardsight'));
   app.use('/api/internal', require('./routes/ebayInternal').createEbayInternalRouter());
+  app.use('/api/staff/ebay', require('./routes/ebayStaff').createEbayStaffRouter());
 
   // Auth & image analysis
   app.use('/api/auth', require('./routes/auth'));

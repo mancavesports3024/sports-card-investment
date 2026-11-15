@@ -10,6 +10,9 @@ const SCOPES = {
   finances: 'https://api.ebay.com/oauth/api_scope/sell.finances',
   message: 'https://api.ebay.com/oauth/api_scope/commerce.message',
   publicApp: 'https://api.ebay.com/oauth/api_scope',
+  // Token for Trading API calls (GetSellerList, GetItem, Revise*). The refresh token's consent lacks the base
+  // api_scope (invalid_scope), but Trading accepted this consented scope in the Nov 14, 2026 live check.
+  trading: 'https://api.ebay.com/oauth/api_scope/sell.fulfillment.readonly',
   marketplaceInsights: 'https://api.ebay.com/oauth/api_scope/buy.marketplace.insights'
 };
 const REFRESH_MARGIN_MS = 120 * 1000;
@@ -119,7 +122,11 @@ function createEbaySellerClient({ env = process.env, http = axios, now = () => D
     return send({ method: 'post', url, data: body, headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } });
   }
 
-  return { get, post, getAccessToken, configured };
+  function invalidate(scope) {
+    cache.delete(scope);
+  }
+
+  return { get, post, getAccessToken, invalidate, configured };
 }
 
 // Scopes the seller refresh token must carry: pull list, money view, and buyer messaging.

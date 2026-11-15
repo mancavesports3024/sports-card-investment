@@ -1,0 +1,63 @@
+.ebi {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+  color: #f5f5f5;
+  text-align: left;
+}
+
+.ebi h1 { color: #ffd700; margin: 8px 0 12px; }
+.ebi h2 { font-size: 1.15rem; margin: 12px 0 4px; }
+
+.ebi button {
+  min-height: 40px;
+  padding: 6px 14px;
+  border: 1px solid #ffd700;
+  border-radius: 6px;
+  background: #222;
+  color: #ffd700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.ebi button:disabled { opacity: 0.5; cursor: default; }
+.ebi button.ebi-danger { background: #ffd700; color: #000; margin-right: 8px; }
+.ebi button.ebi-link { border: none; background: none; padding: 4px 0; min-height: 0; text-align: left; text-decoration: underline; color: #ffd700; }
+
+.ebi input {
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 1px solid #555;
+  border-radius: 6px;
+  background: #111;
+  color: #fff;
+  font-size: 16px; /* prevents iOS zoom on focus */
+}
+
+.ebi-status, .ebi-search { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.ebi-status span { flex: 1 1 260px; }
+.ebi-search input { flex: 1 1 240px; }
+.ebi-filter { width: 100%; max-width: 360px; margin: 8px 0; }
+
+.ebi-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.ebi-table th, .ebi-table td { padding: 8px 6px; border-bottom: 1px solid #333; vertical-align: top; }
+.ebi-table th { text-align: left; color: #ffd700; font-weight: 600; }
+.ebi-soldout td { color: #999; }
+
+.ebi-badge { margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: #612; color: #fcc; font-size: 0.75rem; font-weight: 700; }
+.ebi-muted { color: #aaa; font-size: 0.9rem; }
+.ebi-error { color: #ff8a80; margin: 6px 0; }
+.ebi-ok { color: #9f9; margin: 6px 0; }
+
+.ebi-price-row { display: flex; gap: 6px; }
+.ebi-price-row input { width: 90px; }
+.ebi-confirm { margin-top: 8px; padding: 10px; border: 1px solid #ffd700; border-radius: 6px; background: #1c1a10; }
+.ebi-confirm p { margin: 0 0 8px; }
+.ebi-log { margin-top: 24px; }
+
+@media (max-width: 700px) {
+  .ebi { padding: 10px; }
+  .ebi-table thead { display: none; }
+  .ebi-table tr { display: block; padding: 10px 0; border-bottom: 1px solid #444; }
+  .ebi-table td { display: flex; gap: 10px; padding: 4px 0; border: none; }
+  .ebi-table td::before { content: attr(data-label); flex: 0 0 72px; color: #ffd700; font-size: 0.85rem; }
+}
