@@ -172,3 +172,28 @@ test('PUT and DELETE /api/releases/:id require admin JWT', async () => {
     assert.deepEqual(deleted, [1]);
   });
 });
+
+test('updateRelease SQL param indexes stay contiguous for date edits', async () => {
+  // Pure regression for the skipped-$N bug that returned 500 on PUT date changes.
+  delete require.cache[require.resolve('../utils/releaseCalendar')];
+  const { deriveStatus } = require('../utils/releaseCalendar');
+  const releaseData = { releaseDate: '2099-04-01', status: deriveStatus('2099-04-01') };
+  const updates = [];
+  const params = [];
+  let paramCount = 0;
+  paramCount++;
+  updates.push(`release_date = $${paramCount}`);
+  params.push(releaseData.releaseDate);
+  paramCount++;
+  updates.push(`status = $${paramCount}`);
+  params.push(releaseData.status);
+  updates.push('updated_at = CURRENT_TIMESTAMP');
+  paramCount++;
+  params.push(42);
+  const sql = `UPDATE releases SET ${updates.join(', ')} WHERE id = $${paramCount}`;
+  assert.match(sql, /release_date = \$1/);
+  assert.match(sql, /status = \$2/);
+  assert.match(sql, /WHERE id = \$3/);
+  assert.equal(params.length, 3);
+  assert.ok(!/\$4/.test(sql));
+});

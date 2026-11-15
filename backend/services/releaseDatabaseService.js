@@ -398,8 +398,7 @@ class ReleaseDatabaseService {
                 return await this.getReleaseById(id);
             }
 
-            paramCount++;
-            updates.push(`updated_at = CURRENT_TIMESTAMP`);
+            updates.push('updated_at = CURRENT_TIMESTAMP');
             paramCount++;
             params.push(id);
 
