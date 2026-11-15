@@ -15,6 +15,7 @@ const NewsArticlePage = lazy(() => import('./components/NewsArticlePage'));
 const EbayItemLookup = lazy(() => import('./pages/EbayItemLookup'));
 const AdminCardDatabase = lazy(() => import('./components/AdminCardDatabase'));
 const AdminCollections = lazy(() => import('./components/AdminCollections'));
+const AdminReleases = lazy(() => import('./components/AdminReleases'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const NotFoundPage = lazy(() => import('./components/NotFoundPage'));
 
@@ -140,6 +141,7 @@ function App() {
                 <>
                   <a href="/admin/cards" className="header-nav-link admin-link">🎯 Card Database</a>
                   <a href="/admin/collections" className="header-nav-link admin-link">📂 Collections</a>
+                  <a href="/admin/releases" className="header-nav-link admin-link">📅 Releases</a>
                 </>
               )}
             </div>
@@ -172,6 +174,7 @@ function App() {
             <Route path="/ebay-bidding" element={<EbayItemLookup />} />
             <Route path="/admin/cards" element={<AdminCardDatabase />} />
             <Route path="/admin/collections" element={<AdminCollections />} />
+            <Route path="/admin/releases" element={<AdminReleases />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/auth-success" element={<AuthSuccess onAuthSuccess={checkAuthStatus} />} />
             {/* Catch-all: a useful page instead of an empty shell, marked
