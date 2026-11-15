@@ -379,7 +379,16 @@ class ReleaseDatabaseService {
                 updates.push(`hobby_price = $${paramCount}`);
                 params.push(normalizePrice(releaseData.hobbyPrice));
             }
-            if (releaseData.status !== undefined) {
+            if (releaseData.source !== undefined) {
+                paramCount++;
+                updates.push(`source = $${paramCount}`);
+                params.push(releaseData.source);
+            }
+            if (releaseData.releaseDate !== undefined && releaseData.status === undefined) {
+                paramCount++;
+                updates.push(`status = $${paramCount}`);
+                params.push(deriveStatus(releaseData.releaseDate));
+            } else if (releaseData.status !== undefined) {
                 paramCount++;
                 updates.push(`status = $${paramCount}`);
                 params.push(releaseData.status);

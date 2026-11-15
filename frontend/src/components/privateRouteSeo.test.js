@@ -35,7 +35,7 @@ const STATIC_HEAD = INDEX_HTML.match(/<head>([\s\S]*?)<\/head>/i)[1]
   .replace(/<script[\s\S]*?<\/script>/gi, '')
   .replace(/%PUBLIC_URL%/g, '');
 
-const PRIVATE_ROUTES = ['/admin/cards', '/admin/collections', '/auth-success'];
+const PRIVATE_ROUTES = ['/admin/cards', '/admin/collections', '/admin/releases', '/auth-success'];
 
 /** react-helmet writes to the DOM on a later frame; let it land. */
 const settleHelmet = async () => {
@@ -136,7 +136,7 @@ describe('the private route components', () => {
   const source = (file) =>
     fs.readFileSync(path.join(__dirname, file), 'utf8');
 
-  it.each(['AdminCardDatabase.js', 'AdminCollections.js', 'AuthSuccess.js'])(
+  it.each(['AdminCardDatabase.js', 'AdminCollections.js', 'AdminReleases.js', 'AuthSuccess.js'])(
     '%s declares no robots tag that could override the noindex',
     (file) => {
       expect(source(file)).not.toMatch(/name="robots"/);

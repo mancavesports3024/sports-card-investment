@@ -1,5 +1,7 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const { isAdminEmail } = require('../config/adminEmails');
+const { deriveStatus } = require('../utils/releaseCalendar');
 const router = express.Router();
 
 // Health check endpoint to verify route is loaded
@@ -63,23 +65,33 @@ function loadServices() {
     return { releaseDatabaseService, releaseInfoService, bleacherSeatsScraper, releaseScheduledJobs };
 }
 
-// Middleware to check if user is authenticated admin (placeholder - implement based on your auth system)
-const isAdmin = (req, res, next) => {
-    // TODO: Implement actual admin check based on your authentication system
-    // For now, allow if there's a user in the session
-    if (req.user && req.user.email) {
-        // You can add admin email check here
+// Attach req.user from passport session or Authorization: Bearer JWT (frontend auth).
+const attachUserFromAuth = (req) => {
+    if (req.user && req.user.email) return req.user;
+    const auth = req.headers.authorization;
+    if (!auth || !auth.startsWith('Bearer ')) return null;
+    try {
+        const decoded = jwt.verify(auth.slice(7), process.env.JWT_SECRET || 'dev_secret');
+        if (decoded && decoded.email) {
+            req.user = decoded;
+            return decoded;
+        }
+    } catch (_) {
+        return null;
+    }
+    return null;
+};
+
+const requireAdminEmail = (req, res, next) => {
+    const user = attachUserFromAuth(req);
+    if (user && isAdminEmail(user.email)) {
         return next();
     }
     return res.status(401).json({ success: false, error: 'Unauthorized - Admin access required' });
 };
 
-const requireAdminEmail = (req, res, next) => {
-    if (req.user && isAdminEmail(req.user.email)) {
-        return next();
-    }
-    return res.status(401).json({ success: false, error: 'Unauthorized - Admin access required' });
-};
+// Mutating release endpoints require a signed-in admin email.
+const isAdmin = requireAdminEmail;
 
 // Scraped imports bypass the reviewed dry-run process (RELEASE_CALENDAR_MAINTENANCE.md).
 const scrapedSyncDisabled = (req, res) => {
@@ -159,10 +171,20 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// POST /api/releases - Add new release (requires authentication)
+// POST /api/releases - Add new release (requires admin authentication)
 router.post('/', isAdmin, async (req, res) => {
     try {
-        const { title, brand, sport, releaseDate, year, description, retailPrice, hobbyPrice, status } = req.body;
+        const {
+            title,
+            brand,
+            sport,
+            releaseDate,
+            year,
+            description,
+            retailPrice,
+            hobbyPrice,
+            source
+        } = req.body;
 
         if (!title || !releaseDate) {
             return res.status(400).json({
@@ -171,6 +193,7 @@ router.post('/', isAdmin, async (req, res) => {
             });
         }
 
+        // Status is date-derived in the service; prices stay free-text (null when blank).
         const release = await loadServices().releaseDatabaseService.addRelease({
             title,
             brand,
@@ -178,11 +201,13 @@ router.post('/', isAdmin, async (req, res) => {
             releaseDate,
             year,
             description,
-            retailPrice: retailPrice || 'TBD',
-            hobbyPrice: hobbyPrice || 'TBD',
-            source: 'Manual',
-            status: status || 'Announced',
-            createdBy: req.user?.email || req.user?.name || 'API'
+            retailPrice: retailPrice == null || retailPrice === '' ? null : retailPrice,
+            hobbyPrice: hobbyPrice == null || hobbyPrice === '' ? null : hobbyPrice,
+            source: source || 'Manual',
+            // UI sends the signed-in email; scripts may pass createdBy explicitly.
+            createdBy: (typeof req.body.createdBy === 'string' && req.body.createdBy.trim())
+                ? req.body.createdBy.trim()
+                : (req.user?.email || 'API')
         });
 
         if (!release) {
@@ -209,10 +234,18 @@ router.post('/', isAdmin, async (req, res) => {
     }
 });
 
-// PUT /api/releases/:id - Update existing release (requires authentication)
+// PUT /api/releases/:id - Update existing release (requires admin authentication)
 router.put('/:id', isAdmin, async (req, res) => {
     try {
-        const release = await loadServices().releaseDatabaseService.updateRelease(parseInt(req.params.id), req.body);
+        const body = { ...req.body };
+        // Keep stored status aligned with the date-based convention when date changes.
+        if (body.releaseDate !== undefined && body.status === undefined) {
+            body.status = deriveStatus(body.releaseDate);
+        }
+        if (body.retailPrice === '') body.retailPrice = null;
+        if (body.hobbyPrice === '') body.hobbyPrice = null;
+
+        const release = await loadServices().releaseDatabaseService.updateRelease(parseInt(req.params.id), body);
 
         if (!release) {
             return res.status(404).json({
