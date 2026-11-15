@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { isAdminUser } from '../config/adminEmails';
 import { deriveStatus, todayInCalendarZone } from '../services/releaseCalendar';
 import './AdminCardDatabase.css';
-import './TCDBBrowser.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://web-production-9efa.up.railway.app';
 
