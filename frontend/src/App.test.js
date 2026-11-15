@@ -71,13 +71,13 @@ describe('application shell', () => {
 
     const header = screen.getByRole('banner');
 
-    ['Home', 'Recent Auction Sales', 'Card Set Analysis', 'Releases & Guides', 'eBay Item Lookup'].forEach(
+    ['Home', 'Recent Auction Sales', 'Card Set Analysis', 'Calendar', 'Guides'].forEach(
       (label) => {
         expect(within(header).getByRole('link', { name: label })).toBeInTheDocument();
       }
     );
 
-    expect(within(header).getByRole('link', { name: 'Releases & Guides' })).toHaveAttribute(
+    expect(within(header).getByRole('link', { name: 'Guides' })).toHaveAttribute(
       'href',
       '/news'
     );
@@ -99,6 +99,14 @@ describe('application shell', () => {
 });
 
 describe('routing', () => {
+  it('returns old item-lookup links to the homepage', async () => {
+    at('/ebay-bidding');
+    render(<App />);
+    expect(await screen.findByRole('heading', { name: /Less searching/ })).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/');
+    expect(screen.queryByRole('link', { name: 'eBay Item Lookup' })).not.toBeInTheDocument();
+  });
+
   it('renders the home page at /', () => {
     at('/');
 

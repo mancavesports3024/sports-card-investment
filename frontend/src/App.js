@@ -1,9 +1,12 @@
 import React, { useEffect, useState, Suspense, lazy } from 'react';
 import './App.css';
+import './SiteRedesign.css';
+import SiteHeader from './components/SiteHeader';
+import SiteFooter from './components/SiteFooter';
 import HomePage from './components/HomePage';
 import DefaultSeo from './components/DefaultSeo';
 import PrivacyChoices from './components/PrivacyChoices';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import tokenService from './services/tokenService';
 import { isAdminUser } from './config/adminEmails';
 
@@ -12,7 +15,6 @@ const AuthSuccess = lazy(() => import('./components/AuthSuccess'));
 const CardSetAnalysis = lazy(() => import('./components/CardSetAnalysis'));
 const NewsPage = lazy(() => import('./components/NewsPage'));
 const NewsArticlePage = lazy(() => import('./components/NewsArticlePage'));
-const EbayItemLookup = lazy(() => import('./pages/EbayItemLookup'));
 const EbayInventory = lazy(() => import('./pages/EbayInventory'));
 const AdminCardDatabase = lazy(() => import('./components/AdminCardDatabase'));
 const AdminCollections = lazy(() => import('./components/AdminCollections'));
@@ -122,58 +124,17 @@ function App() {
       <div className="App">
         {/* Site-wide SEO baseline; route-level Helmet blocks override it */}
         <DefaultSeo />
-        <PrivacyChoices />
-        {/* Global Header */}
-        <header className="global-header responsive-header">
-          {/* First row: Scorecard title only, centered and larger */}
-          <div className="header-row header-row-top" style={{ justifyContent: 'center' }}>
-            <span className="header-title main-title">Scorecard <span style={{ fontSize: "0.45em", fontWeight: 500 }}>by Man Cave Sports Cards LLC</span></span>
-          </div>
-          {/* Second row: navigation, social left, login/logout right */}
-          <div className="header-row header-row-bottom" style={{ justifyContent: 'space-between' }}>
-            <div className="header-nav-group">
-              <a href="/" className="header-nav-link">Home</a>
-              <a href="/search" className="header-nav-link">Recent Auction Sales</a>
-              <a href="/card-set-analysis" className="header-nav-link">Card Set Analysis</a>
-              <a href="/news" className="header-nav-link">Releases &amp; Guides</a>
-              <a href="/ebay-bidding" className="header-nav-link">eBay Item Lookup</a>
-              {/* Admin-only links */}
-              {isLoggedIn && isAdminUser() && (
-                <>
-                  <a href="/admin/ebay-inventory" className="header-nav-link admin-link">eBay Inventory</a>
-                  <a href="/admin/cards" className="header-nav-link admin-link">🎯 Card Database</a>
-                  <a href="/admin/collections" className="header-nav-link admin-link">📂 Collections</a>
-                  <a href="/admin/releases" className="header-nav-link admin-link">📅 Releases</a>
-                </>
-              )}
-            </div>
-            <div className="header-social-group">
-              <a href="https://x.com/Mancavesportsc1" target="_blank" rel="noopener noreferrer" className="header-social">𝕏</a>
-              <a href="https://www.instagram.com/mancavesportscardllc?igsh=NWoxOHJycGdrYzZk&utm_source=qr" target="_blank" rel="noopener noreferrer" className="header-social">📷</a>
-              <a href="https://www.facebook.com/profile.php?id=100062665574017" target="_blank" rel="noopener noreferrer" className="header-social">📘</a>
-            </div>
-            <div className="header-user-actions">
-              {!isLoggedIn ? (
-                <button onClick={handleLogin} className="header-login-btn">Log in</button>
-              ) : (
-                <span className="header-username">
-                  {user?.displayName || user?.name || ((user?.given_name || user?.givenName) && (user?.family_name || user?.familyName) ? `${user.given_name || user.givenName} ${user.family_name || user.familyName}` : '')}
-                </span>
-              )}
-              {isLoggedIn && (
-                <button onClick={handleLogout} className="header-login-btn">Log out</button>
-              )}
-            </div>
-          </div>
-        </header>
+        <SiteHeader isLoggedIn={isLoggedIn} isAdmin={isLoggedIn && isAdminUser()} user={user} onLogin={handleLogin} onLogout={handleLogout} />
+        <div id="site-content" tabIndex={-1}>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/card-set-analysis" element={<CardSetAnalysis />} />
             <Route path="/news" element={<NewsPage />} />
+            <Route path="/release-calendar" element={<NewsPage />} />
             <Route path="/news/:slug" element={<NewsArticlePage />} />
-            <Route path="/ebay-bidding" element={<EbayItemLookup />} />
+            <Route path="/ebay-bidding" element={<Navigate to="/" replace />} />
             <Route path="/admin/ebay-inventory" element={<EbayInventory />} />
             <Route path="/admin/cards" element={<AdminCardDatabase />} />
             <Route path="/admin/collections" element={<AdminCollections />} />
@@ -185,6 +146,9 @@ function App() {
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
+        </div>
+        <SiteFooter />
+        <PrivacyChoices />
       </div>
     </Router>
   );

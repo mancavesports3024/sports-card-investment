@@ -82,7 +82,7 @@ function ArticleNotFound() {
             textDecoration: 'none',
           }}
         >
-          Browse Releases &amp; Guides
+          Browse Collecting Guides
         </Link>
       </div>
     </div>
@@ -122,7 +122,7 @@ const NewsArticlePage = ({ slug: slugProp }) => {
 
       <nav style={{ marginBottom: '1.5rem' }}>
         <Link to="/news" style={BACK_TO_NEWS_STYLE}>
-          ← Back to Releases &amp; Guides
+          ← Back to Collecting Guides
         </Link>
       </nav>
 
@@ -341,7 +341,7 @@ const NewsArticlePage = ({ slug: slugProp }) => {
 
       <nav style={{ marginTop: '2rem' }}>
         <Link to="/news" style={BACK_TO_NEWS_STYLE}>
-          ← Back to Releases &amp; Guides
+          ← Back to Collecting Guides
         </Link>
       </nav>
     </div>

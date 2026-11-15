@@ -345,7 +345,8 @@ describe('sitemap routes', () => {
     expect(locations).toContain('/search');
     expect(locations).toContain('/card-set-analysis');
     expect(locations).toContain('/news');
-    expect(locations).toContain('/ebay-bidding');
+    expect(locations).not.toContain('/ebay-bidding');
+    expect(locations).toContain('/release-calendar');
   });
 
   it('excludes /history, which has no route in App.js', () => {
@@ -356,7 +357,7 @@ describe('sitemap routes', () => {
     const today = new Date().toISOString().slice(0, 10);
     const routes = buildRoutes([]);
 
-    ['/', '/search', '/card-set-analysis', '/ebay-bidding'].forEach((loc) => {
+    ['/', '/search', '/card-set-analysis', '/release-calendar'].forEach((loc) => {
       const route = routes.find((r) => r.loc === loc);
       expect(route.lastmod).toBeUndefined();
     });

@@ -43,7 +43,7 @@ const STATIC_ROUTES = [
   { loc: '/search', changefreq: 'daily', priority: '0.9' },
   { loc: '/card-set-analysis', changefreq: 'weekly', priority: '0.8' },
   { loc: '/news', changefreq: 'weekly', priority: '0.8', lastmodFrom: 'newestArticle' },
-  { loc: '/ebay-bidding', changefreq: 'weekly', priority: '0.6' },
+  { loc: '/release-calendar', changefreq: 'weekly', priority: '0.8' },
 ];
 
 const escapeXml = (value) =>
