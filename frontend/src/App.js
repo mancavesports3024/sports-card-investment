@@ -13,6 +13,7 @@ const CardSetAnalysis = lazy(() => import('./components/CardSetAnalysis'));
 const NewsPage = lazy(() => import('./components/NewsPage'));
 const NewsArticlePage = lazy(() => import('./components/NewsArticlePage'));
 const EbayItemLookup = lazy(() => import('./pages/EbayItemLookup'));
+const EbayInventory = lazy(() => import('./pages/EbayInventory'));
 const AdminCardDatabase = lazy(() => import('./components/AdminCardDatabase'));
 const AdminCollections = lazy(() => import('./components/AdminCollections'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
@@ -138,6 +139,7 @@ function App() {
               {/* Admin-only links */}
               {isLoggedIn && isAdminUser() && (
                 <>
+                  <a href="/admin/ebay-inventory" className="header-nav-link admin-link">eBay Inventory</a>
                   <a href="/admin/cards" className="header-nav-link admin-link">🎯 Card Database</a>
                   <a href="/admin/collections" className="header-nav-link admin-link">📂 Collections</a>
                 </>
@@ -170,6 +172,7 @@ function App() {
             <Route path="/news" element={<NewsPage />} />
             <Route path="/news/:slug" element={<NewsArticlePage />} />
             <Route path="/ebay-bidding" element={<EbayItemLookup />} />
+            <Route path="/admin/ebay-inventory" element={<EbayInventory />} />
             <Route path="/admin/cards" element={<AdminCardDatabase />} />
             <Route path="/admin/collections" element={<AdminCollections />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />

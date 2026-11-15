@@ -3,10 +3,20 @@
 //   GET /api/internal/ebay-pull-list[?lookbackDays=1..730]
 //   GET /api/internal/ebay-money[?days=1..90]
 //   GET /api/internal/ebay-demand?q=<query>[&limit=1..50]   (application token, not the seller token)
-//   POST /api/internal/ebay-send-thanks {"orderId": "...", "test": true}   (one order; the only write endpoint)
+//   POST /api/internal/ebay-send-thanks {"orderId": "...", "test": true}   (one order; buyer-message write)
+//   GET  /api/internal/ebay-stock?itemId=<id>[&q=<card number or name>]   (live Trading GetItem)
+//   GET  /api/internal/ebay-find-player?name=<player>                     (stored index only)
+//   GET  /api/internal/ebay-stock-refresh                                 (index status)
+//   POST /api/internal/ebay-stock-refresh                                 (rebuilds the stored index)
+//   POST /api/internal/ebay-set-price {itemId, cardNumber, newPrice[, card][, expectedOldPrice, confirm: true]}
+//        (the only eBay listing write; preview unless confirm; only with Carl's approval of the exact change)
+//   GET  /api/internal/ebay-price-changes[?limit=1..200][&itemId=<id>]
 const crypto = require('crypto');
 const express = require('express');
 const { createEbaySellerClient } = require('../services/ebaySellerClient');
+const { createTradingClient } = require('../services/ebayTradingClient');
+const { createStockStore } = require('../services/ebayStockStore');
+const { mountStockRoutes } = require('./ebayStockRoutes');
 const { sendThanks, validOrderId, ThanksError } = require('../services/ebayBuyerThanks');
 const { createThanksStore, StoreUnavailableError } = require('../services/ebayThanksStore');
 const { buildPullList, boundedLookbackDays, MAX_LOOKBACK_DAYS } = require('../services/ebayPullList');
@@ -61,6 +71,8 @@ function createEbayInternalRouter({
   client = createEbaySellerClient({ env }),
   appClient = createEbaySellerClient({ env, grantType: 'client_credentials' }),
   thanksStore = createThanksStore({ env }),
+  trading = createTradingClient({ sellerClient: client }),
+  stockStore = createStockStore({ env }),
   now = () => Date.now(),
   log = console.warn
 } = {}) {
@@ -118,8 +130,10 @@ function createEbayInternalRouter({
     }
   });
 
+  mountStockRoutes(router, { trading, store: stockStore, actor: () => 'internal-api', sendProviderError, now, log });
+
   router.use((req, res) => res.status(404).json({ error: 'NOT_FOUND' }));
   return router;
 }
 
-module.exports = { createEbayInternalRouter, requireCronSecret };
+module.exports = { createEbayInternalRouter, requireCronSecret, sendProviderError };
