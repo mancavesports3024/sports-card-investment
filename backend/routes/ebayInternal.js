@@ -11,12 +11,16 @@
 //   POST /api/internal/ebay-set-price {itemId, cardNumber, newPrice[, card][, expectedOldPrice, confirm: true]}
 //        (the only eBay listing write; preview unless confirm; only with Carl's approval of the exact change)
 //   GET  /api/internal/ebay-price-changes[?limit=1..200][&itemId=<id>]
+//   GET  /api/internal/ebay-purchases[?days=1..90][&refresh=1]   (Trading GetOrders Buyer; read-only)
+//   GET  /api/internal/ebay-shipments[?days=1..90][&refresh=1]   (Fulfillment or Trading Seller; read-only)
 const crypto = require('crypto');
 const express = require('express');
 const { createEbaySellerClient } = require('../services/ebaySellerClient');
 const { createTradingClient } = require('../services/ebayTradingClient');
 const { createStockStore } = require('../services/ebayStockStore');
+const { createDeliveryResolver } = require('../services/ebayDeliveryState');
 const { mountStockRoutes } = require('./ebayStockRoutes');
+const { mountBoardRoutes } = require('./ebayBoardRoutes');
 const { sendThanks, validOrderId, ThanksError } = require('../services/ebayBuyerThanks');
 const { createThanksStore, StoreUnavailableError } = require('../services/ebayThanksStore');
 const { buildPullList, boundedLookbackDays, MAX_LOOKBACK_DAYS } = require('../services/ebayPullList');
@@ -73,10 +77,12 @@ function createEbayInternalRouter({
   thanksStore = createThanksStore({ env }),
   trading = createTradingClient({ sellerClient: client }),
   stockStore = createStockStore({ env }),
+  delivery = null,
   now = () => Date.now(),
   log = console.warn
 } = {}) {
   const demand = createDemandService({ client: appClient, now });
+  const deliveryResolver = delivery || createDeliveryResolver({ env, now });
   const router = express.Router();
   router.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
   router.use(requireCronSecret(env));
@@ -131,6 +137,7 @@ function createEbayInternalRouter({
   });
 
   mountStockRoutes(router, { trading, store: stockStore, actor: () => 'internal-api', sendProviderError, now, log });
+  mountBoardRoutes(router, { client, delivery: deliveryResolver, sendProviderError, now, log });
 
   router.use((req, res) => res.status(404).json({ error: 'NOT_FOUND' }));
   return router;

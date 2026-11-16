@@ -22,6 +22,7 @@ export default function SiteHeader({ isLoggedIn, isAdmin, user, onLogin, onLogou
       <div className="sc-public-links">{links.map(([to, label]) => <NavLink end={to === '/'} key={to} to={to}>{label}</NavLink>)}</div>
       {isAdmin && <details className="sc-staff" key={location.pathname}><summary>Staff tools</summary><div className="sc-staff-menu">
         <Link to="/admin/ebay-inventory">eBay Inventory <small>Find players, check stock & prices</small></Link>
+        <Link to="/admin/ebay-shipments">Purchases & Shipments <small>Bought and sold tracking</small></Link>
         <Link to="/admin/cards">Card Database</Link><Link to="/admin/collections">Collections</Link><Link to="/admin/releases">Manage Releases</Link>
       </div></details>}
     </nav>

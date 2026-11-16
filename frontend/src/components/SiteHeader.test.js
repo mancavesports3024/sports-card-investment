@@ -8,6 +8,7 @@ test('staff tools retain inventory and management destinations', () => {
   const staff = screen.getByText('Staff tools').closest('details');
   fireEvent.click(screen.getByText('Staff tools'));
   expect(within(staff).getByRole('link', { name: /eBay Inventory/ })).toHaveAttribute('href', '/admin/ebay-inventory');
+  expect(within(staff).getByRole('link', { name: /Purchases & Shipments/ })).toHaveAttribute('href', '/admin/ebay-shipments');
   expect(within(staff).getByRole('link', { name: 'Manage Releases' })).toHaveAttribute('href', '/admin/releases');
 });
 test('signed-in non-staff users do not receive staff links', () => {
