@@ -16,6 +16,7 @@ const CardSetAnalysis = lazy(() => import('./components/CardSetAnalysis'));
 const NewsPage = lazy(() => import('./components/NewsPage'));
 const NewsArticlePage = lazy(() => import('./components/NewsArticlePage'));
 const EbayInventory = lazy(() => import('./pages/EbayInventory'));
+const EbayPurchasesShipments = lazy(() => import('./pages/EbayPurchasesShipments'));
 const AdminCardDatabase = lazy(() => import('./components/AdminCardDatabase'));
 const AdminCollections = lazy(() => import('./components/AdminCollections'));
 const AdminReleases = lazy(() => import('./components/AdminReleases'));
@@ -136,6 +137,7 @@ function App() {
             <Route path="/news/:slug" element={<NewsArticlePage />} />
             <Route path="/ebay-bidding" element={<Navigate to="/" replace />} />
             <Route path="/admin/ebay-inventory" element={<EbayInventory />} />
+            <Route path="/admin/ebay-shipments" element={<EbayPurchasesShipments />} />
             <Route path="/admin/cards" element={<AdminCardDatabase />} />
             <Route path="/admin/collections" element={<AdminCollections />} />
             <Route path="/admin/releases" element={<AdminReleases />} />
